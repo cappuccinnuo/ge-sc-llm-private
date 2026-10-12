@@ -1,0 +1,2724 @@
+{
+  "status": "passed",
+  "hardware_before": {
+    "utc": "2026-10-12T13:34:45.590130+00:00",
+    "torch": "1.8.1+cu111",
+    "torch_cuda": "11.1",
+    "cuda_available": true,
+    "nvidia_smi": {
+      "exit_code": 0,
+      "output": "NVIDIA GeForce RTX 3050 Laptop GPU, 4096 MiB, 3451 MiB, 525 MiB, 527.99\n"
+    },
+    "host_meminfo": [
+      "MemTotal:        8054428 kB",
+      "MemFree:         3575568 kB",
+      "MemAvailable:    7023664 kB",
+      "Buffers:           41664 kB",
+      "Cached:          3504024 kB"
+    ]
+  },
+  "device": "cuda:0",
+  "task": "node",
+  "prepared": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared",
+  "steps": {
+    "E0": {
+      "memory": {
+        "device": "cuda:0",
+        "cuda": true,
+        "allocated_bytes": 143441920,
+        "reserved_bytes": 1526726656,
+        "peak_allocated_bytes": 1405466624,
+        "peak_reserved_bytes": 1526726656
+      },
+      "train_loss": 0.6991831064224243,
+      "gradient": {
+        "backbone_gradient_l1": 160.80988888674605,
+        "classifier_gradient_l1": 8.653581455349922,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients."
+      }
+    },
+    "E1": {
+      "memory": {
+        "device": "cuda:0",
+        "cuda": true,
+        "allocated_bytes": 168356864,
+        "reserved_bytes": 1721761792,
+        "peak_allocated_bytes": 1610806272,
+        "peak_reserved_bytes": 1721761792
+      },
+      "train_loss": 0.6991463303565979,
+      "gradient": {
+        "backbone_gradient_l1": 160.76478266967,
+        "classifier_gradient_l1": 8.652123346924782,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 9,
+            "val_edges": 4,
+            "message_gradient_l1": 0.007033044123090804,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 2,
+            "val_edges": 2,
+            "message_gradient_l1": 0.0009639095806051046,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 25,
+            "val_edges": 0,
+            "message_gradient_l1": 0.003929578117094934,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0004300705622881651,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 720,
+            "val_edges": 142,
+            "message_gradient_l1": 0.1957917995750904,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 60,
+            "val_edges": 5,
+            "message_gradient_l1": 0.01946001360192895,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 120,
+            "val_edges": 24,
+            "message_gradient_l1": 0.06925140134990215,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 63,
+            "val_edges": 11,
+            "message_gradient_l1": 0.08792845066636801,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 239,
+            "val_edges": 44,
+            "message_gradient_l1": 0.09068594686686993,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 126,
+            "val_edges": 14,
+            "message_gradient_l1": 0.06165160611271858,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 25,
+            "val_edges": 6,
+            "message_gradient_l1": 0.008179114200174809,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 57,
+            "val_edges": 12,
+            "message_gradient_l1": 0.04195621330291033,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1447,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients."
+      }
+    }
+  },
+  "prepared_manifest_sha256": "4ce2108569f003778f7d8f4d11ada89c6ead9d5fe759c394a86d92d9229aeb07",
+  "split_sha256": "63f2edaacca7064a35cec23d6c5cad6b1ad0d32d50d07d62b4ea307f38a0bb0d",
+  "E0_parameters": {
+    "total": 4371010,
+    "trainable": 4371010,
+    "shapes": {
+      "gcs.0.relation_pri": [
+        146,
+        8
+      ],
+      "gcs.0.relation_att": [
+        146,
+        8,
+        16,
+        16
+      ],
+      "gcs.0.relation_msg": [
+        146,
+        8,
+        16,
+        16
+      ],
+      "gcs.0.skip": [
+        16
+      ],
+      "gcs.0.k_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.0.bias": [
+        128
+      ],
+      "gcs.0.k_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.1.bias": [
+        128
+      ],
+      "gcs.0.k_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.2.bias": [
+        128
+      ],
+      "gcs.0.k_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.3.bias": [
+        128
+      ],
+      "gcs.0.k_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.4.bias": [
+        128
+      ],
+      "gcs.0.k_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.5.bias": [
+        128
+      ],
+      "gcs.0.k_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.6.bias": [
+        128
+      ],
+      "gcs.0.k_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.7.bias": [
+        128
+      ],
+      "gcs.0.k_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.8.bias": [
+        128
+      ],
+      "gcs.0.k_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.9.bias": [
+        128
+      ],
+      "gcs.0.k_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.10.bias": [
+        128
+      ],
+      "gcs.0.k_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.11.bias": [
+        128
+      ],
+      "gcs.0.k_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.12.bias": [
+        128
+      ],
+      "gcs.0.k_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.13.bias": [
+        128
+      ],
+      "gcs.0.k_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.14.bias": [
+        128
+      ],
+      "gcs.0.k_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.15.bias": [
+        128
+      ],
+      "gcs.0.q_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.0.bias": [
+        128
+      ],
+      "gcs.0.q_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.1.bias": [
+        128
+      ],
+      "gcs.0.q_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.2.bias": [
+        128
+      ],
+      "gcs.0.q_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.3.bias": [
+        128
+      ],
+      "gcs.0.q_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.4.bias": [
+        128
+      ],
+      "gcs.0.q_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.5.bias": [
+        128
+      ],
+      "gcs.0.q_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.6.bias": [
+        128
+      ],
+      "gcs.0.q_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.7.bias": [
+        128
+      ],
+      "gcs.0.q_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.8.bias": [
+        128
+      ],
+      "gcs.0.q_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.9.bias": [
+        128
+      ],
+      "gcs.0.q_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.10.bias": [
+        128
+      ],
+      "gcs.0.q_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.11.bias": [
+        128
+      ],
+      "gcs.0.q_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.12.bias": [
+        128
+      ],
+      "gcs.0.q_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.13.bias": [
+        128
+      ],
+      "gcs.0.q_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.14.bias": [
+        128
+      ],
+      "gcs.0.q_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.15.bias": [
+        128
+      ],
+      "gcs.0.v_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.0.bias": [
+        128
+      ],
+      "gcs.0.v_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.1.bias": [
+        128
+      ],
+      "gcs.0.v_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.2.bias": [
+        128
+      ],
+      "gcs.0.v_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.3.bias": [
+        128
+      ],
+      "gcs.0.v_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.4.bias": [
+        128
+      ],
+      "gcs.0.v_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.5.bias": [
+        128
+      ],
+      "gcs.0.v_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.6.bias": [
+        128
+      ],
+      "gcs.0.v_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.7.bias": [
+        128
+      ],
+      "gcs.0.v_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.8.bias": [
+        128
+      ],
+      "gcs.0.v_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.9.bias": [
+        128
+      ],
+      "gcs.0.v_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.10.bias": [
+        128
+      ],
+      "gcs.0.v_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.11.bias": [
+        128
+      ],
+      "gcs.0.v_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.12.bias": [
+        128
+      ],
+      "gcs.0.v_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.13.bias": [
+        128
+      ],
+      "gcs.0.v_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.14.bias": [
+        128
+      ],
+      "gcs.0.v_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.15.bias": [
+        128
+      ],
+      "gcs.0.a_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.0.bias": [
+        128
+      ],
+      "gcs.0.a_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.1.bias": [
+        128
+      ],
+      "gcs.0.a_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.2.bias": [
+        128
+      ],
+      "gcs.0.a_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.3.bias": [
+        128
+      ],
+      "gcs.0.a_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.4.bias": [
+        128
+      ],
+      "gcs.0.a_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.5.bias": [
+        128
+      ],
+      "gcs.0.a_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.6.bias": [
+        128
+      ],
+      "gcs.0.a_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.7.bias": [
+        128
+      ],
+      "gcs.0.a_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.8.bias": [
+        128
+      ],
+      "gcs.0.a_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.9.bias": [
+        128
+      ],
+      "gcs.0.a_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.10.bias": [
+        128
+      ],
+      "gcs.0.a_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.11.bias": [
+        128
+      ],
+      "gcs.0.a_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.12.bias": [
+        128
+      ],
+      "gcs.0.a_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.13.bias": [
+        128
+      ],
+      "gcs.0.a_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.14.bias": [
+        128
+      ],
+      "gcs.0.a_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.15.bias": [
+        128
+      ],
+      "gcs.0.norms.0.weight": [
+        128
+      ],
+      "gcs.0.norms.0.bias": [
+        128
+      ],
+      "gcs.0.norms.1.weight": [
+        128
+      ],
+      "gcs.0.norms.1.bias": [
+        128
+      ],
+      "gcs.0.norms.2.weight": [
+        128
+      ],
+      "gcs.0.norms.2.bias": [
+        128
+      ],
+      "gcs.0.norms.3.weight": [
+        128
+      ],
+      "gcs.0.norms.3.bias": [
+        128
+      ],
+      "gcs.0.norms.4.weight": [
+        128
+      ],
+      "gcs.0.norms.4.bias": [
+        128
+      ],
+      "gcs.0.norms.5.weight": [
+        128
+      ],
+      "gcs.0.norms.5.bias": [
+        128
+      ],
+      "gcs.0.norms.6.weight": [
+        128
+      ],
+      "gcs.0.norms.6.bias": [
+        128
+      ],
+      "gcs.0.norms.7.weight": [
+        128
+      ],
+      "gcs.0.norms.7.bias": [
+        128
+      ],
+      "gcs.0.norms.8.weight": [
+        128
+      ],
+      "gcs.0.norms.8.bias": [
+        128
+      ],
+      "gcs.0.norms.9.weight": [
+        128
+      ],
+      "gcs.0.norms.9.bias": [
+        128
+      ],
+      "gcs.0.norms.10.weight": [
+        128
+      ],
+      "gcs.0.norms.10.bias": [
+        128
+      ],
+      "gcs.0.norms.11.weight": [
+        128
+      ],
+      "gcs.0.norms.11.bias": [
+        128
+      ],
+      "gcs.0.norms.12.weight": [
+        128
+      ],
+      "gcs.0.norms.12.bias": [
+        128
+      ],
+      "gcs.0.norms.13.weight": [
+        128
+      ],
+      "gcs.0.norms.13.bias": [
+        128
+      ],
+      "gcs.0.norms.14.weight": [
+        128
+      ],
+      "gcs.0.norms.14.bias": [
+        128
+      ],
+      "gcs.0.norms.15.weight": [
+        128
+      ],
+      "gcs.0.norms.15.bias": [
+        128
+      ],
+      "gcs.1.relation_pri": [
+        146,
+        8
+      ],
+      "gcs.1.relation_att": [
+        146,
+        8,
+        16,
+        16
+      ],
+      "gcs.1.relation_msg": [
+        146,
+        8,
+        16,
+        16
+      ],
+      "gcs.1.skip": [
+        16
+      ],
+      "gcs.1.k_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.0.bias": [
+        128
+      ],
+      "gcs.1.k_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.1.bias": [
+        128
+      ],
+      "gcs.1.k_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.2.bias": [
+        128
+      ],
+      "gcs.1.k_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.3.bias": [
+        128
+      ],
+      "gcs.1.k_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.4.bias": [
+        128
+      ],
+      "gcs.1.k_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.5.bias": [
+        128
+      ],
+      "gcs.1.k_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.6.bias": [
+        128
+      ],
+      "gcs.1.k_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.7.bias": [
+        128
+      ],
+      "gcs.1.k_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.8.bias": [
+        128
+      ],
+      "gcs.1.k_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.9.bias": [
+        128
+      ],
+      "gcs.1.k_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.10.bias": [
+        128
+      ],
+      "gcs.1.k_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.11.bias": [
+        128
+      ],
+      "gcs.1.k_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.12.bias": [
+        128
+      ],
+      "gcs.1.k_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.13.bias": [
+        128
+      ],
+      "gcs.1.k_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.14.bias": [
+        128
+      ],
+      "gcs.1.k_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.15.bias": [
+        128
+      ],
+      "gcs.1.q_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.0.bias": [
+        128
+      ],
+      "gcs.1.q_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.1.bias": [
+        128
+      ],
+      "gcs.1.q_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.2.bias": [
+        128
+      ],
+      "gcs.1.q_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.3.bias": [
+        128
+      ],
+      "gcs.1.q_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.4.bias": [
+        128
+      ],
+      "gcs.1.q_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.5.bias": [
+        128
+      ],
+      "gcs.1.q_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.6.bias": [
+        128
+      ],
+      "gcs.1.q_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.7.bias": [
+        128
+      ],
+      "gcs.1.q_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.8.bias": [
+        128
+      ],
+      "gcs.1.q_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.9.bias": [
+        128
+      ],
+      "gcs.1.q_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.10.bias": [
+        128
+      ],
+      "gcs.1.q_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.11.bias": [
+        128
+      ],
+      "gcs.1.q_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.12.bias": [
+        128
+      ],
+      "gcs.1.q_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.13.bias": [
+        128
+      ],
+      "gcs.1.q_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.14.bias": [
+        128
+      ],
+      "gcs.1.q_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.15.bias": [
+        128
+      ],
+      "gcs.1.v_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.0.bias": [
+        128
+      ],
+      "gcs.1.v_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.1.bias": [
+        128
+      ],
+      "gcs.1.v_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.2.bias": [
+        128
+      ],
+      "gcs.1.v_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.3.bias": [
+        128
+      ],
+      "gcs.1.v_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.4.bias": [
+        128
+      ],
+      "gcs.1.v_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.5.bias": [
+        128
+      ],
+      "gcs.1.v_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.6.bias": [
+        128
+      ],
+      "gcs.1.v_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.7.bias": [
+        128
+      ],
+      "gcs.1.v_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.8.bias": [
+        128
+      ],
+      "gcs.1.v_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.9.bias": [
+        128
+      ],
+      "gcs.1.v_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.10.bias": [
+        128
+      ],
+      "gcs.1.v_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.11.bias": [
+        128
+      ],
+      "gcs.1.v_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.12.bias": [
+        128
+      ],
+      "gcs.1.v_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.13.bias": [
+        128
+      ],
+      "gcs.1.v_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.14.bias": [
+        128
+      ],
+      "gcs.1.v_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.15.bias": [
+        128
+      ],
+      "gcs.1.a_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.0.bias": [
+        128
+      ],
+      "gcs.1.a_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.1.bias": [
+        128
+      ],
+      "gcs.1.a_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.2.bias": [
+        128
+      ],
+      "gcs.1.a_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.3.bias": [
+        128
+      ],
+      "gcs.1.a_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.4.bias": [
+        128
+      ],
+      "gcs.1.a_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.5.bias": [
+        128
+      ],
+      "gcs.1.a_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.6.bias": [
+        128
+      ],
+      "gcs.1.a_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.7.bias": [
+        128
+      ],
+      "gcs.1.a_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.8.bias": [
+        128
+      ],
+      "gcs.1.a_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.9.bias": [
+        128
+      ],
+      "gcs.1.a_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.10.bias": [
+        128
+      ],
+      "gcs.1.a_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.11.bias": [
+        128
+      ],
+      "gcs.1.a_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.12.bias": [
+        128
+      ],
+      "gcs.1.a_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.13.bias": [
+        128
+      ],
+      "gcs.1.a_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.14.bias": [
+        128
+      ],
+      "gcs.1.a_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.15.bias": [
+        128
+      ],
+      "gcs.1.norms.0.weight": [
+        128
+      ],
+      "gcs.1.norms.0.bias": [
+        128
+      ],
+      "gcs.1.norms.1.weight": [
+        128
+      ],
+      "gcs.1.norms.1.bias": [
+        128
+      ],
+      "gcs.1.norms.2.weight": [
+        128
+      ],
+      "gcs.1.norms.2.bias": [
+        128
+      ],
+      "gcs.1.norms.3.weight": [
+        128
+      ],
+      "gcs.1.norms.3.bias": [
+        128
+      ],
+      "gcs.1.norms.4.weight": [
+        128
+      ],
+      "gcs.1.norms.4.bias": [
+        128
+      ],
+      "gcs.1.norms.5.weight": [
+        128
+      ],
+      "gcs.1.norms.5.bias": [
+        128
+      ],
+      "gcs.1.norms.6.weight": [
+        128
+      ],
+      "gcs.1.norms.6.bias": [
+        128
+      ],
+      "gcs.1.norms.7.weight": [
+        128
+      ],
+      "gcs.1.norms.7.bias": [
+        128
+      ],
+      "gcs.1.norms.8.weight": [
+        128
+      ],
+      "gcs.1.norms.8.bias": [
+        128
+      ],
+      "gcs.1.norms.9.weight": [
+        128
+      ],
+      "gcs.1.norms.9.bias": [
+        128
+      ],
+      "gcs.1.norms.10.weight": [
+        128
+      ],
+      "gcs.1.norms.10.bias": [
+        128
+      ],
+      "gcs.1.norms.11.weight": [
+        128
+      ],
+      "gcs.1.norms.11.bias": [
+        128
+      ],
+      "gcs.1.norms.12.weight": [
+        128
+      ],
+      "gcs.1.norms.12.bias": [
+        128
+      ],
+      "gcs.1.norms.13.weight": [
+        128
+      ],
+      "gcs.1.norms.13.bias": [
+        128
+      ],
+      "gcs.1.norms.14.weight": [
+        128
+      ],
+      "gcs.1.norms.14.bias": [
+        128
+      ],
+      "gcs.1.norms.15.weight": [
+        128
+      ],
+      "gcs.1.norms.15.bias": [
+        128
+      ],
+      "adapt_ws.0.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.0.bias": [
+        128
+      ],
+      "adapt_ws.1.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.1.bias": [
+        128
+      ],
+      "adapt_ws.2.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.2.bias": [
+        128
+      ],
+      "adapt_ws.3.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.3.bias": [
+        128
+      ],
+      "adapt_ws.4.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.4.bias": [
+        128
+      ],
+      "adapt_ws.5.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.5.bias": [
+        128
+      ],
+      "adapt_ws.6.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.6.bias": [
+        128
+      ],
+      "adapt_ws.7.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.7.bias": [
+        128
+      ],
+      "adapt_ws.8.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.8.bias": [
+        128
+      ],
+      "adapt_ws.9.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.9.bias": [
+        128
+      ],
+      "adapt_ws.10.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.10.bias": [
+        128
+      ],
+      "adapt_ws.11.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.11.bias": [
+        128
+      ],
+      "adapt_ws.12.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.12.bias": [
+        128
+      ],
+      "adapt_ws.13.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.13.bias": [
+        128
+      ],
+      "adapt_ws.14.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.14.bias": [
+        128
+      ],
+      "adapt_ws.15.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.15.bias": [
+        128
+      ],
+      "classify.weight": [
+        2,
+        128
+      ],
+      "classify.bias": [
+        2
+      ]
+    }
+  },
+  "E1_parameters": {
+    "total": 4469506,
+    "trainable": 4469506,
+    "shapes": {
+      "gcs.0.relation_pri": [
+        158,
+        8
+      ],
+      "gcs.0.relation_att": [
+        158,
+        8,
+        16,
+        16
+      ],
+      "gcs.0.relation_msg": [
+        158,
+        8,
+        16,
+        16
+      ],
+      "gcs.0.skip": [
+        16
+      ],
+      "gcs.0.k_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.0.bias": [
+        128
+      ],
+      "gcs.0.k_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.1.bias": [
+        128
+      ],
+      "gcs.0.k_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.2.bias": [
+        128
+      ],
+      "gcs.0.k_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.3.bias": [
+        128
+      ],
+      "gcs.0.k_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.4.bias": [
+        128
+      ],
+      "gcs.0.k_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.5.bias": [
+        128
+      ],
+      "gcs.0.k_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.6.bias": [
+        128
+      ],
+      "gcs.0.k_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.7.bias": [
+        128
+      ],
+      "gcs.0.k_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.8.bias": [
+        128
+      ],
+      "gcs.0.k_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.9.bias": [
+        128
+      ],
+      "gcs.0.k_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.10.bias": [
+        128
+      ],
+      "gcs.0.k_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.11.bias": [
+        128
+      ],
+      "gcs.0.k_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.12.bias": [
+        128
+      ],
+      "gcs.0.k_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.13.bias": [
+        128
+      ],
+      "gcs.0.k_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.14.bias": [
+        128
+      ],
+      "gcs.0.k_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.0.k_linears.15.bias": [
+        128
+      ],
+      "gcs.0.q_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.0.bias": [
+        128
+      ],
+      "gcs.0.q_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.1.bias": [
+        128
+      ],
+      "gcs.0.q_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.2.bias": [
+        128
+      ],
+      "gcs.0.q_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.3.bias": [
+        128
+      ],
+      "gcs.0.q_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.4.bias": [
+        128
+      ],
+      "gcs.0.q_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.5.bias": [
+        128
+      ],
+      "gcs.0.q_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.6.bias": [
+        128
+      ],
+      "gcs.0.q_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.7.bias": [
+        128
+      ],
+      "gcs.0.q_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.8.bias": [
+        128
+      ],
+      "gcs.0.q_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.9.bias": [
+        128
+      ],
+      "gcs.0.q_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.10.bias": [
+        128
+      ],
+      "gcs.0.q_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.11.bias": [
+        128
+      ],
+      "gcs.0.q_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.12.bias": [
+        128
+      ],
+      "gcs.0.q_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.13.bias": [
+        128
+      ],
+      "gcs.0.q_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.14.bias": [
+        128
+      ],
+      "gcs.0.q_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.0.q_linears.15.bias": [
+        128
+      ],
+      "gcs.0.v_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.0.bias": [
+        128
+      ],
+      "gcs.0.v_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.1.bias": [
+        128
+      ],
+      "gcs.0.v_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.2.bias": [
+        128
+      ],
+      "gcs.0.v_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.3.bias": [
+        128
+      ],
+      "gcs.0.v_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.4.bias": [
+        128
+      ],
+      "gcs.0.v_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.5.bias": [
+        128
+      ],
+      "gcs.0.v_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.6.bias": [
+        128
+      ],
+      "gcs.0.v_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.7.bias": [
+        128
+      ],
+      "gcs.0.v_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.8.bias": [
+        128
+      ],
+      "gcs.0.v_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.9.bias": [
+        128
+      ],
+      "gcs.0.v_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.10.bias": [
+        128
+      ],
+      "gcs.0.v_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.11.bias": [
+        128
+      ],
+      "gcs.0.v_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.12.bias": [
+        128
+      ],
+      "gcs.0.v_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.13.bias": [
+        128
+      ],
+      "gcs.0.v_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.14.bias": [
+        128
+      ],
+      "gcs.0.v_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.0.v_linears.15.bias": [
+        128
+      ],
+      "gcs.0.a_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.0.bias": [
+        128
+      ],
+      "gcs.0.a_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.1.bias": [
+        128
+      ],
+      "gcs.0.a_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.2.bias": [
+        128
+      ],
+      "gcs.0.a_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.3.bias": [
+        128
+      ],
+      "gcs.0.a_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.4.bias": [
+        128
+      ],
+      "gcs.0.a_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.5.bias": [
+        128
+      ],
+      "gcs.0.a_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.6.bias": [
+        128
+      ],
+      "gcs.0.a_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.7.bias": [
+        128
+      ],
+      "gcs.0.a_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.8.bias": [
+        128
+      ],
+      "gcs.0.a_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.9.bias": [
+        128
+      ],
+      "gcs.0.a_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.10.bias": [
+        128
+      ],
+      "gcs.0.a_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.11.bias": [
+        128
+      ],
+      "gcs.0.a_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.12.bias": [
+        128
+      ],
+      "gcs.0.a_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.13.bias": [
+        128
+      ],
+      "gcs.0.a_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.14.bias": [
+        128
+      ],
+      "gcs.0.a_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.0.a_linears.15.bias": [
+        128
+      ],
+      "gcs.0.norms.0.weight": [
+        128
+      ],
+      "gcs.0.norms.0.bias": [
+        128
+      ],
+      "gcs.0.norms.1.weight": [
+        128
+      ],
+      "gcs.0.norms.1.bias": [
+        128
+      ],
+      "gcs.0.norms.2.weight": [
+        128
+      ],
+      "gcs.0.norms.2.bias": [
+        128
+      ],
+      "gcs.0.norms.3.weight": [
+        128
+      ],
+      "gcs.0.norms.3.bias": [
+        128
+      ],
+      "gcs.0.norms.4.weight": [
+        128
+      ],
+      "gcs.0.norms.4.bias": [
+        128
+      ],
+      "gcs.0.norms.5.weight": [
+        128
+      ],
+      "gcs.0.norms.5.bias": [
+        128
+      ],
+      "gcs.0.norms.6.weight": [
+        128
+      ],
+      "gcs.0.norms.6.bias": [
+        128
+      ],
+      "gcs.0.norms.7.weight": [
+        128
+      ],
+      "gcs.0.norms.7.bias": [
+        128
+      ],
+      "gcs.0.norms.8.weight": [
+        128
+      ],
+      "gcs.0.norms.8.bias": [
+        128
+      ],
+      "gcs.0.norms.9.weight": [
+        128
+      ],
+      "gcs.0.norms.9.bias": [
+        128
+      ],
+      "gcs.0.norms.10.weight": [
+        128
+      ],
+      "gcs.0.norms.10.bias": [
+        128
+      ],
+      "gcs.0.norms.11.weight": [
+        128
+      ],
+      "gcs.0.norms.11.bias": [
+        128
+      ],
+      "gcs.0.norms.12.weight": [
+        128
+      ],
+      "gcs.0.norms.12.bias": [
+        128
+      ],
+      "gcs.0.norms.13.weight": [
+        128
+      ],
+      "gcs.0.norms.13.bias": [
+        128
+      ],
+      "gcs.0.norms.14.weight": [
+        128
+      ],
+      "gcs.0.norms.14.bias": [
+        128
+      ],
+      "gcs.0.norms.15.weight": [
+        128
+      ],
+      "gcs.0.norms.15.bias": [
+        128
+      ],
+      "gcs.1.relation_pri": [
+        158,
+        8
+      ],
+      "gcs.1.relation_att": [
+        158,
+        8,
+        16,
+        16
+      ],
+      "gcs.1.relation_msg": [
+        158,
+        8,
+        16,
+        16
+      ],
+      "gcs.1.skip": [
+        16
+      ],
+      "gcs.1.k_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.0.bias": [
+        128
+      ],
+      "gcs.1.k_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.1.bias": [
+        128
+      ],
+      "gcs.1.k_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.2.bias": [
+        128
+      ],
+      "gcs.1.k_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.3.bias": [
+        128
+      ],
+      "gcs.1.k_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.4.bias": [
+        128
+      ],
+      "gcs.1.k_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.5.bias": [
+        128
+      ],
+      "gcs.1.k_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.6.bias": [
+        128
+      ],
+      "gcs.1.k_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.7.bias": [
+        128
+      ],
+      "gcs.1.k_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.8.bias": [
+        128
+      ],
+      "gcs.1.k_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.9.bias": [
+        128
+      ],
+      "gcs.1.k_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.10.bias": [
+        128
+      ],
+      "gcs.1.k_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.11.bias": [
+        128
+      ],
+      "gcs.1.k_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.12.bias": [
+        128
+      ],
+      "gcs.1.k_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.13.bias": [
+        128
+      ],
+      "gcs.1.k_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.14.bias": [
+        128
+      ],
+      "gcs.1.k_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.1.k_linears.15.bias": [
+        128
+      ],
+      "gcs.1.q_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.0.bias": [
+        128
+      ],
+      "gcs.1.q_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.1.bias": [
+        128
+      ],
+      "gcs.1.q_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.2.bias": [
+        128
+      ],
+      "gcs.1.q_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.3.bias": [
+        128
+      ],
+      "gcs.1.q_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.4.bias": [
+        128
+      ],
+      "gcs.1.q_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.5.bias": [
+        128
+      ],
+      "gcs.1.q_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.6.bias": [
+        128
+      ],
+      "gcs.1.q_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.7.bias": [
+        128
+      ],
+      "gcs.1.q_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.8.bias": [
+        128
+      ],
+      "gcs.1.q_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.9.bias": [
+        128
+      ],
+      "gcs.1.q_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.10.bias": [
+        128
+      ],
+      "gcs.1.q_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.11.bias": [
+        128
+      ],
+      "gcs.1.q_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.12.bias": [
+        128
+      ],
+      "gcs.1.q_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.13.bias": [
+        128
+      ],
+      "gcs.1.q_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.14.bias": [
+        128
+      ],
+      "gcs.1.q_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.1.q_linears.15.bias": [
+        128
+      ],
+      "gcs.1.v_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.0.bias": [
+        128
+      ],
+      "gcs.1.v_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.1.bias": [
+        128
+      ],
+      "gcs.1.v_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.2.bias": [
+        128
+      ],
+      "gcs.1.v_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.3.bias": [
+        128
+      ],
+      "gcs.1.v_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.4.bias": [
+        128
+      ],
+      "gcs.1.v_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.5.bias": [
+        128
+      ],
+      "gcs.1.v_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.6.bias": [
+        128
+      ],
+      "gcs.1.v_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.7.bias": [
+        128
+      ],
+      "gcs.1.v_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.8.bias": [
+        128
+      ],
+      "gcs.1.v_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.9.bias": [
+        128
+      ],
+      "gcs.1.v_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.10.bias": [
+        128
+      ],
+      "gcs.1.v_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.11.bias": [
+        128
+      ],
+      "gcs.1.v_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.12.bias": [
+        128
+      ],
+      "gcs.1.v_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.13.bias": [
+        128
+      ],
+      "gcs.1.v_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.14.bias": [
+        128
+      ],
+      "gcs.1.v_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.1.v_linears.15.bias": [
+        128
+      ],
+      "gcs.1.a_linears.0.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.0.bias": [
+        128
+      ],
+      "gcs.1.a_linears.1.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.1.bias": [
+        128
+      ],
+      "gcs.1.a_linears.2.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.2.bias": [
+        128
+      ],
+      "gcs.1.a_linears.3.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.3.bias": [
+        128
+      ],
+      "gcs.1.a_linears.4.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.4.bias": [
+        128
+      ],
+      "gcs.1.a_linears.5.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.5.bias": [
+        128
+      ],
+      "gcs.1.a_linears.6.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.6.bias": [
+        128
+      ],
+      "gcs.1.a_linears.7.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.7.bias": [
+        128
+      ],
+      "gcs.1.a_linears.8.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.8.bias": [
+        128
+      ],
+      "gcs.1.a_linears.9.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.9.bias": [
+        128
+      ],
+      "gcs.1.a_linears.10.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.10.bias": [
+        128
+      ],
+      "gcs.1.a_linears.11.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.11.bias": [
+        128
+      ],
+      "gcs.1.a_linears.12.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.12.bias": [
+        128
+      ],
+      "gcs.1.a_linears.13.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.13.bias": [
+        128
+      ],
+      "gcs.1.a_linears.14.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.14.bias": [
+        128
+      ],
+      "gcs.1.a_linears.15.weight": [
+        128,
+        128
+      ],
+      "gcs.1.a_linears.15.bias": [
+        128
+      ],
+      "gcs.1.norms.0.weight": [
+        128
+      ],
+      "gcs.1.norms.0.bias": [
+        128
+      ],
+      "gcs.1.norms.1.weight": [
+        128
+      ],
+      "gcs.1.norms.1.bias": [
+        128
+      ],
+      "gcs.1.norms.2.weight": [
+        128
+      ],
+      "gcs.1.norms.2.bias": [
+        128
+      ],
+      "gcs.1.norms.3.weight": [
+        128
+      ],
+      "gcs.1.norms.3.bias": [
+        128
+      ],
+      "gcs.1.norms.4.weight": [
+        128
+      ],
+      "gcs.1.norms.4.bias": [
+        128
+      ],
+      "gcs.1.norms.5.weight": [
+        128
+      ],
+      "gcs.1.norms.5.bias": [
+        128
+      ],
+      "gcs.1.norms.6.weight": [
+        128
+      ],
+      "gcs.1.norms.6.bias": [
+        128
+      ],
+      "gcs.1.norms.7.weight": [
+        128
+      ],
+      "gcs.1.norms.7.bias": [
+        128
+      ],
+      "gcs.1.norms.8.weight": [
+        128
+      ],
+      "gcs.1.norms.8.bias": [
+        128
+      ],
+      "gcs.1.norms.9.weight": [
+        128
+      ],
+      "gcs.1.norms.9.bias": [
+        128
+      ],
+      "gcs.1.norms.10.weight": [
+        128
+      ],
+      "gcs.1.norms.10.bias": [
+        128
+      ],
+      "gcs.1.norms.11.weight": [
+        128
+      ],
+      "gcs.1.norms.11.bias": [
+        128
+      ],
+      "gcs.1.norms.12.weight": [
+        128
+      ],
+      "gcs.1.norms.12.bias": [
+        128
+      ],
+      "gcs.1.norms.13.weight": [
+        128
+      ],
+      "gcs.1.norms.13.bias": [
+        128
+      ],
+      "gcs.1.norms.14.weight": [
+        128
+      ],
+      "gcs.1.norms.14.bias": [
+        128
+      ],
+      "gcs.1.norms.15.weight": [
+        128
+      ],
+      "gcs.1.norms.15.bias": [
+        128
+      ],
+      "adapt_ws.0.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.0.bias": [
+        128
+      ],
+      "adapt_ws.1.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.1.bias": [
+        128
+      ],
+      "adapt_ws.2.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.2.bias": [
+        128
+      ],
+      "adapt_ws.3.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.3.bias": [
+        128
+      ],
+      "adapt_ws.4.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.4.bias": [
+        128
+      ],
+      "adapt_ws.5.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.5.bias": [
+        128
+      ],
+      "adapt_ws.6.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.6.bias": [
+        128
+      ],
+      "adapt_ws.7.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.7.bias": [
+        128
+      ],
+      "adapt_ws.8.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.8.bias": [
+        128
+      ],
+      "adapt_ws.9.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.9.bias": [
+        128
+      ],
+      "adapt_ws.10.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.10.bias": [
+        128
+      ],
+      "adapt_ws.11.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.11.bias": [
+        128
+      ],
+      "adapt_ws.12.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.12.bias": [
+        128
+      ],
+      "adapt_ws.13.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.13.bias": [
+        128
+      ],
+      "adapt_ws.14.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.14.bias": [
+        128
+      ],
+      "adapt_ws.15.weight": [
+        128,
+        512
+      ],
+      "adapt_ws.15.bias": [
+        128
+      ],
+      "classify.weight": [
+        2,
+        128
+      ],
+      "classify.bias": [
+        2
+      ]
+    }
+  },
+  "simultaneous_load": {
+    "device": "cuda:0",
+    "cuda": true,
+    "allocated_bytes": 86255616,
+    "reserved_bytes": 94371840,
+    "peak_allocated_bytes": 86280704,
+    "peak_reserved_bytes": 94371840
+  },
+  "note": "Pair loading plus one train/backward/Adam step and validation for both variants. Not a performance result, not proof of checkpoint reload determinism or future free VRAM.",
+  "hardware_after": {
+    "utc": "2026-10-12T13:35:14.774724+00:00",
+    "torch": "1.8.1+cu111",
+    "torch_cuda": "11.1",
+    "cuda_available": true,
+    "nvidia_smi": {
+      "exit_code": 0,
+      "output": "NVIDIA GeForce RTX 3050 Laptop GPU, 4096 MiB, 297 MiB, 3679 MiB, 527.99\n"
+    },
+    "host_meminfo": [
+      "MemTotal:        8054428 kB",
+      "MemFree:          132540 kB",
+      "MemAvailable:    3600556 kB",
+      "Buffers:           42048 kB",
+      "Cached:          3595244 kB"
+    ]
+  }
+}

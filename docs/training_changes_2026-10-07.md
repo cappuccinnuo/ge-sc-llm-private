@@ -833,3 +833,83 @@ CPU，threads=2，固定 seed1，hidden128、2 层、8 头、norm、dropout0.2�
 - 作者标签来源与历史源码身份仍不能由本轮恢复。两类的已发布标签按原样冻结，不混入 narrow。文件级切分也没有消除 SolidiFI 模板复用。
 - 保留当前标量、函数内、正向 DDG 范围，不扩展状态变量、mapping、跨函数摘要、缺失 emit 节点或反向关系；不声明完整 Solidity DDG 已实现。
 - 本轮没有下载/安装依赖或编译器，没有运行新的 solc 编译验证；没有 resume-training CLI 和任意新源码推理扩展。
+
+
+## 14. 2026-10-12：正式paper_kfold执行层及完整fold0验证（Codex）
+
+**14.1 授权与版本**
+
+修改AI：Codex。用户要求冻结DDG/HGT/tokenizer/标签/折，先A资源及B重入合约fold0，
+确认后再全量。本轮执行A/B，未执行C。基础HEAD及origin HEAD均为70c9d44b183dd81910fb5a9bdc30f3f9424e16b2；
+只读核验，无pull/merge/checkout/自动提交。主paper_kfold，nested_strict不改。
+E0=作者HCG/标签+本地核验512维CodeT5p-770m tokenizer IDs+现有HGT；
+E1仅加正向DATA_DEF_USE，不混narrow，不使用完整LLM权重。
+
+**14.2 文件、修改位置及理由**
+
+全部新代码/测试在scripts/DFG/experiments/：
+
+| 文件 | 操作 | 实现及理由 |
+|---|---|---|
+| resource_probe.py | 新增 | CUDA/nvidia-smi检查，成对加载与各一次完整图训练；失败记录blocked，不擅自改设备/模型 |
+| formal_worker.py | 新增 | 包裹原构造和fit，记录参数量、显存、monotonic耗时；finally恢复引用，不改计算 |
+| formal_checks.py | 新增 | 重放学习率/早停，检查图/标签/监督/schema/初始化/配置/checkpoint绑定，重算指标和差值，汇总完整任务 |
+| formal.py | 新增 | 固定30配对折、阶段门槛、逐任务验收，互斥锁/PID启动时刻检查，失败保留与整折重试、成功复用 |
+| tests/test_formal_checks.py | 新增 | 历史/指标/不完整结果拒绝和汇总数值测试 |
+| tests/test_formal_controller.py | 新增 | B/C门槛、任务屏障、恢复、摘要损坏、并发、代码/数据漂移及真实计划测试 |
+| tests/test_formal_end_to_end.py | 新增 | 原HGT真实小图full训练两任务，验收并拒绝破坏checkpoint |
+| tests/test_formal_telemetry.py | 新增 | 包裹异常恢复、CPU统计、无CUDA不隐式降级 |
+| README.md | 追加 | 实际可执行命令、恢复条件、输出角色和限制 |
+| FORMAL_EXPERIMENT_REPORT_2026-10-12.md | 新增 | 完整分析、资源、结果与下一阶段设计 |
+| 本文/HANDOVER.md | 追加 | 详细/简略交接，保留旧正文及字节备份 |
+
+未修改原paper_run、DDG算法、HGT、tokenizer、原训练脚本、prepared图/特征/标签、
+固定划分或旧nested结果。67个本轮前记录文件摘要未变；记录见
+audit/formal_20261012_v1/final_verification.json。
+
+**14.3 对模板的调整**
+
+B计入正式5折，C复用；不重跑挑成绩。只支持折级续跑，不伪造epoch-resume：
+成功折摘要验证复用，失败保留旧attempt，显式--retry-failed按相同seed/config重跑整对。
+存活worker不重复启动，损坏成功结果不自动重训掩盖。代码/输入变更需新批次。
+C须--confirm-stage-c；主结果叫CV validation，同val选best并评分。
+原早停指当前已冻结patience7/delta0.001和严格最低val loss best，不回退到历史上游问题实现。
+显存测完整训练步，不能只估权重；增加逐样本错误转移辅助分析。
+nested/narrow/其他标签版本不混入主统计。
+
+**14.4 测试与不变量**
+
+先27项定向通过，随后两种任务真实小图full端到端通过；补进程/冻结计划测试。
+最终：实验133 + DDG170 + 原项目25 = **328 passed，0失败、0跳过**。
+各套警告4/28/7，为既有弃用。DDG pytest打印负时间，外部monotonic约3.4秒，
+原日志保留；正式训练使用perf_counter。没有安装/升级依赖或执行新solc。
+测试命令及日志在audit/formal_20261012_v1/，旧文档字节备份也在该目录。
+
+**14.5 实际A/B结果**
+
+RTX3050 Laptop 4GiB四任务探针通过。正式E1峰值2.58GiB allocated/2.78GiB reserved，
+整卡采样一度余59MiB；后续显存竞争仍可能失败，不自行缩图。
+重入合约fold0：113train/29val（15正），seed1，50epoch上限，lr0.0005→max0.01。
+E0/E1都第14轮早停、best第7轮（JSON 6/13）；完整checkpoint及预测验收通过。
+
+| fold0 CV validation | E0 BF1/MF1 | E1 BF1/MF1 | E1−E0百分点 |
+|---|---:|---:|---:|
+| best | 84.6154/86.0577 | 84.6154/86.0577 | 0/0 |
+| last | 92.8571/93.0952 | 88.8889/89.6057 | -3.9683/-3.4895 |
+
+Precision均100；best Recall73.3333；last E0 Recall86.6667、E1 Recall80。
+last E1新增simple_dao.sol漏报，原样保留，不事后改主checkpoint。
+参数E0 4526962、E1 4641874；训练DDG边2665，监督梯度L1累计4.781603，
+权重变化L1=1494.641465可能含weight decay；耗时105.59/132.22秒（含验证和保存/重载）。
+实际重调stage-b只复用，无新attempt。单折产物约318MiB，30配对同规模粗估9.3GiB。
+
+**14.6 产物、执行、回退与限制**
+
+新批次artifacts/paper_kfold/formal_20261012_v1/；计划、状态、逐折产物均在其中。
+audit/formal_20261012_v1/stage_b_summary.csv/json仅是一折，非全CV均值。
+详细可执行WSL命令在README新段与本轮报告，不依赖BASE/RUN_TAG。
+C须用户确认后显式执行；重入合约→访问控制合约→重入节点→访问控制节点，
+5/5/10/10折，每任务验收后才继续。B已做2次，剩58次；本轮未启动。
+原baseline/nested入口没有改变，不使用formal入口即可走旧流程。
+没有全CV结果，也未做narrow/nested、多seed、随机边、DDG范围扩展或7类全量。
+论文只是外部参考；标注历史、模板复用、同val选模偏差、参数量/聚合变化需分别解释。

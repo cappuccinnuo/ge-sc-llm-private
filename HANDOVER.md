@@ -1128,3 +1128,18 @@ python -B -m pytest -q -p no:cacheprovider \
 - 新输出：scripts/DFG/experiments/artifacts/paper_kfold/20261012_v1/。命令见该 experiments/README.md 顶部；详细报告为 PAPER_KFOLD_REPORT_2026-10-12.md；训练变更文档第13节保存详细记录。
 - 旧 REPORT_2026-10-12.md 是正文中已有2602个问号、没有汉字，非显示解码问题；原件及字节副本保留，新报告不猜测恢复旧正文。
 - 停止于规定的短检查。未启动60次完整训练、未运行新narrow对照、未扩展状态变量/mapping/反向DDG。作者标签历史、模板复用和主协议同val选模偏差仍需分别报告。
+
+
+#### 2026-10-12：正式paper_kfold执行层及阶段B通过（修改AI：Codex）
+
+- 新增experiments/formal.py、formal_checks.py、formal_worker.py、resource_probe.py及4个测试文件；只追加README与交接记录。原DDG/HGT/tokenizer/训练代码、prepared数据/标签/划分未改。
+- E0=作者HCG/标签+核验的本地512维CodeT5p-770m tokenizer IDs（非完整LLM）；E1仅加正向DATA_DEF_USE。seed1、50epoch上限、patience7/delta0.001、语义共同初始化；不混narrow/nested。
+- 新批次scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1/，两类共30配对/60次，不是7类全量。基础HEAD及origin HEAD均70c9d44，只读核验，无pull/自动提交。
+- A四任务GPU探针通过。正式E1峰值2.58GiB allocated/2.78GiB reserved；4GiB整卡一度余59MiB，资源余量窄，不自行改模型。
+- **B通过**：重入合约fold0，两组best第7轮/停止第14轮。best BF1/MF1均84.6154/86.0577；last E0 92.8571/93.0952、E1 88.8889/89.6057。E1 last多漏simple_dao.sol，下降保留。
+- E1训练DDG支持2665边，监督梯度非零；best/last重载logits逐位一致，预测及绑定独立验收通过。仅一折CV validation，非独立测试或全CV。
+- 测试：133实验+170DDG+25原项目=328 passed，0失败/跳过；67个既有文件摘要未变，文档仅追加。
+- 成功折哈希检查后复用；失败保留并显式--retry-failed重跑整对，**不是epoch续训**。进程存活检查防止重复；实际再调stage-b确认无新增训练。
+- **C未启动，剩29配对/58次**。用户确认后formal stage-c --confirm-stage-c；按重入合约→访问控制合约→重入节点→访问控制节点依次验收；不得自动启动。
+- 单折明细：experiments/audit/formal_20261012_v1/stage_b_summary.csv；报告FORMAL_EXPERIMENT_REPORT_2026-10-12.md；命令在experiments/README.md末尾，详细变更见training_changes_2026-10-07.md第14节。
+- 旧REPORT问号正文未触碰。没有扩展DDG、执行新solc或narrow/nested/多seed/随机边实验。

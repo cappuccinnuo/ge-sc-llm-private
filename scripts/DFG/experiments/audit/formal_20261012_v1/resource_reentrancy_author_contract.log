@@ -1,0 +1,60 @@
+Using backend: pytorch
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  165
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  179
+{
+  "status": "passed",
+  "hardware_before": {
+    "utc": "2026-10-12T13:33:20.185838+00:00",
+    "torch": "1.8.1+cu111",
+    "torch_cuda": "11.1",
+    "cuda_available": true,
+    "nvidia_smi": {
+      "exit_code": 0,
+      "output": "NVIDIA GeForce RTX 3050 Laptop GPU, 4096 MiB, 3228 MiB, 748 MiB, 527.99\n"
+    },
+    "host_meminfo": [
+      "MemTotal:        8054428 kB",
+      "MemFree:         4074656 kB",
+      "MemAvailable:    7006948 kB",
+      "Buffers:           40360 kB",
+      "Cached:          2983256 kB"
+    ]
+  },
+  "device": "cuda:0",
+  "task": "contract",
+  "prepared": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared",
+  "prepared_manifest_sha256": "4ce2108569f003778f7d8f4d11ada89c6ead9d5fe759c394a86d92d9229aeb07",
+  "split_sha256": "a05e3d0fbc6ed3ff3609d3e7f1ae02ce662e2fbb1e98444ac1e044c5b2369ee8",
+  "simultaneous_load": {
+    "device": "cuda:0",
+    "cuda": true,
+    "allocated_bytes": 115734016,
+    "reserved_bytes": 117440512,
+    "peak_allocated_bytes": 115774464,
+    "peak_reserved_bytes": 117440512
+  },
+  "note": "Pair loading plus one train/backward/Adam step and validation for both variants. Not a performance result, not proof of checkpoint reload determinism or future free VRAM.",
+  "hardware_after": {
+    "utc": "2026-10-12T13:34:08.023245+00:00",
+    "torch": "1.8.1+cu111",
+    "torch_cuda": "11.1",
+    "cuda_available": true,
+    "nvidia_smi": {
+      "exit_code": 0,
+      "output": "NVIDIA GeForce RTX 3050 Laptop GPU, 4096 MiB, 64 MiB, 3912 MiB, 527.99\n"
+    },
+    "host_meminfo": [
+      "MemTotal:        8054428 kB",
+      "MemFree:           83260 kB",
+      "MemAvailable:    3433488 kB",
+      "Buffers:           40672 kB",
+      "Cached:          3481016 kB"
+    ]
+  }
+}

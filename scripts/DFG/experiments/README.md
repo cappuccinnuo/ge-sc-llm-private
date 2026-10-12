@@ -288,3 +288,84 @@ annotation construction. Author labels are a reference, not certified truth.
 Keep narrow comparisons separate. Template-grouped splits and relation-count
 controls are possible follow-ups, not implemented/automatically run here.
 State/mapping, reverse DDG and missing emit-node repairs remain outside scope.
+
+
+## 2026-10-12：正式 paper_kfold 实验入口（Codex）
+
+本轮的 E0 是冻结作者 HCG/标签 + 本地已核验的 CodeT5p-770m tokenizer IDs
+（512 维、inside_token）+ 当前 HGT/训练规则；E1 在同一任务图上只增加正向
+DATA_DEF_USE。E0 不注册空 DDG 关系。共同类型和关系的参数按语义成对初始化；
+E1 的新增关系有独立初始参数，不使用训练后的 E0 权重。
+
+新的入口是 formal.py，包裹原 paper_run.py，不改变已有计算和训练规则。
+固定 full、50 epoch 上限、seed=1、现有 patience=7/delta=0.001；CLI 不提供临时
+改这些参数的选项。统计角色固定 CV validation，best 与 last 分开报告。
+初批正式范围是 Dataset A 的两个漏洞，合约5折/节点10折，共30配对折=60次拟合，
+不是已经完成全部7类。nested_strict 不进入本批汇总。
+
+### 已准备批次及运行命令
+
+以下命令在 WSL 的项目根目录、mando 环境运行，无须 BASE/RUN_TAG：
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm
+
+# 只验证冻结文件、已完成折及其 checkpoint；完整任务才生成均值/标准差
+python -B -m scripts.DFG.experiments.formal verify \
+  --run scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1
+
+# 阶段B：只运行重入合约 fold0 配对；已通过时仅验证、复用，不重训
+python -u -B -m scripts.DFG.experiments.formal stage-b \
+  --run scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1
+~~~
+
+阶段C须在阶段B通过后由用户明确选择执行。此命令才会运行其余折，严格按重入合约、
+访问控制合约、重入节点、访问控制节点的顺序；每个任务完整验收后才进入下一个：
+
+~~~bash
+python -u -B -m scripts.DFG.experiments.formal stage-c \
+  --run scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1 \
+  --confirm-stage-c
+~~~
+
+查看单折训练实时信息：
+
+~~~bash
+tail -F scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1/jobs/reentrancy_author_contract_fold0/attempt_001.log
+~~~
+
+若运行失败，先检查日志/故障原因，**不能把失败折删掉**。同一冻结代码和输入下，
+给原 stage-b/stage-c 命令追加 --retry-failed，创建新的 attempt 重新运行整对，
+保留旧日志、权重及失败证据。这里不是 epoch 级续训。已通过折会检查文件哈希后复用。
+控制器互斥锁和 worker PID+启动时刻检查防止重复运行；存活的旧 worker 会阻止重试。
+修复导致冻结代码改变时，本批拒绝继续，应明确建立另一版本，不能静默混用结果。
+
+### 产物与解释
+
+- plan.json/plan.seal.json：任务顺序、代码与数据哈希、设备、资源证据和固定配置。
+- state.json：本批与各折执行状态；不是训练 checkpoint。
+- jobs/<任务>_foldN/attempt_NNN/：原运行器完整产物及新增 telemetry.json。
+- attempt_NNN.receipt.json：验收记录、全部产物摘要和逐样本 E0/E1 错误转移。
+- summaries/<任务>/folds.csv：best/last 各折 BF1、MF1、正类 Precision/Recall、
+  E1−E0（百分点）、epoch、耗时、参数量、DDG 支持量和梯度。
+- summary.json：等权折均值、样本标准差（ddof=1），不是置信区间。
+- audit/formal_20261012_v1/：GPU 探针、测试输出、执行与不变量检查。
+- FORMAL_EXPERIMENT_REPORT_2026-10-12.md：本轮实际执行结果及限制。
+
+正式验收重算导出预测的四项指标、检查 mask/文件覆盖、训练/验证标签和输入绑定，
+逐轮重放学习率与早停、核对 best/last、梯度、参数量和 checkpoint 哈希。
+不改变原运行器的 checkpoint 重载一致性判据；若该判据失败，停止后续正式实验。
+没有训练实例的已注册关系可以保留零监督梯度；不能删除这些折。新增 DDG 参数的
+权重更新也可能包含 weight decay，不等同于有监督梯度。
+
+GPU 预检使用一次性模型，完成 E0/E1 同时加载及各一次完整图前向/反向/Adam更新。
+探针权重不用于正式初始化。已通过的一步探针不保证未来没有显存竞争或CUDA数值问题。
+正式耗时采用 monotonic/perf_counter，含训练、验证、checkpoint IO及重载评分；
+不是纯 GPU kernel 时间。
+
+新建不同批次需使用新目录，并重新核验资源报告与代码/输入，不能覆盖现有结果。
+本轮没有运行新的 narrow、nested_strict、多 seed 或随机边对照。后续分析先看成对折
+差值、错误转移、DDG 覆盖/支持以及 best/last；没有提升也须保留。作者标签历史、
+SolidiFI 模板复用、同 val 选模偏差仍存在。新增关系也改变参数量及 HGT 关系聚合，
+不能单凭 E1 优于 E0 就把全部提升归因于数据语义。

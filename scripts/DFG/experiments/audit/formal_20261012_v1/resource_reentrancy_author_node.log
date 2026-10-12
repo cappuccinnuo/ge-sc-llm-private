@@ -1,0 +1,54 @@
+Using backend: pytorch
+torch.Size([165, 512])
+torch.Size([165, 512])
+{
+  "status": "passed",
+  "hardware_before": {
+    "utc": "2026-10-12T13:34:45.590130+00:00",
+    "torch": "1.8.1+cu111",
+    "torch_cuda": "11.1",
+    "cuda_available": true,
+    "nvidia_smi": {
+      "exit_code": 0,
+      "output": "NVIDIA GeForce RTX 3050 Laptop GPU, 4096 MiB, 3451 MiB, 525 MiB, 527.99\n"
+    },
+    "host_meminfo": [
+      "MemTotal:        8054428 kB",
+      "MemFree:         3575568 kB",
+      "MemAvailable:    7023664 kB",
+      "Buffers:           41664 kB",
+      "Cached:          3504024 kB"
+    ]
+  },
+  "device": "cuda:0",
+  "task": "node",
+  "prepared": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared",
+  "prepared_manifest_sha256": "4ce2108569f003778f7d8f4d11ada89c6ead9d5fe759c394a86d92d9229aeb07",
+  "split_sha256": "63f2edaacca7064a35cec23d6c5cad6b1ad0d32d50d07d62b4ea307f38a0bb0d",
+  "simultaneous_load": {
+    "device": "cuda:0",
+    "cuda": true,
+    "allocated_bytes": 86255616,
+    "reserved_bytes": 94371840,
+    "peak_allocated_bytes": 86280704,
+    "peak_reserved_bytes": 94371840
+  },
+  "note": "Pair loading plus one train/backward/Adam step and validation for both variants. Not a performance result, not proof of checkpoint reload determinism or future free VRAM.",
+  "hardware_after": {
+    "utc": "2026-10-12T13:35:14.774724+00:00",
+    "torch": "1.8.1+cu111",
+    "torch_cuda": "11.1",
+    "cuda_available": true,
+    "nvidia_smi": {
+      "exit_code": 0,
+      "output": "NVIDIA GeForce RTX 3050 Laptop GPU, 4096 MiB, 297 MiB, 3679 MiB, 527.99\n"
+    },
+    "host_meminfo": [
+      "MemTotal:        8054428 kB",
+      "MemFree:          132540 kB",
+      "MemAvailable:    3600556 kB",
+      "Buffers:           42048 kB",
+      "Cached:          3595244 kB"
+    ]
+  }
+}
