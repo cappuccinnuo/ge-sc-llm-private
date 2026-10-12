@@ -1,0 +1,62 @@
+{
+  "source": "pragma solidity ^0.5.17;\ncontract C {\n    function(address payable) internal selfdestruct;\n    function g(address payable a) internal {}\n    constructor() public { selfdestruct = g; }\n    function f(address payable a) public returns (uint) {\n        selfdestruct(a);\n        uint x = 1;\n        return x;\n    }\n}\n",
+  "compilation_status": "not_compiled",
+  "compilation_reason": "No existing approved local compiler found; no external compiler downloaded or executed.",
+  "stats": {
+    "functions_total": 3,
+    "functions_supported": 3,
+    "definitions": 3,
+    "uses_total": 2,
+    "uses_resolved": 2,
+    "iterations": 7
+  },
+  "diagnostics": [
+    {
+      "kind": "unresolved_or_nonlocal",
+      "name": "selfdestruct",
+      "byte": 164,
+      "function": "b1.sol:141"
+    },
+    {
+      "kind": "unresolved_or_nonlocal",
+      "name": "g",
+      "byte": 179,
+      "function": "b1.sol:141"
+    },
+    {
+      "kind": "call_binding",
+      "function": "b1.sol:188",
+      "function_start": 188,
+      "function_end": 310,
+      "file": "b1.sol",
+      "start": 250,
+      "end": 265,
+      "line": 7,
+      "column": 9,
+      "call_name": "selfdestruct",
+      "call_form": "identifier_call",
+      "classification": "non_builtin",
+      "reason": "unique_state_function_pointer",
+      "evidence": {
+        "declarations": [
+          {
+            "kind": "state_variable_declaration",
+            "start": 42,
+            "end": 90
+          }
+        ],
+        "pointee_resolved": false
+      }
+    }
+  ],
+  "def_use_pairs": [
+    [
+      "function f(address payable a) public returns (uint) {\n        selfdestruct(a);\n        uint x = 1;\n        return x;\n    }",
+      "selfdestruct(a);"
+    ],
+    [
+      "uint x = 1;",
+      "return x;"
+    ]
+  ]
+}

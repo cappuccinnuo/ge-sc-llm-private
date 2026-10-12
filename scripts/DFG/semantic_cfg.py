@@ -3,6 +3,7 @@ from .models import Block, FunctionIR, AnalysisResult, Unsupported
 from .frontend import span, text, walk
 from .symbol_table import SymbolTable
 from .access_extractor import AccessExtractor
+from .call_binding import CallBindingResolver, BindingUncertain, key as binding_key
 
 class CFGBuilder:
     def __init__(self, view, function):
@@ -10,22 +11,10 @@ class CFGBuilder:
         self.table = SymbolTable(view.source,view.file,function,view.mode)
         self.access = AccessExtractor(view.source,self.table)
         self.blocks = {}
-        terminals={"revert","selfdestruct","suicide"}
-        shadowed={text(view.source,n.child_by_field_name("name")) for n in view.functions
-                  if n.child_by_field_name("name") is not None} & terminals
-        ambiguous=bool(shadowed) or any(n.type=="import_directive"
-                      for n in view.tree.root_node.named_children)
-        parent=function.parent
-        while parent is not None:
-            if parent.type=="contract_declaration" and any(c.type=="is" for c in parent.children):
-                ambiguous=True
-            parent=parent.parent
-        if ambiguous:
-            for node in walk(function):
-                fn=node.child_by_field_name("function") if node.type=="call_expression" else None
-                if node.type=="revert_statement" or (fn is not None and fn.type=="identifier"
-                        and text(view.source,fn) in terminals):
-                    raise Unsupported("Terminating builtin may be shadowed/imported/inherited")
+        # B1 FIX (Codex, 2026-10-12): resolve before constructing any CFG.
+        # Old name-only termination and file-wide shadow scan are in the audit snapshot.
+        self.call_bindings, self.binding_diagnostics = CallBindingResolver(
+            view, function, self.table).preflight()
         if any(c.type=="modifier_invocation" for c in function.named_children):
             raise Unsupported("Modifier execution is outside phase-one scope")
 
@@ -107,15 +96,13 @@ class CFGBuilder:
             raise Unsupported("Unsupported statement: "+t)
         b=self.new(self.access.extract(n))
         self.link(incoming,b)
-        terminates=t in ("return_statement","revert_statement")
-        children=[c for c in n.named_children if "comment" not in c.type]
-        if t=="expression_statement" and len(children)==1:
-            expr=children[0]
-            if expr.type=="call_expression":
-                fn=expr.child_by_field_name("function")
-                if fn and fn.type=="identifier" and text(self.view.source,fn) in (
-                        "revert","selfdestruct","suicide"):
-                    terminates=True
+        terminates = t == "return_statement"
+        children = [c for c in n.named_children if "comment" not in c.type]
+        call = n if t == "revert_statement" else (
+            children[0] if t == "expression_statement" and len(children) == 1 else None)
+        decision = self.call_bindings.get(binding_key(call)) if call is not None else None
+        if decision is not None:
+            terminates = decision.terminates
         return set() if terminates else {b}
 
     def build(self):
@@ -131,8 +118,12 @@ def analyze(view):
         try:
             b=CFGBuilder(view,fn)
             result.functions.append(b.build())
+            result.diagnostics.extend(b.binding_diagnostics)
             for d in b.access.diagnostics:
                 result.diagnostics.append(dict(d,function=identity))
+        except BindingUncertain as exc:
+            # The builder has not committed an IR; nothing from this function reaches RD.
+            result.diagnostics.append(dict(exc.diagnostic, kind="function_fallback"))
         except Unsupported as exc:
             result.diagnostics.append({"kind":"function_fallback","function":identity,
                                        "reason":str(exc)})

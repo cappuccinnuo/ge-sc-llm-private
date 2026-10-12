@@ -66,7 +66,17 @@ def test_commented_throw_and_for_condition():
     cond=[e for b in ir.blocks.values() for e in b.events if e.kind=="condition"]
     assert len(cond)==1 and {ir.symbols[s].name for s in cond[0].reads}=={"x"}
 
-def test_shadowed_terminator_falls_back_instead_of_false_unreachable():
+def test_shadowed_terminator_keeps_confirmed_user_call_successor():
+    # B1: stronger than the former blanket fallback expectation: resolve the
+    # unique user declaration, retain its successor, and verify the def-use fact.
+    from scripts.DFG.reaching_definitions import solve
     v=parse_source("pragma solidity ^0.5.17; contract C {function revert(uint x) internal pure returns(uint){return x;} function f(uint x) public returns(uint y){revert(x);y=x;return y;}}")
     r=analyze(v)
-    assert any(d["kind"]=="function_fallback" and "shadowed" in d["reason"] for d in r.diagnostics)
+    assert not any(d["kind"]=="function_fallback" for d in r.diagnostics)
+    assert any(d.get("classification")=="non_builtin" for d in r.diagnostics)
+    fn=next(n for n in v.functions if n.child_by_field_name("name").text==b"f")
+    ir=next(ir for ir in r.functions if ir.id==v.file+":"+str(fn.start_byte))
+    assert block_for(v,ir,"y=x;") in reach(ir,block_for(v,ir,"revert(x);"))
+    facts=solve(ir).facts
+    assert any(v.raw[f.definition.anchor.start:f.definition.anchor.end]==b"y=x;"
+               and v.raw[f.use.anchor.start:f.use.anchor.end]==b"return y;" for f in facts)

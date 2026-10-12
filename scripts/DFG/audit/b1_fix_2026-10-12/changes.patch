@@ -1,0 +1,131 @@
+--- before/scripts/DFG/frontend.py
++++ after/scripts/DFG/frontend.py
+@@ -38,13 +38,12 @@
+         raise Unsupported("Solidity parser ERROR/MISSING")
+     return tree
+ 
+-def scope_mode(source, root, override=None):
++def solidity_version_interval(source, root):
+     pragmas = [text(source, n) for n in root.named_children
+                if n.type == "pragma_directive"]
+     sol = [p for p in pragmas if re.match(r"pragma\s+solidity\b", p)]
+     if len(sol) > 1:
+         raise Unsupported("Multiple Solidity pragmas require version intersection verification")
+-    modes = []
+     for p in sol:
+         expr = re.sub(r"^pragma\s+solidity\s*|;\s*$", "", p).strip()
+         if "||" in expr:
+@@ -66,6 +65,16 @@
+             else:
+                 hi = min(hi, (v[0], v[1], v[2]+1) if op == "<=" else v)
+         if lo >= hi: raise Unsupported("Empty pragma constraint")
++        return lo, hi
++    return None
++
++def scope_mode(source, root, override=None):
++    pragmas = [text(source, n) for n in root.named_children
++               if n.type == "pragma_directive"]
++    interval = solidity_version_interval(source, root)
++    modes = []
++    if interval is not None:
++        lo, hi = interval
+         if lo >= (0,4,0) and hi <= (0,5,0): modes.append("legacy")
+         elif lo >= (0,5,0) and lo < (0,9,0): modes.append("modern")
+         else: raise Unsupported("Pragma crosses scope-semantics boundary")
+
+--- before/scripts/DFG/semantic_cfg.py
++++ after/scripts/DFG/semantic_cfg.py
+@@ -3,6 +3,7 @@
+ from .frontend import span, text, walk
+ from .symbol_table import SymbolTable
+ from .access_extractor import AccessExtractor
++from .call_binding import CallBindingResolver, BindingUncertain, key as binding_key
+ 
+ class CFGBuilder:
+     def __init__(self, view, function):
+@@ -10,22 +11,10 @@
+         self.table = SymbolTable(view.source,view.file,function,view.mode)
+         self.access = AccessExtractor(view.source,self.table)
+         self.blocks = {}
+-        terminals={"revert","selfdestruct","suicide"}
+-        shadowed={text(view.source,n.child_by_field_name("name")) for n in view.functions
+-                  if n.child_by_field_name("name") is not None} & terminals
+-        ambiguous=bool(shadowed) or any(n.type=="import_directive"
+-                      for n in view.tree.root_node.named_children)
+-        parent=function.parent
+-        while parent is not None:
+-            if parent.type=="contract_declaration" and any(c.type=="is" for c in parent.children):
+-                ambiguous=True
+-            parent=parent.parent
+-        if ambiguous:
+-            for node in walk(function):
+-                fn=node.child_by_field_name("function") if node.type=="call_expression" else None
+-                if node.type=="revert_statement" or (fn is not None and fn.type=="identifier"
+-                        and text(view.source,fn) in terminals):
+-                    raise Unsupported("Terminating builtin may be shadowed/imported/inherited")
++        # B1 FIX (Codex, 2026-10-12): resolve before constructing any CFG.
++        # Old name-only termination and file-wide shadow scan are in the audit snapshot.
++        self.call_bindings, self.binding_diagnostics = CallBindingResolver(
++            view, function, self.table).preflight()
+         if any(c.type=="modifier_invocation" for c in function.named_children):
+             raise Unsupported("Modifier execution is outside phase-one scope")
+ 
+@@ -107,15 +96,13 @@
+             raise Unsupported("Unsupported statement: "+t)
+         b=self.new(self.access.extract(n))
+         self.link(incoming,b)
+-        terminates=t in ("return_statement","revert_statement")
+-        children=[c for c in n.named_children if "comment" not in c.type]
+-        if t=="expression_statement" and len(children)==1:
+-            expr=children[0]
+-            if expr.type=="call_expression":
+-                fn=expr.child_by_field_name("function")
+-                if fn and fn.type=="identifier" and text(self.view.source,fn) in (
+-                        "revert","selfdestruct","suicide"):
+-                    terminates=True
++        terminates = t == "return_statement"
++        children = [c for c in n.named_children if "comment" not in c.type]
++        call = n if t == "revert_statement" else (
++            children[0] if t == "expression_statement" and len(children) == 1 else None)
++        decision = self.call_bindings.get(binding_key(call)) if call is not None else None
++        if decision is not None:
++            terminates = decision.terminates
+         return set() if terminates else {b}
+ 
+     def build(self):
+@@ -131,8 +118,12 @@
+         try:
+             b=CFGBuilder(view,fn)
+             result.functions.append(b.build())
++            result.diagnostics.extend(b.binding_diagnostics)
+             for d in b.access.diagnostics:
+                 result.diagnostics.append(dict(d,function=identity))
++        except BindingUncertain as exc:
++            # The builder has not committed an IR; nothing from this function reaches RD.
++            result.diagnostics.append(dict(exc.diagnostic, kind="function_fallback"))
+         except Unsupported as exc:
+             result.diagnostics.append({"kind":"function_fallback","function":identity,
+                                        "reason":str(exc)})
+
+--- before/scripts/DFG/tests/test_semantic_cfg.py
++++ after/scripts/DFG/tests/test_semantic_cfg.py
+@@ -66,7 +66,17 @@
+     cond=[e for b in ir.blocks.values() for e in b.events if e.kind=="condition"]
+     assert len(cond)==1 and {ir.symbols[s].name for s in cond[0].reads}=={"x"}
+ 
+-def test_shadowed_terminator_falls_back_instead_of_false_unreachable():
++def test_shadowed_terminator_keeps_confirmed_user_call_successor():
++    # B1: stronger than the former blanket fallback expectation: resolve the
++    # unique user declaration, retain its successor, and verify the def-use fact.
++    from scripts.DFG.reaching_definitions import solve
+     v=parse_source("pragma solidity ^0.5.17; contract C {function revert(uint x) internal pure returns(uint){return x;} function f(uint x) public returns(uint y){revert(x);y=x;return y;}}")
+     r=analyze(v)
+-    assert any(d["kind"]=="function_fallback" and "shadowed" in d["reason"] for d in r.diagnostics)
++    assert not any(d["kind"]=="function_fallback" for d in r.diagnostics)
++    assert any(d.get("classification")=="non_builtin" for d in r.diagnostics)
++    fn=next(n for n in v.functions if n.child_by_field_name("name").text==b"f")
++    ir=next(ir for ir in r.functions if ir.id==v.file+":"+str(fn.start_byte))
++    assert block_for(v,ir,"y=x;") in reach(ir,block_for(v,ir,"revert(x);"))
++    facts=solve(ir).facts
++    assert any(v.raw[f.definition.anchor.start:f.definition.anchor.end]==b"y=x;"
++               and v.raw[f.use.anchor.start:f.use.anchor.end]==b"return y;" for f in facts)

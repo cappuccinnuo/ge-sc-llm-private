@@ -38,13 +38,12 @@ def parse(source):
         raise Unsupported("Solidity parser ERROR/MISSING")
     return tree
 
-def scope_mode(source, root, override=None):
+def solidity_version_interval(source, root):
     pragmas = [text(source, n) for n in root.named_children
                if n.type == "pragma_directive"]
     sol = [p for p in pragmas if re.match(r"pragma\s+solidity\b", p)]
     if len(sol) > 1:
         raise Unsupported("Multiple Solidity pragmas require version intersection verification")
-    modes = []
     for p in sol:
         expr = re.sub(r"^pragma\s+solidity\s*|;\s*$", "", p).strip()
         if "||" in expr:
@@ -66,6 +65,16 @@ def scope_mode(source, root, override=None):
             else:
                 hi = min(hi, (v[0], v[1], v[2]+1) if op == "<=" else v)
         if lo >= hi: raise Unsupported("Empty pragma constraint")
+        return lo, hi
+    return None
+
+def scope_mode(source, root, override=None):
+    pragmas = [text(source, n) for n in root.named_children
+               if n.type == "pragma_directive"]
+    interval = solidity_version_interval(source, root)
+    modes = []
+    if interval is not None:
+        lo, hi = interval
         if lo >= (0,4,0) and hi <= (0,5,0): modes.append("legacy")
         elif lo >= (0,5,0) and lo < (0,9,0): modes.append("modern")
         else: raise Unsupported("Pragma crosses scope-semantics boundary")
