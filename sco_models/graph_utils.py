@@ -426,6 +426,12 @@ def filename_mapping(extracted_graph):
 def reflect_graph(nx_g_data):
     symmetrical_data = {}
     for metapath, value in nx_g_data.items():
+        # DDG FORWARD FIX (Codex, 2026-10-12): only the new relation is directed.
+        # Original behavior below reflected every relation, including DDG.
+        # Removing this branch restores the original behavior; no base edge changes.
+        if metapath[1] == "DATA_DEF_USE":
+            symmetrical_data[metapath] = value
+            continue
         if metapath[0] == metapath[-1]:
             symmetrical_data[metapath] = (torch.cat((value[0], value[1])), torch.cat((value[1], value[0])))
         else:

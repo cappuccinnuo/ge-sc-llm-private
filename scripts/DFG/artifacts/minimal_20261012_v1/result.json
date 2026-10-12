@@ -1,0 +1,33 @@
+{
+  "purpose": "interface validation only; no benchmark F1",
+  "tokenizer": "Salesforce/codet5p-770m",
+  "feature_size": 512,
+  "graph": {
+    "base_sha256": "4865159302910e801e98c7db83fc5bf9310671a8326c525e85ad8a8d2007e284",
+    "enhanced_sha256": "a949a62b62ea2da7595519121346ff26b0470d626a09f8b2853bff524b63ca7e",
+    "base_nodes": 11,
+    "base_edges": 12,
+    "ddg_edges": 7,
+    "canonical_relations": 14
+  },
+  "models": {
+    "node": {
+      "logits_shape": [
+        11,
+        2
+      ],
+      "loss": 0.770545244216919,
+      "ddg_relation_gradient_l1": 3.9112918376922607,
+      "roundtrip_exact": true
+    },
+    "contract": {
+      "logits_shape": [
+        1,
+        2
+      ],
+      "loss": 0.7326349020004272,
+      "ddg_relation_gradient_l1": 5.124578595161438,
+      "roundtrip_exact": true
+    }
+  }
+}
