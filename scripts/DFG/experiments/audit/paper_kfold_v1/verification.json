@@ -1,0 +1,200 @@
+{
+  "recorded_utc": "2026-10-12T12:53:14.101682+00:00",
+  "frozen_core_files_checked": 46,
+  "frozen_core_changes": {},
+  "old_experiment_files_checked": 112,
+  "old_experiment_changes": {
+    "scripts/DFG/experiments/README.md": "c6e3f7d86a7696cf9b9fc7f4acf2d78bc0967f287714ad4649e94282d9f05bc5"
+  },
+  "runs": [
+    {
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "variants": {
+        "E0": {
+          "checkpoint_roundtrip_exact": true,
+          "exported_metrics_recomputed_equal": true,
+          "best_last_same_epoch": true,
+          "backbone_gradient_l1_epoch0": 134.72364439480666,
+          "ddg_message_gradient_l1_epoch0": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_ddg": [],
+          "no_new_parameters": true
+        },
+        "E1": {
+          "checkpoint_roundtrip_exact": true,
+          "exported_metrics_recomputed_equal": true,
+          "best_last_same_epoch": true,
+          "backbone_gradient_l1_epoch0": 134.56292180869596,
+          "ddg_message_gradient_l1_epoch0": 0.5378852836256556,
+          "ddg_message_update_l1": 93.42657804489136,
+          "validation_only_ddg": [],
+          "no_new_parameters": true
+        }
+      }
+    },
+    {
+      "cohort": "reentrancy_author",
+      "task": "node",
+      "variants": {
+        "E0": {
+          "checkpoint_roundtrip_exact": true,
+          "exported_metrics_recomputed_equal": true,
+          "best_last_same_epoch": true,
+          "backbone_gradient_l1_epoch0": 160.95293788991953,
+          "ddg_message_gradient_l1_epoch0": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_ddg": [],
+          "no_new_parameters": true
+        },
+        "E1": {
+          "checkpoint_roundtrip_exact": true,
+          "exported_metrics_recomputed_equal": true,
+          "best_last_same_epoch": true,
+          "backbone_gradient_l1_epoch0": 160.9175886442194,
+          "ddg_message_gradient_l1_epoch0": 0.591061466402607,
+          "ddg_message_update_l1": 36.62508523464203,
+          "validation_only_ddg": [],
+          "no_new_parameters": true
+        }
+      }
+    },
+    {
+      "cohort": "access_control_author",
+      "task": "contract",
+      "variants": {
+        "E0": {
+          "checkpoint_roundtrip_exact": true,
+          "exported_metrics_recomputed_equal": true,
+          "best_last_same_epoch": true,
+          "backbone_gradient_l1_epoch0": 105.61148226331936,
+          "ddg_message_gradient_l1_epoch0": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_ddg": [],
+          "no_new_parameters": true
+        },
+        "E1": {
+          "checkpoint_roundtrip_exact": true,
+          "exported_metrics_recomputed_equal": true,
+          "best_last_same_epoch": true,
+          "backbone_gradient_l1_epoch0": 105.86150405596598,
+          "ddg_message_gradient_l1_epoch0": 0.5324693136353744,
+          "ddg_message_update_l1": 99.76064848899841,
+          "validation_only_ddg": [
+            {
+              "canonical": [
+                "expression_statement",
+                "DATA_DEF_USE",
+                "while"
+              ],
+              "train_edges": 0,
+              "val_edges": 2,
+              "message_gradient_l1": 0.0,
+              "status": "no_training_ddg_support"
+            },
+            {
+              "canonical": [
+                "new_variable",
+                "DATA_DEF_USE",
+                "while"
+              ],
+              "train_edges": 0,
+              "val_edges": 2,
+              "message_gradient_l1": 0.0,
+              "status": "no_training_ddg_support"
+            }
+          ],
+          "no_new_parameters": true
+        }
+      }
+    },
+    {
+      "cohort": "access_control_author",
+      "task": "node",
+      "variants": {
+        "E0": {
+          "checkpoint_roundtrip_exact": true,
+          "exported_metrics_recomputed_equal": true,
+          "best_last_same_epoch": true,
+          "backbone_gradient_l1_epoch0": 247.95325514308502,
+          "ddg_message_gradient_l1_epoch0": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_ddg": [],
+          "no_new_parameters": true
+        },
+        "E1": {
+          "checkpoint_roundtrip_exact": true,
+          "exported_metrics_recomputed_equal": true,
+          "best_last_same_epoch": true,
+          "backbone_gradient_l1_epoch0": 248.79528875704,
+          "ddg_message_gradient_l1_epoch0": 1.6846593287482392,
+          "ddg_message_update_l1": 44.34366524219513,
+          "validation_only_ddg": [],
+          "no_new_parameters": true
+        }
+      }
+    }
+  ],
+  "original_inputs": {
+    "reentrancy_author": {
+      "original_graph_labels": {
+        "graph": true,
+        "raw_graph": true,
+        "labels": true
+      },
+      "sources_checked": 142,
+      "all_sources_unchanged": true
+    },
+    "access_control_author": {
+      "original_graph_labels": {
+        "graph": true,
+        "raw_graph": true,
+        "labels": true
+      },
+      "sources_checked": 114,
+      "all_sources_unchanged": true
+    }
+  },
+  "full_training_started": false,
+  "smoke_updates_per_variant": 3,
+  "new_python_files": {
+    "scripts/DFG/experiments/paper_protocol.py": "2545aeadc410e67991d82aceb5c180b585d766cb97bc2fb05de24fa4a069d1c7",
+    "scripts/DFG/experiments/paper_run.py": "babbc0fb0f3c040bcee1282973a01745d183a5fc47ffe650077d51daed20d3e0",
+    "scripts/DFG/experiments/paper_runtime.py": "319159bec961320307083f63dea2f4fb5eed3559db401c542bcd0af6eca6218e",
+    "scripts/DFG/experiments/paper_checkpoint.py": "bac967e20d7b95be75c2f38045a8d66f927ea886fd678886d9765c2335facf0f",
+    "scripts/DFG/experiments/run_experiment.py": "c9976457fa839e08bde542be1cacd32a443180774e20f6b177cbbf81710ffa2a",
+    "scripts/DFG/experiments/audit_paper.py": "b1698bee194c39197ff6f227594646ee0c4bc35679bd14986b6ed5ba71826fe1",
+    "scripts/DFG/experiments/summarize_paper.py": "4296147d445041cbe08f89f5a788848f973079acb994dea3bd519ad80c4e6d6d",
+    "scripts/DFG/experiments/tests/test_paper_runtime.py": "3f96880ee650ecb82479e2c7a98a9a195fe15593a51421c34aa4382fafbeaf56",
+    "scripts/DFG/experiments/tests/test_paper_protocol.py": "3c86408bd608a2f9e2b34b973b981bf7a87ecfa12dd6967c3612fe047bbecc69",
+    "scripts/DFG/experiments/tests/test_paper_run.py": "bf37dd23b71f90516a4d57c7c2d6238d79dbba0b957a8c81188b3af6b76e019c",
+    "scripts/DFG/experiments/tests/test_paper_reporting.py": "d2e1631ed091e26d3a85c07520c0fec2ba87d3c83254f909845a870a9f3cae11"
+  },
+  "paired_prediction_comparison": [
+    {
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "different_best_predictions": 0,
+      "probabilities_differ": true
+    },
+    {
+      "cohort": "reentrancy_author",
+      "task": "node",
+      "different_best_predictions": 0,
+      "probabilities_differ": true
+    },
+    {
+      "cohort": "access_control_author",
+      "task": "contract",
+      "different_best_predictions": 0,
+      "probabilities_differ": true
+    },
+    {
+      "cohort": "access_control_author",
+      "task": "node",
+      "different_best_predictions": 3,
+      "probabilities_differ": true
+    }
+  ],
+  "documentation_manifest_sha256": "75c18feae9b75f4e2b0f0187d09bd81134a32ee75cf547e0679a7bb36a37ef7f"
+}

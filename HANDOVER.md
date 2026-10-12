@@ -1104,3 +1104,27 @@ python -B -m pytest -q -p no:cacheprovider \
 ~~~
 
 最简回退：使用原图/--no_ddg，原反射函数无需撤回。若必须撤回代码接入，核对文件摘要后只移除 DDG FORWARD FIX 精确分支，勿整文件 git restore。两份最初方案文档和2026-10-11分析报告保持历史原文未改。
+
+
+#### 2026-10-12：DDG 主协议 paper_kfold 已接入（修改 AI：Codex）
+
+本条为最新实验协议状态。旧 ddg-nested-paired-v1 保留为 nested_strict 旁路；不覆盖旧结果、不改变旧严格支持策略。默认入口改为新增的 scripts.DFG.experiments.run_experiment，默认 protocol=paper_kfold。
+
+- 主划分：合约5折、节点10折；新 train=旧 inner_train∪inner_val，新 val=旧 outer_test；同 val 用于早停、选 best 和评分，明确叫 CV validation，不能称 independent outer test。
+- 全固定任务图注册和前向；节点用文件对应的 node mask、合约用文件 batch 监督。E0/E1 各注册自己的 schema，语义共同初始化，不给 E0 填空 DDG。
+- 训练未见但已注册的类型/关系允许预测并审计；错字典、未注册、不一致输入仍报错；验证独有 DDG 不强制非零训练梯度。不删边/文件，不换 seed。
+- 所有新实现和42项新测试位于 scripts/DFG/experiments/；46个冻结核心代码文件未改，原DDG/HGT/tokenizer/训练脚本未改；旧prepared、标签、token和nested日志未改。
+- 回归：实验95 + DDG170 + 原项目25 = 290 passed；0失败、0跳过。30主折结构审计全部通过，21折含已注册但train未见schema，均保留。
+- 四任务fold0、E0/E1各3轮检查完成；best/last均为第3轮，重载逐位一致，预测重算一致。仅短检查，不代表完整CV成绩或DDG最终收益。
+
+| 任务（fold0，CV validation） | E0 Buggy-F1 / Macro-F1 | E1 Buggy-F1 / Macro-F1 |
+|---|---:|---:|
+| 重入/合约 | 84.6154 / 86.0577 | 84.6154 / 86.0577 |
+| 重入/节点 | 78.3767 / 72.0414 | 78.3767 / 72.0414 |
+| 访问控制/合约 | 85.7143 / 86.8571 | 85.7143 / 86.8571 |
+| 访问控制/节点 | 77.5385 / 75.4965 | 77.1822 / 74.9714 |
+
+
+- 新输出：scripts/DFG/experiments/artifacts/paper_kfold/20261012_v1/。命令见该 experiments/README.md 顶部；详细报告为 PAPER_KFOLD_REPORT_2026-10-12.md；训练变更文档第13节保存详细记录。
+- 旧 REPORT_2026-10-12.md 是正文中已有2602个问号、没有汉字，非显示解码问题；原件及字节副本保留，新报告不猜测恢复旧正文。
+- 停止于规定的短检查。未启动60次完整训练、未运行新narrow对照、未扩展状态变量/mapping/反向DDG。作者标签历史、模板复用和主协议同val选模偏差仍需分别报告。

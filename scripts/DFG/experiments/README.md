@@ -1,3 +1,134 @@
+# Main protocol: paper_kfold (Codex, 2026-10-12)
+
+The default entry point is now **run_experiment --protocol paper_kfold**.
+The previous **ddg-nested-paired-v1** remains the unchanged opt-in
+**nested_strict** side comparison. Its inputs, code, strict schema policy,
+checkpoints and logs have not been overwritten.
+
+## Main protocol contract
+
+- Version: ddg-paper-kfold-v1. Graph classification: 5 file folds; node
+  classification: 10 file folds. Exactly convert the existing frozen folds:
+  train = inner_train UNION inner_val; val = former outer_test.
+  No new shuffle, seed selection, file exclusion or label reconstruction.
+- Train updates parameters; post-update eval val loss selects best and stops
+  training. The SAME val fold is scored. Results are **CV validation** and
+  MUST NOT be described as independent outer test performance.
+- Construct E0 from the complete E0 task graph, and E1 from complete E1.
+  Every forward uses that full fixed graph. Node supervision uses file-derived
+  node masks; contract supervision uses batches of selected filenames.
+  Dataset A fits in one full training-file batch per update.
+- Keep all nodes, edges, files, features and labels. Cross-file edges are an
+  error, never silently filtered. No three-part GraphView in the main runner.
+- Register each model's own full schema once. A registered node type/relation
+  with no train instances is allowed at validation, and explicitly audited.
+  Truly missing registration, wrong dictionary indices, input drift or
+  test-time parameter creation are errors. No empty DDG relations in E0.
+- Reuse the prior semantic common initialization algorithm unchanged:
+  semantic-paired-native-xavier-v1. Initialization and protocol versions are
+  separate. No trained E0 weights initialize E1; no parameter borrowing.
+- Reuse current production HGT, inside_token features, optimizer schedule,
+  StopMonitor and corrected best/last behavior. Main protocol changes the
+  split, forward and scoring policy; it does NOT claim all paper code/training
+  details are identical or recover the author's unpublished folds.
+- DDG gradient reports distinguish no training instances from broken wiring.
+  A validation-only DDG bank need not have nonzero supervised gradient.
+  Contract Adam weight decay can still move these weights: that is not
+  evidence of training supervision for the relation.
+- Checkpoints use a distinct format, binding protocol, initialization version,
+  full registered schema, forward scope, scoring role, graph/features/labels,
+  split, support, initial state and effective config. Prediction exports are
+  cv_validation_predictions.json. Best/last roundtrip logits must match.
+
+## New implementation
+
+paper_protocol.py converts and validates splits; paper_runtime.py provides
+full-graph supervision/schema/support/gradient audits; paper_checkpoint.py
+binds main checkpoints; paper_run.py trains and scores the main protocol.
+run_experiment.py dispatches protocols. audit_paper.py checks all main folds;
+summarize_paper.py exports CV-only metrics and rejects mixed scoring roles.
+All existing experiment .py files and all DDG/model/tokenizer/trainer files
+are preserved. New tests use synthetic graphs (not compiler-validated Solidity).
+
+New results live ONLY under artifacts/paper_kfold/<version>/.
+New nested alias runs live ONLY under artifacts/nested_strict/<version>/.
+Legacy artifacts/20261012_v1 remain unchanged and are read-only input sources.
+No existing output directory can be overwritten.
+
+## Current inputs and commands
+
+The two author-label prepared cohorts already exist; reuse them without
+regenerating graphs or features. Converted main splits are under
+artifacts/paper_kfold/20261012_v1/<cohort>/splits/.
+
+~~~bash
+cd /home/zhao/SmartContract/ge-sc-llm
+conda activate mando
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+export TREE_SITTER_LIB_DIR="$PWD/build/linux-x86_64"
+
+# Another short check; choose an unused output directory.
+python -u -B -m scripts.DFG.experiments.run_experiment \
+  --protocol paper_kfold \
+  --prepared scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared \
+  --splits scripts/DFG/experiments/artifacts/paper_kfold/20261012_v1/reentrancy_author/splits/node_folds.json \
+  --task node --mode smoke --fold 0 --smoke_epochs 3 --epochs 50 \
+  --device cpu --threads 2 \
+  --output scripts/DFG/experiments/artifacts/paper_kfold/manual_reentrancy_node_01
+~~~
+
+For contract classification, use --task contract and contract_folds.json.
+For access control, replace reentrancy_author with access_control_author.
+Smoke runs three updates on the original 50-step schedule, not a compressed
+three-step schedule. These scores are wiring checks, not full CV conclusions.
+
+~~~bash
+# Optional strict nested side comparison, not the main protocol.
+python -u -B -m scripts.DFG.experiments.run_experiment \
+  --protocol nested_strict \
+  --prepared scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared \
+  --splits scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/splits/node_folds.json \
+  --task node --mode smoke --fold 0 --smoke_epochs 3 --device cpu \
+  --output scripts/DFG/experiments/artifacts/nested_strict/manual_reentrancy_node_01
+~~~
+
+The nested example can remain blocked for unseen inner-train schema; this is
+intentional preserved behavior, not a reason to filter the data.
+
+~~~bash
+# Convert frozen splits into a NEW main version (does not rebuild graphs).
+python -u -B -m scripts.DFG.experiments.paper_protocol \
+  --nested_dir scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/splits \
+  --output scripts/DFG/experiments/artifacts/paper_kfold/NEW_VERSION/reentrancy_author/splits
+
+# Repeat after converting access_control_author too.
+python -u -B -m scripts.DFG.experiments.audit_paper \
+  --prepared_root scripts/DFG/experiments/artifacts/20261012_v1 \
+  --splits_root scripts/DFG/experiments/artifacts/paper_kfold/NEW_VERSION \
+  --output scripts/DFG/experiments/artifacts/paper_kfold/NEW_VERSION/structure_audit
+
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/experiments/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests
+python -B -m pytest -q -p no:cacheprovider tests
+~~~
+
+Full CV is implemented through explicit --mode full --all_folds, but is NOT
+automatically run or promoted from smoke. No complete 60-model run was requested
+in this stage. See PAPER_KFOLD_REPORT_2026-10-12.md for actual execution evidence.
+
+## Encoding evidence and preserved historical record
+
+REPORT_2026-10-12.md is valid UTF-8 but contains 2,602 literal ASCII question
+marks and zero Chinese characters. This is lost file content, not a decoding
+display issue. Original bytes remain unchanged; byte backup and SHA-256 evidence
+are under audit/paper_kfold_v1/. No guessed restoration was performed.
+
+The remaining text below is the preserved earlier **nested_strict** README
+record. Its phase names, strict policy and legacy commands describe only that
+side protocol; the main protocol is specified above.
+
+---
+
 # Frozen DDG E0/E1 experiments
 
 Codex, 2026-10-12. All new orchestration, tests and results live here.
