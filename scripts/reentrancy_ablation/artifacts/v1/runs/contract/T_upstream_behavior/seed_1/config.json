@@ -1,0 +1,30 @@
+{
+  "created_utc": "2026-10-09T01:56:21.126446+00:00",
+  "task": "contract",
+  "experiment": "T_upstream_behavior",
+  "seed": 1,
+  "epochs": 50,
+  "device": "cuda:0",
+  "settings": {
+    "variant": "A_author",
+    "gradient": "detached",
+    "validation": "current",
+    "schedule": "legacy",
+    "delta": 0.005,
+    "legacy_stop": true,
+    "primary_checkpoint": "last",
+    "patience": 7,
+    "hidden_size": 128,
+    "layers": 2,
+    "heads": 8,
+    "hgt_dropout": 0.2,
+    "use_norm": true,
+    "weight_decay": 5e-06,
+    "batch_size": "full training fold (below original contract batch_size=256)",
+    "note": "Controlled comparison with fixed splits/init/50-epoch cap; upstream_behavior is executable-behavior emulation, not proof of original paper settings."
+  },
+  "prepared": "/home/zhao/SmartContract/ge-sc-llm/scripts/reentrancy_ablation/artifacts/v1/prepared",
+  "prepared_manifest_hash": "b87304dc1f131a79eb63bcbae000cd17b96edb588dd3128a6bcca6d06f444af6",
+  "runner_hash": "7cf66fa8aaaf6ac5d171f4cf80b73408eeb1f32aaed3292330e7bbf0e2d5490e",
+  "model_hash": "4e6ff0710b345ffddb555810fadb74225dcf396f90b3cdf928f4f0afc3a12947"
+}

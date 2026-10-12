@@ -1,0 +1,96 @@
+{
+  "created_utc": "2026-10-09T02:08:33.154811+00:00",
+  "rule": "predict positive iff decoded node code contains literal re_ent",
+  "training": "none",
+  "results": {
+    "A_author": {
+      "fold_mean": {
+        "buggy_f1": 87.7946465232771,
+        "macro_f1": 87.5821265094485
+      },
+      "pooled": {
+        "n": 12036,
+        "positive": 6570,
+        "buggy_f1": 88.06335728282167,
+        "macro_f1": 87.84933764005767,
+        "tn_fp_fn_tp": [
+          5181,
+          285,
+          1177,
+          5393
+        ]
+      },
+      "pooled_by_origin": {
+        "SolidiFI": {
+          "n": 10891,
+          "positive": 6537,
+          "buggy_f1": 88.30126893164142,
+          "macro_f1": 86.6822535731689,
+          "tn_fp_fn_tp": [
+            4069,
+            285,
+            1144,
+            5393
+          ]
+        },
+        "SmartBugs": {
+          "n": 1145,
+          "positive": 33,
+          "buggy_f1": 0.0,
+          "macro_f1": 49.26894107221976,
+          "tn_fp_fn_tp": [
+            1112,
+            0,
+            33,
+            0
+          ]
+        }
+      }
+    },
+    "B_local_labels": {
+      "fold_mean": {
+        "buggy_f1": 89.5496082703601,
+        "macro_f1": 88.80081388368042
+      },
+      "pooled": {
+        "n": 12036,
+        "positive": 6976,
+        "buggy_f1": 89.69495811601075,
+        "macro_f1": 89.13719704714534,
+        "tn_fp_fn_tp": [
+          5057,
+          3,
+          1301,
+          5675
+        ]
+      },
+      "pooled_by_origin": {
+        "SolidiFI": {
+          "n": 10891,
+          "positive": 6856,
+          "buggy_f1": 90.55369395244934,
+          "macro_f1": 88.87546289317969,
+          "tn_fp_fn_tp": [
+            4032,
+            3,
+            1181,
+            5675
+          ]
+        },
+        "SmartBugs": {
+          "n": 1145,
+          "positive": 120,
+          "buggy_f1": 0.0,
+          "macro_f1": 47.235023041474655,
+          "tn_fp_fn_tp": [
+            1025,
+            0,
+            120,
+            0
+          ]
+        }
+      }
+    }
+  },
+  "note": "Hand-written probe of known SolidiFI injected identifier naming, not a trained model. It measures an available dataset shortcut, not proof that HGT uses only this rule. Rule was fixed before the first scores were computed."
+}

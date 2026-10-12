@@ -1,0 +1,954 @@
+{
+  "created_by": "Codex",
+  "started_at": "2026-10-10T09:06:55.338326+00:00",
+  "status": "complete",
+  "settings": {
+    "max_epochs": 50,
+    "patience": 7,
+    "seed": 1,
+    "feature": "512-wide existing CodeT5p tokenizer IDs",
+    "split_unit": "contract",
+    "original_interpretation": "Earliest local graph with its unchanged original labels and token features",
+    "access_control_note": "Earliest local access-control graph already uses narrow end_if; one physical version, trained once per task",
+    "narrow_interpretation": "Existing local narrow end_if graph and historical local labels",
+    "evaluation": "mean validation-fold F1; best by minimum validation loss; last at training stop"
+  },
+  "code_sha256": {
+    "graph_classifier.py": "c47133bd9db00f2286301cf7953961267fb647df6fc1958277b6ad3042e447ad",
+    "node_classifier.py": "913f2b17616c6d9cef8e2c035adb59a008c27dfe19073d287b1f0d5a7c68903b",
+    "scripts/eval_best_last.py": "b665ef249dedb55e6b773b8090a7d8a3ddc58c7948d27183c04ebbc69c62eeff",
+    "sco_models/classifier_cli.py": "e4ca83b16745cb7c63e94ac2c40140cd0056de71706bcb9018ae11dc7de8b2ed",
+    "sco_models/dataloader.py": "7e5abaa722dc96d21fe5d48c84dcc2dbf5f1f1f51821f9d2a3930c128883730e",
+    "sco_models/graph_utils.py": "1bdedc8f72ae3e1abd7cfa26cd5c5c071f590ea3456af225064e13ad850bcc48",
+    "sco_models/model_hgt.py": "4e6ff0710b345ffddb555810fadb74225dcf396f90b3cdf928f4f0afc3a12947",
+    "sco_models/opcodes.py": "d0aed114c638c764bfc15c20cc42000d80a18ff1caaf94a07c8031c9562e8175",
+    "sco_models/tools.py": "32e7568876ac3369084f73623288b62a7d09f7161c1ac2f5f7582ab710d6630d",
+    "sco_models/train_sampling.py": "a5500ac51aad0fe5263001e3a085d51455367b01c1e65ed3514ed2cfda48d6eb",
+    "sco_models/utils.py": "905ea8effcc525830222e295ea519ac0283b9004ec6f36da188085d13187f36f",
+    "sco_models/visualization.py": "5667a1bfb7f1d20f45f47ac13dacb7e4f8a003d11042ef13d550c6a849cf9244"
+  },
+  "jobs": [
+    {
+      "name": "reentrancy_local_original_contractlevel",
+      "category": "reentrancy",
+      "variant": "local_original",
+      "task": "contractlevel",
+      "folds": 5,
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/graph_classifier.py",
+        "--compressed_graph",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/tokenizer_ids_codet5p-770m_hcg_compressed_graphs.gpickle",
+        "--bug_type",
+        "reentrancy",
+        "--dataset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files",
+        "--testset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files",
+        "--node_feature",
+        "inside_token",
+        "--output_models",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_local_original_contractlevel/reentrancy_hgt.pth",
+        "--log_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/tensorboard/reentrancy_local_original_contractlevel",
+        "--num_epochs",
+        "50",
+        "--k_folds",
+        "5",
+        "--patience",
+        "7",
+        "--seed",
+        "1",
+        "--verbose_epochs",
+        "--no_progress",
+        "--label",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/graph_labels.json"
+      ],
+      "evaluation_command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/eval_best_last.py",
+        "--task",
+        "contract",
+        "--graph",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/tokenizer_ids_codet5p-770m_hcg_compressed_graphs.gpickle",
+        "--run_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_local_original_contractlevel",
+        "--node_feature",
+        "inside_token",
+        "--label",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/graph_labels.json"
+      ],
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/tokenizer_ids_codet5p-770m_hcg_compressed_graphs.gpickle",
+      "graph_sha256": "decc5c0d108a07a3f91d08e4ae351c79d00d390bd836ce791be157f77b822f78",
+      "label": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/graph_labels.json",
+      "label_sha256": "14e212893b6ebc060e2ff9deea78dbf546c12a6aea73aaf78224c9c33b4e5ffe",
+      "stats": {
+        "nodes": 18312,
+        "edges": 19267,
+        "files": 142,
+        "positive_nodes": 7026
+      },
+      "output_model": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_local_original_contractlevel/reentrancy_hgt.pth",
+      "log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_local_original_contractlevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_local_original_contractlevel_best_last.log",
+      "status": "complete",
+      "started_at": "2026-10-10T09:06:55.339479+00:00",
+      "pid": 3287367,
+      "phase": "evaluation",
+      "train_exit_code": 0,
+      "eval_exit_code": 0,
+      "wall_seconds": 216.24,
+      "ended_at": "2026-10-10T09:10:31.620935+00:00"
+    },
+    {
+      "name": "reentrancy_local_original_linelevel",
+      "category": "reentrancy",
+      "variant": "local_original",
+      "task": "linelevel",
+      "folds": 10,
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/node_classifier.py",
+        "--compressed_graph",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/linelevel_tokenizer_ids.gpickle",
+        "--bug_type",
+        "reentrancy",
+        "--dataset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files",
+        "--testset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files",
+        "--node_feature",
+        "inside_token",
+        "--output_models",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_local_original_linelevel/reentrancy_hgt.pth",
+        "--log_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/tensorboard/reentrancy_local_original_linelevel",
+        "--num_epochs",
+        "50",
+        "--k_folds",
+        "10",
+        "--patience",
+        "7",
+        "--seed",
+        "1",
+        "--verbose_epochs",
+        "--no_progress",
+        "--split_by",
+        "contract"
+      ],
+      "evaluation_command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/eval_best_last.py",
+        "--task",
+        "line",
+        "--graph",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/linelevel_tokenizer_ids.gpickle",
+        "--run_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_local_original_linelevel",
+        "--node_feature",
+        "inside_token"
+      ],
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/linelevel_tokenizer_ids.gpickle",
+      "graph_sha256": "a668c0c446fa64899f04fc658332d3cf924e2bb91564f198d630da18aaace7eb",
+      "label": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/graph_labels.json",
+      "label_sha256": "14e212893b6ebc060e2ff9deea78dbf546c12a6aea73aaf78224c9c33b4e5ffe",
+      "stats": {
+        "nodes": 12036,
+        "edges": 11710,
+        "files": 71,
+        "positive_nodes": 7026
+      },
+      "output_model": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_local_original_linelevel/reentrancy_hgt.pth",
+      "log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_local_original_linelevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_local_original_linelevel_best_last.log",
+      "status": "complete",
+      "started_at": "2026-10-10T09:10:31.621601+00:00",
+      "pid": 3287593,
+      "phase": "evaluation",
+      "train_exit_code": 0,
+      "eval_exit_code": 0,
+      "wall_seconds": 463.09,
+      "ended_at": "2026-10-10T09:18:14.757208+00:00"
+    },
+    {
+      "name": "reentrancy_narrow_contractlevel",
+      "category": "reentrancy",
+      "variant": "narrow",
+      "task": "contractlevel",
+      "folds": 5,
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/graph_classifier.py",
+        "--compressed_graph",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/tokenizer_ids_narrow.gpickle",
+        "--bug_type",
+        "reentrancy",
+        "--dataset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files",
+        "--testset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files",
+        "--node_feature",
+        "inside_token",
+        "--output_models",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_narrow_contractlevel/reentrancy_hgt.pth",
+        "--log_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/tensorboard/reentrancy_narrow_contractlevel",
+        "--num_epochs",
+        "50",
+        "--k_folds",
+        "5",
+        "--patience",
+        "7",
+        "--seed",
+        "1",
+        "--verbose_epochs",
+        "--no_progress",
+        "--label",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/graph_labels.json"
+      ],
+      "evaluation_command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/eval_best_last.py",
+        "--task",
+        "contract",
+        "--graph",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/tokenizer_ids_narrow.gpickle",
+        "--run_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_narrow_contractlevel",
+        "--node_feature",
+        "inside_token",
+        "--label",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/graph_labels.json"
+      ],
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/tokenizer_ids_narrow.gpickle",
+      "graph_sha256": "10f2d63278f34c31553129289365b4ffb57b03639198a1f217fc7a5b05055312",
+      "label": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/graph_labels.json",
+      "label_sha256": "14e212893b6ebc060e2ff9deea78dbf546c12a6aea73aaf78224c9c33b4e5ffe",
+      "stats": {
+        "nodes": 18312,
+        "edges": 19267,
+        "files": 142,
+        "positive_nodes": 6978
+      },
+      "output_model": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_narrow_contractlevel/reentrancy_hgt.pth",
+      "log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_narrow_contractlevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_narrow_contractlevel_best_last.log",
+      "status": "complete",
+      "started_at": "2026-10-10T09:18:14.759510+00:00",
+      "pid": 3287726,
+      "phase": "evaluation",
+      "train_exit_code": 0,
+      "eval_exit_code": 0,
+      "wall_seconds": 222.2,
+      "ended_at": "2026-10-10T09:21:57.002956+00:00"
+    },
+    {
+      "name": "reentrancy_narrow_linelevel",
+      "category": "reentrancy",
+      "variant": "narrow",
+      "task": "linelevel",
+      "folds": 10,
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/node_classifier.py",
+        "--compressed_graph",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/linelevel_narrow.gpickle",
+        "--bug_type",
+        "reentrancy",
+        "--dataset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files",
+        "--testset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files",
+        "--node_feature",
+        "inside_token",
+        "--output_models",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_narrow_linelevel/reentrancy_hgt.pth",
+        "--log_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/tensorboard/reentrancy_narrow_linelevel",
+        "--num_epochs",
+        "50",
+        "--k_folds",
+        "10",
+        "--patience",
+        "7",
+        "--seed",
+        "1",
+        "--verbose_epochs",
+        "--no_progress",
+        "--split_by",
+        "contract"
+      ],
+      "evaluation_command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/eval_best_last.py",
+        "--task",
+        "line",
+        "--graph",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/linelevel_narrow.gpickle",
+        "--run_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_narrow_linelevel",
+        "--node_feature",
+        "inside_token"
+      ],
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/linelevel_narrow.gpickle",
+      "graph_sha256": "1efb2fcb0567a84f9ad2a225f05a8a4d7cf86e55b85f5be7794537049b8d5359",
+      "label": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/graph_labels.json",
+      "label_sha256": "14e212893b6ebc060e2ff9deea78dbf546c12a6aea73aaf78224c9c33b4e5ffe",
+      "stats": {
+        "nodes": 12036,
+        "edges": 11710,
+        "files": 71,
+        "positive_nodes": 6978
+      },
+      "output_model": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/reentrancy_narrow_linelevel/reentrancy_hgt.pth",
+      "log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_narrow_linelevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_narrow_linelevel_best_last.log",
+      "status": "complete",
+      "started_at": "2026-10-10T09:21:57.005985+00:00",
+      "pid": 3290526,
+      "phase": "evaluation",
+      "train_exit_code": 0,
+      "eval_exit_code": 0,
+      "wall_seconds": 535.87,
+      "ended_at": "2026-10-10T09:30:52.916121+00:00"
+    },
+    {
+      "name": "access_control_local_original_and_narrow_contractlevel",
+      "category": "access_control",
+      "variant": "local_original_and_narrow",
+      "task": "contractlevel",
+      "folds": 5,
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/graph_classifier.py",
+        "--compressed_graph",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/tokenizer_ids_codet5p-770m_hcg_compressed_graphs.gpickle",
+        "--bug_type",
+        "access_control",
+        "--dataset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files",
+        "--testset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files",
+        "--node_feature",
+        "inside_token",
+        "--output_models",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/access_control_local_original_and_narrow_contractlevel/access_control_hgt.pth",
+        "--log_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/tensorboard/access_control_local_original_and_narrow_contractlevel",
+        "--num_epochs",
+        "50",
+        "--k_folds",
+        "5",
+        "--patience",
+        "7",
+        "--seed",
+        "1",
+        "--verbose_epochs",
+        "--no_progress",
+        "--label",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/graph_labels.json"
+      ],
+      "evaluation_command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/eval_best_last.py",
+        "--task",
+        "contract",
+        "--graph",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/tokenizer_ids_codet5p-770m_hcg_compressed_graphs.gpickle",
+        "--run_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/access_control_local_original_and_narrow_contractlevel",
+        "--node_feature",
+        "inside_token",
+        "--label",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/graph_labels.json"
+      ],
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/tokenizer_ids_codet5p-770m_hcg_compressed_graphs.gpickle",
+      "graph_sha256": "b75fe9b45933293a516d27619fe3a849249f3d5b28fde63ebef2f7b3695b3e32",
+      "label": "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/graph_labels.json",
+      "label_sha256": "1f913e5dbbf9b6a8730ac83359ee820c4e79d5f0f59d8bcba0446be1c9655b42",
+      "stats": {
+        "nodes": 13432,
+        "edges": 15538,
+        "files": 114,
+        "positive_nodes": 3236
+      },
+      "output_model": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/access_control_local_original_and_narrow_contractlevel/access_control_hgt.pth",
+      "log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/access_control_local_original_and_narrow_contractlevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/access_control_local_original_and_narrow_contractlevel_best_last.log",
+      "status": "complete",
+      "started_at": "2026-10-10T09:30:52.920520+00:00",
+      "pid": 3290657,
+      "phase": "evaluation",
+      "train_exit_code": 0,
+      "eval_exit_code": 0,
+      "wall_seconds": 182.33,
+      "ended_at": "2026-10-10T09:33:55.292377+00:00"
+    },
+    {
+      "name": "access_control_local_original_and_narrow_linelevel",
+      "category": "access_control",
+      "variant": "local_original_and_narrow",
+      "task": "linelevel",
+      "folds": 10,
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/node_classifier.py",
+        "--compressed_graph",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/linelevel_tokenizer_ids.gpickle",
+        "--bug_type",
+        "access_control",
+        "--dataset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files",
+        "--testset",
+        "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files",
+        "--node_feature",
+        "inside_token",
+        "--output_models",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/access_control_local_original_and_narrow_linelevel/access_control_hgt.pth",
+        "--log_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/tensorboard/access_control_local_original_and_narrow_linelevel",
+        "--num_epochs",
+        "50",
+        "--k_folds",
+        "10",
+        "--patience",
+        "7",
+        "--seed",
+        "1",
+        "--verbose_epochs",
+        "--no_progress",
+        "--split_by",
+        "contract"
+      ],
+      "evaluation_command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-u",
+        "-B",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/eval_best_last.py",
+        "--task",
+        "line",
+        "--graph",
+        "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/linelevel_tokenizer_ids.gpickle",
+        "--run_dir",
+        "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/access_control_local_original_and_narrow_linelevel",
+        "--node_feature",
+        "inside_token"
+      ],
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/linelevel_tokenizer_ids.gpickle",
+      "graph_sha256": "d5abbb73f0f878515a708d5aa9ecfd4b892520cc9cbdfb90ee8f1d44afa68210",
+      "label": "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/graph_labels.json",
+      "label_sha256": "1f913e5dbbf9b6a8730ac83359ee820c4e79d5f0f59d8bcba0446be1c9655b42",
+      "stats": {
+        "nodes": 7710,
+        "edges": 8840,
+        "files": 57,
+        "positive_nodes": 3236
+      },
+      "output_model": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/models/access_control_local_original_and_narrow_linelevel/access_control_hgt.pth",
+      "log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/access_control_local_original_and_narrow_linelevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/access_control_local_original_and_narrow_linelevel_best_last.log",
+      "status": "complete",
+      "started_at": "2026-10-10T09:33:55.297365+00:00",
+      "pid": 3290898,
+      "phase": "evaluation",
+      "train_exit_code": 0,
+      "eval_exit_code": 0,
+      "wall_seconds": 452.77,
+      "ended_at": "2026-10-10T09:41:28.128483+00:00"
+    }
+  ],
+  "results": [
+    {
+      "category": "reentrancy",
+      "variant": "local_original",
+      "task": "contractlevel",
+      "folds": 5,
+      "stats": {
+        "nodes": 18312,
+        "edges": 19267,
+        "files": 142,
+        "positive_nodes": 7026
+      },
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/tokenizer_ids_codet5p-770m_hcg_compressed_graphs.gpickle",
+      "training_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_local_original_contractlevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_local_original_contractlevel_best_last.log",
+      "folds_match_previous_public_run": true,
+      "wall_seconds": 216.24,
+      "fold_results": [
+        {
+          "fold": 0,
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "best_buggy_f1": 84.6153846153846,
+          "best_macro_f1": 86.0576923076923
+        },
+        {
+          "fold": 1,
+          "best_epoch": 14,
+          "last_epoch": 20,
+          "best_buggy_f1": 100.0,
+          "best_macro_f1": 100.0
+        },
+        {
+          "fold": 2,
+          "best_epoch": 9,
+          "last_epoch": 16,
+          "best_buggy_f1": 96.55172413793103,
+          "best_macro_f1": 96.42401021711366
+        },
+        {
+          "fold": 3,
+          "best_epoch": 8,
+          "last_epoch": 15,
+          "best_buggy_f1": 96.2962962962963,
+          "best_macro_f1": 96.42401021711366
+        },
+        {
+          "fold": 4,
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "best_buggy_f1": 93.33333333333333,
+          "best_macro_f1": 92.82051282051282
+        }
+      ],
+      "best_buggy_f1": 94.1593,
+      "best_macro_f1": 94.3452,
+      "last_buggy_f1": 89.6913,
+      "last_macro_f1": 89.3984
+    },
+    {
+      "category": "reentrancy",
+      "variant": "local_original",
+      "task": "linelevel",
+      "folds": 10,
+      "stats": {
+        "nodes": 12036,
+        "edges": 11710,
+        "files": 71,
+        "positive_nodes": 7026
+      },
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/linelevel_tokenizer_ids.gpickle",
+      "training_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_local_original_linelevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_local_original_linelevel_best_last.log",
+      "folds_match_previous_public_run": true,
+      "wall_seconds": 463.09,
+      "fold_results": [
+        {
+          "fold": 0,
+          "best_epoch": 23,
+          "last_epoch": 28,
+          "best_buggy_f1": 99.54075774971297,
+          "best_macro_f1": 99.34932624327753
+        },
+        {
+          "fold": 1,
+          "best_epoch": 22,
+          "last_epoch": 22,
+          "best_buggy_f1": 98.6858838490886,
+          "best_macro_f1": 98.34615735862789
+        },
+        {
+          "fold": 2,
+          "best_epoch": 16,
+          "last_epoch": 23,
+          "best_buggy_f1": 99.67811158798283,
+          "best_macro_f1": 99.50498007016068
+        },
+        {
+          "fold": 3,
+          "best_epoch": 28,
+          "last_epoch": 32,
+          "best_buggy_f1": 99.55156950672645,
+          "best_macro_f1": 99.3388309456229
+        },
+        {
+          "fold": 4,
+          "best_epoch": 14,
+          "last_epoch": 21,
+          "best_buggy_f1": 98.39228295819936,
+          "best_macro_f1": 98.34580134304525
+        },
+        {
+          "fold": 5,
+          "best_epoch": 14,
+          "last_epoch": 21,
+          "best_buggy_f1": 98.25174825174825,
+          "best_macro_f1": 98.3518803178246
+        },
+        {
+          "fold": 6,
+          "best_epoch": 33,
+          "last_epoch": 35,
+          "best_buggy_f1": 99.79209979209979,
+          "best_macro_f1": 99.74172890839557
+        },
+        {
+          "fold": 7,
+          "best_epoch": 20,
+          "last_epoch": 20,
+          "best_buggy_f1": 97.92993630573248,
+          "best_macro_f1": 97.91826928008041
+        },
+        {
+          "fold": 8,
+          "best_epoch": 33,
+          "last_epoch": 36,
+          "best_buggy_f1": 99.07692307692308,
+          "best_macro_f1": 98.86581579855122
+        },
+        {
+          "fold": 9,
+          "best_epoch": 14,
+          "last_epoch": 21,
+          "best_buggy_f1": 94.8051948051948,
+          "best_macro_f1": 95.72895723523338
+        }
+      ],
+      "best_buggy_f1": 98.5705,
+      "best_macro_f1": 98.5492,
+      "last_buggy_f1": 98.747,
+      "last_macro_f1": 98.6966,
+      "exact_code_label_overlap": {
+        "nodes": 9203,
+        "total": 12036,
+        "percent": 76.5
+      }
+    },
+    {
+      "category": "reentrancy",
+      "variant": "narrow",
+      "task": "contractlevel",
+      "folds": 5,
+      "stats": {
+        "nodes": 18312,
+        "edges": 19267,
+        "files": 142,
+        "positive_nodes": 6978
+      },
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/tokenizer_ids_narrow.gpickle",
+      "training_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_narrow_contractlevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_narrow_contractlevel_best_last.log",
+      "folds_match_previous_public_run": true,
+      "wall_seconds": 222.2,
+      "fold_results": [
+        {
+          "fold": 0,
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "best_buggy_f1": 84.6153846153846,
+          "best_macro_f1": 86.0576923076923
+        },
+        {
+          "fold": 1,
+          "best_epoch": 14,
+          "last_epoch": 20,
+          "best_buggy_f1": 100.0,
+          "best_macro_f1": 100.0
+        },
+        {
+          "fold": 2,
+          "best_epoch": 9,
+          "last_epoch": 16,
+          "best_buggy_f1": 96.55172413793103,
+          "best_macro_f1": 96.42401021711366
+        },
+        {
+          "fold": 3,
+          "best_epoch": 8,
+          "last_epoch": 15,
+          "best_buggy_f1": 96.2962962962963,
+          "best_macro_f1": 96.42401021711366
+        },
+        {
+          "fold": 4,
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "best_buggy_f1": 93.33333333333333,
+          "best_macro_f1": 92.82051282051282
+        }
+      ],
+      "best_buggy_f1": 94.1593,
+      "best_macro_f1": 94.3452,
+      "last_buggy_f1": 89.6913,
+      "last_macro_f1": 89.3984
+    },
+    {
+      "category": "reentrancy",
+      "variant": "narrow",
+      "task": "linelevel",
+      "folds": 10,
+      "stats": {
+        "nodes": 12036,
+        "edges": 11710,
+        "files": 71,
+        "positive_nodes": 6978
+      },
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/linelevel_narrow.gpickle",
+      "training_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_narrow_linelevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/reentrancy_narrow_linelevel_best_last.log",
+      "folds_match_previous_public_run": true,
+      "wall_seconds": 535.87,
+      "fold_results": [
+        {
+          "fold": 0,
+          "best_epoch": 27,
+          "last_epoch": 32,
+          "best_buggy_f1": 99.36890418818129,
+          "best_macro_f1": 99.10489466521814
+        },
+        {
+          "fold": 1,
+          "best_epoch": 21,
+          "last_epoch": 28,
+          "best_buggy_f1": 99.15182357930449,
+          "best_macro_f1": 98.93323826780134
+        },
+        {
+          "fold": 2,
+          "best_epoch": 15,
+          "last_epoch": 22,
+          "best_buggy_f1": 99.51638903815153,
+          "best_macro_f1": 99.25874945803248
+        },
+        {
+          "fold": 3,
+          "best_epoch": 47,
+          "last_epoch": 47,
+          "best_buggy_f1": 99.61340206185567,
+          "best_macro_f1": 99.43633066055746
+        },
+        {
+          "fold": 4,
+          "best_epoch": 14,
+          "last_epoch": 21,
+          "best_buggy_f1": 98.33887043189368,
+          "best_macro_f1": 98.34706679489422
+        },
+        {
+          "fold": 5,
+          "best_epoch": 17,
+          "last_epoch": 21,
+          "best_buggy_f1": 99.03762029746282,
+          "best_macro_f1": 99.09344278600906
+        },
+        {
+          "fold": 6,
+          "best_epoch": 31,
+          "last_epoch": 37,
+          "best_buggy_f1": 99.79123173277662,
+          "best_macro_f1": 99.74224163325947
+        },
+        {
+          "fold": 7,
+          "best_epoch": 13,
+          "last_epoch": 20,
+          "best_buggy_f1": 97.75641025641026,
+          "best_macro_f1": 97.75820512820513
+        },
+        {
+          "fold": 8,
+          "best_epoch": 48,
+          "last_epoch": 49,
+          "best_buggy_f1": 98.99146625290923,
+          "best_macro_f1": 98.77591031360855
+        },
+        {
+          "fold": 9,
+          "best_epoch": 14,
+          "last_epoch": 21,
+          "best_buggy_f1": 95.47038327526133,
+          "best_macro_f1": 96.43258642720983
+        }
+      ],
+      "best_buggy_f1": 98.7037,
+      "best_macro_f1": 98.6883,
+      "last_buggy_f1": 98.7727,
+      "last_macro_f1": 98.7642,
+      "exact_code_label_overlap": {
+        "nodes": 9202,
+        "total": 12036,
+        "percent": 76.5
+      }
+    },
+    {
+      "category": "access_control",
+      "variant": "local_original_and_narrow",
+      "task": "contractlevel",
+      "folds": 5,
+      "stats": {
+        "nodes": 13432,
+        "edges": 15538,
+        "files": 114,
+        "positive_nodes": 3236
+      },
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/tokenizer_ids_codet5p-770m_hcg_compressed_graphs.gpickle",
+      "training_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/access_control_local_original_and_narrow_contractlevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/access_control_local_original_and_narrow_contractlevel_best_last.log",
+      "folds_match_previous_public_run": true,
+      "wall_seconds": 182.33,
+      "fold_results": [
+        {
+          "fold": 0,
+          "best_epoch": 10,
+          "last_epoch": 17,
+          "best_buggy_f1": 100.0,
+          "best_macro_f1": 100.0
+        },
+        {
+          "fold": 1,
+          "best_epoch": 8,
+          "last_epoch": 15,
+          "best_buggy_f1": 90.0,
+          "best_macro_f1": 91.15384615384615
+        },
+        {
+          "fold": 2,
+          "best_epoch": 9,
+          "last_epoch": 16,
+          "best_buggy_f1": 91.66666666666666,
+          "best_macro_f1": 91.28787878787878
+        },
+        {
+          "fold": 3,
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "best_buggy_f1": 95.65217391304348,
+          "best_macro_f1": 95.65217391304348
+        },
+        {
+          "fold": 4,
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "best_buggy_f1": 100.0,
+          "best_macro_f1": 100.0
+        }
+      ],
+      "best_buggy_f1": 95.4638,
+      "best_macro_f1": 95.6188,
+      "last_buggy_f1": 84.9558,
+      "last_macro_f1": 85.08
+    },
+    {
+      "category": "access_control",
+      "variant": "local_original_and_narrow",
+      "task": "linelevel",
+      "folds": 10,
+      "stats": {
+        "nodes": 7710,
+        "edges": 8840,
+        "files": 57,
+        "positive_nodes": 3236
+      },
+      "graph": "/home/zhao/SmartContract/ge-sc-llm/scripts/access_control_test/artifacts/dataset_a_source_range_v1/linelevel_tokenizer_ids.gpickle",
+      "training_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/access_control_local_original_and_narrow_linelevel.log",
+      "evaluation_log": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/training_runs/20261010_local_original_vs_narrow_v1/logs/access_control_local_original_and_narrow_linelevel_best_last.log",
+      "folds_match_previous_public_run": true,
+      "wall_seconds": 452.77,
+      "fold_results": [
+        {
+          "fold": 0,
+          "best_epoch": 13,
+          "last_epoch": 20,
+          "best_buggy_f1": 98.67109634551494,
+          "best_macro_f1": 98.66665185168723
+        },
+        {
+          "fold": 1,
+          "best_epoch": 21,
+          "last_epoch": 27,
+          "best_buggy_f1": 99.2248062015504,
+          "best_macro_f1": 99.36215285052495
+        },
+        {
+          "fold": 2,
+          "best_epoch": 16,
+          "last_epoch": 20,
+          "best_buggy_f1": 98.6737400530504,
+          "best_macro_f1": 98.67549436514953
+        },
+        {
+          "fold": 3,
+          "best_epoch": 31,
+          "last_epoch": 37,
+          "best_buggy_f1": 97.36842105263159,
+          "best_macro_f1": 97.51364196444288
+        },
+        {
+          "fold": 4,
+          "best_epoch": 14,
+          "last_epoch": 21,
+          "best_buggy_f1": 99.29478138222848,
+          "best_macro_f1": 99.46894672252039
+        },
+        {
+          "fold": 5,
+          "best_epoch": 42,
+          "last_epoch": 42,
+          "best_buggy_f1": 98.01526717557252,
+          "best_macro_f1": 98.44093785980021
+        },
+        {
+          "fold": 6,
+          "best_epoch": 13,
+          "last_epoch": 20,
+          "best_buggy_f1": 98.8906497622821,
+          "best_macro_f1": 99.05943733979596
+        },
+        {
+          "fold": 7,
+          "best_epoch": 12,
+          "last_epoch": 19,
+          "best_buggy_f1": 98.21138211382113,
+          "best_macro_f1": 98.4563404075599
+        },
+        {
+          "fold": 8,
+          "best_epoch": 13,
+          "last_epoch": 20,
+          "best_buggy_f1": 99.52456418383518,
+          "best_macro_f1": 99.60875087390326
+        },
+        {
+          "fold": 9,
+          "best_epoch": 23,
+          "last_epoch": 30,
+          "best_buggy_f1": 100.0,
+          "best_macro_f1": 100.0
+        }
+      ],
+      "best_buggy_f1": 98.7875,
+      "best_macro_f1": 98.9252,
+      "last_buggy_f1": 98.7015,
+      "last_macro_f1": 98.8369,
+      "exact_code_label_overlap": {
+        "nodes": 5080,
+        "total": 7710,
+        "percent": 65.9
+      }
+    }
+  ],
+  "ended_at": "2026-10-10T09:41:28.137676+00:00",
+  "changed_training_files": []
+}

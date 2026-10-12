@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-10",
+  "reviewer": "Codex",
+  "scope": "Source corpus, graph construction, coordinate projection and graph node labels; no training run",
+  "findings": [
+    {
+      "priority": "P1",
+      "issue": "Local range/synthetic coordinate semantics differ from author endpoint layout",
+      "locations": [
+        "process_graphs/tree_sitter_codeviews/generator.py:27",
+        "process_graphs/tree_sitter_codeviews/utils/solidity_nodes.py:296",
+        "scripts/access_control_test/build_dataset.py:59"
+      ],
+      "resolution": "New independent label-derived endpoint adapter; old graph fields and features unchanged"
+    },
+    {
+      "priority": "P1",
+      "issue": "Old builder merges by basename without category checks and silently skips invalid CSV/missing graphs or sources",
+      "locations": [
+        "scripts/build_labeled_graph.py:47",
+        "scripts/build_labeled_graph.py:116",
+        "scripts/build_labeled_graph.py:189",
+        "scripts/build_labeled_graph.py:221"
+      ],
+      "resolution": "New path/category/source provenance, required annotation coverage and fail-closed numeric/source checks"
+    },
+    {
+      "priority": "P1",
+      "issue": "Positive contracts must not be inferred from node positives",
+      "locations": [
+        "scripts/labeling_v2/build.py:83",
+        "scripts/access_control_test/build_dataset.py:204"
+      ],
+      "example": "Author parity_wallet_bug_2.sol contract target=1 but zero saved positive nodes",
+      "resolution": "Preserve independent contract manifest and select line graph by that manifest"
+    },
+    {
+      "priority": "P1",
+      "issue": "Graph call resolution and relation taxonomy are not yet fully equivalent to paper/author assets",
+      "locations": [
+        "process_graphs/tree_sitter_codeviews/codeviews/CFG/CFG_solidity.py:365",
+        "process_graphs/tree_sitter_codeviews/codeviews/CFG/CFG_solidity.py:391",
+        "process_graphs/tree_sitter_codeviews/utils/solidity_nodes.py:137"
+      ],
+      "resolution": "Reported, not changed in isolated labeling experiment"
+    },
+    {
+      "priority": "P2",
+      "issue": "Existing author audit omits zero-positive files and conflates reconstruction with independent provenance",
+      "locations": [
+        "Test_code/author_graph_audit/audit_author_graphs.py:144",
+        "Test_code/author_graph_audit/audit_author_graphs.py:175"
+      ],
+      "resolution": "All files selected via contract manifest; public labels computed before reading author reference"
+    },
+    {
+      "priority": "P2",
+      "issue": "Original SolidiFI CSV has overlap/suspect length boundaries and extra unnamed column",
+      "locations": [
+        "data/SolidiFI-benchmark/buggy_contracts/Re-entrancy/BugLog_18.csv:7",
+        "data/SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_18.sol:105",
+        "data/SolidiFI-benchmark/buggy_contracts/tx.origin/BugLog_36.csv:1"
+      ],
+      "resolution": "Retain public benchmark coordinates with explicit audit flags; no semantic correction without evidence"
+    },
+    {
+      "priority": "P2",
+      "issue": "Author reference contains out-of-bounds records and a foreign-category reentrancy annotation; historical SmartBugs snapshot differs",
+      "resolution": "Keep as comparator only; do not copy into independent labels"
+    }
+  ],
+  "new_files": [
+    "build_dataset.py",
+    "coordinates.py",
+    "raw_annotations.py",
+    "test_coordinates.py",
+    "test_pipeline.py",
+    "test_raw_annotations.py",
+    "test_projection_guards.py"
+  ],
+  "validation": "verification.json",
+  "scheme": "DESIGN.txt"
+}

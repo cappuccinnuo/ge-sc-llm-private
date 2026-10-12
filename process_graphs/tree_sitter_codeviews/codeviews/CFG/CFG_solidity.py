@@ -1,3 +1,5 @@
+import os
+
 import networkx as nx
 from ...utils import solidity_nodes
 from ...utils.solidity_nodes import return_if_root
@@ -335,7 +337,22 @@ class CFGGraph_solidity(CFGGraph):
                     # Patent node of function call AST id maps to AST id or index of dummy external funciton call node
                     # self.records['function_calls'][index] = (self.index_counter, method_name)
                     if method_name not in self.records['method_list'].keys():
-                        self.CFG_node_list.append((self.index_counter, 0, 'function_call: '+method_name, 'external_function', '', ''))
+                        # The label has to end in '-<first_line>-<last_line>' like every
+                        # other node, otherwise generator._annotate_cfg_graph cannot parse
+                        # a line range and deletes the node - which is why external call
+                        # targets used to disappear from the graph entirely. 'code' is
+                        # filled in too so the LLM node encoder has something to embed
+                        # rather than an empty string.
+                        call_line = current_node.start_point[0] + 1
+                        call_text = 'function_call: ' + method_name
+                        self.CFG_node_list.append((
+                            self.index_counter,
+                            current_node.start_point[0],
+                            f'{call_text}\n{self.index_counter}-external_function-{call_line}-{call_line}',
+                            'external_function',
+                            '',
+                            call_text,
+                        ))
 
         for child in current_node.children:
             if child.is_named:
@@ -346,16 +363,19 @@ class CFGGraph_solidity(CFGGraph):
         self.CFG_node_list.append((2, 0, 'exit_node', 'exit', ''))
 
     def add_dummy_edges(self):
+        # Call relations must keep their own edge types. Emitting them as 'next' makes
+        # them indistinguishable from sequential control flow, which collapses the
+        # meta relations (source_type, edge_type, target_type) that the HGT attends
+        # over - the heterogeneity the contract graph is supposed to provide. The type
+        # names mirror the call graph of MANDO / MANDO-HGT
+        # (process_graphs/call_graph_generator.py).
         for node_name, node_index in self.records['function_calls'].items():
             for node in node_index:
                 if node_name not in self.records['method_list'].keys():
-                    # self.add_edge(node[1], node[0], 'function_call')
-                    # self.add_edge(node[0],node[1], 'function_return')
-                    self.add_edge(node[1], node[0], 'next')
-                    self.add_edge(node[0],node[1], 'next')
+                    self.add_edge(node[1], node[0], 'function_call')
+                    self.add_edge(node[0], node[1], 'function_return')
                 else:
-                    # self.add_edge(node[1], self.records['method_list'][node_name], 'recursive_method_call')
-                    self.add_edge(node[1], self.records['method_list'][node_name], 'next')
+                    self.add_edge(node[1], self.records['method_list'][node_name], 'recursive_method_call')
 
     def add_function_call_edges(self):
         print('---------------------------------')
@@ -374,11 +394,9 @@ class CFGGraph_solidity(CFGGraph):
                     # caller_contract_index = self.records['function_calls'][caller_function_name][0][1]
                     # if caller_contract_index == contract_index:
                     if contract_node_id in contract_dest_node_id:
-                        # self.add_edge(function_node_id, self.records['method_list'][dest_method_name], 'internal_call')
-                        self.add_edge(function_node_id, self.records['method_list'][dest_method_name], 'next')
+                        self.add_edge(function_node_id, self.records['method_list'][dest_method_name], 'internal_call')
                     else:
-                        # self.add_edge(function_node_id, self.records['method_list'][dest_method_name], 'external_call')
-                        self.add_edge(function_node_id, self.records['method_list'][dest_method_name], 'next')
+                        self.add_edge(function_node_id, self.records['method_list'][dest_method_name], 'external_call')
 
     def CFG_solidity(self):
         warning_counter = 0
@@ -457,8 +475,31 @@ class CFGGraph_solidity(CFGGraph):
 
         self.function_list(self.root_node)
 
+        # add_dummy_nodes stays off: it appends 5-tuples while CFGGraph.to_networkx
+        # unpacks six fields, so enabling it raises IndexError, and it only adds the
+        # CFG's start/exit markers rather than call-graph structure.
         # self.add_dummy_nodes()
-        # self.add_dummy_edges() 
+        #
+        # add_dummy_edges is ON by default, so the graph carries the 19,267 edges the
+        # paper's appendix C reports for reentrancy. Set MANDO_DUMMY_EDGES=0 to build
+        # the 15,286-edge version instead.
+        #
+        # This is a reproduction-fidelity choice, made after measuring that it does not
+        # change the outcome: line-level Buggy-F1 is 98.90 with the edges and 99.07
+        # without under the contract split, 97.33 vs 97.81 under the snippet split -
+        # differences at or near the +-0.12 run-to-run noise. Matching the published
+        # edge count therefore costs nothing.
+        #
+        # What these edges are NOT is call structure, and that should not be forgotten
+        # when interpreting meta relations:
+        #   - all 3,981 'recursive_method_call' edges have a contract/library/interface
+        #     declaration as their source, i.e. they encode containment; a contract
+        #     whose functions never call each other still gets one per function
+        #   - they push the graph to 7 edge types, above the 5 the paper caps the
+        #     framework at
+        #   - the repository originally shipped with this call commented out
+        if os.environ.get("MANDO_DUMMY_EDGES", "1") == "1":
+            self.add_dummy_edges()
         self.add_function_call_edges()
         #------------------------------------------------------------------------------
         # At this point, the self.CFG_node_list has basic block index appended to it

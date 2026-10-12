@@ -601,8 +601,12 @@ class HGTVulGraphClassifier(nn.Module):
         batched_graph_embedded = []
         for g_name in batched_g_name:
             node_list = self.node_ids_by_filename[g_name]
-            batched_graph_embedded.append(hiddens[node_list].mean(0).tolist())
-        batched_graph_embedded = torch.tensor(batched_graph_embedded).to(self.device)
+            # GRADIENT FIX: keep the pooled tensor connected to the HGT layers.
+            # Original: batched_graph_embedded.append(hiddens[node_list].mean(0).tolist())
+            batched_graph_embedded.append(hiddens[node_list].mean(0))
+        # GRADIENT FIX: stack preserves autograd; rebuilding a tensor detaches it.
+        # Original: batched_graph_embedded = torch.tensor(batched_graph_embedded).to(self.device)
+        batched_graph_embedded = torch.stack(batched_graph_embedded, dim=0)
         if save_featrues:
             torch.save(batched_graph_embedded, save_featrues)
         output = self.classify(batched_graph_embedded)

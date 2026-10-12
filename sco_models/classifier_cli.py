@@ -22,11 +22,10 @@ GRAPH_RUNTIME_DEFAULTS = {
     "dropout": 0.6,
     "weight_decay": 0.001,
     "batch_size": 256,
-    "patience": 10,
 }
 
 NODE_RUNTIME_DEFAULTS = {
-    "lr": 0.0005,
+    "lr": 0.0002,
     "num_heads": 8,
     "hidden_units": 8,
     "dropout": 0.6,
@@ -142,12 +141,23 @@ def _add_common_arguments(parser, default_log_dir, default_output_models):
     train_option_params.add_argument(
         "--non_visualize",
         action="store_true",
-        help="Whether you want to visualize the metrics",
+        help="Skip writing TensorBoard scalars for the run",
+    )
+    train_option_params.add_argument(
+        "--verbose_epochs",
+        action="store_true",
+        help="Print train/val loss and F1 for every epoch instead of only per fold",
+    )
+    train_option_params.add_argument(
+        "--no_progress",
+        action="store_true",
+        help="Disable the per-fold epoch progress bar",
     )
 
 
 def build_graph_parser():
     parser = argparse.ArgumentParser("MANDO Graph Classifier")
+    parser.add_argument("--patience", type=int, default=7, help="Patience for early stopping")
     _add_common_arguments(
         parser,
         default_log_dir="./logs/graph_classification",
@@ -274,6 +284,18 @@ def build_node_parser():
         help='One of "nodetype", "metapath2vec", "han", "gae", "line", "node2vec"',
     )
     parser.add_argument("--patience", type=int, default=7, help="Patience for early stopping")
+    # ===== ADDED: snippet-deduplicated splitting. Revert with --split_by contract =====
+    parser.add_argument(
+        "--split_by",
+        choices=("contract", "snippet"),
+        default="contract",
+        help="How to build the k folds. 'contract' is the original behaviour: split "
+             "the contract list, then expand to their nodes. 'snippet' groups nodes by "
+             "their exact source text and keeps every occurrence of a snippet on one "
+             "side of the split, so a validation node's code cannot have been seen "
+             "verbatim during training.",
+    )
+    # ===== END ADDED =====
     return parser
 
 

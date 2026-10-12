@@ -281,13 +281,31 @@ def get_nodes(root_node=None, node_list={}, graph_node_list=[], index={}, record
                 graph_node_list.append((index[(root_node.start_point,root_node.end_point,root_node.type)], root_node.start_point[0], label, type_label, method_sig, root_node.text.decode('UTF-8')))
                 if root_node.type == 'if_statement':
                     # graph_node_list.append((index[(end_if_node.start_point,end_if_node.end_point,end_if_node.type)], end_if_node.start_point[0], 'end_if', 'end_if', root_node.text.decode('UTF-8')))
-                    p_0 = int(records['end_if_node'][root_if_index][1][0])
-                    p_1 = int(records['end_if_node'][root_if_index][1][1])
-                    graph_node_list.append((records['end_if_node'][root_if_index][0], records['end_if_node'][root_if_index][1][0], f'end_if-{p_0}-{p_1}', 'end_if', method_sig, root_node.text.decode('UTF-8')))
+                    # The label must carry the same '<first_line>-<last_line>' tail, in
+                    # 1-based lines, that every other node type emits above. It used to
+                    # be built from start_point as '<row>-<column>', which the graph
+                    # annotator then read as a line range: empty whenever column <= row,
+                    # and off-by-one otherwise. Both boundary points are already
+                    # recorded, so use the end point instead of the column.
+                    # end_if marks where control flow rejoins after the if, so it spans
+                    # the closing line, not the whole if statement. Giving it the full
+                    # range made it a label twin of the 'if' node it sits next to -
+                    # all 1025 of them shared an exact span, 841 shared a buggy label -
+                    # which a message-passing model gets for free. Slither's own END_IF
+                    # nodes carry narrow spans too, not a copy of the IF's.
+                    p_1 = int(records['end_if_node'][root_if_index][2][0])
+                    graph_node_list.append((records['end_if_node'][root_if_index][0], records['end_if_node'][root_if_index][1][0], f'end_if-{p_1 + 1}-{p_1 + 1}', 'end_if', method_sig, root_node.text.decode('UTF-8')))
                 elif root_node.type == 'for_statement':
-                    graph_node_list.append((records['end_loop_node'][root_for_index][0], records['end_loop_node'][root_for_index][1][0], 'end_loop', 'end_loop', method_sig, root_node.text.decode('UTF-8')))
+                    # Same fix for loop ends, which carried no line information at all:
+                    # a bare 'end_loop' label has nothing to parse, so the annotator
+                    # dropped every one of these nodes from the graph.
+                    p_0 = int(records['end_loop_node'][root_for_index][1][0])
+                    p_1 = int(records['end_loop_node'][root_for_index][2][0])
+                    graph_node_list.append((records['end_loop_node'][root_for_index][0], records['end_loop_node'][root_for_index][1][0], f'end_loop-{p_0 + 1}-{p_1 + 1}', 'end_loop', method_sig, root_node.text.decode('UTF-8')))
                 elif root_node.type == 'while_statement':
-                    graph_node_list.append((records['end_loop_node'][root_while_index][0], records['end_loop_node'][root_while_index][1][0], 'end_loop', 'end_loop', method_sig, root_node.text.decode('UTF-8')))
+                    p_0 = int(records['end_loop_node'][root_while_index][1][0])
+                    p_1 = int(records['end_loop_node'][root_while_index][2][0])
+                    graph_node_list.append((records['end_loop_node'][root_while_index][0], records['end_loop_node'][root_while_index][1][0], f'end_loop-{p_0 + 1}-{p_1 + 1}', 'end_loop', method_sig, root_node.text.decode('UTF-8')))
 
 
     for child in root_node.children:
