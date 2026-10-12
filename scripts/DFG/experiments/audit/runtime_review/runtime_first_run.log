@@ -1,0 +1,559 @@
+FFFFFFFF.FF......F                                                       [100%]
+=================================== FAILURES ===================================
+_ test_view_isolates_nodes_preserves_original_order_edges_tokens_and_restores_context[node] _
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_view_isolates_nodes_prese0')
+task = 'node'
+
+    @pytest.mark.parametrize("task", ["node", "contract"])
+    def test_view_isolates_nodes_preserves_original_order_edges_tokens_and_restores_context(tmp_path, task):
+        graph = graph_fixture()
+        model = create_model(tmp_path, task, graph)
+        original_ids = list(graph)
+        before = snapshot_input(model, {"fixture": "original"})
+        graph_obj, id_obj = model.symmetrical_global_graph, model.node_ids_dict
+        filename_obj = getattr(model, "node_ids_by_filename", None)
+        model.train()
+>       view = GraphView(model, ["test.sol"])
+
+scripts/DFG/experiments/tests/test_runtime.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df15c51d0>
+model = HGTVulNodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_fe...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['test.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+torch.Size([9, 512])
+_ test_view_isolates_nodes_preserves_original_order_edges_tokens_and_restores_context[contract] _
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_view_isolates_nodes_prese1')
+task = 'contract'
+
+    @pytest.mark.parametrize("task", ["node", "contract"])
+    def test_view_isolates_nodes_preserves_original_order_edges_tokens_and_restores_context(tmp_path, task):
+        graph = graph_fixture()
+        model = create_model(tmp_path, task, graph)
+        original_ids = list(graph)
+        before = snapshot_input(model, {"fixture": "original"})
+        graph_obj, id_obj = model.symmetrical_global_graph, model.node_ids_dict
+        filename_obj = getattr(model, "node_ids_by_filename", None)
+        model.train()
+>       view = GraphView(model, ["test.sol"])
+
+scripts/DFG/experiments/tests/test_runtime.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df146e750>
+model = HGTVulGraphClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_f...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['test.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Hidden size:  16
+Ntype dict:  2
+{'condition': 0, 'expression': 1}
+Etype dict:  5
+_ test_heldout_feature_and_label_mutation_cannot_change_training_logits_or_gradients[node] _
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_heldout_feature_and_label0')
+task = 'node'
+
+    @pytest.mark.parametrize("task", ["node", "contract"])
+    def test_heldout_feature_and_label_mutation_cannot_change_training_logits_or_gradients(tmp_path, task):
+        baseline = graph_fixture()
+        changed = copy.deepcopy(baseline)
+        for _, node in changed.nodes(data=True):
+            if node["source_file"] != "train.sol":
+                node["token"] = np.full(512, 777, dtype=np.float32)
+                node["node_info_vulnerabilities"] = None
+        first = create_model(tmp_path, task, baseline, "first")
+        second = create_model(tmp_path, task, changed, "second")
+        # Same exact weights, independent of construction RNG.
+        second.load_state_dict(first.state_dict())
+>       train_views = [GraphView(m, ["train.sol"]) for m in (first, second)]
+
+scripts/DFG/experiments/tests/test_runtime.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/tests/test_runtime.py:136: in <listcomp>
+    train_views = [GraphView(m, ["train.sol"]) for m in (first, second)]
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df147b110>
+model = HGTVulNodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_fe...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['train.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+torch.Size([9, 512])
+torch.Size([9, 512])
+_ test_heldout_feature_and_label_mutation_cannot_change_training_logits_or_gradients[contract] _
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_heldout_feature_and_label1')
+task = 'contract'
+
+    @pytest.mark.parametrize("task", ["node", "contract"])
+    def test_heldout_feature_and_label_mutation_cannot_change_training_logits_or_gradients(tmp_path, task):
+        baseline = graph_fixture()
+        changed = copy.deepcopy(baseline)
+        for _, node in changed.nodes(data=True):
+            if node["source_file"] != "train.sol":
+                node["token"] = np.full(512, 777, dtype=np.float32)
+                node["node_info_vulnerabilities"] = None
+        first = create_model(tmp_path, task, baseline, "first")
+        second = create_model(tmp_path, task, changed, "second")
+        # Same exact weights, independent of construction RNG.
+        second.load_state_dict(first.state_dict())
+>       train_views = [GraphView(m, ["train.sol"]) for m in (first, second)]
+
+scripts/DFG/experiments/tests/test_runtime.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/tests/test_runtime.py:136: in <listcomp>
+    train_views = [GraphView(m, ["train.sol"]) for m in (first, second)]
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df13bcc50>
+model = HGTVulGraphClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_f...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['train.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Hidden size:  16
+Ntype dict:  2
+{'condition': 0, 'expression': 1}
+Etype dict:  5
+Hidden size:  16
+Ntype dict:  2
+{'condition': 0, 'expression': 1}
+Etype dict:  5
+_ test_ddg_relations_really_receive_gradient_and_update_in_training_view[node] _
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_ddg_relations_really_rece0')
+task = 'node'
+
+    @pytest.mark.parametrize("task", ["node", "contract"])
+    def test_ddg_relations_really_receive_gradient_and_update_in_training_view(tmp_path, task):
+        enhanced = create_model(tmp_path, task)
+        baseline = create_model(tmp_path, task, graph_fixture(False), "baseline")
+        assert all(c[1] != DDG for c in baseline.etypes_dict)
+>       view = GraphView(enhanced, ["train.sol"])
+
+scripts/DFG/experiments/tests/test_runtime.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df1397b10>
+model = HGTVulNodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_fe...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['train.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+torch.Size([9, 512])
+torch.Size([9, 512])
+_ test_ddg_relations_really_receive_gradient_and_update_in_training_view[contract] _
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_ddg_relations_really_rece1')
+task = 'contract'
+
+    @pytest.mark.parametrize("task", ["node", "contract"])
+    def test_ddg_relations_really_receive_gradient_and_update_in_training_view(tmp_path, task):
+        enhanced = create_model(tmp_path, task)
+        baseline = create_model(tmp_path, task, graph_fixture(False), "baseline")
+        assert all(c[1] != DDG for c in baseline.etypes_dict)
+>       view = GraphView(enhanced, ["train.sol"])
+
+scripts/DFG/experiments/tests/test_runtime.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726cb79d4e90>
+model = HGTVulGraphClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_f...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['train.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Hidden size:  16
+Ntype dict:  2
+{'condition': 0, 'expression': 1}
+Etype dict:  5
+Hidden size:  16
+Ntype dict:  2
+{'condition': 0, 'expression': 1}
+Etype dict:  3
+____ test_unseen_schema_fails_closed_without_dropping_test_edges[relation] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_unseen_schema_fails_close0')
+change = 'relation'
+
+    @pytest.mark.parametrize("change", ["relation", "node_type"])
+    def test_unseen_schema_fails_closed_without_dropping_test_edges(tmp_path, change):
+        graph = graph_fixture()
+        if change == "relation":
+            graph.add_edge("test.sol:0", "test.sol:51", edge_type="rare_call")
+        else:
+            graph.add_node("test.sol:isolated", node_type="rare_type", source_file="test.sol",
+                           token=np.zeros(512, dtype=np.float32), node_info_vulnerabilities=None)
+        model = create_model(tmp_path, graph=graph)
+>       views = {phase: GraphView(model, [filename]) for phase, filename in [
+            ("inner_train", "train.sol"), ("inner_val", "valid.sol"), ("outer_test", "test.sol")]}
+
+scripts/DFG/experiments/tests/test_runtime.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/tests/test_runtime.py:189: in <dictcomp>
+    views = {phase: GraphView(model, [filename]) for phase, filename in [
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df131d250>
+model = HGTVulNodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_fe...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['train.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+torch.Size([9, 512])
+____ test_unseen_schema_fails_closed_without_dropping_test_edges[node_type] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_unseen_schema_fails_close1')
+change = 'node_type'
+
+    @pytest.mark.parametrize("change", ["relation", "node_type"])
+    def test_unseen_schema_fails_closed_without_dropping_test_edges(tmp_path, change):
+        graph = graph_fixture()
+        if change == "relation":
+            graph.add_edge("test.sol:0", "test.sol:51", edge_type="rare_call")
+        else:
+            graph.add_node("test.sol:isolated", node_type="rare_type", source_file="test.sol",
+                           token=np.zeros(512, dtype=np.float32), node_info_vulnerabilities=None)
+        model = create_model(tmp_path, graph=graph)
+>       views = {phase: GraphView(model, [filename]) for phase, filename in [
+            ("inner_train", "train.sol"), ("inner_val", "valid.sol"), ("outer_test", "test.sol")]}
+
+scripts/DFG/experiments/tests/test_runtime.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/tests/test_runtime.py:189: in <dictcomp>
+    views = {phase: GraphView(model, [filename]) for phase, filename in [
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df14a69d0>
+model = HGTVulNodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_fe...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['train.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+torch.Size([9, 512])
+_ test_checkpoint_reloads_exact_logits_after_real_view_forward_and_input_restoration[node] _
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_checkpoint_reloads_exact_0')
+task = 'node'
+
+    @pytest.mark.parametrize("task", ["node", "contract"])
+    def test_checkpoint_reloads_exact_logits_after_real_view_forward_and_input_restoration(tmp_path, task):
+        model, path, file_hash, binding, manifest = save_fixture_checkpoint(tmp_path, task)
+>       view = GraphView(model, ["test.sol"])
+
+scripts/DFG/experiments/tests/test_runtime.py:231: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df133af10>
+model = HGTVulNodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_fe...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['test.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+torch.Size([9, 512])
+_ test_checkpoint_reloads_exact_logits_after_real_view_forward_and_input_restoration[contract] _
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_checkpoint_reloads_exact_1')
+task = 'contract'
+
+    @pytest.mark.parametrize("task", ["node", "contract"])
+    def test_checkpoint_reloads_exact_logits_after_real_view_forward_and_input_restoration(tmp_path, task):
+        model, path, file_hash, binding, manifest = save_fixture_checkpoint(tmp_path, task)
+>       view = GraphView(model, ["test.sol"])
+
+scripts/DFG/experiments/tests/test_runtime.py:231: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df133e390>
+model = HGTVulGraphClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_f...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['test.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Hidden size:  16
+Ntype dict:  2
+{'condition': 0, 'expression': 1}
+Etype dict:  5
+_____________ test_checkpoint_rejects_swapped_live_partition_view ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_checkpoint_rejects_swappe0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x726df1345390>
+
+    def test_checkpoint_rejects_swapped_live_partition_view(tmp_path, monkeypatch):
+        model, path, file_hash, binding, _ = save_fixture_checkpoint(tmp_path, "node")
+>       view = GraphView(model, ["train.sol"])
+
+scripts/DFG/experiments/tests/test_runtime.py:271: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.experiments.runtime.GraphView object at 0x726df1345810>
+model = HGTVulNodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayer(
+      (k_linears): ModuleList(
+        (0): Linear(in_fe...near(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)
+files = ['train.sol']
+
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        sub = model.nx_graph.subgraph(self.full_ids).copy()
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+>           raise AssertionError("Subgraph iteration changed original node order")
+E           AssertionError: Subgraph iteration changed original node order
+
+scripts/DFG/experiments/runtime.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+torch.Size([9, 512])
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_view_isolates_nodes_preserves_original_order_edges_tokens_and_restores_context[node]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_view_isolates_nodes_preserves_original_order_edges_tokens_and_restores_context[contract]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_heldout_feature_and_label_mutation_cannot_change_training_logits_or_gradients[node]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_heldout_feature_and_label_mutation_cannot_change_training_logits_or_gradients[contract]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_ddg_relations_really_receive_gradient_and_update_in_training_view[node]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_ddg_relations_really_receive_gradient_and_update_in_training_view[contract]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_unseen_schema_fails_closed_without_dropping_test_edges[relation]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_unseen_schema_fails_closed_without_dropping_test_edges[node_type]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_checkpoint_reloads_exact_logits_after_real_view_forward_and_input_restoration[node]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_checkpoint_reloads_exact_logits_after_real_view_forward_and_input_restoration[contract]
+FAILED scripts/DFG/experiments/tests/test_runtime.py::test_checkpoint_rejects_swapped_live_partition_view
+11 failed, 7 passed, 4 warnings in -60.22s

@@ -1,0 +1,111 @@
+"""Per-partition graph views around unchanged production classifiers.
+
+Views contain only that partition's files. No edge filtering by label, no
+nearest-node mapping and no dynamically created test-time parameters.
+"""
+from contextlib import contextmanager
+from pathlib import Path
+
+import networkx as nx
+import torch
+import dgl
+
+from scripts.labeling_v2.safe_graph import read_graph
+from scripts.DFG.graph_audit import fingerprint
+from .common import digest
+import sco_models.graph_utils as gu
+from sco_models.model_hgt import HGTVulNodeClassifier, HGTVulGraphClassifier
+
+
+def make_model(task, path, device, hidden_size=128, layers=2, heads=8):
+    cls = HGTVulNodeClassifier if task == "node" else HGTVulGraphClassifier
+    # Constructor imports the existing loader; restrict its pickle reader to
+    # the existing safe graph reader within this synchronous construction only.
+    old = gu.read_gpickle
+    gu.read_gpickle = lambda p: read_graph(Path(p))
+    try:
+        model = cls(str(path), node_feature="inside_token", hidden_size=hidden_size,
+                    num_layers=layers, num_heads=heads, use_norm=True, device=device)
+    finally:
+        gu.read_gpickle = old
+    return model.to(device)
+
+
+def assert_disconnected_files(graph):
+    bad = [(s, t) for s, t in graph.edges()
+           if graph.nodes[s]["source_file"] != graph.nodes[t]["source_file"]]
+    if bad:
+        raise ValueError("Cross-file edges: refusing split leakage; examples=" + repr(bad[:5]))
+
+
+class GraphView:
+    def __init__(self, model, files):
+        self.files = sorted(files)
+        selected = set(self.files)
+        self.full_ids = [n for n, d in model.nx_graph.nodes(data=True)
+                         if d["source_file"] in selected]
+        if not self.full_ids:
+            raise ValueError("Empty partition")
+        # NetworkX induced-view iteration may follow a set for small selections.
+        # Preserve the source model's row order explicitly before reindexing.
+        sub = model.nx_graph.__class__()
+        sub.graph.update(model.nx_graph.graph)
+        sub.add_nodes_from((n, model.nx_graph.nodes[n]) for n in self.full_ids)
+        selected_ids = set(self.full_ids)
+        sub.add_edges_from((s, t, k, d) for s, t, k, d in model.nx_graph.edges(keys=True, data=True)
+                           if s in selected_ids and t in selected_ids)
+        if {d["source_file"] for _, d in sub.nodes(data=True)} != selected:
+            raise ValueError("Partition contains absent files")
+        if list(sub.nodes()) != self.full_ids:
+            raise AssertionError("Subgraph iteration changed original node order")
+        self.nx = gu.add_hetero_ids(nx.convert_node_labels_to_integers(sub))
+        self.node_ids = gu.get_node_ids_dict(self.nx)
+        self.by_file = gu.get_node_ids_by_filename(self.nx)
+        data = gu.reflect_graph(gu.generate_hetero_graph_data(self.nx))
+        self.graph = dgl.heterograph(data, num_nodes_dict=gu.get_number_of_nodes(self.nx),
+                                    device=model.device)
+        features = gu.get_node_token(self.nx)
+        for typ in self.graph.ntypes:
+            self.graph.nodes[typ].data["inp"] = features[typ].to(model.device).detach()
+        for canonical in self.graph.canonical_etypes:
+            self.graph.edges[canonical].data["id"] = torch.full(
+                (self.graph.num_edges(canonical),), model.etypes_dict[canonical],
+                dtype=torch.long, device=model.device)
+        self.manifest = {
+            "files": self.files, "full_model_node_ids": self.full_ids,
+            "nodes": len(self.nx), "edges_before_reflection": self.nx.number_of_edges(),
+            "edges_after_reflection": self.graph.num_edges(),
+            "node_types": list(self.graph.ntypes),
+            "canonical_relations": [list(c) for c in self.graph.canonical_etypes],
+            "graph_sha256": fingerprint(self.nx),
+        }
+        self.manifest["sha256"] = digest(self.manifest)
+
+    @contextmanager
+    def bind(self, model):
+        updates = {"symmetrical_global_graph": self.graph, "node_ids_dict": self.node_ids}
+        if hasattr(model, "node_ids_by_filename"):
+            updates["node_ids_by_filename"] = self.by_file
+        previous = {key: getattr(model, key) for key in updates}
+        try:
+            for key, value in updates.items():
+                setattr(model, key, value)
+            yield
+        finally:
+            for key, value in previous.items():
+                setattr(model, key, value)
+
+
+def schema_report(views):
+    train = views["inner_train"].graph
+    train_nodes = set(train.ntypes)
+    train_edges = set(train.canonical_etypes)
+    report = {"policy": "fail_closed_no_untrained_types_no_edge_dropping", "phases": {}}
+    for name, view in views.items():
+        report["phases"][name] = {
+            "unseen_node_types": sorted(set(view.graph.ntypes) - train_nodes),
+            "unseen_relations": [list(c) for c in sorted(set(view.graph.canonical_etypes) - train_edges)],
+        }
+    report["supported"] = not any(
+        v["unseen_node_types"] or v["unseen_relations"] for v in report["phases"].values())
+    return report
