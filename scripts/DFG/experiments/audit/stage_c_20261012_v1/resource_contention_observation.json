@@ -1,0 +1,45 @@
+{
+  "observed_at": "2026-10-12 local evening; realtime clock not used for elapsed comparisons",
+  "investigation": "Read-only Windows GPU counters and WSL process/system samples",
+  "findings": {
+    "other_gpu_processes": [
+      {
+        "name": "GameViewerServer",
+        "pid": 30260,
+        "video_encode_percent": 40.9,
+        "compute_percent": 12.8,
+        "graphics_percent": 22.3,
+        "dedicated_counter_MiB": 570.9
+      },
+      {
+        "name": "DWM",
+        "pid": 1796,
+        "graphics_percent": 35.1,
+        "dedicated_counter_MiB": 430.5
+      },
+      {
+        "name": "Code",
+        "pid": 4380,
+        "graphics_percent": 16.5,
+        "dedicated_counter_MiB": 68.2
+      }
+    ],
+    "nvidia_gpu_util_percent": 100,
+    "nvidia_free_vram_MiB": 39,
+    "cpu_time_samples": [
+      "34:30",
+      "35:27"
+    ],
+    "no_active_gpu_throttling": true,
+    "wsl_available_ram_MiB": 2594,
+    "psi_averages": 0,
+    "training_progress": "E1 fold1 advanced beyond epoch6 after sampling; no execution error observed"
+  },
+  "limits": [
+    "Concurrent activity is corroborated; its share of slowdown is not established.",
+    "WDDM dedicated-memory counters are not physical residency and must not be summed as total VRAM.",
+    "CPU/GPU activity alone does not prove useful training progress.",
+    "WSL realtime clock reversed; log mtime ages unreliable."
+  ],
+  "mutations": "None: no process terminated, no configuration changed, no software installed."
+}

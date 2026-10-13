@@ -1,0 +1,65 @@
+{
+  "optimizer": "Adam",
+  "defaults": {
+    "lr": 0.0005,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "eps": 1e-08,
+    "weight_decay": 5e-06,
+    "amsgrad": false
+  },
+  "initial_groups": [
+    {
+      "lr": 0.0005000000000000004,
+      "betas": [
+        0.95,
+        0.999
+      ],
+      "eps": 1e-08,
+      "weight_decay": 5e-06,
+      "amsgrad": false,
+      "initial_lr": 0.0005,
+      "max_lr": 0.01,
+      "min_lr": 0.0005,
+      "max_momentum": 0.95,
+      "base_momentum": 0.85
+    }
+  ],
+  "scheduler": "OneCycleLR",
+  "initial_state": {
+    "total_steps": 50,
+    "_schedule_phases": [
+      {
+        "end_step": 14.0,
+        "start_lr": "initial_lr",
+        "end_lr": "max_lr",
+        "start_momentum": "max_momentum",
+        "end_momentum": "base_momentum"
+      },
+      {
+        "end_step": 49,
+        "start_lr": "max_lr",
+        "end_lr": "min_lr",
+        "start_momentum": "base_momentum",
+        "end_momentum": "max_momentum"
+      }
+    ],
+    "anneal_func": {
+      "callable": "torch.optim.lr_scheduler.OneCycleLR._annealing_cos"
+    },
+    "cycle_momentum": true,
+    "use_beta1": true,
+    "base_lrs": [
+      0.0005
+    ],
+    "last_epoch": 0,
+    "_step_count": 1,
+    "verbose": false,
+    "_get_lr_called_within_step": false,
+    "_last_lr": [
+      0.0005000000000000004
+    ]
+  }
+}

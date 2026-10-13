@@ -1,0 +1,211 @@
+{
+  "accepted_utc": "2026-10-13T03:41:11.015069+00:00",
+  "acceptance": {
+    "status": "passed",
+    "score_role": "cv_validation",
+    "job": "reentrancy_author_node_fold9",
+    "variants": {
+      "E0": {
+        "epochs": 22,
+        "best_epoch": 14,
+        "last_epoch": 21,
+        "stop_reason": "patience",
+        "lr_verified": true,
+        "parameter_count": 4371010,
+        "fit_eval_checkpoint_wall_seconds": 75.71270838199416,
+        "ddg_train_edges": 0,
+        "ddg_gradient_l1_sum": 0,
+        "ddg_message_update_l1": 0,
+        "validation_only_relations": [
+          [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          [
+            "if",
+            "next_line",
+            "modifier_definition"
+          ],
+          [
+            "modifier_definition",
+            "next_line",
+            "end_if"
+          ],
+          [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ]
+        ]
+      },
+      "E1": {
+        "epochs": 22,
+        "best_epoch": 14,
+        "last_epoch": 21,
+        "stop_reason": "patience",
+        "lr_verified": true,
+        "parameter_count": 4469506,
+        "fit_eval_checkpoint_wall_seconds": 78.72138506296324,
+        "ddg_train_edges": 1658,
+        "ddg_gradient_l1_sum": 12.913539306972712,
+        "ddg_message_update_l1": 1115.4687461853027,
+        "validation_only_relations": [
+          [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          [
+            "if",
+            "next_line",
+            "modifier_definition"
+          ],
+          [
+            "modifier_definition",
+            "next_line",
+            "end_if"
+          ],
+          [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ]
+        ]
+      }
+    },
+    "paired_errors": {
+      "best": {
+        "counts": {
+          "both_correct": 386,
+          "e0_wrong_e1_correct": 1,
+          "e0_correct_e1_wrong": 0,
+          "both_wrong": 6
+        },
+        "changed": [
+          {
+            "file": "buggy_29.sol",
+            "original_graph_node_id": 17192,
+            "node_type": "new_variable",
+            "target": 1,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_wrong_e1_correct"
+          }
+        ]
+      },
+      "last": {
+        "counts": {
+          "both_correct": 382,
+          "e0_wrong_e1_correct": 3,
+          "e0_correct_e1_wrong": 4,
+          "both_wrong": 4
+        },
+        "changed": [
+          {
+            "file": "reentrancy_bonus.sol",
+            "original_graph_node_id": 2,
+            "node_type": "new_variable",
+            "target": 0,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_correct_e1_wrong"
+          },
+          {
+            "file": "0x627fa62ccbb1c1b04ffaecd72a53e37fc0e17839.sol",
+            "original_graph_node_id": 5849,
+            "node_type": "expression_statement",
+            "target": 0,
+            "E0": 1,
+            "E1": 0,
+            "transition": "e0_wrong_e1_correct"
+          },
+          {
+            "file": "buggy_29.sol",
+            "original_graph_node_id": 17186,
+            "node_type": "new_variable",
+            "target": 1,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_wrong_e1_correct"
+          },
+          {
+            "file": "buggy_29.sol",
+            "original_graph_node_id": 17274,
+            "node_type": "expression_statement",
+            "target": 0,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_correct_e1_wrong"
+          },
+          {
+            "file": "buggy_29.sol",
+            "original_graph_node_id": 17275,
+            "node_type": "expression_statement",
+            "target": 0,
+            "E0": 1,
+            "E1": 0,
+            "transition": "e0_wrong_e1_correct"
+          },
+          {
+            "file": "buggy_29.sol",
+            "original_graph_node_id": 17276,
+            "node_type": "if",
+            "target": 0,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_correct_e1_wrong"
+          },
+          {
+            "file": "buggy_29.sol",
+            "original_graph_node_id": 17307,
+            "node_type": "expression_statement",
+            "target": 0,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_correct_e1_wrong"
+          }
+        ]
+      }
+    }
+  },
+  "artifacts": {
+    "effective_config.json": "5540142f189bfe971916a51c92052dfba3dd21549648aa69f06d669acf51227c",
+    "fold_9/E0/best.json": "dae47421b91eb0874a98a4aafbf9e56c7271e37dfcaf37c625410f7b13d39b38",
+    "fold_9/E0/best.pt": "bf64189093fc0b3813d9085b2eebec4d21ea130bec2b6146fbb0b2f5be850d58",
+    "fold_9/E0/binding.json": "23d50b75a9bda957b53a3e1a100114a384fa8ef1a0832050c905e5372399afa5",
+    "fold_9/E0/cv_validation_predictions.json": "366c858077580406ff4594a1d60832f8bacaff4069d2896bf2013de6cdc09387",
+    "fold_9/E0/gradient_audit.json": "273bd455c29b5eade6d971b7f1bf0d4dd7989eafd9dbf616b838498e0043068e",
+    "fold_9/E0/history.jsonl": "eb461297f0f75b2e28e708f569edc7c16a78668d4959d474e5b650542ad5e634",
+    "fold_9/E0/last.json": "f93fa4ba6999f57dbf8f1cc2e1e18144a3be77a6d208f1a8f94384d1939027d5",
+    "fold_9/E0/last.pt": "200ad1ca6222a9da8246d21afea56ff672242dc0ef53ddd2d655adeb09667aa9",
+    "fold_9/E0/model_input.json": "0e65dd21e3f847a22a7e51c34bf001bc4d61d8c90a841dc8a9609d0a0ae77a5b",
+    "fold_9/E0/optimizer_schedule.json": "9b1ba2ec8ce77f983f29ad1f597362d2386b250e4ab59ae1627a465b36afb8f9",
+    "fold_9/E0/result.json": "86bc74761c8bdd0f6b94682194556410e5007365e8571b3242f1beab9b249fd0",
+    "fold_9/E0/telemetry.json": "601785f4e7e04d76f19a636a3e73e508dee70c4db380555d9f2c678476b9eeb4",
+    "fold_9/E0/train_supervision.json": "398430e49f503a1069e4a0470968839236cc696a6eb6450459ece7d0bc7d1c85",
+    "fold_9/E0/val_supervision.json": "e4666995bc7a58fb1ddc741733110eda72ceda8f26a7f00107806f6d305cf2b7",
+    "fold_9/E0_initial.pt": "135078ff2e6771fb9e4babc336da35391c9dc16a3820317029ec3ac5468970f1",
+    "fold_9/E1/best.json": "9deed3ea2415630c929adc31ce799c9c5cef5332a952de8c16cbac727a6aba51",
+    "fold_9/E1/best.pt": "baf485de9f4d33aaf016377fe95ce2f745d5a0cf6c7aa1d8a8059a8a00dad260",
+    "fold_9/E1/binding.json": "bb979a40073f3a1f71977ab598e637ebe5d88a613de65d1da304350d48340718",
+    "fold_9/E1/cv_validation_predictions.json": "61a61434002056f5b988541a57be46e2d1732ba204a76cf86973a349f2a2a31a",
+    "fold_9/E1/gradient_audit.json": "24363facb11fb39d237ff416dc19d7f7e78a32d917a5bc50723bac85da398dfe",
+    "fold_9/E1/history.jsonl": "1ce6dfbaa83fdeef0146ab4b716dc790c26dfa3dda06aa99a858a5020bf9d199",
+    "fold_9/E1/last.json": "147f6f83177da2d353588fcbffa7c48762b3de1ac9b7cbd94a1f0fb9f514bf23",
+    "fold_9/E1/last.pt": "60aa66614a0b569aafd9b9ea16b4601749f93ae5dd823b2ae791b57c432dc574",
+    "fold_9/E1/model_input.json": "593f3a4a053ee4515d50fde4053ae9afb10e00e20e14dd26102a85df42076c8b",
+    "fold_9/E1/optimizer_schedule.json": "9b1ba2ec8ce77f983f29ad1f597362d2386b250e4ab59ae1627a465b36afb8f9",
+    "fold_9/E1/result.json": "12407bb09e50ad0e4807e01c81106f7d96ddc3bf2784772fea2adf3dbee927bb",
+    "fold_9/E1/telemetry.json": "2e3dc31044796dd367f3a68d848aaf984faf7bf885b6b0394e0595e242654b9d",
+    "fold_9/E1/train_supervision.json": "398430e49f503a1069e4a0470968839236cc696a6eb6450459ece7d0bc7d1c85",
+    "fold_9/E1/val_supervision.json": "e4666995bc7a58fb1ddc741733110eda72ceda8f26a7f00107806f6d305cf2b7",
+    "fold_9/E1_initial.pt": "b10a68c9b3ba0ca0a73f6b8eb4f875ce48545158a2ca588f2efd15f2db351185",
+    "fold_9/initialization_audit.json": "17c2b9ebd48771083f38d88d652ba3acb8b93c8427c4890838b8c0494bf2e721",
+    "fold_9/result.json": "65e4a6699ffc8652141d3ad85b302572518c725629290bfed4eeae3cc1da2260",
+    "fold_9/schema_support_audit.json": "9c3426f4859ac1b7839446644c14f5a3157eedd6d0c8e32ba5767240fc45b4da",
+    "input_invariants.json": "c0f7166dd157dcf338f011513500d19f424014019c5771b4b96643d9d53caa77",
+    "result.json": "5fe64f01adfd94f12721ccb805a9a6f099a585bf6cb0db79a10b60bb1f4bdfc7",
+    "splits.json": "63f2edaacca7064a35cec23d6c5cad6b1ad0d32d50d07d62b4ea307f38a0bb0d"
+  }
+}

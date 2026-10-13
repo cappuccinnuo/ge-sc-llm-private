@@ -1,0 +1,240 @@
+{
+  "accepted_utc": "2026-10-13T03:27:34.838483+00:00",
+  "acceptance": {
+    "status": "passed",
+    "score_role": "cv_validation",
+    "job": "reentrancy_author_node_fold5",
+    "variants": {
+      "E0": {
+        "epochs": 31,
+        "best_epoch": 23,
+        "last_epoch": 30,
+        "stop_reason": "patience",
+        "lr_verified": true,
+        "parameter_count": 4371010,
+        "fit_eval_checkpoint_wall_seconds": 95.10908801399637,
+        "ddg_train_edges": 0,
+        "ddg_gradient_l1_sum": 0,
+        "ddg_message_update_l1": 0,
+        "validation_only_relations": [
+          [
+            "end_if",
+            "end_if",
+            "if"
+          ],
+          [
+            "end_if",
+            "end_if",
+            "while"
+          ],
+          [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          [
+            "for",
+            "next_line",
+            "end_loop"
+          ],
+          [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          [
+            "while",
+            "end_if",
+            "end_if"
+          ]
+        ]
+      },
+      "E1": {
+        "epochs": 29,
+        "best_epoch": 21,
+        "last_epoch": 28,
+        "stop_reason": "patience",
+        "lr_verified": true,
+        "parameter_count": 4469506,
+        "fit_eval_checkpoint_wall_seconds": 96.16592001501704,
+        "ddg_train_edges": 1666,
+        "ddg_gradient_l1_sum": 14.877881693805804,
+        "ddg_message_update_l1": 1305.6442604064941,
+        "validation_only_relations": [
+          [
+            "end_if",
+            "end_if",
+            "if"
+          ],
+          [
+            "end_if",
+            "end_if",
+            "while"
+          ],
+          [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          [
+            "for",
+            "next_line",
+            "end_loop"
+          ],
+          [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          [
+            "while",
+            "end_if",
+            "end_if"
+          ]
+        ]
+      }
+    },
+    "paired_errors": {
+      "best": {
+        "counts": {
+          "both_correct": 1210,
+          "e0_wrong_e1_correct": 1,
+          "e0_correct_e1_wrong": 1,
+          "both_wrong": 6
+        },
+        "changed": [
+          {
+            "file": "buggy_24.sol",
+            "original_graph_node_id": 1740,
+            "node_type": "new_variable",
+            "target": 1,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_wrong_e1_correct"
+          },
+          {
+            "file": "0xaae1f51cf3339f18b6d3f3bdc75a5facd744b0b8.sol",
+            "original_graph_node_id": 16972,
+            "node_type": "expression_statement",
+            "target": 0,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_correct_e1_wrong"
+          }
+        ]
+      },
+      "last": {
+        "counts": {
+          "both_correct": 1202,
+          "e0_wrong_e1_correct": 1,
+          "e0_correct_e1_wrong": 6,
+          "both_wrong": 9
+        },
+        "changed": [
+          {
+            "file": "buggy_24.sol",
+            "original_graph_node_id": 1554,
+            "node_type": "end_if",
+            "target": 1,
+            "E0": 1,
+            "E1": 0,
+            "transition": "e0_correct_e1_wrong"
+          },
+          {
+            "file": "buggy_24.sol",
+            "original_graph_node_id": 1587,
+            "node_type": "end_if",
+            "target": 1,
+            "E0": 1,
+            "E1": 0,
+            "transition": "e0_correct_e1_wrong"
+          },
+          {
+            "file": "buggy_24.sol",
+            "original_graph_node_id": 1774,
+            "node_type": "new_variable",
+            "target": 1,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_wrong_e1_correct"
+          },
+          {
+            "file": "buggy_24.sol",
+            "original_graph_node_id": 1886,
+            "node_type": "expression_statement",
+            "target": 0,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_correct_e1_wrong"
+          },
+          {
+            "file": "buggy_24.sol",
+            "original_graph_node_id": 1887,
+            "node_type": "expression_statement",
+            "target": 0,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_correct_e1_wrong"
+          },
+          {
+            "file": "buggy_24.sol",
+            "original_graph_node_id": 1967,
+            "node_type": "new_variable",
+            "target": 1,
+            "E0": 1,
+            "E1": 0,
+            "transition": "e0_correct_e1_wrong"
+          },
+          {
+            "file": "buggy_15.sol",
+            "original_graph_node_id": 17093,
+            "node_type": "expression_statement",
+            "target": 0,
+            "E0": 0,
+            "E1": 1,
+            "transition": "e0_correct_e1_wrong"
+          }
+        ]
+      }
+    }
+  },
+  "artifacts": {
+    "effective_config.json": "ff03ccb03c041892e5e5c913d10b8ed40c0f24aa8e7d48430c7214d5702327d5",
+    "fold_5/E0/best.json": "18d4c49dd524239141b91ffd2bbe9d7260709882f684b684caeae63c8199dcdd",
+    "fold_5/E0/best.pt": "e88ce28825be428be402d78ba016eaaa4c89a97067f8f45c7fb6764df975d757",
+    "fold_5/E0/binding.json": "2d7ea45ee59ccbbe4bf64d48e912385a12dbbad4a8bd5d7a1d7524eec2727cdd",
+    "fold_5/E0/cv_validation_predictions.json": "c751774c49ccefec2c28734611567b5c0a4e9dccbbfe3ddd107cc90a4a075c8e",
+    "fold_5/E0/gradient_audit.json": "c1bd06aa8b1f1bec1b8b06a1e13d4014ff9276b749ae41970781395ecfc8d35d",
+    "fold_5/E0/history.jsonl": "1f932ebc5be3f287619615875391fe409d405d931549105518d161fbc1c65bd1",
+    "fold_5/E0/last.json": "5ae9e24afa32e33deae7a8f694b6eb8a3c1ee162100b9c2024de798868bf4abe",
+    "fold_5/E0/last.pt": "e2013b4e8d22e67869bd047fad9cc9cbe54a5ece674fa0cabb920b96237431d8",
+    "fold_5/E0/model_input.json": "b93ec05c0a15b264c1440afc12828251d3745171a8d92376fb15361ab21806fe",
+    "fold_5/E0/optimizer_schedule.json": "9b1ba2ec8ce77f983f29ad1f597362d2386b250e4ab59ae1627a465b36afb8f9",
+    "fold_5/E0/result.json": "98415f98f9acd623fd1cecfe759b70f508444552a24797997331e625be9b03b4",
+    "fold_5/E0/telemetry.json": "1c6d9629f8cd85a6612253b390ddc83d03a15dfff43359daca8e40775ab9da04",
+    "fold_5/E0/train_supervision.json": "06dff94b29158b8ab4dcb3a9c9c97d2ba54abe3c40257849db4becfa5f7a2094",
+    "fold_5/E0/val_supervision.json": "72b7f601957d12d8ce739f90bd538a4a8e99bc44af99e9cdf3f1bde83602a70d",
+    "fold_5/E0_initial.pt": "1884ca733d2363d80c36dee562e3628bd87f4e956b09726751ca6794a2591507",
+    "fold_5/E1/best.json": "4bd1900d8bb146908b49b2ccd0278fbffefca23e18c3bd60c9eeefec12821f08",
+    "fold_5/E1/best.pt": "f792b82a28a4ed7d6f967df2e10ec8fb570c0438c17c0cb70ec0ea7cf8946ced",
+    "fold_5/E1/binding.json": "9842855262807b194dd08d87049672335382f706d00191de7b18b3942fab9e83",
+    "fold_5/E1/cv_validation_predictions.json": "e749d05cb81e2132be17e8ab8a091e4ac32605ac457ee443ea597293a2e76dd1",
+    "fold_5/E1/gradient_audit.json": "0c64d97ca955349c706b2495bb096ab7ae5e45c75ee790624ee65d456d5abc32",
+    "fold_5/E1/history.jsonl": "680fb997ff0ac482f3e5182bb85c7b2c1444330ad4d1dc98115069b4b7cb3542",
+    "fold_5/E1/last.json": "ab611649a65095324ff04f1761254881e56598115196a4bccf095a9438608047",
+    "fold_5/E1/last.pt": "1fd85704190d3ac745f74eb5ce7f728a32408bae5176976537cca2bcaea8a63a",
+    "fold_5/E1/model_input.json": "123e07c2e8bb001642101bc7d275a673ab1613cec7d3781d39f259705563316e",
+    "fold_5/E1/optimizer_schedule.json": "9b1ba2ec8ce77f983f29ad1f597362d2386b250e4ab59ae1627a465b36afb8f9",
+    "fold_5/E1/result.json": "ab0e13eec7df26dfc2ed34c312a3c22f02a36fec970bb16826e6c183ef4d86ec",
+    "fold_5/E1/telemetry.json": "c7b028ae9bb93539c76a702576bfdaac1c7b1dd88f243d64c3e7c314708ec845",
+    "fold_5/E1/train_supervision.json": "06dff94b29158b8ab4dcb3a9c9c97d2ba54abe3c40257849db4becfa5f7a2094",
+    "fold_5/E1/val_supervision.json": "72b7f601957d12d8ce739f90bd538a4a8e99bc44af99e9cdf3f1bde83602a70d",
+    "fold_5/E1_initial.pt": "e858d382d5fba4a4a3479adcbb8c2e488ec5bb59a9cd61b9603730ea1115530c",
+    "fold_5/initialization_audit.json": "d7126a4e36138ed58c06b3217ff134340a07fd81a665f70cc4c8ddd77816f88f",
+    "fold_5/result.json": "05206358c4864f3ac127f02e19aa893837bbd29085f4256e2e7859ad894d7d5e",
+    "fold_5/schema_support_audit.json": "ceb0c1ea0a12475be150cb3d3ed270e4e89dbd9215f68df4b07cd86bce4adde0",
+    "input_invariants.json": "c0f7166dd157dcf338f011513500d19f424014019c5771b4b96643d9d53caa77",
+    "result.json": "50e84f4d868f675c2f3157eb409e09e432541fb610d50ac8a2622003693a4e9c",
+    "splits.json": "63f2edaacca7064a35cec23d6c5cad6b1ad0d32d50d07d62b4ea307f38a0bb0d"
+  }
+}

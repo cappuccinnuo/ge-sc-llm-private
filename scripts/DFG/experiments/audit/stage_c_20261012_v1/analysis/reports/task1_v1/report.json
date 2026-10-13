@@ -1,0 +1,1755 @@
+{
+  "format": "ddg-stage-c-derived-report-v1",
+  "created_utc": "2026-10-13T02:53:01.106305+00:00",
+  "run": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1_stage_c",
+  "protocol": "paper_kfold",
+  "protocol_version": "ddg-paper-kfold-v1",
+  "score_role": "cv_validation",
+  "base_git_head": "646e9b3495c0fe7f2c4a6e4b72d0bab64d6ee2fc",
+  "initialization_version": "semantic-paired-native-xavier-v1",
+  "import_provenance": null,
+  "plan_sha256": "89eb7b9c32e8a3ded856bd3264498ff09ad411ab338020ab32a0da36eeb0ecc0",
+  "state_snapshot_sha256": "6284fcaf0a839fc09c8905fc2bd1f5a25c1a812e3730867c3742123586de078c",
+  "state_changed_during_report": false,
+  "stage_b": "passed",
+  "stage_c": "running",
+  "scoring_notes": [
+    "All main results are CV validation: the same fold validation set selects best and is scored.",
+    "Best uses the lowest validation loss, not the highest F1; last is a separate auxiliary result.",
+    "Metrics are percentages; E1 minus E0 is in percentage points.",
+    "Unweighted fold mean and sample standard deviation (ddof=1); not a confidence interval.",
+    "Node scores use HCG node identities (file + original node id), not deduplicated source-line F1.",
+    "Fit time includes fitting, validation, checkpoint IO and reload scoring; count each fit once.",
+    "GPU peaks are PyTorch process peaks with both models resident, not standalone model or whole-card memory.",
+    "Cumulative DDG gradient depends on epoch count; parameter changes may include weight decay.",
+    "No partial-fold task mean; no nested/narrow/multi-seed mixing; no graph, label or model changes.",
+    "Historical unaccepted attempts without state evidence have unknown status, not invented failure reasons."
+  ],
+  "tie_tolerance_percentage_points": 1e-10,
+  "tasks": [
+    {
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "status": "complete",
+      "expected_folds": 5,
+      "receipt_verified_folds": 5,
+      "score_role": "cv_validation",
+      "validation_file_count": 142,
+      "metrics": {
+        "best": {
+          "E0": {
+            "buggy_f1": {
+              "mean": 94.15934767658905,
+              "sample_std": 5.834654332261614,
+              "fold_values": [
+                84.6153846153846,
+                100.0,
+                96.55172413793103,
+                96.2962962962963,
+                93.33333333333333
+              ]
+            },
+            "macro_f1": {
+              "mean": 94.3452451124865,
+              "sample_std": 5.2826868545449575,
+              "fold_values": [
+                86.0576923076923,
+                100.0,
+                96.42401021711366,
+                96.42401021711366,
+                92.82051282051282
+              ]
+            },
+            "precision": {
+              "mean": 96.16666666666667,
+              "sample_std": 5.639641438562878,
+              "fold_values": [
+                100.0,
+                100.0,
+                93.33333333333333,
+                100.0,
+                87.5
+              ]
+            },
+            "recall": {
+              "mean": 93.23809523809524,
+              "sample_std": 11.548968993258935,
+              "fold_values": [
+                73.33333333333333,
+                100.0,
+                100.0,
+                92.85714285714286,
+                100.0
+              ]
+            }
+          },
+          "E1": {
+            "buggy_f1": {
+              "mean": 93.51566951566952,
+              "sample_std": 5.680228679291312,
+              "fold_values": [
+                84.6153846153846,
+                100.0,
+                93.33333333333333,
+                96.2962962962963,
+                93.33333333333333
+              ]
+            },
+            "macro_f1": {
+              "mean": 93.62454563316632,
+              "sample_std": 5.172852866582382,
+              "fold_values": [
+                86.0576923076923,
+                100.0,
+                92.82051282051282,
+                96.42401021711366,
+                92.82051282051282
+              ]
+            },
+            "precision": {
+              "mean": 95.0,
+              "sample_std": 6.846531968814577,
+              "fold_values": [
+                100.0,
+                100.0,
+                87.5,
+                100.0,
+                87.5
+              ]
+            },
+            "recall": {
+              "mean": 93.23809523809524,
+              "sample_std": 11.548968993258935,
+              "fold_values": [
+                73.33333333333333,
+                100.0,
+                100.0,
+                92.85714285714286,
+                100.0
+              ]
+            }
+          },
+          "E1-E0": {
+            "buggy_f1": {
+              "mean": -0.6436781609195407,
+              "sample_std": 1.4393081234481415,
+              "fold_values": [
+                0.0,
+                0.0,
+                -3.2183908045977034,
+                0.0,
+                0.0
+              ],
+              "fold_direction_counts": {
+                "improved": 0,
+                "tied": 4,
+                "declined": 1
+              }
+            },
+            "macro_f1": {
+              "mean": -0.7206994793201688,
+              "sample_std": 1.6115330271086015,
+              "fold_values": [
+                0.0,
+                0.0,
+                -3.6034973966008437,
+                0.0,
+                0.0
+              ],
+              "fold_direction_counts": {
+                "improved": 0,
+                "tied": 4,
+                "declined": 1
+              }
+            },
+            "precision": {
+              "mean": -1.1666666666666656,
+              "sample_std": 2.6087459737497523,
+              "fold_values": [
+                0.0,
+                0.0,
+                -5.833333333333329,
+                0.0,
+                0.0
+              ],
+              "fold_direction_counts": {
+                "improved": 0,
+                "tied": 4,
+                "declined": 1
+              }
+            },
+            "recall": {
+              "mean": 0.0,
+              "sample_std": 0.0,
+              "fold_values": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "fold_direction_counts": {
+                "improved": 0,
+                "tied": 5,
+                "declined": 0
+              }
+            }
+          }
+        },
+        "last": {
+          "E0": {
+            "buggy_f1": {
+              "mean": 90.88669950738917,
+              "sample_std": 4.054698924422249,
+              "fold_values": [
+                92.85714285714286,
+                85.71428571428571,
+                89.65517241379311,
+                89.65517241379311,
+                96.55172413793103
+              ]
+            },
+            "macro_f1": {
+              "mean": 90.850757161102,
+              "sample_std": 3.9623798972481534,
+              "fold_values": [
+                93.0952380952381,
+                86.19047619047619,
+                89.272030651341,
+                89.272030651341,
+                96.42401021711366
+              ]
+            },
+            "precision": {
+              "mean": 90.47619047619048,
+              "sample_std": 6.135285107964345,
+              "fold_values": [
+                100.0,
+                85.71428571428571,
+                86.66666666666667,
+                86.66666666666667,
+                93.33333333333333
+              ]
+            },
+            "recall": {
+              "mean": 91.61904761904762,
+              "sample_std": 5.759739853031835,
+              "fold_values": [
+                86.66666666666667,
+                85.71428571428571,
+                92.85714285714286,
+                92.85714285714286,
+                100.0
+              ]
+            }
+          },
+          "E1": {
+            "buggy_f1": {
+              "mean": 88.93620777936685,
+              "sample_std": 4.86191004289376,
+              "fold_values": [
+                88.8888888888889,
+                85.71428571428571,
+                83.87096774193549,
+                89.65517241379311,
+                96.55172413793103
+              ]
+            },
+            "macro_f1": {
+              "mean": 88.68554713938474,
+              "sample_std": 5.3118558939638145,
+              "fold_values": [
+                89.6057347670251,
+                86.19047619047619,
+                81.93548387096774,
+                89.272030651341,
+                96.42401021711366
+              ]
+            },
+            "precision": {
+              "mean": 88.43697478991596,
+              "sample_std": 8.823538304206092,
+              "fold_values": [
+                100.0,
+                85.71428571428571,
+                76.47058823529412,
+                86.66666666666667,
+                93.33333333333333
+              ]
+            },
+            "recall": {
+              "mean": 90.28571428571429,
+              "sample_std": 7.6531972777022155,
+              "fold_values": [
+                80.0,
+                85.71428571428571,
+                92.85714285714286,
+                92.85714285714286,
+                100.0
+              ]
+            }
+          },
+          "E1-E0": {
+            "buggy_f1": {
+              "mean": -1.9504917280223169,
+              "sample_std": 2.7469061385987255,
+              "fold_values": [
+                -3.9682539682539613,
+                0.0,
+                -5.784204671857623,
+                0.0,
+                0.0
+              ],
+              "fold_direction_counts": {
+                "improved": 0,
+                "tied": 3,
+                "declined": 2
+              }
+            },
+            "macro_f1": {
+              "mean": -2.1652100217172516,
+              "sample_std": 3.2619350065371737,
+              "fold_values": [
+                -3.4895033282130044,
+                0.0,
+                -7.336546780373254,
+                0.0,
+                0.0
+              ],
+              "fold_direction_counts": {
+                "improved": 0,
+                "tied": 3,
+                "declined": 2
+              }
+            },
+            "precision": {
+              "mean": -2.039215686274511,
+              "sample_std": 4.5598248952936915,
+              "fold_values": [
+                0.0,
+                0.0,
+                -10.196078431372555,
+                0.0,
+                0.0
+              ],
+              "fold_direction_counts": {
+                "improved": 0,
+                "tied": 4,
+                "declined": 1
+              }
+            },
+            "recall": {
+              "mean": -1.3333333333333344,
+              "sample_std": 2.9814239699997223,
+              "fold_values": [
+                -6.666666666666671,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "fold_direction_counts": {
+                "improved": 0,
+                "tied": 4,
+                "declined": 1
+              }
+            }
+          }
+        }
+      },
+      "fold_metrics": [
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "variant": "E0",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 29,
+          "positive": 15,
+          "buggy_f1": 84.6153846153846,
+          "macro_f1": 86.0576923076923,
+          "precision": 100.0,
+          "recall": 73.33333333333333,
+          "tn_fp_fn_tp": [
+            14,
+            0,
+            4,
+            11
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "variant": "E0",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 29,
+          "positive": 15,
+          "buggy_f1": 92.85714285714286,
+          "macro_f1": 93.0952380952381,
+          "precision": 100.0,
+          "recall": 86.66666666666667,
+          "tn_fp_fn_tp": [
+            14,
+            0,
+            2,
+            13
+          ],
+          "buggy_f1_E1_minus_E0": -3.9682539682539613,
+          "macro_f1_E1_minus_E0": -3.4895033282130044,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": -6.666666666666671
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "variant": "E1",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 29,
+          "positive": 15,
+          "buggy_f1": 84.6153846153846,
+          "macro_f1": 86.0576923076923,
+          "precision": 100.0,
+          "recall": 73.33333333333333,
+          "tn_fp_fn_tp": [
+            14,
+            0,
+            4,
+            11
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "variant": "E1",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 29,
+          "positive": 15,
+          "buggy_f1": 88.8888888888889,
+          "macro_f1": 89.6057347670251,
+          "precision": 100.0,
+          "recall": 80.0,
+          "tn_fp_fn_tp": [
+            14,
+            0,
+            3,
+            12
+          ],
+          "buggy_f1_E1_minus_E0": -3.9682539682539613,
+          "macro_f1_E1_minus_E0": -3.4895033282130044,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": -6.666666666666671
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 1,
+          "variant": "E0",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 29,
+          "positive": 14,
+          "buggy_f1": 100.0,
+          "macro_f1": 100.0,
+          "precision": 100.0,
+          "recall": 100.0,
+          "tn_fp_fn_tp": [
+            15,
+            0,
+            0,
+            14
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 1,
+          "variant": "E0",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 29,
+          "positive": 14,
+          "buggy_f1": 85.71428571428571,
+          "macro_f1": 86.19047619047619,
+          "precision": 85.71428571428571,
+          "recall": 85.71428571428571,
+          "tn_fp_fn_tp": [
+            13,
+            2,
+            2,
+            12
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 1,
+          "variant": "E1",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 29,
+          "positive": 14,
+          "buggy_f1": 100.0,
+          "macro_f1": 100.0,
+          "precision": 100.0,
+          "recall": 100.0,
+          "tn_fp_fn_tp": [
+            15,
+            0,
+            0,
+            14
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 1,
+          "variant": "E1",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 29,
+          "positive": 14,
+          "buggy_f1": 85.71428571428571,
+          "macro_f1": 86.19047619047619,
+          "precision": 85.71428571428571,
+          "recall": 85.71428571428571,
+          "tn_fp_fn_tp": [
+            13,
+            2,
+            2,
+            12
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "variant": "E0",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 96.55172413793103,
+          "macro_f1": 96.42401021711366,
+          "precision": 93.33333333333333,
+          "recall": 100.0,
+          "tn_fp_fn_tp": [
+            13,
+            1,
+            0,
+            14
+          ],
+          "buggy_f1_E1_minus_E0": -3.2183908045977034,
+          "macro_f1_E1_minus_E0": -3.6034973966008437,
+          "precision_E1_minus_E0": -5.833333333333329,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "variant": "E0",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 89.65517241379311,
+          "macro_f1": 89.272030651341,
+          "precision": 86.66666666666667,
+          "recall": 92.85714285714286,
+          "tn_fp_fn_tp": [
+            12,
+            2,
+            1,
+            13
+          ],
+          "buggy_f1_E1_minus_E0": -5.784204671857623,
+          "macro_f1_E1_minus_E0": -7.336546780373254,
+          "precision_E1_minus_E0": -10.196078431372555,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "variant": "E1",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 93.33333333333333,
+          "macro_f1": 92.82051282051282,
+          "precision": 87.5,
+          "recall": 100.0,
+          "tn_fp_fn_tp": [
+            12,
+            2,
+            0,
+            14
+          ],
+          "buggy_f1_E1_minus_E0": -3.2183908045977034,
+          "macro_f1_E1_minus_E0": -3.6034973966008437,
+          "precision_E1_minus_E0": -5.833333333333329,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "variant": "E1",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 83.87096774193549,
+          "macro_f1": 81.93548387096774,
+          "precision": 76.47058823529412,
+          "recall": 92.85714285714286,
+          "tn_fp_fn_tp": [
+            10,
+            4,
+            1,
+            13
+          ],
+          "buggy_f1_E1_minus_E0": -5.784204671857623,
+          "macro_f1_E1_minus_E0": -7.336546780373254,
+          "precision_E1_minus_E0": -10.196078431372555,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 3,
+          "variant": "E0",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 96.2962962962963,
+          "macro_f1": 96.42401021711366,
+          "precision": 100.0,
+          "recall": 92.85714285714286,
+          "tn_fp_fn_tp": [
+            14,
+            0,
+            1,
+            13
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 3,
+          "variant": "E0",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 89.65517241379311,
+          "macro_f1": 89.272030651341,
+          "precision": 86.66666666666667,
+          "recall": 92.85714285714286,
+          "tn_fp_fn_tp": [
+            12,
+            2,
+            1,
+            13
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 3,
+          "variant": "E1",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 96.2962962962963,
+          "macro_f1": 96.42401021711366,
+          "precision": 100.0,
+          "recall": 92.85714285714286,
+          "tn_fp_fn_tp": [
+            14,
+            0,
+            1,
+            13
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 3,
+          "variant": "E1",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 89.65517241379311,
+          "macro_f1": 89.272030651341,
+          "precision": 86.66666666666667,
+          "recall": 92.85714285714286,
+          "tn_fp_fn_tp": [
+            12,
+            2,
+            1,
+            13
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 4,
+          "variant": "E0",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 93.33333333333333,
+          "macro_f1": 92.82051282051282,
+          "precision": 87.5,
+          "recall": 100.0,
+          "tn_fp_fn_tp": [
+            12,
+            2,
+            0,
+            14
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 4,
+          "variant": "E0",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 96.55172413793103,
+          "macro_f1": 96.42401021711366,
+          "precision": 93.33333333333333,
+          "recall": 100.0,
+          "tn_fp_fn_tp": [
+            13,
+            1,
+            0,
+            14
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 4,
+          "variant": "E1",
+          "checkpoint": "best",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 93.33333333333333,
+          "macro_f1": 92.82051282051282,
+          "precision": 87.5,
+          "recall": 100.0,
+          "tn_fp_fn_tp": [
+            12,
+            2,
+            0,
+            14
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 4,
+          "variant": "E1",
+          "checkpoint": "last",
+          "score_role": "cv_validation",
+          "n": 28,
+          "positive": 14,
+          "buggy_f1": 96.55172413793103,
+          "macro_f1": 96.42401021711366,
+          "precision": 93.33333333333333,
+          "recall": 100.0,
+          "tn_fp_fn_tp": [
+            13,
+            1,
+            0,
+            14
+          ],
+          "buggy_f1_E1_minus_E0": 0.0,
+          "macro_f1_E1_minus_E0": 0.0,
+          "precision_E1_minus_E0": 0.0,
+          "recall_E1_minus_E0": 0.0
+        }
+      ],
+      "fit_telemetry": [
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "variant": "E0",
+          "best_epoch": 6,
+          "last_epoch": 13,
+          "epochs": 14,
+          "stop_reason": "patience",
+          "parameter_count": 4526962,
+          "fit_eval_checkpoint_wall_seconds": 105.58681475400226,
+          "ddg_train_edges": 0,
+          "ddg_gradient_l1_sum": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_relations": [],
+          "best_epoch_human": 7,
+          "last_epoch_human": 14,
+          "peak_allocated_mib": 2159.4853515625,
+          "peak_reserved_mib": 2348.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "variant": "E1",
+          "best_epoch": 6,
+          "last_epoch": 13,
+          "epochs": 14,
+          "stop_reason": "patience",
+          "parameter_count": 4641874,
+          "fit_eval_checkpoint_wall_seconds": 132.22080791799817,
+          "ddg_train_edges": 2665,
+          "ddg_gradient_l1_sum": 4.781603467259657,
+          "ddg_message_update_l1": 1494.6414651870728,
+          "validation_only_relations": [],
+          "best_epoch_human": 7,
+          "last_epoch_human": 14,
+          "peak_allocated_mib": 2643.65576171875,
+          "peak_reserved_mib": 2842.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 1,
+          "variant": "E0",
+          "best_epoch": 10,
+          "last_epoch": 17,
+          "epochs": 18,
+          "stop_reason": "patience",
+          "parameter_count": 4526962,
+          "fit_eval_checkpoint_wall_seconds": 1118.081185268995,
+          "ddg_train_edges": 0,
+          "ddg_gradient_l1_sum": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_relations": [
+            [
+              "constructor_definition",
+              "first_next_line",
+              "contract_declaration"
+            ],
+            [
+              "constructor_definition",
+              "next_line",
+              "new_variable"
+            ],
+            [
+              "continue_statement",
+              "next_line",
+              "expression_statement"
+            ],
+            [
+              "continue_statement",
+              "next_line",
+              "while"
+            ],
+            [
+              "contract_declaration",
+              "first_next_line",
+              "constructor_definition"
+            ],
+            [
+              "end_if",
+              "end_if",
+              "if"
+            ],
+            [
+              "end_if",
+              "end_if",
+              "while"
+            ],
+            [
+              "end_if",
+              "next_line",
+              "library_declaration"
+            ],
+            [
+              "end_loop",
+              "next_line",
+              "for"
+            ],
+            [
+              "end_loop",
+              "next_line",
+              "if"
+            ],
+            [
+              "expression_statement",
+              "next_line",
+              "continue_statement"
+            ],
+            [
+              "for",
+              "next_line",
+              "end_loop"
+            ],
+            [
+              "if",
+              "end_if",
+              "end_if"
+            ],
+            [
+              "if",
+              "next_line",
+              "end_loop"
+            ],
+            [
+              "library_declaration",
+              "next_line",
+              "end_if"
+            ],
+            [
+              "new_variable",
+              "next_line",
+              "constructor_definition"
+            ],
+            [
+              "while",
+              "end_if",
+              "end_if"
+            ],
+            [
+              "while",
+              "next_line",
+              "continue_statement"
+            ]
+          ],
+          "best_epoch_human": 11,
+          "last_epoch_human": 18,
+          "peak_allocated_mib": 2159.4853515625,
+          "peak_reserved_mib": 2348.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 1,
+          "variant": "E1",
+          "best_epoch": 10,
+          "last_epoch": 17,
+          "epochs": 18,
+          "stop_reason": "patience",
+          "parameter_count": 4641874,
+          "fit_eval_checkpoint_wall_seconds": 2018.191408108978,
+          "ddg_train_edges": 2592,
+          "ddg_gradient_l1_sum": 4.285216778200532,
+          "ddg_message_update_l1": 1699.4388828277588,
+          "validation_only_relations": [
+            [
+              "constructor_definition",
+              "first_next_line",
+              "contract_declaration"
+            ],
+            [
+              "constructor_definition",
+              "next_line",
+              "new_variable"
+            ],
+            [
+              "continue_statement",
+              "next_line",
+              "expression_statement"
+            ],
+            [
+              "continue_statement",
+              "next_line",
+              "while"
+            ],
+            [
+              "contract_declaration",
+              "first_next_line",
+              "constructor_definition"
+            ],
+            [
+              "end_if",
+              "end_if",
+              "if"
+            ],
+            [
+              "end_if",
+              "end_if",
+              "while"
+            ],
+            [
+              "end_if",
+              "next_line",
+              "library_declaration"
+            ],
+            [
+              "end_loop",
+              "next_line",
+              "for"
+            ],
+            [
+              "end_loop",
+              "next_line",
+              "if"
+            ],
+            [
+              "expression_statement",
+              "next_line",
+              "continue_statement"
+            ],
+            [
+              "for",
+              "next_line",
+              "end_loop"
+            ],
+            [
+              "if",
+              "end_if",
+              "end_if"
+            ],
+            [
+              "if",
+              "next_line",
+              "end_loop"
+            ],
+            [
+              "library_declaration",
+              "next_line",
+              "end_if"
+            ],
+            [
+              "new_variable",
+              "next_line",
+              "constructor_definition"
+            ],
+            [
+              "while",
+              "end_if",
+              "end_if"
+            ],
+            [
+              "while",
+              "next_line",
+              "continue_statement"
+            ]
+          ],
+          "best_epoch_human": 11,
+          "last_epoch_human": 18,
+          "peak_allocated_mib": 2749.57275390625,
+          "peak_reserved_mib": 2954.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "variant": "E0",
+          "best_epoch": 10,
+          "last_epoch": 17,
+          "epochs": 18,
+          "stop_reason": "patience",
+          "parameter_count": 4526962,
+          "fit_eval_checkpoint_wall_seconds": 85.57525235094363,
+          "ddg_train_edges": 0,
+          "ddg_gradient_l1_sum": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_relations": [],
+          "best_epoch_human": 11,
+          "last_epoch_human": 18,
+          "peak_allocated_mib": 2159.4853515625,
+          "peak_reserved_mib": 2348.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "variant": "E1",
+          "best_epoch": 11,
+          "last_epoch": 18,
+          "epochs": 19,
+          "stop_reason": "patience",
+          "parameter_count": 4641874,
+          "fit_eval_checkpoint_wall_seconds": 93.4499272450339,
+          "ddg_train_edges": 2649,
+          "ddg_gradient_l1_sum": 4.413640766657548,
+          "ddg_message_update_l1": 1521.1523342132568,
+          "validation_only_relations": [],
+          "best_epoch_human": 12,
+          "last_epoch_human": 19,
+          "peak_allocated_mib": 2749.57275390625,
+          "peak_reserved_mib": 2954.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 3,
+          "variant": "E0",
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "epochs": 15,
+          "stop_reason": "patience",
+          "parameter_count": 4526962,
+          "fit_eval_checkpoint_wall_seconds": 69.253440082015,
+          "ddg_train_edges": 0,
+          "ddg_gradient_l1_sum": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_relations": [],
+          "best_epoch_human": 8,
+          "last_epoch_human": 15,
+          "peak_allocated_mib": 2159.4853515625,
+          "peak_reserved_mib": 2348.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 3,
+          "variant": "E1",
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "epochs": 15,
+          "stop_reason": "patience",
+          "parameter_count": 4641874,
+          "fit_eval_checkpoint_wall_seconds": 74.29620478901779,
+          "ddg_train_edges": 2844,
+          "ddg_gradient_l1_sum": 5.626098988719832,
+          "ddg_message_update_l1": 1514.814185142517,
+          "validation_only_relations": [
+            [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ]
+          ],
+          "best_epoch_human": 8,
+          "last_epoch_human": 15,
+          "peak_allocated_mib": 2696.92431640625,
+          "peak_reserved_mib": 2898.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 4,
+          "variant": "E0",
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "epochs": 15,
+          "stop_reason": "patience",
+          "parameter_count": 4526962,
+          "fit_eval_checkpoint_wall_seconds": 67.87380738399224,
+          "ddg_train_edges": 0,
+          "ddg_gradient_l1_sum": 0,
+          "ddg_message_update_l1": 0,
+          "validation_only_relations": [
+            [
+              "end_if",
+              "next_line",
+              "modifier_definition"
+            ],
+            [
+              "end_loop",
+              "next_line",
+              "function_definition"
+            ],
+            [
+              "for",
+              "pos_next",
+              "if"
+            ],
+            [
+              "function_definition",
+              "next_line",
+              "end_loop"
+            ],
+            [
+              "if",
+              "pos_next",
+              "for"
+            ],
+            [
+              "library_declaration",
+              "next_line",
+              "new_variable"
+            ],
+            [
+              "modifier_definition",
+              "next_line",
+              "end_if"
+            ],
+            [
+              "new_variable",
+              "next_line",
+              "library_declaration"
+            ]
+          ],
+          "best_epoch_human": 8,
+          "last_epoch_human": 15,
+          "peak_allocated_mib": 2159.4853515625,
+          "peak_reserved_mib": 2348.0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 4,
+          "variant": "E1",
+          "best_epoch": 7,
+          "last_epoch": 14,
+          "epochs": 15,
+          "stop_reason": "patience",
+          "parameter_count": 4641874,
+          "fit_eval_checkpoint_wall_seconds": 74.41947108902968,
+          "ddg_train_edges": 2702,
+          "ddg_gradient_l1_sum": 5.269009771400249,
+          "ddg_message_update_l1": 1549.8547916412354,
+          "validation_only_relations": [
+            [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            [
+              "end_if",
+              "next_line",
+              "modifier_definition"
+            ],
+            [
+              "end_loop",
+              "next_line",
+              "function_definition"
+            ],
+            [
+              "for",
+              "pos_next",
+              "if"
+            ],
+            [
+              "function_definition",
+              "next_line",
+              "end_loop"
+            ],
+            [
+              "if",
+              "pos_next",
+              "for"
+            ],
+            [
+              "library_declaration",
+              "next_line",
+              "new_variable"
+            ],
+            [
+              "modifier_definition",
+              "next_line",
+              "end_if"
+            ],
+            [
+              "new_variable",
+              "next_line",
+              "library_declaration"
+            ]
+          ],
+          "best_epoch_human": 8,
+          "last_epoch_human": 15,
+          "peak_allocated_mib": 2696.92431640625,
+          "peak_reserved_mib": 2898.0
+        }
+      ],
+      "telemetry_summary": {
+        "E0": {
+          "fits": 5,
+          "fit_eval_checkpoint_wall_seconds_total": 1446.370499839948,
+          "fit_eval_checkpoint_wall_seconds_mean": 289.2740999679896,
+          "peak_allocated_mib_max": 2159.4853515625,
+          "peak_reserved_mib_max": 2348.0,
+          "parameter_counts": [
+            4526962
+          ],
+          "ddg_train_edges_min": 0,
+          "ddg_train_edges_max": 0,
+          "ddg_gradient_l1_sum_across_fits": 0,
+          "folds_with_registered_relations_absent_from_train": 2
+        },
+        "E1": {
+          "fits": 5,
+          "fit_eval_checkpoint_wall_seconds_total": 2392.5778191500576,
+          "fit_eval_checkpoint_wall_seconds_mean": 478.5155638300115,
+          "peak_allocated_mib_max": 2749.57275390625,
+          "peak_reserved_mib_max": 2954.0,
+          "parameter_counts": [
+            4641874
+          ],
+          "ddg_train_edges_min": 2592,
+          "ddg_train_edges_max": 2844,
+          "ddg_gradient_l1_sum_across_fits": 24.375569772237817,
+          "folds_with_registered_relations_absent_from_train": 3
+        }
+      },
+      "error_transitions_by_fold": [
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "checkpoint": "best",
+          "both_correct": 25,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 0,
+          "both_wrong": 4,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 0,
+          "introduced_fn": 0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "checkpoint": "last",
+          "both_correct": 26,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 1,
+          "both_wrong": 2,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 0,
+          "introduced_fn": 1
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 1,
+          "checkpoint": "best",
+          "both_correct": 29,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 0,
+          "both_wrong": 0,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 0,
+          "introduced_fn": 0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 1,
+          "checkpoint": "last",
+          "both_correct": 25,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 0,
+          "both_wrong": 4,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 0,
+          "introduced_fn": 0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "checkpoint": "best",
+          "both_correct": 26,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 1,
+          "both_wrong": 1,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 1,
+          "introduced_fn": 0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "checkpoint": "last",
+          "both_correct": 23,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 2,
+          "both_wrong": 3,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 2,
+          "introduced_fn": 0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 3,
+          "checkpoint": "best",
+          "both_correct": 27,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 0,
+          "both_wrong": 1,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 0,
+          "introduced_fn": 0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 3,
+          "checkpoint": "last",
+          "both_correct": 25,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 0,
+          "both_wrong": 3,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 0,
+          "introduced_fn": 0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 4,
+          "checkpoint": "best",
+          "both_correct": 26,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 0,
+          "both_wrong": 2,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 0,
+          "introduced_fn": 0
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 4,
+          "checkpoint": "last",
+          "both_correct": 27,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 0,
+          "both_wrong": 1,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 0,
+          "introduced_fn": 0
+        }
+      ],
+      "error_transition_totals": {
+        "best": {
+          "both_correct": 133,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 1,
+          "both_wrong": 8,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 1,
+          "introduced_fn": 0
+        },
+        "last": {
+          "both_correct": 126,
+          "e0_wrong_e1_correct": 0,
+          "e0_correct_e1_wrong": 3,
+          "both_wrong": 13,
+          "corrected_fp": 0,
+          "corrected_fn": 0,
+          "introduced_fp": 2,
+          "introduced_fn": 1
+        }
+      },
+      "changed_predictions": [
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 0,
+          "checkpoint": "last",
+          "file": "simple_dao.sol",
+          "original_graph_node_id": null,
+          "node_type": null,
+          "target": 1,
+          "E0": 1,
+          "E1": 0,
+          "transition": "e0_correct_e1_wrong",
+          "error_change": "introduced_fn"
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "checkpoint": "best",
+          "file": "0x67793426747f8c79332520c1291c4fc6443c8407.sol",
+          "original_graph_node_id": null,
+          "node_type": null,
+          "target": 0,
+          "E0": 0,
+          "E1": 1,
+          "transition": "e0_correct_e1_wrong",
+          "error_change": "introduced_fp"
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "checkpoint": "last",
+          "file": "0x445897386fdd9f76f4c1b339a583d00ff215d6c2.sol",
+          "original_graph_node_id": null,
+          "node_type": null,
+          "target": 0,
+          "E0": 0,
+          "E1": 1,
+          "transition": "e0_correct_e1_wrong",
+          "error_change": "introduced_fp"
+        },
+        {
+          "cohort": "reentrancy_author",
+          "task": "contract",
+          "fold": 2,
+          "checkpoint": "last",
+          "file": "0x67793426747f8c79332520c1291c4fc6443c8407.sol",
+          "original_graph_node_id": null,
+          "node_type": null,
+          "target": 0,
+          "E0": 0,
+          "E1": 1,
+          "transition": "e0_correct_e1_wrong",
+          "error_change": "introduced_fp"
+        }
+      ]
+    },
+    {
+      "cohort": "access_control_author",
+      "task": "contract",
+      "status": "pending",
+      "expected_folds": 5,
+      "pending_jobs": [
+        "access_control_author_contract_fold0",
+        "access_control_author_contract_fold1",
+        "access_control_author_contract_fold2",
+        "access_control_author_contract_fold3",
+        "access_control_author_contract_fold4"
+      ],
+      "accepted_entries_in_snapshot": 0,
+      "reason": "No task performance mean computed until every planned paired fold is accepted"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "task": "node",
+      "status": "pending",
+      "expected_folds": 10,
+      "pending_jobs": [
+        "reentrancy_author_node_fold0",
+        "reentrancy_author_node_fold1",
+        "reentrancy_author_node_fold2",
+        "reentrancy_author_node_fold3",
+        "reentrancy_author_node_fold4",
+        "reentrancy_author_node_fold5",
+        "reentrancy_author_node_fold6",
+        "reentrancy_author_node_fold7",
+        "reentrancy_author_node_fold8",
+        "reentrancy_author_node_fold9"
+      ],
+      "accepted_entries_in_snapshot": 0,
+      "reason": "No task performance mean computed until every planned paired fold is accepted"
+    },
+    {
+      "cohort": "access_control_author",
+      "task": "node",
+      "status": "pending",
+      "expected_folds": 10,
+      "pending_jobs": [
+        "access_control_author_node_fold0",
+        "access_control_author_node_fold1",
+        "access_control_author_node_fold2",
+        "access_control_author_node_fold3",
+        "access_control_author_node_fold4",
+        "access_control_author_node_fold5",
+        "access_control_author_node_fold6",
+        "access_control_author_node_fold7",
+        "access_control_author_node_fold8",
+        "access_control_author_node_fold9"
+      ],
+      "accepted_entries_in_snapshot": 0,
+      "reason": "No task performance mean computed until every planned paired fold is accepted"
+    }
+  ],
+  "attempts": [
+    {
+      "job": "reentrancy_author_contract_fold0",
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "fold": 0,
+      "attempt": "jobs/reentrancy_author_contract_fold0/attempt_001",
+      "ordinal": 1,
+      "retry": false,
+      "status": "passed",
+      "is_current_state_entry": true,
+      "exit_code": 0,
+      "error": null,
+      "error_log_excerpt": null,
+      "started_utc": "2026-10-12T13:48:57.637246+00:00",
+      "finished_utc": "2026-10-12T13:52:36.836461+00:00",
+      "log": "jobs/reentrancy_author_contract_fold0/attempt_001.log",
+      "receipt": "jobs/reentrancy_author_contract_fold0/attempt_001.receipt.json",
+      "history_note": "Current state evidence"
+    },
+    {
+      "job": "reentrancy_author_contract_fold1",
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "fold": 1,
+      "attempt": "jobs/reentrancy_author_contract_fold1/attempt_001",
+      "ordinal": 1,
+      "retry": false,
+      "status": "passed",
+      "is_current_state_entry": true,
+      "exit_code": 0,
+      "error": null,
+      "error_log_excerpt": null,
+      "started_utc": "2026-10-13T01:49:00.570617+00:00",
+      "finished_utc": "2026-10-13T02:42:13.653101+00:00",
+      "log": "jobs/reentrancy_author_contract_fold1/attempt_001.log",
+      "receipt": "jobs/reentrancy_author_contract_fold1/attempt_001.receipt.json",
+      "history_note": "Current state evidence"
+    },
+    {
+      "job": "reentrancy_author_contract_fold2",
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "fold": 2,
+      "attempt": "jobs/reentrancy_author_contract_fold2/attempt_001",
+      "ordinal": 1,
+      "retry": false,
+      "status": "passed",
+      "is_current_state_entry": true,
+      "exit_code": 0,
+      "error": null,
+      "error_log_excerpt": null,
+      "started_utc": "2026-10-13T02:42:13.876869+00:00",
+      "finished_utc": "2026-10-13T02:46:20.055274+00:00",
+      "log": "jobs/reentrancy_author_contract_fold2/attempt_001.log",
+      "receipt": "jobs/reentrancy_author_contract_fold2/attempt_001.receipt.json",
+      "history_note": "Current state evidence"
+    },
+    {
+      "job": "reentrancy_author_contract_fold3",
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "fold": 3,
+      "attempt": "jobs/reentrancy_author_contract_fold3/attempt_001",
+      "ordinal": 1,
+      "retry": false,
+      "status": "passed",
+      "is_current_state_entry": true,
+      "exit_code": 0,
+      "error": null,
+      "error_log_excerpt": null,
+      "started_utc": "2026-10-13T02:46:20.288411+00:00",
+      "finished_utc": "2026-10-13T02:49:30.571217+00:00",
+      "log": "jobs/reentrancy_author_contract_fold3/attempt_001.log",
+      "receipt": "jobs/reentrancy_author_contract_fold3/attempt_001.receipt.json",
+      "history_note": "Current state evidence"
+    },
+    {
+      "job": "reentrancy_author_contract_fold4",
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "fold": 4,
+      "attempt": "jobs/reentrancy_author_contract_fold4/attempt_001",
+      "ordinal": 1,
+      "retry": false,
+      "status": "passed",
+      "is_current_state_entry": true,
+      "exit_code": 0,
+      "error": null,
+      "error_log_excerpt": null,
+      "started_utc": "2026-10-13T02:49:30.793402+00:00",
+      "finished_utc": "2026-10-13T02:52:34.341351+00:00",
+      "log": "jobs/reentrancy_author_contract_fold4/attempt_001.log",
+      "receipt": "jobs/reentrancy_author_contract_fold4/attempt_001.receipt.json",
+      "history_note": "Current state evidence"
+    },
+    {
+      "job": "access_control_author_contract_fold0",
+      "cohort": "access_control_author",
+      "task": "contract",
+      "fold": 0,
+      "attempt": "jobs/access_control_author_contract_fold0/attempt_001",
+      "ordinal": 1,
+      "retry": false,
+      "status": "running",
+      "is_current_state_entry": true,
+      "exit_code": null,
+      "error": null,
+      "error_log_excerpt": null,
+      "started_utc": "2026-10-13T02:52:36.033728+00:00",
+      "finished_utc": null,
+      "log": "jobs/access_control_author_contract_fold0/attempt_001.log",
+      "receipt": null,
+      "history_note": "Current state evidence"
+    }
+  ],
+  "attempt_summary": {
+    "attempts_discovered": 6,
+    "current_state_failed": 0,
+    "retry_attempts": 0,
+    "historical_unaccepted_unknown": 0
+  },
+  "complete_tasks": 1,
+  "read_only_code_hash_check": {
+    "before_equals_after": true,
+    "files": 39
+  }
+}

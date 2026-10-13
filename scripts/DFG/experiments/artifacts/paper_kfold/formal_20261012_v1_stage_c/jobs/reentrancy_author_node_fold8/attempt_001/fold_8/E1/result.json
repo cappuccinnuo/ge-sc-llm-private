@@ -1,0 +1,1750 @@
+{
+  "status": "complete",
+  "protocol": "paper_kfold",
+  "protocol_version": "ddg-paper-kfold-v1",
+  "score_role": "cv_validation",
+  "interpretation": "CV validation fold",
+  "best_epoch": 4,
+  "last_epoch": 11,
+  "best_cv_validation_loss": 0.6432107090950012,
+  "cv_validation": {
+    "best": {
+      "n": 1096,
+      "positive": 409,
+      "buggy_f1": 67.5579322638146,
+      "macro_f1": 66.7696203375148,
+      "precision": 53.15568022440392,
+      "recall": 92.66503667481662,
+      "tn_fp_fn_tp": [
+        353,
+        334,
+        30,
+        379
+      ]
+    },
+    "last": {
+      "n": 1096,
+      "positive": 409,
+      "buggy_f1": 77.91706846673095,
+      "macro_f1": 79.04511431994557,
+      "precision": 64.3312101910828,
+      "recall": 98.77750611246944,
+      "tn_fp_fn_tp": [
+        463,
+        224,
+        5,
+        404
+      ]
+    }
+  },
+  "checkpoint_sha256": {
+    "best": "6c5c13d5d8d7f93e479e458508cb861aa57ee4fa328e40d10cabbf1dca857963",
+    "last": "30a202eac2cf2c7099ed46d7428a3d961a11631f5f3b520b235d38186e179bb2"
+  },
+  "gradient_audit": {
+    "epochs": [
+      {
+        "backbone_gradient_l1": 181.12429326416597,
+        "classifier_gradient_l1": 12.185845673084259,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.007537061348557472,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.002448524464853108,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.0021238786284811795,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.00025906630617100745,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.14939167723059654,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.01310537476092577,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.0389491505920887,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.09584627859294415,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.0769280344247818,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.04694738611578941,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.005051378160715103,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.12222647666931152,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 0
+      },
+      {
+        "backbone_gradient_l1": 165.97322164577682,
+        "classifier_gradient_l1": 11.471265390515327,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.007716664113104343,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.002378242672421038,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.002163291908800602,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.00027864175353897735,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.15058765187859535,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.012618691893294454,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.0410268222913146,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.09320060350000858,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.07494788989424706,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.04399073123931885,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.005156452069059014,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.12008662894368172,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 1
+      },
+      {
+        "backbone_gradient_l1": 149.03627716928975,
+        "classifier_gradient_l1": 10.594528168439865,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.007668282603845,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0024282796075567603,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.002245427924208343,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0003085087810177356,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.15593639761209488,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.012137995101511478,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.04263267666101456,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.09008006379008293,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.07330454513430595,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.042015282437205315,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.005226613720878959,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.11572105810046196,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 2
+      },
+      {
+        "backbone_gradient_l1": 126.59055021906909,
+        "classifier_gradient_l1": 9.40468405932188,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.008233643136918545,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.00271832465659827,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.0025117334444075823,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.00031638668588129804,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.16620426625013351,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.012291506864130497,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.045944553799927235,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.0842486098408699,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.07082171738147736,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.038362132385373116,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.005266263382509351,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.1072147972881794,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 3
+      },
+      {
+        "backbone_gradient_l1": 101.09417677220236,
+        "classifier_gradient_l1": 7.868499367497861,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.009738606167957187,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.002857071114704013,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.002826386014930904,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0003750613541342318,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.19161341339349747,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.012257592985406518,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.05566524527966976,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.07843919843435287,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.07032926566898823,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.03378181904554367,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.006348879309371114,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.10109061188995838,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 4
+      },
+      {
+        "backbone_gradient_l1": 78.38296153402838,
+        "classifier_gradient_l1": 6.719850964844227,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.01130725268740207,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0033859170507639647,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.003483867854811251,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0004477649199543521,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.2393626570701599,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.013705088291317225,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.07360963150858879,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.06943266838788986,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.07464999333024025,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.028313291259109974,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.00747713353484869,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.08730466850101948,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 5
+      },
+      {
+        "backbone_gradient_l1": 61.24636832401762,
+        "classifier_gradient_l1": 6.123474486172199,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.013190246536396444,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.00442451611161232,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.004248074954375625,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0006486058991868049,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.32071327418088913,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.016262543853372335,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.10455268807709217,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.054054646752774715,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.08204946853220463,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.022256171330809593,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.009387573227286339,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.06090143695473671,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 6
+      },
+      {
+        "backbone_gradient_l1": 47.76479747236917,
+        "classifier_gradient_l1": 5.470695346593857,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.013320479542016983,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.006533696549013257,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.004866578849032521,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0007061107608024031,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.41350698471069336,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.017889987211674452,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.14346908777952194,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.03181004477664828,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.09794732183218002,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.01637504016980529,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.0110448794439435,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.029945827089250088,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 7
+      },
+      {
+        "backbone_gradient_l1": 40.4745278209804,
+        "classifier_gradient_l1": 4.602372456341982,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.008869778597727418,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.00791156676132232,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.004869514377787709,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0008104697917588055,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.47843027114868164,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.01808142475783825,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.15295110270380974,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.012904948554933071,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.12436646968126297,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.011369023937731981,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.010181141551584005,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.00836352736223489,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 8
+      },
+      {
+        "backbone_gradient_l1": 37.08314396188896,
+        "classifier_gradient_l1": 3.7776760905981064,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.0028406059136614203,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.004467050428502262,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.0039949034107849,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0006214588065631688,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.4921678602695465,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.009618694195523858,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.08473344333469868,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.004016113467514515,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.1298552080988884,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.007305881939828396,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.006295701256021857,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.0013559693470597267,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 9
+      },
+      {
+        "backbone_gradient_l1": 29.82410373084892,
+        "classifier_gradient_l1": 2.8700438514351845,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 0.0005790567374788225,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 0.0005294194270391017,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.0025950829731300473,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 0.00029514930793084204,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.466631680727005,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.007724808878265321,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.021460669580847025,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.003195951896486804,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.061031557619571686,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.00432393210940063,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.006102945655584335,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.0012485521292546764,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 10
+      },
+      {
+        "backbone_gradient_l1": 17.702758049553186,
+        "classifier_gradient_l1": 1.9772829627618194,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 12,
+            "val_edges": 1,
+            "message_gradient_l1": 8.076277481450234e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "message_gradient_l1": 5.599335236183833e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "message_gradient_l1": 0.0012626478564925492,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "message_gradient_l1": 8.511333726346493e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 796,
+            "val_edges": 66,
+            "message_gradient_l1": 0.23531341552734375,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 59,
+            "val_edges": 6,
+            "message_gradient_l1": 0.017250277567654848,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 123,
+            "val_edges": 21,
+            "message_gradient_l1": 0.006507226265966892,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 66,
+            "val_edges": 8,
+            "message_gradient_l1": 0.0017237615975318477,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 252,
+            "val_edges": 31,
+            "message_gradient_l1": 0.022704727482050657,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 130,
+            "val_edges": 10,
+            "message_gradient_l1": 0.002516348264180124,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 20,
+            "val_edges": 11,
+            "message_gradient_l1": 0.010513542918488383,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 59,
+            "val_edges": 10,
+            "message_gradient_l1": 0.0006241246082936414,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1545,
+        "note": "Zero with no train instances is allowed, not an integration error. Zero observed with support remains explicit diagnostic, not proof of disconnection. Weight decay updates are separate from supervised gradients.",
+        "epoch": 11
+      }
+    ],
+    "backbone_update_l1": 24791.237656552323,
+    "ddg_message_update_l1": 663.1214714050293,
+    "updates_may_include_weight_decay": false
+  },
+  "checkpoint_roundtrip_exact": {
+    "best": true,
+    "last": true
+  },
+  "no_parameters_created_during_training_or_scoring": true,
+  "initial_sha256": "958aea53fba5d6689d49611101523d373e18341af81106dd484d4a2a5af41c96",
+  "history_rows": 12
+}

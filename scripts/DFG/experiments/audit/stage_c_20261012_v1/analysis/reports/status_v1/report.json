@@ -1,0 +1,151 @@
+{
+  "format": "ddg-stage-c-derived-report-v1",
+  "created_utc": "2026-10-13T01:55:27.301454+00:00",
+  "run": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1_stage_c",
+  "protocol": "paper_kfold",
+  "protocol_version": "ddg-paper-kfold-v1",
+  "score_role": "cv_validation",
+  "base_git_head": "646e9b3495c0fe7f2c4a6e4b72d0bab64d6ee2fc",
+  "initialization_version": "semantic-paired-native-xavier-v1",
+  "import_provenance": null,
+  "plan_sha256": "89eb7b9c32e8a3ded856bd3264498ff09ad411ab338020ab32a0da36eeb0ecc0",
+  "state_snapshot_sha256": "50d51b1dbd12094d045956c2137df571d3a6d0d6069e629a479d265576329cd7",
+  "state_changed_during_report": false,
+  "stage_b": "passed",
+  "stage_c": "running",
+  "scoring_notes": [
+    "All main results are CV validation: the same fold validation set selects best and is scored.",
+    "Best uses the lowest validation loss, not the highest F1; last is a separate auxiliary result.",
+    "Metrics are percentages; E1 minus E0 is in percentage points.",
+    "Unweighted fold mean and sample standard deviation (ddof=1); not a confidence interval.",
+    "Node scores use HCG node identities (file + original node id), not deduplicated source-line F1.",
+    "Fit time includes fitting, validation, checkpoint IO and reload scoring; count each fit once.",
+    "GPU peaks are PyTorch process peaks with both models resident, not standalone model or whole-card memory.",
+    "Cumulative DDG gradient depends on epoch count; parameter changes may include weight decay.",
+    "No partial-fold task mean; no nested/narrow/multi-seed mixing; no graph, label or model changes.",
+    "Historical unaccepted attempts without state evidence have unknown status, not invented failure reasons."
+  ],
+  "tie_tolerance_percentage_points": 1e-10,
+  "tasks": [
+    {
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "status": "pending",
+      "expected_folds": 5,
+      "pending_jobs": [
+        "reentrancy_author_contract_fold1",
+        "reentrancy_author_contract_fold2",
+        "reentrancy_author_contract_fold3",
+        "reentrancy_author_contract_fold4"
+      ],
+      "accepted_entries_in_snapshot": 1,
+      "reason": "No task performance mean computed until every planned paired fold is accepted"
+    },
+    {
+      "cohort": "access_control_author",
+      "task": "contract",
+      "status": "pending",
+      "expected_folds": 5,
+      "pending_jobs": [
+        "access_control_author_contract_fold0",
+        "access_control_author_contract_fold1",
+        "access_control_author_contract_fold2",
+        "access_control_author_contract_fold3",
+        "access_control_author_contract_fold4"
+      ],
+      "accepted_entries_in_snapshot": 0,
+      "reason": "No task performance mean computed until every planned paired fold is accepted"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "task": "node",
+      "status": "pending",
+      "expected_folds": 10,
+      "pending_jobs": [
+        "reentrancy_author_node_fold0",
+        "reentrancy_author_node_fold1",
+        "reentrancy_author_node_fold2",
+        "reentrancy_author_node_fold3",
+        "reentrancy_author_node_fold4",
+        "reentrancy_author_node_fold5",
+        "reentrancy_author_node_fold6",
+        "reentrancy_author_node_fold7",
+        "reentrancy_author_node_fold8",
+        "reentrancy_author_node_fold9"
+      ],
+      "accepted_entries_in_snapshot": 0,
+      "reason": "No task performance mean computed until every planned paired fold is accepted"
+    },
+    {
+      "cohort": "access_control_author",
+      "task": "node",
+      "status": "pending",
+      "expected_folds": 10,
+      "pending_jobs": [
+        "access_control_author_node_fold0",
+        "access_control_author_node_fold1",
+        "access_control_author_node_fold2",
+        "access_control_author_node_fold3",
+        "access_control_author_node_fold4",
+        "access_control_author_node_fold5",
+        "access_control_author_node_fold6",
+        "access_control_author_node_fold7",
+        "access_control_author_node_fold8",
+        "access_control_author_node_fold9"
+      ],
+      "accepted_entries_in_snapshot": 0,
+      "reason": "No task performance mean computed until every planned paired fold is accepted"
+    }
+  ],
+  "attempts": [
+    {
+      "job": "reentrancy_author_contract_fold0",
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "fold": 0,
+      "attempt": "jobs/reentrancy_author_contract_fold0/attempt_001",
+      "ordinal": 1,
+      "retry": false,
+      "status": "passed",
+      "is_current_state_entry": true,
+      "exit_code": 0,
+      "error": null,
+      "error_log_excerpt": null,
+      "started_utc": "2026-10-12T13:48:57.637246+00:00",
+      "finished_utc": "2026-10-12T13:52:36.836461+00:00",
+      "log": "jobs/reentrancy_author_contract_fold0/attempt_001.log",
+      "receipt": "jobs/reentrancy_author_contract_fold0/attempt_001.receipt.json",
+      "history_note": "Current state evidence"
+    },
+    {
+      "job": "reentrancy_author_contract_fold1",
+      "cohort": "reentrancy_author",
+      "task": "contract",
+      "fold": 1,
+      "attempt": "jobs/reentrancy_author_contract_fold1/attempt_001",
+      "ordinal": 1,
+      "retry": false,
+      "status": "running",
+      "is_current_state_entry": true,
+      "exit_code": null,
+      "error": null,
+      "error_log_excerpt": null,
+      "started_utc": "2026-10-13T01:49:00.570617+00:00",
+      "finished_utc": null,
+      "log": "jobs/reentrancy_author_contract_fold1/attempt_001.log",
+      "receipt": null,
+      "history_note": "Current state evidence"
+    }
+  ],
+  "attempt_summary": {
+    "attempts_discovered": 2,
+    "current_state_failed": 0,
+    "retry_attempts": 0,
+    "historical_unaccepted_unknown": 0
+  },
+  "complete_tasks": 0,
+  "read_only_code_hash_check": {
+    "before_equals_after": true,
+    "files": 39
+  }
+}

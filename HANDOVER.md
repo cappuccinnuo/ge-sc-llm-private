@@ -1143,3 +1143,90 @@ python -B -m pytest -q -p no:cacheprovider \
 - **C未启动，剩29配对/58次**。用户确认后formal stage-c --confirm-stage-c；按重入合约→访问控制合约→重入节点→访问控制节点依次验收；不得自动启动。
 - 单折明细：experiments/audit/formal_20261012_v1/stage_b_summary.csv；报告FORMAL_EXPERIMENT_REPORT_2026-10-12.md；命令在experiments/README.md末尾，详细变更见training_changes_2026-10-07.md第14节。
 - 旧REPORT问号正文未触碰。没有扩展DDG、执行新solc或narrow/nested/多seed/随机边实验。
+
+
+#### 2026-10-12：阶段 C 已授权并开始，统计旁路完成（修改 AI：Codex）
+
+- 本条是运行中记录，非全量完成声明。用户已授权其余29配对/58次训练，按既定四任务顺序串行。
+- 当前HEAD=646e9b3，旧plan=70c9d44；39运行代码和68冻结文件摘要完全相同。原formal因HEAD变化拒绝旧批次，故新建formal_20261012_v1_stage_c，只允许plan提交号/创建时间不同，未放宽校验或修改旧产物。
+- 旧重入合约fold0完整复制，receipt与完整fold双验收通过，state记import_provenance；未重训、未挑分数。
+- 新批次scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1_stage_c/；当前fold1首次attempt运行中。不要重复启动控制器。
+- 主日志audit/stage_c_20261012_v1/stage_c_controller.log；执行状态execution.json、绑定迁移migration.json。旧批次保持不变。
+- 新只读统计脚本在audit/stage_c_20261012_v1/analysis/，不参与训练摘要扫描。26项新测试通过并独立复查；按任务/best/last统计四指标、成对差值std、升平降、错误转移、支持/参数/显存/耗时与attempt历史。未完整任务只列pending。
+- 原DDG/HGT/tokenizer/标签/折/初始化/学习率/早停/best规则均未改；nested/narrow/多seed不在本轮范围。
+- 观察到显存余量窄、训练耗时较长和WSL实时时钟回拨；精确fit时间用perf_counter，mtime不能用于精确耗时。只读strace因权限限制未取内部栈，未更改系统配置。
+- 本段时无训练失败/重试；E0 fold1已18轮早停、E1进行中。完成后必须追加真实最终结果，不把运行中状态当验收通过。
+- 详细变更见training_changes_2026-10-07.md第15节；前13/14节及旧交接正文保留。
+
+
+#### 2026-10-13：阶段 C 四任务全部完成并验收（修改 AI：Codex）
+
+本条接续此前“阶段C运行中”历史记录，当前状态已完成；保留前文不改写。
+
+- paper_kfold四任务按重入合约5→访问控制合约5→重入节点10→访问控制节点10全部完成；
+  30配对折、60次拟合，其中本轮58次新训练、旧重入合约fold0的2次原样复用。
+  全部attempt_001，0拟合失败、0重试；控制器及最终formal verify退出码0，
+  120个best/last checkpoint完整。控制器monotonic耗时8490.03秒。
+- 版本迁移只改新plan的base_git_head/created_utc；39项运行代码、68项冻结文件摘要相同。
+  新HEAD=646e9b3、旧HEAD=70c9d44，旧批次保留；fold0复制字节一致且双重验收，不为挑成绩重训。
+- E0=作者固定HCG/标签+本地核验512维CodeT5p-770m tokenizer IDs，E1同图只加正向DATA_DEF_USE；
+  DDG/HGT/tokenizer/标签/折/初始化/学习率/早停/best规则均未改变。
+- 以下为**最低val loss对应best的CV validation等权折均值**，不是独立测试；
+  节点任务是HCG节点指标，不是去重源码行F1。完整四指标±sample std及逐折数见最终报告。
+
+| 任务 | E0 best BF1/MF1 | E1 best BF1/MF1 | BF1/MF1差值（百分点） |
+|---|---|---|---|
+| 重入/合约 | 94.1593/94.3452 | 93.5157/93.6245 | -0.6437/-0.7207 |
+| 访问控制/合约 | 93.5590/93.8316 | 93.5590/93.8316 | 0.0000/0.0000 |
+| 重入/节点 | 96.0580/96.0088 | 96.0740/96.0107 | 0.0161/0.0019 |
+| 访问控制/节点 | 95.9723/96.8764 | 95.8130/96.7384 | -0.1593/-0.1380 |
+
+- 重入节点best微增0.0161百分点，Buggy-F1为4升/1平/5降，尚无稳定提升证据。
+  重入节点fold8低分保留；buggy_18.sol有250个best FP，说明错误集中位置，不能据此认定标签错误。
+  last辅助BF1差值依次为-1.9505、-2.1152、-0.2497、-0.5698百分点，没有改用last作为主结果。
+- DDG有训练支持且监督梯度非零；训练未见但已注册的关系保留，无支持的关系零梯度正常。
+  E1增加参数及关系聚合结构，不能把所有变化单独归因于DDG语义。
+- 新增代码仅analysis/report_stage_c.py与26项统计测试，全部通过，无GPU/模型导入；
+  上轮328项测试是历史记录，本轮未冒充重跑。独立四任务预测/统计复核及最终冻结审计均通过。
+- 新批次artifacts/paper_kfold/formal_20261012_v1_stage_c/；
+  主日志audit/stage_c_20261012_v1/stage_c_controller.log；
+  最终报告analysis/reports/final_v1/REPORT.md及6份CSV/report.json。
+  详细变更、完整best/last四指标、资源/错误分析在training_changes_2026-10-07.md第15.7–15.13。
+- 旧plan HEAD保护拒绝与strace OS权限拒绝分别是预检/诊断问题，不是训练失败。
+  曾有资源竞争、低显存余量及WSL时钟回拨；耗时含验证/保存重载，用perf_counter；
+  不把个别慢fold的E1/E0时间比解释为纯DDG开销。
+- 所有主成绩CV validation；单seed、作者标签历史、模板重复和同val选模偏差限制保留。
+  本轮至此停止，没有启动nested/narrow、多seed或DDG状态变量/mapping/反向边扩展；
+  当前仍是函数内标量MVP，不是完整Solidity DDG。
+
+
+## Completed Stage C archive and Git commits (2026-10-13)
+
+The completed run is
+`scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1_stage_c`.
+All 30 paired folds (60 fits) passed. Its sealed training base remains
+`646e9b3495c0fe7f2c4a6e4b72d0bab64d6ee2fc`; do not rewrite the plan or seal
+to match an archival commit.
+
+The original `formal verify` and training commands intentionally require exact
+HEAD equality. They are not the post-commit archive verification interface.
+After committing results, verify the completed archive with the existing
+read-only reporter (choose a fresh output directory on every invocation):
+
+~~~bash
+python -B scripts/DFG/experiments/audit/stage_c_20261012_v1/analysis/report_stage_c.py \
+  --run scripts/DFG/experiments/artifacts/paper_kfold/formal_20261012_v1_stage_c \
+  --output /tmp/ge-sc-llm-stage-c-archive-check-UNIQUE
+~~~
+
+Require `complete_tasks: 4` and `pending_tasks: 0`. The reporter checks the
+plan seal, frozen inputs/code, receipt and artifact hashes, and recomputes
+prediction metrics. It neither trains nor modifies the sealed run.
+The archive commit must descend from the training base; check with
+`git merge-base --is-ancestor 646e9b3495c0fe7f2c4a6e4b72d0bab64d6ee2fc HEAD`.
+
+GitHub stores the code, documentation, text run artifacts, receipts and reports.
+Model weights (.pt), prepared graph/data assets, process markers, locks and
+temporary test directories stay local. A fresh clone alone cannot perform
+full artifact verification without those local assets. This is a code/results
+archive, not a replacement for a full experiment backup.

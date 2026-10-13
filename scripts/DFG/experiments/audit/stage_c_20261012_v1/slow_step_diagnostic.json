@@ -1,0 +1,20 @@
+{
+  "utc": "2026-10-13T02:02:45.938395+00:00",
+  "command": [
+    "timeout",
+    "6s",
+    "strace",
+    "-f",
+    "-tt",
+    "-T",
+    "-p",
+    "3537894",
+    "-o",
+    "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/audit/stage_c_20261012_v1/fold1_wait_strace.log",
+    "-e",
+    "trace=futex,ioctl,poll,write,read,nanosleep"
+  ],
+  "exit_code": 1,
+  "output": "strace: Could not attach to process. If your uid matches the uid of the target process, check the setting of /proc/sys/kernel/yama/ptrace_scope, or try again as the root user. For more details, see /etc/sysctl.d/10-ptrace.conf: Operation not permitted\nstrace: attach: ptrace(PTRACE_SEIZE, 3537894): Operation not permitted\n",
+  "no_training_changes": true
+}
