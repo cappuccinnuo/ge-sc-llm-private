@@ -5,6 +5,37 @@ from .symbol_table import SymbolTable
 from .access_extractor import AccessExtractor
 from .call_binding import CallBindingResolver, BindingUncertain, key as binding_key
 
+def _if_bodies(node):
+    """Resolve direct then/else children; extras must not become statements.
+
+    Codex D1 repair (2026-10-13): the installed Solidity grammar can assign
+    field=body to a comment between then and else (and field=else after else).
+    Ignore only comments, then require an unambiguous complete branch shape.
+    Do not truncate extra bodies or search descendant/textual else tokens.
+    """
+    bodies, conditions, alternatives = [], [], []
+    for index, child in enumerate(node.children):
+        if "comment" in child.type:
+            continue
+        field = node.field_name_for_child(index)
+        if child.type == "else" and not child.is_named:
+            alternatives.append(index)
+        elif field == "body" and child.is_named:
+            bodies.append((index, child))
+        elif field == "condition" and child.is_named:
+            conditions.append(index)
+        elif child.is_named or child.type not in ("if", "(", ")"):
+            raise Unsupported("Ambiguous if child: " + child.type)
+    if len(conditions) != 1 or len(alternatives) > 1:
+        raise Unsupported("Ambiguous if condition/else structure")
+    expected = 2 if alternatives else 1
+    if len(bodies) != expected or bodies[0][0] <= conditions[0]:
+        raise Unsupported("Ambiguous if body count/order")
+    if alternatives and not bodies[0][0] < alternatives[0] < bodies[1][0]:
+        raise Unsupported("Ambiguous if then/else order")
+    return bodies[0][1], bodies[1][1] if alternatives else None
+
+
 class CFGBuilder:
     def __init__(self, view, function):
         self.view, self.function = view, function
@@ -38,14 +69,12 @@ class CFGBuilder:
         if t in ("function_body","block_statement"):
             return self.sequence(n.named_children,incoming,loop)
         if t=="if_statement":
+            then_body, else_body = _if_bodies(n)
             head=self.new(self.access.extract(n.child_by_field_name("condition"),
                                               span(self.view.file,n)))
             self.link(incoming,head)
-            bodies=[c for i,c in enumerate(n.children)
-                    if n.field_name_for_child(i)=="body"]
-            if not bodies: raise Unsupported("If without a body")
-            tails=self.statement(bodies[0],{head},loop)
-            tails |= self.statement(bodies[1],{head},loop) if len(bodies)>1 else {head}
+            tails=self.statement(then_body,{head},loop)
+            tails |= self.statement(else_body,{head},loop) if else_body is not None else {head}
             return tails
         if t in ("while_statement","for_statement","do_while_statement"):
             owner=span(self.view.file,n)

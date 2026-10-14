@@ -1,0 +1,209 @@
+..FF...FFFF...F......                                                    [100%]
+=================================== FAILURES ===================================
+_ test_exact_raw_and_pydot_representation[require(x > 0, "\\x19Ethereum Signed Message:\\n32");] _
+
+source = 'require(x > 0, "\\x19Ethereum Signed Message:\\n32");'
+
+    @pytest.mark.parametrize("source", [
+        "uint y=x;", 'require(x > 0, "message");',
+        r'require(x > 0, "\x19Ethereum Signed Message:\n32");',
+        r'require(x > 0, "back\\slash and \"quoted\"");',
+        'function f() public {\n\treturn;\n}',
+        'function f() public {\r\nreturn;\r\n}',
+        'require(x > 0, "\u4f60\u597d\u03bb");',
+    ])
+    def test_exact_raw_and_pydot_representation(source):
+        assert code_equal(source, source)
+>       assert code_equal(pydot.quote_if_necessary(source), source)
+E       assert False
+E        +  where False = code_equal('"require(x > 0, \\"\\x19Ethereum Signed Message:\\n32\\");"', 'require(x > 0, "\\x19Ethereum Signed Message:\\n32");')
+E        +    where '"require(x > 0, \\"\\x19Ethereum Signed Message:\\n32\\");"' = <function quote_if_necessary at 0x77703f6c2560>('require(x > 0, "\\x19Ethereum Signed Message:\\n32");')
+E        +      where <function quote_if_necessary at 0x77703f6c2560> = pydot.quote_if_necessary
+
+scripts/DFG/tests/test_projection_v11.py:24: AssertionError
+_ test_exact_raw_and_pydot_representation[require(x > 0, "back\\\\slash and \\"quoted\\"");] _
+
+source = 'require(x > 0, "back\\\\slash and \\"quoted\\"");'
+
+    @pytest.mark.parametrize("source", [
+        "uint y=x;", 'require(x > 0, "message");',
+        r'require(x > 0, "\x19Ethereum Signed Message:\n32");',
+        r'require(x > 0, "back\\slash and \"quoted\"");',
+        'function f() public {\n\treturn;\n}',
+        'function f() public {\r\nreturn;\r\n}',
+        'require(x > 0, "\u4f60\u597d\u03bb");',
+    ])
+    def test_exact_raw_and_pydot_representation(source):
+        assert code_equal(source, source)
+>       assert code_equal(pydot.quote_if_necessary(source), source)
+E       assert False
+E        +  where False = code_equal('"require(x > 0, \\"back\\\\slash and \\\\"quoted\\\\"\\");"', 'require(x > 0, "back\\\\slash and \\"quoted\\"");')
+E        +    where '"require(x > 0, \\"back\\\\slash and \\\\"quoted\\\\"\\");"' = <function quote_if_necessary at 0x77703f6c2560>('require(x > 0, "back\\\\slash and \\"quoted\\"");')
+E        +      where <function quote_if_necessary at 0x77703f6c2560> = pydot.quote_if_necessary
+
+scripts/DFG/tests/test_projection_v11.py:24: AssertionError
+_ test_changed_source_rejected_in_both_directions[require(x, "\\x41");-require(x, "A");] _
+
+a = 'require(x, "\\x41");', b = 'require(x, "A");'
+
+    @pytest.mark.parametrize("a,b", [
+        (r'require(x, "\x41");', 'require(x, "A");'),
+        (r'require(x, "\u0041");', 'require(x, "A");'),
+        (r'require(x, "\t");', 'require(x, "\t");'),
+        (r'require(x, "\\path");', r'require(x, "\path");'),
+        ('uint y=x;', 'uint y = x;'),
+        ('return x;', 'return y;'),
+        ('require(x, "\u4f60");', 'require(x, "\u597d");'),
+    ])
+    def test_changed_source_rejected_in_both_directions(a,b):
+        assert a != b
+        assert pydot.quote_if_necessary(a) != pydot.quote_if_necessary(b)
+        for stored,expected in [(a,b),(b,a)]:
+            assert not code_equal(stored,expected)
+>           assert not code_equal(pydot.quote_if_necessary(stored),expected)
+E           assert not True
+E            +  where True = code_equal('"require(x, \\"\\x41\\");"', 'require(x, "A");')
+E            +    where '"require(x, \\"\\x41\\");"' = <function quote_if_necessary at 0x77703f6c2560>('require(x, "\\x41");')
+E            +      where <function quote_if_necessary at 0x77703f6c2560> = pydot.quote_if_necessary
+
+scripts/DFG/tests/test_projection_v11.py:41: AssertionError
+_ test_changed_source_rejected_in_both_directions[require(x, "\\u0041");-require(x, "A");] _
+
+a = 'require(x, "\\u0041");', b = 'require(x, "A");'
+
+    @pytest.mark.parametrize("a,b", [
+        (r'require(x, "\x41");', 'require(x, "A");'),
+        (r'require(x, "\u0041");', 'require(x, "A");'),
+        (r'require(x, "\t");', 'require(x, "\t");'),
+        (r'require(x, "\\path");', r'require(x, "\path");'),
+        ('uint y=x;', 'uint y = x;'),
+        ('return x;', 'return y;'),
+        ('require(x, "\u4f60");', 'require(x, "\u597d");'),
+    ])
+    def test_changed_source_rejected_in_both_directions(a,b):
+        assert a != b
+        assert pydot.quote_if_necessary(a) != pydot.quote_if_necessary(b)
+        for stored,expected in [(a,b),(b,a)]:
+            assert not code_equal(stored,expected)
+>           assert not code_equal(pydot.quote_if_necessary(stored),expected)
+E           assert not True
+E            +  where True = code_equal('"require(x, \\"\\u0041\\");"', 'require(x, "A");')
+E            +    where '"require(x, \\"\\u0041\\");"' = <function quote_if_necessary at 0x77703f6c2560>('require(x, "\\u0041");')
+E            +      where <function quote_if_necessary at 0x77703f6c2560> = pydot.quote_if_necessary
+
+scripts/DFG/tests/test_projection_v11.py:41: AssertionError
+_ test_changed_source_rejected_in_both_directions[require(x, "\\t");-require(x, "\t");] _
+
+a = 'require(x, "\\t");', b = 'require(x, "\t");'
+
+    @pytest.mark.parametrize("a,b", [
+        (r'require(x, "\x41");', 'require(x, "A");'),
+        (r'require(x, "\u0041");', 'require(x, "A");'),
+        (r'require(x, "\t");', 'require(x, "\t");'),
+        (r'require(x, "\\path");', r'require(x, "\path");'),
+        ('uint y=x;', 'uint y = x;'),
+        ('return x;', 'return y;'),
+        ('require(x, "\u4f60");', 'require(x, "\u597d");'),
+    ])
+    def test_changed_source_rejected_in_both_directions(a,b):
+        assert a != b
+        assert pydot.quote_if_necessary(a) != pydot.quote_if_necessary(b)
+        for stored,expected in [(a,b),(b,a)]:
+            assert not code_equal(stored,expected)
+>           assert not code_equal(pydot.quote_if_necessary(stored),expected)
+E           assert not True
+E            +  where True = code_equal('"require(x, \\"\\t\\");"', 'require(x, "\t");')
+E            +    where '"require(x, \\"\\t\\");"' = <function quote_if_necessary at 0x77703f6c2560>('require(x, "\\t");')
+E            +      where <function quote_if_necessary at 0x77703f6c2560> = pydot.quote_if_necessary
+
+scripts/DFG/tests/test_projection_v11.py:41: AssertionError
+_ test_changed_source_rejected_in_both_directions[require(x, "\\\\path");-require(x, "\\path");] _
+
+a = 'require(x, "\\\\path");', b = 'require(x, "\\path");'
+
+    @pytest.mark.parametrize("a,b", [
+        (r'require(x, "\x41");', 'require(x, "A");'),
+        (r'require(x, "\u0041");', 'require(x, "A");'),
+        (r'require(x, "\t");', 'require(x, "\t");'),
+        (r'require(x, "\\path");', r'require(x, "\path");'),
+        ('uint y=x;', 'uint y = x;'),
+        ('return x;', 'return y;'),
+        ('require(x, "\u4f60");', 'require(x, "\u597d");'),
+    ])
+    def test_changed_source_rejected_in_both_directions(a,b):
+        assert a != b
+        assert pydot.quote_if_necessary(a) != pydot.quote_if_necessary(b)
+        for stored,expected in [(a,b),(b,a)]:
+            assert not code_equal(stored,expected)
+>           assert not code_equal(pydot.quote_if_necessary(stored),expected)
+E           assert not True
+E            +  where True = code_equal('"require(x, \\"\\\\path\\");"', 'require(x, "\\path");')
+E            +    where '"require(x, \\"\\\\path\\");"' = <function quote_if_necessary at 0x77703f6c2560>('require(x, "\\\\path");')
+E            +      where <function quote_if_necessary at 0x77703f6c2560> = pydot.quote_if_necessary
+
+scripts/DFG/tests/test_projection_v11.py:41: AssertionError
+__________ test_dot_roundtrip_exact_projection_and_no_graph_mutation ___________
+
+    def test_dot_roundtrip_exact_projection_and_no_graph_mutation():
+        raw,r=assets()
+        dot=dot_fields(raw)
+        before=fingerprint(dot)
+>       mapping,diagnostics=Projector(dot,r.view).map_facts(r.facts)
+
+scripts/DFG/tests/test_projection_v11.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scripts.DFG.projection.Projector object at 0x777040c05e90>
+graph = <networkx.classes.multidigraph.MultiDiGraph object at 0x777039502410>
+view = <scripts.DFG.frontend.SourceView object at 0x77703fb20a90>
+
+    def __init__(self, graph, view):
+        self.graph,self.view=graph,view
+        self.by_ast={}
+        compat_by_id={i:k for k,i in view.compat_ids.items()}
+        self.stats={"ordinary_nodes_checked":0,"synthetic_nodes":0}
+        for identifier,data in graph.nodes(data=True):
+            if data.get("source_file")!=view.file: continue
+            label=decoded(data.get("label",""))
+            m=ANCHOR.search(label)
+            if not m:
+                if data.get("node_type") in ("end_if","end_loop"):
+                    self.stats["synthetic_nodes"]+=1
+                    continue
+                raise Unsupported("Node lacks an auditable AST anchor: "+str(identifier))
+            ast_id=int(m.group(1))
+            if ast_id not in compat_by_id:
+                raise Unsupported("Stale AST ID: "+str(ast_id))
+            key=compat_by_id[ast_id]
+            n=view.compat_nodes[key]
+            if data.get("node_type")!=m.group(2):
+                raise Unsupported("Node type differs from saved AST label")
+            expected_type=NODE_TYPES.get(n.type)
+            if expected_type and expected_type!=data.get("node_type"):
+                raise Unsupported("AST/HCG node role differs")
+            if (int(m.group(3)),int(m.group(4))) != (n.start_point[0]+1,n.end_point[0]+1):
+                raise Unsupported("AST endpoint coordinates differ")
+            expected=view.compat[n.start_byte:n.end_byte].decode("utf8")
+            if not code_equal(data.get("code"),expected):
+>               raise Unsupported("AST/HCG source text differs: "+str(identifier))
+E               scripts.DFG.models.Unsupported: AST/HCG source text differs: 10
+
+scripts/DFG/projection.py:55: Unsupported
+----------------------------- Captured stdout call -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {32: (10, 13, 'require(x > 0, "\\x19Ethereum Signed Message:\\n32")')}
+---------------------------------
+function_calls:  {'f_1': [(49, 10)]}
+---------------------------------
+method_list:  {'f_1': 13}
+=========================== short test summary info ============================
+FAILED scripts/DFG/tests/test_projection_v11.py::test_exact_raw_and_pydot_representation[require(x > 0, "\\x19Ethereum Signed Message:\\n32");]
+FAILED scripts/DFG/tests/test_projection_v11.py::test_exact_raw_and_pydot_representation[require(x > 0, "back\\\\slash and \\"quoted\\"");]
+FAILED scripts/DFG/tests/test_projection_v11.py::test_changed_source_rejected_in_both_directions[require(x, "\\x41");-require(x, "A");]
+FAILED scripts/DFG/tests/test_projection_v11.py::test_changed_source_rejected_in_both_directions[require(x, "\\u0041");-require(x, "A");]
+FAILED scripts/DFG/tests/test_projection_v11.py::test_changed_source_rejected_in_both_directions[require(x, "\\t");-require(x, "\t");]
+FAILED scripts/DFG/tests/test_projection_v11.py::test_changed_source_rejected_in_both_directions[require(x, "\\\\path");-require(x, "\\path");]
+FAILED scripts/DFG/tests/test_projection_v11.py::test_dot_roundtrip_exact_projection_and_no_graph_mutation
+7 failed, 14 passed in -61.61s

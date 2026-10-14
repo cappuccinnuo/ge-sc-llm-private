@@ -1,0 +1,1918 @@
+{
+  "status": "design_only_not_approved_oracle",
+  "oracles": [
+    {
+      "id": "O1",
+      "title": "Reentrancy balance/read/call/reset",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_18.sol",
+        "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec",
+        "ast_id": 527,
+        "compat_span": [
+          2876,
+          2953,
+          "variable_declaration_statement"
+        ],
+        "node": {
+          "start_byte": 4192,
+          "end_byte": 4269,
+          "start_line": 115,
+          "end_line": 115,
+          "ast_type": "variable_declaration_statement",
+          "text": "(bool success,)= msg.sender.call.value(userBalance_re_ent33[msg.sender])(\"\");",
+          "name": null
+        },
+        "function": {
+          "identity": "buggy_18.sol:4004",
+          "start_byte": 4004,
+          "end_byte": 4378,
+          "start_line": 112,
+          "end_line": 120,
+          "ast_type": "function_definition",
+          "text": "function withdrawBalance_re_ent33() public{\n        // send userBalance[msg.sender] ethers to msg.sender\n        // if mgs.sender is a contract, it will call its fallback function\n        (bool success,)= msg.sender.call.value(userBalance_re_ent33[msg.sender])(\"\");\n        if( ! success ){\n            revert();\n        }\n        userBalance_re_ent33[msg.sender] = 0;\n    }",
+          "name": "withdrawBalance_re_ent33"
+        },
+        "contract": {
+          "start_byte": 1631,
+          "end_byte": 4763,
+          "start_line": 59,
+          "end_line": 132,
+          "ast_type": "contract_declaration",
+          "name": "ERC20Interface"
+        },
+        "state_declarations": [
+          {
+            "start_byte": 1712,
+            "end_byte": 1740,
+            "start_line": 62,
+            "end_line": 62,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 counter_re_ent21 =0;",
+            "name": "counter_re_ent21"
+          },
+          {
+            "start_byte": 2000,
+            "end_byte": 2043,
+            "start_line": 71,
+            "end_line": 71,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent10;",
+            "name": "balances_re_ent10"
+          },
+          {
+            "start_byte": 2425,
+            "end_byte": 2468,
+            "start_line": 79,
+            "end_line": 79,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent21;",
+            "name": "balances_re_ent21"
+          },
+          {
+            "start_byte": 2754,
+            "end_byte": 2800,
+            "start_line": 86,
+            "end_line": 86,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) userBalance_re_ent12;",
+            "name": "userBalance_re_ent12"
+          },
+          {
+            "start_byte": 3216,
+            "end_byte": 3266,
+            "start_line": 96,
+            "end_line": 96,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) redeemableEther_re_ent11;",
+            "name": "redeemableEther_re_ent11"
+          },
+          {
+            "start_byte": 3707,
+            "end_byte": 3749,
+            "start_line": 105,
+            "end_line": 105,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent1;",
+            "name": "balances_re_ent1"
+          },
+          {
+            "start_byte": 3957,
+            "end_byte": 4003,
+            "start_line": 111,
+            "end_line": 111,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) userBalance_re_ent33;",
+            "name": "userBalance_re_ent33"
+          },
+          {
+            "start_byte": 4454,
+            "end_byte": 4486,
+            "start_line": 122,
+            "end_line": 122,
+            "ast_type": "state_variable_declaration",
+            "text": "bool not_called_re_ent27 = true;",
+            "name": "not_called_re_ent27"
+          }
+        ],
+        "modifier_definitions": [],
+        "function_hcg_nodes": [
+          {
+            "node_id": 2705,
+            "node_type": "function_definition",
+            "label": 0,
+            "start_byte": 4004,
+            "end_byte": 4378,
+            "start_line": 112,
+            "end_line": 120,
+            "ast_type": "function_definition",
+            "text": "function withdrawBalance_re_ent33() public{\n        // send userBalance[msg.sender] ethers to msg.sender\n        // if mgs.sender is a contract, it will call its fallback function\n        (bool success,)= msg.sender.call.value(userBalance_re_ent33[msg.sender])(\"\");\n        if( ! success ){\n            revert();\n        }\n        userBalance_re_ent33[msg.sender] = 0;\n    }",
+            "name": "withdrawBalance_re_ent33"
+          },
+          {
+            "node_id": 2706,
+            "node_type": "new_variable",
+            "label": 0,
+            "start_byte": 4192,
+            "end_byte": 4269,
+            "start_line": 115,
+            "end_line": 115,
+            "ast_type": "variable_declaration_statement",
+            "text": "(bool success,)= msg.sender.call.value(userBalance_re_ent33[msg.sender])(\"\");",
+            "name": null
+          },
+          {
+            "node_id": 2707,
+            "node_type": "if",
+            "label": 0,
+            "start_byte": 4278,
+            "end_byte": 4326,
+            "start_line": 116,
+            "end_line": 118,
+            "ast_type": "if_statement",
+            "text": "if( ! success ){\n            revert();\n        }",
+            "name": null
+          },
+          {
+            "node_id": 2709,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 4335,
+            "end_byte": 4372,
+            "start_line": 119,
+            "end_line": 119,
+            "ast_type": "expression_statement",
+            "text": "userBalance_re_ent33[msg.sender] = 0;",
+            "name": null
+          }
+        ]
+      },
+      "expected_accesses": "Read userBalance_re_ent33[msg.sender] before external call; write same element after successful call.",
+      "expected_and_forbidden_facts": "No concrete in-function state definition reaches the earlier read: its origin is ENTRY_UNKNOWN. Do not create reset -> earlier call/read. Call invalidates pre-call state assumptions.",
+      "uncertainty": "msg.sender stable in one frame, but unknown callback may change state; binding fallback remains explicit.",
+      "projection": "Mapping/call state outside scalar scope. Existing statement nodes can anchor accesses; entry unknown has no concrete definition node. Access order is metadata, not state DEF_USE.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O2",
+      "title": "Same mapping key compound update",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_18.sol",
+        "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec",
+        "ast_id": 256,
+        "compat_span": [
+          1224,
+          1265,
+          "expression_statement"
+        ],
+        "node": {
+          "start_byte": 2216,
+          "end_byte": 2257,
+          "start_line": 75,
+          "end_line": 75,
+          "ast_type": "expression_statement",
+          "text": "require(msg.sender.send(_weiToWithdraw));",
+          "name": null
+        },
+        "function": {
+          "identity": "buggy_18.sol:2044",
+          "start_byte": 2044,
+          "end_byte": 2327,
+          "start_line": 72,
+          "end_line": 77,
+          "ast_type": "function_definition",
+          "text": "function withdrawFunds_re_ent10 (uint256 _weiToWithdraw) public {\n        require(balances_re_ent10[msg.sender] >= _weiToWithdraw);\n        // limit the withdrawal\n        require(msg.sender.send(_weiToWithdraw));  //bug\n        balances_re_ent10[msg.sender] -= _weiToWithdraw;\n    }",
+          "name": "withdrawFunds_re_ent10"
+        },
+        "contract": {
+          "start_byte": 1631,
+          "end_byte": 4763,
+          "start_line": 59,
+          "end_line": 132,
+          "ast_type": "contract_declaration",
+          "name": "ERC20Interface"
+        },
+        "state_declarations": [
+          {
+            "start_byte": 1712,
+            "end_byte": 1740,
+            "start_line": 62,
+            "end_line": 62,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 counter_re_ent21 =0;",
+            "name": "counter_re_ent21"
+          },
+          {
+            "start_byte": 2000,
+            "end_byte": 2043,
+            "start_line": 71,
+            "end_line": 71,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent10;",
+            "name": "balances_re_ent10"
+          },
+          {
+            "start_byte": 2425,
+            "end_byte": 2468,
+            "start_line": 79,
+            "end_line": 79,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent21;",
+            "name": "balances_re_ent21"
+          },
+          {
+            "start_byte": 2754,
+            "end_byte": 2800,
+            "start_line": 86,
+            "end_line": 86,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) userBalance_re_ent12;",
+            "name": "userBalance_re_ent12"
+          },
+          {
+            "start_byte": 3216,
+            "end_byte": 3266,
+            "start_line": 96,
+            "end_line": 96,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) redeemableEther_re_ent11;",
+            "name": "redeemableEther_re_ent11"
+          },
+          {
+            "start_byte": 3707,
+            "end_byte": 3749,
+            "start_line": 105,
+            "end_line": 105,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent1;",
+            "name": "balances_re_ent1"
+          },
+          {
+            "start_byte": 3957,
+            "end_byte": 4003,
+            "start_line": 111,
+            "end_line": 111,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) userBalance_re_ent33;",
+            "name": "userBalance_re_ent33"
+          },
+          {
+            "start_byte": 4454,
+            "end_byte": 4486,
+            "start_line": 122,
+            "end_line": 122,
+            "ast_type": "state_variable_declaration",
+            "text": "bool not_called_re_ent27 = true;",
+            "name": "not_called_re_ent27"
+          }
+        ],
+        "modifier_definitions": [],
+        "function_hcg_nodes": [
+          {
+            "node_id": 2673,
+            "node_type": "function_definition",
+            "label": 1,
+            "start_byte": 2044,
+            "end_byte": 2327,
+            "start_line": 72,
+            "end_line": 77,
+            "ast_type": "function_definition",
+            "text": "function withdrawFunds_re_ent10 (uint256 _weiToWithdraw) public {\n        require(balances_re_ent10[msg.sender] >= _weiToWithdraw);\n        // limit the withdrawal\n        require(msg.sender.send(_weiToWithdraw));  //bug\n        balances_re_ent10[msg.sender] -= _weiToWithdraw;\n    }",
+            "name": "withdrawFunds_re_ent10"
+          },
+          {
+            "node_id": 2674,
+            "node_type": "expression_statement",
+            "label": 1,
+            "start_byte": 2118,
+            "end_byte": 2175,
+            "start_line": 73,
+            "end_line": 73,
+            "ast_type": "expression_statement",
+            "text": "require(balances_re_ent10[msg.sender] >= _weiToWithdraw);",
+            "name": null
+          },
+          {
+            "node_id": 2675,
+            "node_type": "expression_statement",
+            "label": 1,
+            "start_byte": 2216,
+            "end_byte": 2257,
+            "start_line": 75,
+            "end_line": 75,
+            "ast_type": "expression_statement",
+            "text": "require(msg.sender.send(_weiToWithdraw));",
+            "name": null
+          },
+          {
+            "node_id": 2676,
+            "node_type": "expression_statement",
+            "label": 1,
+            "start_byte": 2273,
+            "end_byte": 2321,
+            "start_line": 76,
+            "end_line": 76,
+            "ast_type": "expression_statement",
+            "text": "balances_re_ent10[msg.sender] -= _weiToWithdraw;",
+            "name": null
+          }
+        ]
+      },
+      "expected_accesses": "READ balances_re_ent10[msg.sender] in guard and compound -=; WRITE same element in compound statement; read _weiToWithdraw parameter separately.",
+      "expected_and_forbidden_facts": "Keep parameter -> guard/send/update scalar facts. No backward later-write -> earlier guard. A compound write cannot define its own preceding RHS read.",
+      "uncertainty": "Send may hand control away; state origin after call requires call policy. Same spelling of mapping root alone does not prove binding.",
+      "projection": "State contents absent although scalar parameter dependencies exist. Compound RHS and write may project to one node; retain facts even when self edge is filtered.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O3",
+      "title": "Different symbolic keys / may alias",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_27.sol",
+        "source_sha256": "e47d29695de23df62ebfb68db99311a6b01b28f3844f78a37936277f3efc8043",
+        "ast_id": 2299,
+        "compat_span": [
+          13646,
+          14901,
+          "function_definition"
+        ],
+        "node": {
+          "start_byte": 15479,
+          "end_byte": 17272,
+          "start_line": 459,
+          "end_line": 513,
+          "ast_type": "function_definition",
+          "text": "function transferFrom(address from, address to, uint256 value) public returns (bool) {\n    require(value <= _balances[from]);\n    require(value <= _allowed[from][msg.sender]);\n    require(to != address(0));\n    \n    // If transfer amount is zero\n        // emit event and stop execution\n        if (value == 0) {\n            emit Transfer(from, to, 0);\n            return true;\n        }\n\n    // Calculate receiver balance\n        // initial receive is full value\n        uint256 tokensToTransfer = value;\n        uint256 tokensToBurn = 0;\n        uint256 tokensToDanPan = 0;\n    \n    // Change sender balance\n        _balances[from] = _balances[from].sub(value);\n\n        // If the transaction is not whitelisted\n        // calculate fees\n        if (!_isWhitelisted(from, to)) {\n            \n              tokensToBurn = findOnePercent(value);\n              tokensToDanPan = findDPPercent(value);\n\n            // Subtract fees from receiver amount\n             tokensToTransfer = value.sub(tokensToBurn).sub(tokensToDanPan);\n\n            // Burn tokens\n            _totalSupply = _totalSupply.sub(tokensToBurn);\n            emit Transfer(from, address(0), tokensToBurn);\n            \n            \n            // Transfer balance to DanPan\n            _balances[DanPanAddress] = _balances[DanPanAddress].add(tokensToDanPan);\n           emit Transfer(from, DanPanAddress, tokensToDanPan);\n\n        }\n\n        // Sanity checks\n        // no tokens where created\n        assert(tokensToBurn.add(tokensToTransfer).add(tokensToDanPan) == value);\n\n        // Add tokens to receiver\n        _balances[to] = _balances[to].add(tokensToTransfer);\n\t_allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);\n        emit Transfer(from, to, tokensToTransfer);\n    \n    \n    \n    return true;\n  }",
+          "name": "transferFrom"
+        },
+        "function": {
+          "identity": "buggy_27.sol:15479",
+          "start_byte": 15479,
+          "end_byte": 17272,
+          "start_line": 459,
+          "end_line": 513,
+          "ast_type": "function_definition",
+          "text": "function transferFrom(address from, address to, uint256 value) public returns (bool) {\n    require(value <= _balances[from]);\n    require(value <= _allowed[from][msg.sender]);\n    require(to != address(0));\n    \n    // If transfer amount is zero\n        // emit event and stop execution\n        if (value == 0) {\n            emit Transfer(from, to, 0);\n            return true;\n        }\n\n    // Calculate receiver balance\n        // initial receive is full value\n        uint256 tokensToTransfer = value;\n        uint256 tokensToBurn = 0;\n        uint256 tokensToDanPan = 0;\n    \n    // Change sender balance\n        _balances[from] = _balances[from].sub(value);\n\n        // If the transaction is not whitelisted\n        // calculate fees\n        if (!_isWhitelisted(from, to)) {\n            \n              tokensToBurn = findOnePercent(value);\n              tokensToDanPan = findDPPercent(value);\n\n            // Subtract fees from receiver amount\n             tokensToTransfer = value.sub(tokensToBurn).sub(tokensToDanPan);\n\n            // Burn tokens\n            _totalSupply = _totalSupply.sub(tokensToBurn);\n            emit Transfer(from, address(0), tokensToBurn);\n            \n            \n            // Transfer balance to DanPan\n            _balances[DanPanAddress] = _balances[DanPanAddress].add(tokensToDanPan);\n           emit Transfer(from, DanPanAddress, tokensToDanPan);\n\n        }\n\n        // Sanity checks\n        // no tokens where created\n        assert(tokensToBurn.add(tokensToTransfer).add(tokensToDanPan) == value);\n\n        // Add tokens to receiver\n        _balances[to] = _balances[to].add(tokensToTransfer);\n\t_allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);\n        emit Transfer(from, to, tokensToTransfer);\n    \n    \n    \n    return true;\n  }",
+          "name": "transferFrom"
+        },
+        "contract": {
+          "start_byte": 4675,
+          "end_byte": 22988,
+          "start_line": 156,
+          "end_line": 668,
+          "ast_type": "contract_declaration",
+          "name": "DanPanCoin"
+        },
+        "state_declarations": [
+          {
+            "start_byte": 4756,
+            "end_byte": 4803,
+            "start_line": 159,
+            "end_line": 159,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping (address => uint256) private _balances;",
+            "name": "_balances"
+          },
+          {
+            "start_byte": 4804,
+            "end_byte": 4854,
+            "start_line": 160,
+            "end_line": 160,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) redeemableEther_re_ent18;",
+            "name": "redeemableEther_re_ent18"
+          },
+          {
+            "start_byte": 5202,
+            "end_byte": 5269,
+            "start_line": 168,
+            "end_line": 168,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping (address => mapping (address => uint256)) private _allowed;",
+            "name": "_allowed"
+          },
+          {
+            "start_byte": 5271,
+            "end_byte": 5314,
+            "start_line": 170,
+            "end_line": 170,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent29;",
+            "name": "balances_re_ent29"
+          },
+          {
+            "start_byte": 5482,
+            "end_byte": 5525,
+            "start_line": 175,
+            "end_line": 175,
+            "ast_type": "state_variable_declaration",
+            "text": "string constant tokenName = \"Dan Pan Coin\";",
+            "name": "tokenName"
+          },
+          {
+            "start_byte": 5526,
+            "end_byte": 5557,
+            "start_line": 176,
+            "end_line": 176,
+            "ast_type": "state_variable_declaration",
+            "text": "bool not_called_re_ent6 = true;",
+            "name": "not_called_re_ent6"
+          },
+          {
+            "start_byte": 5747,
+            "end_byte": 5783,
+            "start_line": 184,
+            "end_line": 184,
+            "ast_type": "state_variable_declaration",
+            "text": "string constant tokenSymbol = \"DPC\";",
+            "name": "tokenSymbol"
+          },
+          {
+            "start_byte": 5784,
+            "end_byte": 5820,
+            "start_line": 185,
+            "end_line": 185,
+            "ast_type": "state_variable_declaration",
+            "text": "address payable lastPlayer_re_ent16;",
+            "name": "lastPlayer_re_ent16"
+          },
+          {
+            "start_byte": 5827,
+            "end_byte": 5849,
+            "start_line": 186,
+            "end_line": 186,
+            "ast_type": "state_variable_declaration",
+            "text": "uint jackpot_re_ent16;",
+            "name": "jackpot_re_ent16"
+          },
+          {
+            "start_byte": 6064,
+            "end_byte": 6098,
+            "start_line": 193,
+            "end_line": 193,
+            "ast_type": "state_variable_declaration",
+            "text": "uint8  constant tokenDecimals = 2;",
+            "name": "tokenDecimals"
+          },
+          {
+            "start_byte": 6099,
+            "end_byte": 6142,
+            "start_line": 194,
+            "end_line": 194,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent24;",
+            "name": "balances_re_ent24"
+          },
+          {
+            "start_byte": 6429,
+            "end_byte": 6464,
+            "start_line": 201,
+            "end_line": 201,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 _totalSupply = 10000000000;",
+            "name": "_totalSupply"
+          },
+          {
+            "start_byte": 6465,
+            "end_byte": 6510,
+            "start_line": 202,
+            "end_line": 202,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) userBalance_re_ent5;",
+            "name": "userBalance_re_ent5"
+          },
+          {
+            "start_byte": 6844,
+            "end_byte": 6877,
+            "start_line": 211,
+            "end_line": 211,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 public basePercent = 100;",
+            "name": "basePercent"
+          },
+          {
+            "start_byte": 6878,
+            "end_byte": 6921,
+            "start_line": 212,
+            "end_line": 212,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent15;",
+            "name": "balances_re_ent15"
+          },
+          {
+            "start_byte": 7089,
+            "end_byte": 7118,
+            "start_line": 217,
+            "end_line": 217,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 public dpPercent = 5;",
+            "name": "dpPercent"
+          },
+          {
+            "start_byte": 7119,
+            "end_byte": 7147,
+            "start_line": 218,
+            "end_line": 218,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 counter_re_ent28 =0;",
+            "name": "counter_re_ent28"
+          },
+          {
+            "start_byte": 7331,
+            "end_byte": 7373,
+            "start_line": 226,
+            "end_line": 226,
+            "ast_type": "state_variable_declaration",
+            "text": "address public DanPanAddress = msg.sender;",
+            "name": "DanPanAddress"
+          },
+          {
+            "start_byte": 7374,
+            "end_byte": 7420,
+            "start_line": 227,
+            "end_line": 227,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) userBalance_re_ent33;",
+            "name": "userBalance_re_ent33"
+          },
+          {
+            "start_byte": 7883,
+            "end_byte": 7915,
+            "start_line": 238,
+            "end_line": 238,
+            "ast_type": "state_variable_declaration",
+            "text": "bool not_called_re_ent27 = true;",
+            "name": "not_called_re_ent27"
+          },
+          {
+            "start_byte": 8195,
+            "end_byte": 8238,
+            "start_line": 247,
+            "end_line": 247,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent31;",
+            "name": "balances_re_ent31"
+          },
+          {
+            "start_byte": 8580,
+            "end_byte": 8612,
+            "start_line": 255,
+            "end_line": 255,
+            "ast_type": "state_variable_declaration",
+            "text": "bool not_called_re_ent13 = true;",
+            "name": "not_called_re_ent13"
+          },
+          {
+            "start_byte": 8923,
+            "end_byte": 8955,
+            "start_line": 267,
+            "end_line": 267,
+            "ast_type": "state_variable_declaration",
+            "text": "bool not_called_re_ent34 = true;",
+            "name": "not_called_re_ent34"
+          },
+          {
+            "start_byte": 9148,
+            "end_byte": 9194,
+            "start_line": 275,
+            "end_line": 275,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => bool) public whitelistFrom;",
+            "name": "whitelistFrom"
+          },
+          {
+            "start_byte": 9197,
+            "end_byte": 9225,
+            "start_line": 276,
+            "end_line": 276,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 counter_re_ent21 =0;",
+            "name": "counter_re_ent21"
+          },
+          {
+            "start_byte": 9409,
+            "end_byte": 9453,
+            "start_line": 284,
+            "end_line": 284,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => bool) public whitelistTo;",
+            "name": "whitelistTo"
+          },
+          {
+            "start_byte": 9574,
+            "end_byte": 9602,
+            "start_line": 289,
+            "end_line": 289,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 counter_re_ent42 =0;",
+            "name": "counter_re_ent42"
+          },
+          {
+            "start_byte": 9871,
+            "end_byte": 9906,
+            "start_line": 301,
+            "end_line": 301,
+            "ast_type": "state_variable_declaration",
+            "text": "address payable lastPlayer_re_ent2;",
+            "name": "lastPlayer_re_ent2"
+          },
+          {
+            "start_byte": 9913,
+            "end_byte": 9934,
+            "start_line": 302,
+            "end_line": 302,
+            "ast_type": "state_variable_declaration",
+            "text": "uint jackpot_re_ent2;",
+            "name": "jackpot_re_ent2"
+          },
+          {
+            "start_byte": 10244,
+            "end_byte": 10287,
+            "start_line": 313,
+            "end_line": 313,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent17;",
+            "name": "balances_re_ent17"
+          },
+          {
+            "start_byte": 10742,
+            "end_byte": 10778,
+            "start_line": 325,
+            "end_line": 325,
+            "ast_type": "state_variable_declaration",
+            "text": "address payable lastPlayer_re_ent37;",
+            "name": "lastPlayer_re_ent37"
+          },
+          {
+            "start_byte": 10785,
+            "end_byte": 10807,
+            "start_line": 326,
+            "end_line": 326,
+            "ast_type": "state_variable_declaration",
+            "text": "uint jackpot_re_ent37;",
+            "name": "jackpot_re_ent37"
+          },
+          {
+            "start_byte": 11237,
+            "end_byte": 11279,
+            "start_line": 339,
+            "end_line": 339,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent3;",
+            "name": "balances_re_ent3"
+          },
+          {
+            "start_byte": 11826,
+            "end_byte": 11861,
+            "start_line": 352,
+            "end_line": 352,
+            "ast_type": "state_variable_declaration",
+            "text": "address payable lastPlayer_re_ent9;",
+            "name": "lastPlayer_re_ent9"
+          },
+          {
+            "start_byte": 11868,
+            "end_byte": 11889,
+            "start_line": 353,
+            "end_line": 353,
+            "ast_type": "state_variable_declaration",
+            "text": "uint jackpot_re_ent9;",
+            "name": "jackpot_re_ent9"
+          },
+          {
+            "start_byte": 13861,
+            "end_byte": 13911,
+            "start_line": 418,
+            "end_line": 418,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) redeemableEther_re_ent25;",
+            "name": "redeemableEther_re_ent25"
+          },
+          {
+            "start_byte": 14451,
+            "end_byte": 14497,
+            "start_line": 432,
+            "end_line": 432,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) userBalance_re_ent19;",
+            "name": "userBalance_re_ent19"
+          },
+          {
+            "start_byte": 15055,
+            "end_byte": 15101,
+            "start_line": 448,
+            "end_line": 448,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) userBalance_re_ent26;",
+            "name": "userBalance_re_ent26"
+          },
+          {
+            "start_byte": 17273,
+            "end_byte": 17305,
+            "start_line": 514,
+            "end_line": 514,
+            "ast_type": "state_variable_declaration",
+            "text": "bool not_called_re_ent20 = true;",
+            "name": "not_called_re_ent20"
+          },
+          {
+            "start_byte": 17800,
+            "end_byte": 17850,
+            "start_line": 529,
+            "end_line": 529,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) redeemableEther_re_ent32;",
+            "name": "redeemableEther_re_ent32"
+          },
+          {
+            "start_byte": 18510,
+            "end_byte": 18553,
+            "start_line": 544,
+            "end_line": 544,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent38;",
+            "name": "balances_re_ent38"
+          },
+          {
+            "start_byte": 19035,
+            "end_byte": 19084,
+            "start_line": 557,
+            "end_line": 557,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) redeemableEther_re_ent4;",
+            "name": "redeemableEther_re_ent4"
+          },
+          {
+            "start_byte": 19503,
+            "end_byte": 19530,
+            "start_line": 569,
+            "end_line": 569,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 counter_re_ent7 =0;",
+            "name": "counter_re_ent7"
+          },
+          {
+            "start_byte": 19994,
+            "end_byte": 20030,
+            "start_line": 585,
+            "end_line": 585,
+            "ast_type": "state_variable_declaration",
+            "text": "address payable lastPlayer_re_ent23;",
+            "name": "lastPlayer_re_ent23"
+          },
+          {
+            "start_byte": 20037,
+            "end_byte": 20059,
+            "start_line": 586,
+            "end_line": 586,
+            "ast_type": "state_variable_declaration",
+            "text": "uint jackpot_re_ent23;",
+            "name": "jackpot_re_ent23"
+          },
+          {
+            "start_byte": 20502,
+            "end_byte": 20530,
+            "start_line": 599,
+            "end_line": 599,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 counter_re_ent14 =0;",
+            "name": "counter_re_ent14"
+          },
+          {
+            "start_byte": 20945,
+            "end_byte": 20981,
+            "start_line": 613,
+            "end_line": 613,
+            "ast_type": "state_variable_declaration",
+            "text": "address payable lastPlayer_re_ent30;",
+            "name": "lastPlayer_re_ent30"
+          },
+          {
+            "start_byte": 20988,
+            "end_byte": 21010,
+            "start_line": 614,
+            "end_line": 614,
+            "ast_type": "state_variable_declaration",
+            "text": "uint jackpot_re_ent30;",
+            "name": "jackpot_re_ent30"
+          },
+          {
+            "start_byte": 21401,
+            "end_byte": 21443,
+            "start_line": 626,
+            "end_line": 626,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent8;",
+            "name": "balances_re_ent8"
+          },
+          {
+            "start_byte": 21802,
+            "end_byte": 21852,
+            "start_line": 637,
+            "end_line": 637,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) redeemableEther_re_ent39;",
+            "name": "redeemableEther_re_ent39"
+          },
+          {
+            "start_byte": 22384,
+            "end_byte": 22427,
+            "start_line": 650,
+            "end_line": 650,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping(address => uint) balances_re_ent36;",
+            "name": "balances_re_ent36"
+          },
+          {
+            "start_byte": 22777,
+            "end_byte": 22805,
+            "start_line": 660,
+            "end_line": 660,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 counter_re_ent35 =0;",
+            "name": "counter_re_ent35"
+          }
+        ],
+        "modifier_definitions": [],
+        "function_hcg_nodes": [
+          {
+            "node_id": 4863,
+            "node_type": "function_definition",
+            "label": 0,
+            "start_byte": 15479,
+            "end_byte": 17272,
+            "start_line": 459,
+            "end_line": 513,
+            "ast_type": "function_definition",
+            "text": "function transferFrom(address from, address to, uint256 value) public returns (bool) {\n    require(value <= _balances[from]);\n    require(value <= _allowed[from][msg.sender]);\n    require(to != address(0));\n    \n    // If transfer amount is zero\n        // emit event and stop execution\n        if (value == 0) {\n            emit Transfer(from, to, 0);\n            return true;\n        }\n\n    // Calculate receiver balance\n        // initial receive is full value\n        uint256 tokensToTransfer = value;\n        uint256 tokensToBurn = 0;\n        uint256 tokensToDanPan = 0;\n    \n    // Change sender balance\n        _balances[from] = _balances[from].sub(value);\n\n        // If the transaction is not whitelisted\n        // calculate fees\n        if (!_isWhitelisted(from, to)) {\n            \n              tokensToBurn = findOnePercent(value);\n              tokensToDanPan = findDPPercent(value);\n\n            // Subtract fees from receiver amount\n             tokensToTransfer = value.sub(tokensToBurn).sub(tokensToDanPan);\n\n            // Burn tokens\n            _totalSupply = _totalSupply.sub(tokensToBurn);\n            emit Transfer(from, address(0), tokensToBurn);\n            \n            \n            // Transfer balance to DanPan\n            _balances[DanPanAddress] = _balances[DanPanAddress].add(tokensToDanPan);\n           emit Transfer(from, DanPanAddress, tokensToDanPan);\n\n        }\n\n        // Sanity checks\n        // no tokens where created\n        assert(tokensToBurn.add(tokensToTransfer).add(tokensToDanPan) == value);\n\n        // Add tokens to receiver\n        _balances[to] = _balances[to].add(tokensToTransfer);\n\t_allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);\n        emit Transfer(from, to, tokensToTransfer);\n    \n    \n    \n    return true;\n  }",
+            "name": "transferFrom"
+          },
+          {
+            "node_id": 4864,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 15570,
+            "end_byte": 15604,
+            "start_line": 460,
+            "end_line": 460,
+            "ast_type": "expression_statement",
+            "text": "require(value <= _balances[from]);",
+            "name": null
+          },
+          {
+            "node_id": 4865,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 15609,
+            "end_byte": 15654,
+            "start_line": 461,
+            "end_line": 461,
+            "ast_type": "expression_statement",
+            "text": "require(value <= _allowed[from][msg.sender]);",
+            "name": null
+          },
+          {
+            "node_id": 4866,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 15659,
+            "end_byte": 15685,
+            "start_line": 462,
+            "end_line": 462,
+            "ast_type": "expression_statement",
+            "text": "require(to != address(0));",
+            "name": null
+          },
+          {
+            "node_id": 4867,
+            "node_type": "if",
+            "label": 0,
+            "start_byte": 15774,
+            "end_byte": 15866,
+            "start_line": 466,
+            "end_line": 469,
+            "ast_type": "if_statement",
+            "text": "if (value == 0) {\n            emit Transfer(from, to, 0);\n            return true;\n        }",
+            "name": null
+          },
+          {
+            "node_id": 4869,
+            "node_type": "return",
+            "label": 0,
+            "start_byte": 15844,
+            "end_byte": 15856,
+            "start_line": 468,
+            "end_line": 468,
+            "ast_type": "return_statement",
+            "text": "return true;",
+            "name": null
+          },
+          {
+            "node_id": 4870,
+            "node_type": "new_variable",
+            "label": 0,
+            "start_byte": 15951,
+            "end_byte": 15984,
+            "start_line": 473,
+            "end_line": 473,
+            "ast_type": "variable_declaration_statement",
+            "text": "uint256 tokensToTransfer = value;",
+            "name": null
+          },
+          {
+            "node_id": 4871,
+            "node_type": "new_variable",
+            "label": 0,
+            "start_byte": 15993,
+            "end_byte": 16018,
+            "start_line": 474,
+            "end_line": 474,
+            "ast_type": "variable_declaration_statement",
+            "text": "uint256 tokensToBurn = 0;",
+            "name": null
+          },
+          {
+            "node_id": 4872,
+            "node_type": "new_variable",
+            "label": 0,
+            "start_byte": 16027,
+            "end_byte": 16054,
+            "start_line": 475,
+            "end_line": 475,
+            "ast_type": "variable_declaration_statement",
+            "text": "uint256 tokensToDanPan = 0;",
+            "name": null
+          },
+          {
+            "node_id": 4873,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 16097,
+            "end_byte": 16142,
+            "start_line": 478,
+            "end_line": 478,
+            "ast_type": "expression_statement",
+            "text": "_balances[from] = _balances[from].sub(value);",
+            "name": null
+          },
+          {
+            "node_id": 4874,
+            "node_type": "if",
+            "label": 0,
+            "start_byte": 16227,
+            "end_byte": 16878,
+            "start_line": 482,
+            "end_line": 499,
+            "ast_type": "if_statement",
+            "text": "if (!_isWhitelisted(from, to)) {\n            \n              tokensToBurn = findOnePercent(value);\n              tokensToDanPan = findDPPercent(value);\n\n            // Subtract fees from receiver amount\n             tokensToTransfer = value.sub(tokensToBurn).sub(tokensToDanPan);\n\n            // Burn tokens\n            _totalSupply = _totalSupply.sub(tokensToBurn);\n            emit Transfer(from, address(0), tokensToBurn);\n            \n            \n            // Transfer balance to DanPan\n            _balances[DanPanAddress] = _balances[DanPanAddress].add(tokensToDanPan);\n           emit Transfer(from, DanPanAddress, tokensToDanPan);\n\n        }",
+            "name": null
+          },
+          {
+            "node_id": 4876,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 16287,
+            "end_byte": 16324,
+            "start_line": 484,
+            "end_line": 484,
+            "ast_type": "expression_statement",
+            "text": "tokensToBurn = findOnePercent(value);",
+            "name": null
+          },
+          {
+            "node_id": 4877,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 16339,
+            "end_byte": 16377,
+            "start_line": 485,
+            "end_line": 485,
+            "ast_type": "expression_statement",
+            "text": "tokensToDanPan = findDPPercent(value);",
+            "name": null
+          },
+          {
+            "node_id": 4878,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 16442,
+            "end_byte": 16505,
+            "start_line": 488,
+            "end_line": 488,
+            "ast_type": "expression_statement",
+            "text": "tokensToTransfer = value.sub(tokensToBurn).sub(tokensToDanPan);",
+            "name": null
+          },
+          {
+            "node_id": 4879,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 16546,
+            "end_byte": 16592,
+            "start_line": 491,
+            "end_line": 491,
+            "ast_type": "expression_statement",
+            "text": "_totalSupply = _totalSupply.sub(tokensToBurn);",
+            "name": null
+          },
+          {
+            "node_id": 4880,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 16732,
+            "end_byte": 16804,
+            "start_line": 496,
+            "end_line": 496,
+            "ast_type": "expression_statement",
+            "text": "_balances[DanPanAddress] = _balances[DanPanAddress].add(tokensToDanPan);",
+            "name": null
+          },
+          {
+            "node_id": 4881,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 16948,
+            "end_byte": 17020,
+            "start_line": 503,
+            "end_line": 503,
+            "ast_type": "expression_statement",
+            "text": "assert(tokensToBurn.add(tokensToTransfer).add(tokensToDanPan) == value);",
+            "name": null
+          },
+          {
+            "node_id": 4882,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 17064,
+            "end_byte": 17116,
+            "start_line": 506,
+            "end_line": 506,
+            "ast_type": "expression_statement",
+            "text": "_balances[to] = _balances[to].add(tokensToTransfer);",
+            "name": null
+          },
+          {
+            "node_id": 4883,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 17118,
+            "end_byte": 17185,
+            "start_line": 507,
+            "end_line": 507,
+            "ast_type": "expression_statement",
+            "text": "_allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);",
+            "name": null
+          },
+          {
+            "node_id": 4884,
+            "node_type": "return",
+            "label": 0,
+            "start_byte": 17256,
+            "end_byte": 17268,
+            "start_line": 512,
+            "end_line": 512,
+            "ast_type": "return_statement",
+            "text": "return true;",
+            "name": null
+          }
+        ],
+        "source_modifier_definitions": [
+          {
+            "start_byte": 2389,
+            "end_byte": 2462,
+            "start_line": 79,
+            "end_line": 82,
+            "text": "modifier onlyOwner() {\n      require(msg.sender == owner);\n      _;\n    }"
+          }
+        ]
+      },
+      "expected_accesses": "READ/WRITE _balances[from], _balances[DanPanAddress], _balances[to]; nested _allowed[from][msg.sender].",
+      "expected_and_forbidden_facts": "No MUST alias or NO_ALIAS from different variable names. Earlier from write may reach later to read only under a sound may-alias summary; do not assert a must fact.",
+      "uncertainty": "from==to or to==DanPanAddress is possible absent proof. Internal SafeMath/fee calls require summaries; first subset must fall back state analysis here.",
+      "projection": "Useful negative support boundary: these real statements are projected but complete key/call semantics are not implemented.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O4",
+      "title": "Owner entry-state read",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/mapping_write.sol",
+        "source_sha256": "a4c6ab0924feb97c929511f65e9f86a82ca5efa307aa29dcae69a21d2fc0fbd6",
+        "ast_id": 77,
+        "compat_span": [
+          394,
+          423,
+          "expression_statement"
+        ],
+        "node": {
+          "start_byte": 701,
+          "end_byte": 730,
+          "start_line": 27,
+          "end_line": 27,
+          "ast_type": "expression_statement",
+          "text": "require(msg.sender == owner);",
+          "name": null
+        },
+        "function": {
+          "identity": "mapping_write.sol:666",
+          "start_byte": 666,
+          "end_byte": 788,
+          "start_line": 26,
+          "end_line": 29,
+          "ast_type": "function_definition",
+          "text": "function withdraw() public{\n       require(msg.sender == owner);\n       msg.sender.transfer(address(this).balance);\n     }",
+          "name": "withdraw"
+        },
+        "contract": {
+          "start_byte": 291,
+          "end_byte": 791,
+          "start_line": 11,
+          "end_line": 30,
+          "ast_type": "contract_declaration",
+          "name": "Map"
+        },
+        "state_declarations": [
+          {
+            "start_byte": 311,
+            "end_byte": 332,
+            "start_line": 12,
+            "end_line": 12,
+            "ast_type": "state_variable_declaration",
+            "text": "address public owner;",
+            "name": "owner"
+          },
+          {
+            "start_byte": 338,
+            "end_byte": 352,
+            "start_line": 13,
+            "end_line": 13,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256[] map;",
+            "name": "map"
+          }
+        ],
+        "modifier_definitions": [],
+        "function_hcg_nodes": [
+          {
+            "node_id": 12962,
+            "node_type": "function_definition",
+            "label": 0,
+            "start_byte": 666,
+            "end_byte": 788,
+            "start_line": 26,
+            "end_line": 29,
+            "ast_type": "function_definition",
+            "text": "function withdraw() public{\n       require(msg.sender == owner);\n       msg.sender.transfer(address(this).balance);\n     }",
+            "name": "withdraw"
+          },
+          {
+            "node_id": 12963,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 701,
+            "end_byte": 730,
+            "start_line": 27,
+            "end_line": 27,
+            "ast_type": "expression_statement",
+            "text": "require(msg.sender == owner);",
+            "name": null
+          },
+          {
+            "node_id": 12964,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 738,
+            "end_byte": 781,
+            "start_line": 28,
+            "end_line": 28,
+            "ast_type": "expression_statement",
+            "text": "msg.sender.transfer(address(this).balance);",
+            "name": null
+          }
+        ]
+      },
+      "expected_accesses": "READ owner in require; withdraw subsequently transfers balance. map in same contract is an ARRAY.",
+      "expected_and_forbidden_facts": "Owner is ENTRY_UNKNOWN here. No constructor/local owner definition may be fabricated in withdraw. require -> transfer is a control constraint, not owner DEF_USE.",
+      "uncertainty": "Cross-function array arbitrary-write effects require bounds/layout/version analysis; no exact EVM slot claim.",
+      "projection": "Guard HCG node 12963 exists; no same-function concrete owner-def node. New state module should report the missing origin instead of promising an edge.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O5",
+      "title": "Modifier control of state update",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_18.sol",
+        "source_sha256": "d8505eecd2d5acd06a30006b1e163a08e5bc3a7918c69c86f809c4e9bdeb8ad4",
+        "ast_id": 688,
+        "compat_span": [
+          3589,
+          3689,
+          "function_definition"
+        ],
+        "node": {
+          "start_byte": 5005,
+          "end_byte": 5105,
+          "start_line": 146,
+          "end_line": 148,
+          "ast_type": "function_definition",
+          "text": "function transferOwnership(address _newOwner) public onlyOwner {\n        newOwner = _newOwner;\n    }",
+          "name": "transferOwnership"
+        },
+        "function": {
+          "identity": "buggy_18.sol:5005",
+          "start_byte": 5005,
+          "end_byte": 5105,
+          "start_line": 146,
+          "end_line": 148,
+          "ast_type": "function_definition",
+          "text": "function transferOwnership(address _newOwner) public onlyOwner {\n        newOwner = _newOwner;\n    }",
+          "name": "transferOwnership"
+        },
+        "contract": {
+          "start_byte": 4379,
+          "end_byte": 5674,
+          "start_line": 122,
+          "end_line": 165,
+          "ast_type": "contract_declaration",
+          "name": "Owned"
+        },
+        "state_declarations": [
+          {
+            "start_byte": 4401,
+            "end_byte": 4422,
+            "start_line": 124,
+            "end_line": 124,
+            "ast_type": "state_variable_declaration",
+            "text": "address public owner;",
+            "name": "owner"
+          },
+          {
+            "start_byte": 4427,
+            "end_byte": 4451,
+            "start_line": 125,
+            "end_line": 125,
+            "ast_type": "state_variable_declaration",
+            "text": "address public newOwner;",
+            "name": "newOwner"
+          }
+        ],
+        "modifier_definitions": [
+          {
+            "start_byte": 4924,
+            "end_byte": 4999,
+            "start_line": 141,
+            "end_line": 144,
+            "ast_type": "modifier_definition",
+            "text": "modifier onlyOwner {\n        require(msg.sender == owner);\n        _;\n    }",
+            "name": "onlyOwner"
+          }
+        ],
+        "function_hcg_nodes": [
+          {
+            "node_id": 1343,
+            "node_type": "function_definition",
+            "label": 0,
+            "start_byte": 5005,
+            "end_byte": 5105,
+            "start_line": 146,
+            "end_line": 148,
+            "ast_type": "function_definition",
+            "text": "function transferOwnership(address _newOwner) public onlyOwner {\n        newOwner = _newOwner;\n    }",
+            "name": "transferOwnership"
+          },
+          {
+            "node_id": 1344,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 5078,
+            "end_byte": 5099,
+            "start_line": 147,
+            "end_line": 147,
+            "ast_type": "expression_statement",
+            "text": "newOwner = _newOwner;",
+            "name": null
+          }
+        ],
+        "source_modifier_definitions": [
+          {
+            "start_byte": 4924,
+            "end_byte": 4999,
+            "start_line": 141,
+            "end_line": 144,
+            "text": "modifier onlyOwner {\n        require(msg.sender == owner);\n        _;\n    }"
+          }
+        ]
+      },
+      "expected_accesses": "Modifier onlyOwner READ owner, compare msg.sender; function WRITE newOwner from _newOwner.",
+      "expected_and_forbidden_facts": "Parameter -> write is scalar/value flow. Owner predicate -> newOwner write is CONTROL_DEPENDENCE, not state DEF_USE. Entry owner not locally defined.",
+      "uncertainty": "Full source modifier text retained separately. Unique invocation/binding/underscore and path semantics must be established before expansion.",
+      "projection": "Original function/statement nodes exist (1343,1344). Do not invent modifier node IDs; actual modifier HCG mapping remains a separate exact-projection requirement.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O6",
+      "title": "Branch-dependent state write",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/mapping_write.sol",
+        "source_sha256": "a4c6ab0924feb97c929511f65e9f86a82ca5efa307aa29dcae69a21d2fc0fbd6",
+        "ast_id": 23,
+        "compat_span": [
+          94,
+          257,
+          "function_definition"
+        ],
+        "node": {
+          "start_byte": 359,
+          "end_byte": 563,
+          "start_line": 15,
+          "end_line": 21,
+          "ast_type": "function_definition",
+          "text": "function set(uint256 key, uint256 value) public {\n         if (map.length <= key) {\n             map.length = key + 1;\n         }\n        // <yes> <report> ACCESS_CONTROL\n         map[key] = value;\n     }",
+          "name": "set"
+        },
+        "function": {
+          "identity": "mapping_write.sol:359",
+          "start_byte": 359,
+          "end_byte": 563,
+          "start_line": 15,
+          "end_line": 21,
+          "ast_type": "function_definition",
+          "text": "function set(uint256 key, uint256 value) public {\n         if (map.length <= key) {\n             map.length = key + 1;\n         }\n        // <yes> <report> ACCESS_CONTROL\n         map[key] = value;\n     }",
+          "name": "set"
+        },
+        "contract": {
+          "start_byte": 291,
+          "end_byte": 791,
+          "start_line": 11,
+          "end_line": 30,
+          "ast_type": "contract_declaration",
+          "name": "Map"
+        },
+        "state_declarations": [
+          {
+            "start_byte": 311,
+            "end_byte": 332,
+            "start_line": 12,
+            "end_line": 12,
+            "ast_type": "state_variable_declaration",
+            "text": "address public owner;",
+            "name": "owner"
+          },
+          {
+            "start_byte": 338,
+            "end_byte": 352,
+            "start_line": 13,
+            "end_line": 13,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256[] map;",
+            "name": "map"
+          }
+        ],
+        "modifier_definitions": [],
+        "function_hcg_nodes": [
+          {
+            "node_id": 12955,
+            "node_type": "function_definition",
+            "label": 0,
+            "start_byte": 359,
+            "end_byte": 563,
+            "start_line": 15,
+            "end_line": 21,
+            "ast_type": "function_definition",
+            "text": "function set(uint256 key, uint256 value) public {\n         if (map.length <= key) {\n             map.length = key + 1;\n         }\n        // <yes> <report> ACCESS_CONTROL\n         map[key] = value;\n     }",
+            "name": "set"
+          },
+          {
+            "node_id": 12956,
+            "node_type": "if",
+            "label": 0,
+            "start_byte": 418,
+            "end_byte": 488,
+            "start_line": 16,
+            "end_line": 18,
+            "ast_type": "if_statement",
+            "text": "if (map.length <= key) {\n             map.length = key + 1;\n         }",
+            "name": null
+          },
+          {
+            "node_id": 12958,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 456,
+            "end_byte": 477,
+            "start_line": 17,
+            "end_line": 17,
+            "ast_type": "expression_statement",
+            "text": "map.length = key + 1;",
+            "name": null
+          },
+          {
+            "node_id": 12959,
+            "node_type": "expression_statement",
+            "label": 1,
+            "start_byte": 539,
+            "end_byte": 556,
+            "start_line": 20,
+            "end_line": 20,
+            "ast_type": "expression_statement",
+            "text": "map[key] = value;",
+            "name": null
+          }
+        ],
+        "source_modifier_definitions": []
+      },
+      "expected_accesses": "READ map.length at if; branch WRITE map.length=key+1; unconditional WRITE map[key]=value.",
+      "expected_and_forbidden_facts": "Conditional length write is not a reaching definition for the earlier condition. Branch union must retain ENTRY_UNKNOWN on bypass. map.length and map[key] are distinct locations.",
+      "uncertainty": "Dynamic array bounds/overflow and key identity remain version-sensitive; branch condition is not a data dependency from length write to element write.",
+      "projection": "Existing condition 12956, length write 12958 and element write12959 can anchor events. Existing graph already conveys control; first mapping-only subset does not claim array support.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O7",
+      "title": "Scalar-only positive control",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_36.sol",
+        "source_sha256": "64addaa381f3df0852487c66cc85730aa67affd7cd84f4fe616ff9d2ec9826fb",
+        "ast_id": 828,
+        "compat_span": [
+          5249,
+          5267,
+          "variable_declaration_statement"
+        ],
+        "node": {
+          "start_byte": 6168,
+          "end_byte": 6186,
+          "start_line": 179,
+          "end_line": 179,
+          "ast_type": "variable_declaration_statement",
+          "text": "uint256 c = a * b;",
+          "name": null
+        },
+        "function": {
+          "identity": "buggy_36.sol:5819",
+          "start_byte": 5819,
+          "end_byte": 6258,
+          "start_line": 171,
+          "end_line": 183,
+          "ast_type": "function_definition",
+          "text": "function mul(uint256 a, uint256 b) internal pure returns (uint256) {\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\n        // benefit is lost if 'b' is also tested.\n        // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522\n        if (a == 0) {\n            return 0;\n        }\n\n        uint256 c = a * b;\n        require(c / a == b, \"Safe mul error\");\n\n        return c;\n    }",
+          "name": "mul"
+        },
+        "contract": {
+          "start_byte": 5715,
+          "end_byte": 7531,
+          "start_line": 167,
+          "end_line": 225,
+          "ast_type": "library_declaration",
+          "name": "SafeMath"
+        },
+        "state_declarations": [],
+        "modifier_definitions": [],
+        "function_hcg_nodes": [
+          {
+            "node_id": 5957,
+            "node_type": "function_definition",
+            "label": 0,
+            "start_byte": 5819,
+            "end_byte": 6258,
+            "start_line": 171,
+            "end_line": 183,
+            "ast_type": "function_definition",
+            "text": "function mul(uint256 a, uint256 b) internal pure returns (uint256) {\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\n        // benefit is lost if 'b' is also tested.\n        // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522\n        if (a == 0) {\n            return 0;\n        }\n\n        uint256 c = a * b;\n        require(c / a == b, \"Safe mul error\");\n\n        return c;\n    }",
+            "name": "mul"
+          },
+          {
+            "node_id": 5958,
+            "node_type": "if",
+            "label": 0,
+            "start_byte": 6113,
+            "end_byte": 6158,
+            "start_line": 175,
+            "end_line": 177,
+            "ast_type": "if_statement",
+            "text": "if (a == 0) {\n            return 0;\n        }",
+            "name": null
+          },
+          {
+            "node_id": 5960,
+            "node_type": "return",
+            "label": 0,
+            "start_byte": 6139,
+            "end_byte": 6148,
+            "start_line": 176,
+            "end_line": 176,
+            "ast_type": "return_statement",
+            "text": "return 0;",
+            "name": null
+          },
+          {
+            "node_id": 5961,
+            "node_type": "new_variable",
+            "label": 0,
+            "start_byte": 6168,
+            "end_byte": 6186,
+            "start_line": 179,
+            "end_line": 179,
+            "ast_type": "variable_declaration_statement",
+            "text": "uint256 c = a * b;",
+            "name": null
+          },
+          {
+            "node_id": 5962,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 6195,
+            "end_byte": 6233,
+            "start_line": 180,
+            "end_line": 180,
+            "ast_type": "expression_statement",
+            "text": "require(c / a == b, \"Safe mul error\");",
+            "name": null
+          },
+          {
+            "node_id": 5963,
+            "node_type": "return",
+            "label": 0,
+            "start_byte": 6243,
+            "end_byte": 6252,
+            "start_line": 182,
+            "end_line": 182,
+            "ast_type": "return_statement",
+            "text": "return c;",
+            "name": null
+          }
+        ]
+      },
+      "expected_accesses": "Parameters a,b define local c; c used by require and return. No state events.",
+      "expected_and_forbidden_facts": "Keep entry->c and c->require/return facts; no STATE_DEF_USE edges.",
+      "uncertainty": "No state alias question. Existing local scalar algorithm suffices.",
+      "projection": "Existing HCG 5957/5961/5962/5963; a state module disabled or enabled must leave these scalar edges unchanged.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O8",
+      "title": "Already-covered parameter authority error",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_26.sol",
+        "source_sha256": "129a0b4301ccaaba94cb50772fbfefe574f59ee088373a03380faa25ea0f6d74",
+        "ast_id": 620,
+        "compat_span": [
+          3421,
+          3460,
+          "expression_statement"
+        ],
+        "node": {
+          "start_byte": 3869,
+          "end_byte": 3908,
+          "start_line": 104,
+          "end_line": 104,
+          "ast_type": "expression_statement",
+          "text": "require(tx.origin == owner_txorigin31);",
+          "name": null
+        },
+        "function": {
+          "identity": "buggy_26.sol:3777",
+          "start_byte": 3777,
+          "end_byte": 3935,
+          "start_line": 103,
+          "end_line": 106,
+          "ast_type": "function_definition",
+          "text": "function transferTo_txorigin31(address to, uint amount,address owner_txorigin31) public {\n  require(tx.origin == owner_txorigin31);\n  to.call.value(amount);\n}",
+          "name": "transferTo_txorigin31"
+        },
+        "contract": {
+          "start_byte": 2097,
+          "end_byte": 8823,
+          "start_line": 61,
+          "end_line": 233,
+          "ast_type": "contract_declaration",
+          "name": "UBBCToken"
+        },
+        "state_declarations": [
+          {
+            "start_byte": 2336,
+            "end_byte": 2383,
+            "start_line": 67,
+            "end_line": 67,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping (address => uint256) private _balances;",
+            "name": "_balances"
+          },
+          {
+            "start_byte": 2544,
+            "end_byte": 2614,
+            "start_line": 72,
+            "end_line": 72,
+            "ast_type": "state_variable_declaration",
+            "text": "mapping (address => mapping (address => uint256)) private _allowances;",
+            "name": "_allowances"
+          },
+          {
+            "start_byte": 2788,
+            "end_byte": 2817,
+            "start_line": 77,
+            "end_line": 77,
+            "ast_type": "state_variable_declaration",
+            "text": "uint256 private _totalSupply;",
+            "name": "_totalSupply"
+          },
+          {
+            "start_byte": 2994,
+            "end_byte": 3015,
+            "start_line": 82,
+            "end_line": 82,
+            "ast_type": "state_variable_declaration",
+            "text": "string private _name;",
+            "name": "_name"
+          },
+          {
+            "start_byte": 3179,
+            "end_byte": 3202,
+            "start_line": 87,
+            "end_line": 87,
+            "ast_type": "state_variable_declaration",
+            "text": "string private _symbol;",
+            "name": "_symbol"
+          },
+          {
+            "start_byte": 3407,
+            "end_byte": 3431,
+            "start_line": 92,
+            "end_line": 92,
+            "ast_type": "state_variable_declaration",
+            "text": "uint8 private _decimals;",
+            "name": "_decimals"
+          }
+        ],
+        "modifier_definitions": [],
+        "function_hcg_nodes": [
+          {
+            "node_id": 2417,
+            "node_type": "function_definition",
+            "label": 1,
+            "start_byte": 3777,
+            "end_byte": 3935,
+            "start_line": 103,
+            "end_line": 106,
+            "ast_type": "function_definition",
+            "text": "function transferTo_txorigin31(address to, uint amount,address owner_txorigin31) public {\n  require(tx.origin == owner_txorigin31);\n  to.call.value(amount);\n}",
+            "name": "transferTo_txorigin31"
+          },
+          {
+            "node_id": 2418,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 3869,
+            "end_byte": 3908,
+            "start_line": 104,
+            "end_line": 104,
+            "ast_type": "expression_statement",
+            "text": "require(tx.origin == owner_txorigin31);",
+            "name": null
+          },
+          {
+            "node_id": 2419,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 3911,
+            "end_byte": 3933,
+            "start_line": 105,
+            "end_line": 105,
+            "ast_type": "expression_statement",
+            "text": "to.call.value(amount);",
+            "name": null
+          }
+        ]
+      },
+      "expected_accesses": "READ owner_txorigin31 PARAMETER and tx.origin; function evaluates to.call.value(amount) expression.",
+      "expected_and_forbidden_facts": "Keep parameter data dependencies. Do not reinterpret owner_txorigin31 as owner state and do not invent owner-state DEF_USE.",
+      "uncertainty": "The displayed expression is a call-options expression; do not assert an actual external invocation unless AST/call semantics prove it. Authority guard context differs from state flow.",
+      "projection": "Existing DDG already reaches selected wrong node. This is a counterexample to state expansion as universal explanation.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O9",
+      "title": "Owner check versus public length annotation",
+      "origin": "exact_corpus_source",
+      "source": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/arbitrary_location_write_simple.sol",
+        "source_sha256": "bbbdb5367463fd3d1e11b2c569695d8b4734e3f88fcf937a34469a23121b01ab",
+        "ast_id": 61,
+        "compat_span": [
+          333,
+          448,
+          "function_definition"
+        ],
+        "node": {
+          "start_byte": 514,
+          "end_byte": 768,
+          "start_line": 25,
+          "end_line": 29,
+          "ast_type": "function_definition",
+          "text": "function PopBonusCode() public {\n         // <yes> <report> ACCESS_CONTROL\n         require(0 <= bonusCodes.length); // this condition is always true since array lengths are unsigned\n         bonusCodes.length--; // an underflow can be caused here\n     }",
+          "name": "PopBonusCode"
+        },
+        "function": {
+          "identity": "arbitrary_location_write_simple.sol:514",
+          "start_byte": 514,
+          "end_byte": 768,
+          "start_line": 25,
+          "end_line": 29,
+          "ast_type": "function_definition",
+          "text": "function PopBonusCode() public {\n         // <yes> <report> ACCESS_CONTROL\n         require(0 <= bonusCodes.length); // this condition is always true since array lengths are unsigned\n         bonusCodes.length--; // an underflow can be caused here\n     }",
+          "name": "PopBonusCode"
+        },
+        "contract": {
+          "start_byte": 204,
+          "end_byte": 1076,
+          "start_line": 9,
+          "end_line": 40,
+          "ast_type": "contract_declaration",
+          "name": "Wallet"
+        },
+        "state_declarations": [
+          {
+            "start_byte": 227,
+            "end_byte": 253,
+            "start_line": 10,
+            "end_line": 10,
+            "ast_type": "state_variable_declaration",
+            "text": "uint[] private bonusCodes;",
+            "name": "bonusCodes"
+          },
+          {
+            "start_byte": 259,
+            "end_byte": 281,
+            "start_line": 11,
+            "end_line": 11,
+            "ast_type": "state_variable_declaration",
+            "text": "address private owner;",
+            "name": "owner"
+          }
+        ],
+        "modifier_definitions": [],
+        "function_hcg_nodes": [
+          {
+            "node_id": 11471,
+            "node_type": "function_definition",
+            "label": 0,
+            "start_byte": 514,
+            "end_byte": 768,
+            "start_line": 25,
+            "end_line": 29,
+            "ast_type": "function_definition",
+            "text": "function PopBonusCode() public {\n         // <yes> <report> ACCESS_CONTROL\n         require(0 <= bonusCodes.length); // this condition is always true since array lengths are unsigned\n         bonusCodes.length--; // an underflow can be caused here\n     }",
+            "name": "PopBonusCode"
+          },
+          {
+            "node_id": 11472,
+            "node_type": "expression_statement",
+            "label": 1,
+            "start_byte": 598,
+            "end_byte": 630,
+            "start_line": 27,
+            "end_line": 27,
+            "ast_type": "expression_statement",
+            "text": "require(0 <= bonusCodes.length);",
+            "name": null
+          },
+          {
+            "node_id": 11473,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 706,
+            "end_byte": 726,
+            "start_line": 28,
+            "end_line": 28,
+            "ast_type": "expression_statement",
+            "text": "bonusCodes.length--;",
+            "name": null
+          },
+          {
+            "node_id": 11474,
+            "node_type": "expression_statement",
+            "label": 0,
+            "start_byte": 706,
+            "end_byte": 725,
+            "start_line": 28,
+            "end_line": 28,
+            "ast_type": "update_expression",
+            "text": "bonusCodes.length--",
+            "name": null
+          }
+        ],
+        "source_modifier_definitions": []
+      },
+      "expected_accesses": "READ unsigned bonusCodes.length at require; READ+WRITE length in --.",
+      "expected_and_forbidden_facts": "Earlier read origin unknown; decrement is not its definition. No reverse def-use. Public annotation line27 is require; decrement occupies line28.",
+      "uncertainty": "Arithmetic underflow behavior requires declared compiler semantics. No claim that storage slots are solved.",
+      "projection": "Two HCG expression nodes 11473 and11474 both cover decrement forms. Projection must choose exact AST/event anchor, not duplicate by nearest line.",
+      "independent_validation": "pending",
+      "compiled": false,
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O10",
+      "title": "Distinct constant keys; exact positive then negative",
+      "origin": "synthetic_specification",
+      "source": "pragma solidity 0.5.17; contract T { mapping(uint=>uint) m; function f() public returns(uint,uint){ m[1]=7; uint a=m[1]; uint b=m[2]; return(a,b); } }",
+      "expected_and_forbidden_facts": "m[1] write -> later m[1] read required; no m[1] write -> m[2] read. Both typed constants verified.",
+      "hcg_nodes": null,
+      "parsed": false,
+      "compiled": false,
+      "independent_validation": "pending",
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O11",
+      "title": "Uncertain storage reference alias",
+      "origin": "synthetic_specification",
+      "source": "pragma solidity 0.5.17; contract T { struct S { uint v; } mapping(uint=>S) m; function f(uint k,uint j) public returns(uint){ S storage r=m[k]; r.v=7; return m[j].v; } }",
+      "expected_and_forbidden_facts": "r binding is reference alias, not storage content definition. k/j MAY equal; no MUST fact. Initial subset falls back state analysis; no guessed graph edge.",
+      "hcg_nodes": null,
+      "parsed": false,
+      "compiled": false,
+      "independent_validation": "pending",
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O12",
+      "title": "Strong KILL and branch alternatives",
+      "origin": "synthetic_specification",
+      "source": "pragma solidity 0.5.17; contract T { uint s; function f(bool b) public returns(uint){ s=1; if(b){s=2;} return s; } }",
+      "expected_and_forbidden_facts": "Return has alternative definitions s=1/s=2. s=2 strongly kills s=1 only on branch; union preserves bypass. Add paired unconditional s=2 negative fixture excluding s=1.",
+      "hcg_nodes": null,
+      "parsed": false,
+      "compiled": false,
+      "independent_validation": "pending",
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O13",
+      "title": "Changing key definition",
+      "origin": "synthetic_specification",
+      "source": "pragma solidity 0.5.17; contract T { mapping(uint=>uint) m; function f(uint k) public returns(uint){ m[k]=1; k=k+1; return m[k]; } }",
+      "expected_and_forbidden_facts": "Same key variable spelling with changed definition is not same exact key; no unproved MUST relation. Include uint overflow/version and MAY/UNKNOWN policy.",
+      "hcg_nodes": null,
+      "parsed": false,
+      "compiled": false,
+      "independent_validation": "pending",
+      "state_algorithm_executed": false
+    },
+    {
+      "id": "O14",
+      "title": "External call clobber after local state write",
+      "origin": "synthetic_specification",
+      "source": "pragma solidity 0.5.17; contract T { uint s; function f(address a) public returns(uint){ s=1; (bool ok,)=a.call(\"\"); require(ok); return s; } }",
+      "expected_and_forbidden_facts": "Do not claim pre-call s=1 is a must-reaching post-call definition. Record unknown callback effects/HAVOC or state fallback; preserve scalar ok->require.",
+      "hcg_nodes": null,
+      "parsed": false,
+      "compiled": false,
+      "independent_validation": "pending",
+      "state_algorithm_executed": false
+    }
+  ]
+}

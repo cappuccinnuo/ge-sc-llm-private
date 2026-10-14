@@ -1,0 +1,89 @@
+{
+  "status": "design_candidates_not_ground_truth",
+  "cases": [
+    {
+      "case_id": "reentrancy_author/buggy_18.sol/2706",
+      "state": "READ userBalance_re_ent33[msg.sender] in external-call amount; WRITE same mapping element zero after call",
+      "controls": "if !success then revert; possible callback before reset",
+      "missing": "mapping-content identity, entry-state origin and external-call effect/order; not a backwards Def-Use edge",
+      "interpretation": "B: call-before-reset pattern. C: negative author label while identical training snippets are positive; no formal vulnerability certification."
+    },
+    {
+      "case_id": "reentrancy_author/buggy_18.sol/2670",
+      "state": "READ+WRITE counter_re_ent21 via +=1; earlier require(counter<=5), then send",
+      "controls": "send failure -> revert, successful path increments later",
+      "missing": "scalar STATE variable dependence, entry origin and call effect",
+      "interpretation": "B: state guard/update sequencing absent. Frozen binding fallback is independent of D1 repairs."
+    },
+    {
+      "case_id": "reentrancy_author/buggy_18.sol/2675",
+      "state": "READ balances_re_ent10[msg.sender] in guard; send parameter; READ+WRITE balance via -= parameter",
+      "controls": "require balance >= parameter and require send; parameter data flow exists",
+      "missing": "mapping contents and call-side-effect/order",
+      "interpretation": "A: incoming parameter DDG exists yet FN persists. B: missing state is only one candidate explanation."
+    },
+    {
+      "case_id": "reentrancy_author/buggy_36.sol/5961",
+      "state": "No state access in SafeMath.mul; local c derives from parameters a,b",
+      "controls": "a==0 early return; require(c/a==b), then return c",
+      "missing": "No state dependency required for this function",
+      "interpretation": "A: scalar DDG positive case: fixed-weight message removal changes correct output to FP. State expansion is not needed here."
+    },
+    {
+      "case_id": "reentrancy_author/buggy_36.sol/6101",
+      "state": "Selected _minimumTokensToVote is a local parameter, normalized before assignment to contract minimumTokensToVote later",
+      "controls": "onlyOwner modifier; Token parameter is first recorded scalar fallback",
+      "missing": "modifier/control and later contract assignment context; selected statement is not a state write",
+      "interpretation": "A: no direct/two-hop DDG at selected node. B: full function matters; do not invent a state edge on the local assignment."
+    },
+    {
+      "case_id": "reentrancy_author/buggy_27.sol/4672",
+      "state": "READ redeemableEther_re_ent18[msg.sender], copy to local transferValue, transfer, WRITE same element zero",
+      "controls": "positive-balance require; transfer before reset",
+      "missing": "entry state and access-order/call-effects; no prior concrete in-function balance definition",
+      "interpretation": "A: E1 corrects but N/Z identical here. Cannot attribute correction to direct frozen DDG messages."
+    },
+    {
+      "case_id": "access_control_author/mapping_write.sol/12963",
+      "state": "READ owner at require; withdraw transfers contract balance. Same contract set writes map[key]; map is uint256[] ARRAY, not mapping",
+      "controls": "withdraw guarded by msg.sender==owner; set accepts user-controlled array length/index/value",
+      "missing": "owner entry state, array length/location and cross-function arbitrary-write context",
+      "interpretation": "A: SmartBugs annotation is line20 array write, not line27 guard. B: arbitrary slot reach requires bounds/layout/version analysis. Negative guard is not evidence of bad label."
+    },
+    {
+      "case_id": "access_control_author/arbitrary_location_write_simple.sol/11479",
+      "state": "READ owner at Destroy guard; constructor writes owner; elsewhere bonusCodes.length-- and indexed writes",
+      "controls": "Destroy guard then selfdestruct; PopBonusCode unsigned lower-bound check ineffective",
+      "missing": "cross-function owner origin and array length/index context",
+      "interpretation": "A: public annotation is line27 unsigned length check (adjacent decrement is line28), not line37 owner guard. B: local state Def-Use alone does not establish arbitrary-storage reach."
+    },
+    {
+      "case_id": "access_control_author/buggy_18.sol/1285",
+      "state": "No state access: pure SafeMath.mul computes named local return c from a,b",
+      "controls": "require(a==0 || c/a==b)",
+      "missing": "No state variable dependence required; arithmetic scalar dataflow already present",
+      "interpretation": "A: two incoming scalar DDG edges yet prediction wrong; this counterexample cannot be explained by missing state alone."
+    },
+    {
+      "case_id": "access_control_author/buggy_18.sol/1306",
+      "state": "Injected function uses tx.origin and owner_txorigin parameter; parameter name owner does NOT make it contract state",
+      "controls": "require(tx.origin==owner parameter); full function may transfer/call",
+      "missing": "authority/provenance and guard/control, not necessarily a missing state-variable edge",
+      "interpretation": "A: scalar DDG already reaches wrong node. B: adding state alone is not presumed to fix it. C: author/public interval context needs review."
+    },
+    {
+      "case_id": "access_control_author/buggy_26.sol/2418",
+      "state": "Injected function uses tx.origin and owner_txorigin parameter; parameter name owner does NOT make it contract state",
+      "controls": "require(tx.origin==owner parameter); full function may transfer/call",
+      "missing": "authority/provenance and guard/control, not necessarily a missing state-variable edge",
+      "interpretation": "A: scalar DDG already reaches wrong node. B: adding state alone is not presumed to fix it. C: author/public interval context needs review."
+    },
+    {
+      "case_id": "access_control_author/buggy_26.sol/2421",
+      "state": "Injected function uses tx.origin and owner_txorigin parameter; parameter name owner does NOT make it contract state",
+      "controls": "require(tx.origin==owner parameter); full function may transfer/call",
+      "missing": "authority/provenance and guard/control, not necessarily a missing state-variable edge",
+      "interpretation": "A: scalar DDG already reaches wrong node. B: adding state alone is not presumed to fix it. C: author/public interval context needs review."
+    }
+  ]
+}

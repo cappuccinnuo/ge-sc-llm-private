@@ -1,6 +1,7 @@
 """Exact existing-node projection; labels/features are never consulted."""
 import ast
 import re
+import pydot
 from collections import defaultdict
 from .models import Unsupported
 
@@ -20,8 +21,38 @@ def decoded(value):
     return value
 
 def code_equal(value, expected):
-    # Only a real serialization layer may be removed. No whitespace/line matching.
-    return value==expected or decoded(value)==expected
+    """Compare raw source or its exact production DOT representation.
+
+    DOT quoting is not Python/JSON string escaping. In particular pydot keeps
+    existing Solidity backslashes: literal_eval would turn source hex/Unicode/tab
+    escapes into different bytes. Do not decode arbitrary alternate spellings.
+    This predicate alone is not a source-identity proof; Projector also checks
+    AST identity/role/endpoints and rejects ambiguous multiline string literals.
+    """
+    return value == expected or (isinstance(expected, str) and
+                                 value == pydot.quote_if_necessary(expected))
+
+
+def has_multiline_string(node, source):
+    """Detect the known non-injective DOT quoting case using existing AST spans.
+
+    A physical newline inside a string (including a line continuation) and a
+    literal backslash-n can have identical DOT bytes. Serialized nodes that
+    contain such literals cannot establish exact source correspondence. This
+    check does not reject ordinary multiline statements/functions outside string
+    literals, and does not change support for exact raw source attributes.
+    """
+    string_types = {"string_literal", "string", "hex_string_literal",
+                    "hex_string", "unicode_string_literal"}
+    pending = [node]
+    while pending:
+        current = pending.pop()
+        if current.type in string_types:
+            literal = source[current.start_byte:current.end_byte]
+            if b"\n" in literal or b"\r" in literal:
+                return True
+        pending.extend(current.named_children)
+    return False
 
 class Projector:
     def __init__(self, graph, view):
@@ -53,6 +84,8 @@ class Projector:
             expected=view.compat[n.start_byte:n.end_byte].decode("utf8")
             if not code_equal(data.get("code"),expected):
                 raise Unsupported("AST/HCG source text differs: "+str(identifier))
+            if data.get("code") != expected and has_multiline_string(n,view.compat):
+                raise Unsupported("Ambiguous DOT serialization of multiline string: "+str(identifier))
             if ast_id in self.by_ast:
                 raise Unsupported("Ambiguous HCG nodes for one AST anchor")
             self.by_ast[ast_id]=identifier

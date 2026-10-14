@@ -1,0 +1,64 @@
+{
+  "change_id": "D1-if-comment-v11",
+  "author": "codex",
+  "date": "2026-10-13",
+  "original_archive_untouched": true,
+  "core_files_changed": [
+    "scripts/DFG/semantic_cfg.py"
+  ],
+  "new_tests": [
+    "scripts/DFG/tests/test_semantic_cfg_v11.py"
+  ],
+  "root_cause": "Installed Solidity Tree-sitter grammar gives a between-branches comment field=body. Original CFG selects the comment as else body and falls back the function. Comments after else may carry field=else.",
+  "fix": "Ignore only comment children, require exactly one named condition, one body without direct else or exactly two around one direct else. Reject unexplained children, extra/missing bodies and misplaced/duplicate else. Analyze the genuine branch bodies; no HCG mutation or MVP expansion.",
+  "before": {
+    "new_tests_passed": 7,
+    "new_tests_failed": 18
+  },
+  "after": {
+    "all_targeted_tests_passed": 98,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 0,
+    "new_tests": 25,
+    "existing_regressions": 73
+  },
+  "test_source_unchanged_before_after": true,
+  "tested_invariants": [
+    "then/else CFG branches and join",
+    "branch union reaching definitions",
+    "KILL after join",
+    "no-else false path",
+    "nested and dangling else",
+    "unbraced statements",
+    "line/multiline/interior comments",
+    "true builtin terminal no successor and parameter read retained",
+    "unreachable definitions do not reach uses",
+    "branch return terminal",
+    "ambiguous AST shapes rejected rather than extra bodies ignored",
+    "HCG node IDs labels tokenizer values base edges unchanged",
+    "DDG disabled reproduces input graph"
+  ],
+  "compilation": {
+    "performed": false,
+    "reason": "No existing trusted approved local solc established for this subtask; no binary download or execution attempted. Tree-sitter acceptance is not Solidity compilation verification."
+  },
+  "fixture_status": {
+    "solidity_source_fixtures": "Parsed and semantically asserted, not compiler-verified",
+    "malformed_ast_proxies": "Six intentionally invalid AST-shape robustness cases, not Solidity legality fixtures"
+  },
+  "limitations": [
+    "No state, mapping contents, modifier or interprocedural expansion",
+    "No claim of F1 improvement; no training run",
+    "Dataset-wide recovered function/fact/edge counts are computed separately by root audit"
+  ],
+  "evidence": [
+    "ast_fields_before.json",
+    "semantic_cfg_before.py",
+    "tests_before.log",
+    "tests_before.json",
+    "tests_after.log",
+    "tests_after.json"
+  ],
+  "previous_evidence": "Original ddg_diagnostics_v1/diagnostic_report.md and case_studies.md independently identified the same comment/body issue."
+}
