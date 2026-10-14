@@ -1,0 +1,142 @@
+{
+  "returncode": 0,
+  "total_unique_passed": 591,
+  "failed": 0,
+  "skipped": 0,
+  "records": {
+    "existing_regression_tests": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/state",
+        "scripts/DFG/tests",
+        "scripts/DFG/experiments/tests",
+        "tests",
+        "-k",
+        "not test_actual_prepared_inputs_form_exactly_thirty_paired_jobs"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11",
+      "returncode": 0,
+      "seconds": 17.01177430152893
+    },
+    "absolute_resource_test": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/experiments/tests/test_formal_controller.py::test_actual_prepared_inputs_form_exactly_thirty_paired_jobs"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm",
+      "returncode": 0,
+      "seconds": 3.514895598986186
+    },
+    "integration_core_tests": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/experiments/e23_pilot",
+        "--ignore=scripts/DFG/experiments/e23_pilot/tests/test_inputs.py"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11",
+      "returncode": 0,
+      "seconds": 6.663025697984267
+    },
+    "input_tests": {
+      "schema": "stage-g-input-tests-v1",
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11",
+      "test_source_sha256": "1173b67b43cbadb3823a558fda46c40aa73a0d1bbd2e6a313e60f3cb18e05ae1",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11",
+        "TREE_SITTER_LIB_DIR": "/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64",
+        "OMP_NUM_THREADS": "2",
+        "MKL_NUM_THREADS": "2"
+      },
+      "runs": [
+        {
+          "command": [
+            "/home/zhao/miniconda3/envs/mando/bin/python",
+            "-B",
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            "scripts/DFG/experiments/e23_pilot/tests/test_inputs.py",
+            "-k",
+            "not real_frozen"
+          ],
+          "returncode": 0,
+          "passed": 16,
+          "failed": 0,
+          "skipped": 0,
+          "deselected": 4,
+          "warnings": 4,
+          "stdout": "................                                                         [100%]\n=============================== warnings summary ===============================\n../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16\n../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16\n  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.\n    if LooseVersion(th.__version__) < LooseVersion(\"1.5.0\"):\n\n../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6\n../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6\n  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.\n    if LooseVersion(th.__version__) >= LooseVersion(\"1.6.0\"):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n16 passed, 4 deselected, 4 warnings in 2.17s\n",
+          "tool_chunk": "0c958e"
+        },
+        {
+          "command": [
+            "/home/zhao/miniconda3/envs/mando/bin/python",
+            "-B",
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            "scripts/DFG/experiments/e23_pilot/tests/test_inputs.py",
+            "-k",
+            "real_frozen"
+          ],
+          "returncode": 0,
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0,
+          "deselected": 16,
+          "warnings": 4,
+          "elapsed_seconds_monotonic": 97.53077285998734,
+          "stdout": "....                                                                     [100%]\n=============================== warnings summary ===============================\n../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16\n../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16\n  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.\n    if LooseVersion(th.__version__) < LooseVersion(\"1.5.0\"):\n\n../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6\n../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6\n  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.\n    if LooseVersion(th.__version__) >= LooseVersion(\"1.6.0\"):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n4 passed, 16 deselected, 4 warnings in 97.00s (0:01:37)\nMONOTONIC_SECONDS 97.53077285998734\n",
+          "tool_session": 60022,
+          "final_tool_chunk": "fd49e8"
+        }
+      ],
+      "totals": {
+        "unique_passed": 20,
+        "failed": 0,
+        "skipped": 0,
+        "warning_occurrences": 8,
+        "uncovered_by_combined_selection": 0
+      },
+      "log_capture": "Successful stdout copied from tool outputs; real-run progress chunks concatenated. No tests rerun for log capture.",
+      "initial_invocation_note": "An earlier shell-quoted -k not real_frozen invocation lost quoting and pytest rejected its expression before running tests; structured subprocess args resolved it. No test assertions were changed.",
+      "gpu_execution": false,
+      "graph_regeneration": false,
+      "reader": "Existing scripts.labeling_v2.safe_graph.RestrictedReader allowlist plus frozen SHA"
+    }
+  },
+  "note": "480 original + 1 absolute-path original + 90 pilot core + 20 input tests; review original 16 already counted in 480",
+  "evidence_sha256": {
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/existing_regression_tests.json": "afeec2a7a565352cdbfead456438e0f44fc2cd67c7e58c9f3edbfc9129401318",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/existing_regression_tests.log": "8a56695bebd61454f7f0c78f48ad60cf78f5a67700d190fa77223b3ef2e39654",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/absolute_resource_test.json": "49540fa3211523730f8d8aad22c530e10cc820aa6ab8cf826f4e2c7854a69278",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/absolute_resource_test.log": "636a16a25ad178b9ce998b3daa6a2ee2e0fdb0b1f24673864774fa882f944732",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/integration_core_tests.json": "67bb87955f3c5292a95802f73baa364314fbc38ed979ddbada6b89102a0baac5",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/integration_core_tests.log": "e1a271f7406dc75f583074ad50b3c710b50476d3d4e155df78e8bce03bad1c45",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/input_tests.json": "a59d02d1f4cd9db686d73651910e2d1db708969752e77b416d896b26b4dff302",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/input_tests.log": "5d404c7a41321c989e25d6904d3e043b0222b4f331d224f073abb338a0a7a1bd"
+  }
+}

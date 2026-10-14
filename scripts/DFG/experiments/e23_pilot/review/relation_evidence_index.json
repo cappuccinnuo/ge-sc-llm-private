@@ -1,0 +1,3496 @@
+{
+  "schema": "stage-g-finite-relation-review-v1",
+  "seed": 1,
+  "selection_policy": "all projected contract STATE_DEF_USE; deterministic semantic-diversity greedy ordering after seed1 shuffle; no labels or predictions used",
+  "inputs": {
+    "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared/manifest.json": "4ce2108569f003778f7d8f4d11ada89c6ead9d5fe759c394a86d92d9229aeb07",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/audit/state_aware_ddg_stage_f/F1_attempt_002/reentrancy_author_results.json": "7343ddc5b93fb06d4f79392d8968b2cb0ae923f744a9b994c9bb0558257265da",
+    "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/access_control_author/prepared/manifest.json": "53d260f9d5fbc8cc05bb12e07bfc482b846a4ad83d2b916e06c0df7a58621e1e",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/audit/state_aware_ddg_stage_f/F1_attempt_002/access_control_author_results.json": "4f427c1300a9e00f2e302aef4d798da72271e0369352faf2c1cef63a44b4a1da",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol": "d0e67c992e4aadc7c6032d954c05c9b758e86fa92982010eac34a6e87411d863",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol": "eda48571091a81029b832c6789b628aa08d5f4447735106884d51cda126cda0d",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol": "d7a723cdfca40165c075b0bd5ab6a853074dfa7eea1d559ec4c03276b94d3e32",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_32.sol": "166af0a5f958190083dbf5648012653b67c2363b494fccc4fa2ddd1af5aa7b4c",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_47.sol": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol": "352a32efa4ab2cb54a11e808039eee614d5cf26ef8d8bea3ae0e9d32a5befed3",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol": "b98821cb7ddd2d5ce71cb190a41a4bba207d4a004520fe67cce7955386504bfb",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_32.sol": "850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_47.sol": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/multiowned_vulnerable.sol": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_43.sol": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_45.sol": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/reentrancy_bonus.sol": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_24.sol": "56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_2.sol": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_49.sol": "34b8d55b27d2078ff760975a6852d30df4724553cc37f810f607e48a4b1be4e8",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_3.sol": "9eaa874f037cc6ee0f642d250d199a4722d3f8265e1654d9a33565a1237ca21a",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_16.sol": "52d8e426ad01e71771b316b6635c0116efacb7b38c19d25c7ac5d4eae561d4ea",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_7.sol": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec",
+    "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_25.sol": "f6f9402e91da66253215c19f8603252a7de8b5006e38367007b82789e0f2b337",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/audit/state_aware_ddg_stage_f/F3_attempt_002/F3_EDGE_PROVENANCE.json": "021942abb89e6d8e70c6606cefaa125003e0ac5083ca353034ebd28fea0d07e5",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/audit/state_aware_ddg_stage_f/F3_attempt_002/GRAPH_MANIFEST.json": "2ba6c1b3737af13b89eada3a4e59bb3cf2b3c57ce1c1a07ef9e324ca3e5e2174",
+    "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/audit/state_aware_ddg_stage_f/F3_attempt_002/F2_ORACLE_RESULTS.json": "ead480ddecdb906c8dbac395d60e14363c3b9c46d92b552870e3b755ef83ba77"
+  },
+  "selection": {
+    "STATE_ACCESS_ORDER": {
+      "count": 8,
+      "function_count": 8,
+      "template_count": 8,
+      "branch_functions": 3,
+      "cohorts": {
+        "reentrancy_author": 7,
+        "access_control_author": 1
+      }
+    },
+    "EXTERNAL_CALL_BEFORE_STATE_WRITE": {
+      "count": 8,
+      "function_count": 8,
+      "template_count": 8,
+      "branch_functions": 5,
+      "cohorts": {
+        "reentrancy_author": 8
+      }
+    }
+  },
+  "state_def_use_count": 17,
+  "review_count": 33,
+  "oracle_status_counts": {
+    "function_fallback": 7,
+    "supported_subset": 13
+  },
+  "human_approved": false,
+  "compiled": false,
+  "evidence": [
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 11053,
+      "target_node": 11054,
+      "evidence_indices": [
+        14
+      ],
+      "file": "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+      "function": "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol:1475",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+      "source_sha256": "d0e67c992e4aadc7c6032d954c05c9b758e86fa92982010eac34a6e87411d863",
+      "source_line": 54,
+      "target_line": 55,
+      "source_text": "admin = 0x6585b849371A40005F9dCda57668C832a5be1777;",
+      "target_text": "level[admin] = 2;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "admin = 0x6585b849371A40005F9dCda57668C832a5be1777; -> level[admin] = N;",
+      "source_location": {
+        "id": "d0e67c992e4aadc7c6032d954c05c9b758e86fa92982010eac34a6e87411d863:0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol:1173:1234:('scalar', '', 'address')",
+        "root": {
+          "id": "d0e67c992e4aadc7c6032d954c05c9b758e86fa92982010eac34a6e87411d863:0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol:1173:1234",
+          "source_sha256": "d0e67c992e4aadc7c6032d954c05c9b758e86fa92982010eac34a6e87411d863",
+          "unit": "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+          "contract": {
+            "file": "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+            "start": 1173,
+            "end": 2968,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+            "start": 1234,
+            "end": 1255,
+            "role": "state_variable_declaration"
+          },
+          "name": "admin",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=1234"
+        ]
+      },
+      "target_location": {
+        "id": "d0e67c992e4aadc7c6032d954c05c9b758e86fa92982010eac34a6e87411d863:0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol:1173:1234:('scalar', '', 'address')",
+        "root": {
+          "id": "d0e67c992e4aadc7c6032d954c05c9b758e86fa92982010eac34a6e87411d863:0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol:1173:1234",
+          "source_sha256": "d0e67c992e4aadc7c6032d954c05c9b758e86fa92982010eac34a6e87411d863",
+          "unit": "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+          "contract": {
+            "file": "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+            "start": 1173,
+            "end": 2968,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+            "start": 1234,
+            "end": 1255,
+            "role": "state_variable_declaration"
+          },
+          "name": "admin",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=1234"
+        ]
+      },
+      "review_id": "G01",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 14,
+          "independently_checked_cfg_path": [
+            "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol:1475:e1:state:0",
+            "block:0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol:1475:b2",
+            "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol:1475:e2:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address public admin;",
+        "address public admin;"
+      ],
+      "source_interval": "admin = 0x6585b849371A40005F9dCda57668C832a5be1777; //Set initial admin\n        level[admin] = 2;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 26,
+      "target_node": 27,
+      "evidence_indices": [
+        16
+      ],
+      "file": "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+      "function": "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol:760",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+      "source_sha256": "eda48571091a81029b832c6789b628aa08d5f4447735106884d51cda126cda0d",
+      "source_line": 27,
+      "target_line": 28,
+      "source_text": "owner = msg.sender;",
+      "target_text": "balances[owner] = totalSupply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "owner = msg.sender; -> balances[owner] = totalSupply;",
+      "source_location": {
+        "id": "eda48571091a81029b832c6789b628aa08d5f4447735106884d51cda126cda0d:0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol:426:558:('scalar', '', 'address')",
+        "root": {
+          "id": "eda48571091a81029b832c6789b628aa08d5f4447735106884d51cda126cda0d:0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol:426:558",
+          "source_sha256": "eda48571091a81029b832c6789b628aa08d5f4447735106884d51cda126cda0d",
+          "unit": "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+          "contract": {
+            "file": "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+            "start": 426,
+            "end": 2335,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+            "start": 558,
+            "end": 593,
+            "role": "state_variable_declaration"
+          },
+          "name": "owner",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=558"
+        ]
+      },
+      "target_location": {
+        "id": "eda48571091a81029b832c6789b628aa08d5f4447735106884d51cda126cda0d:0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol:426:558:('scalar', '', 'address')",
+        "root": {
+          "id": "eda48571091a81029b832c6789b628aa08d5f4447735106884d51cda126cda0d:0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol:426:558",
+          "source_sha256": "eda48571091a81029b832c6789b628aa08d5f4447735106884d51cda126cda0d",
+          "unit": "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+          "contract": {
+            "file": "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+            "start": 426,
+            "end": 2335,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+            "start": 558,
+            "end": 593,
+            "role": "state_variable_declaration"
+          },
+          "name": "owner",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=558"
+        ]
+      },
+      "review_id": "G02",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 16,
+          "independently_checked_cfg_path": [
+            "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol:760:e1:state:1",
+            "block:0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol:760:b2",
+            "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol:760:e2:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address private owner = address(0);",
+        "address private owner = address(0);"
+      ],
+      "source_interval": "owner = msg.sender;\n    balances[owner] = totalSupply;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 14918,
+      "target_node": 14919,
+      "evidence_indices": [
+        20
+      ],
+      "file": "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+      "function": "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol:2371",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+      "source_sha256": "d7a723cdfca40165c075b0bd5ab6a853074dfa7eea1d559ec4c03276b94d3e32",
+      "source_line": 74,
+      "target_line": 75,
+      "source_text": "owner = msg.sender;",
+      "target_text": "balances[owner] = _totalSupply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "owner = msg.sender; -> balances[owner] = _totalSupply;",
+      "source_location": {
+        "id": "d7a723cdfca40165c075b0bd5ab6a853074dfa7eea1d559ec4c03276b94d3e32:0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol:1481:1905:('scalar', '', 'address')",
+        "root": {
+          "id": "d7a723cdfca40165c075b0bd5ab6a853074dfa7eea1d559ec4c03276b94d3e32:0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol:1481:1905",
+          "source_sha256": "d7a723cdfca40165c075b0bd5ab6a853074dfa7eea1d559ec4c03276b94d3e32",
+          "unit": "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+          "contract": {
+            "file": "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+            "start": 1481,
+            "end": 5425,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+            "start": 1905,
+            "end": 1926,
+            "role": "state_variable_declaration"
+          },
+          "name": "owner",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=1905"
+        ]
+      },
+      "target_location": {
+        "id": "d7a723cdfca40165c075b0bd5ab6a853074dfa7eea1d559ec4c03276b94d3e32:0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol:1481:1905:('scalar', '', 'address')",
+        "root": {
+          "id": "d7a723cdfca40165c075b0bd5ab6a853074dfa7eea1d559ec4c03276b94d3e32:0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol:1481:1905",
+          "source_sha256": "d7a723cdfca40165c075b0bd5ab6a853074dfa7eea1d559ec4c03276b94d3e32",
+          "unit": "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+          "contract": {
+            "file": "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+            "start": 1481,
+            "end": 5425,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+            "start": 1905,
+            "end": 1926,
+            "role": "state_variable_declaration"
+          },
+          "name": "owner",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=1905"
+        ]
+      },
+      "review_id": "G03",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 20,
+          "independently_checked_cfg_path": [
+            "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol:2371:e1:state:1",
+            "block:0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol:2371:b2",
+            "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol:2371:e2:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address public owner;",
+        "address public owner;"
+      ],
+      "source_interval": "owner = msg.sender;\n         balances[owner] = _totalSupply;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 4167,
+      "target_node": 4168,
+      "evidence_indices": [
+        692
+      ],
+      "file": "buggy_32.sol",
+      "function": "buggy_32.sol:10896",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_32.sol",
+      "source_sha256": "166af0a5f958190083dbf5648012653b67c2363b494fccc4fa2ddd1af5aa7b4c",
+      "source_line": 291,
+      "target_line": 292,
+      "source_text": "totalSupply = 180000000 * (10**uint256(decimals));",
+      "target_text": "balances[initialOwner] = totalSupply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "totalSupply = N * (N**uint256(decimals)); -> balances[initialOwner] = totalSupply;",
+      "source_location": {
+        "id": "166af0a5f958190083dbf5648012653b67c2363b494fccc4fa2ddd1af5aa7b4c:buggy_32.sol:3588:3981:('scalar', '', 'uint256')",
+        "root": {
+          "id": "166af0a5f958190083dbf5648012653b67c2363b494fccc4fa2ddd1af5aa7b4c:buggy_32.sol:3588:3981",
+          "source_sha256": "166af0a5f958190083dbf5648012653b67c2363b494fccc4fa2ddd1af5aa7b4c",
+          "unit": "buggy_32.sol",
+          "contract": {
+            "file": "buggy_32.sol",
+            "start": 3588,
+            "end": 9287,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_32.sol",
+            "start": 3981,
+            "end": 4008,
+            "role": "state_variable_declaration"
+          },
+          "name": "totalSupply",
+          "type_name": "uint256",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint256",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=3981"
+        ]
+      },
+      "target_location": {
+        "id": "166af0a5f958190083dbf5648012653b67c2363b494fccc4fa2ddd1af5aa7b4c:buggy_32.sol:3588:3981:('scalar', '', 'uint256')",
+        "root": {
+          "id": "166af0a5f958190083dbf5648012653b67c2363b494fccc4fa2ddd1af5aa7b4c:buggy_32.sol:3588:3981",
+          "source_sha256": "166af0a5f958190083dbf5648012653b67c2363b494fccc4fa2ddd1af5aa7b4c",
+          "unit": "buggy_32.sol",
+          "contract": {
+            "file": "buggy_32.sol",
+            "start": 3588,
+            "end": 9287,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_32.sol",
+            "start": 3981,
+            "end": 4008,
+            "role": "state_variable_declaration"
+          },
+          "name": "totalSupply",
+          "type_name": "uint256",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint256",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=3981"
+        ]
+      },
+      "review_id": "G04",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 692,
+          "independently_checked_cfg_path": [
+            "buggy_32.sol:10896:e2:state:1",
+            "block:buggy_32.sol:10896:b3",
+            "buggy_32.sol:10896:e3:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint256 public totalSupply;",
+        "uint256 public totalSupply;"
+      ],
+      "source_interval": "totalSupply = 180000000 * (10**uint256(decimals)); //initial token creation\n        balances[initialOwner] = totalSupply;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 9216,
+      "target_node": 9217,
+      "evidence_indices": [
+        1057
+      ],
+      "file": "buggy_47.sol",
+      "function": "buggy_47.sol:5597",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_47.sol",
+      "source_sha256": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a",
+      "source_line": 149,
+      "target_line": 150,
+      "source_text": "founder = msg.sender;",
+      "target_text": "balances[founder] = supply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "founder = msg.sender; -> balances[founder] = supply;",
+      "source_location": {
+        "id": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a:buggy_47.sol:3216:4799:('scalar', '', 'address')",
+        "root": {
+          "id": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a:buggy_47.sol:3216:4799",
+          "source_sha256": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a",
+          "unit": "buggy_47.sol",
+          "contract": {
+            "file": "buggy_47.sol",
+            "start": 3216,
+            "end": 9395,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_47.sol",
+            "start": 4799,
+            "end": 4822,
+            "role": "state_variable_declaration"
+          },
+          "name": "founder",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=4799"
+        ]
+      },
+      "target_location": {
+        "id": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a:buggy_47.sol:3216:4799:('scalar', '', 'address')",
+        "root": {
+          "id": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a:buggy_47.sol:3216:4799",
+          "source_sha256": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a",
+          "unit": "buggy_47.sol",
+          "contract": {
+            "file": "buggy_47.sol",
+            "start": 3216,
+            "end": 9395,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_47.sol",
+            "start": 4799,
+            "end": 4822,
+            "role": "state_variable_declaration"
+          },
+          "name": "founder",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=4799"
+        ]
+      },
+      "review_id": "G05",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 1057,
+          "independently_checked_cfg_path": [
+            "buggy_47.sol:5597:e2:state:1",
+            "block:buggy_47.sol:5597:b3",
+            "buggy_47.sol:5597:e3:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address public founder;",
+        "address public founder;"
+      ],
+      "source_interval": "founder = msg.sender;\n        balances[founder] = supply;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 9215,
+      "target_node": 9217,
+      "evidence_indices": [
+        1058
+      ],
+      "file": "buggy_47.sol",
+      "function": "buggy_47.sol:5597",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_47.sol",
+      "source_sha256": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a",
+      "source_line": 148,
+      "target_line": 150,
+      "source_text": "supply = 200000000;",
+      "target_text": "balances[founder] = supply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "supply = N; -> balances[founder] = supply;",
+      "source_location": {
+        "id": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a:buggy_47.sol:3216:4566:('scalar', '', 'uint')",
+        "root": {
+          "id": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a:buggy_47.sol:3216:4566",
+          "source_sha256": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a",
+          "unit": "buggy_47.sol",
+          "contract": {
+            "file": "buggy_47.sol",
+            "start": 3216,
+            "end": 9395,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_47.sol",
+            "start": 4566,
+            "end": 4585,
+            "role": "state_variable_declaration"
+          },
+          "name": "supply",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=4566"
+        ]
+      },
+      "target_location": {
+        "id": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a:buggy_47.sol:3216:4566:('scalar', '', 'uint')",
+        "root": {
+          "id": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a:buggy_47.sol:3216:4566",
+          "source_sha256": "e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a",
+          "unit": "buggy_47.sol",
+          "contract": {
+            "file": "buggy_47.sol",
+            "start": 3216,
+            "end": 9395,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_47.sol",
+            "start": 4566,
+            "end": 4585,
+            "role": "state_variable_declaration"
+          },
+          "name": "supply",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=4566"
+        ]
+      },
+      "review_id": "G06",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 1058,
+          "independently_checked_cfg_path": [
+            "buggy_47.sol:5597:e1:state:0",
+            "block:buggy_47.sol:5597:b2",
+            "buggy_47.sol:5597:e2:state:0",
+            "buggy_47.sol:5597:e2:state:1",
+            "block:buggy_47.sol:5597:b3",
+            "buggy_47.sol:5597:e3:state:0",
+            "buggy_47.sol:5597:e3:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint public supply;",
+        "uint public supply;"
+      ],
+      "source_interval": "supply = 200000000;\n        founder = msg.sender;\n        balances[founder] = supply;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 9776,
+      "target_node": 9777,
+      "evidence_indices": [
+        4
+      ],
+      "file": "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol",
+      "function": "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol:3051",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol",
+      "source_sha256": "352a32efa4ab2cb54a11e808039eee614d5cf26ef8d8bea3ae0e9d32a5befed3",
+      "source_line": 116,
+      "target_line": 117,
+      "source_text": "owner = msg.sender;",
+      "target_text": "balances[owner] = totalSaleSupply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "owner = msg.sender; -> balances[owner] = totalSaleSupply;",
+      "source_location": {
+        "id": "352a32efa4ab2cb54a11e808039eee614d5cf26ef8d8bea3ae0e9d32a5befed3:0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol:1668:2412:('scalar', '', 'address')",
+        "root": {
+          "id": "352a32efa4ab2cb54a11e808039eee614d5cf26ef8d8bea3ae0e9d32a5befed3:0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol:1668:2412",
+          "source_sha256": "352a32efa4ab2cb54a11e808039eee614d5cf26ef8d8bea3ae0e9d32a5befed3",
+          "unit": "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol",
+          "contract": {
+            "file": "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol",
+            "start": 1668,
+            "end": 12209,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol",
+            "start": 2412,
+            "end": 2433,
+            "role": "state_variable_declaration"
+          },
+          "name": "owner",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2412"
+        ]
+      },
+      "target_location": {
+        "id": "352a32efa4ab2cb54a11e808039eee614d5cf26ef8d8bea3ae0e9d32a5befed3:0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol:1668:2412:('scalar', '', 'address')",
+        "root": {
+          "id": "352a32efa4ab2cb54a11e808039eee614d5cf26ef8d8bea3ae0e9d32a5befed3:0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol:1668:2412",
+          "source_sha256": "352a32efa4ab2cb54a11e808039eee614d5cf26ef8d8bea3ae0e9d32a5befed3",
+          "unit": "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol",
+          "contract": {
+            "file": "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol",
+            "start": 1668,
+            "end": 12209,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol",
+            "start": 2412,
+            "end": 2433,
+            "role": "state_variable_declaration"
+          },
+          "name": "owner",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2412"
+        ]
+      },
+      "review_id": "G07",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 4,
+          "independently_checked_cfg_path": [
+            "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol:3051:e1:state:1",
+            "block:0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol:3051:b2",
+            "0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol:3051:e2:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address public owner;",
+        "address public owner;"
+      ],
+      "source_interval": "owner = msg.sender;\n       balances[owner] = totalSaleSupply;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 12198,
+      "target_node": 12199,
+      "evidence_indices": [
+        11
+      ],
+      "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "function": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+      "source_line": 150,
+      "target_line": 151,
+      "source_text": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600);",
+      "target_text": "if (bonusCalculationFactor== 0) \n            price_tokn = 70;                     //30 % Discount\n        else if (bonusCalculationFactor >= 1 && bonusCalculationFactor < 24) \n            price_tokn = 75;                     //25 % Discount\n        else if (bonusCalculationFactor >= 24 && bonusCalculationFactor < 168) \n            price_tokn = 80;                      //20 % Discount\n        else if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;",
+      "has_branch": true,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(N); -> if (bonusCalculationFactor== N) price_tokn = N; else if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N) price_tokn = N;",
+      "source_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "target_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "review_id": "G08",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 11,
+          "independently_checked_cfg_path": [
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e2:state:4",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b3",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e3:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint bonusCalculationFactor;",
+        "uint bonusCalculationFactor;"
+      ],
+      "source_interval": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600); //time period in seconds\n        if (bonusCalculationFactor== 0) \n            price_tokn = 70;                     //30 % Discount\n        else if (bonusCalculationFactor >= 1 && bonusCalculationFactor < 24) \n            price_tokn = 75;                     //25 % Discount\n        else if (bonusCalculationFactor >= 24 && bonusCalculationFactor < 168) \n            price_tokn = 80;                      //20 % Discount\n        else if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 12198,
+      "target_node": 12202,
+      "evidence_indices": [
+        12,
+        13
+      ],
+      "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "function": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+      "source_line": 150,
+      "target_line": 153,
+      "source_text": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600);",
+      "target_text": "if (bonusCalculationFactor >= 1 && bonusCalculationFactor < 24) \n            price_tokn = 75;                     //25 % Discount\n        else if (bonusCalculationFactor >= 24 && bonusCalculationFactor < 168) \n            price_tokn = 80;                      //20 % Discount\n        else if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;",
+      "has_branch": true,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(N); -> if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N) price_tokn = N;",
+      "source_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "target_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "review_id": "G09",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 12,
+          "independently_checked_cfg_path": [
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e2:state:4",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b3",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e3:state:0",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b5",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:0"
+          ]
+        },
+        {
+          "evidence_index": 13,
+          "independently_checked_cfg_path": [
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e2:state:4",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b3",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e3:state:0",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b5",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint bonusCalculationFactor;",
+        "uint bonusCalculationFactor;"
+      ],
+      "source_interval": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600); //time period in seconds\n        if (bonusCalculationFactor== 0) \n            price_tokn = 70;                     //30 % Discount\n        else if (bonusCalculationFactor >= 1 && bonusCalculationFactor < 24) \n            price_tokn = 75;                     //25 % Discount\n        else if (bonusCalculationFactor >= 24 && bonusCalculationFactor < 168) \n            price_tokn = 80;                      //20 % Discount\n        else if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 12198,
+      "target_node": 12204,
+      "evidence_indices": [
+        14,
+        15
+      ],
+      "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "function": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+      "source_line": 150,
+      "target_line": 155,
+      "source_text": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600);",
+      "target_text": "if (bonusCalculationFactor >= 24 && bonusCalculationFactor < 168) \n            price_tokn = 80;                      //20 % Discount\n        else if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;",
+      "has_branch": true,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(N); -> if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N) price_tokn = N;",
+      "source_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "target_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "review_id": "G10",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 14,
+          "independently_checked_cfg_path": [
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e2:state:4",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b3",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e3:state:0",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b5",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b7",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:0"
+          ]
+        },
+        {
+          "evidence_index": 15,
+          "independently_checked_cfg_path": [
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e2:state:4",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b3",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e3:state:0",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b5",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b7",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint bonusCalculationFactor;",
+        "uint bonusCalculationFactor;"
+      ],
+      "source_interval": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600); //time period in seconds\n        if (bonusCalculationFactor== 0) \n            price_tokn = 70;                     //30 % Discount\n        else if (bonusCalculationFactor >= 1 && bonusCalculationFactor < 24) \n            price_tokn = 75;                     //25 % Discount\n        else if (bonusCalculationFactor >= 24 && bonusCalculationFactor < 168) \n            price_tokn = 80;                      //20 % Discount\n        else if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 12198,
+      "target_node": 12206,
+      "evidence_indices": [
+        16,
+        17
+      ],
+      "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "function": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+      "source_line": 150,
+      "target_line": 157,
+      "source_text": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600);",
+      "target_text": "if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;",
+      "has_branch": true,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(N); -> if (bonusCalculationFactor >= N && bonusCalculationFactor < N) price_tokn = N; else if (bonusCalculationFactor >= N) price_tokn = N;",
+      "source_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "target_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "review_id": "G11",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 16,
+          "independently_checked_cfg_path": [
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e2:state:4",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b3",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e3:state:0",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b5",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b7",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b9",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e9:state:0"
+          ]
+        },
+        {
+          "evidence_index": 17,
+          "independently_checked_cfg_path": [
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e2:state:4",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b3",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e3:state:0",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b5",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b7",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b9",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e9:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e9:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint bonusCalculationFactor;",
+        "uint bonusCalculationFactor;"
+      ],
+      "source_interval": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600); //time period in seconds\n        if (bonusCalculationFactor== 0) \n            price_tokn = 70;                     //30 % Discount\n        else if (bonusCalculationFactor >= 1 && bonusCalculationFactor < 24) \n            price_tokn = 75;                     //25 % Discount\n        else if (bonusCalculationFactor >= 24 && bonusCalculationFactor < 168) \n            price_tokn = 80;                      //20 % Discount\n        else if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 12198,
+      "target_node": 12208,
+      "evidence_indices": [
+        18
+      ],
+      "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "function": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+      "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+      "source_line": 150,
+      "target_line": 159,
+      "source_text": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600);",
+      "target_text": "if (bonusCalculationFactor >= 336) \n            price_tokn = 100;",
+      "has_branch": true,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(N); -> if (bonusCalculationFactor >= N) price_tokn = N;",
+      "source_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "target_location": {
+        "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980:('scalar', '', 'uint')",
+        "root": {
+          "id": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:2044:2980",
+          "source_sha256": "568229c325733268782c329b2f6ffb371383bcfe00a41bfba3adb6e6d232e090",
+          "unit": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+          "contract": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2044,
+            "end": 12363,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol",
+            "start": 2980,
+            "end": 3008,
+            "role": "state_variable_declaration"
+          },
+          "name": "bonusCalculationFactor",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2980"
+        ]
+      },
+      "review_id": "G12",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 18,
+          "independently_checked_cfg_path": [
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e2:state:4",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b3",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e3:state:0",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b5",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e5:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b7",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e7:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b9",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e9:state:0",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e9:state:1",
+            "block:0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:b11",
+            "0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol:4490:e11:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint bonusCalculationFactor;",
+        "uint bonusCalculationFactor;"
+      ],
+      "source_interval": "bonusCalculationFactor = (block.timestamp.sub(ico_startdate)).div(3600); //time period in seconds\n        if (bonusCalculationFactor== 0) \n            price_tokn = 70;                     //30 % Discount\n        else if (bonusCalculationFactor >= 1 && bonusCalculationFactor < 24) \n            price_tokn = 75;                     //25 % Discount\n        else if (bonusCalculationFactor >= 24 && bonusCalculationFactor < 168) \n            price_tokn = 80;                      //20 % Discount\n        else if (bonusCalculationFactor >= 168 && bonusCalculationFactor < 336) \n            price_tokn = 90;                     //10 % Discount\n        else if (bonusCalculationFactor >= 336) \n            price_tokn = 100;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 7915,
+      "target_node": 7917,
+      "evidence_indices": [
+        24
+      ],
+      "file": "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol",
+      "function": "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:272",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol",
+      "source_sha256": "b98821cb7ddd2d5ce71cb190a41a4bba207d4a004520fe67cce7955386504bfb",
+      "source_line": 20,
+      "target_line": 22,
+      "source_text": "created_at = now;",
+      "target_text": "expires_at = created_at + (_lifetime * 60*60*24);",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "created_at = now; -> expires_at = created_at + (_lifetime * N*N*N);",
+      "source_location": {
+        "id": "b98821cb7ddd2d5ce71cb190a41a4bba207d4a004520fe67cce7955386504bfb:0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:27:105:('scalar', '', 'uint')",
+        "root": {
+          "id": "b98821cb7ddd2d5ce71cb190a41a4bba207d4a004520fe67cce7955386504bfb:0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:27:105",
+          "source_sha256": "b98821cb7ddd2d5ce71cb190a41a4bba207d4a004520fe67cce7955386504bfb",
+          "unit": "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol",
+          "contract": {
+            "file": "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol",
+            "start": 27,
+            "end": 1324,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol",
+            "start": 105,
+            "end": 129,
+            "role": "state_variable_declaration"
+          },
+          "name": "created_at",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=105"
+        ]
+      },
+      "target_location": {
+        "id": "b98821cb7ddd2d5ce71cb190a41a4bba207d4a004520fe67cce7955386504bfb:0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:27:105:('scalar', '', 'uint')",
+        "root": {
+          "id": "b98821cb7ddd2d5ce71cb190a41a4bba207d4a004520fe67cce7955386504bfb:0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:27:105",
+          "source_sha256": "b98821cb7ddd2d5ce71cb190a41a4bba207d4a004520fe67cce7955386504bfb",
+          "unit": "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol",
+          "contract": {
+            "file": "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol",
+            "start": 27,
+            "end": 1324,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol",
+            "start": 105,
+            "end": 129,
+            "role": "state_variable_declaration"
+          },
+          "name": "created_at",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=105"
+        ]
+      },
+      "review_id": "G13",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 24,
+          "independently_checked_cfg_path": [
+            "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:272:e3:state:0",
+            "block:0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:272:b4",
+            "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:272:e4:state:0",
+            "block:0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:272:b5",
+            "0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol:272:e5:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint private created_at;",
+        "uint private created_at;"
+      ],
+      "source_interval": "created_at = now;\n        updated_at = now;\n        expires_at = created_at + (_lifetime * 60*60*24);"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 2590,
+      "target_node": 2591,
+      "evidence_indices": [
+        31
+      ],
+      "file": "buggy_32.sol",
+      "function": "buggy_32.sol:7935",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_32.sol",
+      "source_sha256": "850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674",
+      "source_line": 209,
+      "target_line": 210,
+      "source_text": "totalSupply = 180000000 * (10**uint256(decimals));",
+      "target_text": "balances[initialOwner] = totalSupply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "totalSupply = N * (N**uint256(decimals)); -> balances[initialOwner] = totalSupply;",
+      "source_location": {
+        "id": "850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674:buggy_32.sol:3051:3301:('scalar', '', 'uint256')",
+        "root": {
+          "id": "850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674:buggy_32.sol:3051:3301",
+          "source_sha256": "850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674",
+          "unit": "buggy_32.sol",
+          "contract": {
+            "file": "buggy_32.sol",
+            "start": 3051,
+            "end": 7069,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_32.sol",
+            "start": 3301,
+            "end": 3328,
+            "role": "state_variable_declaration"
+          },
+          "name": "totalSupply",
+          "type_name": "uint256",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint256",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=3301"
+        ]
+      },
+      "target_location": {
+        "id": "850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674:buggy_32.sol:3051:3301:('scalar', '', 'uint256')",
+        "root": {
+          "id": "850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674:buggy_32.sol:3051:3301",
+          "source_sha256": "850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674",
+          "unit": "buggy_32.sol",
+          "contract": {
+            "file": "buggy_32.sol",
+            "start": 3051,
+            "end": 7069,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_32.sol",
+            "start": 3301,
+            "end": 3328,
+            "role": "state_variable_declaration"
+          },
+          "name": "totalSupply",
+          "type_name": "uint256",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint256",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=3301"
+        ]
+      },
+      "review_id": "G14",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 31,
+          "independently_checked_cfg_path": [
+            "buggy_32.sol:7935:e2:state:1",
+            "block:buggy_32.sol:7935:b3",
+            "buggy_32.sol:7935:e3:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint256 public totalSupply;",
+        "uint256 public totalSupply;"
+      ],
+      "source_interval": "totalSupply = 180000000 * (10**uint256(decimals)); //initial token creation\n        balances[initialOwner] = totalSupply;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 6500,
+      "target_node": 6501,
+      "evidence_indices": [
+        40
+      ],
+      "file": "buggy_47.sol",
+      "function": "buggy_47.sol:3777",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_47.sol",
+      "source_sha256": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348",
+      "source_line": 96,
+      "target_line": 97,
+      "source_text": "founder = msg.sender;",
+      "target_text": "balances[founder] = supply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "founder = msg.sender; -> balances[founder] = supply;",
+      "source_location": {
+        "id": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348:buggy_47.sol:2117:3084:('scalar', '', 'address')",
+        "root": {
+          "id": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348:buggy_47.sol:2117:3084",
+          "source_sha256": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348",
+          "unit": "buggy_47.sol",
+          "contract": {
+            "file": "buggy_47.sol",
+            "start": 2117,
+            "end": 6383,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_47.sol",
+            "start": 3084,
+            "end": 3107,
+            "role": "state_variable_declaration"
+          },
+          "name": "founder",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=3084"
+        ]
+      },
+      "target_location": {
+        "id": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348:buggy_47.sol:2117:3084:('scalar', '', 'address')",
+        "root": {
+          "id": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348:buggy_47.sol:2117:3084",
+          "source_sha256": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348",
+          "unit": "buggy_47.sol",
+          "contract": {
+            "file": "buggy_47.sol",
+            "start": 2117,
+            "end": 6383,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_47.sol",
+            "start": 3084,
+            "end": 3107,
+            "role": "state_variable_declaration"
+          },
+          "name": "founder",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=3084"
+        ]
+      },
+      "review_id": "G15",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 40,
+          "independently_checked_cfg_path": [
+            "buggy_47.sol:3777:e2:state:1",
+            "block:buggy_47.sol:3777:b3",
+            "buggy_47.sol:3777:e3:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address public founder;",
+        "address public founder;"
+      ],
+      "source_interval": "founder = msg.sender;\n        balances[founder] = supply;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 6499,
+      "target_node": 6501,
+      "evidence_indices": [
+        41
+      ],
+      "file": "buggy_47.sol",
+      "function": "buggy_47.sol:3777",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_47.sol",
+      "source_sha256": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348",
+      "source_line": 95,
+      "target_line": 97,
+      "source_text": "supply = 200000000;",
+      "target_text": "balances[founder] = supply;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "supply = N; -> balances[founder] = supply;",
+      "source_location": {
+        "id": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348:buggy_47.sol:2117:2946:('scalar', '', 'uint')",
+        "root": {
+          "id": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348:buggy_47.sol:2117:2946",
+          "source_sha256": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348",
+          "unit": "buggy_47.sol",
+          "contract": {
+            "file": "buggy_47.sol",
+            "start": 2117,
+            "end": 6383,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_47.sol",
+            "start": 2946,
+            "end": 2965,
+            "role": "state_variable_declaration"
+          },
+          "name": "supply",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2946"
+        ]
+      },
+      "target_location": {
+        "id": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348:buggy_47.sol:2117:2946:('scalar', '', 'uint')",
+        "root": {
+          "id": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348:buggy_47.sol:2117:2946",
+          "source_sha256": "eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348",
+          "unit": "buggy_47.sol",
+          "contract": {
+            "file": "buggy_47.sol",
+            "start": 2117,
+            "end": 6383,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_47.sol",
+            "start": 2946,
+            "end": 2965,
+            "role": "state_variable_declaration"
+          },
+          "name": "supply",
+          "type_name": "uint",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2946"
+        ]
+      },
+      "review_id": "G16",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 41,
+          "independently_checked_cfg_path": [
+            "buggy_47.sol:3777:e1:state:0",
+            "block:buggy_47.sol:3777:b2",
+            "buggy_47.sol:3777:e2:state:0",
+            "buggy_47.sol:3777:e2:state:1",
+            "block:buggy_47.sol:3777:b3",
+            "buggy_47.sol:3777:e3:state:0",
+            "buggy_47.sol:3777:e3:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint public supply;",
+        "uint public supply;"
+      ],
+      "source_interval": "supply = 200000000;\n        founder = msg.sender;\n        balances[founder] = supply;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_DEF_USE",
+      "source_node": 3169,
+      "target_node": 3170,
+      "evidence_indices": [
+        46,
+        47
+      ],
+      "file": "multiowned_vulnerable.sol",
+      "function": "multiowned_vulnerable.sol:521",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/multiowned_vulnerable.sol",
+      "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+      "source_line": 21,
+      "target_line": 22,
+      "source_text": "root = msg.sender;",
+      "target_text": "owners[root] = root;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "root = msg.sender; -> owners[root] = root;",
+      "source_location": {
+        "id": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6:multiowned_vulnerable.sol:284:310:('scalar', '', 'address')",
+        "root": {
+          "id": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6:multiowned_vulnerable.sol:284:310",
+          "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+          "unit": "multiowned_vulnerable.sol",
+          "contract": {
+            "file": "multiowned_vulnerable.sol",
+            "start": 284,
+            "end": 1269,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "multiowned_vulnerable.sol",
+            "start": 310,
+            "end": 330,
+            "role": "state_variable_declaration"
+          },
+          "name": "root",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=310"
+        ]
+      },
+      "target_location": {
+        "id": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6:multiowned_vulnerable.sol:284:310:('scalar', '', 'address')",
+        "root": {
+          "id": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6:multiowned_vulnerable.sol:284:310",
+          "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+          "unit": "multiowned_vulnerable.sol",
+          "contract": {
+            "file": "multiowned_vulnerable.sol",
+            "start": 284,
+            "end": 1269,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "multiowned_vulnerable.sol",
+            "start": 310,
+            "end": 330,
+            "role": "state_variable_declaration"
+          },
+          "name": "root",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=310"
+        ]
+      },
+      "review_id": "G17",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 46,
+          "independently_checked_cfg_path": [
+            "multiowned_vulnerable.sol:521:e1:state:1",
+            "block:multiowned_vulnerable.sol:521:b2",
+            "multiowned_vulnerable.sol:521:e2:state:0"
+          ]
+        },
+        {
+          "evidence_index": 47,
+          "independently_checked_cfg_path": [
+            "multiowned_vulnerable.sol:521:e1:state:1",
+            "block:multiowned_vulnerable.sol:521:b2",
+            "multiowned_vulnerable.sol:521:e2:state:0",
+            "multiowned_vulnerable.sol:521:e2:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address public root;",
+        "address public root;"
+      ],
+      "source_interval": "root = msg.sender;\n    owners[root] = root;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_ACCESS_ORDER",
+      "source_node": 11430,
+      "target_node": 11432,
+      "evidence_indices": [
+        863
+      ],
+      "file": "buggy_43.sol",
+      "function": "buggy_43.sol:2917",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_43.sol",
+      "source_sha256": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584",
+      "source_line": 92,
+      "target_line": 94,
+      "source_text": "if (!(lastPlayer_re_ent37.send(jackpot_re_ent37)))\n        revert();",
+      "target_text": "lastPlayer_re_ent37 = msg.sender;",
+      "has_branch": true,
+      "source_kind": "READ",
+      "target_kind": "WRITE",
+      "source_detail": "",
+      "target_detail": "assignment",
+      "template": "if (!(lastPlayer_TEMPLATE.send(jackpot_TEMPLATE))) revert(); -> lastPlayer_TEMPLATE = msg.sender;",
+      "source_location": {
+        "id": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584:buggy_43.sol:983:2848:('scalar', '', 'address payable')",
+        "root": {
+          "id": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584:buggy_43.sol:983:2848",
+          "source_sha256": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584",
+          "unit": "buggy_43.sol",
+          "contract": {
+            "file": "buggy_43.sol",
+            "start": 983,
+            "end": 6720,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_43.sol",
+            "start": 2848,
+            "end": 2884,
+            "role": "state_variable_declaration"
+          },
+          "name": "lastPlayer_re_ent37",
+          "type_name": "address payable",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address payable",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2848"
+        ]
+      },
+      "target_location": {
+        "id": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584:buggy_43.sol:983:2848:('scalar', '', 'address payable')",
+        "root": {
+          "id": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584:buggy_43.sol:983:2848",
+          "source_sha256": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584",
+          "unit": "buggy_43.sol",
+          "contract": {
+            "file": "buggy_43.sol",
+            "start": 983,
+            "end": 6720,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_43.sol",
+            "start": 2848,
+            "end": 2884,
+            "role": "state_variable_declaration"
+          },
+          "name": "lastPlayer_re_ent37",
+          "type_name": "address payable",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address payable",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2848"
+        ]
+      },
+      "review_id": "G18",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 863,
+          "independently_checked_cfg_path": [
+            "buggy_43.sol:2917:e1:state:1",
+            "buggy_43.sol:2917:e1:state:2",
+            "block:buggy_43.sol:2917:b3",
+            "buggy_43.sol:2917:e3:state:0",
+            "buggy_43.sol:2917:e3:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address payable lastPlayer_re_ent37;",
+        "address payable lastPlayer_re_ent37;"
+      ],
+      "source_interval": "if (!(lastPlayer_re_ent37.send(jackpot_re_ent37)))\n        revert();\n      lastPlayer_re_ent37 = msg.sender;"
+    },
+    {
+      "cohort": "access_control_author",
+      "relation": "STATE_ACCESS_ORDER",
+      "source_node": 3169,
+      "target_node": 3170,
+      "evidence_indices": [
+        48
+      ],
+      "file": "multiowned_vulnerable.sol",
+      "function": "multiowned_vulnerable.sol:521",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/multiowned_vulnerable.sol",
+      "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+      "source_line": 21,
+      "target_line": 22,
+      "source_text": "root = msg.sender;",
+      "target_text": "owners[root] = root;",
+      "has_branch": false,
+      "source_kind": "WRITE",
+      "target_kind": "READ",
+      "source_detail": "assignment",
+      "target_detail": "",
+      "template": "root = msg.sender; -> owners[root] = root;",
+      "source_location": {
+        "id": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6:multiowned_vulnerable.sol:284:310:('scalar', '', 'address')",
+        "root": {
+          "id": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6:multiowned_vulnerable.sol:284:310",
+          "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+          "unit": "multiowned_vulnerable.sol",
+          "contract": {
+            "file": "multiowned_vulnerable.sol",
+            "start": 284,
+            "end": 1269,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "multiowned_vulnerable.sol",
+            "start": 310,
+            "end": 330,
+            "role": "state_variable_declaration"
+          },
+          "name": "root",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=310"
+        ]
+      },
+      "target_location": {
+        "id": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6:multiowned_vulnerable.sol:284:310:('scalar', '', 'address')",
+        "root": {
+          "id": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6:multiowned_vulnerable.sol:284:310",
+          "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+          "unit": "multiowned_vulnerable.sol",
+          "contract": {
+            "file": "multiowned_vulnerable.sol",
+            "start": 284,
+            "end": 1269,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "multiowned_vulnerable.sol",
+            "start": 310,
+            "end": 330,
+            "role": "state_variable_declaration"
+          },
+          "name": "root",
+          "type_name": "address",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=310"
+        ]
+      },
+      "review_id": "G19",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 48,
+          "independently_checked_cfg_path": [
+            "multiowned_vulnerable.sol:521:e1:state:1",
+            "block:multiowned_vulnerable.sol:521:b2",
+            "multiowned_vulnerable.sol:521:e2:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address public root;",
+        "address public root;"
+      ],
+      "source_interval": "root = msg.sender;\n    owners[root] = root;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_ACCESS_ORDER",
+      "source_node": 9776,
+      "target_node": 9779,
+      "evidence_indices": [
+        993
+      ],
+      "file": "buggy_45.sol",
+      "function": "buggy_45.sol:5055",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_45.sol",
+      "source_sha256": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+      "source_line": 156,
+      "target_line": 160,
+      "source_text": "require(balances_re_ent3[msg.sender] >= _weiToWithdraw);",
+      "target_text": "balances_re_ent3[msg.sender] -= _weiToWithdraw;",
+      "has_branch": false,
+      "source_kind": "READ",
+      "target_kind": "READ",
+      "source_detail": "",
+      "target_detail": "READ_MODIFY_WRITE",
+      "template": "require(balances_TEMPLATE[msg.sender] >= _weiToWithdraw); -> balances_TEMPLATE[msg.sender] -= _weiToWithdraw;",
+      "source_location": {
+        "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:5012:('frame', 'buggy_45.sol:5055:msg.sender', 'address')",
+        "root": {
+          "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:5012",
+          "source_sha256": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+          "unit": "buggy_45.sol",
+          "contract": {
+            "file": "buggy_45.sol",
+            "start": 94,
+            "end": 12483,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_45.sol",
+            "start": 5012,
+            "end": 5054,
+            "role": "state_variable_declaration"
+          },
+          "name": "balances_re_ent3",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_45.sol:5055:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=5012"
+        ]
+      },
+      "target_location": {
+        "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:5012:('frame', 'buggy_45.sol:5055:msg.sender', 'address')",
+        "root": {
+          "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:5012",
+          "source_sha256": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+          "unit": "buggy_45.sol",
+          "contract": {
+            "file": "buggy_45.sol",
+            "start": 94,
+            "end": 12483,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_45.sol",
+            "start": 5012,
+            "end": 5054,
+            "role": "state_variable_declaration"
+          },
+          "name": "balances_re_ent3",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_45.sol:5055:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=5012"
+        ]
+      },
+      "review_id": "G20",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 993,
+          "independently_checked_cfg_path": [
+            "buggy_45.sol:5055:e1:state:1",
+            "block:buggy_45.sol:5055:b2",
+            "buggy_45.sol:5055:e2:state:0",
+            "buggy_45.sol:5055:e2:state:1",
+            "block:buggy_45.sol:5055:b3",
+            "block:buggy_45.sol:5055:b4",
+            "buggy_45.sol:5055:e4:state:0",
+            "buggy_45.sol:5055:e4:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping(address => uint) balances_re_ent3;",
+        "mapping(address => uint) balances_re_ent3;"
+      ],
+      "source_interval": "require(balances_re_ent3[msg.sender] >= _weiToWithdraw);\n        // limit the withdrawal\n\t(bool success,)= msg.sender.call.value(_weiToWithdraw)(\"\");\n        require(success);  //bug\n        balances_re_ent3[msg.sender] -= _weiToWithdraw;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_ACCESS_ORDER",
+      "source_node": 5,
+      "target_node": 6,
+      "evidence_indices": [
+        1388
+      ],
+      "file": "reentrancy_bonus.sol",
+      "function": "reentrancy_bonus.sol:372",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/reentrancy_bonus.sol",
+      "source_sha256": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332",
+      "source_line": 17,
+      "target_line": 18,
+      "source_text": "uint amountToWithdraw = rewardsForA[recipient];",
+      "target_text": "rewardsForA[recipient] = 0;",
+      "has_branch": false,
+      "source_kind": "READ",
+      "target_kind": "WRITE",
+      "source_detail": "",
+      "target_detail": "assignment",
+      "template": "uint amountToWithdraw = rewardsForA[recipient]; -> rewardsForA[recipient] = N;",
+      "source_location": {
+        "id": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332:reentrancy_bonus.sol:168:320:('parameter', 'reentrancy_bonus.sol:372:396:recipient', 'address')",
+        "root": {
+          "id": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332:reentrancy_bonus.sol:168:320",
+          "source_sha256": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332",
+          "unit": "reentrancy_bonus.sol",
+          "contract": {
+            "file": "reentrancy_bonus.sol",
+            "start": 168,
+            "end": 1033,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "reentrancy_bonus.sol",
+            "start": 320,
+            "end": 366,
+            "role": "state_variable_declaration"
+          },
+          "name": "rewardsForA",
+          "type_name": "mapping (address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "parameter",
+        "key_value": "reentrancy_bonus.sol:372:396:recipient",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unmodified value parameter within invocation",
+          "closed unique declaration chain; root span=320"
+        ]
+      },
+      "target_location": {
+        "id": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332:reentrancy_bonus.sol:168:320:('parameter', 'reentrancy_bonus.sol:372:396:recipient', 'address')",
+        "root": {
+          "id": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332:reentrancy_bonus.sol:168:320",
+          "source_sha256": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332",
+          "unit": "reentrancy_bonus.sol",
+          "contract": {
+            "file": "reentrancy_bonus.sol",
+            "start": 168,
+            "end": 1033,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "reentrancy_bonus.sol",
+            "start": 320,
+            "end": 366,
+            "role": "state_variable_declaration"
+          },
+          "name": "rewardsForA",
+          "type_name": "mapping (address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "parameter",
+        "key_value": "reentrancy_bonus.sol:372:396:recipient",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unmodified value parameter within invocation",
+          "closed unique declaration chain; root span=320"
+        ]
+      },
+      "review_id": "G21",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 1388,
+          "independently_checked_cfg_path": [
+            "reentrancy_bonus.sol:372:e1:state:0",
+            "block:reentrancy_bonus.sol:372:b2",
+            "reentrancy_bonus.sol:372:e2:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping (address => uint) private rewardsForA;",
+        "mapping (address => uint) private rewardsForA;"
+      ],
+      "source_interval": "uint amountToWithdraw = rewardsForA[recipient];\n        rewardsForA[recipient] = 0;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_ACCESS_ORDER",
+      "source_node": 2004,
+      "target_node": 2006,
+      "evidence_indices": [
+        460
+      ],
+      "file": "buggy_24.sol",
+      "function": "buggy_24.sol:34387",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_24.sol",
+      "source_sha256": "56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb",
+      "source_line": 872,
+      "target_line": 873,
+      "source_text": "if (msg.sender.send(balances_re_ent36[msg.sender ]))\n          balances_re_ent36[msg.sender] = 0;",
+      "target_text": "balances_re_ent36[msg.sender] = 0;",
+      "has_branch": false,
+      "source_kind": "READ",
+      "target_kind": "WRITE",
+      "source_detail": "",
+      "target_detail": "assignment",
+      "template": "if (msg.sender.send(balances_TEMPLATE[msg.sender ])) balances_TEMPLATE[msg.sender] = N; -> balances_TEMPLATE[msg.sender] = N;",
+      "source_location": {
+        "id": "56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb:buggy_24.sol:5793:34339:('frame', 'buggy_24.sol:34387:msg.sender', 'address')",
+        "root": {
+          "id": "56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb:buggy_24.sol:5793:34339",
+          "source_sha256": "56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb",
+          "unit": "buggy_24.sol",
+          "contract": {
+            "file": "buggy_24.sol",
+            "start": 5793,
+            "end": 45232,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_24.sol",
+            "start": 34339,
+            "end": 34382,
+            "role": "state_variable_declaration"
+          },
+          "name": "balances_re_ent36",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_24.sol:34387:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=34339"
+        ]
+      },
+      "target_location": {
+        "id": "56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb:buggy_24.sol:5793:34339:('frame', 'buggy_24.sol:34387:msg.sender', 'address')",
+        "root": {
+          "id": "56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb:buggy_24.sol:5793:34339",
+          "source_sha256": "56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb",
+          "unit": "buggy_24.sol",
+          "contract": {
+            "file": "buggy_24.sol",
+            "start": 5793,
+            "end": 45232,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_24.sol",
+            "start": 34339,
+            "end": 34382,
+            "role": "state_variable_declaration"
+          },
+          "name": "balances_re_ent36",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_24.sol:34387:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=34339"
+        ]
+      },
+      "review_id": "G22",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 460,
+          "independently_checked_cfg_path": [
+            "buggy_24.sol:34387:e1:state:1",
+            "buggy_24.sol:34387:e1:state:2",
+            "buggy_24.sol:34387:e1:state:3",
+            "block:buggy_24.sol:34387:b2",
+            "buggy_24.sol:34387:e2:state:0",
+            "buggy_24.sol:34387:e2:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping(address => uint) balances_re_ent36;",
+        "mapping(address => uint) balances_re_ent36;"
+      ],
+      "source_interval": "if (msg.sender.send(balances_re_ent36[msg.sender ]))\n          balances_re_ent36[msg.sender] = 0;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_ACCESS_ORDER",
+      "source_node": 9700,
+      "target_node": 9703,
+      "evidence_indices": [
+        969
+      ],
+      "file": "buggy_45.sol",
+      "function": "buggy_45.sol:1084",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_45.sol",
+      "source_sha256": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+      "source_line": 37,
+      "target_line": 41,
+      "source_text": "(bool success,)=msg.sender.call.value(userBalance_re_ent40[msg.sender])(\"\");",
+      "target_text": "userBalance_re_ent40[msg.sender] = 0;",
+      "has_branch": true,
+      "source_kind": "READ",
+      "target_kind": "WRITE",
+      "source_detail": "",
+      "target_detail": "assignment",
+      "template": "(bool success,)=msg.sender.call.value(userBalance_TEMPLATE[msg.sender])(\"\"); -> userBalance_TEMPLATE[msg.sender] = N;",
+      "source_location": {
+        "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:1037:('frame', 'buggy_45.sol:1084:msg.sender', 'address')",
+        "root": {
+          "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:1037",
+          "source_sha256": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+          "unit": "buggy_45.sol",
+          "contract": {
+            "file": "buggy_45.sol",
+            "start": 94,
+            "end": 12483,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_45.sol",
+            "start": 1037,
+            "end": 1083,
+            "role": "state_variable_declaration"
+          },
+          "name": "userBalance_re_ent40",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_45.sol:1084:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=1037"
+        ]
+      },
+      "target_location": {
+        "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:1037:('frame', 'buggy_45.sol:1084:msg.sender', 'address')",
+        "root": {
+          "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:1037",
+          "source_sha256": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+          "unit": "buggy_45.sol",
+          "contract": {
+            "file": "buggy_45.sol",
+            "start": 94,
+            "end": 12483,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_45.sol",
+            "start": 1037,
+            "end": 1083,
+            "role": "state_variable_declaration"
+          },
+          "name": "userBalance_re_ent40",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_45.sol:1084:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=1037"
+        ]
+      },
+      "review_id": "G23",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 969,
+          "independently_checked_cfg_path": [
+            "buggy_45.sol:1084:e1:state:1",
+            "buggy_45.sol:1084:e1:state:2",
+            "buggy_45.sol:1084:e1:state:3",
+            "block:buggy_45.sol:1084:b2",
+            "block:buggy_45.sol:1084:b4",
+            "buggy_45.sol:1084:e4:state:0",
+            "buggy_45.sol:1084:e4:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping(address => uint) userBalance_re_ent40;",
+        "mapping(address => uint) userBalance_re_ent40;"
+      ],
+      "source_interval": "(bool success,)=msg.sender.call.value(userBalance_re_ent40[msg.sender])(\"\");\n        if( ! success ){\n            revert();\n        }\n        userBalance_re_ent40[msg.sender] = 0;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_ACCESS_ORDER",
+      "source_node": 5127,
+      "target_node": 5129,
+      "evidence_indices": [
+        276
+      ],
+      "file": "buggy_2.sol",
+      "function": "buggy_2.sol:8167",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_2.sol",
+      "source_sha256": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f",
+      "source_line": 227,
+      "target_line": 229,
+      "source_text": "uint transferValue_re_ent39 = redeemableEther_re_ent39[msg.sender];",
+      "target_text": "redeemableEther_re_ent39[msg.sender] = 0;",
+      "has_branch": false,
+      "source_kind": "READ",
+      "target_kind": "WRITE",
+      "source_detail": "",
+      "target_detail": "assignment",
+      "template": "uint transferValue_TEMPLATE = redeemableEther_TEMPLATE[msg.sender]; -> redeemableEther_TEMPLATE[msg.sender] = N;",
+      "source_location": {
+        "id": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f:buggy_2.sol:118:8116:('frame', 'buggy_2.sol:8167:msg.sender', 'address')",
+        "root": {
+          "id": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f:buggy_2.sol:118:8116",
+          "source_sha256": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f",
+          "unit": "buggy_2.sol",
+          "contract": {
+            "file": "buggy_2.sol",
+            "start": 118,
+            "end": 10643,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_2.sol",
+            "start": 8116,
+            "end": 8166,
+            "role": "state_variable_declaration"
+          },
+          "name": "redeemableEther_re_ent39",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_2.sol:8167:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=8116"
+        ]
+      },
+      "target_location": {
+        "id": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f:buggy_2.sol:118:8116:('frame', 'buggy_2.sol:8167:msg.sender', 'address')",
+        "root": {
+          "id": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f:buggy_2.sol:118:8116",
+          "source_sha256": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f",
+          "unit": "buggy_2.sol",
+          "contract": {
+            "file": "buggy_2.sol",
+            "start": 118,
+            "end": 10643,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_2.sol",
+            "start": 8116,
+            "end": 8166,
+            "role": "state_variable_declaration"
+          },
+          "name": "redeemableEther_re_ent39",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_2.sol:8167:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=8116"
+        ]
+      },
+      "review_id": "G24",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 276,
+          "independently_checked_cfg_path": [
+            "buggy_2.sol:8167:e2:state:1",
+            "block:buggy_2.sol:8167:b3",
+            "buggy_2.sol:8167:e3:state:0",
+            "buggy_2.sol:8167:e3:state:1",
+            "block:buggy_2.sol:8167:b4",
+            "buggy_2.sol:8167:e4:state:0",
+            "buggy_2.sol:8167:e4:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping(address => uint) redeemableEther_re_ent39;",
+        "mapping(address => uint) redeemableEther_re_ent39;"
+      ],
+      "source_interval": "uint transferValue_re_ent39 = redeemableEther_re_ent39[msg.sender];\n        msg.sender.transfer(transferValue_re_ent39);   //bug\n        redeemableEther_re_ent39[msg.sender] = 0;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "STATE_ACCESS_ORDER",
+      "source_node": 13596,
+      "target_node": 13599,
+      "evidence_indices": [
+        1169
+      ],
+      "file": "buggy_49.sol",
+      "function": "buggy_49.sol:2041",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_49.sol",
+      "source_sha256": "34b8d55b27d2078ff760975a6852d30df4724553cc37f810f607e48a4b1be4e8",
+      "source_line": 60,
+      "target_line": 64,
+      "source_text": "require(counter_re_ent35<=5);",
+      "target_text": "counter_re_ent35 += 1;",
+      "has_branch": true,
+      "source_kind": "READ",
+      "target_kind": "READ",
+      "source_detail": "",
+      "target_detail": "READ_MODIFY_WRITE",
+      "template": "require(counter_TEMPLATE<=N); -> counter_TEMPLATE += N;",
+      "source_location": {
+        "id": "34b8d55b27d2078ff760975a6852d30df4724553cc37f810f607e48a4b1be4e8:buggy_49.sol:93:2012:('scalar', '', 'uint256')",
+        "root": {
+          "id": "34b8d55b27d2078ff760975a6852d30df4724553cc37f810f607e48a4b1be4e8:buggy_49.sol:93:2012",
+          "source_sha256": "34b8d55b27d2078ff760975a6852d30df4724553cc37f810f607e48a4b1be4e8",
+          "unit": "buggy_49.sol",
+          "contract": {
+            "file": "buggy_49.sol",
+            "start": 93,
+            "end": 4822,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_49.sol",
+            "start": 2012,
+            "end": 2040,
+            "role": "state_variable_declaration"
+          },
+          "name": "counter_re_ent35",
+          "type_name": "uint256",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint256",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2012"
+        ]
+      },
+      "target_location": {
+        "id": "34b8d55b27d2078ff760975a6852d30df4724553cc37f810f607e48a4b1be4e8:buggy_49.sol:93:2012:('scalar', '', 'uint256')",
+        "root": {
+          "id": "34b8d55b27d2078ff760975a6852d30df4724553cc37f810f607e48a4b1be4e8:buggy_49.sol:93:2012",
+          "source_sha256": "34b8d55b27d2078ff760975a6852d30df4724553cc37f810f607e48a4b1be4e8",
+          "unit": "buggy_49.sol",
+          "contract": {
+            "file": "buggy_49.sol",
+            "start": 93,
+            "end": 4822,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_49.sol",
+            "start": 2012,
+            "end": 2040,
+            "role": "state_variable_declaration"
+          },
+          "name": "counter_re_ent35",
+          "type_name": "uint256",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint256",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=2012"
+        ]
+      },
+      "review_id": "G25",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 1169,
+          "independently_checked_cfg_path": [
+            "buggy_49.sol:2041:e1:state:0",
+            "block:buggy_49.sol:2041:b2",
+            "buggy_49.sol:2041:e2:state:0",
+            "buggy_49.sol:2041:e2:state:1",
+            "block:buggy_49.sol:2041:b4",
+            "buggy_49.sol:2041:e4:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint256 counter_re_ent35 =0;",
+        "uint256 counter_re_ent35 =0;"
+      ],
+      "source_interval": "require(counter_re_ent35<=5);\n\tif( ! (msg.sender.send(10 ether) ) ){\n            revert();\n        }\n        counter_re_ent35 += 1;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "source_node": 9753,
+      "target_node": 9755,
+      "evidence_indices": [
+        987
+      ],
+      "file": "buggy_45.sol",
+      "function": "buggy_45.sol:4040",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_45.sol",
+      "source_sha256": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+      "source_line": 128,
+      "target_line": 130,
+      "source_text": "if (!(lastPlayer_re_ent2.send(jackpot_re_ent2)))\n        revert();",
+      "target_text": "lastPlayer_re_ent2 = msg.sender;",
+      "has_branch": true,
+      "source_kind": "HAVOC",
+      "target_kind": "WRITE",
+      "source_detail": "EXTERNAL_CALL:send:conservative_all_state_top",
+      "target_detail": "assignment",
+      "template": "if (!(lastPlayer_TEMPLATE.send(jackpot_TEMPLATE))) revert(); -> lastPlayer_TEMPLATE = msg.sender;",
+      "source_location": null,
+      "target_location": {
+        "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:3973:('scalar', '', 'address payable')",
+        "root": {
+          "id": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c:buggy_45.sol:94:3973",
+          "source_sha256": "73fef73398990b21d8c216cbc0993d4fdce910daa7e563f6dd375ed6042f122c",
+          "unit": "buggy_45.sol",
+          "contract": {
+            "file": "buggy_45.sol",
+            "start": 94,
+            "end": 12483,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_45.sol",
+            "start": 3973,
+            "end": 4008,
+            "role": "state_variable_declaration"
+          },
+          "name": "lastPlayer_re_ent2",
+          "type_name": "address payable",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address payable",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=3973"
+        ]
+      },
+      "review_id": "G26",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 987,
+          "independently_checked_cfg_path": [
+            "buggy_45.sol:4040:e1:state:2",
+            "block:buggy_45.sol:4040:b3",
+            "buggy_45.sol:4040:e3:state:0",
+            "buggy_45.sol:4040:e3:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address payable lastPlayer_re_ent2;"
+      ],
+      "source_interval": "if (!(lastPlayer_re_ent2.send(jackpot_re_ent2)))\n        revert();\n      lastPlayer_re_ent2 = msg.sender;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "source_node": 5013,
+      "target_node": 5014,
+      "evidence_indices": [
+        248
+      ],
+      "file": "buggy_2.sol",
+      "function": "buggy_2.sol:1268",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_2.sol",
+      "source_sha256": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f",
+      "source_line": 41,
+      "target_line": 42,
+      "source_text": "msg.sender.transfer(transferValue_re_ent25);",
+      "target_text": "redeemableEther_re_ent25[msg.sender] = 0;",
+      "has_branch": false,
+      "source_kind": "HAVOC",
+      "target_kind": "WRITE",
+      "source_detail": "EXTERNAL_CALL:transfer:conservative_all_state_top",
+      "target_detail": "assignment",
+      "template": "msg.sender.transfer(transferValue_TEMPLATE); -> redeemableEther_TEMPLATE[msg.sender] = N;",
+      "source_location": null,
+      "target_location": {
+        "id": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f:buggy_2.sol:118:1217:('frame', 'buggy_2.sol:1268:msg.sender', 'address')",
+        "root": {
+          "id": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f:buggy_2.sol:118:1217",
+          "source_sha256": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f",
+          "unit": "buggy_2.sol",
+          "contract": {
+            "file": "buggy_2.sol",
+            "start": 118,
+            "end": 10643,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_2.sol",
+            "start": 1217,
+            "end": 1267,
+            "role": "state_variable_declaration"
+          },
+          "name": "redeemableEther_re_ent25",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_2.sol:1268:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=1217"
+        ]
+      },
+      "review_id": "G27",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 248,
+          "independently_checked_cfg_path": [
+            "buggy_2.sol:1268:e3:state:1",
+            "block:buggy_2.sol:1268:b4",
+            "buggy_2.sol:1268:e4:state:0",
+            "buggy_2.sol:1268:e4:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping(address => uint) redeemableEther_re_ent25;"
+      ],
+      "source_interval": "msg.sender.transfer(transferValue_re_ent25);   //bug\n        redeemableEther_re_ent25[msg.sender] = 0;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "source_node": 11450,
+      "target_node": 11453,
+      "evidence_indices": [
+        869
+      ],
+      "file": "buggy_43.sol",
+      "function": "buggy_43.sol:3972",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_43.sol",
+      "source_sha256": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584",
+      "source_line": 121,
+      "target_line": 124,
+      "source_text": "(bool success,) = lastPlayer_re_ent9.call.value(jackpot_re_ent9)(\"\");",
+      "target_text": "lastPlayer_re_ent9 = msg.sender;",
+      "has_branch": true,
+      "source_kind": "HAVOC",
+      "target_kind": "WRITE",
+      "source_detail": "EXTERNAL_CALL:call:conservative_all_state_top",
+      "target_detail": "assignment",
+      "template": "(bool success,) = lastPlayer_TEMPLATE.call.value(jackpot_TEMPLATE)(\"\"); -> lastPlayer_TEMPLATE = msg.sender;",
+      "source_location": null,
+      "target_location": {
+        "id": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584:buggy_43.sol:983:3905:('scalar', '', 'address payable')",
+        "root": {
+          "id": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584:buggy_43.sol:983:3905",
+          "source_sha256": "1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584",
+          "unit": "buggy_43.sol",
+          "contract": {
+            "file": "buggy_43.sol",
+            "start": 983,
+            "end": 6720,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_43.sol",
+            "start": 3905,
+            "end": 3940,
+            "role": "state_variable_declaration"
+          },
+          "name": "lastPlayer_re_ent9",
+          "type_name": "address payable",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "address payable",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=3905"
+        ]
+      },
+      "review_id": "G28",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 869,
+          "independently_checked_cfg_path": [
+            "buggy_43.sol:3972:e1:state:2",
+            "block:buggy_43.sol:3972:b2",
+            "block:buggy_43.sol:3972:b4",
+            "buggy_43.sol:3972:e4:state:0",
+            "buggy_43.sol:3972:e4:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "address payable lastPlayer_re_ent9;"
+      ],
+      "source_interval": "(bool success,) = lastPlayer_re_ent9.call.value(jackpot_re_ent9)(\"\");\n\t    if (!success)\n\t        revert();\n      lastPlayer_re_ent9 = msg.sender;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "source_node": 3527,
+      "target_node": 3529,
+      "evidence_indices": [
+        583
+      ],
+      "file": "buggy_3.sol",
+      "function": "buggy_3.sol:9787",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_3.sol",
+      "source_sha256": "9eaa874f037cc6ee0f642d250d199a4722d3f8265e1654d9a33565a1237ca21a",
+      "source_line": 269,
+      "target_line": 272,
+      "source_text": "if( ! (msg.sender.send(10 ether) ) ){\n            revert();\n        }",
+      "target_text": "counter_re_ent35 += 1;",
+      "has_branch": true,
+      "source_kind": "HAVOC",
+      "target_kind": "WRITE",
+      "source_detail": "EXTERNAL_CALL:send:conservative_all_state_top",
+      "target_detail": "READ_MODIFY_WRITE",
+      "template": "if( ! (msg.sender.send(N ether) ) ){ revert(); } -> counter_TEMPLATE += N;",
+      "source_location": null,
+      "target_location": {
+        "id": "9eaa874f037cc6ee0f642d250d199a4722d3f8265e1654d9a33565a1237ca21a:buggy_3.sol:118:9758:('scalar', '', 'uint256')",
+        "root": {
+          "id": "9eaa874f037cc6ee0f642d250d199a4722d3f8265e1654d9a33565a1237ca21a:buggy_3.sol:118:9758",
+          "source_sha256": "9eaa874f037cc6ee0f642d250d199a4722d3f8265e1654d9a33565a1237ca21a",
+          "unit": "buggy_3.sol",
+          "contract": {
+            "file": "buggy_3.sol",
+            "start": 118,
+            "end": 11089,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_3.sol",
+            "start": 9758,
+            "end": 9786,
+            "role": "state_variable_declaration"
+          },
+          "name": "counter_re_ent35",
+          "type_name": "uint256",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "uint256",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=9758"
+        ]
+      },
+      "review_id": "G29",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 583,
+          "independently_checked_cfg_path": [
+            "buggy_3.sol:9787:e2:state:1",
+            "block:buggy_3.sol:9787:b4",
+            "buggy_3.sol:9787:e4:state:0",
+            "buggy_3.sol:9787:e4:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "uint256 counter_re_ent35 =0;"
+      ],
+      "source_interval": "if( ! (msg.sender.send(10 ether) ) ){\n            revert();\n        }\n        counter_re_ent35 += 1;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "source_node": 15888,
+      "target_node": 15890,
+      "evidence_indices": [
+        122
+      ],
+      "file": "buggy_16.sol",
+      "function": "buggy_16.sol:5331",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_16.sol",
+      "source_sha256": "52d8e426ad01e71771b316b6635c0116efacb7b38c19d25c7ac5d4eae561d4ea",
+      "source_line": 157,
+      "target_line": 160,
+      "source_text": "if( ! (msg.sender.send(1 ether) ) ){\n            revert();\n        }",
+      "target_text": "not_called_re_ent41 = false;",
+      "has_branch": true,
+      "source_kind": "HAVOC",
+      "target_kind": "WRITE",
+      "source_detail": "EXTERNAL_CALL:send:conservative_all_state_top",
+      "target_detail": "assignment",
+      "template": "if( ! (msg.sender.send(N ether) ) ){ revert(); } -> not_called_TEMPLATE = false;",
+      "source_location": null,
+      "target_location": {
+        "id": "52d8e426ad01e71771b316b6635c0116efacb7b38c19d25c7ac5d4eae561d4ea:buggy_16.sol:4154:5298:('scalar', '', 'bool')",
+        "root": {
+          "id": "52d8e426ad01e71771b316b6635c0116efacb7b38c19d25c7ac5d4eae561d4ea:buggy_16.sol:4154:5298",
+          "source_sha256": "52d8e426ad01e71771b316b6635c0116efacb7b38c19d25c7ac5d4eae561d4ea",
+          "unit": "buggy_16.sol",
+          "contract": {
+            "file": "buggy_16.sol",
+            "start": 4154,
+            "end": 6265,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_16.sol",
+            "start": 5298,
+            "end": 5330,
+            "role": "state_variable_declaration"
+          },
+          "name": "not_called_re_ent41",
+          "type_name": "bool",
+          "kind": "scalar",
+          "key_type": ""
+        },
+        "key_kind": "scalar",
+        "key_value": "",
+        "key_type": "bool",
+        "certainty": "EXACT",
+        "evidence": [
+          "direct declaration and lexical binding",
+          "closed unique declaration chain; root span=5298"
+        ]
+      },
+      "review_id": "G30",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 122,
+          "independently_checked_cfg_path": [
+            "buggy_16.sol:5331:e2:state:1",
+            "block:buggy_16.sol:5331:b4",
+            "buggy_16.sol:5331:e4:state:0"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "bool not_called_re_ent41 = true;"
+      ],
+      "source_interval": "if( ! (msg.sender.send(1 ether) ) ){\n            revert();\n        }\n        not_called_re_ent41 = false;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "source_node": 6757,
+      "target_node": 6758,
+      "evidence_indices": [
+        1367
+      ],
+      "file": "buggy_7.sol",
+      "function": "buggy_7.sol:10141",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_7.sol",
+      "source_sha256": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec",
+      "source_line": 320,
+      "target_line": 321,
+      "source_text": "require(msg.sender.send(_weiToWithdraw));",
+      "target_text": "balances_re_ent31[msg.sender] -= _weiToWithdraw;",
+      "has_branch": false,
+      "source_kind": "HAVOC",
+      "target_kind": "WRITE",
+      "source_detail": "EXTERNAL_CALL:send:conservative_all_state_top",
+      "target_detail": "READ_MODIFY_WRITE",
+      "template": "require(msg.sender.send(_weiToWithdraw)); -> balances_TEMPLATE[msg.sender] -= _weiToWithdraw;",
+      "source_location": null,
+      "target_location": {
+        "id": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec:buggy_7.sol:9200:10097:('frame', 'buggy_7.sol:10141:msg.sender', 'address')",
+        "root": {
+          "id": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec:buggy_7.sol:9200:10097",
+          "source_sha256": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec",
+          "unit": "buggy_7.sol",
+          "contract": {
+            "file": "buggy_7.sol",
+            "start": 9200,
+            "end": 13367,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_7.sol",
+            "start": 10097,
+            "end": 10140,
+            "role": "state_variable_declaration"
+          },
+          "name": "balances_re_ent31",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_7.sol:10141:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=10097"
+        ]
+      },
+      "review_id": "G31",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 1367,
+          "independently_checked_cfg_path": [
+            "buggy_7.sol:10141:e2:state:1",
+            "block:buggy_7.sol:10141:b3",
+            "buggy_7.sol:10141:e3:state:0",
+            "buggy_7.sol:10141:e3:state:1",
+            "buggy_7.sol:10141:e3:state:2"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping(address => uint) balances_re_ent31;"
+      ],
+      "source_interval": "require(msg.sender.send(_weiToWithdraw));  //bug\n        balances_re_ent31[msg.sender] -= _weiToWithdraw;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "source_node": 672,
+      "target_node": 675,
+      "evidence_indices": [
+        519
+      ],
+      "file": "buggy_25.sol",
+      "function": "buggy_25.sol:13957",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_25.sol",
+      "source_sha256": "f6f9402e91da66253215c19f8603252a7de8b5006e38367007b82789e0f2b337",
+      "source_line": 350,
+      "target_line": 352,
+      "source_text": "(bool success,) = msg.sender.call.value(balances_re_ent8[msg.sender ])(\"\");",
+      "target_text": "balances_re_ent8[msg.sender] = 0;",
+      "has_branch": false,
+      "source_kind": "HAVOC",
+      "target_kind": "WRITE",
+      "source_detail": "EXTERNAL_CALL:call:conservative_all_state_top",
+      "target_detail": "assignment",
+      "template": "(bool success,) = msg.sender.call.value(balances_TEMPLATE[msg.sender ])(\"\"); -> balances_TEMPLATE[msg.sender] = N;",
+      "source_location": null,
+      "target_location": {
+        "id": "f6f9402e91da66253215c19f8603252a7de8b5006e38367007b82789e0f2b337:buggy_25.sol:205:13910:('frame', 'buggy_25.sol:13957:msg.sender', 'address')",
+        "root": {
+          "id": "f6f9402e91da66253215c19f8603252a7de8b5006e38367007b82789e0f2b337:buggy_25.sol:205:13910",
+          "source_sha256": "f6f9402e91da66253215c19f8603252a7de8b5006e38367007b82789e0f2b337",
+          "unit": "buggy_25.sol",
+          "contract": {
+            "file": "buggy_25.sol",
+            "start": 205,
+            "end": 14786,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_25.sol",
+            "start": 13910,
+            "end": 13952,
+            "role": "state_variable_declaration"
+          },
+          "name": "balances_re_ent8",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_25.sol:13957:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=13910"
+        ]
+      },
+      "review_id": "G32",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 519,
+          "independently_checked_cfg_path": [
+            "buggy_25.sol:13957:e1:state:3",
+            "block:buggy_25.sol:13957:b2",
+            "block:buggy_25.sol:13957:b3",
+            "buggy_25.sol:13957:e3:state:0",
+            "buggy_25.sol:13957:e3:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping(address => uint) balances_re_ent8;"
+      ],
+      "source_interval": "(bool success,) = msg.sender.call.value(balances_re_ent8[msg.sender ])(\"\");\n       if (success)\n          balances_re_ent8[msg.sender] = 0;"
+    },
+    {
+      "cohort": "reentrancy_author",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "source_node": 6572,
+      "target_node": 6574,
+      "evidence_indices": [
+        1314
+      ],
+      "file": "buggy_7.sol",
+      "function": "buggy_7.sol:464",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_7.sol",
+      "source_sha256": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec",
+      "source_line": 20,
+      "target_line": 23,
+      "source_text": "if( ! (msg.sender.send(userBalance_re_ent12[msg.sender]) ) ){\n            revert();\n        }",
+      "target_text": "userBalance_re_ent12[msg.sender] = 0;",
+      "has_branch": true,
+      "source_kind": "HAVOC",
+      "target_kind": "WRITE",
+      "source_detail": "EXTERNAL_CALL:send:conservative_all_state_top",
+      "target_detail": "assignment",
+      "template": "if( ! (msg.sender.send(userBalance_TEMPLATE[msg.sender]) ) ){ revert(); } -> userBalance_TEMPLATE[msg.sender] = N;",
+      "source_location": null,
+      "target_location": {
+        "id": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec:buggy_7.sol:118:417:('frame', 'buggy_7.sol:464:msg.sender', 'address')",
+        "root": {
+          "id": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec:buggy_7.sol:118:417",
+          "source_sha256": "4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec",
+          "unit": "buggy_7.sol",
+          "contract": {
+            "file": "buggy_7.sol",
+            "start": 118,
+            "end": 9198,
+            "role": "contract_declaration"
+          },
+          "declaration": {
+            "file": "buggy_7.sol",
+            "start": 417,
+            "end": 463,
+            "role": "state_variable_declaration"
+          },
+          "name": "userBalance_re_ent12",
+          "type_name": "mapping(address => uint)",
+          "kind": "mapping",
+          "key_type": "address"
+        },
+        "key_kind": "frame",
+        "key_value": "buggy_7.sol:464:msg.sender",
+        "key_type": "address",
+        "certainty": "EXACT",
+        "evidence": [
+          "unshadowed builtin; stable in this invocation",
+          "closed unique declaration chain; root span=417"
+        ]
+      },
+      "review_id": "G33",
+      "automated_check": "passed",
+      "independent_human_approved": false,
+      "compiled": false,
+      "review_kind": "Codex_static_review_plus_JSON_adjacency_checks",
+      "path_claim": "structural_CFG_may_reach_not_transaction_feasibility",
+      "witnesses": [
+        {
+          "evidence_index": 1314,
+          "independently_checked_cfg_path": [
+            "buggy_7.sol:464:e1:state:3",
+            "block:buggy_7.sol:464:b3",
+            "buggy_7.sol:464:e3:state:0",
+            "buggy_7.sol:464:e3:state:1"
+          ]
+        }
+      ],
+      "declaration_text": [
+        "mapping(address => uint) userBalance_re_ent12;"
+      ],
+      "source_interval": "if( ! (msg.sender.send(userBalance_re_ent12[msg.sender]) ) ){\n            revert();\n        }\n        userBalance_re_ent12[msg.sender] = 0;"
+    }
+  ]
+}
