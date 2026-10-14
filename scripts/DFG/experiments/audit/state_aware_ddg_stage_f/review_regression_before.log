@@ -1,0 +1,17 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______ test_nonbuiltin_revert_statement_is_opaque_effect_not_silent_pure _______
+
+    def test_nonbuiltin_revert_statement_is_opaque_effect_not_silent_pure():
+     src="pragma solidity 0.4.24;contract A{uint s;function revert() internal{s=2;}function f() public returns(uint){s=1;revert();return s;}}"
+     v,r=result(src)
+     assert r.status=="supported_subset"
+     assert any(d["classification"]==NON_BUILTIN for d in r.binding_evidence["calls"])
+>    assert not r.facts
+E    AssertionError: assert not [StateFact(definition=StateEvent(id='example.sol:73:e1:state:0', function='example.sol:73', block='example.sol:73:b1',...:b2', 'block:example.sol:73:b3', 'example.sol:73:e3:state:0'), path_status='cfg_reachable_path_conditions_not_solved')]
+E     +  where [StateFact(definition=StateEvent(id='example.sol:73:e1:state:0', function='example.sol:73', block='example.sol:73:b1',...:b2', 'block:example.sol:73:b3', 'example.sol:73:e3:state:0'), path_status='cfg_reachable_path_conditions_not_solved')] = StateAnalysisResult(function='example.sol:73', status='supported_subset', ir=StateFunctionIR(base=FunctionIR(id='examp...stics=[], iterations=4, reachable={'example.sol:73:b0', 'example.sol:73:b1', 'example.sol:73:b3', 'example.sol:73:b2'}).facts
+
+scripts/DFG/state/stage_f/tests/test_binding.py:103: AssertionError
+=========================== short test summary info ============================
+FAILED scripts/DFG/state/stage_f/tests/test_binding.py::test_nonbuiltin_revert_statement_is_opaque_effect_not_silent_pure
+1 failed in 0.16s

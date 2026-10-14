@@ -1463,3 +1463,192 @@ protected_before/after保护原有12021项输入/源码/归档文件，授权例
 首次结束扫描误将整个artifacts树都视为已建立起始SHA基线，因203个旧smoke路径未在protected_before中出现而触发requires_review；不是发现内容SHA变化。保留首次protected_after.json及其拒绝结果，不补造起始快照。
 
 复核上一轮protect_assets.py及本轮清单后，最终按完整建立基线的两个formal目录、旧诊断目录及v1.1旧审计目录检查新增文件；扩大扫描的203个路径单列为起始清单外文件，不能给出其本轮前后字节一致性结论，也不将其冒称本轮新增。最终核验见protected_after_verified.json：12021项既有文件核验、四份授权文档前缀、冻结HEAD及规定保护目录均单独报告。本补记没有改变业务代码、图或任何测试断言。
+
+
+## 19. 2026-10-14：Stage F 覆盖恢复与状态访问顺序验证（修改 AI：Codex）
+
+**19.1 授权范围、实际版本与保护**
+
+根据用户 Stage F 模板及允许调整的说明，本轮实施 F0/F1/F2/F3，
+F4仅兼容性和入口设计，不启动正式训练，不以提高F1为目标放宽语义。
+
+实际开发工作树 /home/zhao/SmartContract/ge-sc-llm-ddg-v11，
+分支 ddg-v1.1-correctness，起始HEAD=08a4488c750362603d3359a5174ffdc0780c6adb；
+原工作树 /home/zhao/SmartContract/ge-sc-llm，起始HEAD=916145e4f1f12bd18c565e809de5d8e1f7772d37。
+本轮未提交/推送/reset/checkout，没有重写历史plan/seal。
+此前Stage E归档后的HEAD与报告初始HEAD不同，以本轮protected_before实际记录为准。
+
+新增核心 scripts/DFG/state/stage_f/；
+新增审计 scripts/DFG/experiments/audit/state_aware_ddg_stage_f/。
+下文路径相对此开发工作树。原工作树只追加本文件和HANDOVER，旧正文保留。
+原scalar/v1.1/Stage E业务代码、E0/E1/E2、HGT、tokenizer、标签、折、
+训练器、旧权重和归档记录不变。起始完整保护13,579项，包含此前未完整纳入的smoke目录；
+最终逐项核验见新审计protected_after.json，而非只比较Git状态。
+
+**19.2 新增文件与最小设计调整**
+
+| 文件（state/stage_f/下） | 新增逻辑与理由 |
+|---|---|
+| __init__.py | 独立版本state-aware-ddg-stage-f-v1，显式正向关系集合 |
+| versioning.py | 多pragma交集、语义版本区间、精确来源绑定的versions.csv；不任意挑选solc |
+| frontend.py | 保留原始/兼容AST精确映射，用新版本证据初始化；不改源码规避解析 |
+| binding.py | 同单元唯一单继承链、声明可见性/遮蔽/私有成员、内建与同名用户调用证据 |
+| analyzer.py | 复用SymbolTable、CFGBuilder、状态事件和RD，独立作用域/调用适配；函数级回退 |
+| relations.py | 独立状态访问次序、调用→写入、三事件模式及CFG witness复核 |
+| projection.py | 精确AST→原HCG映射，缺失/同节点单列，证据索引，off与基础图不变量 |
+| model_adapter.py | 保留四种增强关系正向，原CFG/CG反射规则不变；DGL/two-hop审计 |
+| initialization.py | 沿用冻结语义初始化数值算法，仅扩展支持schema并独立版本记录 |
+| compatibility.py | 复用原HGTLayer的合成CPU前向/反传/绑定/重载检查，无优化器 |
+| tests/test_binding.py | 23项绑定/版本/副作用正反例 |
+| tests/test_relations.py | 16项事件次序、投影、标签独立性及不变量检查 |
+| tests/test_compatibility.py | 6项canonical、共同初始化、梯度、重载和漂移拒绝检查 |
+
+新审计脚本common.py/corpus.py/compare_f1.py/project_f3.py负责冻结清单、
+全语料前后比较、语义投影与8图生成；protect.py建立起始资产清单；
+verify_delivery.py只读复核完整身份/摘要；projection_breakdown.py分解每关系的投影损失。
+README、IMPLEMENTATION_REPORT、F0_SUMMARY、F1_BINDING_CHANGELOG、
+ORACLE_SOURCE_REVIEW、F2_RELATION_SPEC/F2_LIMITATIONS、F3_E3_READINESS、
+F4_MODEL_INTEGRATION及JSON/CSV/日志记录交付证据。
+
+没有实现多继承C3、import解析、复杂覆盖、modifier或跨函数摘要。
+接口/库基类、带构造参数、循环/不唯一基类、冲突状态声明仍回退；
+不是删除原B1/state保护来恢复函数。
+STATE_ACCESS_ORDER与CALL→WRITE不是STATE_DEF_USE，三事件模式仅留侧表。
+UNKNOWN调用不冒充EXTERNAL_CALL，也不进入确认调用模型边。
+
+**19.3 F0/F1全语料、版本证据与恢复量**
+
+名单来自原prepared manifest及封存paper_kfold任务折，逐文件SHA核验。
+合约级142重入/114访问控制；节点级71/57为各自子集。
+共256来源路径、254种唯一源码SHA；不能跨任务把重复源码当独立样本。
+完整函数比较6,552行=3,404+3,148，包含前后均失败的函数。
+
+| 任务 | 总函数 | Stage E支持 | Stage F支持 | 恢复 | EXACT事实前/后 |
+|---|---:|---:|---:|---:|---:|
+| 重入/合约 | 3404 | 1042 | 1316 | 274 | 10/17 |
+| 重入/节点 | 2045 | 670 | 899 | 229 | 5/8 |
+| 访问控制/合约 | 3148 | 939 | 1299 | 360 | 12/29 |
+| 访问控制/节点 | 1958 | 691 | 965 | 274 | 7/10 |
+
+重入恢复来源：状态继承126、原B1继承79、多pragma69。
+访问控制：状态继承268、B1继承2、多pragma90。
+合约级READ/WRITE：重入878/658→1248/903，访问控制155/158→241/189。
+按函数累计位置756→1041、226→316；不是全局唯一状态变量数。
+MAY事实合约级最终7/8；UNKNOWN读取1231/213。旧事实丢失0，原支持函数新增回退0。
+
+27个重入、16个访问控制源码能匹配已有SmartBugs版本记录。
+CSV文件、记录行、来源路径和源码SHA均核验；这不是本轮solc编译结果。
+其他源码保留pragma区间，多个pragma求交；宽区间不能证明builtin时仍UNKNOWN。
+require(foo())保留foo副作用；send/transfer/call及未知调用不删HAVOC；
+staticcall当前也采取保守全状态处理，不宣称完整只读摘要。
+
+F0语法文本先写后读候选重入441/访问控制407函数。
+候选不等于正确依赖。冻结Stage E在全语料已有22条EXACT事实，
+因此原7困难文件零状态边不代表整个语料。
+恢复后的原7文件仍63/315支持、状态EXACT事实0；不能声称难例已经解决。
+
+**19.4 复审修复与保留失败证据**
+
+发现已确认非内建用户函数revert()的revert_statement解析形式，
+旧状态层只处理参数而漏HAVOC，可能错误保留跨调用的写入来源。
+新test_nonbuiltin_revert_statement_is_opaque_effect_not_silent_pure先复现1 failed；
+Stage F.extract增加绑定保护：NON_BUILTIN追加UNKNOWN_CALL HAVOC，
+真内建终止及参数读取不变；缺绑定证据回退。旧Stage E源文件未覆盖。
+
+修复后45项Stage F测试通过，全语料重新运行。
+本批真实语料事实计数未变；不能因此忽略已复现的语义反例。
+review_regression_before.log / review_before.json / review_tests_after.log /
+review_correction.json完整保留。
+
+首次F1比较少列121个前后均文件前端失败的函数，图/样本一直保留。
+最终以F0全部函数身份补齐，F1_attempt_002/F3_attempt_002为接受版本，
+F1/F3_attempt_001保留，不覆盖或删除首次输出。
+
+**19.5 E3候选模型边与上下文增量**
+
+E3a=原固定E2+STATE_DEF_USE；
+E3b=E3a+STATE_ACCESS_ORDER+EXTERNAL_CALL_BEFORE_STATE_WRITE。
+8图独立存放F3_attempt_002/*_candidate.gpickle，未覆盖E2。
+
+| 任务 | E3a状态数据边 | E3b另加访问顺序 | E3b另加调用→写入 | E3a/E3b新增两层节点对 | E3a/E3b新增上下文目标 |
+|---|---:|---:|---:|---:|---:|
+| 重入/合约 | 6 | 847 | 547 | 1/1546 | 1/576 |
+| 重入/节点 | 3 | 829 | 547 | 1/1545 | 1/575 |
+| 访问控制/合约 | 11 | 33 | 0 | 17/17 | 12/12 |
+| 访问控制/节点 | 4 | 16 | 0 | 1/1 | 1/1 |
+
+两层节点对按实际适配图方向计算，不等于检测性能。
+已有两跳可达仍可能增加关系语义；新可达也不保证F1提升。
+
+所有原节点/ID/顺序/类型/标签/token/源码映射/CFG/CG/DATA_DEF_USE保留；
+剥除新关系后8图均等于E2指纹，off也等于E2。
+每条新边有源码SHA、函数、声明/事件和投影节点证据；同端点不同关系共存。
+
+事实与边数差异：重入合约17条EXACT事实，11缺端点，6证据→6边；
+重入节点8条，5缺端点，3边。访问控制合约29条，14缺端点，
+15投影证据按相同端点去重→11边；访问控制节点10条，5缺端点，5证据→4边。
+访问顺序另有同HCG节点事件合并损失；不靠最近行号猜测或新增节点补齐。
+
+重入合约714条同位置READ→CALL→WRITE结构候选、84不同位置、
+124未确认调用；不把这些重复可能很高的模式数当独立漏洞数。
+访问控制有254已确认外部调用事件，但本子集没有确认调用后的状态写入边。
+权限guard/modifier→敏感操作需要单独控制依赖规格，未偷偷加入本轮DDG。
+
+**19.6 Oracle、覆盖限制与HGT兼容性**
+
+原20项Oracle保留源SHA/AST身份重查，13子集完成、7回退；
+Codex逐项源码复核另记ORACLE_SOURCE_REVIEW。
+独立人工批准0、编译验证0。新增10类顺序正反例含同位置/不同位置/MAY、
+互斥分支、不可达后继、call配置、参数状态读、未知调用、无调用及HAVOC。
+部分同名builtin样例仅解析器健壮性，不等同目标Solidity合法程序。
+
+R buggy_18仍13/69支持：宽pragma/继承等阻断保留，新访问顺序候选8条，
+不是关键余额路径已经可分析。AC mapping_write实际是数组；onlyOwner仍回退。
+EXACT表示位置/别名精度，不表示所有路径必然来源于该写入。
+CFG结构可达不是SMT路径可满足，也不证明交易成功或漏洞可利用。
+
+原HGT核心未改。新adapter保留四种增强关系正向；8真实图DGL边数和schema检查通过。
+新initialization旁路扩展schema允许集合，数值算法沿用旧语义初始化；
+DATA_DEF_USE原案例逐张量相同。独立版本state-forward-semantic-paired-v1。
+没有使用已训练权重初始化E3。
+
+CPU合成HGT（三种新关系）relation_msg梯度L1分别15.386905、19.373989、3.987084，
+checkpoint重载输出逐元素相同；optimizer_steps=0。
+F4_initial_synthetic.pt是未训练初始化状态，不是best/last。
+8维为合成夹具，真实512维tokenizer输入未改变。
+hidden128/heads8/layers2每新canonical增加8208参数仅公式，不是全模型实测。
+
+**19.7 测试命令、结果与未执行事项**
+
+沿用mando环境和原TREE_SITTER_LIB_DIR；PYTHONDONTWRITEBYTECODE=1，
+OMP_NUM_THREADS=2、MKL_NUM_THREADS=2，没有依赖升级。
+在开发工作树：
+```bash
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/state/stage_f/tests
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/state scripts/DFG/tests scripts/DFG/experiments/tests tests \
+  -k 'not test_actual_prepared_inputs_form_exactly_thirty_paired_jobs'
+python -B scripts/DFG/experiments/audit/state_aware_ddg_stage_f/verify_delivery.py --validate-only
+```
+在原工作树：
+```bash
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/experiments/tests/test_formal_controller.py::test_actual_prepared_inputs_form_exactly_thirty_paired_jobs
+```
+45项定向通过；全量480 passed/1 deselected/31 warnings；原资源测试1 passed/4 warnings。
+合计481个不同测试通过、0失败、0跳过；定向不重复计数。
+警告来自已有distutils及NetworkX弃用。单独测试是原绝对资源路径要求，不是删除测试。
+verify_delivery验证输入/代码SHA、6552函数身份、8图SHA和已记录不变量。
+
+RTX3050Laptop4096MiB资源快照空闲2913MiB；未测完整配对模型显存峰值。
+未执行新solc、GPU模型短跑、优化器、正式训练、其他五类或多seed。
+没有新F1，不能认定DDG有效/无效。未对真实绑定误差率作独立ground-truth认证。
+
+**19.8 下一步门槛与本轮停止点**
+
+F0/F1/F2/F3已生成可复核结果，F4只完成合成兼容性与接口清单。
+正式入口未迁移，不能直接用旧formal命令读取STATE_DEF_USE以免错误反射。
+后续需新版本输入/关系/初始化/checkpoint绑定，真实全图前向反向显存预检，
+独立Oracle审核，以及针对重入顺序模板重复、访问控制guard语义的分开审计。
+通过后再预先固定小折E2/E3a/E3b对照，完整K折另行决定。
+本轮不调整标签、不换折、不删样本、不扩展反向边或自动训练。

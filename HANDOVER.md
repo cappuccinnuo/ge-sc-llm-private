@@ -1345,3 +1345,59 @@ Earlier "not committed/pushed" statements describe the pre-archive delivery.
 Generated E3a_selected graph binaries remain local with their recorded manifest
 hashes. No training plan or historical seal is rewritten. Frozen training
 verification remains in the original main worktree using the read-only reporter.
+
+
+#### 2026-10-14：Stage F 全语料覆盖恢复与状态顺序候选（修改 AI：Codex）
+
+接续Stage E归档，详细新增文件、原因、失败证据及命令见
+docs/training_changes_2026-10-07.md 第19节。
+
+- 实际新代码在开发工作树 ge-sc-llm-ddg-v11/scripts/DFG/state/stage_f/；
+  报告入口 scripts/DFG/experiments/audit/state_aware_ddg_stage_f/README.md。
+  原工作树只追加文档，旧scalar/Stage E/HGT/tokenizer/训练器及E0/E1/E2/标签/折均未修改。
+- 完成两类全部冻结源码盘点：256路径/254源码SHA，合约142+114，节点71+57为子集。
+  Stage E全语料原有22条EXACT事实，不能用此前7困难文件零增量代表全体。
+- 受限同单元单继承链、可见性及多pragma交集恢复重入274、访问控制360函数；
+  合约支持1042→1316、939→1299。27/16源码使用来源SHA一致的已有版本记录，
+  没有任意选择或执行solc；多继承、modifier、数组等仍回退。
+- 复审发现用户revert()解析为revert_statement时状态层遗漏HAVOC；
+  新回归先1 failed，再仅修Stage F适配器后通过。Stage E冻结源码保留。
+  首次比较遗漏121个前后均前端失败的函数行，已补齐6552身份，图样本一直保留。
+- 接受F0_attempt_001、F1_attempt_002、F3_attempt_002，旧attempt及失败日志保留。
+  新增8张独立候选图，不覆盖E2。E3a加状态Def–Use；E3b另加状态访问/调用写入顺序：
+
+| 任务 | E3a状态边 | E3b另加访问顺序/调用→写入 | E3b新增两层节点对 |
+|---|---:|---:|---:|
+| 重入/合约 | 6 | 847/547 | 1546 |
+| 重入/节点 | 3 | 829/547 | 1545 |
+| 访问控制/合约 | 11 | 33/0 | 17 |
+| 访问控制/节点 | 4 | 16/0 | 1 |
+
+- 原节点/属性/标签/token/基础关系均保留，off等于E2，DGL不反射新关系；
+  每条边可追溯源事件。语义事实→投影证据→去重边分别记录，缺emit等锚点不猜行号。
+- 原7困难文件仍63/315函数支持，状态EXACT事实仍0；buggy_18宽版本/继承等限制没有消失。
+  UNKNOWN调用及READ→CALL→WRITE复合模式仅侧表；结构可达不是路径可行/漏洞证明。
+  权限guard/modifier的控制依赖另行验证，不冒充状态DDG。
+- 20旧Oracle重查13支持/7回退；新增45项Stage F测试。完整回归481个不同测试通过，
+  0失败/0跳过；旧资源绝对路径测试在原工作树单独运行。独立人工批准0、solc验证0。
+- 原HGTLayer合成CPU图新关系梯度非零、输入绑定/重载输出一致、共同初始化等价；
+  无优化器。F4_initial_synthetic.pt为未训练夹具状态，不是best/last。
+  原正式入口尚未迁移，实际配对GPU峰值未测，不能拿旧训练命令直接跑候选。
+- 13,579项起始资产完整保护及四文档字节前缀检查见protected_after.json。
+  未提交推送、未改seal、未训练或产生新F1。先独立核验Oracle与候选语义、
+  再迁移新入口并测真实图资源，之后才决定小折受控验证，不自动跑完整K折。
+
+
+### Stage F Git archive follow-up (2026-10-14)
+
+Stage F implementation and text audit evidence are saved on
+`ddg-v1.1-correctness`; main receives only documentation.
+Earlier delivery statements about no commit/push are historical.
+Candidate graph binaries, pickle caches and synthetic checkpoint assets stay
+local. Keep old plan/seal and frozen training code unchanged.
+After archival commits, validate the new delivery in the development worktree:
+~~~bash
+python -B scripts/DFG/experiments/audit/state_aware_ddg_stage_f/verify_delivery.py --validate-only
+~~~
+Use the original main worktree's read-only Stage C reporter for old training
+results. Neither command trains models; both require the relevant local assets.
