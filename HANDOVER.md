@@ -1317,3 +1317,31 @@ Use the v1.1 worktree for the new code and the original main worktree for frozen
 experiment verification. Do not merge the fixes into a frozen batch or rewrite
 its plan/seal. E2 graph binaries remain local; their provenance hashes are
 recorded in the v1.1 audit.
+
+
+#### 2026-10-14：Stage E 状态 DDG 原型与真实样本审计（修改 AI：Codex）
+
+本条接续v1.1/D3设计及Git归档说明。详细修改与原因见docs/training_changes_2026-10-07.md第18节。
+
+- 实际新代码在隔离工作树 /home/zhao/SmartContract/ge-sc-llm-ddg-v11 的 scripts/DFG/state/，原工作树的DDG/HGT/tokenizer/训练器不修改。新审计入口为隔离工作树 scripts/DFG/experiments/audit/state_aware_ddg_prototype_v1/README.md。
+- 本轮实现独立StateFunctionIR、声明/作用域状态位置、简单mapping键、READ/WRITE/RMW、ENTRY_UNKNOWN/HAVOC、强弱更新、分支/循环到达定义及v1.1精确投影。分析器不接收漏洞标签/预测，不按样本名定制；不增加模型节点。
+- 本轮仅重入3个、访问控制4个困难文件。315函数中63完成子集分析、252回退；真实STATE_DEF_USE事实和新增模型边均0。四个E3a_selected候选图与E2字节SHA相同，无新增两层上下文。不能把候选称为全语料E3完成版。
+- 零增量来自可分析样本入口读→调用→更新模式及继承/版本/modifier等覆盖限制；204个回退与继承绑定有关，不能证明状态DDG无用。32条状态访问顺序、15条外部调用到写入和15条未确认调用到写入仅留侧表，未混作数据边。
+- 原9个真实Oracle+原5个合成+新增6个通用规格共20个：13子集分析、7预期回退；合成产生17事实（16EXACT/1MAY）、15物化边。独立人工批准0、编译验证0；解析通过不等于Solidity认证。
+- 本版拒绝所有继承/导入；modifier、数组、嵌套mapping、storage引用、跨函数/跨交易等未支持。键不确定不强KILL，调用TOP较保守，CFG witness不证明路径谓词可满足。不得声称完整Solidity DDG。
+- 原加载器会反射新STATE_DEF_USE；本轮只新增显式model_adapter，合成HGT已验证正向canonical读取及非零梯度。旧formal训练入口尚未迁移，不能直接拿旧命令跑候选图。
+- 新状态测试56项通过，连同既有DDG/实验/项目回归共436个不同测试通过，0失败/0跳过。绝对资源测试在原目录单独运行。复审补emit参数重复遍历及未知事件kind保护，保留2项修复前失败证据及所有旧attempt。
+- 最终审计使用results_attempt_002；attempt_001保留。原训练归档只读复核4任务complete/0pending，首次输出目录已存在的拒绝记录也保留。旧资产保护与四文档追加见protected_before/after、documentation_update。
+- 未下载solc、未升级依赖、未提交/推送、未训练E2/E3、未跑其他五类，无新增F1。下一步先核验Oracle、解决有证据的覆盖瓶颈或独立访问/调用顺序语义，再决定是否具备进入正式训练的条件。
+
+- Stage E资产核验补充：扩大扫描发现203个未纳入起始SHA清单的旧smoke路径，首次requires_review记录保留；不能以“未列入清单”认定是新增。最终protected_after_verified.json按已完整建立基线的formal/旧审计目录核验，清单外文件明确保留前后比较覆盖限制。
+
+
+### Stage E Git archive follow-up (2026-10-14)
+
+Stage E source, tests and text audit records are saved on
+`ddg-v1.1-correctness`; main receives documentation only.
+Earlier "not committed/pushed" statements describe the pre-archive delivery.
+Generated E3a_selected graph binaries remain local with their recorded manifest
+hashes. No training plan or historical seal is rewritten. Frozen training
+verification remains in the original main worktree using the read-only reporter.

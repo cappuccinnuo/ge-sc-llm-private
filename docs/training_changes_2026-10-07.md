@@ -1354,3 +1354,112 @@ D2_CONTEXT_REVIEW、D2_CASE_AUDIT、D2_LABEL_AMBIGUITY、D2_MISSING_DEPENDENCIES
 后续只有在正确性、Oracle、边来源/未知覆盖和新schema验收后，才应另建E2/E3训练计划。本轮结束于新图审计和设计报告，不能声称F1提高。
 
 D2最终完整性：918项源码字节跨度与121项原输入SHA核验通过。D3交付9个真实函数候选Oracle和5个合成规格；独立人工批准和编译验证数均为0。
+
+
+## 18. 2026-10-14：Stage E 通用状态 DDG 旁路原型与真实样本语义验收（修改 AI：Codex）
+
+**18.1 本轮授权、目标及冻结边界**
+
+本条接续第16节诊断、第17节v1.1修复/D3设计和后续Git归档说明。此前变化已记录，不改写其历史结果。本轮用户新附件明确授权E-A、E-B、E-C实施，E-D只规划；用户最新要求优先重入/访问控制，不要求本轮七类全量。设计规则仍面向通用源码语义，禁止按漏洞类别、标签、文件名或预测定制连边。
+
+实现位于已有隔离工作树 /home/zhao/SmartContract/ge-sc-llm-ddg-v11，分支 ddg-v1.1-correctness，起始HEAD 93c9684302aa964e37ec8ff3342c9f2dafcd16ae。原工作树 /home/zhao/SmartContract/ge-sc-llm 起始HEAD 8c7a2fc8307fc920330d8401ad1405afb5dc81f5。本轮无提交/推送，不修改原标量DDG、HGT、tokenizer、训练器、作者标签、冻结K折/初始化/早停或E0/E1/E2图。
+
+新增核心集中在 scripts/DFG/state/，新审计目录为隔离工作树的 scripts/DFG/experiments/audit/state_aware_ddg_prototype_v1/。两工作树只对已有training_changes及HANDOVER追加同一记录，旧正文按字节前缀保护。第一次模块写入曾因自动审查沿用旧D3“只设计”限制而被拒；核对本轮附件的实施授权后重新提交获准，拒绝时无写入，没有绕过审批。
+
+**18.2 新增文件、接口和修改原因**
+
+| 文件（相对scripts/DFG/） | 新增内容与原因 |
+|---|---|
+| state/__init__.py | state-aware-prototype-v1及STATE_DEF_USE，与原标量版本隔离 |
+| state/models.py | DeclarationRef、StateLocation、StateEvent、StateFunctionIR、StateFact、StateAccessSummary、StateAnalysisResult；不改原FunctionIR |
+| state/locations.py | sourceSHA/声明/作用域绑定，状态根、简单mapping键、EXACT/MAY/NO_ALIAS；不按同名匹配 |
+| state/access.py | READ/WRITE、复合更新、环境读、调用配置、外部/未知调用HAVOC；模糊求值顺序整函数回退 |
+| state/reaching_definitions.py | ENTRY_UNKNOWN、强弱更新、分支union、循环fixpoint、KILL、可达性及逐事实CFG witness |
+| state/analyzer.py | 复用原CFGBuilder和SymbolTable，独立状态Side Table，函数回退不发布部分结果 |
+| state/projection.py | 复用v1.1精确Projector，只物化EXACT位置事实，保护E2全部节点和旧关系 |
+| state/model_adapter.py | 显式旁路保持STATE_DEF_USE正向；不改旧reflection或formal训练入口 |
+| state/audit.py | 访问/调用顺序侧表，以及原两层CFG/CG/E2上下文之外增量统计 |
+| state/tests/ | 5个测试文件，共56项；语义、投影、不变量、DGL/HGT和审计 |
+| 新审计目录run_stage_e.py | 核验来源SHA、Oracle、7个真实文件及独立候选图，禁止覆盖旧attempt |
+| 新审计目录oracle_review.py | 手写预期与observed输出分离，保留未独立批准状态 |
+
+StateReadEvent/StateWriteEvent复用不可变StateEvent并以校验后的kind区分。所有新增位置、事件和未知来源仅为中间分析对象，不添加模型变量节点。
+
+**18.3 实际语义范围及保守策略**
+
+支持同合约可明确绑定的直接状态标量及简单mapping标量键/值。键证据限于有类型的范围内常量、同调用帧未遮蔽msg.sender、类型匹配且整函数未写入的值参数。不同根或不同常量键可证明不别名；不同参数名不证明键不同。重赋值参数/局部键/复杂键UNKNOWN，不用静态定义ID误判循环中运行时值不变。
+
+状态位置是源码声明抽象，不是精确EVM slot。msg.sender、tx.origin、block.timestamp等单列环境读取。数组不作为mapping，参数owner不作为状态owner。当前所有继承/导入上下文均回退，modifier执行、数组、嵌套mapping、storage引用、assembly及跨函数/跨交易摘要未实现。
+
+确定单一位置写入强覆盖；MAY位置弱更新。分支union和循环固定点沿原语义CFG计算，无传递闭包。无法投影的写入仍参与KILL。不支持函数保留原图和标量DDG，不提交不可信状态事实。
+
+外部或未知调用使用HAVOC TOP；TOP包含旧值可能保留及其他来源，不宣称每个调用一定改状态。staticcall当前也保守TOP，属于精度限制。宽pragma不能确定require/assert内建可用性时按未知调用记录，不选取伪造编译版本。原B1终止调用绑定保护不变。.call.value(amount);独立配置不等于调用已发生。
+
+STATE_DEF_USE只物化EXACT位置的may-reaching事实；MAY别名事实留侧表。EXACT不是所有路径必执行。CFG witness证明结构可达且无强覆盖阻断，不证明分支谓词真实可满足。STATE_ACCESS_ORDER与EXTERNAL_CALL_BEFORE_STATE_WRITE/UNKNOWN_CALL_BEFORE_STATE_WRITE仅侧表，CONTROL_DEPENDENCE未实现。
+
+**18.4 Oracle核验、复审发现与修复**
+
+原9个真实函数核验源码SHA、完整函数UTF-8跨度、合约/状态声明、AST和原HCG node_id；原5个合成规格加6个通用规格，共20个自动化预定子集行为检查：13完成分析，7按预先声明的限制回退。独立人工批准0、solc编译验证0；不将Tree-sitter解析等同合法Solidity认证。
+
+合成Oracle共17条状态事实（16EXACT、1MAY），15条状态模型边（1条EXACT自身端点过滤）。原9个真实Oracle均无新增状态边。根目录ORACLE_EXPECTATIONS.json手写语义预期与observed字段分开，不从标签或预测生成Oracle。
+
+复审发现新增状态emit处理递归遍历参数，可能重复读取并错误触发求值顺序回退；另外未知事件kind可能被静默视为空操作。新增同一组两项回归测试：修复前2 failed，改为只处理emit直接参数、拒绝未知kind后通过。测试SHA保持，未删除或放宽断言。记录见review_correction.json和review_regression_before.log。
+
+最终源码审计重跑为results_attempt_002，旧results_attempt_001原样保留；两次均为源码/图审计，不是模型训练重试。
+
+**18.5 真实样本覆盖与零增量的解释**
+
+| 集合 | 文件 | 函数 | 完成子集 | 回退 | 状态READ/WRITE | 未知来源记录 | 具体状态事实/新状态边 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 重入 | 3 | 196 | 35 | 161 | 28/20 | 28 | 0/0 |
+| 访问控制 | 4 | 119 | 28 | 91 | 6/3 | 6 | 0/0 |
+
+文件为重入buggy_18/27/36.sol，以及访问控制mapping_write.sol、buggy_18/26.sol、arbitrary_location_write_simple.sol。只分析这些预选困难文件，不能解释为全语料覆盖。315函数共63完成子集、252回退；其中204与继承绑定有关（原B1与状态层均有保护），其他为版本、modifier、数组及非标量边界。
+
+四个E3a_selected_contract/node.gpickle与对应E2的SHA逐字节相同。真实语义事实在投影前已为0，投影缺失端点0；因此本次零增量不是投影丢失引起的。真实新增canonical、两层上下文和条件参数增量全部0。
+
+正确语义允许入口读余额→调用→清零没有函数内Def–Use；不能把清零反向连到之前读取来增加边。同时回退函数尚不能判断全部依赖，不能据此断言状态DDG对两个漏洞无效。侧表得到32条状态访问顺序、15条已确认外部调用到写入、15条未确认调用到写入；这些没有加入模型。
+
+**18.6 HGT兼容性、原训练入口边界**
+
+确认原sco_models/graph_utils.reflect_graph只保留DATA_DEF_USE方向，若直接送入STATE_DEF_USE会补反向。新model_adapter显式保留状态正向，基础关系反射与标量方向不变；原加载器/训练器没有改动。
+
+合成图测试已验证新canonical注册、HGT前向和非零关系梯度；不只是存文件。未运行optimizer/正式训练/GPU。原formal入口尚未迁移，不能拿旧训练命令直接跑E3候选。每个新canonical在hidden128/heads8/layers2条件下8208参数的公式仅用于审计；本次真实增量0，不是新的完整模型实测。
+
+**18.7 测试命令、结果与失败记录**
+
+复用mando环境及已有TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64，PYTHONDONTWRITEBYTECODE=1，OMP_NUM_THREADS=2，MKL_NUM_THREADS=2。
+
+隔离工作树：
+```bash
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/state/tests
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/state/tests scripts/DFG/tests scripts/DFG/experiments/tests tests \
+  -k 'not test_actual_prepared_inputs_form_exactly_thirty_paired_jobs'
+```
+
+第一条56 passed/4 warnings；第二条435 passed/1 deselected/31 warnings。原绝对资源测试在原工作树单独执行：
+```bash
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/experiments/tests/test_formal_controller.py::test_actual_prepared_inputs_form_exactly_thirty_paired_jobs
+```
+1 passed/4 warnings。合计436个不同测试通过、0失败、0跳过；定向重跑不重复计数。警告来自现有distutils/NetworkX弃用，不进行依赖升级。
+
+run_stage_e.py --output <全新目录>完成最终源码审计约267.16秒；完整命令及源码SHA在新审计目录。原只读report_stage_c.py重算4任务complete/0pending：第一次因预建输出目录触发拒绝覆盖，日志保留；改用全新archive_check_002后通过，未改报告器。
+
+没有执行solc验证（无本轮已核准适配编译器）、独立人工Oracle批准、E2/E3训练、七类全量、旧训练入口迁移或新增反向关系。没有新F1。
+
+**18.8 交付、资产保护及下一步**
+
+完整报告入口：新审计目录README.md / IMPLEMENTATION_REPORT.md。位置语义、Oracle、alias/HAVOC、访问/投影CSV、增量CSV、INPUT/GRAPH_MANIFEST、REGRESSION_RESULTS与两类后续计划均已交付。accepted attempt为002。
+
+protected_before/after保护原有12021项输入/源码/归档文件，授权例外仅两仓库四个文档追加，并核验原字节前缀；实际结束核验以protected_after为准。原HEAD、冻结图/标签/token/模型/plan/seal及v1.1旧审计不覆盖。
+
+下一步先完成Oracle独立语义核验，再按证据处理版本/绑定与受限继承覆盖瓶颈，或独立验证已经出现的访问/调用顺序；权限guard的modifier/控制依赖另立项。只有真实信息增量、全语料不变量及正式加载器/初始化绑定验收通过，才考虑E2/E3新计划。本轮停止，不为了提高F1改标签、扩模型或启动60次训练。
+
+
+**18.9 收尾资产审计范围补记**
+
+首次结束扫描误将整个artifacts树都视为已建立起始SHA基线，因203个旧smoke路径未在protected_before中出现而触发requires_review；不是发现内容SHA变化。保留首次protected_after.json及其拒绝结果，不补造起始快照。
+
+复核上一轮protect_assets.py及本轮清单后，最终按完整建立基线的两个formal目录、旧诊断目录及v1.1旧审计目录检查新增文件；扩大扫描的203个路径单列为起始清单外文件，不能给出其本轮前后字节一致性结论，也不将其冒称本轮新增。最终核验见protected_after_verified.json：12021项既有文件核验、四份授权文档前缀、冻结HEAD及规定保护目录均单独报告。本补记没有改变业务代码、图或任何测试断言。
