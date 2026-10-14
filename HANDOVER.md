@@ -1230,3 +1230,27 @@ Model weights (.pt), prepared graph/data assets, process markers, locks and
 temporary test directories stay local. A fresh clone alone cannot perform
 full artifact verification without those local assets. This is a code/results
 archive, not a replacement for a full experiment backup.
+
+
+## DDG diagnostics archive (2026-10-13)
+
+New diagnostic code and results are under
+`scripts/DFG/experiments/audit/ddg_diagnostics_v1`.
+This is frozen-checkpoint analysis, not a new training run.
+Historical input_audit/final_drift records describe the completed diagnostic
+session at its original HEAD; do not rewrite them after an archive commit.
+
+Post-commit read-only diagnostic verification (requires local raw assets):
+~~~bash
+python -B -m scripts.DFG.experiments.audit.ddg_diagnostics_v1.aggregate_results \
+  --pilot-output pilot_v2 --remaining-output remaining --validate-only
+~~~
+The completed training archive is verified separately by the Stage C reporter
+documented above. Neither command requires rewriting the training plan.
+
+The four large raw observation categories (message_norms.csv,
+zero_message_norms.csv, rewiring_audit.json, representation_changes.csv) remain
+local at every directory level. Their paths, sizes and SHA-256 digests are in
+`docs/ddg_diagnostics_v1_local_assets.json`. GitHub contains scripts, reports,
+predictions and other text evidence. A fresh clone lacks the raw observations,
+weights and graph inputs needed for full verification.

@@ -1,0 +1,16 @@
+Using backend: pytorch
+START reentrancy_author_contract_fold0
+Traceback (most recent call last):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/audit/ddg_diagnostics_v1/run_diagnostics.py", line 298, in <module>
+    if __name__=='__main__':main()
+  File "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/audit/ddg_diagnostics_v1/run_diagnostics.py", line 286, in main
+    e0,reference=replay_variant(job,'E0',out,args.device,args.stage=='pilot')
+  File "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/audit/ddg_diagnostics_v1/run_diagnostics.py", line 126, in replay_variant
+    torch.cuda.reset_peak_memory_stats(device)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/torch/cuda/memory.py", line 238, in reset_peak_memory_stats
+    return torch._C._cuda_resetPeakMemoryStats(device)
+RuntimeError: Invalid device argument.
