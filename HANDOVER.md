@@ -1401,3 +1401,56 @@ python -B scripts/DFG/experiments/audit/state_aware_ddg_stage_f/verify_delivery.
 ~~~
 Use the original main worktree's read-only Stage C reporter for old training
 results. Neither command trains models; both require the relevant local assets.
+
+#### 2026-10-14：Stage G 接入与短检查通过，正式单折进行中（修改 AI：Codex）
+
+- 接续Stage F；新代码只在开发工作树ge-sc-llm-ddg-v11/scripts/DFG/experiments/e23_pilot/。原HGT/tokenizer/DDG算法、标签、图、折、原训练代码不变。详细变更见training_changes第20节。
+- E2=v1.1标量DDG；E3a再加状态Def–Use；E3b再加状态访问/调用写入顺序。全部来自冻结D1/F3图，未重新构图或覆盖旧图。
+- 有限审核20 Oracle、17状态边和16抽样顺序边，无已确认新阻断；独立人工批准/solc验证仍0。17状态边12在构造器、5在定价函数；AC fold0 val无STATE边，不能忽略覆盖限制。
+- 新adapter继承原forward/HGT，原训练/保存函数code object复用，仅扩展关系与绑定处理。CPU三变体初值链E2→E3a→E3b共享语义参数相同；真实E2四任务与原分类器前向逐位一致。
+- 591个不同测试通过；旧30配对折归档只读验收通过。新12次三轮smoke全部成功、0重试，50步调度不缩短，新增关系有实际训练梯度，best/last重载一致。
+- GPU串行最高smoke allocated/reserved约2.646/2.811GiB，整卡曾仅余17MiB；用户确认关闭或没有其他GPU程序。发生OOM停止，不改参数或CPU回退。
+- 新输出artifacts/paper_kfold/e23_pilot_v1/。本条时正式12次fold0刚开始，尚不能称全部完成；最终结果另追加。paper_kfold同val选模/评分，CV validation；节点仍HCG节点口径。
+- 严格best最低val loss，last另报；失败保留、显式重试，成功哈希复用；互斥锁防重复控制器。没有自动启动剩余78次、nested/narrow/新模块。
+- HGT跨关系mean本身可能改变表示，不能将全部E3差值视为依赖语义贡献；覆盖旁表coverage_note记录直接目标与val文件。完整K折和机制对照另行决定。
+
+
+#### 2026-10-14：Stage G 正式12次fold0已完成并验收（修改 AI：Codex）
+
+- 本条接续前一条“进行中”记录；正式控制器返回0，12次smoke+12次full均attempt_001完成，0失败/重试/OOM。只运行固定fold0，未启动其余78次。
+- 新入口/报告在开发工作树ge-sc-llm-ddg-v11/scripts/DFG/experiments/e23_pilot/；新产物artifacts/paper_kfold/e23_pilot_v1/。详细变更和最终验收见training_changes第20.7–20.10节、IMPLEMENTATION_REPORT.md。
+- 主结果严格best最低val loss，CV validation，节点按HCG节点评分；没有改DDG/HGT/tokenizer/标签/折/初始化公式/训练数值规则。
+
+| 任务 | E2 BF/MF | E3a BF/MF | E3b BF/MF |
+|---|---:|---:|---:|
+| 重入合约 | 88.8889 / 89.6057 | 88.8889 / 89.6057 | 88.8889 / 89.6057 |
+| 访问控制合约 | 90.0000 / 91.1538 | 90.0000 / 91.1538 | 90.0000 / 91.1538 |
+| 重入节点 | 99.7071 / 99.5997 | 99.6487 / 99.5195 | 99.6491 / 99.5191 |
+| 访问控制节点 | 99.2883 / 99.3306 | 99.4652 / 99.4979 | 99.4652 / 99.4979 |
+
+- 合约级预测不变；重入E3b对E2修复1但新增2个节点错误；访问控制增强仅纠正mapping_write.sol:12964一个误报。AC val无STATE_DEF_USE，不能把该单点变化归因于验证节点新增状态依赖。
+- last独立汇总，AC节点E2/E3a/E3b Buggy-F1为99.4652/98.5866/96.7185，未替换主best。不是稳定明显提升，也不是状态依赖无效的证明。
+- 591个不同测试全通过；四任务新旧E2 CPU前向一致；所有checkpoint重载一致。独立指标/180正式产物SHA验收通过；12对smoke/full未训练初值及前三轮完整历史一致。
+- 13710项旧资产验收通过，13706完全未变、4授权文档只追加；6个旧完整目录无增删、HEAD不变。文档phase2另核验原前缀。无提交推送。
+- STATE边仍极少且主要构造器/定价；HGT跨关系mean存在结构影响，单fold/同val选模/节点天花板限制结论。独立人工批准0、solc验证0，不是完整语义认证。
+- 当前封存计划只含12次；其余78次需下一批独立计划/初始化/逐折支持与资源核验，不能改旧seal或直接把现有run说成全K折入口。本轮到此停止。
+
+
+### Stage G Git archive follow-up (2026-10-14)
+
+Stage G code and text results are archived on ddg-v1.1-correctness; main
+receives documentation only. Earlier no-commit statements describe delivery
+before archival. Original plan/seal and runtime source remain unchanged.
+
+After a Git commit, the original pilot control verify/summarize commands still
+require the exact training HEAD. For completed archives, run in the development
+worktree instead:
+~~~bash
+python -B -m scripts.verify_e23_archive
+~~~
+This read-only verifier requires descendant Git history, unchanged runtime and
+frozen input hashes, and all 12 smoke plus 12 full successful receipts. It reuses
+the original per-fit integrity and metric checks, without bypassing training
+guards or loading a training worker. Weights, initial states, graph binaries and
+process markers stay local; a fresh clone alone cannot run full verification.
+Use the original main worktree's Stage C reporter for the old training archive.

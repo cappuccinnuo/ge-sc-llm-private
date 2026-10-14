@@ -1652,3 +1652,228 @@ F0/F1/F2/F3已生成可复核结果，F4只完成合成兼容性与接口清单�
 独立Oracle审核，以及针对重入顺序模板重复、访问控制guard语义的分开审计。
 通过后再预先固定小折E2/E3a/E3b对照，完整K折另行决定。
 本轮不调整标签、不换折、不删样本、不扩展反向边或自动训练。
+
+## 20. 2026-10-14：Stage G 真实 E2/E3a/E3b 接入及固定单折试验（修改 AI：Codex）
+
+**20.1 本轮授权、版本与执行边界**
+
+接续第17节正确性修复、第18节状态原型、第19节Stage F及其Git归档说明；历史正文和封存结果不改写。本轮用户Stage G附件授权有限语义审核、实际模型接入、四任务三变体各3轮短检查，以及通过门槛后的12次正式fold0拟合。完整K折另有78次，不在本轮授权范围内。
+
+实际开发工作树 /home/zhao/SmartContract/ge-sc-llm-ddg-v11，分支 ddg-v1.1-correctness，HEAD c311c93927138f3fab3aab94b9afa6e63c90269e；原工作树 /home/zhao/SmartContract/ge-sc-llm，HEAD 16bcf2d0a786b5448c1ed9e133922e1e82611167。本轮不pull、reset、commit或push。原工作树只追加两份文档；已有其他未跟踪内容保留。
+
+新增入口 scripts/DFG/experiments/e23_pilot/；独立输出 scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/。不改scalar/Stage F构图、HGT、tokenizer、标签、冻结K折、原训练脚本、旧图或旧权重。初始资产保护清单13710项，含原历史实验与审计树；最终结果后另做逐项核验。
+
+E2=作者固定HCG/标签、512维CodeT5p-770m tokenizer IDs及v1.1修复标量DDG；E3a只在E2加Stage F已生成的STATE_DEF_USE；E3b再加STATE_ACCESS_ORDER、EXTERNAL_CALL_BEFORE_STATE_WRITE。顺序边不是Def–Use或漏洞证明。本轮不重新运行语义构图，不新增反向关系。
+
+**20.2 新增文件、关键实现及调整理由**
+
+| 新文件（相对e23_pilot/） | 实现及原因 |
+|---|---|
+| __init__.py | 实验e23-paper-pilot-v1，接入版本、三变体名单，与paper协议版本分开 |
+| model.py | 两个原分类器的inside_token构造旁路，显式使用Stage F正向适配；继承原forward/HGTLayer，不重写模型计算；深查schema/端点/行顺序/特征/标签；CPU共同初始化与设备移动 |
+| runtime.py | 复用原文件监督/节点mask；只替换图schema反射策略及扩展四关系梯度审计，区分无train支持与接入异常 |
+| checkpoint.py | 原保存/重载函数的相同code object，局部绑定处理器扩展新协议/关系/初始化身份；不修改原模块全局变量 |
+| training.py | 复用原fit_variant同一code object，替换本入口checkpoint/梯度处理器；增加单模型资源采样、参数更新、时间和停止原因记录，不改变优化器/损失/调度/选模 |
+| inputs.py | 从D1/F3及原任务manifest取得冻结图、标签、source/tokenizer SHA、fold0与实际配置；逐节点不变量、基础多重边/特征/文件划分验证 |
+| prepare.py | CPU先完成四组三变体全部未训练初值封存，验证真实E2与原分类器前向逐位一致；记录监督行、schema及支持量 |
+| worker.py | 每进程一个GPU模型，加载本任务未训练state，实测并核对环境；运行后记录输入绑定、产物SHA和完成收据 |
+| control.py | 新plan/seal、代码/输入漂移检查、严格12任务顺序、所有smoke门槛、fcntl互斥、成功复用及显式失败重试 |
+| report.py | 独立从冻结E2/标签恢复验证人口、重算混淆矩阵/F1、核验最低loss best及产物；best/last及三种对比分开输出 |
+| tests/test_model.py | 22项模型前向/方向/canonical/共同初值/漂移检查 |
+| tests/test_training_integration.py | 18项原循环数值对齐、mask监督、梯度、early-stop/checkpoint绑定检查 |
+| tests/test_control.py | 18项互斥、目录缺失的失败sidecar、明确重试、成功复用/冲突拒绝检查 |
+| tests/test_report.py | 26项统计、伪造/错位预测、best选择、smoke混入、重复成功等拒绝检查 |
+| tests/test_inputs.py | 20项含四任务真实输入与标签/类型/特征/划分/跨文件边/哈希负向检查 |
+| review/ | 20 Oracle与33条边证据的有限复核脚本、6项审核器测试、源码片段、SHA及review_manifest |
+| README.md | 实际可用入口、冻结规则、恢复和限制 |
+
+旧loader会把新关系反射、旧checkpoint只接受原初始化版本，故采用局部旁路；未放宽旧入口或把E3数据直接交给旧loader。训练循环使用FunctionType复制原函数code object并替换局部globals字典；测试确认原globals未被猴子补丁修改。真实E2四任务初始权重、特征、端点、节点行与eval前向均逐位等价。
+
+三变体初始化采用未训练E2→E3a→E3b链条。分别独立E2→E3a与E2→E3b会因新关系参数bank形状不同，不能保证共享STATE_DEF_USE切片相同；链条确保E2共有参数及E3a/E3b共有状态参数按语义一致。数值pair算法沿用Stage F，三变体组织单独记录state-forward-semantic-paired-v1/triple-chain-v1；不是使用训练权重暖启动。
+
+controller预审修复“worker建目录前失败只留下sidecar、下次未识别”的执行记录问题：按attempt_NNN的目录和sidecar归并，编号取最大已有值+1；默认拒绝重试，显式指定任务/变体才允许新attempt。使用不删除的fcntl锁文件避免双进程运行。停止原因额外记录patience与epoch上限是否同时触发，只改记录不改停止规则。
+
+**20.3 冻结任务、图与训练设置**
+
+| 任务 | 文件数 | 节点 | E2边 | E3a增加STATE | E3b再加ORDER/CALL |
+|---|---:|---:|---:|---:|---:|
+| 重入合约 | 142 | 18312 | 22828 | 6 | 847/547 |
+| 访问控制合约 | 114 | 13432 | 19570 | 11 | 33/0 |
+| 重入节点 | 71 | 12036 | 13604 | 3 | 829/547 |
+| 访问控制节点 | 57 | 7710 | 11676 | 4 | 16/0 |
+
+四任务验证人口分别29文件(15正)、23文件(11正)、1346节点(855正)、600节点(282正)。节点预测按原HCG节点计分，不是去重源码行F1。作者节点标签与对应图级JSON全部冻结，不混narrow或公共CSV重建标签。
+
+主协议保持paper_kfold/ddg-paper-kfold-v1，完整固定任务图前向；train监督更新，val loss选best/早停，同val评分，结果明确为CV validation。原5/10折清单仅选预先指定fold0，不重新划分或挑折。seed1，构造seed合约11000/节点10000，pair+77，每变体fit前重置+1000000。
+
+hidden128、layers2、heads8、dropout0.2、use_norm、inside_token不变。合约initial/max LR=0.0005/0.01、weight_decay=5e-6；节点0.0002/0.005、weight_decay=0。Adam、unweighted CE、50步OneCycle、cycle_momentum=true、final_div_factor=1不变。patience7/delta0.001；best仍严格最小val loss，delta只影响patience参考，不改按F1选模。last独立辅助。
+
+smoke最大3epoch但调度仍50步；full最大50。每个smoke/full从同一未训练权重独立开始，不用smoke最后权重继续训练。已注册但train未出现关系允许预测并审计，错误字典/未注册/输入不一致仍拒绝；评分不创建参数，E2没有空状态关系占位。
+
+**20.4 有限语义复核与覆盖解释**
+
+新review复核全部17条合约图STATE_DEF_USE，以及seed1分层选择8条STATE_ACCESS_ORDER、8条CALL→WRITE（分别8函数/模板，含3/5个分支案例），并检查20个已冻结Oracle来源SHA和具体正反例断言。没有确认新的语义阻断。17条状态边中12条在构造函数，另外5条在访问控制getCurrentTokenPrice；不能把这些边数解释成余额/权限主路径已充分覆盖。
+
+独立人工批准0，solc编译验证0；已有Oracle和新增审查仍为Codex静态/测试证据，非完整语言正确性认证。未安装/执行新solc。通用pickle读取审查被自动审批拒绝后，改用既有JSON事件/CFG证据完成审核；实际图读取沿用白名单RestrictedReader，没有绕过拒绝执行通用pickle.load。
+
+| 任务 | STATE train/val | ORDER train/val | CALL→WRITE train/val |
+|---|---:|---:|---:|
+| 重入合约 | 5/1 | 675/172 | 427/120 |
+| 访问控制合约 | 11/0 | 29/4 | 0/0 |
+| 重入节点 | 1/2 | 711/118 | 457/90 |
+| 访问控制节点 | 4/0 | 12/4 | 0/0 |
+
+访问控制的val均没有STATE_DEF_USE；定价函数5条状态边全在合约train，其文件不属于节点任务。覆盖旁表coverage_note.json/md包含直接目标、涉及文件、val名单和函数归属。
+
+原HGT是关系内sum、跨canonical relation mean；本地DGL汇总未按每节点非零入度过滤关系输出。新增关系可能同时改变共享参数训练和同目标类型的聚合分量。因此“val没有直接新增边”不能推出logits一定不变，成绩变化也不能全部归因于状态语义。没有改变HGT来消除这个结构混杂因素。
+
+**20.5 原归档、单元/集成回归及真实短检查**
+
+旧Stage C只读reporter验收4任务complete、0pending，30配对折完整；0失败/重试，39运行源码摘要和旧state保持不变。结果在新输出archive_check_001/，旧归档不修改。
+
+本轮累计591个不同测试通过、0失败、0跳过：原开发目录480、原绝对路径资源测试1、新入口核心90、新输入20。原16项关系测试包含在480中，重复定向执行不重复计数。警告仅既有DGL/TensorBoard distutils与NetworkX弃用；实际命令、日志、返回码在integration_tests.json及引用记录。
+
+开发目录测试：
+```bash
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/state scripts/DFG/tests scripts/DFG/experiments/tests tests \
+  -k 'not test_actual_prepared_inputs_form_exactly_thirty_paired_jobs'
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/experiments/e23_pilot \
+  --ignore=scripts/DFG/experiments/e23_pilot/tests/test_inputs.py
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/experiments/e23_pilot/tests/test_inputs.py -k real_frozen
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/experiments/e23_pilot/tests/test_inputs.py -k 'not real_frozen'
+```
+原工作树另运行test_formal_controller.py::test_actual_prepared_inputs_form_exactly_thirty_paired_jobs。使用已有mando/语法库与PYTHONDONTWRITEBYTECODE=1、OMP/MKL线程2，无依赖升级。
+
+12次三轮smoke全部attempt_001通过，0失败/重试，控制器monotonic1332.464秒。best/last重载logits逐位相同，schema、输入、预测、初始化和50步调度逐项核验。有训练支持的三种新增关系均实际产生非零消息梯度；训练未见canonical的零梯度正常记录，不删关系。
+
+smoke最高峰值为重入合约E3b：allocated约2.646GiB、reserved约2.811GiB。4GiB整卡资源余量窄，某次最低只剩17MiB；用户已确认关闭或没有其他GPU程序。继续单模型串行，实际OOM或错误即停止，不自动切CPU/缩图/调参。纯资源耗时含校验/保存/重载，不作模型纯复杂度结论。
+
+**20.6 恢复规则与当前运行状态**
+
+本条写入时12次正式fold0训练刚启动，不能把smoke F1或运行中任务写成正式完成。正式顺序：重入合约E2/E3a/E3b→访问控制合约→重入节点→访问控制节点。主日志formal_controller.log，逐模型日志在runs/<task>/fold_0/<variant>/attempt_001.log。
+
+plan/seal绑定本轮HEAD、全部运行源码、图/特征/标签/划分、初始化、配置、schema与评估角色。成功结果校验后复用；失败保留所有产物、reason和attempt，诊断后才显式重试，非epoch续训。没有结果下降删折、换seed、挑best F1或以last替主结果。实际正式结果、完整性及最终旧资产保护在后续20.7补记。
+
+可运行命令见e23_pilot/README.md；当前已prepare/seal/smoke成功并正在control run，不应重复启动或重写初始化/计划。四任务只报告各自fold0，不平均不同任务、不估计单折std，不声称独立测试或七类有效。
+
+
+**20.7 正式12次完成及主/辅助结果（2026-10-14，Codex）**
+
+本条为20.6“运行中”的最终补记。四任务固定fold0×E2/E3a/E3b全部完成，正式控制器returncode=0，全部attempt_001，0失败/重试；verify返回smoke=12/full=12，summarize独立重算通过。无源码/算法/数据数值规则变化。
+
+| 任务 | 变体 | Buggy-F1 | Macro-F1 | Precision | Recall |
+|---|---|---:|---:|---:|---:|
+| 重入合约 | E2 | 88.8889 | 89.6057 | 100.0000 | 80.0000 |
+| 重入合约 | E3a | 88.8889 | 89.6057 | 100.0000 | 80.0000 |
+| 重入合约 | E3b | 88.8889 | 89.6057 | 100.0000 | 80.0000 |
+| 访问控制合约 | E2 | 90.0000 | 91.1538 | 100.0000 | 81.8182 |
+| 访问控制合约 | E3a | 90.0000 | 91.1538 | 100.0000 | 81.8182 |
+| 访问控制合约 | E3b | 90.0000 | 91.1538 | 100.0000 | 81.8182 |
+| 重入节点 | E2 | 99.7071 | 99.5997 | 99.8826 | 99.5322 |
+| 重入节点 | E3a | 99.6487 | 99.5195 | 99.7655 | 99.5322 |
+| 重入节点 | E3b | 99.6491 | 99.5191 | 99.6491 | 99.6491 |
+| 访问控制节点 | E2 | 99.2883 | 99.3306 | 99.6429 | 98.9362 |
+| 访问控制节点 | E3a | 99.4652 | 99.4979 | 100.0000 | 98.9362 |
+| 访问控制节点 | E3b | 99.4652 | 99.4979 | 100.0000 | 98.9362 |
+
+| 任务 | 比较 | Buggy-F1差值（百分点） | Macro-F1差值（百分点） |
+|---|---|---:|---:|
+| 重入合约 | E3a-E2 | +0.000000 | +0.000000 |
+| 重入合约 | E3b-E2 | +0.000000 | +0.000000 |
+| 重入合约 | E3b-E3a | +0.000000 | +0.000000 |
+| 访问控制合约 | E3a-E2 | +0.000000 | +0.000000 |
+| 访问控制合约 | E3b-E2 | +0.000000 | +0.000000 |
+| 访问控制合约 | E3b-E3a | +0.000000 | +0.000000 |
+| 重入节点 | E3a-E2 | -0.058377 | -0.080259 |
+| 重入节点 | E3b-E2 | -0.057966 | -0.080675 |
+| 重入节点 | E3b-E3a | +0.000411 | -0.000416 |
+| 访问控制节点 | E3a-E2 | +0.176984 | +0.167230 |
+| 访问控制节点 | E3b-E2 | +0.176984 | +0.167230 |
+| 访问控制节点 | E3b-E3a | +0.000000 | +0.000000 |
+
+Last独立辅助（BF/MF）：
+
+| 任务 | E2 last BF/MF | E3a last BF/MF | E3b last BF/MF |
+|---|---:|---:|---:|
+| 重入合约 | 88.8889 / 89.6057 | 88.8889 / 89.6057 | 88.8889 / 89.6057 |
+| 访问控制合约 | 86.9565 / 86.9565 | 86.9565 / 86.9565 | 86.9565 / 86.9565 |
+| 重入节点 | 99.7071 / 99.5997 | 99.6487 / 99.5195 | 99.6487 / 99.5195 |
+| 访问控制节点 | 99.4652 / 99.4979 | 98.5866 / 98.6624 | 96.7185 / 96.8294 |
+
+**20.8 分类变化、原因解释及限制**
+
+两个合约任务三个变体的类别预测完全相同，概率有变化。重入仍漏报modifier_reentrancy.sol、reentrancy_simple.sol、simple_dao.sol；访问控制仍漏报parity_wallet_bug_2.sol、phishable.sol。
+
+重入节点：E3a相对E2新增buggy_40.sol节点10732的误报；E3b相对E2修复buggy_47.sol节点9326的漏报，但新增buggy_40.sol:10732和buggy_28.sol:17439两个误报。故不是“完全没有改变分类”，也不是总体改善。
+
+访问控制节点：E3a/E3b相对E2都只纠正mapping_write.sol节点12964的一个误报，未纠正其余三个漏报。两个增强的best分类完全相同。该任务验证图没有STATE_DEF_USE，不能把这个修复归因为该验证节点获得了状态Def–Use边。
+
+目前没有稳定明显收益的证据，但不能因此证明状态依赖对这两类漏洞无效：
+1. E2节点级已只有重入5个、访问控制4个错误，指标有明显天花板；不足一个百分点的差异必须结合错误数解释。
+2. 状态Def–Use只增加少数构造器/定价关系，未充分覆盖漏洞关键余额或权限检查路径；访问控制没有CALL→WRITE。
+3. 模型确实读到新增canonical关系并更新关系参数，不是“仅把边存入文件”。有训练支持的增强关系有非零有限梯度；训练未见的注册canonical关系单独记录，零梯度不作为删折依据。
+4. 原HGT跨canonical relation做mean。新增关系可能改变聚合分量及共享参数训练，即使某验证文件没有直接新增边，其logits也可变化。当前对照不能把全部分数变化归为依赖语义贡献。
+5. 同一验证集用于早停、选模、评分，且只有一个fold/seed；无折间方差、显著性或独立测试结论。文件级划分本身也没有消除既有模板相似性，本轮不改既定协议。
+6. last的访问控制节点结果下降，显示训练轨迹/选模影响明显；不能挑选不同checkpoint替换主结果。
+
+支持量、梯度、参数更新和全部概率变化详见summary.csv、error_changes.csv、coverage_note与各result.json。关系支持是结构计数，不是语义有效性或因果贡献证明。
+
+
+**20.9 最终验证、资源及旧资产保护**
+
+
+591个不同测试通过，0失败、0跳过：原开发目录480，原工作树绝对资源测试1，新入口核心90，新输入20。选择性deselect的资源测试已在正确原目录补跑；16个关系回归包含在480中不重复计数。警告为既有DGL/TensorBoard distutils及NetworkX弃用，未升级依赖。
+
+12次smoke和12次full均attempt_001成功，无训练失败、OOM、数值错误或重试。所有best/last checkpoint重载输出逐位一致。独立复算24组指标/混淆矩阵、严格min选模及早停；180个正式收据产物SHA一致。12对smoke/full初值SHA、fit seed及50步调度一致，前三条完整历史逐值一致，证明本次正式训练没有沿用smoke已训练状态；不据此宣称所有GPU运行必然位确定。
+
+旧Stage C的30配对折只读验收通过。protected_before/after核对13710项：13706文件完全未变，4授权文档仅追加；6个完整旧目录无增删、两个HEAD不变。最后文档追加另有documentation_update_phase2.json记录原字节前缀和SHA。
+
+测试实际命令及日志在integration_tests.json；执行命令/返回码在smoke_execution.json、formal_execution.json、final_validation_execution.json。输入、划分、初值、schema、前向范围、评分角色、配置与checkpoint均绑定；未在评分时临时造参数。
+
+正式控制器耗时 2211.445 秒（36.86分钟），包含输入校验、模型拟合、保存及重载；smoke控制器耗时 1332.464 秒。不能将不同停止轮数的耗时当作纯算法速度比较。所有正式模型按patience触发停止，未修改50轮上限。
+
+| 任务 | 变体 | best/last轮（1起始） | 参数量 | 拟合/验收秒 | 峰值allocated/reserved GiB | 整卡最小空闲MiB |
+|---|---|---:|---:|---:|---:|---:|
+| 重入合约 | E2 | 7/14 | 4641874 | 157.71 | 2.366 / 2.584 | 40 |
+| 重入合约 | E3a | 7/14 | 4650082 | 155.97 | 2.409 / 2.566 | 42 |
+| 重入合约 | E3b | 7/14 | 4715746 | 159.67 | 2.646 / 2.811 | 36 |
+| 访问控制合约 | E2 | 8/15 | 4641874 | 122.61 | 1.775 / 1.918 | 132 |
+| 访问控制合约 | E3a | 8/15 | 4658290 | 125.21 | 1.837 / 1.984 | 67 |
+| 访问控制合约 | E3b | 8/15 | 4715746 | 126.69 | 1.968 / 2.062 | 40 |
+| 重入节点 | E2 | 40/40 | 4485922 | 294.01 | 1.531 / 1.660 | 417 |
+| 重入节点 | E3a | 31/31 | 4494130 | 220.29 | 1.560 / 1.695 | 396 |
+| 重入节点 | E3b | 25/32 | 4559794 | 214.80 | 1.720 / 1.861 | 203 |
+| 访问控制节点 | E2 | 21/28 | 4559794 | 116.68 | 1.062 / 1.148 | 932 |
+| 访问控制节点 | E3a | 13/20 | 4568002 | 95.42 | 1.087 / 1.168 | 912 |
+| 访问控制节点 | E3b | 13/20 | 4592626 | 95.44 | 1.125 / 1.225 | 848 |
+
+**20.10 最终文档、产物与未执行事项**
+
+ 后续78次与停止位置
+
+本批已完成12次，不自动运行剩余78次。计算入口及本批资源/重载验证已通过，技术上可以据此准备其余26个配对折×3模型；但**当前control的封存计划只允许四任务fold0的12次**，不能声称再次执行现有run就会运行78次。下一批需要独立输出/计划，引用相同冻结折，逐折封存三变体初值、schema和支持审计；原计划/收据保持不变。
+
+4GiB资源余量曾很窄，后续仍需单模型串行和逐折预检，真实OOM停止，不自动改图或超参数。是否投入完整K折，应结合这轮覆盖稀疏和有限错误变化决定；本轮没有提高支持率、添加modifier/控制依赖或改变模型来追分。旧E0/E1仅是历史参考，不与这次E2/E3a/E3b冒称严格配对。
+
+**产物与实际命令**
+
+主要输出位于 `/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/e23_pilot_v1/`：
+plan.json/seal、input_manifest.json、initialization、smoke、runs、summary.csv、last_summary.csv、paired_deltas.csv、error_changes.csv、report.json/md、fresh_initial_replay_audit、coverage_note及protected_after。
+完整文件改动及过程原因另追加至两工作树的training_changes第20节和HANDOVER（Codex）。
+
+只核验和查看当前已完成结果：
+```bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export PYTHONPATH="$PWD"
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+python -B -m scripts.DFG.experiments.e23_pilot.control verify
+python -B -m scripts.DFG.experiments.e23_pilot.control summarize
+```
+
+这两个入口已实际执行成功。seal绑定当前HEAD和源码；后续若归档提交，旧计划拒绝HEAD漂移是预期行为，不能改旧seal适配。运行前后均未安装依赖、未改源码图/标签/折、未执行新编译器、未开启全K折。
