@@ -1,0 +1,2116 @@
+{
+  "status": "static_candidates_not_independently_approved",
+  "count": 20,
+  "raw_observations_sha256": "4b2c11bc0ca104a4a4b42b00326157235df91ac672a29e51040810d70814057d",
+  "rules_are_not_derived_from_labels_or_predictions": true,
+  "oracles": [
+    {
+      "oracle_id": "O1",
+      "title": "Reentrancy balance/read/call/reset",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            9
+          ],
+          [
+            999,
+            0,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_18.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 1631,
+        "end_byte": 4763,
+        "start_line": 59,
+        "end_line": 132,
+        "ast_type": "contract_declaration",
+        "name": "ERC20Interface"
+      },
+      "function_identity": "buggy_18.sol:4004",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 4004,
+            "end": 4378,
+            "role": "function_definition"
+          },
+          "node_id": 2705
+        },
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 4192,
+            "end": 4269,
+            "role": "variable_declaration_statement"
+          },
+          "node_id": 2706
+        },
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 4278,
+            "end": 4326,
+            "role": "if_statement"
+          },
+          "node_id": 2707
+        },
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 4335,
+            "end": 4372,
+            "role": "expression_statement"
+          },
+          "node_id": 2709
+        }
+      ],
+      "expected_reads": [
+        "call amount reads balance"
+      ],
+      "expected_writes": [
+        "balance = 0 after call"
+      ],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "ENTRY_UNKNOWN balance"
+      ],
+      "forbidden_dependencies": [
+        "reset -> earlier call"
+      ],
+      "alias_assumptions": "msg.sender stable in one frame, but unknown callback may change state; binding fallback remains explicit.",
+      "expected_projection": "Mapping/call state outside scalar scope. Existing statement nodes can anchor accesses; entry unknown has no concrete definition node. Access order is metadata, not state DEF_USE.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O1"
+      },
+      "observed_state_locations": [],
+      "state_locations": [
+        "userBalance_re_ent33[msg.sender]"
+      ],
+      "expected_support_policy": "fallback: inherited B1 version policy",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "function_fallback",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O2",
+      "title": "Same mapping key compound update",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            9
+          ],
+          [
+            999,
+            0,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_18.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 1631,
+        "end_byte": 4763,
+        "start_line": 59,
+        "end_line": 132,
+        "ast_type": "contract_declaration",
+        "name": "ERC20Interface"
+      },
+      "function_identity": "buggy_18.sol:2044",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 2044,
+            "end": 2327,
+            "role": "function_definition"
+          },
+          "node_id": 2673
+        },
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 2118,
+            "end": 2175,
+            "role": "expression_statement"
+          },
+          "node_id": 2674
+        },
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 2216,
+            "end": 2257,
+            "role": "expression_statement"
+          },
+          "node_id": 2675
+        },
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 2273,
+            "end": 2321,
+            "role": "expression_statement"
+          },
+          "node_id": 2676
+        }
+      ],
+      "expected_reads": [
+        "guard balance",
+        "compound -= old balance"
+      ],
+      "expected_writes": [
+        "compound -= balance"
+      ],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "entry balance",
+        "post-send balance origin"
+      ],
+      "forbidden_dependencies": [
+        "later -= -> earlier guard"
+      ],
+      "alias_assumptions": "Send may hand control away; state origin after call requires call policy. Same spelling of mapping root alone does not prove binding.",
+      "expected_projection": "State contents absent although scalar parameter dependencies exist. Compound RHS and write may project to one node; retain facts even when self edge is filtered.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O2"
+      },
+      "observed_state_locations": [
+        "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec:buggy_18.sol:1631:2000:('frame', 'buggy_18.sol:2044:msg.sender', 'address')"
+      ],
+      "state_locations": [
+        "balances_re_ent10[msg.sender]"
+      ],
+      "expected_support_policy": "subset; entry/call unknown",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O3",
+      "title": "Different symbolic keys / may alias",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            0
+          ],
+          [
+            0,
+            6,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "e47d29695de23df62ebfb68db99311a6b01b28f3844f78a37936277f3efc8043",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_27.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 4675,
+        "end_byte": 22988,
+        "start_line": 156,
+        "end_line": 668,
+        "ast_type": "contract_declaration",
+        "name": "DanPanCoin"
+      },
+      "function_identity": "buggy_27.sol:15479",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 15479,
+            "end": 17272,
+            "role": "function_definition"
+          },
+          "node_id": 4863
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 15570,
+            "end": 15604,
+            "role": "expression_statement"
+          },
+          "node_id": 4864
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 15609,
+            "end": 15654,
+            "role": "expression_statement"
+          },
+          "node_id": 4865
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 15659,
+            "end": 15685,
+            "role": "expression_statement"
+          },
+          "node_id": 4866
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 15774,
+            "end": 15866,
+            "role": "if_statement"
+          },
+          "node_id": 4867
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 15844,
+            "end": 15856,
+            "role": "return_statement"
+          },
+          "node_id": 4869
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 15951,
+            "end": 15984,
+            "role": "variable_declaration_statement"
+          },
+          "node_id": 4870
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 15993,
+            "end": 16018,
+            "role": "variable_declaration_statement"
+          },
+          "node_id": 4871
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16027,
+            "end": 16054,
+            "role": "variable_declaration_statement"
+          },
+          "node_id": 4872
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16097,
+            "end": 16142,
+            "role": "expression_statement"
+          },
+          "node_id": 4873
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16227,
+            "end": 16878,
+            "role": "if_statement"
+          },
+          "node_id": 4874
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16287,
+            "end": 16324,
+            "role": "expression_statement"
+          },
+          "node_id": 4876
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16339,
+            "end": 16377,
+            "role": "expression_statement"
+          },
+          "node_id": 4877
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16442,
+            "end": 16505,
+            "role": "expression_statement"
+          },
+          "node_id": 4878
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16546,
+            "end": 16592,
+            "role": "expression_statement"
+          },
+          "node_id": 4879
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16732,
+            "end": 16804,
+            "role": "expression_statement"
+          },
+          "node_id": 4880
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 16948,
+            "end": 17020,
+            "role": "expression_statement"
+          },
+          "node_id": 4881
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 17064,
+            "end": 17116,
+            "role": "expression_statement"
+          },
+          "node_id": 4882
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 17118,
+            "end": 17185,
+            "role": "expression_statement"
+          },
+          "node_id": 4883
+        },
+        {
+          "span": {
+            "file": "buggy_27.sol",
+            "start": 17256,
+            "end": 17268,
+            "role": "return_statement"
+          },
+          "node_id": 4884
+        }
+      ],
+      "expected_reads": [
+        "balances and allowance"
+      ],
+      "expected_writes": [
+        "balances and allowance"
+      ],
+      "expected_def_use": [
+        "MAY only where alias and calls permit; not asserted by this prototype"
+      ],
+      "expected_unknown": [
+        "key aliases",
+        "internal calls",
+        "inheritance"
+      ],
+      "forbidden_dependencies": [
+        "different parameter names imply different keys"
+      ],
+      "alias_assumptions": "from==to or to==DanPanAddress is possible absent proof. Internal SafeMath/fee calls require summaries; first subset must fall back state analysis here.",
+      "expected_projection": "Useful negative support boundary: these real statements are projected but complete key/call semantics are not implemented.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O3"
+      },
+      "observed_state_locations": [],
+      "state_locations": [
+        "_balances[from]",
+        "_balances[to]",
+        "_balances[DanPanAddress]",
+        "_allowed[from][msg.sender]"
+      ],
+      "expected_support_policy": "fallback",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "function_fallback",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O4",
+      "title": "Owner entry-state read",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            4,
+            24
+          ],
+          [
+            0,
+            5,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "a4c6ab0924feb97c929511f65e9f86a82ca5efa307aa29dcae69a21d2fc0fbd6",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/mapping_write.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 291,
+        "end_byte": 791,
+        "start_line": 11,
+        "end_line": 30,
+        "ast_type": "contract_declaration",
+        "name": "Map"
+      },
+      "function_identity": "mapping_write.sol:666",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "mapping_write.sol",
+            "start": 666,
+            "end": 788,
+            "role": "function_definition"
+          },
+          "node_id": 12962
+        },
+        {
+          "span": {
+            "file": "mapping_write.sol",
+            "start": 701,
+            "end": 730,
+            "role": "expression_statement"
+          },
+          "node_id": 12963
+        },
+        {
+          "span": {
+            "file": "mapping_write.sol",
+            "start": 738,
+            "end": 781,
+            "role": "expression_statement"
+          },
+          "node_id": 12964
+        }
+      ],
+      "expected_reads": [
+        "owner in permission guard"
+      ],
+      "expected_writes": [],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "ENTRY_UNKNOWN owner"
+      ],
+      "forbidden_dependencies": [
+        "invent constructor -> withdraw state edge",
+        "guard -> transfer as Def-Use"
+      ],
+      "alias_assumptions": "Cross-function array arbitrary-write effects require bounds/layout/version analysis; no exact EVM slot claim.",
+      "expected_projection": "Guard HCG node 12963 exists; no same-function concrete owner-def node. New state module should report the missing origin instead of promising an edge.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O4"
+      },
+      "observed_state_locations": [
+        "a4c6ab0924feb97c929511f65e9f86a82ca5efa307aa29dcae69a21d2fc0fbd6:mapping_write.sol:291:311:('scalar', '', 'address')"
+      ],
+      "state_locations": [
+        "owner"
+      ],
+      "expected_support_policy": "subset; no concrete prior state definition",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O5",
+      "title": "Modifier control of state update",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            9
+          ],
+          [
+            999,
+            0,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "d8505eecd2d5acd06a30006b1e163a08e5bc3a7918c69c86f809c4e9bdeb8ad4",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_18.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 4379,
+        "end_byte": 5674,
+        "start_line": 122,
+        "end_line": 165,
+        "ast_type": "contract_declaration",
+        "name": "Owned"
+      },
+      "function_identity": "buggy_18.sol:5005",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 5005,
+            "end": 5105,
+            "role": "function_definition"
+          },
+          "node_id": 1343
+        },
+        {
+          "span": {
+            "file": "buggy_18.sol",
+            "start": 5078,
+            "end": 5099,
+            "role": "expression_statement"
+          },
+          "node_id": 1344
+        }
+      ],
+      "expected_reads": [
+        "owner in onlyOwner modifier"
+      ],
+      "expected_writes": [
+        "newOwner from parameter"
+      ],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "modifier execution binding"
+      ],
+      "forbidden_dependencies": [
+        "permission guard -> write as data dependence"
+      ],
+      "alias_assumptions": "Full source modifier text retained separately. Unique invocation/binding/underscore and path semantics must be established before expansion.",
+      "expected_projection": "Original function/statement nodes exist (1343,1344). Do not invent modifier node IDs; actual modifier HCG mapping remains a separate exact-projection requirement.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O5"
+      },
+      "observed_state_locations": [],
+      "state_locations": [
+        "owner",
+        "newOwner"
+      ],
+      "expected_support_policy": "fallback",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "function_fallback",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O6",
+      "title": "Branch-dependent state write",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            4,
+            24
+          ],
+          [
+            0,
+            5,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "a4c6ab0924feb97c929511f65e9f86a82ca5efa307aa29dcae69a21d2fc0fbd6",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/mapping_write.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 291,
+        "end_byte": 791,
+        "start_line": 11,
+        "end_line": 30,
+        "ast_type": "contract_declaration",
+        "name": "Map"
+      },
+      "function_identity": "mapping_write.sol:359",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "mapping_write.sol",
+            "start": 359,
+            "end": 563,
+            "role": "function_definition"
+          },
+          "node_id": 12955
+        },
+        {
+          "span": {
+            "file": "mapping_write.sol",
+            "start": 418,
+            "end": 488,
+            "role": "if_statement"
+          },
+          "node_id": 12956
+        },
+        {
+          "span": {
+            "file": "mapping_write.sol",
+            "start": 456,
+            "end": 477,
+            "role": "expression_statement"
+          },
+          "node_id": 12958
+        },
+        {
+          "span": {
+            "file": "mapping_write.sol",
+            "start": 539,
+            "end": 556,
+            "role": "expression_statement"
+          },
+          "node_id": 12959
+        }
+      ],
+      "expected_reads": [
+        "array length"
+      ],
+      "expected_writes": [
+        "conditional length",
+        "array element"
+      ],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "array layout and bounds"
+      ],
+      "forbidden_dependencies": [
+        "array treated as mapping",
+        "later length write -> earlier condition"
+      ],
+      "alias_assumptions": "Dynamic array bounds/overflow and key identity remain version-sensitive; branch condition is not a data dependency from length write to element write.",
+      "expected_projection": "Existing condition 12956, length write 12958 and element write12959 can anchor events. Existing graph already conveys control; first mapping-only subset does not claim array support.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O6"
+      },
+      "observed_state_locations": [],
+      "state_locations": [
+        "map.length (array)",
+        "map[key] (array)"
+      ],
+      "expected_support_policy": "fallback",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "function_fallback",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O7",
+      "title": "Scalar-only positive control",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            1
+          ],
+          [
+            999,
+            0,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "64addaa381f3df0852487c66cc85730aa67affd7cd84f4fe616ff9d2ec9826fb",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_36.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 5715,
+        "end_byte": 7531,
+        "start_line": 167,
+        "end_line": 225,
+        "ast_type": "library_declaration",
+        "name": "SafeMath"
+      },
+      "function_identity": "buggy_36.sol:5819",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "buggy_36.sol",
+            "start": 5819,
+            "end": 6258,
+            "role": "function_definition"
+          },
+          "node_id": 5957
+        },
+        {
+          "span": {
+            "file": "buggy_36.sol",
+            "start": 6113,
+            "end": 6158,
+            "role": "if_statement"
+          },
+          "node_id": 5958
+        },
+        {
+          "span": {
+            "file": "buggy_36.sol",
+            "start": 6139,
+            "end": 6148,
+            "role": "return_statement"
+          },
+          "node_id": 5960
+        },
+        {
+          "span": {
+            "file": "buggy_36.sol",
+            "start": 6168,
+            "end": 6186,
+            "role": "variable_declaration_statement"
+          },
+          "node_id": 5961
+        },
+        {
+          "span": {
+            "file": "buggy_36.sol",
+            "start": 6195,
+            "end": 6233,
+            "role": "expression_statement"
+          },
+          "node_id": 5962
+        },
+        {
+          "span": {
+            "file": "buggy_36.sol",
+            "start": 6243,
+            "end": 6252,
+            "role": "return_statement"
+          },
+          "node_id": 5963
+        }
+      ],
+      "expected_reads": [],
+      "expected_writes": [],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "require binding interval remains separately conservative"
+      ],
+      "forbidden_dependencies": [
+        "parameter a/b/c interpreted as state"
+      ],
+      "alias_assumptions": "No state alias question. Existing local scalar algorithm suffices.",
+      "expected_projection": "Existing HCG 5957/5961/5962/5963; a state module disabled or enabled must leave these scalar edges unchanged.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O7"
+      },
+      "observed_state_locations": [],
+      "state_locations": [],
+      "expected_support_policy": "scalar-only control",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O8",
+      "title": "Already-covered parameter authority error",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            2
+          ],
+          [
+            0,
+            6,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "129a0b4301ccaaba94cb50772fbfefe574f59ee088373a03380faa25ea0f6d74",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_26.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 2097,
+        "end_byte": 8823,
+        "start_line": 61,
+        "end_line": 233,
+        "ast_type": "contract_declaration",
+        "name": "UBBCToken"
+      },
+      "function_identity": "buggy_26.sol:3777",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "buggy_26.sol",
+            "start": 3777,
+            "end": 3935,
+            "role": "function_definition"
+          },
+          "node_id": 2417
+        },
+        {
+          "span": {
+            "file": "buggy_26.sol",
+            "start": 3869,
+            "end": 3908,
+            "role": "expression_statement"
+          },
+          "node_id": 2418
+        },
+        {
+          "span": {
+            "file": "buggy_26.sol",
+            "start": 3911,
+            "end": 3933,
+            "role": "expression_statement"
+          },
+          "node_id": 2419
+        }
+      ],
+      "expected_reads": [],
+      "expected_writes": [],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "inheritance binding"
+      ],
+      "forbidden_dependencies": [
+        "owner_txorigin31 parameter as state",
+        "call option as completed call"
+      ],
+      "alias_assumptions": "The displayed expression is a call-options expression; do not assert an actual external invocation unless AST/call semantics prove it. Authority guard context differs from state flow.",
+      "expected_projection": "Existing DDG already reaches selected wrong node. This is a counterexample to state expansion as universal explanation.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O8"
+      },
+      "observed_state_locations": [],
+      "state_locations": [],
+      "expected_support_policy": "fallback",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "function_fallback",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O9",
+      "title": "Owner check versus public length annotation",
+      "origin": "exact_corpus_source",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            4,
+            25
+          ],
+          [
+            0,
+            5,
+            0
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "bbbdb5367463fd3d1e11b2c569695d8b4734e3f88fcf937a34469a23121b01ab",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/arbitrary_location_write_simple.sol",
+      "source": null,
+      "contract_identity": {
+        "start_byte": 204,
+        "end_byte": 1076,
+        "start_line": 9,
+        "end_line": 40,
+        "ast_type": "contract_declaration",
+        "name": "Wallet"
+      },
+      "function_identity": "arbitrary_location_write_simple.sol:514",
+      "AST_anchors": [
+        {
+          "span": {
+            "file": "arbitrary_location_write_simple.sol",
+            "start": 514,
+            "end": 768,
+            "role": "function_definition"
+          },
+          "node_id": 11471
+        },
+        {
+          "span": {
+            "file": "arbitrary_location_write_simple.sol",
+            "start": 598,
+            "end": 630,
+            "role": "expression_statement"
+          },
+          "node_id": 11472
+        },
+        {
+          "span": {
+            "file": "arbitrary_location_write_simple.sol",
+            "start": 706,
+            "end": 726,
+            "role": "expression_statement"
+          },
+          "node_id": 11473
+        },
+        {
+          "span": {
+            "file": "arbitrary_location_write_simple.sol",
+            "start": 706,
+            "end": 725,
+            "role": "update_expression"
+          },
+          "node_id": 11474
+        }
+      ],
+      "expected_reads": [
+        "length guard",
+        "length before decrement"
+      ],
+      "expected_writes": [
+        "length decrement"
+      ],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "entry length"
+      ],
+      "forbidden_dependencies": [
+        "decrement -> earlier guard"
+      ],
+      "alias_assumptions": "Arithmetic underflow behavior requires declared compiler semantics. No claim that storage slots are solved.",
+      "expected_projection": "Two HCG expression nodes 11473 and11474 both cover decrement forms. Projection must choose exact AST/event anchor, not duplicate by nearest line.",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O9"
+      },
+      "observed_state_locations": [],
+      "state_locations": [
+        "bonusCodes.length (array)"
+      ],
+      "expected_support_policy": "fallback",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "function_fallback",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O10",
+      "title": "Distinct constant keys; exact positive then negative",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "1fedc8f089bd5a9a2f2743d79c0b4bee2f034b6525dce22dd79f25290feb3cc7",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17; contract T { mapping(uint=>uint) m; function f() public returns(uint,uint){ m[1]=7; uint a=m[1]; uint b=m[2]; return(a,b); } }",
+      "contract_identity": "AST in source",
+      "function_identity": "O10.sol:60",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T { mapping(uint=>uint) m; function f() public returns(uint,uint){ m[1]=7; uint a=m[1]; uint b=m[2]; return(a,b); } }"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "mapping(uint=>uint) m;"
+        },
+        {
+          "node_id": 18,
+          "node_type": "function_definition",
+          "code": "function f() public returns(uint,uint){ m[1]=7; uint a=m[1]; uint b=m[2]; return(a,b); }"
+        },
+        {
+          "node_id": 29,
+          "node_type": "expression_statement",
+          "code": "m[1]=7;"
+        },
+        {
+          "node_id": 35,
+          "node_type": "new_variable",
+          "code": "uint a=m[1];"
+        },
+        {
+          "node_id": 43,
+          "node_type": "new_variable",
+          "code": "uint b=m[2];"
+        },
+        {
+          "node_id": 51,
+          "node_type": "return",
+          "code": "return(a,b);"
+        }
+      ],
+      "expected_reads": [
+        "m[1]",
+        "m[2]"
+      ],
+      "expected_writes": [
+        "m[1]=7"
+      ],
+      "expected_def_use": [
+        "m[1]=7 -> uint a=m[1]"
+      ],
+      "expected_unknown": [
+        "ENTRY_UNKNOWN m[2]"
+      ],
+      "forbidden_dependencies": [
+        "m[1] -> m[2]"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O10"
+      },
+      "observed_state_locations": [
+        "1fedc8f089bd5a9a2f2743d79c0b4bee2f034b6525dce22dd79f25290feb3cc7:O10.sol:24:37:('constant', '1', 'uint256')",
+        "1fedc8f089bd5a9a2f2743d79c0b4bee2f034b6525dce22dd79f25290feb3cc7:O10.sol:24:37:('constant', '2', 'uint256')"
+      ],
+      "state_locations": [
+        "m[1]",
+        "m[2]"
+      ],
+      "expected_support_policy": "subset",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O11",
+      "title": "Uncertain storage reference alias",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "9e46b4742e2e221719235bc2f3d2c60e66e5b57db0f3b46f4aae593ee811c76d",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17; contract T { struct S { uint v; } mapping(uint=>S) m; function f(uint k,uint j) public returns(uint){ S storage r=m[k]; r.v=7; return m[j].v; } }",
+      "contract_identity": "AST in source",
+      "function_identity": "O11.sol:78",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T { struct S { uint v; } mapping(uint=>S) m; function f(uint k,uint j) public returns(uint){ S storage r=m[k]; r.v=7; return m[j].v; } }"
+        },
+        {
+          "node_id": 12,
+          "node_type": "struct_declaration",
+          "code": "struct S { uint v; }"
+        },
+        {
+          "node_id": 18,
+          "node_type": "new_variable",
+          "code": "mapping(uint=>S) m;"
+        },
+        {
+          "node_id": 25,
+          "node_type": "function_definition",
+          "code": "function f(uint k,uint j) public returns(uint){ S storage r=m[k]; r.v=7; return m[j].v; }"
+        },
+        {
+          "node_id": 41,
+          "node_type": "new_variable",
+          "code": "S storage r=m[k];"
+        },
+        {
+          "node_id": 50,
+          "node_type": "expression_statement",
+          "code": "r.v=7;"
+        },
+        {
+          "node_id": 56,
+          "node_type": "return",
+          "code": "return m[j].v;"
+        }
+      ],
+      "expected_reads": [
+        "m[j].v"
+      ],
+      "expected_writes": [
+        "r.v"
+      ],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "reference alias",
+        "struct location"
+      ],
+      "forbidden_dependencies": [
+        "reference binding treated as content write"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O11"
+      },
+      "observed_state_locations": [],
+      "state_locations": [
+        "m[k].v",
+        "m[j].v",
+        "storage reference r"
+      ],
+      "expected_support_policy": "fallback",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "function_fallback",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O12",
+      "title": "Strong KILL and branch alternatives",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "ac953aa66bfbdb6004a99bcd86dfbef1856963322c8be61d32456c92eab7deb0",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17; contract T { uint s; function f(bool b) public returns(uint){ s=1; if(b){s=2;} return s; } }",
+      "contract_identity": "AST in source",
+      "function_identity": "O12.sol:45",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T { uint s; function f(bool b) public returns(uint){ s=1; if(b){s=2;} return s; } }"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "uint s;"
+        },
+        {
+          "node_id": 16,
+          "node_type": "function_definition",
+          "code": "function f(bool b) public returns(uint){ s=1; if(b){s=2;} return s; }"
+        },
+        {
+          "node_id": 28,
+          "node_type": "expression_statement",
+          "code": "s=1;"
+        },
+        {
+          "node_id": 32,
+          "node_type": "if",
+          "code": "if(b){s=2;}"
+        },
+        {
+          "node_id": 68,
+          "node_type": "end_if",
+          "code": "if(b){s=2;}"
+        },
+        {
+          "node_id": 35,
+          "node_type": "expression_statement",
+          "code": "s=2;"
+        },
+        {
+          "node_id": 39,
+          "node_type": "return",
+          "code": "return s;"
+        }
+      ],
+      "expected_reads": [
+        "return s"
+      ],
+      "expected_writes": [
+        "s=1",
+        "s=2"
+      ],
+      "expected_def_use": [
+        "s=1 -> return s via bypass",
+        "s=2 -> return s via branch"
+      ],
+      "expected_unknown": [],
+      "forbidden_dependencies": [
+        "unconditional kill on bypass"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O12"
+      },
+      "observed_state_locations": [
+        "ac953aa66bfbdb6004a99bcd86dfbef1856963322c8be61d32456c92eab7deb0:O12.sol:24:37:('scalar', '', 'uint')"
+      ],
+      "state_locations": [
+        "s"
+      ],
+      "expected_support_policy": "subset",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O13",
+      "title": "Changing key definition",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "618a9843575f3291952936a03ea5e0d89e3f4cf78fe1c5b20d8a200207786079",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17; contract T { mapping(uint=>uint) m; function f(uint k) public returns(uint){ m[k]=1; k=k+1; return m[k]; } }",
+      "contract_identity": "AST in source",
+      "function_identity": "O13.sol:60",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T { mapping(uint=>uint) m; function f(uint k) public returns(uint){ m[k]=1; k=k+1; return m[k]; } }"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "mapping(uint=>uint) m;"
+        },
+        {
+          "node_id": 18,
+          "node_type": "function_definition",
+          "code": "function f(uint k) public returns(uint){ m[k]=1; k=k+1; return m[k]; }"
+        },
+        {
+          "node_id": 30,
+          "node_type": "expression_statement",
+          "code": "m[k]=1;"
+        },
+        {
+          "node_id": 36,
+          "node_type": "expression_statement",
+          "code": "k=k+1;"
+        },
+        {
+          "node_id": 42,
+          "node_type": "return",
+          "code": "return m[k];"
+        }
+      ],
+      "expected_reads": [
+        "m[k_after]"
+      ],
+      "expected_writes": [
+        "m[k_before]"
+      ],
+      "expected_def_use": [
+        "MAY only; 0 exact materialized"
+      ],
+      "expected_unknown": [
+        "key equality after reassignment",
+        "ENTRY_UNKNOWN"
+      ],
+      "forbidden_dependencies": [
+        "same spelling proves same key"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O13"
+      },
+      "observed_state_locations": [
+        "618a9843575f3291952936a03ea5e0d89e3f4cf78fe1c5b20d8a200207786079:O13.sol:24:37:('unknown', '103:104', 'uint256')",
+        "618a9843575f3291952936a03ea5e0d89e3f4cf78fe1c5b20d8a200207786079:O13.sol:24:37:('unknown', '125:126', 'uint256')"
+      ],
+      "state_locations": [
+        "m[k_before]",
+        "m[k_after]"
+      ],
+      "expected_support_policy": "subset with UNKNOWN",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O14",
+      "title": "External call clobber after local state write",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "3fb857631a5e7d2bae720eaba39e6c8c9215a5deeebdd5026884d3ffdc236eb7",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17; contract T { uint s; function f(address a) public returns(uint){ s=1; (bool ok,)=a.call(\"\"); require(ok); return s; } }",
+      "contract_identity": "AST in source",
+      "function_identity": "O14.sol:45",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T { uint s; function f(address a) public returns(uint){ s=1; (bool ok,)=a.call(\"\"); require(ok); return s; } }"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "uint s;"
+        },
+        {
+          "node_id": 16,
+          "node_type": "function_definition",
+          "code": "function f(address a) public returns(uint){ s=1; (bool ok,)=a.call(\"\"); require(ok); return s; }"
+        },
+        {
+          "node_id": 28,
+          "node_type": "expression_statement",
+          "code": "s=1;"
+        },
+        {
+          "node_id": 32,
+          "node_type": "new_variable",
+          "code": "(bool ok,)=a.call(\"\");"
+        },
+        {
+          "node_id": 45,
+          "node_type": "expression_statement",
+          "code": "require(ok);"
+        },
+        {
+          "node_id": 50,
+          "node_type": "return",
+          "code": "return s;"
+        }
+      ],
+      "expected_reads": [
+        "return s after call"
+      ],
+      "expected_writes": [
+        "s=1 before call"
+      ],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "HAVOC TOP after call"
+      ],
+      "forbidden_dependencies": [
+        "pre-call write as unique post-call origin"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O14"
+      },
+      "observed_state_locations": [
+        "3fb857631a5e7d2bae720eaba39e6c8c9215a5deeebdd5026884d3ffdc236eb7:O14.sol:24:37:('scalar', '', 'uint')"
+      ],
+      "state_locations": [
+        "s"
+      ],
+      "expected_support_policy": "subset",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O15",
+      "title": "Arithmetic/local propagation",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "33924c28d2e795e777c9a402886f06c5c3a084fd4a778370f0dea0bf9e6d518e",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17;contract T{uint s;function f() public returns(uint){s=1;uint a=s;uint b=a+1;return b;}}",
+      "contract_identity": "AST in source",
+      "function_identity": "O15.sol:41",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T{uint s;function f() public returns(uint){s=1;uint a=s;uint b=a+1;return b;}}"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "uint s;"
+        },
+        {
+          "node_id": 16,
+          "node_type": "function_definition",
+          "code": "function f() public returns(uint){s=1;uint a=s;uint b=a+1;return b;}"
+        },
+        {
+          "node_id": 24,
+          "node_type": "expression_statement",
+          "code": "s=1;"
+        },
+        {
+          "node_id": 28,
+          "node_type": "new_variable",
+          "code": "uint a=s;"
+        },
+        {
+          "node_id": 34,
+          "node_type": "new_variable",
+          "code": "uint b=a+1;"
+        },
+        {
+          "node_id": 42,
+          "node_type": "return",
+          "code": "return b;"
+        }
+      ],
+      "expected_reads": [
+        "uint a=s"
+      ],
+      "expected_writes": [
+        "s=1"
+      ],
+      "expected_def_use": [
+        "s=1 -> uint a=s"
+      ],
+      "expected_unknown": [],
+      "forbidden_dependencies": [
+        "transitive closure as direct state Def-Use"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O15"
+      },
+      "observed_state_locations": [
+        "33924c28d2e795e777c9a402886f06c5c3a084fd4a778370f0dea0bf9e6d518e:O15.sol:23:34:('scalar', '', 'uint')"
+      ],
+      "state_locations": [
+        "s"
+      ],
+      "expected_support_policy": "subset",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O16",
+      "title": "Loop state and fixpoint",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "c88934fc9213e0a72ca1329215150d5cd309c356bad05e88ec4ca9c947ae5814",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17;contract T{uint s;function f() public returns(uint){s=3;while(s>0){s--;}return s;}}",
+      "contract_identity": "AST in source",
+      "function_identity": "O16.sol:41",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T{uint s;function f() public returns(uint){s=3;while(s>0){s--;}return s;}}"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "uint s;"
+        },
+        {
+          "node_id": 16,
+          "node_type": "function_definition",
+          "code": "function f() public returns(uint){s=3;while(s>0){s--;}return s;}"
+        },
+        {
+          "node_id": 24,
+          "node_type": "expression_statement",
+          "code": "s=3;"
+        },
+        {
+          "node_id": 28,
+          "node_type": "while",
+          "code": "while(s>0){s--;}"
+        },
+        {
+          "node_id": 61,
+          "node_type": "end_loop",
+          "code": "while(s>0){s--;}"
+        },
+        {
+          "node_id": 33,
+          "node_type": "expression_statement",
+          "code": "s--;"
+        },
+        {
+          "node_id": 34,
+          "node_type": "expression_statement",
+          "code": "s--"
+        },
+        {
+          "node_id": 36,
+          "node_type": "return",
+          "code": "return s;"
+        }
+      ],
+      "expected_reads": [
+        "while condition",
+        "decrement old value",
+        "return s"
+      ],
+      "expected_writes": [
+        "s=3",
+        "s--"
+      ],
+      "expected_def_use": [
+        "initial and loop write may reach condition/decrement/return in structural CFG"
+      ],
+      "expected_unknown": [],
+      "forbidden_dependencies": [
+        "claim path-condition feasibility without solving values"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O16"
+      },
+      "observed_state_locations": [
+        "c88934fc9213e0a72ca1329215150d5cd309c356bad05e88ec4ca9c947ae5814:O16.sol:23:34:('scalar', '', 'uint')"
+      ],
+      "state_locations": [
+        "s"
+      ],
+      "expected_support_policy": "subset",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O17",
+      "title": "External return scalar flow",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "5b29fa43ca15335b209423e0dc365d725f70f721b58e9e040746aba7529cb447",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17;contract T{uint s;function f(address payable to) public returns(uint){(bool ok,)=to.call(\"\");require(ok);return 0;}}",
+      "contract_identity": "AST in source",
+      "function_identity": "O17.sol:41",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T{uint s;function f(address payable to) public returns(uint){(bool ok,)=to.call(\"\");require(ok);return 0;}}"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "uint s;"
+        },
+        {
+          "node_id": 16,
+          "node_type": "function_definition",
+          "code": "function f(address payable to) public returns(uint){(bool ok,)=to.call(\"\");require(ok);return 0;}"
+        },
+        {
+          "node_id": 28,
+          "node_type": "new_variable",
+          "code": "(bool ok,)=to.call(\"\");"
+        },
+        {
+          "node_id": 41,
+          "node_type": "expression_statement",
+          "code": "require(ok);"
+        },
+        {
+          "node_id": 46,
+          "node_type": "return",
+          "code": "return 0;"
+        }
+      ],
+      "expected_reads": [],
+      "expected_writes": [],
+      "expected_def_use": [],
+      "expected_unknown": [
+        "opaque call effect; no observed state locations"
+      ],
+      "forbidden_dependencies": [
+        "ok local return as contract storage"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O17"
+      },
+      "observed_state_locations": [],
+      "state_locations": [],
+      "expected_support_policy": "scalar return control",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O18",
+      "title": "Environment condition",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "ddb6d921e67506113db2d95ad957b2341bb1d4be2a8786243c0f410c9b3e93c8",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17;contract T{uint s;function f() public returns(uint){s=1;if(block.timestamp>0){s=2;}return s;}}",
+      "contract_identity": "AST in source",
+      "function_identity": "O18.sol:41",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T{uint s;function f() public returns(uint){s=1;if(block.timestamp>0){s=2;}return s;}}"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "uint s;"
+        },
+        {
+          "node_id": 16,
+          "node_type": "function_definition",
+          "code": "function f() public returns(uint){s=1;if(block.timestamp>0){s=2;}return s;}"
+        },
+        {
+          "node_id": 24,
+          "node_type": "expression_statement",
+          "code": "s=1;"
+        },
+        {
+          "node_id": 28,
+          "node_type": "if",
+          "code": "if(block.timestamp>0){s=2;}"
+        },
+        {
+          "node_id": 64,
+          "node_type": "end_if",
+          "code": "if(block.timestamp>0){s=2;}"
+        },
+        {
+          "node_id": 35,
+          "node_type": "expression_statement",
+          "code": "s=2;"
+        },
+        {
+          "node_id": 39,
+          "node_type": "return",
+          "code": "return s;"
+        }
+      ],
+      "expected_reads": [
+        "return s"
+      ],
+      "expected_writes": [
+        "s=1",
+        "s=2"
+      ],
+      "expected_def_use": [
+        "s=1 or s=2 -> return s"
+      ],
+      "expected_unknown": [],
+      "forbidden_dependencies": [
+        "block.timestamp as storage variable"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O18"
+      },
+      "observed_state_locations": [
+        "ddb6d921e67506113db2d95ad957b2341bb1d4be2a8786243c0f410c9b3e93c8:O18.sol:23:34:('scalar', '', 'uint')"
+      ],
+      "state_locations": [
+        "s"
+      ],
+      "expected_support_policy": "subset",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O19",
+      "title": "Independent storage roots",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "0642c04cef38e8924deb49c2135214512e8be8e96be0bbd1efa61d0ae8f05f52",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17;contract T{uint s;uint t;function f() public returns(uint){s=1;t=2;require(s>0);return t;}}",
+      "contract_identity": "AST in source",
+      "function_identity": "O19.sol:48",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T{uint s;uint t;function f() public returns(uint){s=1;t=2;require(s>0);return t;}}"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "uint s;"
+        },
+        {
+          "node_id": 16,
+          "node_type": "new_variable",
+          "code": "uint t;"
+        },
+        {
+          "node_id": 20,
+          "node_type": "function_definition",
+          "code": "function f() public returns(uint){s=1;t=2;require(s>0);return t;}"
+        },
+        {
+          "node_id": 28,
+          "node_type": "expression_statement",
+          "code": "s=1;"
+        },
+        {
+          "node_id": 32,
+          "node_type": "expression_statement",
+          "code": "t=2;"
+        },
+        {
+          "node_id": 36,
+          "node_type": "expression_statement",
+          "code": "require(s>0);"
+        },
+        {
+          "node_id": 43,
+          "node_type": "return",
+          "code": "return t;"
+        }
+      ],
+      "expected_reads": [
+        "require(s>0)",
+        "return t"
+      ],
+      "expected_writes": [
+        "s=1",
+        "t=2"
+      ],
+      "expected_def_use": [
+        "s=1 -> require(s>0)",
+        "t=2 -> return t"
+      ],
+      "expected_unknown": [],
+      "forbidden_dependencies": [
+        "cross-root alias"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O19"
+      },
+      "observed_state_locations": [
+        "0642c04cef38e8924deb49c2135214512e8be8e96be0bbd1efa61d0ae8f05f52:O19.sol:23:34:('scalar', '', 'uint')",
+        "0642c04cef38e8924deb49c2135214512e8be8e96be0bbd1efa61d0ae8f05f52:O19.sol:23:41:('scalar', '', 'uint')"
+      ],
+      "state_locations": [
+        "s",
+        "t"
+      ],
+      "expected_support_policy": "subset",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    },
+    {
+      "oracle_id": "O20",
+      "title": "Branch kills old definition",
+      "origin": "synthetic_specification",
+      "solidity_version": {
+        "pragma_interval": [
+          [
+            0,
+            5,
+            17
+          ],
+          [
+            0,
+            5,
+            18
+          ]
+        ],
+        "chosen_compiler": null
+      },
+      "source_sha256": "f6ccd4efa9aa02c77272421ea3641b3baced124e4317fbeb31bd4c87c44acf91",
+      "source_path": null,
+      "source": "pragma solidity 0.5.17;contract T{uint s;function f(bool c) public returns(uint){s=1;if(c){s=2;}else{s=3;}return s;}}",
+      "contract_identity": "AST in source",
+      "function_identity": "O20.sol:41",
+      "AST_anchors": [
+        {
+          "node_id": 9,
+          "node_type": "contract_declaration",
+          "code": "contract T{uint s;function f(bool c) public returns(uint){s=1;if(c){s=2;}else{s=3;}return s;}}"
+        },
+        {
+          "node_id": 12,
+          "node_type": "new_variable",
+          "code": "uint s;"
+        },
+        {
+          "node_id": 16,
+          "node_type": "function_definition",
+          "code": "function f(bool c) public returns(uint){s=1;if(c){s=2;}else{s=3;}return s;}"
+        },
+        {
+          "node_id": 28,
+          "node_type": "expression_statement",
+          "code": "s=1;"
+        },
+        {
+          "node_id": 32,
+          "node_type": "if",
+          "code": "if(c){s=2;}else{s=3;}"
+        },
+        {
+          "node_id": 73,
+          "node_type": "end_if",
+          "code": "if(c){s=2;}else{s=3;}"
+        },
+        {
+          "node_id": 35,
+          "node_type": "expression_statement",
+          "code": "s=2;"
+        },
+        {
+          "node_id": 40,
+          "node_type": "expression_statement",
+          "code": "s=3;"
+        },
+        {
+          "node_id": 44,
+          "node_type": "return",
+          "code": "return s;"
+        }
+      ],
+      "expected_reads": [
+        "return s"
+      ],
+      "expected_writes": [
+        "s=1",
+        "s=2",
+        "s=3"
+      ],
+      "expected_def_use": [
+        "s=2 -> return s",
+        "s=3 -> return s"
+      ],
+      "expected_unknown": [],
+      "forbidden_dependencies": [
+        "s=1 -> return s after both branches overwrite"
+      ],
+      "alias_assumptions": "declaration/key policy; parameter reassignment UNKNOWN",
+      "expected_projection": "exact AST projection, no invented nodes",
+      "reviewer_status": "Codex_static_candidate;independent_review_pending",
+      "compiler_validation": "not_executed_no_new_compiler_authorization",
+      "automated_subset_checks": "passed_not_independent_certification",
+      "evidence": {
+        "input_manifest": "INPUT_MANIFEST.json",
+        "semantic_result": "O20"
+      },
+      "observed_state_locations": [
+        "f6ccd4efa9aa02c77272421ea3641b3baced124e4317fbeb31bd4c87c44acf91:O20.sol:23:34:('scalar', '', 'uint')"
+      ],
+      "state_locations": [
+        "s"
+      ],
+      "expected_support_policy": "subset",
+      "expectation_author": "Codex source-semantic review; independent approval pending",
+      "observed_support_status": "supported_subset",
+      "support_status": "candidate_not_independently_approved"
+    }
+  ]
+}

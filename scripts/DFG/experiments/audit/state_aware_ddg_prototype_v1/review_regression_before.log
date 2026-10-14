@@ -1,0 +1,26 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__________ test_emit_nested_call_evaluates_argument_once_before_havoc __________
+
+    def test_emit_nested_call_evaluates_argument_once_before_havoc():
+        _,r=run("x=1;emit E(foo(x));",extra="event E(uint a);function foo(uint a) internal returns(uint){return a;}")
+>       assert r.status=="supported_subset"
+E       AssertionError: assert 'function_fallback' == 'supported_subset'
+E         - supported_subset
+E         + function_fallback
+
+scripts/DFG/state/tests/test_emit_and_validation.py:10: AssertionError
+__________ test_unknown_event_kind_cannot_silently_enter_semantic_cfg __________
+
+    def test_unknown_event_kind_cannot_silently_enter_semantic_cfg():
+        _,r=run("x=1;require(x>0);")
+        bid=next(b for b,es in r.ir.events.items() if es)
+        r.ir.events[bid][0]=replace(r.ir.events[bid][0],kind="UNVERIFIED")
+>       with pytest.raises(Unsupported,match="kind"):solve(r.ir)
+E       Failed: DID NOT RAISE <class 'scripts.DFG.models.Unsupported'>
+
+scripts/DFG/state/tests/test_emit_and_validation.py:20: Failed
+=========================== short test summary info ============================
+FAILED scripts/DFG/state/tests/test_emit_and_validation.py::test_emit_nested_call_evaluates_argument_once_before_havoc
+FAILED scripts/DFG/state/tests/test_emit_and_validation.py::test_unknown_event_kind_cannot_silently_enter_semantic_cfg
+2 failed in 0.17s

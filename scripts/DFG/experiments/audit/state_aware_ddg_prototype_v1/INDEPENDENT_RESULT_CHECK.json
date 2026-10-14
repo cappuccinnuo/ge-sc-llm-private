@@ -1,0 +1,80 @@
+{
+  "reentrancy_author": {
+    "totals": {
+      "functions": 196,
+      "supported_subset": 35,
+      "facts": 0,
+      "unknown_origins": 28,
+      "function_fallback": 161
+    },
+    "events": {
+      "HAVOC": 42,
+      "ENVIRONMENT": 54,
+      "READ": 28,
+      "WRITE": 20
+    },
+    "havoc": {
+      "UNKNOWN_CALL:require:all_state_top": 23,
+      "EXTERNAL_CALL:send:conservative_all_state_top": 5,
+      "EXTERNAL_CALL:call:conservative_all_state_top": 7,
+      "EXTERNAL_CALL:transfer:conservative_all_state_top": 3,
+      "UNKNOWN_CALL:add:all_state_top": 1,
+      "UNKNOWN_CALL:sub:all_state_top": 1,
+      "UNKNOWN_CALL:div:all_state_top": 1,
+      "UNKNOWN_CALL:mul:all_state_top": 1
+    },
+    "side_relations": {
+      "STATE_ACCESS_ORDER": 28,
+      "UNKNOWN_CALL_BEFORE_STATE_WRITE": 14,
+      "EXTERNAL_CALL_BEFORE_STATE_WRITE": 15
+    },
+    "fallback_reasons": {
+      "builtin_not_guaranteed_over_pragma_interval": 15,
+      "Modifier execution is outside phase-one scope": 9,
+      "state: inheritance binding unsupported": 67,
+      "inheritance_binding_not_supported": 57,
+      "Unsupported non-scalar or inferred type: bytes": 4,
+      "Unsupported non-scalar or inferred type: string": 4,
+      "Unsupported non-scalar or inferred type: address[]": 1,
+      "Unsupported non-scalar or inferred type: Token": 2,
+      "Unsupported non-scalar or inferred type: Proposal": 2
+    }
+  },
+  "access_control_author": {
+    "totals": {
+      "functions": 119,
+      "function_fallback": 91,
+      "facts": 0,
+      "unknown_origins": 6,
+      "supported_subset": 28
+    },
+    "events": {
+      "ENVIRONMENT": 24,
+      "READ": 6,
+      "HAVOC": 27,
+      "CALL_CONFIGURATION": 3,
+      "WRITE": 3
+    },
+    "havoc": {
+      "EXTERNAL_CALL:transfer:conservative_all_state_top": 9,
+      "UNKNOWN_CALL:require:all_state_top": 18
+    },
+    "side_relations": {
+      "STATE_ACCESS_ORDER": 4,
+      "UNKNOWN_CALL_BEFORE_STATE_WRITE": 1
+    },
+    "fallback_reasons": {
+      "state: unsupported storage member": 3,
+      "state: arrays/nested mapping/references unsupported: uint256[]": 1,
+      "Modifier execution is outside phase-one scope": 2,
+      "state: inheritance binding unsupported": 75,
+      "inheritance_binding_not_supported": 5,
+      "Unsupported non-scalar or inferred type: bytes": 1,
+      "Unsupported non-scalar or inferred type: string": 2,
+      "Unsupported expression: new_expression": 1,
+      "state: unsupported whole storage value: uint[]": 1
+    }
+  },
+  "input_sha_checks": 13,
+  "four_graph_bytes_identical_to_E2": true
+}
