@@ -1454,3 +1454,50 @@ the original per-fit integrity and metric checks, without bypassing training
 guards or loading a training worker. Weights, initial states, graph binaries and
 process markers stay local; a fresh clone alone cannot run full verification.
 Use the original main worktree's Stage C reporter for the old training archive.
+
+#### 2026-10-14：Stage H1 独立全折计划与接入（修改 AI：Codex）
+
+- 新代码仅开发工作树 scripts/DFG/experiments/e23_cv/，新输出 artifacts/paper_kfold/stage_h1_v1/；原e23_pilot及其plan/seal、DDG/HGT/tokenizer/图/标签/折/训练数值规则不改。详细记录见training_changes第21节。
+- 本地/GitHub HEAD44e7337一致，Stage G的75份运行源码与旧封存完全一致；归档后通过旧收据与初值核验有记录复用fold0，不改旧seal。
+- H1=E2/E3b各30折结果，8个Stage G fold0复用、52次新拟合；CPU准备全部fresh E2→E3a→E3b链，E3a26份未训练初值为H2保留。H2只存固定计划，不自动训练。
+- 原seed1及每折派生公式、50轮、patience7/delta0.001、严格最低val loss的best、last另报；主结果CV validation，节点按HCG节点口径。
+- 新控制器串行单GPU、双锁、失败停止/保留attempt/显式重试；原fit函数直接复用，不缩图/换参数/CPU回退。
+- 训练前607个不同测试通过，0失败/跳过。旧E0/E1另作同折历史基线，初始化版本不同，不混称本批共同初始化对照。
+- 本条写入时CPU准备与复用核验进行中，52次正式拟合尚未启动；最终完成/失败/结果另补。起始保护14253旧文件，训练期间不改封存源码。
+
+## 2026-10-14 Stage H1 全折完成与结果（Codex）
+
+接续本日H1准备记录。开发工作树ge-sc-llm-ddg-v11，HEAD保持44e7337；原工作树HEAD保持7fce3dd。52次新拟合+8个Stage G fold0复用=60个正式结果全部通过验收，均attempt_001，无失败/重试/OOM。未改变DDG/state、HGT、tokenizer、图/标签/折、初始化或训练数值；607个不同测试通过。H2未执行，26次E3a新拟合只保留固定计划和初值。
+
+Best的CV validation等权均值BF1/MF1：
+- 重入合约：E2=E3b 95.0140/95.0549，5折全持平。
+- 访问控制合约：E2=E3b 91.5628/92.0657，5折全持平。
+- 重入节点：96.0772/95.9052→96.2460/96.0506；BF1 +0.1688pp，6升/1平/3降。
+- 访问控制节点：96.1983/96.9983→96.3495/97.1228；BF1 +0.1512pp，4升/4平/2降。
+
+节点best分别净少14/10错误，主要仍是概率变化；buggy_18.sol在两类任务的275/94错误未改善。1091个有train支持的增强canonical记录均有非零梯度，29个无支持者单列；接入有效不等于普遍语义收益。访问控制节点last平均BF1反而下降1.3058pp。原E0/E1基线已比较，但跨批初始化不同，仅历史参考；访问控制合约本批低于旧E0/E1，不能宣称所有任务提升。
+
+产物：开发树scripts/DFG/experiments/artifacts/paper_kfold/stage_h1_v1/，重点查看H1_RESULT_REPORT.md、summary.csv、paired_statistics.csv、file_error_analysis.csv、baseline_statistics.csv、gradient_support_detail.csv、resource_folds.csv、H2_EXECUTION_PLAN.md。详细过程已追加training_changes_2026-10-07第21.7–21.12。只读分析/报告/保护校验脚本也位于新产物目录，原文档仅追加，旧资产核验见protected_after.json。
+
+控制器耗时约2.93小时；首个新增fit受Windows显存竞争影响，最低free14MiB，保留实际耗时，不能做公平速度结论。没有重启该fit、改参数或代关用户程序。H1已停止；建议审查有限收益与困难案例后决定完整H2消融，本轮不自动执行H2/更多seed/七类扩展。修改与分析AI：Codex。
+
+
+### Stage H1 Git archive follow-up (2026-10-15)
+
+H1 code and text results are saved on ddg-v1.1-correctness; main receives
+documentation only. Historical delivery HEADs remain provenance, not the current
+archive HEAD. Do not rewrite H1, H2 or Stage G plans/seals after Git commits.
+
+In the development worktree, verify the completed H1 archive after a commit:
+~~~bash
+python -B -m scripts.verify_h1_archive
+~~~
+Expected: 52 new fits, 8 Stage G reused fits, 60 complete.
+This read-only entry checks descendant Git history, sealed runtime/input hashes,
+the reserved unauthorized H2 plan and original per-fit receipt/metric checks.
+The original H1 training controller still requires its exact training HEAD.
+H2 is not executed. For Stage G use scripts.verify_e23_archive; for the older
+training results use the Stage C reporter in the original main worktree.
+
+Weights, initial states, graphs and process markers remain local; full validation
+requires these local assets and cannot be performed from a fresh clone alone.

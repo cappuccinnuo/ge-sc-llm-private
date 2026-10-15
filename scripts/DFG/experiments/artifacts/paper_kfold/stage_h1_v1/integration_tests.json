@@ -1,0 +1,78 @@
+{
+  "returncode": 0,
+  "suites": [
+    {
+      "suite": "regression",
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/state",
+        "scripts/DFG/tests",
+        "scripts/DFG/experiments/tests",
+        "tests",
+        "-k",
+        "not test_actual_prepared_inputs_form_exactly_thirty_paired_jobs"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11",
+      "returncode": 0,
+      "seconds": 17.12155416200403,
+      "log": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_h1_v1/regression_regression.log"
+    },
+    {
+      "suite": "pilot",
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/experiments/e23_pilot"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11",
+      "returncode": 0,
+      "seconds": 125.0386831490323,
+      "log": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_h1_v1/pilot_regression.log"
+    },
+    {
+      "suite": "h1",
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/experiments/e23_cv/tests"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11",
+      "returncode": 0,
+      "seconds": 6.124715622048825,
+      "log": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_h1_v1/h1_regression.log"
+    }
+  ],
+  "final_h1_recheck": {
+    "command": [
+      "/home/zhao/miniconda3/envs/mando/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "scripts/DFG/experiments/e23_cv/tests"
+    ],
+    "returncode": 0,
+    "log": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_h1_v1/final_h1_targeted_tests.log"
+  },
+  "distinct_passed": 607,
+  "skipped": 0,
+  "failed": 0
+}

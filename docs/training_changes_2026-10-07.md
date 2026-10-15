@@ -1877,3 +1877,123 @@ python -B -m scripts.DFG.experiments.e23_pilot.control summarize
 ```
 
 这两个入口已实际执行成功。seal绑定当前HEAD和源码；后续若归档提交，旧计划拒绝HEAD漂移是预期行为，不能改旧seal适配。运行前后均未安装依赖、未改源码图/标签/折、未执行新编译器、未开启全K折。
+
+## 21. Stage H1：E2/E3b 完整交叉验证独立批次（2026-10-14，Codex）
+
+**21.1 授权范围、版本核验及最小接入**
+
+本条接续第20节与 Stage G Git archive follow-up，不改写旧实验记录。用户授权完成两个漏洞、两种粒度的 E2/E3b 全部固定折，保留 E3a 初值与 H2 计划，H1结束后停止。本条写入时尚未启动 H1 GPU 正式拟合；完成结果另补21.7。
+
+开发工作树 ge-sc-llm-ddg-v11，HEAD 44e7337bb7b47738bc49a947ed5625809f7f006a；原工作树 ge-sc-llm HEAD 7fce3dde322f4a165c4b5ccff89d3839befdf7a6。GitHub ddg-v1.1-correctness 同为44e7337，IMPLEMENTATION_REPORT.md内容与本地一致。Stage G训练HEAD为c311c93927138f3fab3aab94b9afa6e63c90269e；其75份已封存运行源码摘要与当前完全一致。后继提交为归档/只读验收，不能仅因HEAD不同重训，也不能绕过源码和输入检查。未pull/reset/迁移/修改旧seal。
+
+新增逻辑仅 scripts/DFG/experiments/e23_cv/，产物仅 artifacts/paper_kfold/stage_h1_v1/。采用与 e23_pilot 同级的旁路目录，避免原runtime_hashes递归扫描改变旧Stage G源码清单。原DDG/state算法、HGT、tokenizer、图/标签/特征、折、原训练代码均不改。两工作树已有训练变化文档与HANDOVER只追加。起始protected_before.json保护14253文件和7个完整旧目录。
+
+**21.2 新增文件与修改原因**
+
+- __init__.py：H1批次版本及允许变体。
+- prepare.py：读取旧冻结折，按原seed公式创建30组三变体未训练链；fold0逐一核验与Stage G初始张量、监督mask及关系支持一致，记录复用收据。其余26折保留E2/E3a/E3b全部初始状态。
+- control.py：新plan/seal、52个新拟合和8个复用结果、单worker串行执行、任务完整性门禁；H2另存30项固定计划且execution_authorized=false。旧控制器不修改。
+- worker.py：沿用Stage G worker，仅增加fold/batch身份、选择对应封存初值、拒绝E3a/smoke/fold0新训练，以及CUDA前已有compute进程检查；make_model、Supervision、fit、checkpoint仍调用Stage G原对象。WORKER_PROVENANCE.json记录原worker SHA和接入差异。
+- report.py：复用原逐模型验收，新增逐折/等权均值/样本标准差、配对差值、混淆矩阵、pooled OOF、错误/概率变化，以及单列旧E0/E1历史基线。
+- tests/test_h1.py：矩阵完整性、种子、真实全部冻结折、禁止H2/重训fold0、无数值训练替换、失败停止/显式重试、统计口径与身份错误测试。
+- README.md：可运行命令、恢复语义和输出说明。H2_EXECUTION_PLAN.md说明后续审批范围与完整消融要求。
+
+这是调度和统计接入；没有为了改善指标新增边、类型或模型参数结构。允许变体本身原本已有的关系参数保持 Stage G 原实现。
+
+**21.3 固定矩阵、初始化与评分**
+
+完整三变体矩阵为2×(5+10)×3=90次拟合，非论文指定总训练次数。Stage G已12次；H1新增E2/E3b各26=52次，8个fold0复用，得到60结果；H2剩余E3a26次本轮不运行。四任务顺序为重入合约、访问控制合约、重入节点、访问控制节点。每折E2后E3b，一个worker释放后再启动另一个。
+
+seed1固定；沿用 base=10000+fold+(合约1000，否则0)、pair=base+77、fit=base+1000000。这属于既定每折随机状态，不是新增seed重复实验。fresh E2→fresh E3a→fresh E3b全部未优化；共同节点类型/canonical关系语义对齐，STATE_DEF_USE在E3a/E3b相同；新关系独立可复现。正式拟合前恢复固定fit随机状态，不加载smoke已训练权重。
+
+paper_kfold、完整固定图前向、节点mask/合约文件监督，原学习率调度、patience7、delta0.001、50轮上限不变；strict min val loss选best，last单独保存报告。所有主结果CV validation，同val选模/评分，不称独立测试；节点仍HCG节点口径。pooled OOF与等权折均值分开，也不能变成独立测试。
+
+**21.4 验收、恢复与资源规则**
+
+独立plan/seal绑定当前HEAD/运行源码、图/标签/特征/折、初始化、schema/关系方向/逐折支持、配置/前向范围/评分角色和旧收据。成功核验后复用；失败保存旧attempt/日志，停止并排查后才显式重试单个模型，不是epoch断点续训。不改变结果较差的fold。全局及批次互斥锁，并检查GPU现存compute进程；不自动OOM重试、缩图、调参、切CPU。资源沿用Stage G逐fit峰值allocated/reserved、整卡最小空闲、耗时与梯度记录。
+
+训练前607个不同测试通过：开发原回归480、旧入口110、新H1 16、原工作树绝对资源1；0失败/0跳过。开发套件deselect的一项已在原目录补跑，不漏测。警告仍为DGL/TensorBoard distutils、NetworkX弃用；无依赖升级。全部命令和日志在新批次integration_tests.json及original_resource_test.json。
+
+**21.5 与原基线的比较口径**
+
+原Stage C E0=作者HCG，E1=最初标量DDG；新E2=修复v1.1标量DDG，E3b=再加状态Def–Use及两类顺序关系。对旧E0/E1验收30配对折的收据、预测与配置，单独报告同折历史基线比较。旧初始化算法和本批三变体链不同，未证明跨批共同参数完全相同，所以不能把历史E0/E1与新E2/E3b混称同一次严格配对消融。新E2/E3b内部才是本批受控配对。
+
+**21.6 未执行事项**
+
+本条时正在CPU初始化/复用审计，正式52次尚未开始。没有H2新训练、更多seed、七类全量、nested/narrow、新关系或新语义修复，也未提交推送。本轮结束应补充实际完成数/失败记录、H1_RESULT_REPORT.md、旧资产保护与H2是否值得开展的判断，不能用fold0代替全折结论。
+
+**21.7 H1 实际完成与冻结核验（2026-10-14，Codex）**
+
+接续21.6的启动前记录：现已完成授权的52次新增拟合，并复用Stage G的8个E2/E3b fold0结果，总计60个正式结果。四任务按重入合约、访问控制合约、重入节点、访问控制节点顺序串行完成；每任务验收通过才进入下一任务。全部新增均attempt_001，0失败、0重试、0 OOM、0非有限loss中止。没有为挑分重训、改变seed/折、删文件/边、缩图或切CPU。H2新增E3a拟合为0，仅保留26次后续拟合计划及全部30折E3a未训练初值。
+
+control verify最终返回new_complete=52、stage_g_reused=8、total_complete=expected_total=60。独立summarize复算全部120组best/last指标及混淆矩阵、原E0/E1历史结果、OOF覆盖和身份；返回码均0。60个模型的best/last重载输出一致，未在训练/评分时创建参数。源代码仍82项封存摘要，固定资产684项；DDG/state、HGT、tokenizer、标签、图、划分、初始化算法及数值训练规则未修改。
+
+Stage G的75份原运行源码与当前完全一致，12个fold0初始张量重建核验通过；本轮只使用其中E2/E3b的8个正式结果，E3a的4个留给H2。所有旧seal与结果保持原样；GitHub核验结果、两工作树HEAD和运行绑定证据均已保存。没有提交或推送。
+
+**21.8 主结果与辅助结果**
+
+主结果仍为strict minimum val loss的best，CV validation；节点仍为HCG节点口径。数值为等权折均值，差值单位为百分点，SD为样本标准差：
+
+| 任务 | E2 BF1 / MF1 | E3b BF1 / MF1 | 配对ΔBF1 ± SD | BF1提升/持平/下降 |
+|---|---:|---:|---:|---:|
+| 重入合约5折 | 95.0140 / 95.0549 | 95.0140 / 95.0549 | 0.0000 ± 0.0000 | 0/5/0 |
+| 访问控制合约5折 | 91.5628 / 92.0657 | 91.5628 / 92.0657 | 0.0000 ± 0.0000 | 0/5/0 |
+| 重入节点10折 | 96.0772 / 95.9052 | 96.2460 / 96.0506 | +0.1688 ± 0.2766 | 6/1/3 |
+| 访问控制节点10折 | 96.1983 / 96.9983 | 96.3495 / 97.1228 | +0.1512 ± 0.3606 | 4/4/2 |
+
+E2/E3b的BF1折间SD依次为重入合约4.1596/4.1596、访问控制合约2.1697/2.1697、重入节点10.0686/10.0700、访问控制节点6.3884/6.1694。不是多数折都99就可以宣称整体99；困难折使完整结果回落且方差较大。
+
+Last单列，不覆盖主结果：重入合约BF/MF 90.2265/90.1307→90.2265/90.1307；访问控制合约86.9065/86.8342→86.1731/85.9480；重入节点96.8949/97.0180→96.8440/97.0590；访问控制节点96.0416/96.8437→94.7358/95.8352。访问控制节点last BF1下降1.3058pp，不能宣称整个训练轨迹更稳定。pooled OOF单独统计，不替换等权均值，也不是独立测试。
+
+**21.9 预测变化、困难文件和关系支持**
+
+两个合约任务best全部类别预测相同，只改变概率。重入节点best纠正31错误、新增17错误，净少14；访问控制纠正13、新增3，净少10。类别变化仅48/12036和16/7710个节点，其余主要是概率变化。
+
+重入fold8：BF1 67.5236→67.6370；buggy_18.sol的275错误、buggy_36.sol的58错误完全未变，减少的是buggy_42.sol的一项漏报。访问控制fold7：79.1252→80.0805；buggy_18.sol的94误报仍未变，减少6个其他文件误报。这里是相对冻结作者标签的错误计数，不据此证明作者标签错误；前期标注上下文问题未被本次训练消除。
+
+E3b新增关系total，按STATE_DEF_USE / STATE_ACCESS_ORDER / EXTERNAL_CALL_BEFORE_STATE_WRITE排列：重入合约6/847/547、重入节点3/829/547、访问控制合约11/33/0、访问控制节点4/16/0。所有折的train/val支持量均已导出；无支持折未删除。1120个模型×增强canonical记录含原DATA_DEF_USE，其中1091个有train支持者均观察到非零有限梯度，29个无train支持者无梯度并独立保留。参数更新含weight decay，不能单凭更新证明数据梯度；本次检查了各轮msg/attention/priority实际梯度。
+
+这说明新关系进入训练，而非只存图文件；不证明完整语义或因果贡献。有限17条状态Def–Use主要是构造器/定价关系，未完整覆盖余额或权限guard/modifier；访问控制没有CALL→WRITE。H1仅比较整体新增关系，不能分离各组贡献。
+
+**21.10 原始E0/E1历史基线对照**
+
+已核对原Stage C全部30配对折60模型的收据、相同文件/节点/target、split及数值配置。下列为best均值BF1/MF1：
+
+| 任务 | E0历史 | E1历史 | E2本批 | E3b本批 |
+|---|---:|---:|---:|---:|
+| 重入合约 | 94.1593/94.3452 | 93.5157/93.6245 | 95.0140/95.0549 | 95.0140/95.0549 |
+| 访问控制合约 | 93.5590/93.8316 | 93.5590/93.8316 | 91.5628/92.0657 | 91.5628/92.0657 |
+| 重入节点 | 96.0580/96.0088 | 96.0740/96.0107 | 96.0772/95.9052 | 96.2460/96.0506 |
+| 访问控制节点 | 95.9723/96.8764 | 95.8130/96.7384 | 96.1983/96.9983 | 96.3495/97.1228 |
+
+旧semantic-paired-native-xavier-v1与当前state-forward/triple-chain初始化不同，未证明跨批共同参数完全相同；只可称历史同折参考。本批E2/E3b才是严格成对。访问控制合约比历史E0/E1低约1.9962pp BF1，必须保留，不能宣称全面超过基线。
+
+**21.11 资源、补充文件、测试与保存位置**
+
+正式控制器monotonic耗时10564.2432秒（约2.93小时），包含校验/启动/保存/重载；52个新fit记录耗时合计8791.6400秒。重入合约fold1/E2遇Windows显存竞争，耗时656.4475秒，整卡free最低14MiB；GameViewerServer曾分配约916MiB专用显存，用户表示自行关闭，后续速度恢复，但没有独立确认该进程退出。没有代关程序或重启模型。不能用变化的系统负载和不同早停轮数比较算法速度。
+
+本批产物目录scripts/DFG/experiments/artifacts/paper_kfold/stage_h1_v1/新增只读后处理：
+- analyze_h1_results.py：独立复算节点/文件身份与指标，统计逐文件纠错、概率幅度、全历史canonical梯度及逐折资源；不加载训练模型。
+- render_h1_report.py：将已验收CSV/JSON渲染为中文H1_RESULT_REPORT.md。语法检查发现并修正一处报告字符串引号/代码块转义后通过；未触及训练源文件，无模型重跑。
+- verify_protected_after.py：核对14253项旧资产、7个完整旧目录、两HEAD和4个文档原始前缀，仅写新批次审计JSON。
+
+607项不同测试通过，0失败/0跳过；重复的16项H1复查不重复计数。训练数值代码在测试后封存，训练期间未改；未升级依赖。警告仍为既有DGL/TensorBoard distutils及NetworkX弃用。后处理语法检查、独立指标断言、全部重载验收通过。最终旧资产/目录核验见protected_after.json；4份文档追加SHA见documentation_phase2.json。
+
+主要交付：H1_RESULT_REPORT.md、H2_EXECUTION_PLAN.md、summary.csv、last_summary.csv、fold_statistics.csv、last_fold_statistics.csv、paired_deltas.csv、paired_statistics.csv、pooled_oof.csv、oof_predictions.json、error_changes.csv、file_error_analysis.csv、prediction_change_summary.csv、enhancement_support.csv、canonical_support.csv、gradient_support_detail.csv、resource_folds.csv、baseline_*、historical_baseline_deltas.csv、analysis.json、postprocessing_checks.json及plan/seal/各fold收据。保留所有Stage G原始产物和日志。
+
+**21.12 结论、限制与停止**
+
+合约best无收益，节点best有小幅平均收益，但存在下降折、last退化和困难文件未改善，不能称稳定普遍提升、显著性或独立测试泛化证据。单seed、同val选模评分、既有模板相似性、历史标签上下文、有限语义及无独立人工/新solc编译验证仍是限制；不能声称完整Solidity DDG。
+
+若要形成完整消融，建议审查后按已封存计划补齐H2的26次E3a，用于解释状态Def–Use与两类顺序关系联合贡献，不预设提高成绩。本轮不执行H2、不扩七类、不增加seed、不扩状态/反向关系。已经按用户要求在H1报告处停止。
+
+只读验收（在mando环境、开发工作树下）：
+```bash
+export PYTHONPATH=/home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+python -B -m scripts.DFG.experiments.e23_cv.control verify
+python -B -m scripts.DFG.experiments.e23_cv.control summarize
+python -B scripts/DFG/experiments/artifacts/paper_kfold/stage_h1_v1/analyze_h1_results.py
+```
+后续若归档提交造成HEAD漂移，不改旧seal，应单独做只读归档身份验收。
