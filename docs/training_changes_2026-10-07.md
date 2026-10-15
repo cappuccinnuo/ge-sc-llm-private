@@ -1997,3 +1997,104 @@ python -B -m scripts.DFG.experiments.e23_cv.control summarize
 python -B scripts/DFG/experiments/artifacts/paper_kfold/stage_h1_v1/analyze_h1_results.py
 ```
 后续若归档提交造成HEAD漂移，不改旧seal，应单独做只读归档身份验收。
+
+
+## 22. Stage H2：E3a 完整消融接入与正式执行（2026-10-15，Codex）
+
+**22.1 任务范围与历史冻结**
+
+用户本轮明确授权新增26次E3a正式拟合，复用Stage G四个fold0，与H1已有E2/E3b各30项合并为90个结果。仅重入/访问控制、合约5折/节点10折，seed、图、标签、512维inside_token、HGT、初始化及训练计算全部冻结。不重训E2/E3b、不重做Oracle/覆盖普查、不扩其他五类、不启动额外seed或独立测试。
+
+开发树当前HEAD为cef8fb9bac5f855d657b7d72a04d650f03465469，H1训练HEAD为44e7337bb7b47738bc49a947ed5625809f7f006a。已读取H1报告、H2预留计划、各task/fold manifest、初值和G收据。复用现有scripts/verify_h1_archive.py的H1专用只读归档核验；不修改旧seal，也不把提交祖先关系当作内容一致证据。82份H1运行源码及684项H1冻结资产摘要全部一致，60个H1结果验收通过。旧h2_plan.json中的execution_authorized=false保持原样；新H2计划独立记录本轮授权。
+
+**22.2 新增文件与最小接入**
+
+新增目录scripts/DFG/experiments/e23_h2/：
+- __init__.py：H2版本与新产物目录常量。
+- archive.py：调用H1只读归档校验；检查30份保存初值的文件SHA、tensor digest、kind、optimizer_steps=0、任务/折/图身份、共同参数对齐记录、fit_seed，以及四个Stage G E3a fold0收据。没有重新初始化模型。
+- control.py：独立plan/seal、固定26次新fit顺序、四个fold0只读引用、任务验收、串行双锁、成功复用与失败保留/显式重试。
+- worker.py：从H1薄层worker派生，仅变更E3a白名单、批次绑定、初值检查调用。直接复用e23_pilot.make_model、Supervision、fit及checkpoint；不重写epoch循环。差异保存在WORKER_PROVENANCE.json。
+- report.py：从冻结图标签及预测独立复算三变体指标；按file/node identity字典对齐，导出cohort与source SHA，拒绝缺失/重复/混合评分身份；best/last分别统计、OOF与等权折均值分别统计。
+- tests/test_h2.py：必要调度、错误初值、历史不可覆盖、身份对齐、失败恢复和成功复用测试。
+- README.md：实际运行命令、日志位置和限制。
+
+没有修改H1 worker白名单、旧计划、旧报告、DDG/state语义、HGT、tokenizer或原训练脚本。所有新增主要逻辑位于新H2目录。旧G初值没有显式fold字段与嵌入initialization审计对象，采用原已封存fold0 manifest和外部audit绑定验证；H1后续折必须具有显式fold及嵌入audit，不降低后续折身份检查。
+
+**22.3 配置核对与旧文字澄清**
+
+旧H1报告第2节用合约任务配置简略描述了全部训练，不能据此认为节点也使用相同学习率。真实manifest/有效配置为：
+- 合约：initial_lr=0.0005、OneCycle max_lr=0.01、div_factor=20、weight_decay=5e-6。
+- 节点：initial_lr=0.0002、max_lr=0.005、div_factor=25、weight_decay=0。
+共同规则为50轮上限、patience=7、delta=0.001、严格最低val loss保存best、last另报、原Adam/OneCycle与每轮step数。H2逐任务继承完整manifest，不统一改写数值；该项是旧报告文字澄清，不是训练配置修改。原H1报告保留不覆盖。
+
+全部评分为paper_kfold的CV validation，同一val用于选择/早停/评分；节点仍为HCG节点口径。pooled OOF不称独立测试。
+
+**22.4 测试与启动门槛**
+
+在现有mando环境运行：
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/experiments/e23_h2/tests scripts/DFG/experiments/e23_pilot/tests/test_training_integration.py scripts/DFG/experiments/e23_pilot/tests/test_model.py
+
+71 passed，0 failed，0 skipped，4条既有DGL distutils弃用警告。包括实际保存初值、错误图/标签/特征/schema保护、训练数值一致性、验证标签不影响训练梯度、checkpoint绑定，以及调度失败不自动重试。未重新运行四任务真实smoke，也未使用合成测试作为正式成绩。
+
+新目录scripts/DFG/experiments/artifacts/paper_kfold/stage_h2_v1/已生成独立plan/seal、archive_audit.json、fold0_reuse_audit.json、integration_tests日志。89份运行源码及1525项固定资产封存，历史计划授权值保持不变。启动前GPU无其他CUDA计算进程，RTX3050 Laptop 4GiB；显存仍受Windows进程共享，实际峰值与最低free逐fit记录。磁盘约859GiB可用。
+
+已启动26次E3a正式拟合，按重入合约1–4、访问控制合约1–4、重入节点1–9、访问控制节点1–9串行执行；此条仅记录启动，不预报结果。运行期间不修改封存源码，不提交Git；成功任务验收后进入下一任务。最终结果与是否失败/重试另追加。
+
+
+**22.5 正式完成与历史保护（2026-10-15，Codex）**
+
+26次新增E3a全部完成：重入合约fold1–4、访问控制合约fold1–4、重入节点fold1–9、访问控制节点fold1–9。每项均attempt_001，0失败、0重试、0 OOM；四个任务完整性门槛依次通过。四个Stage G E3a fold0通过初值/配置/图/收据验收并引用，不重训。最终E3a=30，联合H1已有E2/E3b=90个正式结果。execution.json标记complete，verify返回new_complete=26/stage_g_reused=4/total_complete=30，summarize返回0。
+
+主结果以冻结标签及导出预测独立复算；按task/cohort/file/original_graph_node_id对齐，另带source SHA。90项best/last均有完整产物和重载验收。没有使用CSV行序、同名文件混合或更优F1选择checkpoint。全部为CV validation；pooled OOF与等权折均值分开，节点仍按HCG节点计分。
+
+**22.6 完整三变体best主结果**
+
+| 任务 | E2 BF1/MF1 | E3a BF1/MF1 | E3b BF1/MF1 | E3a−E2 BF1 | E3b−E3a BF1 |
+|---|---:|---:|---:|---:|---:|
+| 重入合约5折 | 95.0140/95.0549 | 95.0140/95.0549 | 95.0140/95.0549 | 0 | 0 |
+| 访问控制合约5折 | 91.5628/92.0657 | 91.5628/92.0657 | 91.5628/92.0657 | 0 | 0 |
+| 重入节点10折 | 96.0772/95.9052 | 96.0388/95.8613 | 96.2460/96.0506 | −0.0384pp | +0.2072pp |
+| 访问控制节点10折 | 96.1983/96.9983 | 96.2631/97.0592 | 96.3495/97.1228 | +0.0648pp | +0.0865pp |
+
+节点E3a−E2的BF1差值SD/升平降：重入0.2093、3/3/4；访问控制0.3399、3/5/2。E3b−E3a：重入SD0.3282、6/2/2；访问控制SD0.2248、3/6/1。两个合约任务每种对照均5折持平。逐折BF/MF/P/R、混淆矩阵、均值和样本SD、全部三组差值及pooled OOF已独立导出，不能将折SD当独立seed方差。
+
+E3a仅增加STATE_DEF_USE，不能证明其对两类都有稳定收益；H1重入的主要小幅收益出现在随后加入两种顺序关系的联合对照。访问控制两段均小幅正向，但无调用→写入边，不能称调用依赖收益。关系参数量、聚合和优化轨迹一并变化，不是纯语义因果消融。
+
+**22.7 last与错误变化**
+
+E3a last均值BF1/MF1：重入合约90.2265/90.1307；访问控制合约86.1731/85.9480；重入节点96.9309/97.0638；访问控制节点96.0594/96.8393。重入节点E3a−E2的last BF1 +0.0360pp，与best −0.0384pp反向；访问控制+0.0178pp，但MF1 −0.0044pp。E3b−E3a的last BF1分别−0.0869pp、−1.3236pp。访问控制合约E3a/E3b last较E2低0.7333pp。不能用last替换已冻结的最低val loss best主规则。
+
+合约best的全部142/114个概率发生变化，但类别均不变。节点E3a−E2 best：重入纠正12/新增14错误，26/12036节点改变类别；访问控制纠正9/新增5，14/7710改变。E3b−E3a best：重入纠正30/新增14，44个类别改变；访问控制纠正9/新增3，12个改变。主要仍是概率变化，不能把远离新增边的变化直接解释为局部依赖语义收益。
+
+困难文件best三变体离散预测不变：重入buggy_18.sol 275错误、buggy_36.sol 58错误，访问控制buggy_18.sol 94错误、buggy_26.sol 42错误。访问控制fold7的6项E3a纠错来自另外4个文件，不来自buggy_18.sol。文件分布与原node_id明细均保存在新CSV，cohort/source SHA区分同名文件。本轮不重标、不删除、不全面重审这些文件。
+
+**22.8 支持、资源与验收**
+
+STATE_DEF_USE在四任务固定图中的边数依次6/11/3/4；节点任务分别8/10、7/10折val无这种边。所有折在关系名称汇总层面有train支持，不代表每个canonical都有train实例。三变体1605项增强canonical梯度记录（包含原DATA_DEF_USE）：1564项有train支持者均观察到非零有限梯度，41项无train支持者独立保留，非有限记录0。证明计算接入，不证明语义完整或普遍收益。
+
+26个新fit记录耗时合计4296.9452秒；控制器monotonic5521.9853秒（约1.53小时，含启动/校验/保存/重载）。仅本轮新fit的最高allocated2466.5654MiB、reserved2628MiB，最低整卡free54MiB；全90结果资源表还含历史批次更低的free。首个fit曾因Windows GPU竞争变慢，用户表示自行关闭不需要的程序；未代关进程、重启fit或改参数，未独立确认程序退出。不同系统负载和早停轮数不能用于公平速度结论。
+
+71项必要测试通过，0失败/跳过，4条既有DGL弃用警告。未重新运行四任务真实smoke、完整DDG语义测试、solc编译或Oracle；未升级依赖。训练完成后只执行只读核验、指标复算和输出报告，不改变封存计算源码。最终资产保护与文档追加检查见stage_h2_v1/protected_after.json，交付索引见delivery_manifest.json。
+
+**22.9 后处理文件和交付**
+
+在新stage_h2_v1产物目录新增render_reports.py与interpretation.md，用于将已验收CSV/JSON渲染成中文H2_RESULT_REPORT.md、E2_E3_COMPLETE_ABLATION_REPORT.md；不是训练器。H1 baseline_statistics.csv校验旧交付SHA后只读复制为historical_baseline_statistics.csv，来源见historical_reference_provenance.json。旧E0/E1仅历史参考，跨批初始化不同，不与E2/E3a/E3b混称共同初始化对照。
+
+主要产物：独立plan/seal、归档/四fold0复用审计、26次完整fit、summary/last_summary、three_variant_best/last、fold_statistics/last_fold_statistics、paired_deltas/paired_statistics、pooled_oof、oof_predictions、error_changes、file_error_analysis、prediction_change_summary、enhancement_support、gradient_support_detail、resource_folds、report.json、两份报告、README和运行/测试日志。90个正式结果通过身份、输入、checkpoint和预测校验。旧计划seal、H1/G产物保持原样，旧预留H2 execution_authorized=false未改。没有pull/checkout/reset/commit/push。
+
+实际只读核验命令（现有mando环境，当前开发HEAD）：
+~~~bash
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export PYTHONPATH=$PWD
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+python -B -m scripts.DFG.experiments.e23_h2.control verify
+python -B -m scripts.DFG.experiments.e23_h2.control summarize
+~~~
+26次正式拟合已用同模块run完成，不需要重训；不再次seal。后续若归档导致HEAD不同，应另做只读归档核验，不改旧seal。
+
+**22.10 结论及停止边界**
+
+当前最支持有限的顺序关系机制研究：已有小幅节点best收益，但非所有折改善、last退化、核心困难文件未解决。单独STATE_DEF_USE覆盖过稀，尚无稳定增益证据。后续若继续，应另定任务检查已变化节点和困难上下文，预先固定区分两类顺序关系及参数/连接数量控制；权限guard/modifier、独立seed和独立评估仍缺证据。本轮没有自动执行这些后续研究。
+
+已完成用户要求的26次新训练、30个E3a验收、90结果完整三变体消融后停止。不重跑E2/E3b、不增seed、不扩七类、不新增图关系/模型。修改、执行与分析AI：Codex。
