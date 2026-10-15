@@ -1,0 +1,5219 @@
+{
+  "status": "complete",
+  "protocol": "paper_kfold",
+  "protocol_version": "ddg-paper-kfold-v1",
+  "score_role": "cv_validation",
+  "interpretation": "CV validation fold",
+  "best_epoch": 4,
+  "last_epoch": 11,
+  "best_cv_validation_loss": 0.6584730744361877,
+  "cv_validation": {
+    "best": {
+      "n": 1096,
+      "positive": 409,
+      "buggy_f1": 67.5235646958012,
+      "macro_f1": 65.27397746985181,
+      "precision": 51.97889182058047,
+      "recall": 96.33251833740832,
+      "tn_fp_fn_tp": [
+        323,
+        364,
+        15,
+        394
+      ]
+    },
+    "last": {
+      "n": 1096,
+      "positive": 409,
+      "buggy_f1": 77.55491881566381,
+      "macro_f1": 78.51545067420744,
+      "precision": 63.63636363636363,
+      "recall": 99.26650366748166,
+      "tn_fp_fn_tp": [
+        455,
+        232,
+        3,
+        406
+      ]
+    }
+  },
+  "checkpoint_sha256": {
+    "best": "de814ee800dacdf3115186cefaf233cf3cde2d614125a3f9fe3ef967f35861c3",
+    "last": "94354c9209684579b6b226d8058bdb7add4f6923b77f1a849868b6ec1de5c49d"
+  },
+  "gradient_audit": {
+    "epochs": [
+      {
+        "backbone_gradient_l1": 199.4593239467764,
+        "classifier_gradient_l1": 10.672095246613026,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.012832183041609824,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.012832183041609824,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0030223845969885588,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0030223845969885588,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.002539551118388772,
+            "relation_att_gradient_l1": 1.0780220283724357e-06,
+            "relation_pri_gradient_l1": 2.5770433289276176e-10,
+            "message_gradient_l1": 0.002539551118388772,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0005226467037573457,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005226467037573457,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00024087361816782504,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00024087361816782504,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00215405086055398,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00215405086055398,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.1882638931274414,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.1882638931274414,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.016487091779708862,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.016487091779708862,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.07066072337329388,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.07066072337329388,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.09121054504066706,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.09121054504066706,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.0916832759976387,
+            "relation_att_gradient_l1": 2.0817353174606978e-07,
+            "relation_pri_gradient_l1": 8.507655691047944e-11,
+            "message_gradient_l1": 0.0916832759976387,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.042098393663764,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.042098393663764,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.005987676093354821,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.005987676093354821,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.06638003140687943,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06638003140687943,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.012832183041609824,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.012832183041609824,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0030223845969885588,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0030223845969885588,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.002539551118388772,
+            "relation_att_gradient_l1": 1.0780220283724357e-06,
+            "relation_pri_gradient_l1": 2.5770433289276176e-10,
+            "message_gradient_l1": 0.002539551118388772,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0005226467037573457,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005226467037573457,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00024087361816782504,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00024087361816782504,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00215405086055398,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00215405086055398,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0006316395883914083,
+            "relation_att_gradient_l1": 6.497648996628413e-07,
+            "relation_pri_gradient_l1": 2.8695268383671646e-10,
+            "message_gradient_l1": 0.0006316395883914083,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.1882638931274414,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.1882638931274414,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.016487091779708862,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.016487091779708862,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.07066072337329388,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.07066072337329388,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.09121054504066706,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.09121054504066706,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.0916832759976387,
+            "relation_att_gradient_l1": 2.0817353174606978e-07,
+            "relation_pri_gradient_l1": 8.507655691047944e-11,
+            "message_gradient_l1": 0.0916832759976387,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.042098393663764,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.042098393663764,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.005987676093354821,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.005987676093354821,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.06638003140687943,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06638003140687943,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 0
+      },
+      {
+        "backbone_gradient_l1": 179.2438364843693,
+        "classifier_gradient_l1": 9.898246243596077,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.013301063561812043,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.013301063561812043,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.003051479463465512,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.003051479463465512,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0025967545807361603,
+            "relation_att_gradient_l1": 9.532807894175087e-07,
+            "relation_pri_gradient_l1": 3.046969898612612e-10,
+            "message_gradient_l1": 0.0025967545807361603,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.000500540467328392,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.000500540467328392,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0002560270295361988,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0002560270295361988,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.002153423789422959,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.002153423789422959,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.1866350769996643,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.1866350769996643,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.0162450666539371,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0162450666539371,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.06954187154769897,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06954187154769897,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.08631816878914833,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.08631816878914833,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.0886312872171402,
+            "relation_att_gradient_l1": 2.0511059517502872e-07,
+            "relation_pri_gradient_l1": 6.072865821327156e-11,
+            "message_gradient_l1": 0.0886312872171402,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.04029727168381214,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.04029727168381214,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.005946841789409518,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.005946841789409518,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.06236817315220833,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06236817315220833,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.013301063561812043,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.013301063561812043,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.003051479463465512,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.003051479463465512,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0025967545807361603,
+            "relation_att_gradient_l1": 9.532807894175087e-07,
+            "relation_pri_gradient_l1": 3.046969898612612e-10,
+            "message_gradient_l1": 0.0025967545807361603,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.000500540467328392,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.000500540467328392,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0002560270295361988,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0002560270295361988,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.002153423789422959,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.002153423789422959,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0006484768819063902,
+            "relation_att_gradient_l1": 9.662437605584273e-07,
+            "relation_pri_gradient_l1": 3.788796221204649e-10,
+            "message_gradient_l1": 0.0006484768819063902,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.1866350769996643,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.1866350769996643,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.0162450666539371,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0162450666539371,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.06954187154769897,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06954187154769897,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.08631816878914833,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.08631816878914833,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.0886312872171402,
+            "relation_att_gradient_l1": 2.0511059517502872e-07,
+            "relation_pri_gradient_l1": 6.072865821327156e-11,
+            "message_gradient_l1": 0.0886312872171402,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.04029727168381214,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.04029727168381214,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.005946841789409518,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.005946841789409518,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.06236817315220833,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06236817315220833,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 1
+      },
+      {
+        "backbone_gradient_l1": 158.7069073051196,
+        "classifier_gradient_l1": 9.05499642342329,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.012612862279638648,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.012612862279638648,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.003033587825484574,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.003033587825484574,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.002572024706751108,
+            "relation_att_gradient_l1": 1.140675408351982e-06,
+            "relation_pri_gradient_l1": 4.037783440942187e-10,
+            "message_gradient_l1": 0.002572024706751108,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00044106370478402823,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00044106370478402823,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00028119517082814127,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00028119517082814127,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0018683037487789989,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0018683037487789989,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.1888730488717556,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.1888730488717556,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.015219164080917835,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015219164080917835,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.06955703999847174,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06955703999847174,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.08016488328576088,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.08016488328576088,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.0860010776668787,
+            "relation_att_gradient_l1": 2.1948477524347254e-07,
+            "relation_pri_gradient_l1": 7.26989093924324e-11,
+            "message_gradient_l1": 0.0860010776668787,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.03713107109069824,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.03713107109069824,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.0059950517024844885,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0059950517024844885,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.05641788803040981,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.05641788803040981,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.012612862279638648,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.012612862279638648,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.003033587825484574,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.003033587825484574,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.002572024706751108,
+            "relation_att_gradient_l1": 1.140675408351982e-06,
+            "relation_pri_gradient_l1": 4.037783440942187e-10,
+            "message_gradient_l1": 0.002572024706751108,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00044106370478402823,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00044106370478402823,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00028119517082814127,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00028119517082814127,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0018683037487789989,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0018683037487789989,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0006268704019021243,
+            "relation_att_gradient_l1": 6.896448780935316e-07,
+            "relation_pri_gradient_l1": 2.8351571090823313e-10,
+            "message_gradient_l1": 0.0006268704019021243,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.1888730488717556,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.1888730488717556,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.015219164080917835,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015219164080917835,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.06955703999847174,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06955703999847174,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.08016488328576088,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.08016488328576088,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.0860010776668787,
+            "relation_att_gradient_l1": 2.1948477524347254e-07,
+            "relation_pri_gradient_l1": 7.26989093924324e-11,
+            "message_gradient_l1": 0.0860010776668787,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.03713107109069824,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.03713107109069824,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.0059950517024844885,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0059950517024844885,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.05641788803040981,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.05641788803040981,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 2
+      },
+      {
+        "backbone_gradient_l1": 131.21274902216757,
+        "classifier_gradient_l1": 7.874737687408924,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.013443618081510067,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.013443618081510067,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0032947950530797243,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0032947950530797243,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0028172601014375687,
+            "relation_att_gradient_l1": 1.0452377748881858e-06,
+            "relation_pri_gradient_l1": 4.6305234767954817e-10,
+            "message_gradient_l1": 0.0028172601014375687,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0005880416720174253,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005880416720174253,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00032072268368210644,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00032072268368210644,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0016306633478961885,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0016306633478961885,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.1974293366074562,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.1974293366074562,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.014577845111489296,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.014577845111489296,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.07085064426064491,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.07085064426064491,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.07161996327340603,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.07161996327340603,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.08347362652420998,
+            "relation_att_gradient_l1": 2.389036239947018e-07,
+            "relation_pri_gradient_l1": 9.1828690484963e-11,
+            "message_gradient_l1": 0.08347362652420998,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.033139513805508614,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.033139513805508614,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.006183069897815585,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.006183069897815585,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.04933588393032551,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.04933588393032551,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.013443618081510067,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.013443618081510067,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0032947950530797243,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0032947950530797243,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0028172601014375687,
+            "relation_att_gradient_l1": 1.0452377748881858e-06,
+            "relation_pri_gradient_l1": 4.6305234767954817e-10,
+            "message_gradient_l1": 0.0028172601014375687,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0005880416720174253,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005880416720174253,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00032072268368210644,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00032072268368210644,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0016306633478961885,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0016306633478961885,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0007551223679911345,
+            "relation_att_gradient_l1": 7.413550520141143e-07,
+            "relation_pri_gradient_l1": 3.3570002333505045e-10,
+            "message_gradient_l1": 0.0007551223679911345,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.1974293366074562,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.1974293366074562,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.014577845111489296,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.014577845111489296,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.07085064426064491,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.07085064426064491,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.07161996327340603,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.07161996327340603,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.08347362652420998,
+            "relation_att_gradient_l1": 2.389036239947018e-07,
+            "relation_pri_gradient_l1": 9.1828690484963e-11,
+            "message_gradient_l1": 0.08347362652420998,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.033139513805508614,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.033139513805508614,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.006183069897815585,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.006183069897815585,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.04933588393032551,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.04933588393032551,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 3
+      },
+      {
+        "backbone_gradient_l1": 102.71569395660524,
+        "classifier_gradient_l1": 6.544666537898593,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.01515108288731426,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01515108288731426,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0033239249605685472,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0033239249605685472,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.003228322369977832,
+            "relation_att_gradient_l1": 2.4877549321900005e-05,
+            "relation_pri_gradient_l1": 6.295415855284148e-10,
+            "message_gradient_l1": 0.003228322369977832,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.000592363125178963,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.000592363125178963,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00036795168125536293,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00036795168125536293,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0013517788029275835,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0013517788029275835,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.22328558191657066,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.22328558191657066,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.01394275901839137,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01394275901839137,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.0775053109973669,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0775053109973669,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.06302145216614008,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06302145216614008,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.08291369117796421,
+            "relation_att_gradient_l1": 3.1801994282432133e-07,
+            "relation_pri_gradient_l1": 9.273394552256065e-11,
+            "message_gradient_l1": 0.08291369117796421,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.02847829833626747,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.02847829833626747,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.007028006948530674,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.007028006948530674,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.03962250053882599,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.03962250053882599,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.01515108288731426,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01515108288731426,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0033239249605685472,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0033239249605685472,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.003228322369977832,
+            "relation_att_gradient_l1": 2.4877549321900005e-05,
+            "relation_pri_gradient_l1": 6.295415855284148e-10,
+            "message_gradient_l1": 0.003228322369977832,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.000592363125178963,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.000592363125178963,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00036795168125536293,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00036795168125536293,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0013517788029275835,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0013517788029275835,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0007770755619276315,
+            "relation_att_gradient_l1": 1.0941573691525264e-06,
+            "relation_pri_gradient_l1": 5.194094043758923e-10,
+            "message_gradient_l1": 0.0007770755619276315,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.22328558191657066,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.22328558191657066,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.01394275901839137,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01394275901839137,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.0775053109973669,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0775053109973669,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.06302145216614008,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06302145216614008,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.08291369117796421,
+            "relation_att_gradient_l1": 3.1801994282432133e-07,
+            "relation_pri_gradient_l1": 9.273394552256065e-11,
+            "message_gradient_l1": 0.08291369117796421,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.02847829833626747,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.02847829833626747,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.007028006948530674,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.007028006948530674,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.03962250053882599,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.03962250053882599,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 4
+      },
+      {
+        "backbone_gradient_l1": 79.72144621332117,
+        "classifier_gradient_l1": 5.60885326564312,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.017141566961072385,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.017141566961072385,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0037960094632580876,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0037960094632580876,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0037329928018152714,
+            "relation_att_gradient_l1": 9.112893485507811e-05,
+            "relation_pri_gradient_l1": 1.9085119040695986e-09,
+            "message_gradient_l1": 0.0037329928018152714,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0007217975798994303,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0007217975798994303,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00041662706644274294,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00041662706644274294,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.001063567164237611,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.001063567164237611,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.2770662344992161,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.2770662344992161,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.014397785998880863,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.014397785998880863,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.09015707671642303,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.09015707671642303,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0506339343264699,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0506339343264699,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.08711337111890316,
+            "relation_att_gradient_l1": 5.56161783404896e-07,
+            "relation_pri_gradient_l1": 2.165254640081743e-10,
+            "message_gradient_l1": 0.08711337111890316,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.023190912790596485,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.023190912790596485,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.007677197922021151,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.007677197922021151,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.02967544412240386,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.02967544412240386,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.017141566961072385,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.017141566961072385,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0037960094632580876,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0037960094632580876,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0037329928018152714,
+            "relation_att_gradient_l1": 9.112893485507811e-05,
+            "relation_pri_gradient_l1": 1.9085119040695986e-09,
+            "message_gradient_l1": 0.0037329928018152714,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0007217975798994303,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0007217975798994303,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00041662706644274294,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00041662706644274294,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.001063567164237611,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.001063567164237611,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0009937775903381407,
+            "relation_att_gradient_l1": 1.2331458947301144e-06,
+            "relation_pri_gradient_l1": 6.596099777489428e-10,
+            "message_gradient_l1": 0.0009937775903381407,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.2770662344992161,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.2770662344992161,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.014397785998880863,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.014397785998880863,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.09015707671642303,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.09015707671642303,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0506339343264699,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0506339343264699,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.08711337111890316,
+            "relation_att_gradient_l1": 5.56161783404896e-07,
+            "relation_pri_gradient_l1": 2.165254640081743e-10,
+            "message_gradient_l1": 0.08711337111890316,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.023190912790596485,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.023190912790596485,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.007677197922021151,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.007677197922021151,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.02967544412240386,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.02967544412240386,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 5
+      },
+      {
+        "backbone_gradient_l1": 61.380075440428776,
+        "classifier_gradient_l1": 4.8484500497579575,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.018056927248835564,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.018056927248835564,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.004727892344817519,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.004727892344817519,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.004770646104589105,
+            "relation_att_gradient_l1": 4.3619538701022975e-06,
+            "relation_pri_gradient_l1": 2.587539071896572e-09,
+            "message_gradient_l1": 0.004770646104589105,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0008100681588985026,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0008100681588985026,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0005154504324309528,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005154504324309528,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0006631618598476052,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0006631618598476052,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.35885560512542725,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.35885560512542725,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.015059680677950382,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015059680677950382,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.10928274877369404,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.10928274877369404,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0348546989262104,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0348546989262104,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.09860959649085999,
+            "relation_att_gradient_l1": 7.154686727517401e-07,
+            "relation_pri_gradient_l1": 2.395817433331615e-10,
+            "message_gradient_l1": 0.09860959649085999,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.01802709884941578,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01802709884941578,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.008988888002932072,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.008988888002932072,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.019864101894199848,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.019864101894199848,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.018056927248835564,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.018056927248835564,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.004727892344817519,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.004727892344817519,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.004770646104589105,
+            "relation_att_gradient_l1": 4.3619538701022975e-06,
+            "relation_pri_gradient_l1": 2.587539071896572e-09,
+            "message_gradient_l1": 0.004770646104589105,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0008100681588985026,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0008100681588985026,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0005154504324309528,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005154504324309528,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0006631618598476052,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0006631618598476052,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.001057382149156183,
+            "relation_att_gradient_l1": 1.93217738342355e-06,
+            "relation_pri_gradient_l1": 1.1616675399395149e-09,
+            "message_gradient_l1": 0.001057382149156183,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.35885560512542725,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.35885560512542725,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.015059680677950382,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015059680677950382,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.10928274877369404,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.10928274877369404,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0348546989262104,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0348546989262104,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.09860959649085999,
+            "relation_att_gradient_l1": 7.154686727517401e-07,
+            "relation_pri_gradient_l1": 2.395817433331615e-10,
+            "message_gradient_l1": 0.09860959649085999,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.01802709884941578,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01802709884941578,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.008988888002932072,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.008988888002932072,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.019864101894199848,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.019864101894199848,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 6
+      },
+      {
+        "backbone_gradient_l1": 47.794166667099034,
+        "classifier_gradient_l1": 4.298988081514835,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.015163411386311054,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015163411386311054,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.005535295000299811,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.005535295000299811,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.005437244428321719,
+            "relation_att_gradient_l1": 6.727187326305284e-06,
+            "relation_pri_gradient_l1": 3.8283034418332834e-09,
+            "message_gradient_l1": 0.005437244428321719,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0009494471014477313,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0009494471014477313,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.000670193083351478,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.000670193083351478,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00034792548103723675,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00034792548103723675,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.4521796330809593,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.4521796330809593,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.016665533650666475,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.016665533650666475,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.12914169020950794,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.12914169020950794,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.01902615185827017,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01902615185827017,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.12049736827611923,
+            "relation_att_gradient_l1": 8.934889770273458e-07,
+            "relation_pri_gradient_l1": 3.084153672467532e-10,
+            "message_gradient_l1": 0.12049736827611923,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.013297390192747116,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.013297390192747116,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.009615113958716393,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009615113958716393,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.010866508004255593,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.010866508004255593,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.015163411386311054,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015163411386311054,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.005535295000299811,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.005535295000299811,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.005437244428321719,
+            "relation_att_gradient_l1": 6.727187326305284e-06,
+            "relation_pri_gradient_l1": 3.8283034418332834e-09,
+            "message_gradient_l1": 0.005437244428321719,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0009494471014477313,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0009494471014477313,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.000670193083351478,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.000670193083351478,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00034792548103723675,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00034792548103723675,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0013978711795061827,
+            "relation_att_gradient_l1": 2.707976364035858e-06,
+            "relation_pri_gradient_l1": 1.9646817506213665e-09,
+            "message_gradient_l1": 0.0013978711795061827,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.4521796330809593,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.4521796330809593,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.016665533650666475,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.016665533650666475,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.12914169020950794,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.12914169020950794,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.01902615185827017,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01902615185827017,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.12049736827611923,
+            "relation_att_gradient_l1": 8.934889770273458e-07,
+            "relation_pri_gradient_l1": 3.084153672467532e-10,
+            "message_gradient_l1": 0.12049736827611923,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.013297390192747116,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.013297390192747116,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.009615113958716393,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009615113958716393,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.010866508004255593,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.010866508004255593,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 7
+      },
+      {
+        "backbone_gradient_l1": 46.25161449015789,
+        "classifier_gradient_l1": 3.7432616918813437,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.009231598232872784,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009231598232872784,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0044376273872330785,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0044376273872330785,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.005100748268887401,
+            "relation_att_gradient_l1": 4.520455604506424e-06,
+            "relation_pri_gradient_l1": 3.724890174083839e-09,
+            "message_gradient_l1": 0.005100748268887401,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0012416439421940595,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0012416439421940595,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0007269599300343543,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0007269599300343543,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00013986456542625092,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00013986456542625092,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.5003674924373627,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.5003674924373627,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.015298014972358942,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015298014972358942,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.12466008681803942,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.12466008681803942,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.00826389086432755,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00826389086432755,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.14783896878361702,
+            "relation_att_gradient_l1": 4.776580340148978e-07,
+            "relation_pri_gradient_l1": 1.9882567814377795e-10,
+            "message_gradient_l1": 0.14783896878361702,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.00919990660622716,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00919990660622716,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.00791430426761508,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00791430426761508,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.004349081078544259,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.004349081078544259,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.009231598232872784,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009231598232872784,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0044376273872330785,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0044376273872330785,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.005100748268887401,
+            "relation_att_gradient_l1": 4.520455604506424e-06,
+            "relation_pri_gradient_l1": 3.724890174083839e-09,
+            "message_gradient_l1": 0.005100748268887401,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0012416439421940595,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0012416439421940595,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0007269599300343543,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0007269599300343543,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00013986456542625092,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00013986456542625092,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0014548930630553514,
+            "relation_att_gradient_l1": 4.329743660506362e-06,
+            "relation_pri_gradient_l1": 3.728077402353721e-09,
+            "message_gradient_l1": 0.0014548930630553514,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.5003674924373627,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.5003674924373627,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.015298014972358942,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015298014972358942,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.12466008681803942,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.12466008681803942,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.00826389086432755,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00826389086432755,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.14783896878361702,
+            "relation_att_gradient_l1": 4.776580340148978e-07,
+            "relation_pri_gradient_l1": 1.9882567814377795e-10,
+            "message_gradient_l1": 0.14783896878361702,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.00919990660622716,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00919990660622716,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.00791430426761508,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00791430426761508,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.004349081078544259,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.004349081078544259,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 8
+      },
+      {
+        "backbone_gradient_l1": 37.711546613306645,
+        "classifier_gradient_l1": 3.171030007302761,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.004264476767275482,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.004264476767275482,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0016398017178289592,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0016398017178289592,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.004029980394989252,
+            "relation_att_gradient_l1": 7.464646500933175e-07,
+            "relation_pri_gradient_l1": 8.652114025234708e-10,
+            "message_gradient_l1": 0.004029980394989252,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.000965498125879094,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.000965498125879094,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0006073515105526894,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0006073515105526894,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00010748640170277213,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00010748640170277213,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.5069944560527802,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.5069944560527802,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.008521733339875937,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.008521733339875937,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.06931478343904018,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06931478343904018,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0037773819640278816,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0037773819640278816,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.1425083726644516,
+            "relation_att_gradient_l1": 3.7502372407516305e-07,
+            "relation_pri_gradient_l1": 5.092461174971419e-11,
+            "message_gradient_l1": 0.1425083726644516,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.006118145072832704,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.006118145072832704,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.005678687710314989,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.005678687710314989,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0013180917012505233,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0013180917012505233,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.004264476767275482,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.004264476767275482,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0016398017178289592,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0016398017178289592,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.004029980394989252,
+            "relation_att_gradient_l1": 7.464646500933175e-07,
+            "relation_pri_gradient_l1": 8.652114025234708e-10,
+            "message_gradient_l1": 0.004029980394989252,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.000965498125879094,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.000965498125879094,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0006073515105526894,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0006073515105526894,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00010748640170277213,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00010748640170277213,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.001653907704167068,
+            "relation_att_gradient_l1": 4.6803970690234564e-06,
+            "relation_pri_gradient_l1": 4.58251481205707e-09,
+            "message_gradient_l1": 0.001653907704167068,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.5069944560527802,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.5069944560527802,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.008521733339875937,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.008521733339875937,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.06931478343904018,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06931478343904018,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0037773819640278816,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0037773819640278816,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.1425083726644516,
+            "relation_att_gradient_l1": 3.7502372407516305e-07,
+            "relation_pri_gradient_l1": 5.092461174971419e-11,
+            "message_gradient_l1": 0.1425083726644516,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.006118145072832704,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.006118145072832704,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.005678687710314989,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.005678687710314989,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0013180917012505233,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0013180917012505233,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 9
+      },
+      {
+        "backbone_gradient_l1": 29.10973622293625,
+        "classifier_gradient_l1": 2.3921097982674837,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0013441470073303208,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0013441470073303208,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0002940330195997376,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0002940330195997376,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0020842227386310697,
+            "relation_att_gradient_l1": 2.6213221815396537e-08,
+            "relation_pri_gradient_l1": 3.0140237528009095e-11,
+            "message_gradient_l1": 0.0020842227386310697,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0003296405775472522,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0003296405775472522,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00023556867381557822,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00023556867381557822,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 8.606243329722929e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 8.606243329722929e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.5115887075662613,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.5115887075662613,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.008735151262953877,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.008735151262953877,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.020498068537563086,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.020498068537563086,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.003307313396362588,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.003307313396362588,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.06153341755270958,
+            "relation_att_gradient_l1": 1.4289268511491482e-08,
+            "relation_pri_gradient_l1": 7.885459300772339e-12,
+            "message_gradient_l1": 0.06153341755270958,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0038404713850468397,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0038404713850468397,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.009846551110967994,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009846551110967994,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0010980993538396433,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0010980993538396433,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0013441470073303208,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0013441470073303208,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0002940330195997376,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0002940330195997376,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0020842227386310697,
+            "relation_att_gradient_l1": 2.6213221815396537e-08,
+            "relation_pri_gradient_l1": 3.0140237528009095e-11,
+            "message_gradient_l1": 0.0020842227386310697,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0003296405775472522,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0003296405775472522,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00023556867381557822,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00023556867381557822,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 8.606243329722929e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 8.606243329722929e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0024609481915831566,
+            "relation_att_gradient_l1": 7.219890903797932e-06,
+            "relation_pri_gradient_l1": 1.0236458791723635e-08,
+            "message_gradient_l1": 0.0024609481915831566,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.5115887075662613,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.5115887075662613,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.008735151262953877,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.008735151262953877,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.020498068537563086,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.020498068537563086,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.003307313396362588,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.003307313396362588,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.06153341755270958,
+            "relation_att_gradient_l1": 1.4289268511491482e-08,
+            "relation_pri_gradient_l1": 7.885459300772339e-12,
+            "message_gradient_l1": 0.06153341755270958,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0038404713850468397,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0038404713850468397,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.009846551110967994,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009846551110967994,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0010980993538396433,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0010980993538396433,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 10
+      },
+      {
+        "backbone_gradient_l1": 19.64737356249526,
+        "classifier_gradient_l1": 1.5888830060139298,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0002980943536385894,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0002980943536385894,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 5.793022864963859e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 5.793022864963859e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0007181206601671875,
+            "relation_att_gradient_l1": 2.6724831236890623e-09,
+            "relation_pri_gradient_l1": 1.8196869792236336e-12,
+            "message_gradient_l1": 0.0007181206601671875,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 3.344317701703403e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 3.344317701703403e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 4.9830736315925606e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 4.9830736315925606e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 1.6352897148408374e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 1.6352897148408374e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.28202803432941437,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.28202803432941437,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.015867188340052962,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015867188340052962,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.010894071776419878,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.010894071776419878,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0014911689358996227,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0014911689358996227,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.02944498509168625,
+            "relation_att_gradient_l1": 5.515639295878636e-09,
+            "relation_pri_gradient_l1": 3.120443374466539e-12,
+            "message_gradient_l1": 0.02944498509168625,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0024267073022201657,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0024267073022201657,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.015411674045026302,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015411674045026302,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0005851721252838615,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005851721252838615,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 14,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0002980943536385894,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0002980943536385894,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 5.793022864963859e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 5.793022864963859e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 23,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0007181206601671875,
+            "relation_att_gradient_l1": 2.6724831236890623e-09,
+            "relation_pri_gradient_l1": 1.8196869792236336e-12,
+            "message_gradient_l1": 0.0007181206601671875,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 3.344317701703403e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 3.344317701703403e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 4.9830736315925606e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 4.9830736315925606e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 1.6352897148408374e-05,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 1.6352897148408374e-05,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0032296396093443036,
+            "relation_att_gradient_l1": 6.7522360041039065e-06,
+            "relation_pri_gradient_l1": 1.550243489134573e-08,
+            "message_gradient_l1": 0.0032296396093443036,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 888,
+            "val_edges": 66,
+            "relation_msg_gradient_l1": 0.28202803432941437,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.28202803432941437,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.015867188340052962,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015867188340052962,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 141,
+            "val_edges": 21,
+            "relation_msg_gradient_l1": 0.010894071776419878,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.010894071776419878,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 73,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0014911689358996227,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0014911689358996227,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 278,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.02944498509168625,
+            "relation_att_gradient_l1": 5.515639295878636e-09,
+            "relation_pri_gradient_l1": 3.120443374466539e-12,
+            "message_gradient_l1": 0.02944498509168625,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 141,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0024267073022201657,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0024267073022201657,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 21,
+            "val_edges": 11,
+            "relation_msg_gradient_l1": 0.015411674045026302,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015411674045026302,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 69,
+            "val_edges": 10,
+            "relation_msg_gradient_l1": 0.0005851721252838615,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005851721252838615,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 1728,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "epoch": 11
+      }
+    ],
+    "backbone_update_l1": 24516.75964222091,
+    "ddg_message_update_l1": 742.5178260803223,
+    "updates_may_include_weight_decay": false
+  },
+  "checkpoint_roundtrip_exact": {
+    "best": true,
+    "last": true
+  },
+  "no_parameters_created_during_training_or_scoring": true,
+  "initial_sha256": "891528c28fc03bb4052837e6c112776300a75b62a666ef95034e6f3717a4f938",
+  "history_rows": 12,
+  "early_stopping_triggered": true,
+  "reached_epoch_limit": false,
+  "wall_seconds_monotonic": 91.94091009600015,
+  "parameters": 4494130,
+  "fit_seed": 1010008,
+  "stop_reason": "early_stopping",
+  "enhancement_last_message_update_l1": {
+    "DATA_DEF_USE": 742.5178260803223,
+    "EXTERNAL_CALL_BEFORE_STATE_WRITE": 0,
+    "STATE_ACCESS_ORDER": 0,
+    "STATE_DEF_USE": 58.83413314819336
+  },
+  "resource": {
+    "peak_allocated_bytes": 1674673664,
+    "peak_reserved_bytes": 1820327936,
+    "card": {
+      "samples": [
+        {
+          "total_mib": 4096,
+          "used_mib": 1612,
+          "free_mib": 2364,
+          "utilization_percent": 3
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 1790,
+          "free_mib": 2186,
+          "utilization_percent": 32
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3459,
+          "free_mib": 517,
+          "utilization_percent": 19
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3455,
+          "free_mib": 521,
+          "utilization_percent": 14
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3548,
+          "free_mib": 428,
+          "utilization_percent": 3
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3534,
+          "free_mib": 442,
+          "utilization_percent": 17
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3548,
+          "free_mib": 428,
+          "utilization_percent": 22
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3548,
+          "free_mib": 428,
+          "utilization_percent": 13
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3544,
+          "free_mib": 432,
+          "utilization_percent": 13
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3538,
+          "free_mib": 438,
+          "utilization_percent": 8
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3548,
+          "free_mib": 428,
+          "utilization_percent": 22
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3525,
+          "free_mib": 451,
+          "utilization_percent": 4
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3525,
+          "free_mib": 451,
+          "utilization_percent": 13
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3539,
+          "free_mib": 437,
+          "utilization_percent": 10
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3543,
+          "free_mib": 433,
+          "utilization_percent": 14
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3535,
+          "free_mib": 441,
+          "utilization_percent": 8
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3534,
+          "free_mib": 442,
+          "utilization_percent": 7
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3530,
+          "free_mib": 446,
+          "utilization_percent": 5
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3530,
+          "free_mib": 446,
+          "utilization_percent": 4
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3525,
+          "free_mib": 451,
+          "utilization_percent": 13
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3534,
+          "free_mib": 442,
+          "utilization_percent": 7
+        },
+        {
+          "total_mib": 4096,
+          "used_mib": 3539,
+          "free_mib": 437,
+          "utilization_percent": 2
+        }
+      ],
+      "errors": [],
+      "minimum_whole_card_free_mib": 428
+    }
+  },
+  "experiment_version": "e23-paper-pilot-v1",
+  "variant": "E3a",
+  "initialized_from": "sealed_untrained_initial_not_smoke_or_prior_fit"
+}

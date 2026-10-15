@@ -1501,3 +1501,52 @@ training results use the Stage C reporter in the original main worktree.
 
 Weights, initial states, graphs and process markers remain local; full validation
 requires these local assets and cannot be performed from a fresh clone alone.
+
+
+## 2026-10-15 Stage H2 接入与启动（Codex）
+
+用户已授权补齐26次E3a正式训练，复用4个Stage G fold0；不训练E2/E3b，不扩七类/新seed。新增scripts/DFG/experiments/e23_h2/旁路调度、初值验证、三变体汇总和必要测试，直接复用原模型/fit/checkpoint。H1旧计划与seal、预留h2_plan的execution_authorized=false均保持原样。
+
+开发HEAD cef8fb9；H1专用只读归档核验确认82份运行源码、684项旧资产及60个H1模型一致。30份E3a初值、四个G fold0通过验证；独立H2封存89份运行源码/1525项资产。71项必要测试通过，0失败/跳过，4条既有DGL警告。旧G初值格式按原manifest绑定，不重建初值。
+
+配置澄清：合约lr=.0005/max_lr=.01/weight_decay=5e-6；节点lr=.0002/max_lr=.005/weight_decay=0。旧H1报告的通用段落过于简略，H2沿用真实逐任务manifest，不改变训练。评分仍CV validation、HCG节点口径。
+
+产物stage_h2_v1，实时controller.log与逐折attempt_001.log。正式26次已启动，完成结果另补；不预报收益。详细记录见training_changes_2026-10-07第22节。修改与分析AI：Codex。
+
+
+## 2026-10-15 Stage H2 全折完成与三变体消融（Codex）
+
+开发树ge-sc-llm-ddg-v11，HEAD保持cef8fb9。26次新E3a均attempt_001，0失败/重试/OOM；复用4个Stage G fold0，共30个E3a，与H1的E2/E3b合计90个正式结果。没有重训E2/E3b，没有修改DDG/HGT/tokenizer/标签/fold/初值/训练规则。71项必要测试通过，最终verify与独立汇总通过。原H1/G计划seal及预留H2 execution_authorized=false不变；新增H2独立授权计划。
+
+Best的CV validation等权均值BF1/MF1：
+- 重入合约：E2=E3a=E3b 95.0140/95.0549。
+- 访问控制合约：E2=E3a=E3b 91.5628/92.0657。
+- 重入节点：E2 96.0772/95.9052，E3a 96.0388/95.8613，E3b 96.2460/96.0506。
+- 访问控制节点：E2 96.1983/96.9983，E3a 96.2631/97.0592，E3b 96.3495/97.1228。
+
+E3a−E2节点BF1为−0.0384pp/+0.0648pp，E3b−E3a为+0.2072pp/+0.0865pp；重入的主要小幅收益出现在顺序关系增量，不能归因于单独状态Def–Use。访问控制没有调用→写入边。合约best类别不变，仅概率变化。两类buggy_18.sol及重入buggy_36.sol、访问控制buggy_26.sol的best错误均未改善。last方向不完全一致，访问控制节点E3b−E3a last BF1为−1.3236pp；不得据此换best规则。
+
+新fit耗时合计4296.9452s，控制器5521.9853s；新fit最低free54MiB，无OOM/降配。1605项增强canonical梯度中1564项有train支持且非零有限，41项无train支持单列，非有限0。STATE_DEF_USE在节点图仅3/4条、val大多无支持，有限覆盖不等于完整状态依赖。单seed、同val选模评分、HCG节点口径，不是独立测试；历史E0/E1初始化不同仅作参考。
+
+交付：scripts/DFG/experiments/artifacts/paper_kfold/stage_h2_v1/的H2_RESULT_REPORT.md、E2_E3_COMPLETE_ABLATION_REPORT.md、逐折best/last和三组差值、OOF/逐文件错误、关系/梯度/资源及plan/seal/收据。新增调度源码在e23_h2/。详细过程已追加training_changes_2026-10-07第22.5–22.10。只读校验：python -B -m scripts.DFG.experiments.e23_h2.control verify（现有mando环境、当前HEAD）；后续归档不要改旧seal。
+
+本轮已完成并停止，不自动扩类别/seed/关系/模型。后续最有依据的是有限的顺序关系机制解释，仍需独立可靠性证据；不是已经证明七类普遍获益。修改、执行与分析AI：Codex。
+
+
+### Stage H2 Git archive follow-up (2026-10-15)
+
+H2 source and text results are archived on ddg-v1.1-correctness; main receives
+matching documentation. Earlier recorded HEADs remain historical provenance.
+Do not rewrite H2/H1/G plans or seals to match an archive commit.
+
+In the development worktree, use these read-only post-commit commands:
+~~~bash
+python -B -m scripts.verify_h2_archive
+python -B -m scripts.verify_h1_archive
+~~~
+Expected complete populations: H2 = 26 new + 4 reused; H1 = 52 new + 8 reused.
+The H2 archive verifier retains policy, ancestry, runtime/input hash, job matrix,
+reserved-plan and original per-fit receipt checks without executing training.
+Original execution commands retain their exact-HEAD guard.
+Weights, initial states, graph binaries and process markers stay local.
+A fresh clone lacks the local assets needed for complete verification.
