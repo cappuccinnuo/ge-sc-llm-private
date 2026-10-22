@@ -1550,3 +1550,251 @@ reserved-plan and original per-fit receipt checks without executing training.
 Original execution commands retain their exact-HEAD guard.
 Weights, initial states, graph binaries and process markers stay local.
 A fresh clone lacks the local assets needed for complete verification.
+
+
+## 2026-10-19 Stage I 能力清单与状态消息诊断接入（Codex）
+
+开发树ge-sc-llm-ddg-v11，HEAD 021a6f55。已新增stage_i_diagnostics旁路能力/入口文档、显式入口检查、静态证据链及固定checkpoint消息屏蔽；原DDG/state、HGT、tokenizer、图、标签、训练和旧seal不变。当前E2/E3a/E3b编号与原宏观设计编号已明确区分。状态图应走Stage F/e23_pilot；新校验须显式调用，不会拦截直接运行的旧脚本。受限modifier仍是后续候选，当前函数回退保留原图。
+
+静态证据显示节点STATE_DEF_USE仅重入3/访问控制4条，全部构造器；重入96.13%的E2节点错误在新增边局部影响域外，访问控制域内37节点原本均正确。继承是更大的已记录回退桶，不能直接假定先做modifier能解决主要错误。静态表在stage_i_v1/static，Stage F sidecar仅本轮观察封存，不能伪称受H2 seal认证。
+
+126项联合测试通过（4条既有DGL警告）。H1/H2归档核验通过；v1/v2预执行计划和接口错误记录保留，v3进行60模型best/last的固定权重全折诊断。四任务fold0已通过，剩余执行中；没有新增正式训练。后处理角色问题以产物目录独立修正版处理，不改封存推理。最终结果另补。详细过程见training_changes_2026-10-07第23节。修改与分析AI：Codex。
+
+
+### 2026-10-19 Stage I 第1、2步完成：状态消息诊断（Codex）
+
+- 已完成能力/版本编号/入口约束清单，以及60个E3a/E3b模型、120份best/last checkpoint、720条件的只读诊断；新增训练0。实现位于开发树scripts/DFG/experiments/stage_i_diagnostics，主报告位于artifacts/paper_kfold/stage_i_v3/STAGE_I_RESULT_REPORT.md。
+- 正常输出与历史概率全相同；图、标签、特征、参数、schema及聚合分母保持。1,020项状态canonical-layer消息正常均非零，说明确实进入HGT。
+- E3b best屏蔽全部状态消息：两个合约任务与访问控制节点均0类别变化；重入节点1331概率变化、仅1新增漏报，等权BF1−0.011342pp。不是新训练消融结果。
+- 状态DU在节点任务仅3/4条且都在构造器；重入96.13%的E2错误处于新增关系潜在影响域外，访问控制全部E2错误在域外。困难文件干预后仍无类别变化。支持“覆盖与主要错误重合少”，不支持“所有DDG无用”或“已证明泛化”。
+- case_review.md给出构造器补偿、顺序联合效应、buggy_42直接目标正向案例；单关系和联合屏蔽不可相加。last单独保留，不改变best规则。
+- 162项测试通过；120 checkpoint输入/恢复验收、H1 60与H2 30历史归档复核通过。旧summarize评分角色错误保留，使用README中的独立后处理脚本；旧seal和数据不改。
+- 受限modifier尚未实现：初稿未展开，后续接入分析提出适配/回退；当前仍函数级回退。候选是先支持唯一绑定、明确参数与单一占位符执行顺序的子集，不能按onlyOwner名字猜，也不等同控制依赖。
+- 详细修改/资源/限制见training_changes第23节、STAGE_I_RESULT_REPORT.md及protected_after.json。原工作树用户auto_version_solc.py改动保留。修改与分析AI：Codex；完成本轮后停止，未启动新训练/关系扩展。
+
+
+## 2026-10-19 Stage J：DDG整体构图入口与受限覆盖恢复（Codex）
+
+- 已完成源码绑定→语义CFG→标量/状态事实→原HCG精确投影→多关系融合→schema/配置/审计的旁路入口。新增代码在开发树scripts/DFG/state/stage_j/，批量入口experiments/stage_j_coverage/。原DDG/Stage F、HGT、tokenizer、训练器、作者标签和旧实验均不修改。
+- 本次新增同源唯一基类/C3多继承及菱形校验、一个无参数且末尾单占位符的前置modifier。只重试原回退函数，原成功分析复用；未知函数无部分事实残留，原样本保留。不支持完整modifier/复杂storage/import/跨函数/控制依赖。
+- Stage I文档“modifier尚未实现”是此前快照；现在Stage J仅实现上述受限子集，旧入口默认行为仍不改变。标量DDG范围未扩展，本批冻结E2边保留。四类增强关系保持正向，没有新节点/反向边。
+- stage_j_v1/build已生成四任务×frozen/inheritance/modifiers共12图。基线状态关系完全复现旧E3b，基础节点/属性/标签/token/CFG/CG不变。恢复函数：重入合约717、访问控制合约746、重入节点473、访问控制节点517；新增状态关系分别863/70/806/40。
+- 新增运行时覆盖不等于性能改善：重入旧E3b 425错误中39进入新边两层范围、6有新上游节点；访问控制196旧错误仍均在范围外。新增节点STATE_DEF_USE各1条仍在构造器。没有新预测/F1，没有新训练。
+- 真实例子：onlyOwner中require读取owner→函数体写owner可生成STATE_ACCESS_ORDER，不能声称已实现权限控制依赖。重入buggy_18恢复了部分顺序上下文，buggy_36和访问控制两个困难文件主要错误仍未覆盖。完整证据见opportunity_v2。
+- DDG语义/集成377项通过（含新增54），原项目25项通过；H1 60/H2 30历史归档通过。首次pytest收集同名模块问题及后处理混合CSV列问题均记录并修复，旧失败日志保留。未做solc编译，测试解析成功不等于编译通过。
+- 文档：state/stage_j/README.md、DESIGN_AND_ACCEPTANCE.md、stage_j_coverage/README.md；结果：artifacts/paper_kfold/stage_j_v1/STAGE_J_RESULT_REPORT.md。详细变更见training_changes第24节。图在build/<task>/<mode>/enhanced.gpickle。
+- 旧通用训练加载器不保证状态边方向，不直接套train_node/train_contractlevel；原e23适配可复用但新图需独立计划、schema和初始化绑定。关闭DDG精确复制输入，恢复baseline要传原baseline图。
+- 183项原代码/用户文件SHA不变，文档仅追加；原auto_version_solc.py用户修改保留。开发HEAD仍021a6f55，未Git写操作、未自动训练或扩七类。保护/交付清单见同批JSON。实施、审查与分析AI：Codex。
+
+
+## 2026-10-19 Stage K：版本域修复及整体DDG单折训练完成（Codex）
+
+- 已按用户要求将修复和整体实验直接落地，不为每个小恢复点分别训练。开发树仍ge-sc-llm-ddg-v11/021a6f55；新增核心state/stage_k/，实验入口experiments/stage_k_pilot/，独立批次artifacts/paper_kfold/stage_k_v1。旧DDG/Stage F/J、HGT、tokenizer、标签、原训练脚本和旧seal不改。
+- 修复开放pragma导致“无限未来版本无法确认内建调用”的覆盖瓶颈。先原有版本/声明/作用域检查，再与分析器声明的[0.4.0,0.9.0)取交集并记完整证据；不伪造solc版本、不改源码、不要求编译成功。未知绑定/跨作用域版本仍回退，此修复是状态前端旁路。
+- 四任务新图已生成；相对Stage J新增重入合约/节点各428边、访问控制各7边。最终相对旧E3b新增1291/77/1234/47边。原nodeID/标签/特征/基础边不变。节点STATE_DEF_USE仍4/5，版本修复主要增加顺序关系。
+- 完成两个节点任务原fold0各B0/B1，共4次新正式训练，均attempt_001、0失败/重试/OOM。B0=旧E3b图重新成对初始化，不是无DDG原MANDO或H1旧分数；B1=Stage J整体恢复＋K版本修复。原512维特征、HGT、学习率、早停、best规则和划分不变，结果均CV validation/HCG节点口径。
+- best：重入BF1 99.6487→99.5904（−0.0583pp），MF1 99.5195→99.4391；访问控制BF1 99.1119、MF1 99.1635均持平。last访问控制BF1 99.1119→99.2883，但不能取代主best。重入best新增1误报，访问控制best类别完全相同；主要仍是概率变化。
+- 重入历史错误的新上下文覆盖6→36；访问控制仍0。本折不包含既有困难文件，不能声称已纠错。访问控制新增状态边都在train，val状态边数未增。87项增强canonical有训练支持且观察到非零有限message梯度；8 checkpoint重载及独立指标复算通过。
+- 联合421测试通过、31条既有警告；H1 60/H2 30归档通过。4fit耗时合计648.27秒，最大allocated1761.38MiB，最低整卡free65MiB；未改配置、切CPU或关闭用户程序。未执行solc编译。
+- 主要报告STAGE_K_RESULT_REPORT.md，完整结果results.csv，训练支持training_audit.json，逐条修改见两树training_changes第25节。旧197项代码/用户文件SHA不变，文档仅追加；原auto_version_solc.py用户修改保留。
+- 当前整体方案已可运行，但单折主结果未显示提升。后续若继续评估，做固定整体B0/B1原10折对照即可，不需要每个小点单独消融；本轮没有自动启动剩余折、七类、更多seed或控制依赖。修改、执行与分析AI：Codex。
+
+
+## 2026-10-19 原始HCG与整体DDG完整实验接入（Codex）
+
+- 用户已授权下一步，新增开发树scripts/DFG/experiments/overall_cv/，独立产物overall_cv_v1。比较作者原始CFG+CG（HCG）与同图加冻结Stage K整体DDG（HCG_DDG），两个漏洞、合约5折/节点10折，共60次新拟合。
+- 旧K基线B0是E3b；旧B1初值以E3b为锚，与新HCG锚定的共同初始化不同，不能仅因同图同fold0就复用。历史结果不覆盖，记录初值摘要对比。两个新分支共用既有训练修复。
+- DDG/HGT/tokenizer/标签/原折/有效学习率/早停/best规则均不改。结果为CV validation，节点仍按HCG节点口径；不扩类别/seed/关系或逐小点消融。
+- 新增23项测试通过；联合回归727通过、1个历史路径绑定失败，该项在资源报告所属原树通过。保留失败日志，未改旧规则。详细记录见training_changes第26节。
+- 本条写入时CPU准备进行中，尚不报训练成绩。随后首个正式配对折验收，再顺序执行四任务；最终结果另补。实施AI：Codex。
+
+
+### 2026-10-19 整体对照封存与首对完成（Codex）
+
+- overall_cv_v1封存30对初值/60任务、186源码/503资产。四任务HCG原前向与现有模型逐值一致；节点/作者标签/token/原CFG+CG边不变，增强仅加冻结DDG。
+- 重入合约fold0两fit完成并验收，best BF1/MF1均84.6154/86.0577；last BF1为92.8571/88.8889，按预定规则不择高替换。4 checkpoint重载一致，增强关系梯度有效，无失败/OOM。
+- 已启动剩余58次串行正式训练，当前结果仅是首对，完整四任务结果另补。旧K节点初值摘要与本批不同，不混用；仅复用本批首对。
+- 原176项代码/用户文件不变，详细图数量、支持及资源见training_changes第26.6节。修改、执行与分析AI：Codex。
+
+
+## 2026-10-20 原始HCG与整体DDG完整对照完成（Codex）
+
+- overall_cv_v1已完成60次新正式fit，30配对折，全部attempt_001、0训练失败/重试/OOM。重入及访问控制合约各5折、节点各10折；两分支共同新初值，以原HCG为锚，不混用旧K B1或H1/H2成绩。
+
+| 任务 | 折 | HCG BF1 | HCG_DDG BF1 | ΔBF1(pp) | HCG MF1 | HCG_DDG MF1 | BF1升/平/降 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 重入合约 | 5 | 94.1593 | 94.1593 | +0.0000 | 94.3452 | 94.3452 | 0/5/0 |
+| 访问控制合约 | 5 | 93.5590 | 93.5590 | +0.0000 | 93.8316 | 93.8316 | 0/5/0 |
+| 重入节点 | 10 | 96.0580 | 96.1027 | +0.0447 | 96.0088 | 96.0441 | 7/1/2 |
+| 访问控制节点 | 10 | 95.9723 | 95.8887 | -0.0837 | 96.8764 | 96.8063 | 2/4/4 |
+
+- 主结果全部为CV validation，按最低val loss选best；节点按HCG节点，last及OOF分表。两个合约best类别完全相同。重入节点平均BF1仅+0.0447pp，纠正33/新增34；困难文件buggy_18仍252错误，buggy_36 60→57。访问控制节点best BF1−0.0837pp，纠正2/新增7，buggy_18/26仍87/42错误；两个节点pooled OOF均略降。本批未证实稳定增益。last及完整误差另报。
+
+- 原DDG算法/HGT/tokenizer/作者标签/原折/学习率/早停未改。60历史轮次/配置与120份checkpoint重载验收通过，节点/特征/原基础边不变量通过。状态DU仍很少，访问控制无调用→写入边；不能把概率变化当作分类收益或证明七类泛化。
+
+- 约10小时监控UTC间隔与fit单调耗时不一致，保留timing_gap_observation.json，原因未确定；受影响fit正常完成，无重训或自动降配，不拿该时间作为公平速度基准。
+
+- 新23测试通过；联合727通过+1历史路径失败，该项在原树通过。保护/交付见protected_after.json与delivery_manifest.json，原用户文件保留、文档仅追加。完整详细记录training_changes第26.7–26.10节。
+
+- 入口scripts/DFG/experiments/overall_cv/README.md；产物scripts/DFG/experiments/artifacts/paper_kfold/overall_cv_v1/OVERALL_CV_RESULT_REPORT.md及逐折/误差/关系/资源CSV。此批停止，未自动扩类别、seed、关系或新训练。实施、执行、分析AI：Codex。
+
+
+## 2026-10-20 合约F1持平专项复核（Codex）
+
+- 用户质疑运行错误后，独立重载两个合约任务全部10对/20个best，在原CUDA重算概率与原导出逐值一致；两组实际图/权重SHA及训练后共同参数均不同。
+- 重入142/访问控制114个合约的best概率全部变化，但类别均未跨二分类边界。平均绝对概率变化1.20915/0.73557pp，因此同F1不等于同模型或同输出。
+- 10个增强模型的DDG relation_msg在内存置零后，10个logits均改变；恢复state_dict后逐值恢复。该推理诊断不是新训练/正式消融；类别仍不变，当前best决策对该扰动未跨界。
+- 首次CPU路径出现3.48e-5概率差超过1e-5容差，保留失败记录；原CUDA复验20个误差均0，未放宽容差。原图、权重文件、DDG/HGT/tokenizer/训练和标签都没改，无新fit。
+- 报告与脚本：artifacts/paper_kfold/overall_ddg_recheck_20261020_v1/README.md、recheck.json、probability_examples.csv；详细记录training_changes第27节。主实验仍未证明稳定收益，不调整阈值/择高checkpoint。实施/复核AI：Codex。
+
+## 2026-10-20 下一步设计前的数据与实验复核（Codex）
+
+- 新产物：开发树scripts/DFG/experiments/artifacts/next_step_review_v1/{audit.py,audit.json,NEXT_STEP_DESIGN.md,verify.log}。本轮没有改算法/图/标签/训练，也没有新fit。
+- 原control verify再验收60fit/30对、186源码/503冻结资产通过。独立复算120组best/last指标、16组均值/SD、16组pooled OOF均与报告一致；文件划分、身份、配置、初值绑定和选模无漂移。668条有train支持的canonical×fold记录均有正message梯度，17条未见关系保留。
+- 新交叉证据：重入HCG428错误中199位于作者/public既有标签分歧，访问控制211中125位于分歧；整体DDG对应仍199/125。重入buggy_18分歧214/计错197；访问控制buggy_18为93/83、buggy_26为42/42。不能直接把这些都归为DDG缺依赖，也不能直接宣布public标签是真值。
+- 节点正例文本在训练折重叠率重入99.79%、访问控制99.03%；非完整合约重复率，不单独证明记忆效应。主结果仍CV validation，节点不是去重源码行。
+- 下一步先对5个已知分歧类别/文件对象定点语义核验，冻结当前DDG。之后才按无争议案例评估受限guard控制依赖；这属于DDG+控制依赖，尚未实现。若全部数据/配置/共同初值保持，可复用现有基线，仅新增整体候选30fit；改变标签/划分则重新立实验，不能混用。
+- 本轮仅设计，不启动新训练或扩七类。首次新审查脚本误计attempt日志已修正并保留失败，正式训练无失败。详见training_changes第28节。执行时间UTC2026-10-20，用户时区2026-10-19；修改与分析AI：Codex。
+
+
+## 2026-10-20 buggy_18作者标注跨版本核验（Codex）
+
+- 新证据在开发树scripts/DFG/experiments/artifacts/buggy18_hgt_llm_comparison_v1/。HGT六个源码/CSV/JSON文件与提交f791a855字节一致；两类HGT/LLM本地源码相同，HGT标注集合等于CSV注入区间并集。
+- 同预处理坐标：重入HGT300行、LLM82行，41条LLM标注越界；访问控制148/46，23条越界。最大840/687分别超过当前源码738/560行槽。
+- 同一LLM图端点复放：重入作者35正例对HGT标注249，214节点不同；访问控制17对110，93不同。249/110不是HGT原生Slither图节点数。作者自身端点复放零差异。
+- 差异不是近期DDG造成；历史源码/标注版本或转换问题仍待作者生成输入核实。未改正式标签/图/代码，未重训。详见training_changes第29节。审查与记录AI：Codex。
+
+
+## 2026-10-20 五文件定点标签核验完成（Codex）
+
+- 产物在开发树scripts/DFG/experiments/artifacts/targeted_label_review_v1/，报告TARGETED_LABEL_REVIEW.md；正式图、标签、训练不变。
+- 1127节点中1032普通节点AST锚点/正文/端点全对应，95合成节点marker核对；353个分歧与旧审计逐节点一致。三个SolidiFI作者记录有越界/缺失；0x627是外来unchecked_low_level_calls记录挂到changeOwner；parity已有两个公共标注函数节点但作者标签全空。
+- 公开CSV也有范围疑点：105区间中7条；按可见注入块边界作旁路候选只改3个节点，不能解释353差异。访问控制buggy_18的普通allowed声明被区间覆盖。未采用候选为正式真值。
+- 32项标注测试通过、无警告；新审计脚本语法错误已修复并留证。输入SHA不变，数据定位阶段完成，历史生成原因及最小漏洞语义仍待核实；不启动训练或DDG扩展。详见training_changes第30节。审阅与记录AI：Codex。
+
+## 2026-10-20 固定作者图继续创新的收束设计（Codex）
+
+- 用户决定暂不追查标签；主实验继续固定作者CFG+CG、标签、token及原折，现有争议只列限制，不删样本或按标签连边。
+- 当前Stage K四关系整体DDG已工程闭环，但完整结果未证明稳定收益。下一候选是保留全部v1关系再加受限CONTROL_DEPENDENCE；明确属于DDG＋控制依赖，不冒充状态Def–Use，不先扩跨函数/反向/HGT。
+- 源码核对发现：旧语义IR缺guard失败出口/统一EXIT/分支信息；旧方向adapter只识别四关系；旧verify扫描整个DFG源码集合。后续分别采用旁路控制IR、显式正向adapter、按旧plan清单的只读归档核验，不能直接套用或改旧seal。
+- 一次整体语义/投影/覆盖验收后，若旧图/标签/特征/折/训练数值/共同未训练初值绑定通过，可复用旧60fit，仅新增候选30fit；固定四任务fold0计入，无逐小点F1消融、不以涨分挑折。
+- 详细设计：开发树scripts/DFG/AUTHOR_GRAPH_NEXT_STAGE_DESIGN_2026-10-20.md；变更记录第31节。本轮只设计/文档，无新实现、构图、测试或训练。修改与分析AI：Codex。
+## 2026-10-20 作者图上的DDG＋受限控制依赖实现（Codex）
+
+- 新增开发树control_dependency/及experiments/guard_extension/旁路；仅追加正向CONTROL_DEPENDENCE，保留作者全部节点/标签/token/CFGCG及Stage K四类DDG。261旧代码SHA未变，HGT和原训练数值函数不修改。
+- 核心采用带正常/异常出口的分析CFG及后支配直接控制依赖，支持可靠guard/if/提前退出/既有前置modifier子集，函数回退无残留。旧图无revert/emit节点则不猜投影。是DDG＋控制依赖，不是纯Def–Use。
+- 四任务新增边3086/1929/2421/1384，真实新增两层pairs1690/1096/999/464；原图不变量通过，每图8新canonical，各折有train支持。未知复杂语义/循环/完整modifier仍受限。
+- 原回归413、新测试73，共486通过；首次summary Path错误已修并保留日志，旧grammar的无括号!send解析歧义保持回退。没有solc验证。
+- 旧60fit只读归档核验通过；新候选准备30个保存初值，四任务fold0计入30，条件通过后完成剩余26。GPU串行，旧基线不重训，沿用原各任务配置/best规则。当前先记录实现，正式结果另补，不预报提升。
+- 产物artifacts/paper_kfold/guard_extension_v1/，详见IMPLEMENTATION_REPORT.md及training_changes第32节。实施、审查、记录AI：Codex。
+## 2026-10-20 控制依赖候选四fold0验收与全折放行（Codex）
+
+- 四个正式fold0已验收；best BF1按重入合约/访问控制合约/重入节点/访问控制节点为84.6154/90.0000/99.6487/99.4652。相对旧DDG三个持平，重入节点下降0.1757pp，仍按冻结方案继续剩余26，不挑成绩。
+- 独立检查best最小loss、last末轮、概率与类别、监督梯度、best/last重载；新关系梯度在enhancement_relations字段，实际非零。GPU单模型串行，旧60fit及四fold0复用，完整结果待追加。
+- 只读交叉审查发现address接收者内嵌调用漏检边界。四任务精确扫描中仅两个函数命中，且二者本批原已fallback/零事实；当前图未受污染，下一版本待修，不修改本批seal。另有旧modifier_context字段歧义，按新relation证据判断。
+- 证据guard_extension_v1/{fold0_independent_review.json,readonly_receiver_review.json,full_controller_001.log}；详细training_changes第32.6–32.7节。实施、核验、记录AI：Codex。
+## 2026-10-20 作者HCG＋DDG＋控制依赖全折完成（Codex）
+
+- guard_extension_v1已完成30次候选正式fit，四fold0计入；旧HCG/整体DDG各30fit只读复用，联合90模型。全部新任务attempt_001，0失败/重试/OOM，没有改作者图/标签/token、旧DDG、HGT或原数值训练规则。
+- 三配置是作者HCG→同图整体DDG→继续追加正向CONTROL_DEPENDENCE。控制关系是真实接入，不是替换旧DDG；属于DDG＋控制依赖，不能称纯Def–Use。
+
+| 任务 | HCG best BF1 | 原DDG best BF1 | 候选best BF1 | 候选−DDG(pp) | 相对DDG升/平/降 |
+| --- | --- | --- | --- | --- | --- |
+| 重入合约 | 94.1593 | 94.1593 | 94.1593 | +0.0000 | 0/5/0 |
+| 访问控制合约 | 93.5590 | 93.5590 | 93.5590 | +0.0000 | 0/5/0 |
+| 重入节点 | 96.0580 | 96.1027 | 96.1210 | +0.0183 | 3/2/5 |
+| 访问控制节点 | 95.9723 | 95.8887 | 95.9171 | +0.0284 | 3/4/3 |
+
+- 均为CV validation、等权折均值、最低val loss的best；节点按HCG节点计分。HCG是本地作者图复跑基线，不是论文原数字。last/OOF独立报告，不换成更有利checkpoint。候选访问控制节点仍低于HCG，当前没有稳定改善证据。
+- 两合约概率全部变化但类别相同。重入节点25纠错/19退化、总错429→423；访问控制7/5、216→214。两类buggy_18及AC buggy_26不变，R buggy_36退化2；parity无新控制边却纠错2，不能全归为控制边直接语义收益。
+- 30折240项新canonical×fold都有train支持与实际监督梯度，5464条逐轮梯度非零；60新best/last重载精确一致。独立重算180组指标/混淆矩阵通过；261旧代码SHA及HEAD未变。所选回归413+新测试73=486通过，35条既有warning，无solc验证。
+- 30fit合计4959.45秒约82.66分钟，最大allocated2894.40MiB，最低整卡free29MiB，保持单模型GPU串行。receiver嵌套调用边界仍待下版修复，但本批命中函数均已回退/零事实；不改本批seal。
+- 最终产物：artifacts/paper_kfold/guard_extension_v1/RESULT_REPORT.md、RESULT_TABLES.md、report.json、逐折/配对/OOF/错误/关系/资源CSV及验收JSON。完整预测与稀疏变化表口径分开；辅助摘要分母已按完整样本修正，不改正式F1。
+- 两树训练变更文档第32.8–32.11节详细记录；旧文档只追加。当前实现和全折实验已收束，不自动扩seed、七类、新关系或继续训练。实施、执行、核验与记录AI：Codex。
+
+## 2026-10-20 标签上下文与合约读出诊断完成（Codex）
+
+- 新增旁路readout_diagnostics/，产物artifacts/readout_diagnostics_v1/；图/作者标签/token/DDG/HGT/原训练和旧seal不变，0新fit。源码、命令、报告详见README及DIAGNOSTIC_REPORT.md，训练变更第33节。
+- 节点按参考一致/争议/未审计分层，1127已审计、353分歧、18619未审计。GUARD best重入错误55/199/169，访问控制5/125/84。三个困难文件仍252/87/42错，其中197/83/42落在标签分歧；公共投影不是已认证真值，不能把全部错误归标签。
+- 30个已有合约best串行复放通过，768文件/95232贡献记录；512个配置配对概率全部变化但类别0变化。最大历史概率误差1.1921e-7。难节点文件合约预测均TP，粒度不要混淆。
+- 全部漏报有正局部证据，但HCG正确良性也有重入65/68、访问控制56/56。重入漏报图平均仅14.6节点，不能简单归为大图均值稀释或直接采用最大节点分数。
+- 新诊断attempt001的高精度参考/GPU margin混检失败已保留，attempt002以原后端head精确重放＋float64参考恒等式＋独立数值残差通过；未放宽历史预测要求、未改原精度。33tests通过，0失败/跳过；30目标加2额外核验前向，0训练。
+- 成功诊断总670.16秒，峰值allocated631.81MiB。NEXT_STAGE_DESIGN.md仅设计单一零初值attention读出2×2对照，条件满足时新增20次合约fit；候选尚未编码，本轮没有启动。保持CV validation与HCG节点口径，未扩seed/七类。旧receiver绑定边界仍独立待修，当前冻结图已核验不受影响。
+- 本轮代码与详细结果仅在开发树；两树文档仅追加。实施、诊断、审查与记录AI：Codex。
+## 2026-10-20 固定作者图的合约attention读出实现（Codex）
+
+- 开发树新增experiments/readout_attention/旁路，独立批次paper_kfold/readout_attention_v1。仅将每文件mean替为softmax(h @ a)加权求和，a全零128维；HGT层/原分类头、图/标签/token/DDG/control、原折和训练数值规则不改。
+- 两任务各5折，HCG/GUARD两图各attention，共20新fit；20历史mean只读复用。旧权重从每折optimizer_steps=0初值逐张量复制、恢复原fit_seed，不从训练后checkpoint继续。新runs的HCG/GUARD均是attention，graph_kind与readout分开绑定。
+- 36新测试+57已有回归=93通过，4条既有warning。四个真实零步GPU预检通过：HGT输出精确、pool误差≤2.384e-7、logit≤2.1249e-5；HGT/readout梯度分别有效，初值未更新。独立审查917文件SHA、20初值和10对共同参数通过。
+- 先4正式fold0门槛再余16，不以F1上涨放行；新plan冻结692资产、207旧代码、15新源码。当前重入两fold0已完成、访问控制运行中，完整结果后补。单GPU串行，free最低34MiB，无自动降配/改图/切CPU。
+- 详细第34节、README及独立preflight/初始化审查JSON；只追加文档，保留用户修改/旧seal。无节点新fit、七类扩展或新seed。修改、实施与记录AI：Codex。
+### 2026-10-20 attention四fold0通过并进入完整五折（Codex）
+
+- 四候选/8checkpoint及逐轮早停、LR、梯度、身份与独立指标验收通过；R best84.6154两图、AC90两图，与mean持平，不择分放行。
+- 已继续余16次正式fit，复用四fold0。全部保持原配置，记录full_controller_001.log；完整结果稍后追加。独立核验20初值的7240共享tensor精确一致，HCG未加入空增强关系。
+- 审阅CPU reduction线程微差已按原2线程核对，不改训练或容差。详见training_changes34.6及fold0_independent_review.json。执行与记录AI：Codex。
+## 2026-10-20 合约attention完整五折实验完成（Codex）
+
+- readout_attention_v1完成20新attention fit，只读复用20历史mean，联合40模型/80组best-last指标。全部attempt_001，0失败/重试/OOM；40新checkpoint、逐轮早停/OneCycle、输入/初值/预测及独立指标核验通过。
+- 唯一模型变化是文件内softmax(h @ a)加权读出，新增全零初始化128参数；图/标签/512 token/DDG/control/HGT/原训练规则及原折不改。新目录HCG/GUARD都是attention，历史mean不覆盖。
+
+| 合约任务 | HCG mean BF1 | HCG attention BF1 | 增强mean BF1 | 增强attention BF1 |
+| --- | --- | --- | --- | --- |
+| 重入 | 94.1593 | 93.5157 | 94.1593 | 94.1593 |
+| 访问控制 | 93.5590 | 92.7619 | 93.5590 | 90.5564 |
+
+- 主结果均最低val loss的best/CV validation。重入增强attention纠正1误报又新增1误报，F1持平但预测不同；HCG attention新增1误报。AC两attention均新增1误报，增强attention再漏报proxy.sol/rubixi.sol。原两任务5/6个漏报均未纠正。
+- best交互重入+0.6437pp来自HCG attention退化，增强未超过mean；AC−2.2055pp。last同序R90.8867/93.0421/91.6169/92.3525，AC85.9247/80.7818/84.5429/82.5007；不择高替换best。节点模型未训练，buggy18/26节点争议未由本批解决。
+- 93相关测试通过、4既有warning；315epoch读出梯度全部连接非零，增强316条有train支持的canonical审计均有message梯度，9未见关系保留。20fit累计3285.44秒，最大allocated2894.40MiB，最低free21MiB，GPU串行。
+- 结果与代码在开发树ge-sc-llm-ddg-v11；主报告artifacts/paper_kfold/readout_attention_v1/RESULT_REPORT.md、RESULT_TABLES.md及全部CSV/独立审计JSON。详细training_changes第34.7–34.10节。两树文档仅追加，原代码/输入SHA不变。
+- 结论：该attention候选无稳定收益，保留mean主方案，旁路负结果归档。完成本批后停止，不扩seed/七类/新关系；不能据此判定DDG整体无效。实施、执行、分析与记录AI：Codex。
+**完成时间补记（2026-10-21，Codex）**：本阶段跨日执行，上述2026-10-20标题表示阶段开始日期；完整五折训练验收和最终报告交付完成于美国东部2026-10-21。UTC及文件时间另记delivery_manifest.json，不将54.76分钟的累计fit计时冒充完整阶段墙钟耗时。
+## 2026-10-21 DDG方案与已完成实验审查（Codex）
+
+- 完整报告/独立证据：开发树scripts/DFG/experiments/artifacts/design_code_review_20261021_v1/REVIEW_REPORT.md。最新实现仍在ge-sc-llm-ddg-v11，原编辑树不含所有后续state/control/实验入口。本轮无算法/图/标签/HGT/训练修改，无新fit，旧seal保留。
+- 已完成受限标量、状态/简单mapping、访问顺序、受限继承/modifier与控制依赖的图增强及完整两类K折。未完成完整跨函数/交易摘要、任意storage别名/完整modifier/异常、一站式任意源码推理、七类/多seed/独立评估；反向DDG有意暂缓。
+- 确认控制cfg.py的address转换receiver内嵌调用漏检，独立样例会错误产事实。当前冻结数据命中函数都已因其他条件回退，未发现发布图污染，下一版待最小修复。旧modifier_context false字段有歧义。
+- 主cli仍scalar-only；旧reflect_graph除DATA_DEF_USE外会反射其他新关系，不能当完整方案入口。当前正式旁路五类关系方向正确。旧overall verify因新增文件集合报drift，应采用已有只读归档核验，不改seal。
+- 新机制证据：HGT跨canonical mean使新增val-only relation也可能缩放无新边train节点的原消息（小图1→0.5）；不是标签泄漏，尚不能认定为低收益主因。分差同时包含语义/聚合/参数/优化变化。
+- 同一主链best BF1：R合约94.1593三配置相同、AC合约93.5590相同；R节点HCG/DDG/GUARD=96.0580/96.1027/96.1210，AC=95.9723/95.8887/95.9171。未证明稳定增益；attention未改善，保留mean。STATE_DEF_USE节点仅R4/AC5，不能称完整状态依赖已验证无用。
+- 本轮539所选pytest通过、0失败/跳过、43旧弃用warning；首次grammar环境失败另留证。9标量探针、receiver复现、方向和聚合探针；独立重算380组best/last指标一致，222运行源码seal匹配。未跑solc/正式GPU训练/全部checkpoint重载。详细training_changes第35节；审查和记录AI：Codex。
+## 2026-10-21 下一阶段收束方案（Codex）
+
+- 根据完整K折与第35节审查，下一步先修receiver绑定、明确modifier证据与统一完整profile/正向adapter/归档入口。保留mean、原图标签与旧结果，不继续扩关系或attention；方案详见training_changes第36节。
+- 修复后核对四任务规范化图/特征/标签摘要。图与计算等价则不重训；旧结果仍归旧运行版本。若改变，单列影响并另建批次，不能覆盖历史seal。
+- 然后只做一次有限机制诊断：实际消息/canonical均值影响/新增上下文；最多12个固定源码函数正反与回退样例。区分不存在依赖、范围外、缺投影和已接入无收益，不为每小点跑K折。推理干预不是训练消融。
+- 前两阶段新增正式fit均0。只有明确诊断支持一个新方法假设后才设计单一受控候选；不自动启动60/90次、七类或多seed。当前仅方案记录，未修改代码或执行新测试/训练。设计与记录AI：Codex。
+## 2026-10-21 DDG统一工程版与验收完成（Codex）
+
+- 当前代码在ge-sc-llm-ddg-v11/scripts/DFG/integration/；新增baseline/scalar/full/full_guard构图、精确投影不变量、五关系正向模型adapter与只读archive入口。原树代码未迁移，两树README明确入口，训练变更第37节详细记录。实施、审阅与记录AI：Codex。
+- 修receiver嵌套调用/副作用保护：未知语义相关控制分析整函数回退，无部分控制facts；同一断言旧2facts失败、新fallback/0facts通过。modifier字段区分旧prefix阶段；max_iterations三阶段统一，默认100000。旧230个生产Python SHA未改，用户auto_version_solc修改保留，旧seal不动。
+- 四个真实任务从原作者HCG重建，输出artifacts/integration_release_v1/rebuilt/。节点18312/13432/12036/7710，最终边28605/21620/18638/13127；节点标签/token/原边/schema/实际DGL有序端点全部等价。两个节点任务仅ddg_fact_indices重编号（1885/2455边属性），不能当完整fingerprint相同；旧checkpoint绑定不改。最终control默认四图fingerprint复核通过。
+- 12函数Oracle预先封存后验证全过，4正例投影/4无特定关系/4范围外回退；Codex源码审阅，非独立人工认证，未执行solc。最终oracle/validation_v2/results.json；保留初版工具计数失败及修复记录。
+- 四任务保存的未训练共同初值CPU诊断：无新增入边但canonical分母变化6879/4350/4655/2006节点；其中首层聚合实际改变6056/3866/3945/1647。R表达式入向canonical18→31；第一层缩放公式最大误差9.5367e-7。此为机制证据，不是训练后收益或低收益原因定论。
+- 最终613相关pytest通过，0失败/跳过、31既有warning；原overall_cv只读核验60fit/60收据/689记录文件，checkpoint以SHA核验未全部重载。本轮0正式fit、0新F1，不改HGT/token/标签/fold/训练规则，不启动七类或更多seed。
+- 当前受限工程流程闭环完成，未宣称完整Solidity DDG；任意跨函数/交易、storage别名及复杂modifier/异常仍不支持。旧整体结果无稳定收益，mean保留，attention负结果保留。若继续研究，只考虑有机制证据的单一增量聚合候选，需另行验证，不能保证提升。
+- 入口与命令：integration/README.md；完整报告：experiments/artifacts/integration_release_v1/IMPLEMENTATION_REPORT.md；旧审查/方案保留第35—36节。两树交接与训练文档只追加，本轮停止于工程收束与诊断。
+
+
+### Git archive and consistency check (2026-10-21)
+
+The current integration/state/control/experiment implementations and text
+evidence are archived on ddg-v1.1-correctness. Main retains historical code.
+The DFG README first paragraphs deliberately differ: main points to the
+development worktree; development links its local integration entry point.
+HANDOVER and training_changes remain byte-identical across both worktrees.
+The main-only auto_version_solc.py change consists of three leading blank lines.
+
+Upload/local-only scope is recorded in docs/github_archive_2026-10-21.json.
+Large raw text and binary graph/checkpoint assets stay local; original receipts
+and manifests retain their binding identities. A fresh clone is not a complete
+experiment-data backup. No historical plan/seal is rewritten.
+
+After archival commits, validate each completed modern batch in development:
+~~~bash
+python -B -m scripts.DFG.integration.archive --batch scripts/DFG/experiments/artifacts/paper_kfold/overall_cv_v1 --output /tmp/overall-archive-UNIQUE.json
+python -B -m scripts.DFG.integration.archive --batch scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1 --output /tmp/guard-archive-UNIQUE.json
+python -B -m scripts.DFG.integration.archive --batch scripts/DFG/experiments/artifacts/paper_kfold/readout_attention_v1 --output /tmp/attention-archive-UNIQUE.json
+~~~
+Choose fresh output filenames. These verify recorded source/input/checkpoint
+hashes and receipts without training or changing execution guards.

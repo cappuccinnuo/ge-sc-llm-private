@@ -1,3 +1,4 @@
+> **2026-10-21 开发树入口（Codex）**：最新完整DDG实现位于同级工作树 `/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/integration/`，请在该工作树阅读README并执行命令。本编辑树保留原第一阶段代码，未复制或覆盖后续实现；本树HANDOVER和训练变更文档已同步记录进度。
 # 函数内正向 DDG（第一阶段）
 
 新增逻辑位于本目录；只附加 DATA_DEF_USE。详见 [逐阶段实施记录](IMPLEMENTATION_NOTES.md) 和 [原接入分析](DDG_INTEGRATION_ANALYSIS_2026-10-11.md)。
