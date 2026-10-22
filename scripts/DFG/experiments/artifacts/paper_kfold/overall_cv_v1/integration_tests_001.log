@@ -1,0 +1,304 @@
+.....F.......F.FFFFF...                                                  [100%]
+=================================== FAILURES ===================================
+_______________ test_pair_invariants_and_semantic_initialization _______________
+
+    def test_pair_invariants_and_semantic_initialization():
+     g,h=graphs();a=checks.graph_pair(g,h);assert a["added_relations"]=={"DATA_DEF_USE":2}
+     models={}
+     for v,graph in zip(VARIANTS,(g,h)):
+>     seed_all(1);models[v]=make_model("node",graph,"cpu",hidden_size=8,layers=1,heads=2)
+
+scripts/DFG/experiments/overall_cv/tests/test_overall.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/e23_pilot/model.py:101: in make_model
+    model = cls(path, device, hidden_size, layers, heads).to(device)
+scripts/DFG/experiments/e23_pilot/model.py:89: in __init__
+    _construct(self, "node", graph_or_path, device, hidden_size, layers, heads)
+scripts/DFG/experiments/e23_pilot/model.py:45: in _construct
+    model.node_labels, model.labeled_node_ids, model.label_ids = gu.get_node_label(model.nx_graph)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+nx_graph = <networkx.classes.multidigraph.MultiDiGraph object at 0x76641024c090>
+
+    def get_node_label(nx_graph):
+        nx_g = nx_graph
+        node_labels = []
+        label_ids = {'valid': 0}
+        labeled_node_ids = {'buggy': [], 'valid': []}
+        for node_id, node_data in nx_g.nodes(data=True):
+            node_type = node_data['node_type']
+            node_label = node_data['node_info_vulnerabilities']
+            target = 0
+            if node_label is None:
+                target = 0
+                labeled_node_ids['valid'].append(node_id)
+            else:
+                _node_label = node_data['node_info_vulnerabilities']
+                if isinstance(_node_label, str):
+                    _node_label = ast.literal_eval(_node_label.strip('"'))
+>               bug_type = _node_label[0]['category']
+E               KeyError: 'category'
+
+sco_models/graph_utils.py:190: KeyError
+________ test_actual_cpu_fit_gradient_checkpoint_and_shared_loop[node] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-18/test_actual_cpu_fit_gradient_c0')
+task = 'node'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    def test_actual_cpu_fit_gradient_checkpoint_and_shared_loop(tmp_path,task):
+     torch.set_num_threads(2);g,h=graphs();split=dict(fold=0,train_files=["a.sol"],val_files=["b.sol"])
+     models={}
+     for v,gr in zip(VARIANTS,(g,h)):
+>     seed_all(10);models[v]=make_model(task,gr,"cpu",hidden_size=8,layers=1,heads=2)
+
+scripts/DFG/experiments/overall_cv/tests/test_overall.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/e23_pilot/model.py:101: in make_model
+    model = cls(path, device, hidden_size, layers, heads).to(device)
+scripts/DFG/experiments/e23_pilot/model.py:89: in __init__
+    _construct(self, "node", graph_or_path, device, hidden_size, layers, heads)
+scripts/DFG/experiments/e23_pilot/model.py:45: in _construct
+    model.node_labels, model.labeled_node_ids, model.label_ids = gu.get_node_label(model.nx_graph)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+nx_graph = <networkx.classes.multidigraph.MultiDiGraph object at 0x766410b734d0>
+
+    def get_node_label(nx_graph):
+        nx_g = nx_graph
+        node_labels = []
+        label_ids = {'valid': 0}
+        labeled_node_ids = {'buggy': [], 'valid': []}
+        for node_id, node_data in nx_g.nodes(data=True):
+            node_type = node_data['node_type']
+            node_label = node_data['node_info_vulnerabilities']
+            target = 0
+            if node_label is None:
+                target = 0
+                labeled_node_ids['valid'].append(node_id)
+            else:
+                _node_label = node_data['node_info_vulnerabilities']
+                if isinstance(_node_label, str):
+                    _node_label = ast.literal_eval(_node_label.strip('"'))
+>               bug_type = _node_label[0]['category']
+E               KeyError: 'category'
+
+sco_models/graph_utils.py:190: KeyError
+___________________ test_wrong_bindings_rejected[variant-B1] ___________________
+
+field = 'variant', value = 'B1'
+
+    @pytest.mark.parametrize("field,value",[("variant","B1"),("task_id","unknown"),("score_role","independent_test"),("pair_version","old")])
+    def test_wrong_bindings_rejected(field,value):
+>    m=make_model("node",graphs()[0],"cpu",hidden_size=8,layers=1,heads=2)
+
+scripts/DFG/experiments/overall_cv/tests/test_overall.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/e23_pilot/model.py:101: in make_model
+    model = cls(path, device, hidden_size, layers, heads).to(device)
+scripts/DFG/experiments/e23_pilot/model.py:89: in __init__
+    _construct(self, "node", graph_or_path, device, hidden_size, layers, heads)
+scripts/DFG/experiments/e23_pilot/model.py:45: in _construct
+    model.node_labels, model.labeled_node_ids, model.label_ids = gu.get_node_label(model.nx_graph)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+nx_graph = <networkx.classes.multidigraph.MultiDiGraph object at 0x766410730910>
+
+    def get_node_label(nx_graph):
+        nx_g = nx_graph
+        node_labels = []
+        label_ids = {'valid': 0}
+        labeled_node_ids = {'buggy': [], 'valid': []}
+        for node_id, node_data in nx_g.nodes(data=True):
+            node_type = node_data['node_type']
+            node_label = node_data['node_info_vulnerabilities']
+            target = 0
+            if node_label is None:
+                target = 0
+                labeled_node_ids['valid'].append(node_id)
+            else:
+                _node_label = node_data['node_info_vulnerabilities']
+                if isinstance(_node_label, str):
+                    _node_label = ast.literal_eval(_node_label.strip('"'))
+>               bug_type = _node_label[0]['category']
+E               KeyError: 'category'
+
+sco_models/graph_utils.py:190: KeyError
+________________ test_wrong_bindings_rejected[task_id-unknown] _________________
+
+field = 'task_id', value = 'unknown'
+
+    @pytest.mark.parametrize("field,value",[("variant","B1"),("task_id","unknown"),("score_role","independent_test"),("pair_version","old")])
+    def test_wrong_bindings_rejected(field,value):
+>    m=make_model("node",graphs()[0],"cpu",hidden_size=8,layers=1,heads=2)
+
+scripts/DFG/experiments/overall_cv/tests/test_overall.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/e23_pilot/model.py:101: in make_model
+    model = cls(path, device, hidden_size, layers, heads).to(device)
+scripts/DFG/experiments/e23_pilot/model.py:89: in __init__
+    _construct(self, "node", graph_or_path, device, hidden_size, layers, heads)
+scripts/DFG/experiments/e23_pilot/model.py:45: in _construct
+    model.node_labels, model.labeled_node_ids, model.label_ids = gu.get_node_label(model.nx_graph)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+nx_graph = <networkx.classes.multidigraph.MultiDiGraph object at 0x766410b74ed0>
+
+    def get_node_label(nx_graph):
+        nx_g = nx_graph
+        node_labels = []
+        label_ids = {'valid': 0}
+        labeled_node_ids = {'buggy': [], 'valid': []}
+        for node_id, node_data in nx_g.nodes(data=True):
+            node_type = node_data['node_type']
+            node_label = node_data['node_info_vulnerabilities']
+            target = 0
+            if node_label is None:
+                target = 0
+                labeled_node_ids['valid'].append(node_id)
+            else:
+                _node_label = node_data['node_info_vulnerabilities']
+                if isinstance(_node_label, str):
+                    _node_label = ast.literal_eval(_node_label.strip('"'))
+>               bug_type = _node_label[0]['category']
+E               KeyError: 'category'
+
+sco_models/graph_utils.py:190: KeyError
+__________ test_wrong_bindings_rejected[score_role-independent_test] ___________
+
+field = 'score_role', value = 'independent_test'
+
+    @pytest.mark.parametrize("field,value",[("variant","B1"),("task_id","unknown"),("score_role","independent_test"),("pair_version","old")])
+    def test_wrong_bindings_rejected(field,value):
+>    m=make_model("node",graphs()[0],"cpu",hidden_size=8,layers=1,heads=2)
+
+scripts/DFG/experiments/overall_cv/tests/test_overall.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/e23_pilot/model.py:101: in make_model
+    model = cls(path, device, hidden_size, layers, heads).to(device)
+scripts/DFG/experiments/e23_pilot/model.py:89: in __init__
+    _construct(self, "node", graph_or_path, device, hidden_size, layers, heads)
+scripts/DFG/experiments/e23_pilot/model.py:45: in _construct
+    model.node_labels, model.labeled_node_ids, model.label_ids = gu.get_node_label(model.nx_graph)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+nx_graph = <networkx.classes.multidigraph.MultiDiGraph object at 0x766410ae6950>
+
+    def get_node_label(nx_graph):
+        nx_g = nx_graph
+        node_labels = []
+        label_ids = {'valid': 0}
+        labeled_node_ids = {'buggy': [], 'valid': []}
+        for node_id, node_data in nx_g.nodes(data=True):
+            node_type = node_data['node_type']
+            node_label = node_data['node_info_vulnerabilities']
+            target = 0
+            if node_label is None:
+                target = 0
+                labeled_node_ids['valid'].append(node_id)
+            else:
+                _node_label = node_data['node_info_vulnerabilities']
+                if isinstance(_node_label, str):
+                    _node_label = ast.literal_eval(_node_label.strip('"'))
+>               bug_type = _node_label[0]['category']
+E               KeyError: 'category'
+
+sco_models/graph_utils.py:190: KeyError
+________________ test_wrong_bindings_rejected[pair_version-old] ________________
+
+field = 'pair_version', value = 'old'
+
+    @pytest.mark.parametrize("field,value",[("variant","B1"),("task_id","unknown"),("score_role","independent_test"),("pair_version","old")])
+    def test_wrong_bindings_rejected(field,value):
+>    m=make_model("node",graphs()[0],"cpu",hidden_size=8,layers=1,heads=2)
+
+scripts/DFG/experiments/overall_cv/tests/test_overall.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/e23_pilot/model.py:101: in make_model
+    model = cls(path, device, hidden_size, layers, heads).to(device)
+scripts/DFG/experiments/e23_pilot/model.py:89: in __init__
+    _construct(self, "node", graph_or_path, device, hidden_size, layers, heads)
+scripts/DFG/experiments/e23_pilot/model.py:45: in _construct
+    model.node_labels, model.labeled_node_ids, model.label_ids = gu.get_node_label(model.nx_graph)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+nx_graph = <networkx.classes.multidigraph.MultiDiGraph object at 0x7665497401d0>
+
+    def get_node_label(nx_graph):
+        nx_g = nx_graph
+        node_labels = []
+        label_ids = {'valid': 0}
+        labeled_node_ids = {'buggy': [], 'valid': []}
+        for node_id, node_data in nx_g.nodes(data=True):
+            node_type = node_data['node_type']
+            node_label = node_data['node_info_vulnerabilities']
+            target = 0
+            if node_label is None:
+                target = 0
+                labeled_node_ids['valid'].append(node_id)
+            else:
+                _node_label = node_data['node_info_vulnerabilities']
+                if isinstance(_node_label, str):
+                    _node_label = ast.literal_eval(_node_label.strip('"'))
+>               bug_type = _node_label[0]['category']
+E               KeyError: 'category'
+
+sco_models/graph_utils.py:190: KeyError
+______________________ test_unregistered_schema_rejected _______________________
+
+    def test_unregistered_schema_rejected():
+>    m=make_model("node",graphs()[0],"cpu",hidden_size=8,layers=1,heads=2)
+
+scripts/DFG/experiments/overall_cv/tests/test_overall.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/experiments/e23_pilot/model.py:101: in make_model
+    model = cls(path, device, hidden_size, layers, heads).to(device)
+scripts/DFG/experiments/e23_pilot/model.py:89: in __init__
+    _construct(self, "node", graph_or_path, device, hidden_size, layers, heads)
+scripts/DFG/experiments/e23_pilot/model.py:45: in _construct
+    model.node_labels, model.labeled_node_ids, model.label_ids = gu.get_node_label(model.nx_graph)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+nx_graph = <networkx.classes.multidigraph.MultiDiGraph object at 0x766410accc10>
+
+    def get_node_label(nx_graph):
+        nx_g = nx_graph
+        node_labels = []
+        label_ids = {'valid': 0}
+        labeled_node_ids = {'buggy': [], 'valid': []}
+        for node_id, node_data in nx_g.nodes(data=True):
+            node_type = node_data['node_type']
+            node_label = node_data['node_info_vulnerabilities']
+            target = 0
+            if node_label is None:
+                target = 0
+                labeled_node_ids['valid'].append(node_id)
+            else:
+                _node_label = node_data['node_info_vulnerabilities']
+                if isinstance(_node_label, str):
+                    _node_label = ast.literal_eval(_node_label.strip('"'))
+>               bug_type = _node_label[0]['category']
+E               KeyError: 'category'
+
+sco_models/graph_utils.py:190: KeyError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/DFG/experiments/overall_cv/tests/test_overall.py::test_pair_invariants_and_semantic_initialization
+FAILED scripts/DFG/experiments/overall_cv/tests/test_overall.py::test_actual_cpu_fit_gradient_checkpoint_and_shared_loop[node]
+FAILED scripts/DFG/experiments/overall_cv/tests/test_overall.py::test_wrong_bindings_rejected[variant-B1]
+FAILED scripts/DFG/experiments/overall_cv/tests/test_overall.py::test_wrong_bindings_rejected[task_id-unknown]
+FAILED scripts/DFG/experiments/overall_cv/tests/test_overall.py::test_wrong_bindings_rejected[score_role-independent_test]
+FAILED scripts/DFG/experiments/overall_cv/tests/test_overall.py::test_wrong_bindings_rejected[pair_version-old]
+FAILED scripts/DFG/experiments/overall_cv/tests/test_overall.py::test_unregistered_schema_rejected
+7 failed, 16 passed, 4 warnings in 8.21s

@@ -1,0 +1,461 @@
+{
+  "created_utc": "2026-10-20T03:46:15.752294+00:00",
+  "reviewer": "Codex",
+  "status": "passed_with_known_scientific_limitations",
+  "plan_sha256": "c957e7fb36885a8fc9d5977e85a87402e4e7bf6224c89bfe5f06817b986eb499",
+  "head": "021a6f55ac9e3f94fc70feb441ff48b51b6a92ea",
+  "counts": {
+    "metric_groups": 120,
+    "fits": 60,
+    "paired_folds": 30,
+    "aggregate_groups": 16,
+    "pooled_groups": 16
+  },
+  "source_hashes": 186,
+  "frozen_asset_hashes": 503,
+  "exported_prediction_rows": 40004,
+  "task_file_populations": {
+    "reentrancy_author_contract": 142,
+    "access_control_author_contract": 114,
+    "reentrancy_author_node": 71,
+    "access_control_author_node": 57
+  },
+  "score_role": "cv_validation",
+  "independent_test": false,
+  "errors": [
+    {
+      "task_id": "reentrancy_author_contract",
+      "checkpoint": "best",
+      "before_errors": 8,
+      "after_errors": 8,
+      "fixed": 0,
+      "regressed": 0,
+      "class_changed": 0
+    },
+    {
+      "task_id": "reentrancy_author_contract",
+      "checkpoint": "last",
+      "before_errors": 13,
+      "after_errors": 13,
+      "fixed": 2,
+      "regressed": 2,
+      "class_changed": 4
+    },
+    {
+      "task_id": "access_control_author_contract",
+      "checkpoint": "best",
+      "before_errors": 7,
+      "after_errors": 7,
+      "fixed": 0,
+      "regressed": 0,
+      "class_changed": 0
+    },
+    {
+      "task_id": "access_control_author_contract",
+      "checkpoint": "last",
+      "before_errors": 16,
+      "after_errors": 18,
+      "fixed": 2,
+      "regressed": 4,
+      "class_changed": 6
+    },
+    {
+      "task_id": "reentrancy_author_node",
+      "checkpoint": "best",
+      "before_errors": 428,
+      "after_errors": 429,
+      "fixed": 33,
+      "regressed": 34,
+      "class_changed": 67
+    },
+    {
+      "task_id": "reentrancy_author_node",
+      "checkpoint": "last",
+      "before_errors": 284,
+      "after_errors": 346,
+      "fixed": 21,
+      "regressed": 83,
+      "class_changed": 104
+    },
+    {
+      "task_id": "access_control_author_node",
+      "checkpoint": "best",
+      "before_errors": 211,
+      "after_errors": 216,
+      "fixed": 2,
+      "regressed": 7,
+      "class_changed": 9
+    },
+    {
+      "task_id": "access_control_author_node",
+      "checkpoint": "last",
+      "before_errors": 231,
+      "after_errors": 336,
+      "fixed": 15,
+      "regressed": 120,
+      "class_changed": 135
+    }
+  ],
+  "relations": {
+    "canonical_fold_rows": 685,
+    "with_train_support": 668,
+    "supported_with_zero_message_gradient": 0,
+    "without_train_support": 17,
+    "unseen_relation_rows_preserved": [
+      {
+        "task_id": "reentrancy_author_contract",
+        "fold": "4",
+        "variant": "HCG_DDG",
+        "canonical": "[\"constructor_definition\", \"DATA_DEF_USE\", \"if\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "4",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_contract",
+        "fold": "0",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"DATA_DEF_USE\", \"while\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "2",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_contract",
+        "fold": "0",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"STATE_ACCESS_ORDER\", \"new_variable\"]",
+        "relation": "STATE_ACCESS_ORDER",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_contract",
+        "fold": "0",
+        "variant": "HCG_DDG",
+        "canonical": "[\"new_variable\", \"DATA_DEF_USE\", \"while\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "2",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_contract",
+        "fold": "2",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"STATE_ACCESS_ORDER\", \"if\"]",
+        "relation": "STATE_ACCESS_ORDER",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_contract",
+        "fold": "2",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"STATE_DEF_USE\", \"if\"]",
+        "relation": "STATE_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "5",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_contract",
+        "fold": "2",
+        "variant": "HCG_DDG",
+        "canonical": "[\"if\", \"STATE_ACCESS_ORDER\", \"if\"]",
+        "relation": "STATE_ACCESS_ORDER",
+        "train_edges": "0",
+        "val_edges": "4",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_contract",
+        "fold": "3",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"DATA_DEF_USE\", \"new_variable\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "3",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_contract",
+        "fold": "4",
+        "variant": "HCG_DDG",
+        "canonical": "[\"if\", \"STATE_ACCESS_ORDER\", \"return\"]",
+        "relation": "STATE_ACCESS_ORDER",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "reentrancy_author_node",
+        "fold": "1",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"DATA_DEF_USE\", \"new_variable\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "reentrancy_author_node",
+        "fold": "5",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"DATA_DEF_USE\", \"if\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "reentrancy_author_node",
+        "fold": "5",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"DATA_DEF_USE\", \"return\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_node",
+        "fold": "2",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"DATA_DEF_USE\", \"return\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_node",
+        "fold": "4",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"DATA_DEF_USE\", \"while\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "2",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_node",
+        "fold": "4",
+        "variant": "HCG_DDG",
+        "canonical": "[\"new_variable\", \"DATA_DEF_USE\", \"while\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "2",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_node",
+        "fold": "5",
+        "variant": "HCG_DDG",
+        "canonical": "[\"new_variable\", \"STATE_ACCESS_ORDER\", \"expression_statement\"]",
+        "relation": "STATE_ACCESS_ORDER",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      },
+      {
+        "task_id": "access_control_author_node",
+        "fold": "7",
+        "variant": "HCG_DDG",
+        "canonical": "[\"expression_statement\", \"DATA_DEF_USE\", \"new_variable\"]",
+        "relation": "DATA_DEF_USE",
+        "train_edges": "0",
+        "val_edges": "1",
+        "max_message_gradient_l1": "0.0",
+        "has_training_support": "False",
+        "observed_nonzero_gradient": "False"
+      }
+    ]
+  },
+  "overlap": {
+    "reentrancy_author_node": {
+      "validation_nodes": 12036,
+      "validation_positive_nodes": 6570,
+      "exact_type_code_in_train": 9207,
+      "positive_exact_type_code_in_train": 6556,
+      "all_node_overlap_percent": 76.49551345962114,
+      "positive_node_overlap_percent": 99.7869101978691
+    },
+    "access_control_author_node": {
+      "validation_nodes": 7710,
+      "validation_positive_nodes": 2977,
+      "exact_type_code_in_train": 5084,
+      "positive_exact_type_code_in_train": 2948,
+      "all_node_overlap_percent": 65.94033722438391,
+      "positive_node_overlap_percent": 99.02586496472959
+    }
+  },
+  "known_label_disagreements": [
+    {
+      "category": "access_control",
+      "policy": "author-endpoints",
+      "nodes": 13432,
+      "author_positive": 2977,
+      "public_positive": 3114,
+      "different_nodes": 137,
+      "zero_hit_positive_contracts": 0,
+      "source_projection_issues": 0,
+      "exported": true,
+      "output": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/artifacts/public_endpoints_verified_v1/access_control"
+    },
+    {
+      "category": "reentrancy",
+      "policy": "author-endpoints",
+      "nodes": 18312,
+      "author_positive": 6570,
+      "public_positive": 6784,
+      "different_nodes": 216,
+      "zero_hit_positive_contracts": 0,
+      "source_projection_issues": 0,
+      "exported": true,
+      "output": "/home/zhao/SmartContract/ge-sc-llm/Test_code/label_pipeline/artifacts/public_endpoints_verified_v1/reentrancy"
+    }
+  ],
+  "errors_vs_label_disagreements": [
+    {
+      "task_id": "reentrancy_author_node",
+      "variant": "HCG",
+      "counts": {
+        "errors": 428,
+        "errors_on_disputed_nodes": 199,
+        "errors_on_agreed_nodes": 229,
+        "disputed_nodes": 216
+      },
+      "by_file": {
+        "buggy_18.sol": {
+          "disputed": 214,
+          "errors_on_disputed_nodes": 197
+        },
+        "0x627fa62ccbb1c1b04ffaecd72a53e37fc0e17839.sol": {
+          "disputed": 2,
+          "errors_on_disputed_nodes": 2
+        }
+      },
+      "label_audit_manifest_sha256": "a06d4fef4e567f17f9054a3f4749f3337fe7eabdfddc68d2e4c1928491af9dee",
+      "label_differences_sha256": "f7e92304bfc877d430a9b97ddcf2e495391fa5c23be16bc743f09ca2c2e4f824"
+    },
+    {
+      "task_id": "reentrancy_author_node",
+      "variant": "HCG_DDG",
+      "counts": {
+        "errors": 429,
+        "errors_on_disputed_nodes": 199,
+        "errors_on_agreed_nodes": 230,
+        "disputed_nodes": 216
+      },
+      "by_file": {
+        "buggy_18.sol": {
+          "disputed": 214,
+          "errors_on_disputed_nodes": 197
+        },
+        "0x627fa62ccbb1c1b04ffaecd72a53e37fc0e17839.sol": {
+          "disputed": 2,
+          "errors_on_disputed_nodes": 2
+        }
+      },
+      "label_audit_manifest_sha256": "a06d4fef4e567f17f9054a3f4749f3337fe7eabdfddc68d2e4c1928491af9dee",
+      "label_differences_sha256": "f7e92304bfc877d430a9b97ddcf2e495391fa5c23be16bc743f09ca2c2e4f824"
+    },
+    {
+      "task_id": "access_control_author_node",
+      "variant": "HCG",
+      "counts": {
+        "errors": 211,
+        "errors_on_disputed_nodes": 125,
+        "errors_on_agreed_nodes": 86,
+        "disputed_nodes": 137
+      },
+      "by_file": {
+        "parity_wallet_bug_2.sol": {
+          "disputed": 2,
+          "errors_on_disputed_nodes": 0
+        },
+        "buggy_18.sol": {
+          "disputed": 93,
+          "errors_on_disputed_nodes": 83
+        },
+        "buggy_26.sol": {
+          "disputed": 42,
+          "errors_on_disputed_nodes": 42
+        }
+      },
+      "label_audit_manifest_sha256": "2ac329f0f59fb52c389dc8ccc33d315fef744766bd2fd0129f2f47f4b632a9e0",
+      "label_differences_sha256": "ebdfde4aa1e69cecf753d58d2d1d969b7cb06ebc19d93c322c786cea1c368e7b"
+    },
+    {
+      "task_id": "access_control_author_node",
+      "variant": "HCG_DDG",
+      "counts": {
+        "errors": 216,
+        "errors_on_disputed_nodes": 125,
+        "errors_on_agreed_nodes": 91,
+        "disputed_nodes": 137
+      },
+      "by_file": {
+        "parity_wallet_bug_2.sol": {
+          "disputed": 2,
+          "errors_on_disputed_nodes": 0
+        },
+        "buggy_18.sol": {
+          "disputed": 93,
+          "errors_on_disputed_nodes": 83
+        },
+        "buggy_26.sol": {
+          "disputed": 42,
+          "errors_on_disputed_nodes": 42
+        }
+      },
+      "label_audit_manifest_sha256": "2ac329f0f59fb52c389dc8ccc33d315fef744766bd2fd0129f2f47f4b632a9e0",
+      "label_differences_sha256": "ebdfde4aa1e69cecf753d58d2d1d969b7cb06ebc19d93c322c786cea1c368e7b"
+    }
+  ],
+  "limits": [
+    "Hash/receipt identity does not prove semantic truth of author labels.",
+    "Node targets checked between frozen variants and exports; no new graph deserialization or model forward in this audit.",
+    "Exported metrics independently recomputed without project metric helper; graph/code overlap statistics inherited from hash-verified report.",
+    "Existing checkpoint replay evidence verified by receipts; not rerun on GPU.",
+    "Known public-vs-author label disagreements are not a new corrected ground truth.",
+    "No model or graph changes; no training."
+  ]
+}

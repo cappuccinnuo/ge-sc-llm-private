@@ -1,0 +1,778 @@
+{
+  "tasks": [
+    {
+      "task_id": "reentrancy_author_contract",
+      "build_seconds": 24.550480100995628,
+      "summary": {
+        "added_control_edges": 3086,
+        "projected_facts": 3086,
+        "context": {
+          "new_direct_pair": 1046,
+          "new_pair_no_existing_path_within_two_hops": 585,
+          "existing_direct_pair_new_relation": 2040,
+          "new_pair_existing_two_hop_path": 461
+        },
+        "model_context": {
+          "adapter_version": "author-hcg-ddg-guard-directional-v1",
+          "actual_adapter_tensors_used": true,
+          "ordinary_relations_reflected": true,
+          "all_enhancement_relations_forward_only": true,
+          "new_two_layer_pairs": 1690,
+          "new_context_source_nodes": 1015,
+          "new_context_target_nodes": 1132,
+          "new_control_edges_outside_baseline_two_hops": 278,
+          "new_model_canonical_relations": [
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ]
+          ],
+          "meaning": "message topology reachability, not proof of new semantics or accuracy"
+        },
+        "file_status_counts": {
+          "analyzed": 140,
+          "file_fallback": 2
+        },
+        "function_status_counts": {
+          "analyzed": 2325,
+          "function_fallback": 1063
+        }
+      },
+      "control_train_min": 2280,
+      "control_train_max": 2638,
+      "control_val_min": 448,
+      "control_val_max": 806,
+      "folds_no_control_train_support": [],
+      "canonical_train_unseen_by_fold": {},
+      "controller_kinds": {
+        "if": 1289,
+        "guard": 1797
+      },
+      "modifier_context_facts": 302,
+      "projection_missing_count": 798,
+      "projection_missing_roles": {
+        "revert_statement": 669,
+        "emit_statement": 129
+      },
+      "file_fallback": {
+        "0x488690160a80702e6b8e47c7d62ec2779eb5f240.sol": "F: no version evidence for lexical scope",
+        "0xa9f5ccdd11178ac90746ad76153bb9d0915edd9f.sol": "F: interval crosses lexical scope boundary"
+      },
+      "function_fallback_reason_counts": {
+        "guard: uncertain call binding: LogFile: F: unsupported shadowing callee": 6,
+        "guard: unresolved member call: AddMessage": 38,
+        "guard: unresolved member call: push": 25,
+        "guard: uncertain call binding: RegistryInterface: F: unsupported shadowing callee": 1,
+        "J: effectful/nested modifier call unsupported": 77,
+        "guard: user call in predicate requires expression CFG": 25,
+        "J: modifier arguments/qualified invocation unsupported": 34,
+        "J: multiple modifier invocations unsupported": 70,
+        "guard: unsupported control flow: assembly_statement": 5,
+        "guard: uncertain call binding: TokenInterface: F: unsupported shadowing callee": 1,
+        "guard: unresolved member call: add": 125,
+        "guard: nested argument calls require expression CFG": 75,
+        "J: modifier binding is not a unique declaration": 22,
+        "guard: unresolved member call: transfer": 37,
+        "guard: uncertain call binding: Approval: F: unsupported shadowing callee": 3,
+        "guard: unresolved member call: transferFrom": 27,
+        "guard: uncertain call binding: Transfer: F: unsupported shadowing callee": 6,
+        "guard: uncertain call binding: allowance: F: ambiguous callable declaration": 2,
+        "guard: unresolved member call: sub": 87,
+        "guard: uncertain call binding: Log: F: unsupported shadowing callee": 13,
+        "guard: unresolved member call: approve": 14,
+        "guard: unresolved member call: increaseApproval": 4,
+        "guard: unresolved member call: decreaseApproval": 4,
+        "guard: unresolved member call: mul": 3,
+        "guard: uncertain call binding: HelloEx: F: unsupported shadowing callee": 1,
+        "guard: unresolved member call: lock": 1,
+        "guard: unresolved member call: releaseFunds": 1,
+        "guard: unresolved member call: balanceOf": 5,
+        "guard: unresolved member call: allowance": 3,
+        "guard: unsupported computed/member call": 23,
+        "guard: unresolved member call: check": 2,
+        "guard: unresolved member call: has": 16,
+        "J: modifier guard builtin binding/version uncertain": 17,
+        "guard: unresolved member call: remove": 12,
+        "guard: unresolved member call: totalSupplyByLegacy": 1,
+        "guard: unresolved member call: balanceOfByLegacy": 1,
+        "guard: unresolved member call: allowanceByLegacy": 1,
+        "guard: unresolved member call: approveByLegacy": 1,
+        "guard: unresolved member call: increaseApprovalByLegacy": 1,
+        "guard: unresolved member call: decreaseApprovalByLegacy": 1,
+        "J: requires one unconditional terminal placeholder; suffix/conditional/repeated _ unsupported": 7,
+        "guard: uncertain call binding: IBancorConverter: F: unsupported shadowing callee": 1,
+        "guard: unresolved member call: getReturn": 2,
+        "guard: uncertain call binding: tokenToEth: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: ethToTokens: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: Token: F: unsupported shadowing callee": 6,
+        "guard: uncertain call binding: FundTransfer: F: unsupported shadowing callee": 2,
+        "guard: uncertain call binding: RecievedTip: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: TransferedEth: F: unsupported shadowing callee": 1,
+        "guard: unresolved member call: enter": 1,
+        "guard: unresolved member call: receiveApproval": 7,
+        "guard: unsupported expression control: new_expression": 3,
+        "guard: uncertain call binding: Freeze: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: Unfreeze: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: addressBelongsToAccount: F: ambiguous callable declaration": 1,
+        "guard: unresolved member call: increaseAllowance": 4,
+        "guard: unresolved member call: decreaseAllowance": 4,
+        "guard: unresolved member call: isWhitelisted": 1,
+        "guard: uncertain call binding: transfer: F: ambiguous callable declaration": 3,
+        "guard: unresolved member call: mint": 3,
+        "guard: unresolved member call: div": 13,
+        "guard: unresolved member call: Rational": 1,
+        "guard: unresolved member call: rmul": 2,
+        "guard: unresolved member call: get_participant": 1,
+        "guard: unresolved member call: get_participant_topl_address": 1,
+        "guard: unresolved member call: get_participant_arbits": 1,
+        "guard: unresolved member call: get_participant_num_of_pro_rata_tokens_alloted": 1,
+        "guard: unresolved member call: get_participant_arbits_kyc_whitelist": 1,
+        "guard: unresolved member call: get_participant_num_of_uses": 1,
+        "guard: unresolved member call: set_participant": 1,
+        "guard: unresolved member call: set_participant_topl_address": 1,
+        "guard: unresolved member call: set_participant_arbits": 1,
+        "guard: unresolved member call: set_participant_num_of_pro_rata_tokens_alloted": 1,
+        "guard: unresolved member call: set_participant_arbits_kyc_whitelist": 1,
+        "guard: unresolved member call: set_participant_num_of_uses": 1,
+        "guard: unresolved member call: get_pre_kyc_iconiq_bonus_numerator": 1,
+        "guard: unresolved member call: get_pre_kyc_iconiq_bonus_denominator": 1,
+        "guard: unresolved member call: get_iconiq_presale_open": 1,
+        "guard: unresolved member call: get_presale_iconiq_arbits_per_ether": 1,
+        "guard: unresolved member call: set_pre_kyc_iconiq_bonus_numerator": 1,
+        "guard: unresolved member call: set_pre_kyc_iconiq_bonus_denominator": 1,
+        "guard: unresolved member call: set_iconiq_presale_open": 1,
+        "guard: unresolved member call: set_presale_iconiq_arbits_per_ether": 1,
+        "guard: unresolved member call: get_pre_kyc_bonus_numerator": 1,
+        "guard: unresolved member call: get_pre_kyc_bonus_denominator": 1,
+        "guard: unresolved member call: get_arbits_presale_open": 2,
+        "guard: unresolved member call: get_presale_arbits_per_ether": 1,
+        "guard: unresolved member call: set_pre_kyc_bonus_numerator": 1,
+        "guard: unresolved member call: set_pre_kyc_bonus_denominator": 1,
+        "guard: unresolved member call: set_arbits_presale_open": 1,
+        "guard: unresolved member call: set_presale_arbits_per_ether": 1,
+        "guard: unresolved member call: get_presale_arbits_total": 1,
+        "guard: unresolved member call: get_presale_arbits_sold": 1,
+        "guard: unresolved member call: get_contrib_arbits_max": 1,
+        "guard: unresolved member call: get_contrib_arbits_min": 1,
+        "guard: unresolved member call: set_presale_arbits_total": 1,
+        "guard: unresolved member call: set_presale_arbits_sold": 1,
+        "guard: unresolved member call: set_contrib_arbits_max": 1,
+        "guard: unresolved member call: set_contrib_arbits_min": 1,
+        "guard: unresolved member call: set_sale_owner": 2,
+        "guard: unresolved member call: get_sale_owner": 1,
+        "guard: unresolved member call: get_arbits_whitelist": 1,
+        "guard: unresolved member call: get_arbits": 1,
+        "guard: unresolved member call: safeTransfer": 2,
+        "guard: unresolved member call: setCompleted": 1,
+        "J: modifier prefix only supports straight-line expressions": 4,
+        "guard: call in builtin argument requires expression CFG": 94,
+        "guard: unsupported control flow: for_statement": 17,
+        "Ambiguous modern initializer binding: balance": 1,
+        "guard: effectful short circuit/ternary requires expression CFG": 3,
+        "guard: uncertain call binding: blockhash: builtin_not_guaranteed_over_pragma_interval": 1,
+        "guard: unresolved member call: release": 1,
+        "guard: unresolved member call: returnFunds": 1,
+        "guard: uncertain call binding: ecrecover: builtin_not_guaranteed_over_pragma_interval": 3,
+        "guard: unresolved member call: call": 2,
+        "guard: uncertain call binding: sub: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: div: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: mod: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: User: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: InvestRecord: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: CommissionRecord: F: unsupported shadowing callee": 2,
+        "Ambiguous modern initializer binding: selectedTeam": 1,
+        "guard: uncertain call binding: isOperatorFor: F: ambiguous callable declaration": 2,
+        "guard: unresolved member call: tokensToSend": 1,
+        "guard: unresolved member call: tokensReceived": 1,
+        "guard: uncertain call binding: IERC20: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: MultiHash: F: unsupported shadowing callee": 2,
+        "guard: unresolved member call: _splitMultiHash": 1,
+        "guard: unresolved member call: _combineMultiHash": 1,
+        "guard: unresolved member call: getInstanceCreator": 2,
+        "guard: unresolved member call: _setMetadata": 2,
+        "guard: unresolved member call: _transferOperator": 2,
+        "guard: unresolved member call: _renounceOperator": 2,
+        "guard: unresolved member call: _submitHash": 1,
+        "guard: uncertain call binding: require: builtin_not_guaranteed_over_pragma_interval": 5,
+        "guard: unresolved member call: airDrop": 1,
+        "guard: unsupported control flow: while_statement": 1
+      },
+      "existing_difficult_file_added_control_facts": {
+        "buggy_18.sol": 74,
+        "buggy_26.sol": 50,
+        "buggy_36.sol": 73,
+        "simple_dao.sol": 2
+      },
+      "positive_labels_or_predictions_used_for_construction": false
+    },
+    {
+      "task_id": "access_control_author_contract",
+      "build_seconds": 15.460967774997698,
+      "summary": {
+        "added_control_edges": 1929,
+        "projected_facts": 1929,
+        "context": {
+          "new_direct_pair": 496,
+          "new_pair_no_existing_path_within_two_hops": 329,
+          "existing_direct_pair_new_relation": 1433,
+          "new_pair_existing_two_hop_path": 167
+        },
+        "model_context": {
+          "adapter_version": "author-hcg-ddg-guard-directional-v1",
+          "actual_adapter_tensors_used": true,
+          "ordinary_relations_reflected": true,
+          "all_enhancement_relations_forward_only": true,
+          "new_two_layer_pairs": 1096,
+          "new_context_source_nodes": 475,
+          "new_context_target_nodes": 600,
+          "new_control_edges_outside_baseline_two_hops": 257,
+          "new_model_canonical_relations": [
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ]
+          ],
+          "meaning": "message topology reachability, not proof of new semantics or accuracy"
+        },
+        "file_status_counts": {
+          "analyzed": 108,
+          "file_fallback": 6
+        },
+        "function_status_counts": {
+          "analyzed": 2264,
+          "function_fallback": 779
+        }
+      },
+      "control_train_min": 1433,
+      "control_train_max": 1577,
+      "control_val_min": 352,
+      "control_val_max": 496,
+      "folds_no_control_train_support": [],
+      "canonical_train_unseen_by_fold": {},
+      "controller_kinds": {
+        "guard": 1706,
+        "if": 223
+      },
+      "modifier_context_facts": 311,
+      "projection_missing_count": 134,
+      "projection_missing_roles": {
+        "emit_statement": 134
+      },
+      "file_fallback": {
+        "0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol": "F: no version evidence for lexical scope",
+        "0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol": "F: no version evidence for lexical scope",
+        "0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol": "F: interval crosses lexical scope boundary",
+        "0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol": "F: no version evidence for lexical scope",
+        "0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol": "F: no version evidence for lexical scope",
+        "0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol": "F: no version evidence for lexical scope"
+      },
+      "function_fallback_reason_counts": {
+        "J: effectful/nested modifier call unsupported": 88,
+        "guard: unsupported computed/member call": 20,
+        "guard: user call in predicate requires expression CFG": 19,
+        "guard: unresolved member call: has": 16,
+        "guard: unresolved member call: add": 132,
+        "guard: unresolved member call: remove": 16,
+        "J: modifier binding is not a unique declaration": 22,
+        "guard: unresolved member call: transferFrom": 17,
+        "guard: unresolved member call: sub": 90,
+        "J: multiple modifier invocations unsupported": 52,
+        "guard: unsupported control flow: for_statement": 18,
+        "guard: unresolved member call: pop": 1,
+        "J: modifier arguments/qualified invocation unsupported": 32,
+        "guard: uncertain call binding: ecrecover: builtin_not_guaranteed_over_pragma_interval": 5,
+        "guard: nested argument calls require expression CFG": 58,
+        "guard: unresolved member call: transfer": 23,
+        "guard: unresolved member call: approve": 8,
+        "guard: unresolved member call: increaseApproval": 3,
+        "guard: unresolved member call: decreaseApproval": 3,
+        "guard: unresolved member call: burn": 1,
+        "guard: unresolved member call: allowance": 3,
+        "guard: unresolved member call: _mint": 1,
+        "guard: unresolved member call: increaseAllowance": 2,
+        "guard: unresolved member call: decreaseAllowance": 2,
+        "guard: unresolved member call: _transferOwnership": 1,
+        "guard: uncertain call binding: OwnershipTransferred: F: unsupported shadowing callee": 3,
+        "guard: uncertain call binding: ManagerAdded: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: ManagerRemoved: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: AddPicture: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: SegmentOwner: F: unsupported shadowing callee": 2,
+        "guard: unsupported control flow: assembly_statement": 5,
+        "guard: unresolved member call: safeTransfer": 3,
+        "guard: effectful short circuit/ternary requires expression CFG": 4,
+        "guard: unresolved member call: fillUpAllowance": 2,
+        "guard: unresolved member call: release": 2,
+        "guard: unresolved member call: releasableAmount": 1,
+        "guard: unresolved member call: revoke": 1,
+        "guard: unresolved member call: check": 1,
+        "J: modifier guard builtin binding/version uncertain": 17,
+        "guard: unresolved member call: totalSupplyByLegacy": 1,
+        "guard: unresolved member call: balanceOfByLegacy": 1,
+        "guard: unresolved member call: allowanceByLegacy": 1,
+        "guard: unresolved member call: approveByLegacy": 1,
+        "guard: unresolved member call: increaseApprovalByLegacy": 1,
+        "guard: unresolved member call: decreaseApprovalByLegacy": 1,
+        "guard: uncertain call binding: NewBatch: F: unsupported shadowing callee": 1,
+        "guard: unresolved member call: receiveApproval": 5,
+        "guard: uncertain call binding: transfer: F: ambiguous callable declaration": 3,
+        "guard: unresolved member call: div": 14,
+        "guard: uncertain call binding: ERC20: F: unsupported shadowing callee": 1,
+        "guard: unresolved member call: push": 4,
+        "guard: unresolved member call: receiveAuction": 1,
+        "guard: unresolved member call: safeAdd": 1,
+        "guard: unresolved member call: safeSub": 1,
+        "guard: unresolved member call: give": 1,
+        "guard: unresolved member call: setCompleted": 1,
+        "guard: unresolved member call: transferOwnership": 1,
+        "guard: unresolved member call: tokenFallback": 1,
+        "guard: address operation unavailable over version interval: transfer": 1,
+        "guard: uncertain call binding: require: builtin_not_guaranteed_over_pragma_interval": 1,
+        "guard: unsupported expression control: new_expression": 1,
+        "Ambiguous modern initializer binding: balance": 1,
+        "guard: unresolved member call: balanceOf": 2,
+        "guard: uncertain call binding: blockhash: builtin_not_guaranteed_over_pragma_interval": 1,
+        "guard: unresolved member call: returnFunds": 1,
+        "guard: uncertain call binding: Token: F: unsupported shadowing callee": 4,
+        "guard: unresolved member call: call": 2,
+        "guard: uncertain call binding: sub: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: div: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: mod: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: User: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: InvestRecord: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: CommissionRecord: F: unsupported shadowing callee": 2,
+        "Ambiguous modern initializer binding: selectedTeam": 1,
+        "guard: unresolved member call: mul": 1,
+        "guard: uncertain call binding: isOperatorFor: F: ambiguous callable declaration": 2,
+        "guard: unresolved member call: tokensToSend": 1,
+        "guard: unresolved member call: tokensReceived": 1,
+        "guard: uncertain call binding: IERC20: F: unsupported shadowing callee": 1,
+        "J: requires one unconditional terminal placeholder; suffix/conditional/repeated _ unsupported": 9,
+        "guard: uncertain call binding: MultiHash: F: unsupported shadowing callee": 2,
+        "guard: unresolved member call: _splitMultiHash": 1,
+        "guard: unresolved member call: _combineMultiHash": 1,
+        "guard: unresolved member call: getInstanceCreator": 2,
+        "J: modifier prefix only supports straight-line expressions": 5,
+        "guard: unresolved member call: _setMetadata": 2,
+        "guard: unresolved member call: _transferOperator": 2,
+        "guard: unresolved member call: _renounceOperator": 2,
+        "guard: unresolved member call: _submitHash": 1,
+        "guard: uncertain call binding: Deposit: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: Revoke: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: Confirmation: F: unsupported shadowing callee": 1,
+        "guard: unsupported control flow: while_statement": 2,
+        "guard: unresolved member call: delegatecall": 1
+      },
+      "existing_difficult_file_added_control_facts": {
+        "buggy_18.sol": 37,
+        "buggy_26.sol": 29,
+        "buggy_36.sol": 41,
+        "parity_wallet_bug_2.sol": 0
+      },
+      "positive_labels_or_predictions_used_for_construction": false
+    },
+    {
+      "task_id": "reentrancy_author_node",
+      "build_seconds": 14.279665676993318,
+      "summary": {
+        "added_control_edges": 2421,
+        "projected_facts": 2421,
+        "context": {
+          "new_direct_pair": 747,
+          "new_pair_no_existing_path_within_two_hops": 387,
+          "existing_direct_pair_new_relation": 1674,
+          "new_pair_existing_two_hop_path": 360
+        },
+        "model_context": {
+          "adapter_version": "author-hcg-ddg-guard-directional-v1",
+          "actual_adapter_tensors_used": true,
+          "ordinary_relations_reflected": true,
+          "all_enhancement_relations_forward_only": true,
+          "new_two_layer_pairs": 999,
+          "new_context_source_nodes": 709,
+          "new_context_target_nodes": 745,
+          "new_control_edges_outside_baseline_two_hops": 130,
+          "new_model_canonical_relations": [
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ]
+          ],
+          "meaning": "message topology reachability, not proof of new semantics or accuracy"
+        },
+        "file_status_counts": {
+          "analyzed": 71
+        },
+        "function_status_counts": {
+          "analyzed": 1560,
+          "function_fallback": 485
+        }
+      },
+      "control_train_min": 2038,
+      "control_train_max": 2373,
+      "control_val_min": 48,
+      "control_val_max": 383,
+      "folds_no_control_train_support": [],
+      "canonical_train_unseen_by_fold": {},
+      "controller_kinds": {
+        "if": 1127,
+        "guard": 1294
+      },
+      "modifier_context_facts": 143,
+      "projection_missing_count": 730,
+      "projection_missing_roles": {
+        "revert_statement": 667,
+        "emit_statement": 63
+      },
+      "file_fallback": {},
+      "function_fallback_reason_counts": {
+        "guard: uncertain call binding: LogFile: F: unsupported shadowing callee": 6,
+        "guard: unresolved member call: AddMessage": 38,
+        "guard: unresolved member call: push": 21,
+        "guard: uncertain call binding: Log: F: unsupported shadowing callee": 13,
+        "J: requires one unconditional terminal placeholder; suffix/conditional/repeated _ unsupported": 5,
+        "guard: unsupported expression control: new_expression": 1,
+        "guard: call in builtin argument requires expression CFG": 94,
+        "guard: unresolved member call: sub": 29,
+        "guard: unresolved member call: add": 43,
+        "guard: unresolved member call: receiveApproval": 3,
+        "guard: unresolved member call: transfer": 10,
+        "guard: nested argument calls require expression CFG": 44,
+        "J: modifier arguments/qualified invocation unsupported": 11,
+        "guard: user call in predicate requires expression CFG": 8,
+        "guard: unsupported computed/member call": 15,
+        "guard: unresolved member call: div": 11,
+        "guard: unsupported control flow: for_statement": 17,
+        "Ambiguous modern initializer binding: balance": 1,
+        "guard: unresolved member call: balanceOf": 2,
+        "guard: effectful short circuit/ternary requires expression CFG": 3,
+        "guard: uncertain call binding: blockhash: builtin_not_guaranteed_over_pragma_interval": 1,
+        "J: multiple modifier invocations unsupported": 21,
+        "guard: unresolved member call: release": 1,
+        "guard: unresolved member call: returnFunds": 1,
+        "guard: unresolved member call: transferFrom": 9,
+        "guard: uncertain call binding: ecrecover: builtin_not_guaranteed_over_pragma_interval": 3,
+        "guard: unresolved member call: allowance": 2,
+        "guard: uncertain call binding: Token: F: unsupported shadowing callee": 4,
+        "J: effectful/nested modifier call unsupported": 19,
+        "guard: unresolved member call: call": 2,
+        "guard: uncertain call binding: sub: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: div: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: mod: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: User: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: InvestRecord: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: CommissionRecord: F: unsupported shadowing callee": 2,
+        "Ambiguous modern initializer binding: selectedTeam": 1,
+        "guard: unresolved member call: mul": 1,
+        "guard: unsupported control flow: assembly_statement": 2,
+        "guard: uncertain call binding: isOperatorFor: F: ambiguous callable declaration": 2,
+        "guard: unresolved member call: tokensToSend": 1,
+        "guard: unresolved member call: tokensReceived": 1,
+        "guard: unresolved member call: has": 2,
+        "guard: unresolved member call: remove": 2,
+        "guard: uncertain call binding: IERC20: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: transfer: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: MultiHash: F: unsupported shadowing callee": 2,
+        "guard: unresolved member call: _splitMultiHash": 1,
+        "guard: unresolved member call: _combineMultiHash": 1,
+        "guard: unresolved member call: getInstanceCreator": 2,
+        "J: modifier prefix only supports straight-line expressions": 2,
+        "guard: unresolved member call: _setMetadata": 2,
+        "guard: unresolved member call: _transferOperator": 2,
+        "guard: unresolved member call: _renounceOperator": 2,
+        "guard: unresolved member call: _submitHash": 1,
+        "J: modifier binding is not a unique declaration": 4,
+        "guard: uncertain call binding: require: builtin_not_guaranteed_over_pragma_interval": 5,
+        "guard: unresolved member call: airDrop": 1,
+        "guard: unsupported control flow: while_statement": 1
+      },
+      "existing_difficult_file_added_control_facts": {
+        "buggy_18.sol": 74,
+        "buggy_26.sol": 50,
+        "buggy_36.sol": 73,
+        "simple_dao.sol": 2
+      },
+      "positive_labels_or_predictions_used_for_construction": false
+    },
+    {
+      "task_id": "access_control_author_node",
+      "build_seconds": 8.988198602994089,
+      "summary": {
+        "added_control_edges": 1384,
+        "projected_facts": 1384,
+        "context": {
+          "existing_direct_pair_new_relation": 1157,
+          "new_direct_pair": 227,
+          "new_pair_no_existing_path_within_two_hops": 146,
+          "new_pair_existing_two_hop_path": 81
+        },
+        "model_context": {
+          "adapter_version": "author-hcg-ddg-guard-directional-v1",
+          "actual_adapter_tensors_used": true,
+          "ordinary_relations_reflected": true,
+          "all_enhancement_relations_forward_only": true,
+          "new_two_layer_pairs": 464,
+          "new_context_source_nodes": 214,
+          "new_context_target_nodes": 248,
+          "new_control_edges_outside_baseline_two_hops": 112,
+          "new_model_canonical_relations": [
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ]
+          ],
+          "meaning": "message topology reachability, not proof of new semantics or accuracy"
+        },
+        "file_status_counts": {
+          "analyzed": 57
+        },
+        "function_status_counts": {
+          "analyzed": 1636,
+          "function_fallback": 322
+        }
+      },
+      "control_train_min": 1198,
+      "control_train_max": 1287,
+      "control_val_min": 97,
+      "control_val_max": 186,
+      "folds_no_control_train_support": [],
+      "canonical_train_unseen_by_fold": {},
+      "controller_kinds": {
+        "guard": 1256,
+        "if": 128
+      },
+      "modifier_context_facts": 150,
+      "projection_missing_count": 60,
+      "projection_missing_roles": {
+        "emit_statement": 60
+      },
+      "file_fallback": {},
+      "function_fallback_reason_counts": {
+        "guard: address operation unavailable over version interval: transfer": 1,
+        "guard: uncertain call binding: require: builtin_not_guaranteed_over_pragma_interval": 1,
+        "guard: unsupported computed/member call": 13,
+        "guard: unsupported expression control: new_expression": 1,
+        "guard: unresolved member call: push": 3,
+        "guard: unresolved member call: sub": 29,
+        "guard: unresolved member call: add": 43,
+        "guard: unresolved member call: receiveApproval": 3,
+        "guard: unresolved member call: transfer": 7,
+        "guard: nested argument calls require expression CFG": 40,
+        "J: modifier arguments/qualified invocation unsupported": 19,
+        "guard: user call in predicate requires expression CFG": 7,
+        "guard: unresolved member call: div": 11,
+        "guard: unsupported control flow: for_statement": 15,
+        "Ambiguous modern initializer binding: balance": 1,
+        "guard: unresolved member call: balanceOf": 2,
+        "guard: effectful short circuit/ternary requires expression CFG": 3,
+        "guard: uncertain call binding: blockhash: builtin_not_guaranteed_over_pragma_interval": 1,
+        "J: multiple modifier invocations unsupported": 20,
+        "guard: unresolved member call: release": 1,
+        "guard: unresolved member call: returnFunds": 1,
+        "guard: unresolved member call: transferFrom": 6,
+        "guard: uncertain call binding: ecrecover: builtin_not_guaranteed_over_pragma_interval": 2,
+        "guard: unresolved member call: allowance": 2,
+        "guard: uncertain call binding: Token: F: unsupported shadowing callee": 4,
+        "J: effectful/nested modifier call unsupported": 19,
+        "guard: unresolved member call: call": 2,
+        "guard: uncertain call binding: sub: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: div: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: mod: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: User: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: InvestRecord: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: CommissionRecord: F: unsupported shadowing callee": 2,
+        "Ambiguous modern initializer binding: selectedTeam": 1,
+        "guard: unresolved member call: mul": 1,
+        "guard: unsupported control flow: assembly_statement": 1,
+        "guard: uncertain call binding: isOperatorFor: F: ambiguous callable declaration": 2,
+        "guard: unresolved member call: tokensToSend": 1,
+        "guard: unresolved member call: tokensReceived": 1,
+        "guard: unresolved member call: has": 2,
+        "guard: unresolved member call: remove": 2,
+        "guard: uncertain call binding: IERC20: F: unsupported shadowing callee": 1,
+        "J: requires one unconditional terminal placeholder; suffix/conditional/repeated _ unsupported": 9,
+        "guard: uncertain call binding: transfer: F: ambiguous callable declaration": 1,
+        "guard: uncertain call binding: MultiHash: F: unsupported shadowing callee": 2,
+        "guard: unresolved member call: _splitMultiHash": 1,
+        "guard: unresolved member call: _combineMultiHash": 1,
+        "guard: unresolved member call: getInstanceCreator": 2,
+        "J: modifier prefix only supports straight-line expressions": 5,
+        "guard: unresolved member call: _setMetadata": 2,
+        "guard: unresolved member call: _transferOperator": 2,
+        "guard: unresolved member call: _renounceOperator": 2,
+        "guard: unresolved member call: _submitHash": 1,
+        "guard: uncertain call binding: Deposit: F: unsupported shadowing callee": 1,
+        "guard: uncertain call binding: Revoke: F: unsupported shadowing callee": 1,
+        "J: modifier binding is not a unique declaration": 12,
+        "guard: uncertain call binding: Confirmation: F: unsupported shadowing callee": 1,
+        "guard: unsupported control flow: while_statement": 2,
+        "guard: unresolved member call: delegatecall": 1
+      },
+      "existing_difficult_file_added_control_facts": {
+        "buggy_18.sol": 37,
+        "buggy_26.sol": 29,
+        "buggy_36.sol": 41,
+        "parity_wallet_bug_2.sol": 0
+      },
+      "positive_labels_or_predictions_used_for_construction": false
+    }
+  ],
+  "frozen_input_count": 492,
+  "all_build_invariants_passed": true,
+  "compile_validation": "not executed; existing trusted parser only; no external binary installed",
+  "review_attempts": [
+    {
+      "attempt": 1,
+      "status": "failed before writing output",
+      "reason": "review aggregation used diagnostics[kind] although semantic fallback records carry reason without kind; no build assets affected"
+    },
+    {
+      "attempt": 2,
+      "status": "complete",
+      "fix": "use optional diagnostics.get(kind) when counting projection-only diagnostics"
+    }
+  ]
+}

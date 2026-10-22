@@ -1,0 +1,1853 @@
+{
+  "status": "passed",
+  "plan_sha256": "d5e954eeb34936e85abb361c8ff087b9fa34890f9b76bd54394aa331ce23fd0e",
+  "cases": [
+    {
+      "task_id": "reentrancy_author_contract",
+      "fold": 0,
+      "variant": "HCG",
+      "status": "passed",
+      "hgt_exact": true,
+      "uniform_attention": true,
+      "maximum_pool_error": 2.384185791015625e-07,
+      "maximum_logit_error": 2.1249055862426758e-05,
+      "maximum_probability_error": 5.185604095458984e-06,
+      "initial_classes_equal": true,
+      "added_parameters": 128,
+      "gradient": {
+        "backbone_gradient_l1": 138.84116691067481,
+        "classifier_gradient_l1": 6.887521706521511,
+        "ddg_relations": [],
+        "enhancement_relations": [],
+        "ddg_training_support": 0,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "hgt_gradient_l1": 138.84116691067481,
+        "readout": {
+          "connected": true,
+          "gradient_l1": 1.4987690448760986,
+          "weight_l1": 0.0,
+          "zero_gradient_allowed": true
+        }
+      },
+      "initial_weights_unchanged": true,
+      "optimizer_steps": 0,
+      "peak_allocated_mib": 2041.36376953125,
+      "peak_reserved_mib": 2228.0,
+      "seconds": 44.034401133001666
+    },
+    {
+      "task_id": "reentrancy_author_contract",
+      "fold": 0,
+      "variant": "HCG_DDG_GUARD",
+      "status": "passed",
+      "hgt_exact": true,
+      "uniform_attention": true,
+      "maximum_pool_error": 1.1920928955078125e-07,
+      "maximum_logit_error": 0.0,
+      "maximum_probability_error": 0.0,
+      "initial_classes_equal": true,
+      "added_parameters": 128,
+      "gradient": {
+        "backbone_gradient_l1": 138.68558995566195,
+        "classifier_gradient_l1": 6.891232952475548,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 21,
+            "val_edges": 4,
+            "relation_msg_gradient_l1": 0.0031685310532338917,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0031685310532338917,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0010493945446796715,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0010493945446796715,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 73,
+            "val_edges": 22,
+            "relation_msg_gradient_l1": 0.0059681793209165335,
+            "relation_att_gradient_l1": 0.00017309049712821434,
+            "relation_pri_gradient_l1": 1.76588246803e-09,
+            "message_gradient_l1": 0.0059681793209165335,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00016151454474311322,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00016151454474311322,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 5,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0004982103855581954,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0004982103855581954,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 15,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.005344347562640905,
+            "relation_att_gradient_l1": 3.0860050159731145e-07,
+            "relation_pri_gradient_l1": 7.350217309798346e-11,
+            "message_gradient_l1": 0.005344347562640905,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 1395,
+            "val_edges": 367,
+            "relation_msg_gradient_l1": 0.08100591972470284,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.08100591972470284,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 133,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.022273778915405273,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.022273778915405273,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 256,
+            "val_edges": 53,
+            "relation_msg_gradient_l1": 0.031846366822719574,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.031846366822719574,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 236,
+            "val_edges": 51,
+            "relation_msg_gradient_l1": 0.13462548051029444,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.13462548051029444,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 379,
+            "val_edges": 82,
+            "relation_msg_gradient_l1": 0.02353021688759327,
+            "relation_att_gradient_l1": 9.56158942244656e-07,
+            "relation_pri_gradient_l1": 4.550389509638819e-10,
+            "message_gradient_l1": 0.02353021688759327,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 134,
+            "val_edges": 41,
+            "relation_msg_gradient_l1": 0.016890709288418293,
+            "relation_att_gradient_l1": 8.445785226740554e-08,
+            "relation_pri_gradient_l1": 5.0379221627760984e-11,
+            "message_gradient_l1": 0.016890709288418293,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 44,
+            "val_edges": 5,
+            "relation_msg_gradient_l1": 0.00424590241163969,
+            "relation_att_gradient_l1": 6.009360653536078e-07,
+            "relation_pri_gradient_l1": 2.0975386596892853e-10,
+            "message_gradient_l1": 0.00424590241163969,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 165,
+            "val_edges": 34,
+            "relation_msg_gradient_l1": 0.0899309441447258,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0899309441447258,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 21,
+            "val_edges": 4,
+            "relation_msg_gradient_l1": 0.0031685310532338917,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0031685310532338917,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0010493945446796715,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0010493945446796715,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            "train_edges": 653,
+            "val_edges": 172,
+            "relation_msg_gradient_l1": 0.03441627882421017,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.03441627882421017,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            "train_edges": 266,
+            "val_edges": 67,
+            "relation_msg_gradient_l1": 0.0184532324783504,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0184532324783504,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            "train_edges": 280,
+            "val_edges": 63,
+            "relation_msg_gradient_l1": 0.021699336357414722,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.021699336357414722,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ],
+            "train_edges": 251,
+            "val_edges": 45,
+            "relation_msg_gradient_l1": 0.11245812103152275,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.11245812103152275,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 73,
+            "val_edges": 22,
+            "relation_msg_gradient_l1": 0.0059681793209165335,
+            "relation_att_gradient_l1": 0.00017309049712821434,
+            "relation_pri_gradient_l1": 1.76588246803e-09,
+            "message_gradient_l1": 0.0059681793209165335,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00016151454474311322,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00016151454474311322,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 5,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0004982103855581954,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0004982103855581954,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 15,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.005344347562640905,
+            "relation_att_gradient_l1": 3.0860050159731145e-07,
+            "relation_pri_gradient_l1": 7.350217309798346e-11,
+            "message_gradient_l1": 0.005344347562640905,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+              "expression_statement"
+            ],
+            "train_edges": 220,
+            "val_edges": 49,
+            "relation_msg_gradient_l1": 0.015039989724755287,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015039989724755287,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_ACCESS_ORDER",
+              "expression_statement"
+            ],
+            "train_edges": 466,
+            "val_edges": 100,
+            "relation_msg_gradient_l1": 0.026676466688513756,
+            "relation_att_gradient_l1": 4.6275667314461637e-07,
+            "relation_pri_gradient_l1": 1.0530527115402133e-10,
+            "message_gradient_l1": 0.026676466688513756,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_ACCESS_ORDER",
+              "new_variable"
+            ],
+            "train_edges": 138,
+            "val_edges": 32,
+            "relation_msg_gradient_l1": 0.01616568211466074,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.01616568211466074,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 8,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.00117415955173783,
+            "relation_att_gradient_l1": 1.564659243244752e-07,
+            "relation_pri_gradient_l1": 8.101676421066555e-11,
+            "message_gradient_l1": 0.00117415955173783,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 1395,
+            "val_edges": 367,
+            "relation_msg_gradient_l1": 0.08100591972470284,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.08100591972470284,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 133,
+            "val_edges": 31,
+            "relation_msg_gradient_l1": 0.022273778915405273,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.022273778915405273,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 256,
+            "val_edges": 53,
+            "relation_msg_gradient_l1": 0.031846366822719574,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.031846366822719574,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 236,
+            "val_edges": 51,
+            "relation_msg_gradient_l1": 0.13462548051029444,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.13462548051029444,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            "train_edges": 906,
+            "val_edges": 215,
+            "relation_msg_gradient_l1": 0.11407753080129623,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.11407753080129623,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            "train_edges": 33,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.004459593445062637,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.004459593445062637,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            "train_edges": 40,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.006673517869785428,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.006673517869785428,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ],
+            "train_edges": 76,
+            "val_edges": 13,
+            "relation_msg_gradient_l1": 0.06967678479850292,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.06967678479850292,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+              "expression_statement"
+            ],
+            "train_edges": 423,
+            "val_edges": 96,
+            "relation_msg_gradient_l1": 0.07751046866178513,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.07751046866178513,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "STATE_ACCESS_ORDER",
+              "expression_statement"
+            ],
+            "train_edges": 325,
+            "val_edges": 75,
+            "relation_msg_gradient_l1": 0.035196222364902496,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.035196222364902496,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 379,
+            "val_edges": 82,
+            "relation_msg_gradient_l1": 0.02353021688759327,
+            "relation_att_gradient_l1": 9.56158942244656e-07,
+            "relation_pri_gradient_l1": 4.550389509638819e-10,
+            "message_gradient_l1": 0.02353021688759327,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 134,
+            "val_edges": 41,
+            "relation_msg_gradient_l1": 0.016890709288418293,
+            "relation_att_gradient_l1": 8.445785226740554e-08,
+            "relation_pri_gradient_l1": 5.0379221627760984e-11,
+            "message_gradient_l1": 0.016890709288418293,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 44,
+            "val_edges": 5,
+            "relation_msg_gradient_l1": 0.00424590241163969,
+            "relation_att_gradient_l1": 6.009360653536078e-07,
+            "relation_pri_gradient_l1": 2.0975386596892853e-10,
+            "message_gradient_l1": 0.00424590241163969,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 165,
+            "val_edges": 34,
+            "relation_msg_gradient_l1": 0.0899309441447258,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0899309441447258,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+              "expression_statement"
+            ],
+            "train_edges": 256,
+            "val_edges": 65,
+            "relation_msg_gradient_l1": 0.031903281807899475,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.031903281807899475,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "STATE_ACCESS_ORDER",
+              "expression_statement"
+            ],
+            "train_edges": 347,
+            "val_edges": 85,
+            "relation_msg_gradient_l1": 0.0377277722582221,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0377277722582221,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "STATE_ACCESS_ORDER",
+              "new_variable"
+            ],
+            "train_edges": 4,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0004357273137429729,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0004357273137429729,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 2863,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "hgt_gradient_l1": 138.68558995566195,
+        "readout": {
+          "connected": true,
+          "gradient_l1": 1.4968061447143555,
+          "weight_l1": 0.0,
+          "zero_gradient_allowed": true
+        }
+      },
+      "initial_weights_unchanged": true,
+      "optimizer_steps": 0,
+      "peak_allocated_mib": 2829.5556640625,
+      "peak_reserved_mib": 3030.0,
+      "seconds": 38.781946882008924
+    },
+    {
+      "task_id": "access_control_author_contract",
+      "fold": 0,
+      "variant": "HCG",
+      "status": "passed",
+      "hgt_exact": true,
+      "uniform_attention": true,
+      "maximum_pool_error": 1.7881393432617188e-07,
+      "maximum_logit_error": 0.0,
+      "maximum_probability_error": 0.0,
+      "initial_classes_equal": true,
+      "added_parameters": 128,
+      "gradient": {
+        "backbone_gradient_l1": 105.79862068183934,
+        "classifier_gradient_l1": 9.124524012207985,
+        "ddg_relations": [],
+        "enhancement_relations": [],
+        "ddg_training_support": 0,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "hgt_gradient_l1": 105.79862068183934,
+        "readout": {
+          "connected": true,
+          "gradient_l1": 2.8804941177368164,
+          "weight_l1": 0.0,
+          "zero_gradient_allowed": true
+        }
+      },
+      "initial_weights_unchanged": true,
+      "optimizer_steps": 0,
+      "peak_allocated_mib": 1491.35595703125,
+      "peak_reserved_mib": 1608.0,
+      "seconds": 24.358492245999514
+    },
+    {
+      "task_id": "access_control_author_contract",
+      "fold": 0,
+      "variant": "HCG_DDG_GUARD",
+      "status": "passed",
+      "hgt_exact": true,
+      "uniform_attention": true,
+      "maximum_pool_error": 1.7881393432617188e-07,
+      "maximum_logit_error": 0.0,
+      "maximum_probability_error": 0.0,
+      "initial_classes_equal": true,
+      "added_parameters": 128,
+      "gradient": {
+        "backbone_gradient_l1": 105.78604307872435,
+        "classifier_gradient_l1": 9.129866242408752,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 40,
+            "val_edges": 4,
+            "relation_msg_gradient_l1": 0.009701806120574474,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009701806120574474,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0017055862117558718,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0017055862117558718,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 42,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0014006740530021489,
+            "relation_att_gradient_l1": 0.0007573738088240134,
+            "relation_pri_gradient_l1": 1.4960617744641524e-09,
+            "message_gradient_l1": 0.0014006740530021489,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 3,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.00018895692483056337,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00018895692483056337,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0002790696016745642,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0002790696016745642,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 13,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.003462983528152108,
+            "relation_att_gradient_l1": 1.0768522287207816e-06,
+            "relation_pri_gradient_l1": 4.2036933829703305e-10,
+            "message_gradient_l1": 0.003462983528152108,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "while"
+            ],
+            "train_edges": 0,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0,
+            "status": "no_training_support"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 2416,
+            "val_edges": 562,
+            "relation_msg_gradient_l1": 0.3365684822201729,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.3365684822201729,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 18,
+            "relation_msg_gradient_l1": 0.009150962810963392,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009150962810963392,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 173,
+            "val_edges": 42,
+            "relation_msg_gradient_l1": 0.015738349873572588,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015738349873572588,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 163,
+            "val_edges": 48,
+            "relation_msg_gradient_l1": 0.0463040629401803,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0463040629401803,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 142,
+            "val_edges": 39,
+            "relation_msg_gradient_l1": 0.0038457936607301235,
+            "relation_att_gradient_l1": 6.857447764378397e-07,
+            "relation_pri_gradient_l1": 2.7244163614387445e-10,
+            "message_gradient_l1": 0.0038457936607301235,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 18,
+            "val_edges": 4,
+            "relation_msg_gradient_l1": 0.0008592232770752162,
+            "relation_att_gradient_l1": 2.350620746938148e-07,
+            "relation_pri_gradient_l1": 8.395190792542806e-11,
+            "message_gradient_l1": 0.0008592232770752162,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 33,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0035343951312825084,
+            "relation_att_gradient_l1": 2.3021061945627252e-07,
+            "relation_pri_gradient_l1": 7.112309656151505e-11,
+            "message_gradient_l1": 0.0035343951312825084,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 134,
+            "val_edges": 38,
+            "relation_msg_gradient_l1": 0.023147506173700094,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.023147506173700094,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "while"
+            ],
+            "train_edges": 0,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0,
+            "status": "no_training_support"
+          }
+        ],
+        "enhancement_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 40,
+            "val_edges": 4,
+            "relation_msg_gradient_l1": 0.009701806120574474,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009701806120574474,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0017055862117558718,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0017055862117558718,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            "train_edges": 1116,
+            "val_edges": 230,
+            "relation_msg_gradient_l1": 0.14324140548706055,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.14324140548706055,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            "train_edges": 15,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0018488869536668062,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0018488869536668062,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            "train_edges": 54,
+            "val_edges": 18,
+            "relation_msg_gradient_l1": 0.0066973266657441854,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0066973266657441854,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ],
+            "train_edges": 204,
+            "val_edges": 67,
+            "relation_msg_gradient_l1": 0.05210899841040373,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.05210899841040373,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 42,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.0014006740530021489,
+            "relation_att_gradient_l1": 0.0007573738088240134,
+            "relation_pri_gradient_l1": 1.4960617744641524e-09,
+            "message_gradient_l1": 0.0014006740530021489,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 3,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.00018895692483056337,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00018895692483056337,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 3,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0002790696016745642,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0002790696016745642,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 13,
+            "val_edges": 6,
+            "relation_msg_gradient_l1": 0.003462983528152108,
+            "relation_att_gradient_l1": 1.0768522287207816e-06,
+            "relation_pri_gradient_l1": 4.2036933829703305e-10,
+            "message_gradient_l1": 0.003462983528152108,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "while"
+            ],
+            "train_edges": 0,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0,
+            "status": "no_training_support"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_ACCESS_ORDER",
+              "expression_statement"
+            ],
+            "train_edges": 71,
+            "val_edges": 16,
+            "relation_msg_gradient_l1": 0.007326057646423578,
+            "relation_att_gradient_l1": 1.4184476526679646e-07,
+            "relation_pri_gradient_l1": 6.918052936066843e-11,
+            "message_gradient_l1": 0.007326057646423578,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_ACCESS_ORDER",
+              "if"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.00011436934255470987,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.00011436934255470987,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_ACCESS_ORDER",
+              "new_variable"
+            ],
+            "train_edges": 0,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0,
+            "status": "no_training_support"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 9,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0035924817202612758,
+            "relation_att_gradient_l1": 2.6070804947059094e-07,
+            "relation_pri_gradient_l1": 1.3771596975279734e-10,
+            "message_gradient_l1": 0.0035924817202612758,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "STATE_DEF_USE",
+              "if"
+            ],
+            "train_edges": 5,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0006186381506267935,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0006186381506267935,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 2416,
+            "val_edges": 562,
+            "relation_msg_gradient_l1": 0.3365684822201729,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.3365684822201729,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 73,
+            "val_edges": 18,
+            "relation_msg_gradient_l1": 0.009150962810963392,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.009150962810963392,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 173,
+            "val_edges": 42,
+            "relation_msg_gradient_l1": 0.015738349873572588,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.015738349873572588,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 163,
+            "val_edges": 48,
+            "relation_msg_gradient_l1": 0.0463040629401803,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0463040629401803,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "expression_statement"
+            ],
+            "train_edges": 90,
+            "val_edges": 15,
+            "relation_msg_gradient_l1": 0.014068687334656715,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.014068687334656715,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "if"
+            ],
+            "train_edges": 19,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0017164804739877582,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0017164804739877582,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "new_variable"
+            ],
+            "train_edges": 35,
+            "val_edges": 8,
+            "relation_msg_gradient_l1": 0.002809845784213394,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.002809845784213394,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "CONTROL_DEPENDENCE",
+              "return"
+            ],
+            "train_edges": 44,
+            "val_edges": 12,
+            "relation_msg_gradient_l1": 0.012095005833543837,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.012095005833543837,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "STATE_ACCESS_ORDER",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0007278017583303154,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0007278017583303154,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "STATE_ACCESS_ORDER",
+              "if"
+            ],
+            "train_edges": 4,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0005975781532470137,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005975781532470137,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "STATE_ACCESS_ORDER",
+              "return"
+            ],
+            "train_edges": 1,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0005101077840663493,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0005101077840663493,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "train_edges": 142,
+            "val_edges": 39,
+            "relation_msg_gradient_l1": 0.0038457936607301235,
+            "relation_att_gradient_l1": 6.857447764378397e-07,
+            "relation_pri_gradient_l1": 2.7244163614387445e-10,
+            "message_gradient_l1": 0.0038457936607301235,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "train_edges": 18,
+            "val_edges": 4,
+            "relation_msg_gradient_l1": 0.0008592232770752162,
+            "relation_att_gradient_l1": 2.350620746938148e-07,
+            "relation_pri_gradient_l1": 8.395190792542806e-11,
+            "message_gradient_l1": 0.0008592232770752162,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "train_edges": 33,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0035343951312825084,
+            "relation_att_gradient_l1": 2.3021061945627252e-07,
+            "relation_pri_gradient_l1": 7.112309656151505e-11,
+            "message_gradient_l1": 0.0035343951312825084,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "train_edges": 134,
+            "val_edges": 38,
+            "relation_msg_gradient_l1": 0.023147506173700094,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.023147506173700094,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "while"
+            ],
+            "train_edges": 0,
+            "val_edges": 2,
+            "relation_msg_gradient_l1": 0.0,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0,
+            "status": "no_training_support"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "STATE_ACCESS_ORDER",
+              "expression_statement"
+            ],
+            "train_edges": 3,
+            "val_edges": 1,
+            "relation_msg_gradient_l1": 0.0009431871585547924,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0009431871585547924,
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "STATE_ACCESS_ORDER",
+              "new_variable"
+            ],
+            "train_edges": 5,
+            "val_edges": 0,
+            "relation_msg_gradient_l1": 0.0011544175213202834,
+            "relation_att_gradient_l1": 0.0,
+            "relation_pri_gradient_l1": 0.0,
+            "message_gradient_l1": 0.0011544175213202834,
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 3257,
+        "note": "No train support permits zero supervised gradient; weight decay is separate.",
+        "hgt_gradient_l1": 105.78604307872435,
+        "readout": {
+          "connected": true,
+          "gradient_l1": 2.8798859119415283,
+          "weight_l1": 0.0,
+          "zero_gradient_allowed": true
+        }
+      },
+      "initial_weights_unchanged": true,
+      "optimizer_steps": 0,
+      "peak_allocated_mib": 2097.93408203125,
+      "peak_reserved_mib": 2228.0,
+      "seconds": 26.676118329996825
+    }
+  ],
+  "trained_fits": 0,
+  "optimizer_steps": 0,
+  "card": {
+    "samples": [
+      {
+        "total_mib": 4096,
+        "used_mib": 324,
+        "free_mib": 3652,
+        "utilization_percent": 11
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 323,
+        "free_mib": 3653,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 323,
+        "free_mib": 3653,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 323,
+        "free_mib": 3653,
+        "utilization_percent": 13
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 319,
+        "free_mib": 3657,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 323,
+        "free_mib": 3653,
+        "utilization_percent": 17
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 319,
+        "free_mib": 3657,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 323,
+        "free_mib": 3653,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 319,
+        "free_mib": 3657,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 501,
+        "free_mib": 3475,
+        "utilization_percent": 6
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 956,
+        "free_mib": 3020,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1503,
+        "free_mib": 2473,
+        "utilization_percent": 6
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1828,
+        "free_mib": 2148,
+        "utilization_percent": 3
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1833,
+        "free_mib": 2143,
+        "utilization_percent": 5
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1832,
+        "free_mib": 2144,
+        "utilization_percent": 11
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1832,
+        "free_mib": 2144,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1832,
+        "free_mib": 2144,
+        "utilization_percent": 15
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1828,
+        "free_mib": 2148,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1834,
+        "free_mib": 2142,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1923,
+        "free_mib": 2053,
+        "utilization_percent": 33
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 3919,
+        "free_mib": 57,
+        "utilization_percent": 40
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1719,
+        "free_mib": 2257,
+        "utilization_percent": 2
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1724,
+        "free_mib": 2252,
+        "utilization_percent": 8
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1723,
+        "free_mib": 2253,
+        "utilization_percent": 14
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1719,
+        "free_mib": 2257,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1723,
+        "free_mib": 2253,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1719,
+        "free_mib": 2257,
+        "utilization_percent": 11
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1724,
+        "free_mib": 2252,
+        "utilization_percent": 11
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 2089,
+        "free_mib": 1887,
+        "utilization_percent": 34
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1756,
+        "free_mib": 2220,
+        "utilization_percent": 4
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1773,
+        "free_mib": 2203,
+        "utilization_percent": 11
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1769,
+        "free_mib": 2207,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1773,
+        "free_mib": 2203,
+        "utilization_percent": 16
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1769,
+        "free_mib": 2207,
+        "utilization_percent": 11
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1775,
+        "free_mib": 2201,
+        "utilization_percent": 12
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1770,
+        "free_mib": 2206,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1987,
+        "free_mib": 1989,
+        "utilization_percent": 81
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 3942,
+        "free_mib": 34,
+        "utilization_percent": 32
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 950,
+        "free_mib": 3026,
+        "utilization_percent": 1
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 956,
+        "free_mib": 3020,
+        "utilization_percent": 8
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 947,
+        "free_mib": 3029,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 951,
+        "free_mib": 3025,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 947,
+        "free_mib": 3029,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 983,
+        "free_mib": 2993,
+        "utilization_percent": 2
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 983,
+        "free_mib": 2993,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1011,
+        "free_mib": 2965,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1015,
+        "free_mib": 2961,
+        "utilization_percent": 12
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1006,
+        "free_mib": 2970,
+        "utilization_percent": 10
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 2655,
+        "free_mib": 1321,
+        "utilization_percent": 21
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1043,
+        "free_mib": 2933,
+        "utilization_percent": 2
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1079,
+        "free_mib": 2897,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1079,
+        "free_mib": 2897,
+        "utilization_percent": 18
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1075,
+        "free_mib": 2901,
+        "utilization_percent": 11
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1079,
+        "free_mib": 2897,
+        "utilization_percent": 18
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1107,
+        "free_mib": 2869,
+        "utilization_percent": 2
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1111,
+        "free_mib": 2865,
+        "utilization_percent": 8
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1143,
+        "free_mib": 2833,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1143,
+        "free_mib": 2833,
+        "utilization_percent": 9
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1142,
+        "free_mib": 2834,
+        "utilization_percent": 21
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1661,
+        "free_mib": 2315,
+        "utilization_percent": 7
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 3405,
+        "free_mib": 571,
+        "utilization_percent": 8
+      },
+      {
+        "total_mib": 4096,
+        "used_mib": 1177,
+        "free_mib": 2799,
+        "utilization_percent": 2
+      }
+    ],
+    "errors": [],
+    "minimum_whole_card_free_mib": 34
+  },
+  "scope": "four fold0 single backward checks, not efficacy results"
+}

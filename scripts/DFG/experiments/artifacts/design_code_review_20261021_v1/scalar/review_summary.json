@@ -1,0 +1,38 @@
+{
+  "reviewer": "Codex",
+  "date": "2026-10-21",
+  "scope": "scalar DDG frontend/symbols/access/CFG/RD/projection/pipeline",
+  "code_changes": false,
+  "tests": {
+    "command": "TREE_SITTER_LIB_DIR=$PWD/build/linux-x86_64 PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES= /home/zhao/miniconda3/envs/mando/bin/python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests",
+    "passed": 222,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 28,
+    "warning_summary": "4 DGL distutils and 24 NetworkX read_gpickle deprecation warnings",
+    "initial_environment_failure": "First command omitted documented TREE_SITTER_LIB_DIR; 34 projection/HCG fixture failures from invalid ELF header at default Windows grammar, 188 passed. Correct documented Linux grammar environment yielded all 222 pass; no binary changed."
+  },
+  "independent_probe": "independent_probe.json",
+  "new_confirmed_scalar_defects": [],
+  "accepted_limits": [
+    "Scalar explicit primitive types; complex local/reference declarations fall back whole function.",
+    "Legacy/modern lexical scope modes with conservative binding/version rejection.",
+    "Intraprocedural direct may-def/use, not path-feasibility, taint closure, or cross-function dependency analysis.",
+    "Missing original HCG anchor skips projected facts but retains semantic kills/control flow.",
+    "Modifier-decorated functions excluded from scalar pipeline; extended control/state handlers are separate."
+  ],
+  "source_positions": {
+    "declaration_identity": "scripts/DFG/symbol_table.py:139",
+    "lexical_resolution": "scripts/DFG/symbol_table.py:149",
+    "read_before_write": "scripts/DFG/access_extractor.py:108",
+    "rd_transfer": "scripts/DFG/reaching_definitions.py:91",
+    "rd_fixedpoint": "scripts/DFG/reaching_definitions.py:109",
+    "fact_replay": "scripts/DFG/reaching_definitions.py:130",
+    "projection": "scripts/DFG/projection.py:96",
+    "function_fallback": "scripts/DFG/semantic_cfg.py:143",
+    "no_transitive_closure": "scripts/DFG/ddg_builder.py:46",
+    "original_hcg_invariant": "scripts/DFG/graph_audit.py:26"
+  },
+  "compile_validation": "not executed; no compiler downloaded or invoked",
+  "training": "not executed; CPU tests only"
+}

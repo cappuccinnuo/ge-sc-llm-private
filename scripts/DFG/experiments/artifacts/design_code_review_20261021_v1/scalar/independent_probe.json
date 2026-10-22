@@ -1,0 +1,66 @@
+{
+  "checks": [
+    {
+      "name": "declaration_identity_shadow",
+      "pass": true,
+      "detail": [
+        [
+          "function f(uint p,bool b) public returns(uint) {uint x=p;{uint x=2;x+=3;}return x;}",
+          "uint x=p;",
+          "probe.sol:37:48:p"
+        ],
+        [
+          "uint x=2;",
+          "x+=3;",
+          "probe.sol:37:95:x"
+        ],
+        [
+          "uint x=p;",
+          "return x;",
+          "probe.sol:37:85:x"
+        ]
+      ]
+    },
+    {
+      "name": "direct_facts_no_transitive_closure",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "branch_union_and_strong_kill",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "loop_fixpoint",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "missing_write_kills_before_projection",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "unchanged_original_hcg",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "off_exact_identity",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "labels_not_used",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "fallback_no_partial_ddg",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "compile_validation": "not_executed; existing parser only"
+}

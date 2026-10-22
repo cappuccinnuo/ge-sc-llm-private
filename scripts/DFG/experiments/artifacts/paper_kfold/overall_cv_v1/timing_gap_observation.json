@@ -1,0 +1,29 @@
+{
+  "observed_at": "2026-10-20T01:05:27.461524Z",
+  "last_monitor_before_gap": "2026-10-19T14:21:20.127986Z",
+  "first_monitor_after_gap": "2026-10-20T01:03:45.988569Z",
+  "task_id": "access_control_author_node",
+  "fold": 2,
+  "variant": "HCG",
+  "event": "large observer timestamp gap while same training process continues",
+  "cause": "not established; possible host suspension or scheduling/clock interruption",
+  "action": "retain all records and frozen computation; disclose timing limitation; no automatic restart",
+  "observed_timestamp_gap_seconds": 38545.860583,
+  "affected_fit_result": {
+    "fold": "fold_2",
+    "variant": "HCG",
+    "seconds_monotonic": 230.97739237000496,
+    "history_rows": 41,
+    "best_epoch": 36,
+    "last_epoch": 40
+  },
+  "interpretation": "Raw measured elapsed time is retained without subtracting the observer gap; root cause was not established. Do not interpret affected fit or batch wall time as an uncontended compute-speed benchmark.",
+  "controller_record": {
+    "started_at": "2026-10-19T12:00:11.192277Z",
+    "ended_at": "2026-10-20T01:39:45.065723Z",
+    "wall_seconds": 10708.294023665,
+    "returncode": 0
+  },
+  "controller_utc_timestamp_difference_seconds": 49173.873446,
+  "clock_comparison_note": "The wrapper's wall_seconds field and fit monotonic seconds do not include the full UTC timestamp gap. Both recorded clocks are preserved; no claim about suspension versus clock correction is made."
+}

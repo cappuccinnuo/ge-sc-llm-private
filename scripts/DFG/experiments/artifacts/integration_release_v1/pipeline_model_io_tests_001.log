@@ -1,0 +1,47 @@
+['/home/zhao/miniconda3/envs/mando/bin/python', '-B', '-m', 'pytest', '-q', '-p', 'no:cacheprovider', 'scripts/DFG/integration/tests/test_pipeline_model_io.py']
+..............F......                                                    [100%]
+=================================== FAILURES ===================================
+_______ test_bundle_roundtrip_original_metadata_and_overwrite_rejection ________
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-35/test_bundle_roundtrip_original0')
+
+    def test_bundle_roundtrip_original_metadata_and_overwrite_rejection(tmp_path):
+        graph = fixture(); result,audit = build_graph(graph, {"case.sol": SRC}, "full_guard")
+        output = tmp_path / "bundle"
+        doc = write_bundle(output,result,audit,{"source": "synthetic"})
+>       loaded = read_graph(doc["graph"]["path"])
+
+scripts/DFG/integration/tests/test_pipeline_model_io.py:141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = '/tmp/pytest-of-zhao/pytest-35/test_bundle_roundtrip_original0/bundle/hcg.gpickle'
+
+    def read_graph(path):
+>       return loads_graph(path.read_bytes())
+E       AttributeError: 'str' object has no attribute 'read_bytes'
+
+scripts/labeling_v2/safe_graph.py:56: AttributeError
+----------------------------- Captured stdout call -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {48: (10, 17, 'require(ok)'), 59: (10, 17, 'to.call("")')}
+---------------------------------
+function_calls:  {'f_3': [(74, 10)]}
+---------------------------------
+method_list:  {'f_3': 17}
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/DFG/integration/tests/test_pipeline_model_io.py::test_bundle_roundtrip_original_metadata_and_overwrite_rejection
+1 failed, 20 passed, 4 warnings in 2.93s

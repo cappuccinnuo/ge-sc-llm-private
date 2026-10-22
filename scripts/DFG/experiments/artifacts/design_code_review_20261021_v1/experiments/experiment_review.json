@@ -1,0 +1,212 @@
+{
+  "scope": "Read-only completed experiment/training audit; no model training, no existing code/plan changed",
+  "test": {
+    "command": "CUDA_VISIBLE_DEVICES= PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64 /home/zhao/miniconda3/envs/mando/bin/python -B -m pytest -q -p no:cacheprovider scripts/DFG/experiments/overall_cv/tests scripts/DFG/experiments/guard_extension/tests scripts/DFG/experiments/readout_attention/tests",
+    "passed": 83,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 4,
+    "warning_kind": "existing DGL distutils deprecations"
+  },
+  "matrix": [
+    {
+      "batch": "formal_20261012_v1_stage_c",
+      "variants": [
+        "E0",
+        "E1"
+      ],
+      "paired_folds": 30,
+      "models": 60,
+      "full": true
+    },
+    {
+      "batch": "stage_h1_v1 plus stage_h2_v1",
+      "variants": [
+        "E2",
+        "E3a",
+        "E3b"
+      ],
+      "paired_folds": 30,
+      "models": 90,
+      "new_G_H1_H2": [
+        12,
+        52,
+        26
+      ],
+      "full": true
+    },
+    {
+      "batch": "stage_k_v1",
+      "variants": [
+        "B0",
+        "B1"
+      ],
+      "paired_folds": 2,
+      "models": 4,
+      "full": false,
+      "comparison_scope": "two node task fold0 only, historical initialization"
+    },
+    {
+      "batch": "overall_cv_v1",
+      "variants": [
+        "HCG",
+        "HCG_DDG"
+      ],
+      "paired_folds": 30,
+      "new_models": 60,
+      "full": true
+    },
+    {
+      "batch": "guard_extension_v1",
+      "variants": [
+        "HCG_DDG_GUARD"
+      ],
+      "new_models": 30,
+      "reused_overall": 60,
+      "combined_models": 90,
+      "full": true
+    },
+    {
+      "batch": "readout_attention_v1",
+      "new_models": 20,
+      "reused_mean_models": 20,
+      "combined_models": 40,
+      "full": true,
+      "scope": "two contract tasks; two graph kinds x mean/attention"
+    }
+  ],
+  "confirmed_findings": [
+    {
+      "id": "E1",
+      "severity": "P2 delivery/documentation",
+      "location": "scripts/DFG/README.md:3; scripts/DFG/cli.py:94; scripts/DFG/configuration.py:15; scripts/DFG/experiments/README.md:290",
+      "finding": "Primary DDG CLI remains scalar-only; current state/control implementations live in separate development-tree experiment modules. Original tree lacks these modules. Not a defect of frozen formal fits."
+    },
+    {
+      "id": "E2",
+      "severity": "P2 archival entry",
+      "location": "scripts/DFG/experiments/overall_cv/common.py:18-20,35; scripts/DFG/experiments/overall_cv/README.md:22",
+      "finding": "Old public verify command rejects 43 newly added sidecar Python files as runtime drift; original186 recorded files all unchanged. Existing guard_extension.archive.verify_archive is appropriate read-only historical verifier."
+    },
+    {
+      "id": "E3",
+      "severity": "design limitation, not established bug",
+      "location": "sco_models/model_hgt.py:116-117",
+      "finding": "Adding a canonical relation also rescales old incoming messages via cross-relation mean even at nodes with no new incident edge. CPU no-label no-training probe shows train target1 ->0.5 for a val-only added relation; no cross-file messages. Cannot attribute current outcome solely to relation semantics or assert this causes low gains."
+    },
+    {
+      "id": "E4",
+      "severity": "historical document discrepancy, clarified in H2",
+      "location": "stage_h1_v1/H1_RESULT_REPORT.md:19; stage_h2_v1/E2_E3_COMPLETE_ABLATION_REPORT.md:468",
+      "finding": "H1 prose only lists contract LR/weight decay; node manifests retain0.0002/0.005/div25/weight_decay0. H2 clarifies. No actual configuration mismatch found."
+    }
+  ],
+  "not_found": [
+    "DDG merely saved but omitted from HGT",
+    "Train loss uses validation labels",
+    "Cross-file message edges",
+    "Trained baseline checkpoint used as new model initialization",
+    "Best overwritten by last",
+    "F1 computation mismatch in380 independently recomputed fold/checkpoint records",
+    "Current sealed calculation code drift"
+  ],
+  "gradient_support_counts": [
+    {
+      "variant": "HCG_DDG",
+      "relation": "DATA_DEF_USE",
+      "status": "no_train_support",
+      "count": 11
+    },
+    {
+      "variant": "HCG_DDG",
+      "relation": "DATA_DEF_USE",
+      "status": "supported_nonzero",
+      "count": 439
+    },
+    {
+      "variant": "HCG_DDG",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "status": "supported_nonzero",
+      "count": 45
+    },
+    {
+      "variant": "HCG_DDG",
+      "relation": "STATE_ACCESS_ORDER",
+      "status": "no_train_support",
+      "count": 5
+    },
+    {
+      "variant": "HCG_DDG",
+      "relation": "STATE_ACCESS_ORDER",
+      "status": "supported_nonzero",
+      "count": 150
+    },
+    {
+      "variant": "HCG_DDG",
+      "relation": "STATE_DEF_USE",
+      "status": "no_train_support",
+      "count": 1
+    },
+    {
+      "variant": "HCG_DDG",
+      "relation": "STATE_DEF_USE",
+      "status": "supported_nonzero",
+      "count": 34
+    },
+    {
+      "variant": "HCG_DDG_GUARD",
+      "relation": "CONTROL_DEPENDENCE",
+      "status": "supported_nonzero",
+      "count": 240
+    },
+    {
+      "variant": "HCG_DDG_GUARD",
+      "relation": "DATA_DEF_USE",
+      "status": "no_train_support",
+      "count": 11
+    },
+    {
+      "variant": "HCG_DDG_GUARD",
+      "relation": "DATA_DEF_USE",
+      "status": "supported_nonzero",
+      "count": 439
+    },
+    {
+      "variant": "HCG_DDG_GUARD",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "status": "supported_nonzero",
+      "count": 45
+    },
+    {
+      "variant": "HCG_DDG_GUARD",
+      "relation": "STATE_ACCESS_ORDER",
+      "status": "no_train_support",
+      "count": 5
+    },
+    {
+      "variant": "HCG_DDG_GUARD",
+      "relation": "STATE_ACCESS_ORDER",
+      "status": "supported_nonzero",
+      "count": 150
+    },
+    {
+      "variant": "HCG_DDG_GUARD",
+      "relation": "STATE_DEF_USE",
+      "status": "no_train_support",
+      "count": 1
+    },
+    {
+      "variant": "HCG_DDG_GUARD",
+      "relation": "STATE_DEF_USE",
+      "status": "supported_nonzero",
+      "count": 34
+    }
+  ],
+  "bounds": [
+    "Single seed and repeated use of same CV validation for model selection and reported score; cannot claim independent generalization",
+    "HCG node F1, not unique source-line F1 or end-to-end cascade F1",
+    "Old E0/E1 vs H1/H2 vs overall are different initialization anchors; direct cross-stage deltas not paired causal estimates",
+    "Known author label disputes remain frozen; numeric audits do not certify semantic ground truth",
+    "No new GPU run, solc, full checkpoint reread, or complete DDG suite in this subreview"
+  ]
+}

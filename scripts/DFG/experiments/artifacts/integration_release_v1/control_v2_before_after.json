@@ -1,0 +1,46 @@
+{
+  "implemented_by": "Codex",
+  "source": "pragma solidity ^0.4.24; contract C { uint x; function f(bool ok) public { require(ok); address(unresolved()).call(\"\"); x=1; } }",
+  "fixture_status": "parser_robustness_case_with_undeclared_name_not_compiled",
+  "compiler_executed": false,
+  "before": {
+    "producer": "guard-control-explicit-exits-v1",
+    "observed_status": "analyzed",
+    "fact_count": 2,
+    "intended_assertion_failed": "unsafe receiver function must fall back without partial facts"
+  },
+  "after": {
+    "producer": "guard-control-receiver-validated-v2",
+    "observed_status": "function_fallback",
+    "ir_is_none": true,
+    "fact_count": 0,
+    "same_intended_assertion_passed": true,
+    "diagnostics": [
+      {
+        "file": "case.sol",
+        "function": "case.sol:46",
+        "source_sha256": "168ab587e2342d3b71ffd27dfa4c5d7df4c19b065804df932aba37228e9de06b",
+        "start": 46,
+        "end": 126,
+        "line": 1,
+        "reason": "guard-v2: receiver evaluation requires expression CFG; kind=call_expression; span=96:108; expression=unresolved()",
+        "partial_control_facts_published": false
+      }
+    ]
+  },
+  "tests": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 0
+  },
+  "runtime_sha256": {
+    "scripts/DFG/control_dependency/cfg.py": "23d3b0b47e0064b5e2f3a420a6610c40d5cd517878c859f1532caff2fb7fe171",
+    "scripts/DFG/control_dependency/analysis.py": "fd0210fe4effc2815a19b0c4809fe464dfb85277e5ad66f22982423ce69421dc",
+    "scripts/DFG/control_dependency/pipeline.py": "18661606365d885823fc62dc8114c03db708d94e3681a6845c831ef5e027f650",
+    "scripts/DFG/integration/control_v2.py": "6af14435a0fa60b8f24a5d43ee3ee5f4fa59f213f1e56c2e9cf16682d82241d8",
+    "scripts/DFG/integration/tests/test_control_v2.py": "aa0fc598387a49e59d537faa596b1772be0bdab66020b889ef3720ec4e25612b"
+  },
+  "frozen_modules_modified": false,
+  "training_executed": false
+}

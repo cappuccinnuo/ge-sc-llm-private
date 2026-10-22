@@ -1,0 +1,58 @@
+{
+  "readout": {
+    "version": "file-softmax-linear-zero-v1",
+    "algorithm": "per_file_softmax_linear",
+    "parameter": "readout_vector",
+    "initialization": "all_zero_no_rng_draw",
+    "score_bias": false,
+    "normalization": "all_original_nodes_of_one_source_file",
+    "additional_parameters": 128
+  },
+  "variants": {
+    "HCG": {
+      "shared_initial_exact": true,
+      "shared_tensor_sha256": "eee9f230e21bc9766c023401af883dbdc08a22715c29aa80c1a39b0db23ee5bd",
+      "new_parameter": "readout_vector",
+      "new_parameter_count": 128,
+      "zero_initial": true,
+      "initial_extension_rng_unchanged": true,
+      "source": {
+        "batch": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/overall_cv_v1",
+        "manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/overall_cv_v1/prepared/access_control_author_contract/fold_2/task.json",
+        "manifest_sha256": "90513975f251e1083a1fde0ac0afc3adf323f7dc75e1be65e9a81149a1f39bcd",
+        "initial_path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/overall_cv_v1/prepared/access_control_author_contract/fold_2/HCG_initial.pt",
+        "initial_sha256": "10329ec3552058c029eed9bd726583780e75815860556afb51cac1a31ea1fd29",
+        "initial_state_sha256": "eee9f230e21bc9766c023401af883dbdc08a22715c29aa80c1a39b0db23ee5bd",
+        "receipt": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/overall_cv_v1/runs/access_control_author_contract/fold_2/HCG/attempt_001/receipt.json",
+        "receipt_sha256": "c5620b108c488b8e72c1a41429dd63ae34181beb10bf9155da39fe50cc280e88",
+        "plan_sha256": "c957e7fb36885a8fc9d5977e85a87402e4e7bf6224c89bfe5f06817b986eb499",
+        "fit_seed": 1011002,
+        "graph_sha256": "d66b920801c02dc53832337de719135f8c10d158b24ba403d788c1646b8f034f"
+      }
+    },
+    "HCG_DDG_GUARD": {
+      "shared_initial_exact": true,
+      "shared_tensor_sha256": "44f60ff366ec00e24c79f616ac5e1a6576803df178eca75085acf14dc5645756",
+      "new_parameter": "readout_vector",
+      "new_parameter_count": 128,
+      "zero_initial": true,
+      "initial_extension_rng_unchanged": true,
+      "source": {
+        "batch": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1",
+        "manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/prepared/access_control_author_contract/fold_2/task.json",
+        "manifest_sha256": "c9b06722b8f97a4ecb600d16d2e3552322db23162906961738b438e5633e6353",
+        "initial_path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/prepared/access_control_author_contract/fold_2/HCG_DDG_GUARD_initial.pt",
+        "initial_sha256": "9c1bf6bfe97b77696900f8738a90dbbeed7b7b0ddaa948e1f6b0b971b9ddb3bc",
+        "initial_state_sha256": "44f60ff366ec00e24c79f616ac5e1a6576803df178eca75085acf14dc5645756",
+        "receipt": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/runs/access_control_author_contract/fold_2/HCG_DDG_GUARD/attempt_001/receipt.json",
+        "receipt_sha256": "5e33e52d04f41ca58ff7df36330fa1d771ac63fb1b13fffafc2d7cc64cd547d0",
+        "plan_sha256": "b621cbc44e5651a421c6417924792cf64f048d464d1b138ebeac1002d6648dd6",
+        "fit_seed": 1011002,
+        "graph_sha256": "a24208fe130a72b25b223fe3382fec79d058fd7e90feb7b46b0294718a7a4cbe"
+      }
+    }
+  },
+  "common_semantic_tensors": 1365,
+  "common_semantic_sha256": "30362d62213c5b85f80272caf73bd1a72fc7d657e969baffbd0f9aff3b116078",
+  "all_common_exact": true
+}

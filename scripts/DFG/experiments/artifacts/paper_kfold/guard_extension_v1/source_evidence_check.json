@@ -1,0 +1,70 @@
+{
+  "checked_projected_facts": 8820,
+  "all_source_hashes_and_utf8_anchor_bounds_valid": true,
+  "examples": [
+    {
+      "task": "reentrancy_author_contract",
+      "source_file": "buggy_18.sol",
+      "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_18.sol",
+      "raw_lines": [
+        99,
+        100
+      ],
+      "controller_code": "require(redeemableEther_re_ent11[msg.sender] > 0);",
+      "controlled_code": "uint transferValue_re_ent11 = redeemableEther_re_ent11[msg.sender];",
+      "source_node": 2693,
+      "target_node": 2694,
+      "branch": "pass",
+      "selection": "readable illustration only; no labels or predictions used"
+    },
+    {
+      "task": "access_control_author_contract",
+      "source_file": "buggy_18.sol",
+      "source_sha256": "d8505eecd2d5acd06a30006b1e163a08e5bc3a7918c69c86f809c4e9bdeb8ad4",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_18.sol",
+      "raw_lines": [
+        67,
+        68
+      ],
+      "controller_code": "require(tx.origin == owner_txorigin34);",
+      "controlled_code": "_recipient.transfer(address(this).balance);",
+      "source_node": 1301,
+      "target_node": 1302,
+      "branch": "pass",
+      "selection": "readable illustration only; no labels or predictions used"
+    },
+    {
+      "task": "reentrancy_author_node",
+      "source_file": "buggy_18.sol",
+      "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_18.sol",
+      "raw_lines": [
+        99,
+        100
+      ],
+      "controller_code": "require(redeemableEther_re_ent11[msg.sender] > 0);",
+      "controlled_code": "uint transferValue_re_ent11 = redeemableEther_re_ent11[msg.sender];",
+      "source_node": 2693,
+      "target_node": 2694,
+      "branch": "pass",
+      "selection": "readable illustration only; no labels or predictions used"
+    },
+    {
+      "task": "access_control_author_node",
+      "source_file": "buggy_18.sol",
+      "source_sha256": "d8505eecd2d5acd06a30006b1e163a08e5bc3a7918c69c86f809c4e9bdeb8ad4",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_18.sol",
+      "raw_lines": [
+        67,
+        68
+      ],
+      "controller_code": "require(tx.origin == owner_txorigin34);",
+      "controlled_code": "_recipient.transfer(address(this).balance);",
+      "source_node": 1301,
+      "target_node": 1302,
+      "branch": "pass",
+      "selection": "readable illustration only; no labels or predictions used"
+    }
+  ]
+}

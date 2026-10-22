@@ -1,0 +1,152 @@
+--- scripts/DFG/experiments/stage_i_diagnostics/aggregate.py
++++ scripts/DFG/experiments/artifacts/paper_kfold/stage_i_v3/aggregate_stage_i.py
+@@ -4,6 +4,7 @@
+ all class metrics from identity-bound predictions. Fold means and pooled CV
+ validation are deliberately separate. Output is immutable except exact reruns.
+ """
++import argparse
+ import csv
+ import hashlib
+ import io
+@@ -17,7 +18,9 @@
+ 
+ CONDITIONS = ("N", "Z_D", "Z_S", "Z_C", "Z_SC", "Z_ALL")
+ METRICS = ("buggy_f1", "macro_f1", "precision", "recall")
+-VERSION = "stage-i-intervention-summary-v1"
++VERSION = "stage-i-intervention-summary-v2"
++ROLE = "exploratory_cv_validation_fixed_checkpoint_sensitivity"
++SOURCE_ROLE = "cv_validation"
+ 
+ 
+ def read(path):
+@@ -133,8 +136,20 @@
+     return statistics.mean(values), statistics.stdev(values) if len(values) > 1 else None
+ 
+ 
+-def summarize(output, expected_jobs):
++def _bound_plan(output):
+     output = Path(output)
++    plan = read(output / "plan.json")
++    seal = read(output / "plan.seal.json")
++    if sha(output / "plan.json") != seal["plan_sha256"]:
++        raise ValueError("Diagnostic plan SHA mismatch")
++    if plan.get("score_role") != ROLE or plan.get("source_score_role") != SOURCE_ROLE:
++        raise ValueError("Wrong diagnostic/source scoring role in sealed plan")
++    return plan
++
++
++def summarize(output, expected_jobs, write_outputs=True):
++    output = Path(output)
++    bound_plan = _bound_plan(output)
+     jobs = list(expected_jobs)
+     if not jobs:
+         raise ValueError("No expected replay jobs")
+@@ -158,7 +173,10 @@
+     # Correct tuple ordering: task_id, fold, variant.
+     if actual != expected:
+         raise ValueError("Missing or unexpected replay jobs")
+-    inputs, folds, changed, file_rows = {}, [], [], []
++    inputs, folds, changed, file_rows = {
++        str(output / "plan.json"): sha(output / "plan.json"),
++        str(output / "plan.seal.json"): sha(output / "plan.seal.json"),
++    }, [], [], []
+     pooled_rows, pool_seen = defaultdict(list), defaultdict(set)
+     identities, sources, validation_files = {}, {}, {}
+     populations = {}
+@@ -168,6 +186,8 @@
+         for checkpoint in ("best", "last"):
+             folder = directory / checkpoint
+             audit = read(folder / "audit.json")
++            if audit.get("score_role") != bound_plan["score_role"]:
++                raise ValueError("Mixed audit scoring role")
+             if "gates" not in audit:
+                 raise ValueError("Missing replay audit gates")
+             _check_gates(audit["gates"])
+@@ -185,7 +205,7 @@
+                         raise ValueError("Mixed prediction identity: " + field)
+                 if row.get("checkpoint") != checkpoint:
+                     raise ValueError("Mixed checkpoint")
+-                if row.get("score_role", "cv_validation") != "cv_validation":
++                if row.get("score_role") != bound_plan["score_role"]:
+                     raise ValueError("Mixed scoring role")
+                 identity = key(row, job["task"])
+                 if identity in seen:
+@@ -225,7 +245,7 @@
+             pool_seen[group].update(seen)
+             pooled_rows[group].extend(rows)
+             metadata = {k: job[k] for k in ("task_id", "task", "cohort", "fold", "variant")}
+-            metadata.update(checkpoint=checkpoint, score_role="cv_validation")
++            metadata.update(checkpoint=checkpoint, score_role=ROLE, source_score_role=SOURCE_ROLE)
+             baseline = _compare(rows, "N")
+             files = defaultdict(list)
+             for row in rows:
+@@ -233,6 +253,8 @@
+             for condition in CONDITIONS:
+                 value = _compare(rows, condition)
+                 reported = by_condition[condition]
++                if reported.get("score_role") != bound_plan["score_role"]:
++                    raise ValueError("Mixed score-table scoring role")
+                 for field in ("n", "positive", "prediction_flips", "corrected", "introduced"):
+                     if reported[field] != value[field]:
+                         raise ValueError("Prediction/score mismatch: " + field)
+@@ -264,7 +286,7 @@
+         task, cohort = task_meta[task_id]
+         row = dict(task_id=task_id, task=task, cohort=cohort, variant=variant,
+                    checkpoint=checkpoint, condition=condition, folds=len(members),
+-                   score_role="cv_validation", statistic="equal_weight_fold_mean_and_sample_sd")
++                   score_role=ROLE, source_score_role=SOURCE_ROLE, statistic="equal_weight_fold_mean_and_sample_sd")
+         fields = list(METRICS) + ["delta_" + field + "_pp" for field in METRICS]
+         fields += ["prediction_flips", "corrected", "introduced", "probability_abs_mean"]
+         for field in fields:
+@@ -281,14 +303,14 @@
+         for condition in CONDITIONS:
+             value = _compare(rows, condition)
+             row = dict(task_id=task_id, task=task, cohort=cohort, variant=variant,
+-                       checkpoint=checkpoint, condition=condition, score_role="cv_validation",
++                       checkpoint=checkpoint, condition=condition, score_role=ROLE, source_score_role=SOURCE_ROLE,
+                        statistic="pooled_oof_not_independent_test", **value)
+             row.update({"delta_" + field + "_pp": value[field] - baseline[field] for field in METRICS})
+             pooled.append(row)
+     report = {
+         "version": VERSION, "status": "complete", "jobs": len(jobs),
+         "checkpoint_replays": len(jobs) * 2, "conditions": list(CONDITIONS),
+-        "score_role": "cv_validation", "node_unit": "HCG_node_not_deduplicated_source_line",
++        "score_role": ROLE, "source_score_role": SOURCE_ROLE, "node_unit": "HCG_node_not_deduplicated_source_line",
+         "metric_unit": "percent; contrasts are percentage points versus N at the same checkpoint",
+         "interpretation": "fixed_checkpoint_message_zero_sensitivity_not_retraining_or_pure_semantic_causality",
+         "independent_seed_repeats": False, "probability_change_threshold": 1e-8,
+@@ -310,6 +332,9 @@
+             "probability_delta", "status")),
+         "REPORT_DATA.json": (json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n").encode("utf8"),
+     }
++    if not write_outputs:
++        report["status"] = "partial_preview"
++        return report
+     for name, content in outputs.items():
+         if (output / name).exists() and (output / name).read_bytes() != content:
+             raise FileExistsError("Refuse inconsistent existing summary: " + name)
+@@ -318,3 +343,24 @@
+             with (output / name).open("xb") as stream:
+                 stream.write(content)
+     return report
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--output", type=Path, default=Path(__file__).resolve().parent)
++    parser.add_argument("--allow-partial", action="store_true",
++                        help="Read available receipts and print a preview; never write summary files")
++    args = parser.parse_args()
++    plan = _bound_plan(args.output)
++    jobs = plan["jobs"]
++    if args.allow_partial:
++        jobs = [j for j in jobs if (args.output / "replays" / j["task_id"] /
++                ("fold_" + str(j["fold"])) / j["variant"] / "receipt.json").exists()]
++    elif len(jobs) != 60:
++        raise ValueError("Formal diagnostic summary requires the sealed 60-model plan")
++    report = summarize(args.output, jobs, write_outputs=not args.allow_partial)
++    print(json.dumps({k:v for k,v in report.items() if k not in
++                      ("fold_statistics", "pooled_oof", "input_artifact_sha256")}, indent=2))
++
++if __name__ == "__main__":
++    main()

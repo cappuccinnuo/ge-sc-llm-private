@@ -1,0 +1,76 @@
+{
+  "version": "guard-control-explicit-exits-v1",
+  "author": "Codex",
+  "record_kind": "execution observation; not reconstructed raw stdout",
+  "compiler_validation": {
+    "executed": false,
+    "reason": "No new solc download/execution authorized; tests use existing tree-sitter and mando only",
+    "fixtures": "Source/parser fixtures, not independently compiled Solidity programs"
+  },
+  "attempts": [
+    {
+      "number": 1,
+      "command": "python -B -m unittest scripts.DFG.control_dependency.tests.test_semantics -v",
+      "total": 27,
+      "passed": 26,
+      "failed": 1,
+      "skipped": 0,
+      "elapsed_seconds": 0.164,
+      "failing_test": "test_low_level_call_in_if_is_bound",
+      "source_case": "if(!msg.sender.send(amount)) {revert();} x=0;",
+      "expected": "analyzed",
+      "actual": "function_fallback",
+      "actual_reason": "guard: unresolved member call: send",
+      "raw_stdout_saved": false,
+      "observation": "The test initially assumed this legal-looking call syntax was represented correctly by the installed grammar."
+    },
+    {
+      "number": 2,
+      "probe_kind": "actual installed parser AST, observed from executed Python probe",
+      "call_text": "!msg.sender.send(amount)",
+      "callee_type": "member_expression",
+      "callee_text": "!msg.sender.send",
+      "receiver_type": "unary_expression",
+      "receiver_text": "!msg.sender",
+      "receiver_operator": "!",
+      "interpretation": "Installed grammar associates ! with receiver rather than whole call. Unknown receiver must not be inferred to be an address.",
+      "raw_stdout_saved": false
+    },
+    {
+      "number": 3,
+      "command": "python -B -m unittest scripts.DFG.control_dependency.tests.test_semantics -v",
+      "total": 31,
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0.181,
+      "change": "Preserved unparenthesized case as explicit parser-limitation fallback regression; positive branch assertions retained with explicit parentheses !(msg.sender.send(amount)). Added literal true/false branch pruning and nonbuiltin revert argument checks.",
+      "scope_note": "No claim that original unparenthesized call is now supported."
+    },
+    {
+      "number": 4,
+      "command": "python -B -m unittest scripts.DFG.control_dependency.tests.test_semantics -v",
+      "total": 38,
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_seconds": 0.182,
+      "change": "Added declaration-order, lexical-scope, modifier-context, terminal and pragma-range regressions; restricted bare this address receiver to legacy version domain.",
+      "warnings": []
+    }
+  ],
+  "semantic_limitations": [
+    "explicit-control profile omits implicit VM arithmetic/bounds/gas exceptions",
+    "known ordinary user calls are opaque may-return/may-revert; no callee-body or nontermination summary",
+    "unknown callee/predicate effects/loops/imports/unsupported modifiers cause function fallback with zero facts",
+    "only syntactic true and false (possibly wrapped) are folded; other predicates path-insensitive",
+    "branch polarity is audit evidence; same CONTROL_DEPENDENCE canonical relation does not expose polarity to HGT",
+    "existing grammar unary receiver ambiguity remains unsupported; no AST text repair or nearest-line projection"
+  ],
+  "source_sha256": {
+    "scripts/DFG/control_dependency/models.py": "ad2241019849836ccf3a764c017ef6de4e9356b46b8a3d6e713ce37c6f7b1a4a",
+    "scripts/DFG/control_dependency/cfg.py": "23d3b0b47e0064b5e2f3a420a6610c40d5cd517878c859f1532caff2fb7fe171",
+    "scripts/DFG/control_dependency/analysis.py": "fd0210fe4effc2815a19b0c4809fe464dfb85277e5ad66f22982423ce69421dc",
+    "scripts/DFG/control_dependency/tests/test_semantics.py": "a13fe881e7432627a99376398275f1962ce5f778beee427b2825f312d9336837"
+  }
+}

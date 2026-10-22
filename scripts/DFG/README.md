@@ -1,3 +1,4 @@
+> **2026-10-21 当前完整工程入口（Codex）**：请阅读 [integration/README.md](integration/README.md)。它统一原图、scalar、full、full_guard及五类正向关系的模型adapter。下面保留的是历史第一阶段说明，旧 `scripts.DFG.cli` 仍只代表scalar，不能据此判断后续state/control未实现。
 # 函数内正向 DDG（第一阶段）
 
 新增逻辑位于本目录；只附加 DATA_DEF_USE。详见 [逐阶段实施记录](IMPLEMENTATION_NOTES.md) 和 [原接入分析](DDG_INTEGRATION_ANALYSIS_2026-10-11.md)。

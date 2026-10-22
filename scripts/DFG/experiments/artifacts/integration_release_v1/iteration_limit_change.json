@@ -1,0 +1,27 @@
+{
+  "implemented_by": "Codex",
+  "reason": "max_iterations previously reached scalar/state but control used a hidden fixed 100000; now all enabled analysis stages receive explicit common bound",
+  "modified_new_files_sha256": {
+    "scripts/DFG/integration/control_v2.py": "97d7d567c96728927e5f4d7a95bb543212e051902cc32a48404cdfef318e3454",
+    "scripts/DFG/integration/pipeline.py": "766f32afd4ad84ecac3d28480e90d5fa1ea9c8ebbf6e60e265307eca3071918f",
+    "scripts/DFG/integration/tests/test_control_v2.py": "bbd2094323378b3e11cf64174b1c852cd0dd5c83a5344db1755c67c9ab674e0f",
+    "scripts/DFG/integration/tests/test_pipeline_model_io.py": "f182ec0061461ecf1ff69c79bc5c8618d6d7e21e7510d3f21e81f6cbcdfa8fea"
+  },
+  "historical_modules_unchanged": {
+    "scripts/DFG/control_dependency/cfg.py": true,
+    "scripts/DFG/control_dependency/analysis.py": true,
+    "scripts/DFG/control_dependency/pipeline.py": true
+  },
+  "default": 100000,
+  "default_behavior_verification": "same synthetic graph and facts as unchanged private previous-default template; existing four-task output not rebuilt",
+  "disabled_stage_effective_limit": null,
+  "tests": {
+    "passed": 51,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 4,
+    "log": "iteration_limit_tests_001.log"
+  },
+  "real_graphs_rebuilt": false,
+  "training_executed": false
+}

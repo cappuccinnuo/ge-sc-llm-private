@@ -1,0 +1,79 @@
+........................................................................ [  9%]
+........................................................................ [ 19%]
+........................................................................ [ 29%]
+........................................................................ [ 39%]
+........................................................................ [ 49%]
+................................................................F....... [ 59%]
+........................................................................ [ 69%]
+........................................................................ [ 79%]
+........................................................................ [ 89%]
+........................................................................ [ 98%]
+........                                                                 [100%]
+=================================== FAILURES ===================================
+_________ test_actual_prepared_inputs_form_exactly_thirty_paired_jobs __________
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_actual_prepared_inputs_fo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x78568409e410>
+
+    @pytest.mark.skipif(not (formal.ROOT/"audit/formal_20261012_v1/resource_reentrancy_author_contract.json").exists(), reason="local real Dataset A/resource evidence unavailable")
+    def test_actual_prepared_inputs_form_exactly_thirty_paired_jobs(tmp_path,monkeypatch):
+        monkeypatch.setattr(formal,"protocol_output",lambda p:Path(p))
+>       plan=formal.init_plan(tmp_path/"plan",formal.ROOT/"audit/formal_20261012_v1")
+
+scripts/DFG/experiments/tests/test_formal_controller.py:154: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+output = PosixPath('/tmp/pytest-of-zhao/pytest-20/test_actual_prepared_inputs_fo0/plan')
+resource_dir = PosixPath('/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/audit/formal_20261012_v1')
+device = 'cuda:0', threads = 2
+
+    def init_plan(output, resource_dir, device="cuda:0", threads=2):
+        if not device.startswith("cuda") or threads < 1:
+            raise ValueError("Formal CUDA batch requires valid device/threads; no automatic CPU fallback")
+        output = protocol_output(output)
+        jobs, inputs, resources = [], {}, {}
+        for cohort, task, k in TASKS:
+            prepared = ROOT/"artifacts"/"20261012_v1"/cohort/"prepared"
+            splits = ROOT/"artifacts"/NAME/"20261012_v1"/cohort/"splits"/(task+"_folds.json")
+            split = read_json(splits)
+            if split["seed"] != 1 or [f["fold"] for f in split["folds"]] != list(range(k)):
+                raise ValueError("Unexpected frozen seed/folds")
+            for f in sorted(prepared.rglob("*")):
+                if f.is_file():
+                    inputs[str(f)] = sha256(f)
+            inputs[str(splits)] = sha256(splits)
+            report_path = Path(resource_dir)/("resource_"+cohort+"_"+task+".json")
+            report = read_json(report_path)
+            if (report["device"] != device or report["task"] != task or
+                report["prepared"] != str(prepared) or
+                report.get("prepared_manifest_sha256") != sha256(prepared/"manifest.json") or
+                report.get("split_sha256") != sha256(splits)):
+>               raise ValueError("Resource evidence input mismatch")
+E               ValueError: Resource evidence input mismatch
+
+scripts/DFG/experiments/formal.py:50: ValueError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/torch/utils/tensorboard/__init__.py:3
+../../miniconda3/envs/mando/lib/python3.7/site-packages/torch/utils/tensorboard/__init__.py:3
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/torch/utils/tensorboard/__init__.py:3: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if not hasattr(tensorboard, '__version__') or LooseVersion(tensorboard.__version__) < LooseVersion('1.15'):
+
+scripts/DFG/tests/test_model_integration.py: 24 warnings
+tests/test_graph_utils.py: 1 warning
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/networkx/utils/decorators.py:5: DeprecationWarning: read_gpickle is deprecated and will be removed in 3.0.Use ``pickle.load(path)``
+    import warnings
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/DFG/experiments/tests/test_formal_controller.py::test_actual_prepared_inputs_form_exactly_thirty_paired_jobs
+1 failed, 727 passed, 31 warnings in 119.19s (0:01:59)

@@ -1,0 +1,546 @@
+{
+  "version": "source-first-bounded-oracle-v1",
+  "source_build_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/manifest.json",
+  "source_build_manifest_sha256": "47150dc1d15c078291e6f52fccc6e070b968501b723653a2bca18f8ec8a1ac67",
+  "cases": [
+    {
+      "case_id": "reentrancy/buggy_18.sol/add@673",
+      "cohort": "reentrancy",
+      "task_id": "reentrancy_author_contract",
+      "source_file": "buggy_18.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_18.sol",
+      "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec",
+      "metadata": null,
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/reentrancy_author_contract/sources.json",
+      "metadata_manifest_sha256": "05bc49e58840478d13f0974248201fafcd50a06922e28bd1f10a1a7679a65f5b",
+      "function_name": "add",
+      "function_span": [
+        673,
+        783
+      ],
+      "function_line_range": [
+        23,
+        26
+      ],
+      "function_sha256": "8d785a15d4ecfe90989a934e242ba2a69a209264663bc85741344b186157dcbc",
+      "function_source": "function add(uint a, uint b) internal pure returns(uint c) {\n        c = a + b;\n        require(c >= a);\n    }",
+      "family": "scalar",
+      "relation": "DATA_DEF_USE",
+      "expected": "present",
+      "from_text": "c = a + b;",
+      "to_text": "require(c >= a);",
+      "manual_reason": "The local result c is defined by assignment and subsequently read by require.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/reentrancy_author_contract/B1.gpickle",
+        "sha256": "93f9ff8d2360f59b7967b1c9ca0cb4b275ab66433d45e47824197fb85482d335",
+        "fingerprint": "0fc8df0a73b64e1735eb21edb899d3399fb0cfdc18373093f706496651c86430",
+        "node_attributes_sha256": "bbefa04710c1ba260f7009abf9bb017f4f3fadc18567b1fe1e475c7ed0567991",
+        "nodes": 18312,
+        "edges": 25519
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/reentrancy_author_contract/coverage.json",
+        "sha256": "0d8b6ec8b5b0b7b717b710eba7d200a1566883f06e33c5ccf10a0f4d8c11ffe5",
+        "function_status": "analyzed"
+      }
+    },
+    {
+      "case_id": "reentrancy/simple_dao.sol/withdraw@303",
+      "cohort": "reentrancy",
+      "task_id": "reentrancy_author_contract",
+      "source_file": "simple_dao.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/simple_dao.sol",
+      "source_sha256": "40ffea56c722280688eba923676992d20be7623dcf724393c1c7ca1ef24e0ae5",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/reentrancy/simple_dao.sol",
+        "source_sha256": "40ffea56c722280688eba923676992d20be7623dcf724393c1c7ca1ef24e0ae5",
+        "row_file": "dataset/reentrancy/simple_dao.sol",
+        "version": "0.4.2"
+      },
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/reentrancy_author_contract/sources.json",
+      "metadata_manifest_sha256": "05bc49e58840478d13f0974248201fafcd50a06922e28bd1f10a1a7679a65f5b",
+      "function_name": "withdraw",
+      "function_span": [
+        303,
+        503
+      ],
+      "function_line_range": [
+        16,
+        22
+      ],
+      "function_sha256": "6527f0c2535063a1c146630bc1a856f9a2eb15b68485e497c00e11a01603fac7",
+      "function_source": "function withdraw(uint amount) {\n    if (credit[msg.sender]>= amount) {\n      // <yes> <report> REENTRANCY\n      bool res = msg.sender.call.value(amount)();\n      credit[msg.sender]-=amount;\n    }\n  }",
+      "family": "state",
+      "relation": "EXTERNAL_CALL_BEFORE_STATE_WRITE",
+      "expected": "present",
+      "from_text": "msg.sender.call.value(amount)",
+      "to_text": "credit[msg.sender]-=amount;",
+      "manual_reason": "The external call precedes the credit decrement on the same syntactic path; this is order, not a backwards value edge.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/reentrancy_author_contract/B1.gpickle",
+        "sha256": "93f9ff8d2360f59b7967b1c9ca0cb4b275ab66433d45e47824197fb85482d335",
+        "fingerprint": "0fc8df0a73b64e1735eb21edb899d3399fb0cfdc18373093f706496651c86430",
+        "node_attributes_sha256": "bbefa04710c1ba260f7009abf9bb017f4f3fadc18567b1fe1e475c7ed0567991",
+        "nodes": 18312,
+        "edges": 25519
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/reentrancy_author_contract/coverage.json",
+        "sha256": "0d8b6ec8b5b0b7b717b710eba7d200a1566883f06e33c5ccf10a0f4d8c11ffe5",
+        "function_status": "analyzed"
+      }
+    },
+    {
+      "case_id": "reentrancy/simple_dao.sol/queryCredit@507",
+      "cohort": "reentrancy",
+      "task_id": "reentrancy_author_contract",
+      "source_file": "simple_dao.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/simple_dao.sol",
+      "source_sha256": "40ffea56c722280688eba923676992d20be7623dcf724393c1c7ca1ef24e0ae5",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/reentrancy/simple_dao.sol",
+        "source_sha256": "40ffea56c722280688eba923676992d20be7623dcf724393c1c7ca1ef24e0ae5",
+        "row_file": "dataset/reentrancy/simple_dao.sol",
+        "version": "0.4.2"
+      },
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/reentrancy_author_contract/sources.json",
+      "metadata_manifest_sha256": "05bc49e58840478d13f0974248201fafcd50a06922e28bd1f10a1a7679a65f5b",
+      "function_name": "queryCredit",
+      "function_span": [
+        507,
+        582
+      ],
+      "function_line_range": [
+        24,
+        26
+      ],
+      "function_sha256": "e22ea73deae4473bced17cfb99dcadc32747abeab6b21357275062313279809d",
+      "function_source": "function queryCredit(address to) returns (uint){\n    return credit[to];\n  }",
+      "family": "state",
+      "relation": "STATE_DEF_USE",
+      "expected": "absent",
+      "from_text": null,
+      "to_text": null,
+      "manual_reason": "Only an entry-state read is present; there is no preceding in-function state write.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/reentrancy_author_contract/B1.gpickle",
+        "sha256": "93f9ff8d2360f59b7967b1c9ca0cb4b275ab66433d45e47824197fb85482d335",
+        "fingerprint": "0fc8df0a73b64e1735eb21edb899d3399fb0cfdc18373093f706496651c86430",
+        "node_attributes_sha256": "bbefa04710c1ba260f7009abf9bb017f4f3fadc18567b1fe1e475c7ed0567991",
+        "nodes": 18312,
+        "edges": 25519
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/reentrancy_author_contract/coverage.json",
+        "sha256": "0d8b6ec8b5b0b7b717b710eba7d200a1566883f06e33c5ccf10a0f4d8c11ffe5",
+        "function_status": "analyzed"
+      }
+    },
+    {
+      "case_id": "reentrancy/simple_dao.sol/donate@229",
+      "cohort": "reentrancy",
+      "task_id": "reentrancy_author_contract",
+      "source_file": "simple_dao.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/simple_dao.sol",
+      "source_sha256": "40ffea56c722280688eba923676992d20be7623dcf724393c1c7ca1ef24e0ae5",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/reentrancy/simple_dao.sol",
+        "source_sha256": "40ffea56c722280688eba923676992d20be7623dcf724393c1c7ca1ef24e0ae5",
+        "row_file": "dataset/reentrancy/simple_dao.sol",
+        "version": "0.4.2"
+      },
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/reentrancy_author_contract/sources.json",
+      "metadata_manifest_sha256": "05bc49e58840478d13f0974248201fafcd50a06922e28bd1f10a1a7679a65f5b",
+      "function_name": "donate",
+      "function_span": [
+        229,
+        299
+      ],
+      "function_line_range": [
+        12,
+        14
+      ],
+      "function_sha256": "5c5f92fc5dc4e269a86a42a01053f10cea1c96e29e4667e58cac937f2f31fe95",
+      "function_source": "function donate(address to) payable {\n    credit[to] += msg.value;\n  }",
+      "family": "state",
+      "relation": "STATE_DEF_USE",
+      "expected": "absent",
+      "from_text": null,
+      "to_text": null,
+      "manual_reason": "One compound update reads entry state then writes; no later read creates a cross-statement state def-use.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/reentrancy_author_contract/B1.gpickle",
+        "sha256": "93f9ff8d2360f59b7967b1c9ca0cb4b275ab66433d45e47824197fb85482d335",
+        "fingerprint": "0fc8df0a73b64e1735eb21edb899d3399fb0cfdc18373093f706496651c86430",
+        "node_attributes_sha256": "bbefa04710c1ba260f7009abf9bb017f4f3fadc18567b1fe1e475c7ed0567991",
+        "nodes": 18312,
+        "edges": 25519
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/reentrancy_author_contract/coverage.json",
+        "sha256": "0d8b6ec8b5b0b7b717b710eba7d200a1566883f06e33c5ccf10a0f4d8c11ffe5",
+        "function_status": "analyzed"
+      }
+    },
+    {
+      "case_id": "reentrancy/modifier_reentrancy.sol/airDrop@429",
+      "cohort": "reentrancy",
+      "task_id": "reentrancy_author_contract",
+      "source_file": "modifier_reentrancy.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/modifier_reentrancy.sol",
+      "source_sha256": "5675bc25a679e6e3cae0252605b00ab569a66757e91fbcf8873b5994960cbef7",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/reentrancy/modifier_reentrancy.sol",
+        "source_sha256": "5675bc25a679e6e3cae0252605b00ab569a66757e91fbcf8873b5994960cbef7",
+        "row_file": "dataset/reentrancy/modifier_reentrancy.sol",
+        "version": "0.4.24"
+      },
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/reentrancy_author_contract/sources.json",
+      "metadata_manifest_sha256": "05bc49e58840478d13f0974248201fafcd50a06922e28bd1f10a1a7679a65f5b",
+      "function_name": "airDrop",
+      "function_span": [
+        429,
+        523
+      ],
+      "function_line_range": [
+        15,
+        17
+      ],
+      "function_sha256": "f63de79cfb2387e56644e28bf17a8b57630399f30665e12d5e06a377fcf12491",
+      "function_source": "function airDrop() hasNoBalance supportsToken  public{\n    tokenBalance[msg.sender] += 20;\n  }",
+      "family": "state",
+      "relation": "STATE_DEF_USE",
+      "expected": "fallback",
+      "from_text": null,
+      "to_text": null,
+      "manual_reason": "Two modifier invocations including an external token check exceed the single bounded prefix modifier profile.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/reentrancy_author_contract/B1.gpickle",
+        "sha256": "93f9ff8d2360f59b7967b1c9ca0cb4b275ab66433d45e47824197fb85482d335",
+        "fingerprint": "0fc8df0a73b64e1735eb21edb899d3399fb0cfdc18373093f706496651c86430",
+        "node_attributes_sha256": "bbefa04710c1ba260f7009abf9bb017f4f3fadc18567b1fe1e475c7ed0567991",
+        "nodes": 18312,
+        "edges": 25519
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/reentrancy_author_contract/coverage.json",
+        "sha256": "0d8b6ec8b5b0b7b717b710eba7d200a1566883f06e33c5ccf10a0f4d8c11ffe5",
+        "function_status": "function_fallback"
+      }
+    },
+    {
+      "case_id": "reentrancy/buggy_18.sol/approveAndCall@27664",
+      "cohort": "reentrancy",
+      "task_id": "reentrancy_author_contract",
+      "source_file": "buggy_18.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_18.sol",
+      "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec",
+      "metadata": null,
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/reentrancy_author_contract/sources.json",
+      "metadata_manifest_sha256": "05bc49e58840478d13f0974248201fafcd50a06922e28bd1f10a1a7679a65f5b",
+      "function_name": "approveAndCall",
+      "function_span": [
+        27664,
+        27991
+      ],
+      "function_line_range": [
+        692,
+        697
+      ],
+      "function_sha256": "f666993e9393e5ae230ee748337bb2fc85f6e91684fef0a084ba7de2231cf8cb",
+      "function_source": "function approveAndCall(address spender, uint tokens, bytes memory data) public returns(bool success) {\n        allowed[msg.sender][spender] = tokens;\n        emit Approval(msg.sender, spender, tokens);\n        ApproveAndCallFallBack(spender).receiveApproval(msg.sender, tokens, address(this), data);\n        return true;\n    }",
+      "family": "state",
+      "relation": "STATE_DEF_USE",
+      "expected": "fallback",
+      "from_text": null,
+      "to_text": null,
+      "manual_reason": "The bytes memory parameter and external callback exceed the scalar/reference support contract.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/reentrancy_author_contract/B1.gpickle",
+        "sha256": "93f9ff8d2360f59b7967b1c9ca0cb4b275ab66433d45e47824197fb85482d335",
+        "fingerprint": "0fc8df0a73b64e1735eb21edb899d3399fb0cfdc18373093f706496651c86430",
+        "node_attributes_sha256": "bbefa04710c1ba260f7009abf9bb017f4f3fadc18567b1fe1e475c7ed0567991",
+        "nodes": 18312,
+        "edges": 25519
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/reentrancy_author_contract/coverage.json",
+        "sha256": "0d8b6ec8b5b0b7b717b710eba7d200a1566883f06e33c5ccf10a0f4d8c11ffe5",
+        "function_status": "function_fallback"
+      }
+    },
+    {
+      "case_id": "access_control/buggy_18.sol/sendto_txorigin21@2201",
+      "cohort": "access_control",
+      "task_id": "access_control_author_contract",
+      "source_file": "buggy_18.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_18.sol",
+      "source_sha256": "d8505eecd2d5acd06a30006b1e163a08e5bc3a7918c69c86f809c4e9bdeb8ad4",
+      "metadata": null,
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/access_control_author_contract/sources.json",
+      "metadata_manifest_sha256": "c325e8b58ac1378f1bd04d3e38a9c6240fbce6ee672583627a7760d1d3987a82",
+      "function_name": "sendto_txorigin21",
+      "function_span": [
+        2201,
+        2372
+      ],
+      "function_line_range": [
+        71,
+        74
+      ],
+      "function_sha256": "2c8eda5a5ecc0cd010f0bd6c0e7c147a56f42e4f6ba6fb2ccd2e7dd530a719e9",
+      "function_source": "function sendto_txorigin21(address payable receiver, uint amount,address owner_txorigin21) public {\n\trequire (tx.origin == owner_txorigin21);\n\treceiver.transfer(amount);\n}",
+      "family": "control",
+      "relation": "CONTROL_DEPENDENCE",
+      "expected": "present",
+      "from_text": "require (tx.origin == owner_txorigin21);",
+      "to_text": "receiver.transfer(amount);",
+      "manual_reason": "Successful require gates the subsequent transfer; the Oracle judges control structure, not correctness of tx.origin authorization.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/access_control_author_contract/B1.gpickle",
+        "sha256": "7baf95409466bc8d50211ed09a2e0bd667141873d2ef461a3b05c18911d62198",
+        "fingerprint": "0ea95e305e9b7601129920d3558b24e4c634d216e88a32330025b985777ec8f6",
+        "node_attributes_sha256": "67fc5e7dea7e141216cdad54c143b50093c05cf5fd9b051669f9efd6c872d474",
+        "nodes": 13432,
+        "edges": 19691
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/access_control_author_contract/coverage.json",
+        "sha256": "3565fbf4410cb9ea7232ae1cbbd15bd2d11a81210945e3769f9de3f7698c915e",
+        "function_status": "analyzed"
+      }
+    },
+    {
+      "case_id": "access_control/buggy_26.sol/add@117",
+      "cohort": "access_control",
+      "task_id": "access_control_author_contract",
+      "source_file": "buggy_26.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_26.sol",
+      "source_sha256": "129a0b4301ccaaba94cb50772fbfefe574f59ee088373a03380faa25ea0f6d74",
+      "metadata": null,
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/access_control_author_contract/sources.json",
+      "metadata_manifest_sha256": "c325e8b58ac1378f1bd04d3e38a9c6240fbce6ee672583627a7760d1d3987a82",
+      "function_name": "add",
+      "function_span": [
+        117,
+        292
+      ],
+      "function_line_range": [
+        9,
+        13
+      ],
+      "function_sha256": "1c53e75ca121cfbfe265d76acca197c0277a48f5f8df053bf913180cbeec6093",
+      "function_source": "function add(uint256 a, uint256 b) internal pure returns (uint256) {\n        uint256 c = a + b;\n        require(c >= a, \"SafeMath: addition overflow\");\n        return c;\n    }",
+      "family": "scalar",
+      "relation": "DATA_DEF_USE",
+      "expected": "present",
+      "from_text": "uint256 c = a + b;",
+      "to_text": "return c;",
+      "manual_reason": "The local c declaration reaches the explicit return without an intervening write.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/access_control_author_contract/B1.gpickle",
+        "sha256": "7baf95409466bc8d50211ed09a2e0bd667141873d2ef461a3b05c18911d62198",
+        "fingerprint": "0ea95e305e9b7601129920d3558b24e4c634d216e88a32330025b985777ec8f6",
+        "node_attributes_sha256": "67fc5e7dea7e141216cdad54c143b50093c05cf5fd9b051669f9efd6c872d474",
+        "nodes": 13432,
+        "edges": 19691
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/access_control_author_contract/coverage.json",
+        "sha256": "3565fbf4410cb9ea7232ae1cbbd15bd2d11a81210945e3769f9de3f7698c915e",
+        "function_status": "analyzed"
+      }
+    },
+    {
+      "case_id": "access_control/rubixi.sol/DynamicPyramid@656",
+      "cohort": "access_control",
+      "task_id": "access_control_author_contract",
+      "source_file": "rubixi.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/rubixi.sol",
+      "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/rubixi.sol",
+        "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+        "row_file": "dataset/access_control/rubixi.sol",
+        "version": "0.4.15"
+      },
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/access_control_author_contract/sources.json",
+      "metadata_manifest_sha256": "c325e8b58ac1378f1bd04d3e38a9c6240fbce6ee672583627a7760d1d3987a82",
+      "function_name": "DynamicPyramid",
+      "function_span": [
+        656,
+        756
+      ],
+      "function_line_range": [
+        23,
+        25
+      ],
+      "function_sha256": "ae50d881adf46fdca38afa7168bcc54bddc9a90035934623d086d44a86e87d88",
+      "function_source": "function DynamicPyramid() {\n                 creator = msg.sender; //anyone can call this\n         }",
+      "family": "state",
+      "relation": "STATE_DEF_USE",
+      "expected": "absent",
+      "from_text": null,
+      "to_text": null,
+      "manual_reason": "This function only assigns creator; there is no subsequent state read in the function.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/access_control_author_contract/B1.gpickle",
+        "sha256": "7baf95409466bc8d50211ed09a2e0bd667141873d2ef461a3b05c18911d62198",
+        "fingerprint": "0ea95e305e9b7601129920d3558b24e4c634d216e88a32330025b985777ec8f6",
+        "node_attributes_sha256": "67fc5e7dea7e141216cdad54c143b50093c05cf5fd9b051669f9efd6c872d474",
+        "nodes": 13432,
+        "edges": 19691
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/access_control_author_contract/coverage.json",
+        "sha256": "3565fbf4410cb9ea7232ae1cbbd15bd2d11a81210945e3769f9de3f7698c915e",
+        "function_status": "analyzed"
+      }
+    },
+    {
+      "case_id": "access_control/buggy_26.sol/totalSupply@4948",
+      "cohort": "access_control",
+      "task_id": "access_control_author_contract",
+      "source_file": "buggy_26.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_26.sol",
+      "source_sha256": "129a0b4301ccaaba94cb50772fbfefe574f59ee088373a03380faa25ea0f6d74",
+      "metadata": null,
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/access_control_author_contract/sources.json",
+      "metadata_manifest_sha256": "c325e8b58ac1378f1bd04d3e38a9c6240fbce6ee672583627a7760d1d3987a82",
+      "function_name": "totalSupply",
+      "function_span": [
+        4948,
+        5037
+      ],
+      "function_line_range": [
+        136,
+        138
+      ],
+      "function_sha256": "892dda9083cc32328500c6dc040f0c9a11742c350f38b9135b707215544130f4",
+      "function_source": "function totalSupply() public view returns (uint256) {\n        return _totalSupply;\n    }",
+      "family": "state",
+      "relation": "STATE_DEF_USE",
+      "expected": "absent",
+      "from_text": null,
+      "to_text": null,
+      "manual_reason": "This getter reads entry state only; cross-function initialization is outside this relation.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/access_control_author_contract/B1.gpickle",
+        "sha256": "7baf95409466bc8d50211ed09a2e0bd667141873d2ef461a3b05c18911d62198",
+        "fingerprint": "0ea95e305e9b7601129920d3558b24e4c634d216e88a32330025b985777ec8f6",
+        "node_attributes_sha256": "67fc5e7dea7e141216cdad54c143b50093c05cf5fd9b051669f9efd6c872d474",
+        "nodes": 13432,
+        "edges": 19691
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/access_control_author_contract/coverage.json",
+        "sha256": "3565fbf4410cb9ea7232ae1cbbd15bd2d11a81210945e3769f9de3f7698c915e",
+        "function_status": "analyzed"
+      }
+    },
+    {
+      "case_id": "access_control/proxy.sol/forward@255",
+      "cohort": "access_control",
+      "task_id": "access_control_author_contract",
+      "source_file": "proxy.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/proxy.sol",
+      "source_sha256": "3016dcfca8050200ae9e64d9bfced9bfb6cb106268c10d714aa13d386c1d1e11",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/proxy.sol",
+        "source_sha256": "3016dcfca8050200ae9e64d9bfced9bfb6cb106268c10d714aa13d386c1d1e11",
+        "row_file": "dataset/access_control/proxy.sol",
+        "version": "0.4.24"
+      },
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/access_control_author_contract/sources.json",
+      "metadata_manifest_sha256": "c325e8b58ac1378f1bd04d3e38a9c6240fbce6ee672583627a7760d1d3987a82",
+      "function_name": "forward",
+      "function_span": [
+        255,
+        476
+      ],
+      "function_line_range": [
+        17,
+        20
+      ],
+      "function_sha256": "7e348a820d8c81517ed7d5c06aee7ce0296c08e6d6956dec806ef1d0366c6420",
+      "function_source": "function forward(address callee, bytes _data) public {\n    // <yes> <report> ACCESS_CONTROL\n    require(callee.delegatecall(_data)); //Use delegatecall with caution and make sure to never call into untrusted contracts\n  }",
+      "family": "control",
+      "relation": "CONTROL_DEPENDENCE",
+      "expected": "fallback",
+      "from_text": null,
+      "to_text": null,
+      "manual_reason": "bytes input and delegatecall require unsupported reference/call semantics; preserve the function without partial control edges.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/access_control_author_contract/B1.gpickle",
+        "sha256": "7baf95409466bc8d50211ed09a2e0bd667141873d2ef461a3b05c18911d62198",
+        "fingerprint": "0ea95e305e9b7601129920d3558b24e4c634d216e88a32330025b985777ec8f6",
+        "node_attributes_sha256": "67fc5e7dea7e141216cdad54c143b50093c05cf5fd9b051669f9efd6c872d474",
+        "nodes": 13432,
+        "edges": 19691
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/access_control_author_contract/coverage.json",
+        "sha256": "3565fbf4410cb9ea7232ae1cbbd15bd2d11a81210945e3769f9de3f7698c915e",
+        "function_status": "function_fallback"
+      }
+    },
+    {
+      "case_id": "access_control/buggy_26.sol/name@4253",
+      "cohort": "access_control",
+      "task_id": "access_control_author_contract",
+      "source_file": "buggy_26.sol",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_26.sol",
+      "source_sha256": "129a0b4301ccaaba94cb50772fbfefe574f59ee088373a03380faa25ea0f6d74",
+      "metadata": null,
+      "metadata_manifest": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_j_v1/build/access_control_author_contract/sources.json",
+      "metadata_manifest_sha256": "c325e8b58ac1378f1bd04d3e38a9c6240fbce6ee672583627a7760d1d3987a82",
+      "function_name": "name",
+      "function_span": [
+        4253,
+        4334
+      ],
+      "function_line_range": [
+        115,
+        117
+      ],
+      "function_sha256": "d380168b66cd6979d3c5dbef6e3a033b8b42dc2e92689a70bcf638e3f8e2efc4",
+      "function_source": "function name() public view returns (string memory) {\n        return _name;\n    }",
+      "family": "state",
+      "relation": "STATE_DEF_USE",
+      "expected": "fallback",
+      "from_text": null,
+      "to_text": null,
+      "manual_reason": "The string memory return type is outside the supported scalar local/return type domain.",
+      "graph": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/stage_k_v1/prepared/access_control_author_contract/B1.gpickle",
+        "sha256": "7baf95409466bc8d50211ed09a2e0bd667141873d2ef461a3b05c18911d62198",
+        "fingerprint": "0ea95e305e9b7601129920d3558b24e4c634d216e88a32330025b985777ec8f6",
+        "node_attributes_sha256": "67fc5e7dea7e141216cdad54c143b50093c05cf5fd9b051669f9efd6c872d474",
+        "nodes": 13432,
+        "edges": 19691
+      },
+      "historical_control_coverage": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/access_control_author_contract/coverage.json",
+        "sha256": "3565fbf4410cb9ea7232ae1cbbd15bd2d11a81210945e3769f9de3f7698c915e",
+        "function_status": "analyzed"
+      }
+    }
+  ],
+  "selection_basis": "hand-read source semantics; fixed before candidate analysis",
+  "predictions_used": false,
+  "vulnerability_labels_used": false,
+  "compiled": false,
+  "compilation_reason": "No compiler invoked; grammar acceptance is not compiler validation"
+}
