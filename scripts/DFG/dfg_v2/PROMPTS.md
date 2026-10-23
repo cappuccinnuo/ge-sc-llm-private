@@ -389,7 +389,7 @@ class DfgV2Supervision：接口与 scripts/DFG/experiments/paper_runtime.py::Sup
 文件：scripts/DFG/dfg_v2/tests/test_model_input.py、test_model.py
 测试图：用 scripts/DFG/tests/fixtures/minimal.sol，经原生成器 process_graphs.tree_sitter_codeviews.generator.generate_cfg_from_source 建一个小 HCG；token 用 512 维全零向量。
 - G0：materialize 的结果与 reflect_graph(generate_hetero_graph_data(g)) 完全相同（键顺序与张量逐元素）。
-- 手工加两条 DATA_DEF_USE 边（端点同类型、不同类型各一条）：G1 中它们是单向的。再写一条测试固化"原 reflect 路径下同类型那条会变成双向"这一事实。
+- 手工加两条 DATA_DEF_USE 边（端点同类型、不同类型各一条）：G1 中它们是单向的。（原文要求固化"原 reflect 会把同类型 DATA_DEF_USE 变成双向"，但当前 graph_utils.reflect_graph 已对 DATA_DEF_USE 特判为单向；经用户同意，测试改为固化当前真实行为。）
 - G3R：每个正向 canonical 都有对应的 REV_，端点交换；冲突输入报错。
 - 手工加一个 env_source 节点和一条 ENV_FLOW 边：节点监督 mask 不含它；合约池化的行不含它；新节点类型有自己的 adapt_ws。
 - 前向与反向传播可运行；v2 关系的 relation_msg 有非零梯度。
@@ -398,6 +398,8 @@ class DfgV2Supervision：接口与 scripts/DFG/experiments/paper_runtime.py::Sup
 
 ## 验收
 测试全部通过；PROGRESS.md 列出每个测试覆盖的性质。
+
+（状态：2026-10-23 已完成并验收，提交 4ec8806。）
 ```
 
 ### 4.4 Prompt 2：L1 函数内定义—使用的扩展
@@ -437,7 +439,8 @@ class ExtendedSymbolTable(SymbolTable)（父类在 scripts/DFG/symbol_table.py�
 class V2CFGBuilder(StageJCFGBuilder)：
 - 用 ExtendedSymbolTable 和 ExtendedAccessExtractor 替换 table 和 access；modifier 前缀、ClosedScopeJ、StageFCallResolver 以及语句、循环、分支的构造全部沿用。
 - StageJCFGBuilder.__init__ 中直接 new 了 SymbolTable 与 AccessExtractor，因此 V2CFGBuilder 需要按父类的顺序重写 __init__，并在每一处与父类不同的行加注释。
-- StageJCFGBuilder 需要 StageFSourceView。统一使用 scripts/DFG/state/stage_k/profile.py::SupportedSourceView；构造失败的文件，退回旧的 frontend.parse_source + 旧 CFGBuilder（只为保住旧的标量结果），并在审计中标出。
+- StageJCFGBuilder 需要 StageFSourceView。统一使用 scripts/DFG/state/stage_k/profile.py::SupportedSourceView（加载源码清单中绑定的版本元数据，与 Prompt 0 相同）；构造失败的文件，退回旧的 frontend.parse_source + 旧 CFGBuilder（只为保住旧的标量结果），并在审计中标出。
+- V2CFGBuilder 产生的事件要兼容父类内部对 self.access.event(anchor, reads, writes, kind) 和 self.access.entry(...) 的调用（循环条件、入口事件等），weak_writes 默认为空。
 
 ## 4. 到达定义 dfg_v2/l1_rd.py
 - solve_v2(ir, max_iterations)：复制 scripts/DFG/reaching_definitions.py::solve 的算法，文件头注明来源路径与 SHA256。
@@ -448,11 +451,14 @@ class V2CFGBuilder(StageJCFGBuilder)：
 ## 5. 分析与投影 dfg_v2/l1.py
 analyze_file(source, file, metadata, max_iterations) -> (facts, diagnostics, stats)：
 - 先用旧路径（scripts/DFG/ddg_builder.py::DDGBuilder.analyze_source）得到旧结果。
-- 对旧路径回退的函数，用 V2CFGBuilder + solve_v2 重试。成功就合并事实，并记录 route ∈ {legacy, v2_modifier, v2_aggregate, v2_both}。
+- 对旧路径回退的函数，用 V2CFGBuilder + solve_v2 重试。旧路径整个文件回退时（例如多 pragma），该文件全部函数都进入重试。
+- route 记录为旧回退原因与新路径用到的恢复手段的组合，至少区分：legacy（旧路径成功）、v2_modifier、v2_inheritance（Stage J 的 ClosedScopeJ/StageFCallResolver 解决了旧的 inheritance_binding_not_supported）、v2_version（SupportedSourceView 解决了 builtin_not_guaranteed_over_pragma_interval 或多 pragma）、v2_aggregate；多个手段同时用到时记录列表。审计中给出"旧回退原因 → 新 route / 仍回退原因"的交叉表。
 - 旧路径成功的函数不重新计算（保证超集性质）。
+- 事实的 def 或 use 锚点落在 modifier_definition 体内时丢弃并计数（modifier 体的 HCG 节点被所有使用它的函数共享，不能挂函数私有的数据依赖）。按当前 Stage J 规则（前缀不允许局部声明、modifier 不接受参数）该计数应为 0；不为 0 时在 PROGRESS.md 列出样例。
 
 augment_l1(graph, sources, metadata, max_iterations) -> (graph, audit)：
 - 投影与边的物化复用 scripts/DFG/projection.py::Projector 和 DDGBuilder.projected_edges 的规则：同端点合并为一条、不加自环、保留 ddg_fact_indices 属性。
+- 事实用产生它的那个视图投影：旧路径事实用旧 SourceView 构造的 Projector，新路径事实用 SupportedSourceView 构造的 Projector。测试：两种视图都能构造的文件上，两个 Projector 的 by_ast 完全相同。
 - 边属性另加 dfg_v2_version 和 routes（route 列表）。
 
 ## 6. 测试 scripts/DFG/dfg_v2/tests/test_l1.py（使用真实 tree-sitter 解析）
@@ -505,7 +511,8 @@ h) 超集：对 scripts/DFG/tests/fixtures 中旧标量测试用过的所有合�
 ## 7. 真实数据验收（不训练）
 在 R/AC 四个任务上构建 G1 图，输出到 artifacts/dfg_v2/l1_build/：
 - 旧支持函数上的边与 integration 的 scalar 剖面逐边一致，不一致即失败。
-- 报告：函数支持率（前 → 后）、route 分布、新增边数、新的 canonical 关系、回退原因 Top 10 的变化。
+- 报告：函数支持率（前 → 后，分母沿用 Prompt 0 的全部源码函数：3404/3148/2045/1958）、route 分布、"旧回退原因 → 新结果"交叉表、新增边数、新的 canonical 关系、回退原因 Top 10 的变化。Prompt 0 中占比最大的旧回退原因是 modifier（441/370/127/145）、inheritance_binding_not_supported（374/23/363/10）和 string/bytes/var 等非标量类型，报告要说明这几类各恢复了多少。
+- 用 Prompt 1 的 make_model（CPU，不训练）在四个 G1 图上各构造一次节点或合约模型，确认 schema 能被接受，并列出新增的 canonical 关系及其边数。
 完成后更新 PROGRESS.md 并提交。
 ```
 
@@ -786,6 +793,7 @@ initialize_family(models, seed)，models 是 profile → model 的映射：
 - 参考 scripts/DFG/state/stage_f/initialization.py::initialize_pair 推广到多个剖面。注意 initialize_pair 要求两边节点类型集合相同，而 G3 多了 env_source，需要扩展。
 - HGTLayer 的 relation_* 张量第一维按 etypes_dict 排列，不同剖面中同一个 canonical 的下标可能不同；共享参数必须按 canonical 名和节点类型名对齐，不能按下标对齐。
 - 测试：共有参数逐张量相等；重复调用结果相同；G0 不被修改。
+- nodetype 特征（仅可选组使用）：原 _nodetype2onehot 的维度等于该图的节点类型数，G3 多了 env_source，而 DGL 的节点类型按名字排序，env_source 会插在中间，使 G0 与 G3 的 one-hot 维度和位置都不同，adapt_ws 无法共享初值。实验中 nodetype 模式改用固定词表：所有剖面都用"原 16 种类型 + env_source"排序后的同一词表生成 one-hot（make_model 增加 nodetype_vocab 参数，默认 None 时保持原行为，以保留 Prompt 1 中与原构造函数的等价测试）。
 
 ## 4. 运行器 dfg_v2/experiment/run.py
 命令：
