@@ -1810,3 +1810,9 @@ hashes and receipts without training or changing execution guards.
 - 已有四任务nested内层名单，在内存重新生成与冻结内容4/4一致。v2拟使用nested协议；历史paper_kfold仍是CV validation，不重命名历史成绩。G*外层测试选型问题及nested checkpoint绑定适配只是待确认建议，尚未实施；后续改方案先征求用户。
 - 完整证据见 `scripts/DFG/dfg_v2/RECON.md`、`recon.json`、`PROGRESS.md` 和 `scripts/DFG/experiments/artifacts/dfg_v2/recon/`。下一步为Prompt 1，当前尚未启动。
 - **GitHub同步待办**：WSL访问origin时DNS解析失败；Windows Git尝试也未取得有效认证，未成功读取远端引用、未推送。用户随后明确要求“先不推送，等解决后再推送”，本轮停止网络排查，仅保留本地提交。不声称本地与GitHub已一致。之后应先fetch核对远端分支，再正常推送 `dfg-v2` 并检查双方commit SHA相同；不force push，不把该分支合入main或ddg-v1.1-correctness。
+
+### 2026-10-23 DFG v2推送恢复补记（Codex）
+
+用户重新授权尝试后，已通过Windows Git＋WSL既有 `gh auth git-credential` 完成fetch与正常快进push：origin/dfg-v2由29a9b4e更新到e76eec1，包含Prompt 0代码085eb86和三文档补记e76eec1。没有force push，也没有GitHub分支保护/审批策略拒绝。此前障碍是WSL DNS解析失败，以及Windows Git无法直接找到WSL的凭据助手；WSL本身的DNS问题尚未修复。
+
+凭据助手仅以本次Git命令的临时配置调用，不读取/输出token，不改全局Git、DNS或代理设置。原“待推送”条目保留为历史快照，当前P0与三文档更新已经上传；本次状态补记也纳入同一dfg-v2分支，最终以本地HEAD与实时ls-remote SHA相同验收。其他分支和本地实验二进制保持不变。修改与核验AI：Codex。

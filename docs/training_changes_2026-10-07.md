@@ -3218,3 +3218,13 @@ P0只产生本地提交085eb86，尚未push。本轮用户起初授权更新GitH
 P0已按用户批准的SupportedSourceView策略完成前置验收，下一步是Prompt 1骨架/模型输入，当前未启动。v2关系与多层增强、G0–G3R模型接入及新嵌套训练尚未实现，不能用本次旧scalar复跑宣称新方案有收益。原emit/revert投影缺口、复杂语义/编译未验证、作者标签争议及单seed历史实验边界均保留。
 
 后续G*选型与nested checkpoint适配建议尚待用户确认；不把记录建议写成批准实施。本轮对三文档采用追加式更新，旧文与历史实验身份完整保留。设计核验、实施、审阅与记录AI：Codex。
+
+**38.13 2026-10-23 用户重新授权后的GitHub推送完成补记（Codex）**
+
+用户要求再次尝试推送，并询问是否由策略保护造成。本次先重试WSL fetch，仍返回“Could not resolve host: github.com”；因此没有把网络失败解释为GitHub拒绝或本地提交失败。只读确认现有WSL凭据助手位于/usr/bin/gh，改用已有Windows Git联网，并临时配置 `credential.https://github.com.helper=!wsl.exe -d Ubuntu-22.04 -- gh auth git-credential`。第一次使用Linux绝对路径时被Git Bash自动转换成Windows路径而失败；改为在WSL内按已有PATH调用gh后fetch成功。不下载工具、不读取或输出凭据、不更改全局Git或网络设置。
+
+fetch得到真实origin/dfg-v2=29a9b4efdedb2f897dc78c6b332a526ab9994fee。本地HEAD=e76eec189dd89542f7b24520ce84bd7f0c813c54，merge-base祖先检查通过，包含两个待推送提交085eb86与e76eec1。使用正常 `git push origin HEAD:refs/heads/dfg-v2` 成功，远端返回29a9b4e..e76eec1；没有强制推送，没有修改main、ddg-v1.1-correctness或upstream仓库。
+
+这一结果说明此次失败并非分支保护或审批策略拒绝；本地commit只写本地对象，GitHub push还需网络解析及认证，两者不能混同。WSL DNS故障仍存在，本次通过Windows已有网络路径和WSL已有认证完成同步，未声称修好了DNS。
+
+本补记同步追加到HANDOVER与PROGRESS，原38.11的暂停决定作为当时状态保留。Prompt 0及三文档主体已成功上传；本补记提交后继续正常推送，再用实时ls-remote核对最终本地HEAD与远端refs/heads/dfg-v2。只有SHA相同才在交付中声称同步完成；新状态不回写旧P0审计/历史seal，也不上传图、checkpoint和锁文件。整个补记过程没有运行新测试或训练，没有改变任何计算代码。实施与核验AI：Codex。
