@@ -3328,3 +3328,104 @@ CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tes
 本步仅关系输入/模型/监督骨架。L1 aggregate扩展、L2状态锚点、L3环境读取及真实token、新图覆盖、Oracle、nested训练/checkpoint、跨schema初始化、GPU显存验收均未在此步完成。只验固定图forward，继承的旧extend_forward未验收为v2推理入口；后续按Prompt 9单独实现。
 
 未训练、未改作者标签或解决历史困难文件争议，未下载/执行solc。不能据小图测试声称完整Solidity DFG、七类验收或检测增益。默认mean不变。完成Prompt 1本地提交后停止，下一步按用户指令进入Prompt 2。实施、复核与记录AI：Codex。
+
+
+## 40. 2026-10-23：DFG v2 Prompt 1b显式双向主剖面（Codex）
+
+**40.1 授权、版本与执行边界**
+
+用户明确选择“two-way approach”，要求读取PROMPTS.md并执行Prompt 1b。本轮先核对第4.1节共享上下文、第3.1节理由和4.3b实施要求；在分支dfg-v2、开发树ge-sc-llm-ddg-v11上执行pull --ff-only origin dfg-v2，返回Already up to date。实施起点HEAD为0449355cb1b644869a45b747ad76198250783ef1，包含已修订的双向主剖面说明；此前Prompt 1实现提交4ec8806已包含在该分支中。没有checkout/reset、迁移旧批次或修改全局网络/Git设置。
+
+本步只调整剖面声明、模型输入反向生成和必要测试。DDG分析算法、原HGT、tokenizer、监督/池化实现、训练器、标签、固定折及已有图/权重不改；无fit、无optimizer.step。独立产物目录为scripts/DFG/experiments/artifacts/dfg_v2/prompt1b_v1/，原prompt1_v1与recon不覆盖。before.json记录11072个受保护已跟踪文件摘要、允许修改清单、三文档旧长度/SHA及旧未跟踪路径。
+
+**40.2 配置选择、原因和向后边界**
+
+| 配置 | 正向语义关系 | 模型输入中的显式反向 | 用途 |
+| --- | --- | --- | --- |
+| G0 | 无v2关系 | 无v2反向 | 原HCG基线 |
+| G1R | DATA_DEF_USE | REV_DATA_DEF_USE | 双向局部数据依赖 |
+| G2R | G1R正向＋WRITES_STATE、READS_STATE | 对应三种REV | 双向状态读写关联 |
+| G3R | G2R正向＋ENV_FLOW | 对应四种REV | 主方案，含环境上下文传播 |
+| G3 | 四种正向关系 | 无 | 只有正向的方向对照 |
+
+按用户已批准的Prompt 1b移除默认G1/G2名称，不把旧名字静默改成双向别名。历史P1文档及结果的G1/G2含义保持原样；本轮未迁移或重命名任何旧产物。以后若确需局部单向对照，可显式在PROFILES中登记G1={DATA_DEF_USE}等；测试已证明无须修改构造器。主配置选择来自用户本轮授权，不是根据新实验F1择优；本轮没有产生训练F1。
+
+正向NetworkX图仍只存语义事实，人工REV只在模型输入阶段生成。对(s,R,t)生成(t,REV_R,s)，不把反向消息解释为反向定义—使用事实，也不把正反方向混入同一个关系参数。G3/G3R同一NetworkX图得到的DGL输入只差REV canonical；G0及普通CFG/CG关系保留原reflect行为。
+
+**40.3 实际修改文件与核心逻辑**
+
+| 文件（相对scripts/DFG/dfg_v2） | 修改内容与原因 |
+| --- | --- |
+| __init__.py | 默认PROFILES改为G0/G1R/G2R/G3R/G3；新增forward_relations、has_reverse；导入时校验REV必须同时声明对应正向，动态注册读取时也校验。 |
+| model_input.py | materialize按has_reverse生成端点互换的独立canonical，不再硬编码profile等于G3R；build_dgl按是否允许ENV_FLOW判断env_source资格。 |
+| tests/test_model_input.py | 旧G1/G2用例迁移到新主配置；增加各剖面反向数量/方向、同NX对照、原WRITES_STATE反射混淆、临时配置和导入错误测试。 |
+| tests/test_model.py | 按forward_relations组装合成图；覆盖新主配置梯度；扩展双向aux监督/池化不变量；增加临时G1等价及两文件环境上下文干预测试。 |
+
+model.py、supervision.py、hgt_layer.py均未修改。test_hgt_layer.py没有G1/G2引用，原5项测试保留并重新运行，未为满足文件清单而无谓改动。PROMPTS.md正文保持实施起点版本；本轮完成状态以本节和PROGRESS追加记录为准。
+
+原输入拒绝规则继续生效：未知剖面、剖面外正向关系、NetworkX内REV、canonical冲突、错误端点类型/形状、类型内行号错位、跨文件边、错特征/标签/schema均拒绝。原节点、顺序、属性、标签、token、基础边key/属性的fingerprint不变；辅助节点仍不监督、不参加合约mean池化。没有通过删除样本或原边实现双向化。
+
+**40.4 原反射风险与显式REV的验证**
+
+保留已批准的P1事实：当前原reflect_graph已有DATA_DEF_USE特判，仍是单向；普通next_line仍反射。新测试直接证明，将WRITES_STATE交给原反射时：
+
+1. 两端同类型，0→1与1→0被并入同一canonical键。
+2. 两端不同类型，人工反向键与真实反方向WRITES_STATE同名；同时输入真实反向事实时，两类端点被合并，无法按关系名称区分。
+
+v2适配器把这些正向事实隔离于原reflect之外，独立生成REV_WRITES_STATE，验证真实反方向事实保留原端点且不被人工反向覆盖。G1R/G2R/G3R每个新正向canonical都有端点交换、数量相同的独立反向；G3没有REV。测试包含同类型、异类型及同时存在真实相反方向事实的情况。
+
+**40.5 环境上下文：实际前向证据及解释边界**
+
+基于minimal.sol经原构图器生成两个互不连接的文件HCG，按文件各加一个相同键msg.sender、相同512维输入的env_source；两个使用处使用有意不同的合成512维向量。使用原HGT、两层、CPU、eval、seed43；不是新的tokenizer生成器或源码语义提取器。
+
+在每个剖面内部重新创建两模型并逐张量确认初值相同，只扰动second.sol使用语句特征，读取每层真实env隐藏表示。按source_file和实际node_hetero_id定位，避免位置猜测；不直接用G3/G3R不同schema随机初值之差证明传播。
+
+| 两层后最大绝对差 | G3 | G3R |
+| --- | --- | --- |
+| 两文件同键环境节点表示之差 | 0 | 0.22999882698 |
+| 只改second.sol使用处后，其环境表示变化 | 0 | 0.23695075512 |
+| 未改文件minimal.sol的环境表示变化 | 0 | 0 |
+
+节点与合约构造两任务均得到上述结果；第一层也分别验证。说明REV_ENV_FLOW确实将使用上下文送入环境节点，且没有跨文件串联。完整数值保存在environment_context_probe.json。原模型前后向测试还覆盖所有新canonical的非零message参数梯度，但仅针对本测试中有监督路径的手工关系，不把真实数据无训练支持关系要求成必有非零梯度。
+
+对第3.1节理由作必要限定，不擅改方案：
+- “只有出边”等于沿该新关系无法接收使用者信息；不能推导原节点完全收不到其它CFG/CG路径的信息。
+- G3无入边env仍有可学习投影、偏置/残差/norm；输入token固定不等于每层表示就是原始固定token。这里证明的是eval下缺少本图使用上下文，而非完全不能学习。
+- “影响最大”尚无本步实验证据。反向增加信息通路，不保证F1提升；同文件环境中转提供共享键上下文，不证明不同函数处于相同调用者/交易。
+- 状态读写中转关系不等于已完成精确别名、写覆盖或跨函数数据依赖。Prompt 1b没有扩大分析支持范围。
+
+这些是结果表述边界，并未偏离已获同意的双向主方案或新增实验模块。
+
+**40.6 测试命令、数量和警告**
+
+沿用mando Python3.7.12、PyTorch1.8.1、DGL0.6.1和已有grammar，无依赖升级、无CUDA训练。先定向运行输入43项、模型38项，再执行全部v2及既有回归：
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests/test_model_input.py
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests/test_model.py
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+~~~
+
+| 验收集合 | 通过 | 失败/跳过 | 警告 | pytest耗时 |
+| --- | --- | --- | --- | --- |
+| v2全部：输入43＋模型38＋诊断层5 | 86 | 0/0 | 8 | 13.16s |
+| 原DDG＋graph_utils回归 | 223 | 0/0 | 29 | 6.19s |
+
+最终集合共309项，不将定向重复运行重复计数，不代表全仓库所有测试。归档命令另加--junitxml，完整log/XML保存在prompt1b_v1；警告为已有DGL distutils及NetworkX gpickle弃用。G0原模型初值、RNG、train/eval forward和监督等价保持；诊断聚合原5项继续通过。独立只读复核确认干预测试没有不同初值混淆、跨文件错配或只查边存在的问题。
+
+**40.7 保护、产物与三文档记录**
+
+本轮4个代码/测试文件和三份记录为唯一已跟踪修改。11072个受保护文件逐SHA一致，包含PROMPTS、原HGT、v2模型/监督/诊断实现及冻结历史计算文件；旧未跟踪锁/CSV不删除、不stage。三文档按before.json的旧字节长度核对前缀SHA，只有末尾追加。新增产物只在prompt1b_v1，不混入代码提交。
+
+before.json、v2_tests.log/xml、legacy_regression.log/xml、environment_context_probe.json与validation.json组成验收证据。validation记录代码摘要、测试计数、保护核验和执行边界；不改写P0/P1历史收据。按共享上下文第4.1节测试通过后提交本地dfg-v2，提交说明标明Prompt 1b。本轮没有新的push指令，未推送；不把起点已同步解释为新增提交已上传。
+
+**40.8 完成程度与停止点**
+
+已完成Prompt 1b配置和模型输入接入验收。尚未实施Prompt 2的L1扩展、L2状态锚点抽取或L3环境分析与编码；未生成真实v2增强数据集、未开展nested训练/显存预检、新图推理或F1评估。未下载/执行solc，解析生成测试图不等同编译合法性验证。
+
+本步没有发现阻断双向接入的正确性问题；测试通过只证明指定接口与小图路由性质，不宣称完整Solidity DFG或检测增益。保留G3单向对照，后续效果由预定实验验证。完成本地提交后停止于Prompt 1b。实施、复核与记录AI：Codex。

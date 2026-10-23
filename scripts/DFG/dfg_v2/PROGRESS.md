@@ -123,3 +123,50 @@ CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tes
 只打通已有关系→DGL→原HGT→监督/反向。L1/L2/L3语义分析、新env token编码、真实图覆盖、nested训练/checkpoint、GPU显存验收和新图推理未在本步完成或运行。继承的旧extend_forward不是已验收v2推理入口，后续按Prompt 9单独实现；诊断聚合不替换主mean。
 
 未发现本步阻断；不据小图通过声称完整DFG或效果提升。按共享上下文完成Prompt 1本地提交，未push，停止于Prompt 1。实施、复核与记录AI：Codex。
+
+
+## 2026-10-23 · Prompt 1b双向主剖面完成 · Codex
+
+### 选择与版本
+
+用户明确选择双向并要求执行Prompt 1b。本轮基于0449355cb1b644869a45b747ad76198250783ef1，先读共享上下文与最新Prompt，pull --ff-only origin dfg-v2确认Already up to date。没有checkout/reset或覆盖历史批次。P1的G1/G2配置和“仅G3R显式反向”是历史状态；本条更新当前实现，不改旧记录。
+
+默认配置现为G0、G1R、G2R、G3R、G3。主增强链为G1R→G2R→G3R，G3保留完整正向作为方向对照。移除默认G1/G2，不加静默别名；临时注册单向G1后模型无须改代码，两个任务与冻结Stage G模型初值/前向精确一致。
+
+### 文件与规则
+
+- 修改__init__.py：新PROFILES、forward_relations、has_reverse；导入和动态读取均校验REV有正向配对。
+- 修改model_input.py：逐关系按配置生成反向，env_source资格按ENV_FLOW声明。NetworkX只存正向，REV只在模型输入产生。
+- 修改tests/test_model_input.py：43项，覆盖新配置、同图G3/G3R、原WRITES_STATE同/异类型反射混淆、错误配置/输入拒绝、节点与基础边保留。
+- 修改tests/test_model.py：38项，覆盖两任务关系梯度、双向aux排除监督/池化、临时G1、相同初值下环境上下文干预。
+- test_hgt_layer.py没有G1/G2引用，保留原5项并重跑；model.py、supervision.py、hgt_layer.py、原DDG/HGT/tokenizer/训练代码均未修改。
+
+G3/G3R同一NX图只差REV canonical；新反向与正向参数按独立canonical注册。原DATA_DEF_USE单向特判和普通CFG/CG reflect不变。保留所有非法输入、跨文件连接、特征/标签/字典错位拒绝以及G0基线等价测试。
+
+### 验收结果与证据
+
+| 集合 | 通过 | 失败/跳过 | 警告 |
+| --- | --- | --- | --- |
+| v2全套：43输入＋38模型＋5诊断 | 86 | 0/0 | 8 |
+| 原DDG＋graph_utils | 223 | 0/0 | 29 |
+
+合计309项，不重复计算定向运行，不声称全仓库测试全集。警告仅为已有DGL/NetworkX弃用。沿用mando、CPU、2线程和已有grammar：
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+~~~
+
+新增证据目录artifacts/dfg_v2/prompt1b_v1/：before.json、两组log/XML、environment_context_probe.json、validation.json。11072个受保护已跟踪文件SHA不变，三文档只追加并核验旧字节前缀；详细变更和选择见training_changes第40节。
+
+环境测试在各profile内部用同权重仅改second.sol使用向量，并读取真实两层HGT输出。两任务均：G3两文件同键env差为0，使用处扰动不改变env；G3R两层env差0.22999882698，扰动文件env变化0.23695075512，未扰动文件变化0。按文件＋类型内行号定位，验证实际信息接入而非仅检查新增边存在。
+
+### 表述限制与停止点
+
+固定的是输入token；无入边env仍有可学习投影/偏置/残差/norm，不能说每层就是固定原始token。单向只限制相应关系的消息路径，原节点仍可能经CFG/CG收到其它上下文。“ENV_FLOW收益最大”及F1改善均尚未验证；同文件共享环境节点也不是相同交易/调用者证明。以上仅澄清理由，不修改用户已批准方案。
+
+没有fit、optimizer.step、GPU预检、solc、真实v2语义图生成或新成绩；手工特征小图只验路由，不证明分析器完整性。未开始Prompt 2。按共享上下文本地提交Prompt 1b后停止；本轮未push。实施、复核、记录AI：Codex。

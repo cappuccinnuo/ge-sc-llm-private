@@ -13,12 +13,12 @@ import networkx as nx
 import torch
 
 from sco_models import graph_utils as gu
-from . import AUX_NODE_TYPES, FORWARD_RELATIONS, PROFILES, REVERSE_OF
+from . import (AUX_NODE_TYPES, ENV_FLOW, FORWARD_RELATIONS, REVERSE_OF,
+               forward_relations, has_reverse)
 
 
 def _check_profile(profile):
-    if not isinstance(profile, str) or profile not in PROFILES:
-        raise ValueError("Unknown DFG v2 profile: {!r}".format(profile))
+    forward_relations(profile)
 
 
 def edge_data(nx_graph):
@@ -50,7 +50,7 @@ def materialize(data, profile):
     Multiple base canonicals that the original reflector merges retain its exact
     behavior; newly inserted v2 canonicals may never overwrite an existing key.
     """
-    _check_profile(profile)
+    allowed_forward = forward_relations(profile)
     ordinary = {}
     forward = {}
     for canonical, endpoints in data.items():
@@ -59,7 +59,7 @@ def materialize(data, profile):
         if relation.startswith("REV_"):
             raise ValueError("Input REV_* relations are forbidden: " + relation)
         if relation in FORWARD_RELATIONS:
-            if relation not in PROFILES[profile]:
+            if relation not in allowed_forward:
                 raise ValueError("Relation {} is not allowed by {}".format(relation, profile))
             forward[canonical] = endpoints
         else:
@@ -69,7 +69,7 @@ def materialize(data, profile):
         if canonical in result:
             raise ValueError("Canonical collision: {!r}".format(canonical))
         result[canonical] = endpoints
-        if profile == "G3R":
+        if has_reverse(profile, canonical[1]):
             reverse = (canonical[2], REVERSE_OF[canonical[1]], canonical[0])
             if reverse in result:
                 raise ValueError("Canonical collision: {!r}".format(reverse))
@@ -95,8 +95,8 @@ def build_dgl(nx_graph, profile, device="cpu"):
         typ = attrs.get("node_type")
         if not isinstance(typ, str) or not typ:
             raise ValueError("Every node must have a nonempty node_type")
-        if typ in AUX_NODE_TYPES and profile not in ("G3", "G3R"):
-            raise ValueError("Auxiliary nodes are allowed only in G3/G3R")
+        if typ in AUX_NODE_TYPES and ENV_FLOW not in forward_relations(profile):
+            raise ValueError("Auxiliary nodes require a profile allowing ENV_FLOW")
         row = counts.get(typ, 0)
         assigned = attrs.get("node_hetero_id")
         if (not isinstance(assigned, Integral) or isinstance(assigned, bool) or

@@ -14,7 +14,10 @@ from sco_models.model_hgt import HGTVulNodeClassifier, HGTVulGraphClassifier, HG
 from scripts.DFG.experiments.e23_pilot.model import make_model as stage_g_model
 from scripts.DFG.experiments.paper_runtime import Supervision
 from scripts.DFG.graph_audit import fingerprint
-from scripts.DFG.dfg_v2 import DATA_DEF_USE, WRITES_STATE, READS_STATE, ENV_FLOW, ENV_SOURCE, FORWARD_RELATIONS
+from scripts.DFG.dfg_v2 import (
+    DATA_DEF_USE, WRITES_STATE, READS_STATE, ENV_FLOW, ENV_SOURCE,
+    FORWARD_RELATIONS, PROFILES, forward_relations,
+)
 from scripts.DFG.dfg_v2.hgt_layer import HGTLayerNonEmptyMean
 from scripts.DFG.dfg_v2.model import (
     DfgV2NodeClassifier, DfgV2GraphClassifier, make_model, validate_registration,
@@ -41,13 +44,14 @@ def augment(graph, profile, environment_first=False):
             if d["source_file"] == "minimal.sol" and d["node_type"] == "expression_statement"]
     var = next(n for n, d in graph.nodes(data=True)
                if d["source_file"] == "minimal.sol" and d["node_type"] == "new_variable")
-    if profile != "G0":
+    allowed = forward_relations(profile)
+    if DATA_DEF_USE in allowed:
         graph.add_edge(expr[0], expr[1], edge_type=DATA_DEF_USE)
         graph.add_edge(var, expr[0], edge_type=DATA_DEF_USE)
-    if profile in ("G2", "G3", "G3R"):
+    if WRITES_STATE in allowed and READS_STATE in allowed:
         graph.add_edge(expr[0], var, edge_type=WRITES_STATE)
         graph.add_edge(var, expr[1], edge_type=READS_STATE)
-    if profile in ("G3", "G3R"):
+    if ENV_FLOW in allowed:
         env = dict(node_type=ENV_SOURCE, source_file="minimal.sol",
                    token=np.zeros(512, dtype=np.float32), code="msg.sender")
         # No label is supplied for an auxiliary node.
@@ -129,7 +133,7 @@ def test_g0_nodetype_matches_production_constructor(hcg, task, tmp_path):
     assert torch.equal(a, b)
 
 
-@pytest.mark.parametrize("profile", ["G1", "G2", "G3", "G3R"])
+@pytest.mark.parametrize("profile", ["G1R", "G2R", "G3R", "G3"])
 @pytest.mark.parametrize("task", ["node", "contract"])
 def test_v2_registered_relations_used_by_original_forward_and_backward(hcg, profile, task):
     graph = augment(hcg, profile)
@@ -161,11 +165,12 @@ def test_v2_registered_relations_used_by_original_forward_and_backward(hcg, prof
 
 @pytest.mark.parametrize("task", ["node", "contract"])
 @pytest.mark.parametrize("node_feature", ["inside_token", "nodetype"])
-def test_environment_is_unsupervised_and_unpooled_even_when_first(hcg, task, node_feature):
-    graph = augment(hcg, "G3", environment_first=True)
+@pytest.mark.parametrize("profile", ["G3", "G3R"])
+def test_environment_is_unsupervised_and_unpooled_even_when_first(hcg, task, node_feature, profile):
+    graph = augment(hcg, profile, environment_first=True)
     before = fingerprint(graph)
     torch.manual_seed(39)
-    model = make_model(task, graph, "G3", node_feature=node_feature)
+    model = make_model(task, graph, profile, node_feature=node_feature)
     assert model.original_graph_node_ids[0] == "env"
     assert not bool(model.supervised_node_mask[0])
     env_idx = model.ntypes_dict[ENV_SOURCE]
@@ -273,3 +278,96 @@ def test_copy_provenance_matches_frozen_constructor_and_supervision():
     }
     for filename, sha in expected.items():
         assert hashlib.sha256((root / filename).read_bytes()).hexdigest() == sha
+
+
+@pytest.mark.parametrize("task", ["node", "contract"])
+def test_temporary_forward_only_profile_builds_without_model_changes(hcg, task, monkeypatch):
+    assert "G1" not in PROFILES and "G2" not in PROFILES
+    monkeypatch.setitem(PROFILES, "G1", frozenset({DATA_DEF_USE}))
+    graph = augment(hcg, "G1")
+    before = fingerprint(graph)
+    torch.manual_seed(51)
+    current = make_model(task, graph, "G1")
+    torch.manual_seed(51)
+    frozen = stage_g_model(task, graph)
+    assert_state_equal(current, frozen)
+    assert not any(c[1].startswith("REV_") for c in current.etypes_dict)
+    assert sum(current.symmetrical_global_graph.num_edges(c) for c in current.etypes_dict
+               if c[1] == DATA_DEF_USE) == 2
+    current.eval()
+    frozen.eval()
+    with torch.no_grad():
+        expected = frozen() if task == "node" else frozen(["minimal.sol"])[0]
+        actual = current() if task == "node" else current(["minimal.sol"])[0]
+    assert torch.equal(actual, expected)
+    assert fingerprint(graph) == before
+
+
+def _environment_context_fixture(hcg):
+    graph = copy.deepcopy(hcg)
+    used_nodes = {}
+    rng = np.random.RandomState(8)
+    for index, filename in enumerate(("minimal.sol", "second.sol")):
+        statements = [n for n, d in graph.nodes(data=True)
+                      if d["source_file"] == filename and d["node_type"] == "expression_statement"]
+        used = statements[index]
+        used_nodes[filename] = used
+        # Deliberately different synthetic statement vectors test information
+        # routing only; this is not a tokenizer or Solidity semantic test.
+        graph.nodes[used]["token"] = rng.normal(size=512).astype(np.float32)
+        graph.add_node("env:" + filename, node_type=ENV_SOURCE, source_file=filename,
+                       code="msg.sender", token=np.arange(512, dtype=np.float32) % 11)
+        graph.add_edge("env:" + filename, used, edge_type=ENV_FLOW)
+    return graph, used_nodes
+
+
+def _env_states_after_each_layer(model):
+    captured = []
+    handles = [layer.register_forward_hook(
+        lambda module, args, result: captured.append(result[ENV_SOURCE].detach().clone())
+    ) for layer in model.gcs]
+    try:
+        model.eval()
+        with torch.no_grad():
+            if model.dfg_task == "node":
+                model()
+            else:
+                model(["minimal.sol", "second.sol"])
+    finally:
+        for handle in handles:
+            handle.remove()
+    assert len(captured) == 2
+    rows = {d["source_file"]: d["node_hetero_id"] for _, d in model.nx_graph.nodes(data=True)
+            if d["node_type"] == ENV_SOURCE}
+    return [{filename: tensor[row] for filename, row in rows.items()} for tensor in captured]
+
+
+@pytest.mark.parametrize("task", ["node", "contract"])
+@pytest.mark.parametrize("profile", ["G3", "G3R"])
+def test_environment_context_reaches_hub_only_with_explicit_reverse(hcg, task, profile):
+    graph, used_nodes = _environment_context_fixture(hcg)
+    perturbed = copy.deepcopy(graph)
+    perturbed.nodes[used_nodes["second.sol"]]["token"] *= -2.0
+    before, changed_before = fingerprint(graph), fingerprint(perturbed)
+    torch.manual_seed(43)
+    model = make_model(task, graph, profile)
+    torch.manual_seed(43)
+    altered = make_model(task, perturbed, profile)
+    # Compare interventions under identical weights/schema, never G3 vs G3R
+    # random initializations. No optimizer steps or labels cause these changes.
+    assert_state_equal(model, altered)
+    original_states = _env_states_after_each_layer(model)
+    altered_states = _env_states_after_each_layer(altered)
+    for original, changed in zip(original_states, altered_states):
+        if profile == "G3":
+            assert torch.equal(original["minimal.sol"], original["second.sol"])
+            assert torch.equal(original["minimal.sol"], changed["minimal.sol"])
+            assert torch.equal(original["second.sol"], changed["second.sol"])
+        else:
+            assert float((original["minimal.sol"] - original["second.sol"]).abs().max()) > 1e-6
+            assert float((original["second.sol"] - changed["second.sol"]).abs().max()) > 1e-6
+            # Same-file environment hubs must not relay across disconnected files.
+            assert torch.equal(original["minimal.sol"], changed["minimal.sol"])
+    assert fingerprint(graph) == before
+    assert fingerprint(perturbed) == changed_before
+    assert validate_registration(model) and validate_registration(altered)

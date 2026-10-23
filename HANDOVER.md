@@ -1827,3 +1827,13 @@ hashes and receipts without training or changing execution guards.
 - 新测试65通过，原DDG+graph_utils223通过，共288；0失败/跳过，分别8/29条DGL/NetworkX弃用警告。G0两任务初值/RNG/前向与旧模型精确一致，新关系在HGT中有实际message梯度，aux不监督/不池化和图不变量通过。
 - 11060个冻结已跟踪文件SHA不变，三文档仅追加；证据artifacts/dfg_v2/prompt1_v1/，详细training_changes第39节及dfg_v2/PROGRESS.md。
 - 只做CPU小图接口验收，无训练、程序分析、真实v2语义图生成或GPU预检。旧extend_forward未作为v2新图推理验收。Prompt 1本地提交后停止，未push、未开始Prompt 2。实施与记录AI：Codex。
+
+
+## 2026-10-23 DFG v2 Prompt 1b双向主配置完成（Codex）
+
+- 用户已明确采用双向，基于0449355执行最新Prompt 1b；pull --ff-only确认起点已同步。主配置变为G1R→G2R→G3R，G0原HCG、G3正向对照保留，默认G1/G2移除且不静默变义。旧P1记录和产物保持历史含义。
+- 只修改dfg_v2/__init__.py、model_input.py及两个对应测试文件。REV按关系配置生成，不再只识别G3R名称；NetworkX只存正向，模型输入为独立REV canonical。env_source资格由ENV_FLOW决定。原DDG/HGT/tokenizer、模型forward、监督/池化和训练代码不变。
+- 验证原reflect会混合同类型WRITES_STATE方向及异类型反射/真实反向；v2显式REV隔离该问题。当前原DATA_DEF_USE单向特判保留。G0初值/RNG/前向等价、错误输入拒绝、辅助节点不监督/不池化、新关系梯度均通过。
+- 新验收86 passed，旧DDG+graph_utils223 passed，共309；0失败/跳过，8/29条已有弃用警告。两文件环境干预在同一profile同初值下执行：G3环境表示不受使用处改变，G3R实际收到使用上下文，且不跨文件传播。这不证明F1提升。
+- 11072个受保护已跟踪文件SHA一致，三文档仅追加。证据artifacts/dfg_v2/prompt1b_v1/；详细方案选择、实现、数值、命令和限制见training_changes第40节及dfg_v2/PROGRESS.md。固定token不等于隐藏表示不学习，“环境收益最大”尚无效果证据。
+- CPU小图接口验证，无新训练、真实v2语义图、GPU/solc验收；未开始Prompt 2。依共享约定本地提交后停止，本轮未push。修改、复核与记录AI：Codex。
