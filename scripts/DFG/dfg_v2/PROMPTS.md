@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -111,14 +111,21 @@
 | `WRITES_STATE` | 写语句 → 状态变量声明节点 | 语句 → 状态变量的 `new_variable` 节点 | L2 |
 | `READS_STATE` | 状态变量声明节点 → 读语句 | 状态变量的 `new_variable` 节点 → 语句 | L2 |
 | `ENV_FLOW` | 环境源 → 使用语句 | `env_source`（新节点）→ 语句 | L3 |
-| `REV_*`（上面四个关系的反向） | 反向 | 两端交换 | 只在 G3R 中出现 |
+| `REV_*`（上面四个关系的反向） | 反向 | 两端交换 | 与对应正向关系同层，主剖面都包含 |
 
 剖面定义：
 - G0：原作者 HCG 的精确副本
-- G1 = G0 + L1
-- G2 = G1 + L2
-- G3 = G2 + L3
-- G3R = G3 + 四个 `REV_*` 关系
+- G1R = G0 + L1（正向 + 反向）
+- G2R = G1R + L2（正向 + 反向）
+- G3R = G2R + L3（正向 + 反向），主方案
+- G3 = 与 G3R 同一张图，但只有正向关系，用作方向消融
+
+**为什么主剖面用双向（2026-10-23 修订）**：HGT 的消息只沿边的方向传递。
+- 原 MANDO 的 CFG/CG 边全部经 `reflect_graph` 加了反向，只让数据流边单向会造成两类边处理不对称。
+- 只有正向时，定义语句收不到"它的值流向哪里"，写状态变量的语句收不到"这个变量在哪里被读"。
+- 影响最大的是 `env_source`：它只有出边，没有入边，原 `HGTLayer` 给无入边的节点类型零消息，它的表示只来自自己固定的 token 特征。同一个键（如 `msg.sender`）在所有文件里的表示完全相同，起不到"汇总并分发本文件使用情况"的中转作用，只相当于一个静态标记。
+- 反向不能交给原 `reflect_graph`：两端类型相同时，它会把反向边并进同一个关系、共用参数，方向信息丢失；两端类型不同时，反射出的边会与真实存在的反方向边落进同一个 canonical 关系。因此用带类型的显式 `REV_*` 关系，它们有独立参数，并保留方向信息。这与 Allamanis 等人（ICLR 2018）在程序图 GGNN 中为每种边加一种独立反向边类型的做法一致。
+- 双向不保证更好，所以保留 G3（只有正向）作为消融。
 
 ### 3.2 L1（函数内定义—使用的扩展）
 
@@ -151,7 +158,7 @@
 ### 3.5 HGT 接入
 
 - 原有关系仍交给原 `reflect_graph` 处理，所以 G0 与历史完全一致。
-- v2 新增的关系不经过 `reflect_graph`，按正向直接加入；G3R 再显式加入 `REV_*`。
+- v2 新增的关系不经过 `reflect_graph`，按正向直接加入；剖面中包含对应 `REV_*` 时，再显式加入端点互换的反向关系。
 - 原 `HGTLayer` 不修改。聚合方式的诊断用 `dfg_v2` 中的子类实现，只用于诊断组。
 
 ### 3.6 实验设计
@@ -168,14 +175,14 @@
 
 | 批次 | 内容 | 次数 | 预计耗时 | 何时跑 |
 | --- | --- | --- | --- | --- |
-| 主矩阵 | G0、G1、G2、G3、G3R × 30 | 150 | 约 7 小时 | 必跑 |
-| 聚合诊断 | G0M、G3M（非空关系平均）× 30 | 60 | 约 2.8 小时 | 可选，主矩阵后决定 |
+| 主矩阵 | G0、G1R、G2R、G3R、G3 × 30 | 150 | 约 7 小时 | 必跑 |
+| 聚合诊断 | G0M、G3RM（非空关系平均）× 30 | 60 | 约 2.8 小时 | 可选，主矩阵后决定 |
 | 补种子 | G0 与 G* 再跑 seed 2、3：2 × 2 × 30 | 120 | 约 5.5 小时 | 按内层验证结果预先登记的条件触发（见下） |
 
 耗时按 guard_extension_v1 在你本机 RTX 3050 4GiB 上的实测（30 次共 82.7 分钟，约 165 秒/次）估算，该批最大显存占用约 2.9GiB。G3 多了 env_source 节点，Prompt 7 会实测后再更新估计。
 
 **G* 的选择与补种子触发（2026-10-23 按 Prompt 0 审查修订，预先写进 plan）**：
-- G* 只用**内层验证集**选：每个剖面在每折 best checkpoint 上的内层验证 Buggy-F1，先对折取平均，再对四个任务取平均；候选为 G1、G2、G3、G3R；与第二名差距小于 0.1pp 时选关系更少的那个。外层测试分数不参与选择。
+- G* 只用**内层验证集**选：每个剖面在每折 best checkpoint 上的内层验证 Buggy-F1，先对折取平均，再对四个任务取平均；候选为 G1R、G2R、G3R、G3；与第二名差距小于 0.1pp 时选关系更少的那个。外层测试分数不参与选择。
 - 补种子的触发条件同样只看内层验证：G* 与 G0 的四任务平均内层验证 Buggy-F1 差的绝对值 ≥ 0.2pp 就跑，否则不跑。
 - 运行器先执行 select（只读内层验证指标，写出并封存 selection.json），之后 summarize 才输出外层测试结果。全部五个剖面的外层测试结果都报告，G* 的外层分数在报告中标明"选择基于内层验证"。
 
@@ -244,6 +251,7 @@ Python 3.7.12、PyTorch 1.8.1+cu111、DGL 0.6.1、tree_sitter 0.20.4、RTX 3050 
 - 投影只依据 AST 身份（复用 scripts/DFG/projection.py::Projector），不按行号或"最近节点"猜测。投影不到的事实丢弃并计数。
 - 不能可靠分析的部分只丢弃对应事实，不删除样本或文件。
 - 新增模型节点只允许 G3/G3R 剖面中的 env_source。
+- 2026-10-23 修订：主剖面改为双向（G1R/G2R/G3R），原 Prompt 1 已实现的 G1/G2 剖面名由 Prompt 1b 修改。
 
 ## 可复用模块（先读再用）
 - scripts/DFG/frontend.py：SourceView（原源码视图 + 与作者预处理一致的兼容视图）、parse_source、walk、text、span
@@ -265,10 +273,12 @@ DATA_DEF_USE、WRITES_STATE、READS_STATE、ENV_FLOW；
 辅助节点类型：ENV_SOURCE = "env_source"。
 剖面 PROFILES：
   G0  = {}
-  G1  = {DATA_DEF_USE}
-  G2  = G1 ∪ {WRITES_STATE, READS_STATE}
-  G3  = G2 ∪ {ENV_FLOW}（并新增 env_source 节点）
-  G3R = G3 ∪ 四个 REV_ 关系（REV_ 只在模型输入阶段生成，NetworkX 图与 G3 相同）
+  G1R = {DATA_DEF_USE, REV_DATA_DEF_USE}
+  G2R = G1R ∪ {WRITES_STATE, READS_STATE, REV_WRITES_STATE, REV_READS_STATE}
+  G3R = G2R ∪ {ENV_FLOW, REV_ENV_FLOW}（并新增 env_source 节点），主方案
+  G3  = {DATA_DEF_USE, WRITES_STATE, READS_STATE, ENV_FLOW}，只有正向，方向消融
+  REV_ 只在模型输入阶段生成，NetworkX 图里只有正向关系；正向关系集合相同的剖面共用同一张 NetworkX 图（G3 与 G3R）。
+  以后若要做逐层的单向对照，只需在 PROFILES 中加 G1 = {DATA_DEF_USE}、G2 = G1 ∪ {WRITES_STATE, READS_STATE}，代码不需要改。
 
 ## 工作方式
 - 每个 Prompt 只做该 Prompt 的范围。代码事实与本文描述不一致时，以代码为准，在 PROGRESS.md 记录差异和你的处理方式。
@@ -356,7 +366,7 @@ RECON.md 回答以上 7 项，每项给出数字和证据文件路径；recon.js
 - materialize(edge_data, profile)：
   a. edge_type 不属于 v2 关系的部分，交给原 sco_models.graph_utils.reflect_graph 处理（与 G0 历史行为完全一致）。
   b. 该 profile 允许的 v2 正向关系原样加入，不反射。
-  c. profile 为 G3R 时，对每个正向 v2 canonical (s, R, t)，加入 (t, REV_R, s)，端点交换。
+  c. 对每个正向 v2 canonical (s, R, t)，只要 REVERSE_OF[R] 属于该剖面，就加入 (t, REV_R, s)，端点交换。（原文写的是"profile 为 G3R 时"，已由 Prompt 1b 修订。）
   d. 以下情况直接报错：canonical 冲突；输入中出现 REV_* 边；出现不属于该 profile 的 v2 关系。
 - build_dgl(nx_graph, profile, device)：
   - 参考 scripts/DFG/state/stage_f/model_adapter.py::build_dgl。
@@ -371,7 +381,7 @@ RECON.md 回答以上 7 项，每项给出数字和证据文件路径；recon.js
 - 辅助节点的处理：
   - 节点任务：self.supervised_node_mask 只包含不在 AUX_NODE_TYPES 中的节点。
   - 合约任务：重写 self.node_ids_by_filename，排除辅助节点，原 forward 的 mean 池化因此不含它们。
-  - G0/G1/G2 没有辅助节点，结果应与原实现一致。
+  - G0/G1R/G2R 没有辅助节点，结果应与原实现一致。
 - make_model(task, graph_or_path, profile, device, node_feature="inside_token", hidden_size=128, layers=2, heads=8, reducer="mean")
 - reducer="nonempty_mean" 只用于诊断组：
   - 在 dfg_v2/hgt_layer.py 中实现 class HGTLayerNonEmptyMean(HGTLayer)。
@@ -389,8 +399,8 @@ class DfgV2Supervision：接口与 scripts/DFG/experiments/paper_runtime.py::Sup
 文件：scripts/DFG/dfg_v2/tests/test_model_input.py、test_model.py
 测试图：用 scripts/DFG/tests/fixtures/minimal.sol，经原生成器 process_graphs.tree_sitter_codeviews.generator.generate_cfg_from_source 建一个小 HCG；token 用 512 维全零向量。
 - G0：materialize 的结果与 reflect_graph(generate_hetero_graph_data(g)) 完全相同（键顺序与张量逐元素）。
-- 手工加两条 DATA_DEF_USE 边（端点同类型、不同类型各一条）：G1 中它们是单向的。（原文要求固化"原 reflect 会把同类型 DATA_DEF_USE 变成双向"，但当前 graph_utils.reflect_graph 已对 DATA_DEF_USE 特判为单向；经用户同意，测试改为固化当前真实行为。）
-- G3R：每个正向 canonical 都有对应的 REV_，端点交换；冲突输入报错。
+- 手工加两条 DATA_DEF_USE 边（端点同类型、不同类型各一条）：只有正向的剖面中它们是单向的。（原文要求固化"原 reflect 会把同类型 DATA_DEF_USE 变成双向"，但当前 graph_utils.reflect_graph 已对 DATA_DEF_USE 特判为单向；经用户同意，测试改为固化当前真实行为。）
+- 含 REV_ 的剖面：每个正向 canonical 都有对应的 REV_，端点交换；冲突输入报错。
 - 手工加一个 env_source 节点和一条 ENV_FLOW 边：节点监督 mask 不含它；合约池化的行不含它；新节点类型有自己的 adapt_ws。
 - 前向与反向传播可运行；v2 关系的 relation_msg 有非零梯度。
 - 同 seed 下，用 make_model 构造的 G0 模型，与 e23_pilot.model.make_model 构造的模型，state_dict 逐张量相等。
@@ -400,6 +410,46 @@ class DfgV2Supervision：接口与 scripts/DFG/experiments/paper_runtime.py::Sup
 测试全部通过；PROGRESS.md 列出每个测试覆盖的性质。
 
 （状态：2026-10-23 已完成并验收，提交 4ec8806。）
+```
+
+### 4.3b Prompt 1b：主剖面改为双向（修订 Prompt 1）
+
+主剖面统一用"正向 + 显式 REV_ 关系"，只保留 G3 作为只有正向的方向消融。理由见第 3.1 节。改动只在 dfg_v2 内。
+
+```text
+# Prompt 1b：把反向关系从"只在 G3R"改为按剖面声明
+
+前置：Prompt 1 已完成（提交 4ec8806）。先 git pull --ff-only origin dfg-v2，读第 3.1 节"为什么主剖面用双向"。
+
+## 1. dfg_v2/__init__.py
+PROFILES 改为：
+  G0  = {}
+  G1R = {DATA_DEF_USE, REV_DATA_DEF_USE}
+  G2R = G1R ∪ {WRITES_STATE, READS_STATE, REV_WRITES_STATE, REV_READS_STATE}
+  G3R = G2R ∪ {ENV_FLOW, REV_ENV_FLOW}
+  G3  = {DATA_DEF_USE, WRITES_STATE, READS_STATE, ENV_FLOW}
+删除 G1、G2 两个名字。新增：
+- forward_relations(profile)：该剖面中的正向关系（构图用）；
+- has_reverse(profile, relation)：REVERSE_OF[relation] 是否属于该剖面；
+- PROFILES 的校验：任一 REV_X 出现时，对应的正向 X 也必须在同一剖面中，否则导入时报错。
+
+## 2. dfg_v2/model_input.py::materialize
+- 不再判断 profile == "G3R"。对每个正向 v2 canonical (s, R, t)，只要 has_reverse(profile, R)，就加入 (t, REV_R, s)，端点交换。
+- 其余规则不变：原边仍交给原 reflect_graph；v2 关系不进入 reflect_graph；canonical 冲突、输入中出现 REV_*、出现剖面外的正向关系都报错。
+- build_dgl：env_source 只允许出现在正向关系含 ENV_FLOW 的剖面（G3、G3R）。
+
+## 3. 测试（修改 test_model_input.py、test_model.py、test_hgt_layer.py 中用到 G1/G2 的用例）
+- G1R/G2R/G3R：每个正向 v2 canonical 都有端点互换的 REV_ canonical，边数相同；G3 中没有任何 REV_。
+- G3 与 G3R 用同一个 NetworkX 图构造，二者只差 REV_ canonical。
+- 新增：直接用原 sco_models.graph_utils.reflect_graph 处理一条两端同类型的 WRITES_STATE，断言正反两个方向被并进同一个 canonical 键；处理一条两端不同类型的 WRITES_STATE，断言反射出的键与"反方向的真实 WRITES_STATE canonical"同名。这两条测试用来说明为什么 v2 关系不能交给原反射。
+- 新增（eval 模式）：G3 中 env_source 节点在两层后的表示，对同一个键在两个不同文件中完全相同（没有入边）；G3R 中两个文件的使用语句不同，表示也不同。
+- 自定义剖面：在测试里临时注册 G1 = {DATA_DEF_USE}，确认单向剖面无需改代码即可构造模型（证明以后做逐层单向对照可行）。
+- G0 与原模型的等价测试、诊断层测试保持不变并重新通过。
+
+## 4. 验收
+dfg_v2 全部测试与原有回归通过；PROGRESS.md、HANDOVER.md、training_changes 追加"Prompt 1b"记录，写明剖面名变更与原因。
+
+（状态：待执行。）
 ```
 
 ### 4.4 Prompt 2：L1 函数内定义—使用的扩展
@@ -509,10 +559,10 @@ g) 仍然回退的情况：含 assembly、嵌套赋值、两个 modifier 的函�
 h) 超集：对 scripts/DFG/tests/fixtures 中旧标量测试用过的所有合约，L1 的边集合包含旧 DATA_DEF_USE 的边集合，且在旧支持函数上完全相等。
 
 ## 7. 真实数据验收（不训练）
-在 R/AC 四个任务上构建 G1 图，输出到 artifacts/dfg_v2/l1_build/：
+在 R/AC 四个任务上构建只含 L1 的图（供 G1R 使用），输出到 artifacts/dfg_v2/l1_build/：
 - 旧支持函数上的边与 integration 的 scalar 剖面逐边一致，不一致即失败。
 - 报告：函数支持率（前 → 后，分母沿用 Prompt 0 的全部源码函数：3404/3148/2045/1958）、route 分布、"旧回退原因 → 新结果"交叉表、新增边数、新的 canonical 关系、回退原因 Top 10 的变化。Prompt 0 中占比最大的旧回退原因是 modifier（441/370/127/145）、inheritance_binding_not_supported（374/23/363/10）和 string/bytes/var 等非标量类型，报告要说明这几类各恢复了多少。
-- 用 Prompt 1 的 make_model（CPU，不训练）在四个 G1 图上各构造一次节点或合约模型，确认 schema 能被接受，并列出新增的 canonical 关系及其边数。
+- 用 Prompt 1 的 make_model（CPU，不训练，profile="G1R"）在四个 L1 图上各构造一次节点或合约模型，确认 schema 能被接受，并列出新增的 canonical 关系及其边数。
 完成后更新 PROGRESS.md 并提交。
 ```
 
@@ -617,7 +667,7 @@ h) 常量：uint constant C = 1; 读取 C 不产生边。
 i) L1 回退的函数（例如含 assembly）仍然能产生 L2 边。
 
 ## 6. 真实数据验收
-在 R/AC 四个任务上构建 G2（= G1 + L2），输出到 artifacts/dfg_v2/l2_build/：
+在 R/AC 四个任务上构建 L1 + L2 的图（供 G2R 使用），输出到 artifacts/dfg_v2/l2_build/：
 - 不变量全部通过（原节点、原边不变，只多出 v2 关系）。
 - 报告每类：状态变量声明数、锚点命中率、WRITES/READS 边数、跨函数连通对数（同一个 decl 的写语句与读语句位于不同 callable 的对数）、经别名的边的比例、unresolved 原因分布。
 - 固定 seed=0 抽 20 条边，打印两端代码，写进 PROGRESS.md 供人工检查。
@@ -667,11 +717,11 @@ b) require(tx.origin == owner)：产生 tx.origin 节点。
 c) if (now % 15 == 0) 与 if (block.timestamp > deadline)：产生 now 和 block.timestamp 两个节点，分别连到各自的 if。
 d) 参数名为 now（或 grammar 允许的其他遮蔽写法）：被遮蔽，不产生边。
 e) 同一文件中多处 msg.sender 只建一个节点；不同文件各自建一个。
-f) 把 G3 图送入 Prompt 1 的模型：env_source 不在节点监督 mask 中，也不在合约池化的行中；新节点类型有梯度。
+f) 把 L1 + L2 + L3 的图分别以 G3R 和 G3 送入 Prompt 1 的模型：env_source 不在节点监督 mask 中，也不在合约池化的行中；G3R 中 env_source 有入边（REV_ENV_FLOW），其表示在不同文件之间不同；G3 中 env_source 没有入边。新节点类型有梯度。
 g) 原节点的 node_hetero_id、各原节点类型内的行顺序都不变。
 
 ## 5. 真实数据验收
-在 R/AC 四个任务上构建 G3，输出到 artifacts/dfg_v2/l3_build/：
+在 R/AC 四个任务上构建 L1 + L2 + L3 的图（供 G3R 与 G3 共用），输出到 artifacts/dfg_v2/l3_build/：
 - 报告每类每个键的节点数、ENV_FLOW 边数、遮蔽数；
 - 不变量全部通过。
 ```
@@ -684,8 +734,8 @@ g) 原节点的 node_hetero_id、各原节点类型内的行顺序都不变。
 ## 1. dfg_v2/pipeline.py
 build(graph, sources, metadata, profile, token_encoder=None, max_iterations=100000) -> (graph, audit)
 - profile 必须在 PROFILES 中。G0 返回深拷贝，fingerprint 与输入相同。
-- 执行顺序：L1（G1 及以上）→ L2（G2 及以上）→ L3（G3 及以上）。
-- G3R 的 NetworkX 图与 G3 完全相同；反向关系只在 model_input.materialize 中生成。在 audit 中写明 materialize_reverse=True。
+- 按剖面中的正向关系决定要建哪几层：含 DATA_DEF_USE 建 L1，含 WRITES_STATE/READS_STATE 建 L2，含 ENV_FLOW 建 L3；执行顺序 L1 → L2 → L3。
+- NetworkX 图只含正向关系；反向关系只在 model_input.materialize 中生成。正向关系集合相同的剖面（G3 与 G3R）只建一次、共用同一张图。audit 中记录该剖面是否在模型输入阶段加反向。
 - 结束时检查：
   - 原节点、原边不变；
   - v2 关系没有自环、没有重复；
@@ -702,14 +752,15 @@ build(graph, sources, metadata, profile, token_encoder=None, max_iterations=1000
 - 写 scripts/DFG/dfg_v2/EXTENDING.md：新增一类的五个步骤（注册 → Prompt 0 中该类的锚点与 token 核对 → 生成并封存折 → cli build --tasks → run plan --tasks），并写明不需要改任何分析或模型代码。
 
 ## 3. 命令行 dfg_v2/cli.py
-python -B -m scripts.DFG.dfg_v2.cli build --manifest <清单> --tasks reentrancy_contract,reentrancy_node,access_control_contract,access_control_node --profiles G0,G1,G2,G3 --output <新目录>
+python -B -m scripts.DFG.dfg_v2.cli build --manifest <清单> --tasks reentrancy_contract,reentrancy_node,access_control_contract,access_control_node --profiles G0,G1R,G2R,G3R,G3 --output <新目录>
+（G3 与 G3R 只输出一份图，目录按正向关系集合命名并在 build_summary.csv 中注明对应的剖面。）
 （--tasks 默认就是这四个任务。）
 - 输出 <output>/<task_id>/<profile>/hcg.gpickle 与 audit.json；拒绝覆盖已有目录。
 - 写 <output>/build_summary.csv，列：task_id, profile, nodes, edges, 每个 v2 关系的边数, 新 canonical 数, 函数支持率, 锚点命中率, 耗时。
 
 ## 4. 测试
 - G0 的 fingerprint 与输入相同。
-- G1 ⊆ G2 ⊆ G3（按 (src, dst, edge_type) 比较边集合）。
+- L1 图 ⊆ L1+L2 图 ⊆ L1+L2+L3 图（按 (src, dst, edge_type) 比较边集合）。
 - 同一输入重复构建，computation_fingerprint 相同（确定性）。
 - 缺源码的文件保留原图，并在 audit 中列出。
 - 接口通用性：在注册表中临时注册一个虚构类别（复用 R 的 3 个文件改名），走完 注册 → 构图 → make_model 前向，证明代码不依赖类别名；该测试不写入正式注册表。
@@ -813,12 +864,12 @@ initialize_family(models, seed)，models 是 profile → model 的映射：
   - 按 receipt 判断断点续跑。
 
 ## 5. 小规模验收（本步唯一允许的训练）
-R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3，seed 1，完整训练到早停，共 8 次；另加 R 合约 fold0 的 G3R 1 次作为显存探针（这是边数最多的任务与剖面；历史 guard 批次在该任务上已用到 reserved 3068MiB、整卡最低只剩 29MiB）。共 9 次。检查：
+R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3R，seed 1，完整训练到早停，共 8 次。其中 R 合约 fold0 的 G3R 同时是显存探针（边数最多的任务与剖面；历史 guard 批次在该任务上已用到 reserved 3068MiB、整卡最低只剩 29MiB），建议最先运行。检查：
 - 在训练文件中有边的新 canonical 关系，relation_msg 梯度非零；只出现在内层验证或外层测试文件中的 canonical 不要求梯度，单独列出其数量；
 - env_source 不出现在任何指标和预测导出中；
 - best/last 重新加载后 logits 逐位一致；
 - 显存峰值（allocated/reserved）、整卡最低空闲与耗时写入 PROGRESS.md，用于估算 Prompt 8 批次 1。G3R 探针若 OOM 或整卡空闲低于 100MiB，停下报告，不自动降配。
-不要报告这 9 次的 F1 比较结论。
+不要报告这 8 次的 F1 比较结论。
 ```
 
 ### 4.10 Prompt 8：R/AC 实验与统计
@@ -832,30 +883,30 @@ R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3，seed 1，完
 
 ## 批次 1：主矩阵（必跑）
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
-- 剖面：G0、G1、G2、G3、G3R；种子只用 seed 1。
+- 剖面：G0、G1R、G2R、G3R、G3；种子只用 seed 1。
 - 共 30 × 5 = 150 次。按 Prompt 7 实测耗时估算总时长（参考：此前在 RTX 3050 4GiB 上约 165 秒/次，约 7 小时）。
-- 命令示例：run plan --tasks <四个任务> --profiles G0,G1,G2,G3,G3R --seeds 1 --output <新批次>
+- 命令示例：run plan --tasks <四个任务> --profiles G0,G1R,G2R,G3R,G3 --seeds 1 --output <新批次>
 
 ## 批次 2：聚合诊断（可选，批次 1 结束后由用户决定）
-- G0M 与 G3M（分别是 G0 和 G3 配 reducer="nonempty_mean"），seed 1，共 60 次，约 2.8 小时。
-- G3M − G0M 与 G3 − G0 的对比，用来区分"新关系的信息"与"跨关系平均分母变化"两种效应。
+- G0M 与 G3RM（分别是 G0 和 G3R 配 reducer="nonempty_mean"），seed 1，共 60 次，约 2.8 小时。
+- G3RM − G0M 与 G3R − G0 的对比，用来区分"新关系的信息"与"跨关系平均分母变化"两种效应。反向关系会让关系总数翻倍，这个诊断放在双向主方案上做。
 
 ## 批次 3：补种子（由 selection.json 中预先登记的内层验证条件决定是否触发，再经用户确认执行）
 - G0 与 G* 再跑 seed 2、3：2 × 2 × 30 = 120 次，约 5.5 小时。
 - 所有种子用同一套冻结折；同一 (任务, 折, 种子) 下 G0 与 G* 共享初值。
 
 ## 可选组（用户确认后才跑）
-node_feature="nodetype" 下的 G0 与 G3，seed 1，共 60 次。
+node_feature="nodetype" 下的 G0 与 G3R，seed 1，共 60 次。
 
 ## 预先登记的选择规则（写进批次 1 的 plan.json 后不能修改）
-- G* = 四个任务的内层验证 Buggy-F1（每折取 best checkpoint 在内层验证集上的值，每个任务先对折取平均）的算术平均最高的剖面。候选只包括 G1、G2、G3、G3R。如果与第二名的差距小于 0.1pp，选关系更少的那个。外层测试分数不参与选择。
+- G* = 四个任务的内层验证 Buggy-F1（每折取 best checkpoint 在内层验证集上的值，每个任务先对折取平均）的算术平均最高的剖面。候选只包括 G1R、G2R、G3R、G3。如果与第二名的差距小于 0.1pp，选关系更少的那个。外层测试分数不参与选择。
 - 补种子触发：G* 与 G0 的四任务平均内层验证 Buggy-F1 之差的绝对值 ≥ 0.2pp。
 - 由 run select 计算并封存 selection.json 后，才允许 summarize 输出外层测试结果。报告中五个剖面的外层测试结果全部列出，并注明 G* 的选择基于内层验证。
 
 ## 统计 dfg_v2/experiment/stats.py（任务列表由参数传入，不写死类别）
 - 每个 (类, 任务, 剖面)：各折的均值 ± 样本标准差；多种子时先对折取平均，再报告种子间的均值 ± 标准差。best 为主表，last 另列一表。
 - 配对比较：
-  - 每个剖面 vs G0；另加 G3R vs G3；跑了批次 2 时加 G3M vs G0M。
+  - 每个剖面 vs G0；另加 G3R vs G3（方向消融）；跑了批次 2 时加 G3RM vs G0M。
   - 配对单位为折（多种子时为 (折, 种子)）。
   - scipy.stats.wilcoxon 双侧检验，零差值用 zero_method="zsplit" 并在报告中写明；同时报告 Vargha-Delaney A12，以及配对差的均值和 95% bootstrap 置信区间（10000 次，seed 0）。
   - 4 个"剖面 vs G0"的比较做 Holm 校正。
