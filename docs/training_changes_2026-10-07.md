@@ -3228,3 +3228,103 @@ fetch得到真实origin/dfg-v2=29a9b4efdedb2f897dc78c6b332a526ab9994fee。本地
 这一结果说明此次失败并非分支保护或审批策略拒绝；本地commit只写本地对象，GitHub push还需网络解析及认证，两者不能混同。WSL DNS故障仍存在，本次通过Windows已有网络路径和WSL已有认证完成同步，未声称修好了DNS。
 
 本补记同步追加到HANDOVER与PROGRESS，原38.11的暂停决定作为当时状态保留。Prompt 0及三文档主体已成功上传；本补记提交后继续正常推送，再用实时ls-remote核对最终本地HEAD与远端refs/heads/dfg-v2。只有SHA相同才在交付中声称同步完成；新状态不回写旧P0审计/历史seal，也不上传图、checkpoint和锁文件。整个补记过程没有运行新测试或训练，没有改变任何计算代码。实施与核验AI：Codex。
+
+
+## 39. 2026-10-23：DFG v2 Prompt 1骨架、模型输入与构造验收（Codex）
+
+**39.1 授权、版本与冻结边界**
+
+用户要求先读PROMPTS第4.1节共享上下文，再实施Prompt 1；合理替代设计先征求同意并记录。本轮基于修订1f2a3088d3f5299a89e18b4f8e203412cf2faaaa。使用已有Windows Git访问同一WSL工作树，临时复用WSL gh凭据助手，pull --ff-only origin dfg-v2返回Already up to date。没有改DNS/代理/全局Git设置，没有checkout/reset；不把P0旧文档当作当前方案。
+
+新代码仅在scripts/DFG/dfg_v2/，三份记录按允许规则追加。本轮不扩展程序分析，不改原HCG/DDG/HGT/tokenizer、训练参数/损失/早停/划分，无fit。独立验收目录scripts/DFG/experiments/artifacts/dfg_v2/prompt1_v1/，不覆盖P0及旧批次。before.json保存原HEAD、PROMPTS SHA、11060个冻结已跟踪文件摘要、三文档原长度/SHA。
+
+**39.2 方案选择及批准记录**
+
+| 项目 | 文档要求或代码事实 | 实施决定与原因 |
+| --- | --- | --- |
+| 历史reflect测试 | 文档要求原DATA_DEF_USE同类型双向；实际graph_utils已修复为单向，既有测试也覆盖 | 先询问，用户选择“同意按当前代码事实修正测试（推荐）”。新测试验证DDG单向、next_line反射、G3R显式REV。未伪造错误期望或撤销旧修复，PROMPTS正文不改。 |
+| 主聚合 | 原HGT跨canonical mean | 默认原HGTLayer；nonempty_mean仅显式可选诊断，不擅自替换主实验。 |
+| 无入关系辅助节点 | 原HGT已有零消息分支 | 直接复用，不修改冻结核心或添加隐式反向边。 |
+| 辅助标签 | env_source不是源HCG监督样本 | 仅对原节点调用旧标签规则；内部aux行-1哨兵并排除监督，不写回图、不编造clean标签。 |
+| 构造/核验 | Stage G构造顺序适用，旧deep reflector/pool核验不识别v2 | 在v2复制必要构造并标来源SHA，复用native schema检查，另核对v2端点和aux掩码。原forward与池化计算直接继承。 |
+| 后续决策 | 新PROMPTS已确定SupportedSourceView、ProjectionView、G* inner选择、nested checkpoint包装 | 遵循新文档；P0的“待确认”是历史记录。本轮不提前实施P2–P9。 |
+
+唯一需修改文档预期的选择已获得批准。其余为落实既定模型输入/监督要求的接口细节，不改变训练任务或DFG语义范围。
+
+**39.3 新文件与职责**
+
+| 文件（相对scripts/DFG/dfg_v2） | 内容 |
+| --- | --- |
+| __init__.py | VERSION=dfg-v2；DATA_DEF_USE/WRITES_STATE/READS_STATE/ENV_FLOW及四REV；ENV_SOURCE、AUX_NODE_TYPES、PROFILES、REVERSE_OF。 |
+| model_input.py | 直接原generate_hetero_graph_data；原边原reflect，新正向不反射，G3R显式REV；DGL节点数/类型内行号检查。 |
+| model.py | 原节点/合约分类器子类、make_model、v2注册检查；inside_token/nodetype、原构造顺序、aux监督mask和池化排除。 |
+| supervision.py | DfgV2Supervision，保持targets/forward/manifest/mask/full_ids，节点监督排aux，合约文件监督不变。 |
+| hgt_layer.py | 可选诊断HGTLayerNonEmptyMean；继承原构造，复制forward仅改跨关系聚合。 |
+| tests/test_model_input.py | 32项输入/剖面/反向/拒绝条件/原图保留及批准后的历史行为测试。 |
+| tests/test_model.py | 28项构造/前向/RNG/监督/池化/特征/注册/梯度/来源测试。 |
+| tests/test_hgt_layer.py | 5项稠密等价、稀疏/空关系/无入边、反向及local_scope测试。 |
+
+复制和参考来源在代码头记录：
+- experiments/e23_pilot/model.py SHA256：00472900d131fe9cfc20db09ff20d910edde7ebdc82b59b100bdb2282610f141。
+- experiments/paper_runtime.py SHA256：319159bec961320307083f63dea2f4fb5eed3559db401c542bcd0af6eca6218e。
+- sco_models/model_hgt.py SHA256：4e6ff0710b345ffddb555810fadb74225dcf396f90b3cdf928f4f0afc3a12947。
+- Stage F model_adapter.py SHA256：90c49bf72d33a87e53e6edcc85f7438bf0792cac43f7517a6bac8b8ab4737086。
+
+无FunctionType重绑定。来源有摘要测试，复制改动有旧输入数值等价测试，没有新增训练器。
+
+**39.4 图输入、方向与不变量**
+
+G0不允许v2关系；G1允许DATA_DEF_USE；G2增加WRITES_STATE/READS_STATE；G3增加ENV_FLOW和env_source；G3R的NetworkX输入同G3，仅materialize产生REV。普通关系沿用原reflect的键顺序、同类型反射、平行边/自环数值行为；新正向关系不隐式反射，canonical冲突报错而非覆盖。
+
+拒绝未知profile、不允许的v2关系、REV输入、非整型/负数/形状错误端点、非MultiDiGraph、缺失/错误node_hetero_id、G0–G2含aux；模型仍拒绝跨文件边。build_dgl不重编号或修改输入；构造器如Stage G在深拷贝中建立连续模型行号，original_graph_node_ids保存原ID对应，内部行号转换不写回作者图。
+
+fingerprint包括原节点顺序/属性/标签/token以及基础边key/属性。测试保留孤立节点、平行原边及同端点不同关系；num_nodes_dict来自原工具，非按边端点推断。
+
+**39.5 模型构造、特征与监督**
+
+保持Stage G分配顺序：空gcs容器→各类型adapt_ws→HGT层→classify，没有额外随机模块。inside_token调用原get_node_token，要求有限浮点矩阵和一致宽度；nodetype调用原onehot。当前冻结任务使用float32[512]；本轮未重编码tokenizer。
+
+G0两个任务同seed下state_dict逐tensor、构造后RNG、eval及固定RNG的train forward精确一致，监督manifest/mask/targets也一致。nodetype另对原生产分类器比较初值/前向。这不表示不同schema的G0/G3初值相同；跨剖面语义配对初始化仍属Prompt 7。
+
+节点任务不读aux标签。内部全模型行标签中aux为-1，且不进入full_ids、valid/buggy分组或mask。测试特意将无标签env放在第一行，确认原标签行未偏移。合约仍forward(files)，node_ids_by_filename提前排除aux，原mean计算保留。aux经ENV_FLOW可影响监督目标，有独立adapt_ws，但自己不监督、不池化，不向图写伪标签。
+
+注册检查先native_registration(deep=False)核对node/canonical编号、参数bank和edge id；随后核对v2方向端点、类型行表、features/labels、监督mask和池化行。没有错误复用旧Stage G deep reflector来检查v2。
+
+**39.6 nonempty_mean诊断细节**
+
+默认mean使用冻结HGTLayer。显式nonempty_mean继承同一构造，forward保留k/q/v、关系注意力/消息、edge_softmax、skip、dropout、a_linear和norm，只改multi_update_all的stack及逐节点有效入关系平均。
+
+DGL 0.6.1按图canonical edge ID排列stack，掩码同序，不根据参数bank编号猜测。无入边关系不计分母；全零入度时消息零，原a_linear偏置/残差/norm仍保留，所以不是节点最终输出恒零。空关系参数保留，分母不计；无入关系env_source也可前向。
+
+稠密支持下与原mean输出误差≤1e-6，反向一致，两种norm配置覆盖；初值/RNG一致。独立只读探针还验证了异源类型、反序参数ID、空关系与孤立节点类型，未发现stack错位。
+
+**39.7 测试、实际命令与审查**
+
+已有mando Python3.7.12/PyTorch1.8.1/DGL0.6.1，未安装升级依赖。CPU运行，OMP/MKL各2线程，grammar使用既有目录。minimal.sol经原generate_cfg_from_source构图，512维零token、显式测试标签、手工关系仅验接口；不当作新语义分析结果，也不等同Solidity编译验证。
+
+定向输入32、模型28、诊断层5项通过。随后v2完整合跑65 passed、0 failed/skipped、8 warnings、5.44s；旧DDG+graph_utils 223 passed、0 failed/skipped、29 warnings、3.55s。共288项，非全仓库测试全集。警告来自DGL distutils和NetworkX gpickle弃用，未隐藏、未放宽关键断言。
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+~~~
+
+实际归档命令另带--junitxml，保存prompt1_v1/v2_tests.xml、regression_tests.xml及完整合并stdout/stderr日志。G1/G2/G3/G3R的node/contract新增relation_msg均有非零梯度，证明连接可反向，不等于所有真实数据关系都会非零或提升F1。未调用optimizer.step或fit。
+
+独立只读审查另用seed19和小hidden/heads核对G0初值/manifest/前向，并验证node/contract×inside_token/nodetype的无标签env前后向、原图fingerprint保持。未发现本步阻断，未修改冻结文件让测试通过。
+
+**39.8 保护、三文档记录与本地提交**
+
+11060个受保护已跟踪文件逐SHA一致，PROMPTS正文一致；旧分析/HGT/训练及已跟踪产物不变。HANDOVER、training_changes、PROGRESS仅追加，按before.json原字节长度截取前缀核SHA。新增模块SHA、JUnit计数及保护结果保存prompt1_v1/validation.json。旧锁/CSV/P0资产未stage、删除或上传。
+
+测试及保护通过后按共享上下文将8个新代码/测试文件与3份记录作Prompt 1本地提交。本轮不push；不能声称Prompt 1已在GitHub。P0已同步是历史状态，新增提交的远端状态分开说明。
+
+**39.9 限制和停止点**
+
+本步仅关系输入/模型/监督骨架。L1 aggregate扩展、L2状态锚点、L3环境读取及真实token、新图覆盖、Oracle、nested训练/checkpoint、跨schema初始化、GPU显存验收均未在此步完成。只验固定图forward，继承的旧extend_forward未验收为v2推理入口；后续按Prompt 9单独实现。
+
+未训练、未改作者标签或解决历史困难文件争议，未下载/执行solc。不能据小图测试声称完整Solidity DFG、七类验收或检测增益。默认mean不变。完成Prompt 1本地提交后停止，下一步按用户指令进入Prompt 2。实施、复核与记录AI：Codex。

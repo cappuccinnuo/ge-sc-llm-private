@@ -71,3 +71,55 @@ WSL fetch因DNS失败；Windows只读连接尝试因认证助手不可用失败�
 原因核查：WSL仍无法解析github.com；Windows Git可以联网，但需要显式调用WSL现有gh凭据助手。临时Git命令配置解决认证调用后fetch/push成功，没有出现分支保护或审批策略拒绝，不是本地commit未成功。未修改全局设置、DNS、代理，也未输出凭据。
 
 本状态补记同样在dfg-v2提交并推送，最终按本地HEAD与实时远端SHA一致验收；不合并其他分支、不上传未跟踪实验资产。Prompt 1仍未开始，代码/图/标签/训练规则不变。修改与核验AI：Codex。
+
+
+## 2026-10-23 · Prompt 1骨架、模型输入与模型构造完成 · Codex
+
+### 版本、范围与批准记录
+
+本轮从远端修订1f2a3088d3f5299a89e18b4f8e203412cf2faaaa开始，先读第4.1节共享上下文与Prompt 1。通过已有Windows Git操作同一WSL工作树，pull --ff-only origin dfg-v2返回Already up to date；无checkout/reset或全局配置修改。仅做Prompt 1，未开始Prompt 2、程序分析或训练。
+
+唯一方案偏差：文档要求测试“原reflect会把同类型DATA_DEF_USE变双向”，但当前graph_utils已修复为单向。先询问，用户明确选择“同意按当前代码事实修正测试（推荐）”。新测试固定真实行为：DATA_DEF_USE单向、普通next_line反射、G3R另生成显式REV_DATA_DEF_USE。旧代码与PROMPTS正文不改。
+
+新版PROMPTS已确定SupportedSourceView、ProjectionView、G*只按inner val选择、nested checkpoint包装。P0中“待确认建议”是历史状态；本轮遵循新文档，尚未实施这些后续Prompt。
+
+### 文件与核心逻辑
+
+新增8个文件，均位于dfg_v2：
+
+- __init__.py：VERSION、4个正向关系、4个REV关系、env_source及G0–G3R常量。
+- model_input.py：原边沿用原reflect；新正向不反射；G3R仅在模型输入生成REV。拒绝不允许的profile/关系、REV输入、冲突及类型内行号错位。
+- model.py：继承原节点/合约forward；按原顺序创建adapt_ws→gcs→classify；支持inside_token/nodetype；复用旧schema检查，另核对v2端点、特征、标签和辅助掩码。
+- supervision.py：固定图文件监督；节点mask排除env_source，合约池化排除env_source。辅助行内部-1只是忽略哨兵，不写回图或伪造clean标签。
+- hgt_layer.py：可选nonempty_mean诊断，保留原构造及除跨关系聚合外的forward；按DGL canonical ID对齐stack与逐节点入度掩码。默认mean仍用原HGTLayer。
+- tests/test_model_input.py、test_model.py、test_hgt_layer.py：分别32、28、5项测试。
+
+复制来源均有路径与完整SHA；无FunctionType重绑定。原HGT已有无入关系时零消息处理，无须为env_source修改冻结核心。
+
+### 测试覆盖与结果
+
+| 测试组 | 通过 | 覆盖性质 |
+| --- | --- | --- |
+| model_input | 32 | G0键顺序/张量与原reflect及Stage F一致；DDG同/异类型单向；4类REV交换端点；非法输入拒绝；孤立节点、平行边及图fingerprint保持；批准后的历史反射行为 |
+| model | 28 | G0两任务state_dict/RNG/eval与train forward/监督manifest等值；nodetype与原生产构造等值；G1–G3R前后向及新关系梯度；aux不监督/不池化、独立adapt_ws及行对齐；错字典/特征/标签拒绝；诊断显式启用 |
+| hgt_layer | 5 | dense两种norm输出误差≤1e-6及反向一致；初值/RNG一致；稀疏分母、空关系、零入度、无入边环境节点与local_scope |
+| 原DDG+graph_utils | 223 | 既有回归不退化 |
+
+使用minimal.sol经原生成器产生小HCG，512维float32零token，手工边仅验接口。v2合跑65 passed、0 failed/skipped、8条弃用warning；旧回归223 passed、0 failed/skipped、29条既有warning。共288通过，不代表全仓库测试全集。
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+~~~
+
+证据：scripts/DFG/experiments/artifacts/dfg_v2/prompt1_v1/的before.json、两组完整log/JUnit、validation.json。11060个受保护已跟踪文件SHA与PROMPTS不变，三份记录只追加并核验旧字节前缀；详见training_changes第39节。
+
+### 限制与下一步
+
+只打通已有关系→DGL→原HGT→监督/反向。L1/L2/L3语义分析、新env token编码、真实图覆盖、nested训练/checkpoint、GPU显存验收和新图推理未在本步完成或运行。继承的旧extend_forward不是已验收v2推理入口，后续按Prompt 9单独实现；诊断聚合不替换主mean。
+
+未发现本步阻断；不据小图通过声称完整DFG或效果提升。按共享上下文完成Prompt 1本地提交，未push，停止于Prompt 1。实施、复核与记录AI：Codex。

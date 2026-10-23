@@ -1816,3 +1816,14 @@ hashes and receipts without training or changing execution guards.
 用户重新授权尝试后，已通过Windows Git＋WSL既有 `gh auth git-credential` 完成fetch与正常快进push：origin/dfg-v2由29a9b4e更新到e76eec1，包含Prompt 0代码085eb86和三文档补记e76eec1。没有force push，也没有GitHub分支保护/审批策略拒绝。此前障碍是WSL DNS解析失败，以及Windows Git无法直接找到WSL的凭据助手；WSL本身的DNS问题尚未修复。
 
 凭据助手仅以本次Git命令的临时配置调用，不读取/输出token，不改全局Git、DNS或代理设置。原“待推送”条目保留为历史快照，当前P0与三文档更新已经上传；本次状态补记也纳入同一dfg-v2分支，最终以本地HEAD与实时ls-remote SHA相同验收。其他分支和本地实验二进制保持不变。修改与核验AI：Codex。
+
+
+## 2026-10-23 DFG v2 Prompt 1完成（Codex）
+
+- 开发树ge-sc-llm-ddg-v11、分支dfg-v2，从远端修订1f2a308开始，pull --ff-only确认最新。仅新增dfg_v2下5个模块和3个测试文件，旧DDG/HGT/tokenizer/训练脚本/图/标签/折/产物不改。
+- 已打通G0–G3R输入→DGL→原节点/合约分类器。原边保留原reflect，新正向单向；G3R显式REV仅在模型输入生成。env_source有独立类型参数，排除节点监督和合约mean池化；标签哨兵不写回图。
+- 默认mean仍用原HGT；可选nonempty_mean诊断只改变跨关系分母。复制来源有SHA，无FunctionType，主forward直接继承。
+- “旧DATA_DEF_USE被反射”的测试预期已先征求用户并获同意，改为验证真实已修复行为，旧代码与PROMPTS不改。新PROMPTS的SupportedSourceView、G* inner选型及nested checkpoint决策已明确，后续阶段才实施。
+- 新测试65通过，原DDG+graph_utils223通过，共288；0失败/跳过，分别8/29条DGL/NetworkX弃用警告。G0两任务初值/RNG/前向与旧模型精确一致，新关系在HGT中有实际message梯度，aux不监督/不池化和图不变量通过。
+- 11060个冻结已跟踪文件SHA不变，三文档仅追加；证据artifacts/dfg_v2/prompt1_v1/，详细training_changes第39节及dfg_v2/PROGRESS.md。
+- 只做CPU小图接口验收，无训练、程序分析、真实v2语义图生成或GPU预检。旧extend_forward未作为v2新图推理验收。Prompt 1本地提交后停止，未push、未开始Prompt 2。实施与记录AI：Codex。
