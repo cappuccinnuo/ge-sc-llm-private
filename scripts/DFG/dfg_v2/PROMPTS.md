@@ -170,11 +170,14 @@
 | --- | --- | --- | --- | --- |
 | 主矩阵 | G0、G1、G2、G3、G3R × 30 | 150 | 约 7 小时 | 必跑 |
 | 聚合诊断 | G0M、G3M（非空关系平均）× 30 | 60 | 约 2.8 小时 | 可选，主矩阵后决定 |
-| 补种子 | G0 与 G* 再跑 seed 2、3：2 × 2 × 30 | 120 | 约 5.5 小时 | 只有 G* 与 G0 差异明显时才跑 |
+| 补种子 | G0 与 G* 再跑 seed 2、3：2 × 2 × 30 | 120 | 约 5.5 小时 | 按内层验证结果预先登记的条件触发（见下） |
 
 耗时按 guard_extension_v1 在你本机 RTX 3050 4GiB 上的实测（30 次共 82.7 分钟，约 165 秒/次）估算，该批最大显存占用约 2.9GiB。G3 多了 env_source 节点，Prompt 7 会实测后再更新估计。
 
-**G* 的选择规则（预先写进 plan）**：R/AC 两类、合约与节点四个任务的外层测试 Buggy-F1 平均最高的剖面，候选为 G1、G2、G3、G3R；与第二名差距小于 0.1pp 时选关系更少的那个。
+**G* 的选择与补种子触发（2026-10-23 按 Prompt 0 审查修订，预先写进 plan）**：
+- G* 只用**内层验证集**选：每个剖面在每折 best checkpoint 上的内层验证 Buggy-F1，先对折取平均，再对四个任务取平均；候选为 G1、G2、G3、G3R；与第二名差距小于 0.1pp 时选关系更少的那个。外层测试分数不参与选择。
+- 补种子的触发条件同样只看内层验证：G* 与 G0 的四任务平均内层验证 Buggy-F1 差的绝对值 ≥ 0.2pp 就跑，否则不跑。
+- 运行器先执行 select（只读内层验证指标，写出并封存 selection.json），之后 summarize 才输出外层测试结果。全部五个剖面的外层测试结果都报告，G* 的外层分数在报告中标明"选择基于内层验证"。
 
 **统计方法：**
 - 每个（类, 任务, 剖面）报告各折的均值 ± 标准差；补种子之后再报告种子间的均值 ± 标准差。
@@ -273,6 +276,15 @@ DATA_DEF_USE、WRITES_STATE、READS_STATE、ENV_FLOW；
   python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
   全部通过后 git commit，提交信息写明 Prompt 编号。
 - 除 Prompt 7 的小规模验收和用户确认后的 Prompt 8 以外，不启动任何训练。
+- 文档记录：每个 Prompt 结束都向 PROGRESS.md、HANDOVER.md、docs/training_changes_2026-10-07.md 末尾追加记录。这三个文件的追加不受任何 Prompt 中"不修改已有文件"的限制（该限制指代码、数据、产物和历史文档正文）。
+- 新的实验产物目录（scripts/DFG/experiments/artifacts/dfg_v2/...）是允许出现在 git status 里的未跟踪路径；验收时只要求已跟踪文件中除上述三份文档和 dfg_v2/ 外没有改动。
+- 开始每个 Prompt 前先 git pull --ff-only origin dfg-v2，读取最新的 PROMPTS.md；本文档可能在两个 Prompt 之间被修订。
+
+## 已确定的决策（Prompt 0 审查之后）
+- L1（Prompt 2）的新分析路径使用 scripts/DFG/state/stage_k/profile.py::SupportedSourceView 及源码清单中已绑定的版本元数据；旧标量对照仍使用原 SourceView 和原 pipeline。
+- L2/L3（Prompt 3/4）只需要 AST 身份映射，不需要词法作用域模式，使用 Prompt 3 第 0 部分定义的 ProjectionView。
+- G* 只按内层验证选择（见 Prompt 8）。
+- 训练 checkpoint 改用已有的 nested 格式 scripts/DFG/experiments/checkpoint.py，由 dfg_v2 包装 schema 与协议绑定；不使用 paper_checkpoint.py（见 Prompt 7）。
 ```
 
 ### 4.2 Prompt 0：侦察与基线核对（只读）
@@ -316,7 +328,9 @@ DATA_DEF_USE、WRITES_STATE、READS_STATE、ENV_FLOW；
 - 从 artifacts/paper_kfold/guard_extension_v1 与 overall_cv_v1 的记录中，统计每次 fit 的耗时（按任务分组的中位数）和显存峰值，用于后续估算。
 
 ## 验收
-RECON.md 回答以上 7 项，每项给出数字和证据文件路径；recon.json 机器可读；git status 只显示 dfg_v2/ 下的新文件。
+RECON.md 回答以上 7 项，每项给出数字和证据文件路径；recon.json 机器可读；已跟踪文件中除 dfg_v2/ 与三份记录文档外没有改动。
+
+（状态：2026-10-23 已完成并验收，提交 085eb86。）
 ```
 
 ### 4.3 Prompt 1：骨架、模型输入与模型构造
@@ -500,12 +514,21 @@ h) 超集：对 scripts/DFG/tests/fixtures 中旧标量测试用过的所有合�
 ```text
 # Prompt 3：L2 状态变量中转关系 WRITES_STATE / READS_STATE
 
-前置：Prompt 0 中状态变量声明节点的锚点比例 ≥ 90%（否则不要开始）。
+前置：Prompt 0 中状态变量声明节点的锚点比例 ≥ 90%（已满足：SupportedSourceView 口径 R 合约 99.62%、AC 合约 94.58%、两个节点任务 100%）。
+
+## 0. 不依赖作用域模式的投影视图 dfg_v2/projection_view.py
+背景：Prompt 0 中 R 合约 2 个文件、AC 合约 6 个文件仍无法构造 SupportedSourceView，原因全部是"no version evidence for lexical scope"或"interval crosses lexical scope boundary"。这两个原因只影响 legacy/modern 作用域判断（L1 需要），不影响 AST 身份映射。L2 的名字绑定是保守的（见第 2 部分），L3 只识别环境量，都不需要作用域模式。
+- class ProjectionView(SourceView)：复制 scripts/DFG/frontend.py::SourceView.__init__，只去掉 scope_mode 调用并令 self.mode = None；文件头注明来源与原 SHA256。保留"预处理改变可执行 token 即 Unsupported"的检查，以及 raw/compat 映射构造的全部逻辑。
+- 只在 L2/L3 中使用；L1 不得使用（L1 依赖作用域模式）。
+- 测试：
+  - 在 R/AC 四个任务中 SourceView 能构造成功的全部文件上，ProjectionView 的 mapping、compat_ids、compat_nodes 与 SourceView 完全相同；
+  - 用 ProjectionView 重新统计 Prompt 0 第 2 项的锚点比例，写进 PROGRESS.md（预期这 8 个文件的状态声明能锚定，但以实测为准）；
+  - 对 ProjectionView 仍失败的文件列出原因。
 
 目标：用 HCG 中已有的状态变量声明节点（node_type=new_variable，来自 state_variable_declaration）作为中转点，把写某个状态变量的语句和读它的语句连起来，包括跨函数的情况。这一层不做流分析，也不依赖 L1 是否成功分析了该函数。
 
 ## 1. 语句单元 dfg_v2/units.py
-statement_units(view, projector) -> list[Unit]，其中 Unit = (hcg_node_id, ast_node, regions)。
+statement_units(view, projector) -> list[Unit]，其中 Unit = (hcg_node_id, ast_node, regions)。view 为第 0 部分的 ProjectionView。
 - 遍历源码 AST 中所有在 HCG 有对应节点的 AST 节点：raw 节点 → view.mapping → compat key → view.compat_ids → projector.by_ast。
 - regions 是该节点"自己的"表达式区域：
   - expression_statement / variable_declaration_statement / return_statement / emit / revert / throw：整个节点。
@@ -617,8 +640,12 @@ augment_l3(graph, sources, metadata, token_encoder) -> (graph, audit)：
   - node_info_vulnerabilities = None
   - node_source_code_lines = []
   - token = token_encoder(code)（方式与 Prompt 0 确定的完全一致，dtype 与长度相同）
+  - method = ""
+  - type_label = "env_source"
   - dfg_v2_aux = True
-  原节点上还有的其他属性键（Prompt 0 列出了完整集合），新节点必须有同样的键集合，取值用该属性在原图中的空值或默认值，否则下游可能 KeyError。
+  Prompt 0 确认原节点属性键恰好是 code、label、method、node_info_vulnerabilities、node_source_code_lines、node_type、source_file、token、type_label；新节点必须包含这 9 个键（外加 dfg_v2_aux），测试中断言键集合。
+  token 生成方式按 Prompt 0：对 code 文本先用 Salesforce/codet5p-770m tokenizer（离线、固定 revision）以 add_special_tokens=True 完整编码，再用 scripts/encode_tokenizer_features.py::encode_ids 截取前 512 个 ID、右侧补 0、float32[512]。不要改用 truncation=True。
+  view 使用 Prompt 3 第 0 部分的 ProjectionView。
 - 节点 ID：在原图最大整数 ID 之后，按 (source_file, ENV_KEYS 顺序) 依次分配。如果原图的 ID 不是整数，停下报告。
 - 边：env 节点 → Unit 节点，edge_type=ENV_FLOW，每对一条；属性 dfg_v2_version、env_key、evidence_indices。
 - 必须在 L1、L2 之后执行（Projector 会拒绝没有 AST 锚点的节点）。此后任何对 Projector 的调用，都要先过滤掉 env_source 节点。
@@ -737,7 +764,10 @@ task, file, relation, src_line, src_code, dst_line, dst_code, vars, via_alias, �
 - 复用 scripts/DFG/experiments/paper_run.py::fit_variant 的数值规则：优化器、学习率与调度、最大轮数、patience、delta、损失、best = 验证损失严格最小、last 另存。
 - fit_variant 依赖 paper_runtime 的 Supervision、validate_registration、gradient_audit，以及 paper_checkpoint 的 StopMonitor、snapshot_input、save_checkpoint、restore_checkpoint。其中有些按原 reflect_graph 检查 schema，与 v2 不兼容（逐个检查，在 PROGRESS.md 列出哪些需要替换）。不要用 FunctionType 重绑。做法是：
   - 把 fit_variant 复制为 trainer.fit，文件头注明来源路径与 SHA256；
-  - 只替换与 schema 有关的依赖：Supervision → DfgV2Supervision；validate_registration → dfg_v2 版本（按 model_input.materialize 检查 canonical 与端点）。
+  - 只替换与 schema 和协议有关的依赖：Supervision → DfgV2Supervision；validate_registration → dfg_v2 版本（按 model_input.materialize 检查 canonical 与端点）；paper_checkpoint 的 save/restore/validate_binding → dfg_v2/experiment/checkpoint.py。
+  - paper_checkpoint.py 不能用于 nested：它的 validate_binding 写死了 paper_protocol 的 NAME/VERSION/FORWARD_SCOPE/SCORE_ROLE（paper_kfold、CV validation），并调用基于原 reflect_graph 的 paper_runtime.validate_registration。
+  - 改为复用已有的 scripts/DFG/experiments/checkpoint.py（格式 ddg-controlled-v1，monitor 字段即 best_inner_val_loss，save/restore 本身不绑定协议名）：直接 import 其 StopMonitor、save_checkpoint、restore_checkpoint、snapshot_input。
+  - dfg_v2/experiment/checkpoint.py 只做一层包装：保存前和恢复后调用 dfg_v2 的 validate_registration 与 binding 校验；binding 字典包含 dfg_v2 协议名与版本、score_role="outer_test"、selection_role="inner_val"、profile、reducer、canonical 列表、辅助节点类型、输入图与折文件 SHA。
   - 其他依赖原样 import。
 - 等价性测试（必须通过才能继续）：
   - 取 G0 图、R 合约 fold0 与 R 节点 fold0，使用 overall_cv_v1 保存的 HCG 未训练初值和 fit_seed，用新 fit 跑 3 轮；
@@ -762,7 +792,9 @@ initialize_family(models, seed)，models 是 profile → model 的映射：
   python -B -m scripts.DFG.dfg_v2.experiment.run plan --manifest <Prompt 5 清单> --build <Prompt 5 构图目录> --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--reducer mean|nonempty_mean] --output <新批次目录>
   python -u -B -m scripts.DFG.dfg_v2.experiment.run execute --plan <批次>/plan.json [--only task/fold/seed/profile]
   python -B -m scripts.DFG.dfg_v2.experiment.run verify --plan <批次>/plan.json
+  python -B -m scripts.DFG.dfg_v2.experiment.run select --plan <批次>/plan.json
   python -B -m scripts.DFG.dfg_v2.experiment.run summarize --plan <批次>/plan.json
+- select 只读取内层验证指标，按 plan 中登记的规则写出并封存 selection.json（G* 与补种子是否触发）；summarize 在 selection.json 不存在时拒绝运行。
 - plan：写死任务列表、剖面、种子、折、配置、输入 SHA，以及预先登记的选择规则（见 Prompt 8），然后写 plan.seal.json。
 - --tasks 默认是 R/AC 四个任务，--seeds 默认是 1；任务名只从任务注册表读取，不在运行器里写死类别。
 - execute：
@@ -773,12 +805,12 @@ initialize_family(models, seed)，models 是 profile → model 的映射：
   - 按 receipt 判断断点续跑。
 
 ## 5. 小规模验收（本步唯一允许的训练）
-R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3，seed 1，完整训练到早停，共 8 次。检查：
-- 新关系的 relation_msg 梯度非零；
+R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3，seed 1，完整训练到早停，共 8 次；另加 R 合约 fold0 的 G3R 1 次作为显存探针（这是边数最多的任务与剖面；历史 guard 批次在该任务上已用到 reserved 3068MiB、整卡最低只剩 29MiB）。共 9 次。检查：
+- 在训练文件中有边的新 canonical 关系，relation_msg 梯度非零；只出现在内层验证或外层测试文件中的 canonical 不要求梯度，单独列出其数量；
 - env_source 不出现在任何指标和预测导出中；
 - best/last 重新加载后 logits 逐位一致；
-- 显存峰值与耗时写入 PROGRESS.md，用于估算 Prompt 8 批次 1。
-不要报告这 8 次的 F1 比较结论。
+- 显存峰值（allocated/reserved）、整卡最低空闲与耗时写入 PROGRESS.md，用于估算 Prompt 8 批次 1。G3R 探针若 OOM 或整卡空闲低于 100MiB，停下报告，不自动降配。
+不要报告这 9 次的 F1 比较结论。
 ```
 
 ### 4.10 Prompt 8：R/AC 实验与统计
@@ -800,7 +832,7 @@ R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3，seed 1，完
 - G0M 与 G3M（分别是 G0 和 G3 配 reducer="nonempty_mean"），seed 1，共 60 次，约 2.8 小时。
 - G3M − G0M 与 G3 − G0 的对比，用来区分"新关系的信息"与"跨关系平均分母变化"两种效应。
 
-## 批次 3：补种子（只有 G* 与 G0 差异明显时，由用户决定）
+## 批次 3：补种子（由 selection.json 中预先登记的内层验证条件决定是否触发，再经用户确认执行）
 - G0 与 G* 再跑 seed 2、3：2 × 2 × 30 = 120 次，约 5.5 小时。
 - 所有种子用同一套冻结折；同一 (任务, 折, 种子) 下 G0 与 G* 共享初值。
 
@@ -808,7 +840,9 @@ R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3，seed 1，完
 node_feature="nodetype" 下的 G0 与 G3，seed 1，共 60 次。
 
 ## 预先登记的选择规则（写进批次 1 的 plan.json 后不能修改）
-G* = 四个任务的外层测试 Buggy-F1（每个任务先对折取平均；有多个种子时再对种子取平均）的算术平均最高的剖面。候选只包括 G1、G2、G3、G3R。如果与第二名的差距小于 0.1pp，选关系更少的那个。
+- G* = 四个任务的内层验证 Buggy-F1（每折取 best checkpoint 在内层验证集上的值，每个任务先对折取平均）的算术平均最高的剖面。候选只包括 G1、G2、G3、G3R。如果与第二名的差距小于 0.1pp，选关系更少的那个。外层测试分数不参与选择。
+- 补种子触发：G* 与 G0 的四任务平均内层验证 Buggy-F1 之差的绝对值 ≥ 0.2pp。
+- 由 run select 计算并封存 selection.json 后，才允许 summarize 输出外层测试结果。报告中五个剖面的外层测试结果全部列出，并注明 G* 的选择基于内层验证。
 
 ## 统计 dfg_v2/experiment/stats.py（任务列表由参数传入，不写死类别）
 - 每个 (类, 任务, 剖面)：各折的均值 ± 样本标准差；多种子时先对折取平均，再报告种子间的均值 ± 标准差。best 为主表，last 另列一表。
