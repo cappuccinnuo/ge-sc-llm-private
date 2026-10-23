@@ -3051,3 +3051,170 @@ CUDA_VISIBLE_DEVICES= python -B -m pytest -q --import-mode=importlib -p no:cache
 历史mean/best主链HCG/full/full_guard的重入节点96.0580/96.1027/96.1210、AC节点95.9723/95.8887/95.9171；合约分别94.1593和93.5590三者一致，仍是CV validation和HCG节点口径。不能把工程收尾写成稳定增益。保留mean/attention负结果，停止自动扩关系或重复K折。若继续，聚合证据支持提出一个“保留原HCG消息尺度的增量接入”候选，但属于新模型假设，需独立受控验证，不承诺一定改善。
 
 完整报告与产物索引：scripts/DFG/experiments/artifacts/integration_release_v1/IMPLEMENTATION_REPORT.md。设计、实施、审阅与记录AI：Codex。
+
+## 38. 2026-10-23 DFG v2 Prompt 0：侦察验收、方案选择与三文档同步（Codex）
+
+**38.1 本轮授权、版本及工作范围**
+
+用户要求保留已有DDG实现，在新分支按 `scripts/DFG/dfg_v2/PROMPTS.md` 从Prompt 0开始，并要求对文档方案的实质调整先征求同意。工作树 `/home/zhao/SmartContract/ge-sc-llm-ddg-v11` 实际已处于 `dfg-v2`，基础提交 `29a9b4efdedb2f897dc78c6b332a526ab9994fee`；因此没有重复创建分支、checkout、reset或迁移原实现。该基础包含 `ddg-v1.1-correctness@e7bcb84` 的既有工作。P0新增审计已本地提交为 `085eb86e14f9d13f19a4f6ba937fb3fce279e13b`。
+
+本阶段只核实v2依赖的输入、精确投影锚点、token生成规则、训练数值协议、旧标量覆盖及历史资源；不编写新DFG分析算法，不修改HGT/tokenizer/训练逻辑/标签/折文件，不执行新fit，不进入Prompt 1。以下所称“通过”是P0前置验收，不是完整DFG v2已实现或已验证提升。
+
+P0原指令“不修改任何已有文件”与共享上下文“每轮追加HANDOVER/training_changes”冲突，初次执行选择前者，先将记录写入新PROGRESS。用户本轮明确要求补齐三个文档，因此现将P0全过程追加到本节与HANDOVER，并在PROGRESS追加授权变更说明；不回写或删除旧记录以伪装从未发生该选择。
+
+**38.2 文件清单、具体职责与保留对象**
+
+P0提交新增8个文件，均在 `scripts/DFG/dfg_v2/`：
+
+| 文件 | 实际内容与原因 |
+| --- | --- |
+| `recon_graphs.py` | 从冻结manifest取得四任务HCG/源码；统计节点、边、canonical和属性；用AST身份比较原SourceView与SupportedSourceView的锚点与语句覆盖。只审计，不改图。 |
+| `recon_tokens.py` | 离线加载既有tokenizer；每任务seed=0固定抽200节点，重编码并逐元素比较；保存抽样身份、原/新向量、来源与SHA。 |
+| `recon_protocol.py` | 读取实际有效配置、冻结外/内层名单与历史收据；核对种子推导、内层重建、旧90次fit资源。未加载训练权重或启动GPU训练。 |
+| `recon_scalar.py` | 调用未修改的原scalar profile四次，重新生成对照图；同时统计原源码函数总量、文件级门槛排除量和函数回退Top 10。 |
+| `recon_report.py` | 将审计证据及用户批准的视图选择汇总成人可读/机器可读报告；拒绝覆盖已有输出；不是新的分析器。 |
+| `RECON.md` | 回答P0七项要求，记录两种视图口径、结果、限制、未来建议及实际复跑入口。 |
+| `recon.json` | 完整机器汇总，包含原始审计、批准后的验收决策、路径/SHA、token、配置、资源与证据索引。仓库全局忽略*.json，提交时仅显式加入本文件。 |
+| `PROGRESS.md` | P0实施进度与下一步边界；本轮再追加三文档同步和推送暂缓状态。 |
+
+P0产物只新增到 `scripts/DFG/experiments/artifacts/dfg_v2/recon/`，包括graphs、token、protocol、scalar和保护/测试记录；不覆盖旧产物。本轮唯一跟踪文件修改是HANDOVER、本训练变更文档和PROGRESS。PROMPTS.md及RECON/recon.json均保留P0快照；旧schema、标签、源码、token、模型、历史plan/seal及用户原有未跟踪文件不改。文档同步核验收据独立放在该产物目录的 `documentation_update_20261023_v1/`。
+
+**38.3 方案选择记录：采用哪个、为什么、哪些尚未采用**
+
+| 决策点 | 实际选择 | 理由、替代项及状态 |
+| --- | --- | --- |
+| DFG v2源码视图 | 复用已有SupportedSourceView及绑定的版本元数据 | 原SourceView对多pragma保守拒绝，使AC合约锚点低于90%；已有Stage K视图可验证区间/词法作用域并恢复精确匹配。先报告并询问，用户答复“同意复用已有 SupportedSourceView（推荐）”。这是唯一已批准的v2方案调整。 |
+| 未确认版本或视图 | 保留回退 | 不把没证据当确定版本，不下载/运行新solc，不为达到覆盖门槛补造STATE_VAR节点。 |
+| 原scalar对照 | 保持旧SourceView和旧pipeline原样 | 批准v2未来采用新视图，不代表允许改写对照基线；必须保留后续L1逐边比较所需的原行为。 |
+| 模型输入来源 | manifest中冻结的作者HCG/标签＋本地已有token | 不换成本地narrow或其他重建标签；本轮不混用不同图版本，不修改输入。 |
+| 节点任务用图 | 漏洞文件的HCG子集 | 保留本批真实输入；作者另发的CFG-only文件不是本次节点任务输入。 |
+| token重编码 | 先完整编码含特殊token，再由encode_ids截到512并补0 | 必须保留旧长文本EOS截断行为，不能擅自换成tokenizer truncation=True或LLM encoder。 |
+| 折清单 | 复用已有冻结outer及inner名单 | 在内存重建4/4完全一致；不换seed、不重新挑折。历史paper协议与v2拟采用nested协议分别记录。 |
+| G*选型 | 暂不改文档方案，只列建议 | 使用outer-test分数选G*会让测试参与选择；建议内层选择或预固定报告所有剖面、排名仅探索性。需用户同意，尚未实施。 |
+| nested checkpoint绑定 | 暂不实现，只记录接口差异 | 旧paper_checkpoint写死paper_kfold/CV validation等绑定；建议后续在v2旁路适配，而不是直接把历史保存器当nested使用。需用户确认，未修改。 |
+| 不见于train的已注册关系 | 保留既有审计语义，后续按支持量判断梯度 | 不要求仅val出现的关系必须有非零训练监督梯度；本轮没有新增梯度逻辑或模型参数。 |
+| Git与旧文档 | P0先只新建记录；本轮按明确授权追加三个文档 | 保留执行历史，三份当前记录统一说明验收已过、下一步尚未启动、GitHub暂未同步。 |
+
+**38.4 输入图、标签、特征与身份核验**
+
+入口为 `integration/rebuild.py::DEFAULT_MANIFEST`，即 `scripts/DFG/experiments/artifacts/paper_kfold/guard_extension_v1/build/manifest.json`，文件SHA为 `47150dc1d15c078291e6f52fccc6e070b968501b723653a2bca18f8ec8a1ac67`。依据各任务记录取得真实路径，未按相似文件名猜选图。
+
+| 任务 | 文件数 | 节点 | 原边 | 节点类型/边类型 | 原始canonical数 |
+| --- | --- | --- | --- | --- | --- |
+| 重入合约 | 142 | 18312 | 19267 | 16/8 | 89 |
+| 访问控制合约 | 114 | 13432 | 15538 | 16/8 | 86 |
+| 重入节点 | 71 | 12036 | 11710 | 16/8 | 77 |
+| 访问控制节点 | 57 | 7710 | 8840 | 16/8 | 81 |
+
+完整图路径、SHA、source_file到唯一源码路径/SHA、逐节点类型与边/canonical计数在 `RECON.md`第1项及 `recon.json → graphs.tasks`。四任务无缺源码，节点ID均为int。原属性键为code、label、method、node_info_vulnerabilities、node_source_code_lines、node_type、source_file、token、type_label。
+
+两个合约任务文件/节点/边数量与仓库PAPER常量记录的论文表1一致；节点任务是漏洞文件HCG子集，不直接与完整语料表1比较。数量一致不证明作者标注语义完全正确。本批保留作者标签，不重新处理此前buggy_18等标签争议，也不把节点分数改称去重源码行分数。
+
+其余5类仅确认作者HCG、CFG与源码路径存在，未加载、分析或训练；这些路径在RECON“以后扩展”小节。
+
+**38.5 状态变量锚点的失败、授权及最终验收**
+
+投影链为原源码AST字节身份→view.mapping→compat_ids→Projector.by_ast，不按行号邻近猜测。所有验证成功的状态声明目标均为原HCG的new_variable。
+
+| 任务 | 原SourceView锚点/总声明 | 原比例 | 用户批准的SupportedSourceView | 批准比例 | 批准口径验证文件 | ordinary_nodes_checked |
+| --- | --- | --- | --- | --- | --- | --- |
+| 重入合约 | 2236/2369 | 94.39% | 2360/2369 | 99.62% | 140/142 | 16992 |
+| 访问控制合约 | 804/922 | 87.20% | 872/922 | 94.58% | 108/114 | 12476 |
+| 重入节点 | 1682/1788 | 94.07% | 1788/1788 | 100% | 71/71 | 10977 |
+| 访问控制节点 | 376/403 | 93.30% | 403/403 | 100% | 57/57 | 7495 |
+
+原AC合约87.20%低于P0的90%门槛，已真实暂停并征求用户，而不是直接放宽阈值。其6个多pragma文件在已有SupportedSourceView下恢复68个状态声明；这68个均存在原图精确锚点。用户批准后用支持视图验收，阈值仍90%。原 `graphs/summary.json` 的 `anchor_gate_passed/all_anchor_gates_passed` 保持原SourceView口径，AC仍false；`recon.json → source_view_decision.accepted_gates`另记批准后四任务true。
+
+批准口径仍有R合约9个、AC合约50个声明未验证，原因是缺版本证据或区间跨词法作用域边界；保留在分母和回退记录中。这不是已证实“原图缺少状态节点”。四任务无解析失败；已验证文件中未发现状态声明缺少new_variable锚点。逐文件原因、声明原文、原始行与字节范围见逐文件graphs JSON。
+
+上述选择仅确定v2后续应复用哪个前端，本轮没有修改旧frontend或原scalar分析器。
+
+**38.6 语句覆盖与token实施细节**
+
+语句覆盖逐AST身份核验：expression、variable declaration、if、for/while、return、emit/revert、modifier/constructor上下文及for-update。emit/revert在已验证文件中没有独立HCG锚点；不新增节点来隐藏损失。modifier/constructor统计是普通语句的重叠子集，不能与普通分类相加当总量。do_while_statement/throw_statement未在本次AST类型枚举中观察到，不据此推断所有源码文本都没有其他语法表示；老式同名函数构造器也未自动猜测为constructor_definition。
+
+legacy `var acc = Acc[msg.sender];` 的当前grammar结构已打印：variable_declaration_statement下含无字段variable_declaration，内部type:type_name→primitive_type→var、name:identifier acc；右侧value:array_access含base:Acc与index:member_expression(msg.sender)。证据 `graphs/legacy_var_ast.json`。仅验证解析，没有solc编译验证。
+
+特征核验实际读取既有encode/review/verify代码及来源记录，使用 `Salesforce/codet5p-770m` 的 `RobertaTokenizerFast`，revision `3f7cc6e80aee6612f41253b5ee28f09f86faa35f`，本地缓存离线加载。输入为node.code原样文本，保留DOT引号/转义，未去引号或归一化。先add_special_tokens=True得到ID，再encode_ids取前512、右补pad=0，输出float32[512]；bos/eos/unk=1/2/3，不加载encoder权重。截断可去掉末尾EOS，因此不能直接换其他截断API并假定等价。
+
+每任务独立seed=0随机抽200节点，总800/800逐元素完全一致；四任务抽样中截断长节点分别3/2/1/2。全图dtype/shape已枚举，但本次并未把全图所有向量全部重新编码。一次839-token警告发生在手动截断之前，最终向量一致；不是encoder运行失败。原始下载融合图没有token，这些特征来自此前本地补充，不应称为作者随图发布的LLM语义向量。
+
+证据位于token/selection.json及seal、每任务nodes.json/vectors.npz/mismatches.json、summary与execution_receipt；输入196路径前后核验一致。
+
+**38.7 冻结协议与实际训练数值的记录**
+
+| 任务粒度 | Adam初始LR | OneCycle max_lr | div_factor | weight_decay | 原外层K |
+| --- | --- | --- | --- | --- | --- |
+| 合约 | 0.0005 | 0.01 | 20 | 0.000005 | 5 |
+| 节点 | 0.0002 | 0.005 | 25 | 0 | 10 |
+
+共同数值：hidden128、2层、8头、dropout0.2；Adam默认betas=(0.9,0.999)、eps=1e-8、amsgrad=False。OneCycle余弦50 step、final_div_factor=1、cycle_momentum=True、base/max momentum0.85/0.95，scheduler创建后beta1=0.95。每轮一次train监督optimizer step，再scheduler step，再post-update eval。最大50轮、patience7、delta0.001、无类别加权cross entropy。best严格选最低验证loss，delta用于停止计数，不把best保存也改成必须改善0.001；last分开。
+
+历史实际为paper_kfold，同一CV val选best和评分，保留CV validation名称。v2文档拟用nested：inner val早停/选best、outer test评分；P0只核对资源和接口，不执行这套新训练。
+
+已有冻结outer和inner文件都存在，4/4在内存用原make_fold_document重建完全一致，没有重新生成落盘或修改旧折。fold0的inner_train/inner_val/outer_test数量：R合约90/23/29、AC合约72/19/23、R节点50/13/8、AC节点40/11/6。paper主train是inner_train与inner_val并集，其val即上述outer列表；这不允许混称两套协议结果。
+
+seed规则：split=1；inner=seed×1009+fold+1；constructor=10000+fold+合约任务1000；pair=constructor+77；fit=constructor+1000000。每任务标签、paper/nested清单、源码manifest和SHA在 `protocol/protocol_resources.json`；合约标签文件为contract_name/targets列表，节点标签在冻结图属性中。90份历史实际fit配置与任务manifest逐项一致。本轮未修改任一配置。
+
+**38.8 原标量覆盖基线与输出图**
+
+保持原 `integration.pipeline.build_graph(profile="scalar")`，从同一原HCG和源码重跑四任务。源码函数总量包含带body的FUNCTION_TYPES；因文件级门槛不能进入旧分析的函数仍计入总分母，避免高估覆盖。
+
+| 任务 | 原源码总函数 | 可进入旧文件分析 | 支持函数 | 被文件门槛排除 | DATA_DEF_USE新增边 |
+| --- | --- | --- | --- | --- | --- |
+| 重入合约 | 3404 | 3166 | 2035 | 238 | 3561 |
+| 访问控制合约 | 3148 | 2745 | 2128 | 403 | 4032 |
+| 重入节点 | 2045 | 1917 | 1210 | 128 | 1894 |
+| 访问控制节点 | 1958 | 1832 | 1550 | 126 | 2836 |
+
+原合约覆盖与方案文档2035/3404、2128/3148一致。主要回退包括modifier、继承、非标量string/bytes/var等及不确定调用版本；每任务Top 10按原reason字符串聚合，完整计数见scalar/summary.json和RECON第6项，未为了降低回退数量改规则。
+
+每任务输出 `scalar/<task>/hcg.gpickle`、audit.json、inputs.json、manifest.json；图节点与属性、原CFG/CG边由原assert_preserved检查，输入图/源码在处理前后核SHA。四任务projection_fallback均0；新增边是新对照产物，不覆盖当前训练输入。总函数=可分析文件函数+文件门槛排除，支持函数+函数回退数=可分析文件函数，两项守恒均通过。
+
+**38.9 历史资源估计与限制**
+
+只读统计overall_cv_v1实际60次fit与guard_extension_v1实际30次新fit，不把历史引用重复计数。按任务R合约/AC合约/R节点/AC节点列出单fit耗时中位数：
+
+| 历史变体 | R合约(s) | AC合约(s) | R节点(s) | AC节点(s) |
+| --- | --- | --- | --- | --- |
+| HCG | 184.68 | 128.83 | 186.22 | 105.76 |
+| HCG_DDG | 204.89 | 140.51 | 189.72 | 98.10 |
+| HCG_DDG_GUARD | 179.75 | 133.74 | 209.44 | 117.42 |
+
+overall 60fit累计9466.39s（157.77min），最大allocated2709.92MiB/reserved2878MiB；guard 30fit累计4959.45s（82.66min），最大allocated2894.40MiB/reserved3068MiB。最低整卡空闲分别19/29MiB。历史耗时有不同停止轮数和设备状态，不是严格公平速度基准，更不能保证v2新增env_source后仍满足4GB显存。原“150fit约7小时”仅粗估，需后续Prompt 7实际预检；P0没有启动这些训练。
+
+**38.10 验收命令、测试和保护边界**
+
+P0原实际环境为WSL/mando Python3.7.12，TREE_SITTER_LIB_DIR指向原项目 `build/linux-x86_64`，PYTHONDONTWRITEBYTECODE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2。实际复跑入口如下；每次必须使用全新输出目录，不能覆盖本次证据：
+
+```bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+# 下列路径只是独立复跑示例；本次原产物位于 artifacts/dfg_v2/recon/
+python -B -m scripts.DFG.dfg_v2.recon_graphs --output /tmp/dfg-v2-p0-repeat/graphs
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python -B -m scripts.DFG.dfg_v2.recon_tokens \
+  --output /tmp/dfg-v2-p0-repeat/token --sample-size 200 --seed 0
+python -B -m scripts.DFG.dfg_v2.recon_protocol --output /tmp/dfg-v2-p0-repeat/protocol
+python -B -m scripts.DFG.dfg_v2.recon_scalar --output /tmp/dfg-v2-p0-repeat/scalar
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+```
+
+P0原回归结果223 passed、0 failed、29 warnings、4.03s；警告来自旧DGL distutils和NetworkX read_gpickle弃用。并非全仓库全部测试。5个新审计/报告脚本Python3.7语法检查与已有目录拒绝覆盖通过；28个汇总证据摘要、图计数和函数分母守恒、4份scalar图SHA及报告UTF-8检查通过。单独记录在regression.log与validation.json。没有新增分析算法，因此P0没有声称增加新的DFG语义单元测试。
+
+P0修改前后11063个受保护已跟踪文件SHA一致，PROMPTS不变，原15个未跟踪路径保留。该数字是P0快照的结论；本轮授权后HANDOVER与训练文档当然会变化，不篡改原protection.json。此次单独验证三文档旧字节前缀保留、修改范围仅这三份文档、内容与recon.json对应，无需为纯文档追加重新执行模型/训练回归。
+
+**38.11 GitHub同步过程、暂停决定及后续操作**
+
+P0只产生本地提交085eb86，尚未push。本轮用户起初授权更新GitHub并要求一致，故先尝试WSL `git fetch origin dfg-v2`，失败为“Could not resolve host: github.com”。Windows DNS可解析，使用现有Windows Git和当前真实worktree Git元数据进行只读ls-remote；未取得有效凭据助手，失败为gh不可用/终端交互被禁用，没有成功得到远端引用。没有下载工具、改变DNS/代理、读取或打印token、重置/合并分支，也没有执行push。
+
+随后用户明确指示“如果wsl无法解析就先不推送，等我解决了再推送，你先完成其他的”。从此停止网络排查和所有推送尝试；本轮只完成三个文档及本地提交。**当前不能声称本地与GitHub已经一致，也不能将缓存origin/dfg-v2当作实时远端证明。**
+
+后续用户解决网络并要求继续时：先fetch origin dfg-v2，核对远端更新及祖先关系；若远端新增提交则先审查并正常整合，不force push。确认后推送当前dfg-v2，再通过ls-remote/fetch核验远端refs/heads/dfg-v2与本地HEAD完全相同，并检查三个文档位于同一提交中。不要推到upstream/MANDO-Project，不自动合并main或ddg-v1.1-correctness。原锁文件、旧CSV、图/权重等本地资产不混入这次文档提交；代码/汇总同步不等于完整实验二进制上云。
+
+**38.12 当前结论与下一步**
+
+P0已按用户批准的SupportedSourceView策略完成前置验收，下一步是Prompt 1骨架/模型输入，当前未启动。v2关系与多层增强、G0–G3R模型接入及新嵌套训练尚未实现，不能用本次旧scalar复跑宣称新方案有收益。原emit/revert投影缺口、复杂语义/编译未验证、作者标签争议及单seed历史实验边界均保留。
+
+后续G*选型与nested checkpoint适配建议尚待用户确认；不把记录建议写成批准实施。本轮对三文档采用追加式更新，旧文与历史实验身份完整保留。设计核验、实施、审阅与记录AI：Codex。

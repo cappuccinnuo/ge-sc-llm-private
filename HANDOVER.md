@@ -1798,3 +1798,15 @@ python -B -m scripts.DFG.integration.archive --batch scripts/DFG/experiments/art
 ~~~
 Choose fresh output filenames. These verify recorded source/input/checkpoint
 hashes and receipts without training or changing execution guards.
+
+## 2026-10-23 DFG v2 Prompt 0完成及三文档补记（Codex）
+
+- 当前开发树为 `ge-sc-llm-ddg-v11`，分支 `dfg-v2`。Prompt 0审计已提交为 `085eb86e14f9d13f19a4f6ba937fb3fce279e13b`；基础为 `29a9b4e`，保留既有DDG实现与实验。该提交只增加侦察脚本及报告，没有实现v2新算法、没有开始Prompt 1，也没有新增训练。
+- 本轮按用户明确要求，补齐本交接文档、`docs/training_changes_2026-10-07.md`第38节（详细决策/实施/验证）及 `scripts/DFG/dfg_v2/PROGRESS.md`。旧正文保留；上一条“Prompt 0不修改旧文档”是当时的执行边界，本次授权后已完成追加，不再表示当前旧文档尚未更新。修改、审阅与记录AI：Codex。
+- 唯一已批准的方案选择：v2后续统一复用已有 `state/stage_k/profile.py::SupportedSourceView` 与源码SHA绑定的既有版本元数据；未知版本继续回退，不新建状态节点、不猜编译器版本。原SourceView下AC合约锚点804/922=87.20%曾触发暂停；经用户批准后为872/922=94.58%。另外R合约2360/2369=99.62%，R节点1788/1788、AC节点403/403均100%。保留原视图失败证据，不改原始审计JSON为通过。
+- 输入是作者CFG+CG结构/标签加本地已冻结的CodeT5p-770m tokenizer ID；节点任务是漏洞文件的HCG子集，不是下载的另一套CFG-only图。四任务文件/节点/边为R合约142/18312/19267、AC合约114/13432/15538、R节点71/12036/11710、AC节点57/7710/8840。token抽样800/800逐元素相同，float32[512]，未加载LLM encoder。
+- 原标量对照仍调用未修改的 `integration.pipeline.build_graph(profile="scalar")`，没有套用新视图来改变对照。四任务支持函数/源码总函数为2035/3404、2128/3148、1210/2045、1550/1958；新增DATA_DEF_USE边3561/4032/1894/2836。新基线图只写入新产物目录，不替换任何旧图。
+- Prompt 0回归223 passed、0 failed、29条现有弃用warning；5个审计/汇总脚本Python3.7语法与拒绝覆盖检查通过。原11063个受保护已跟踪文件SHA当时全部一致；本轮仅允许三个文档追加，不把历史保护快照改写成新时点结果。
+- 已有四任务nested内层名单，在内存重新生成与冻结内容4/4一致。v2拟使用nested协议；历史paper_kfold仍是CV validation，不重命名历史成绩。G*外层测试选型问题及nested checkpoint绑定适配只是待确认建议，尚未实施；后续改方案先征求用户。
+- 完整证据见 `scripts/DFG/dfg_v2/RECON.md`、`recon.json`、`PROGRESS.md` 和 `scripts/DFG/experiments/artifacts/dfg_v2/recon/`。下一步为Prompt 1，当前尚未启动。
+- **GitHub同步待办**：WSL访问origin时DNS解析失败；Windows Git尝试也未取得有效认证，未成功读取远端引用、未推送。用户随后明确要求“先不推送，等解决后再推送”，本轮停止网络排查，仅保留本地提交。不声称本地与GitHub已一致。之后应先fetch核对远端分支，再正常推送 `dfg-v2` 并检查双方commit SHA相同；不force push，不把该分支合入main或ddg-v1.1-correctness。
