@@ -1887,3 +1887,32 @@ python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_ut
 CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_build --output scripts/DFG/experiments/artifacts/dfg_v2/l2_build_r1
 ~~~
 输出已存在，禁止覆盖重跑。证据在artifacts/dfg_v2/prompt4_v1/p4zero/，包括grammar_probe、before/after、全回归日志/XML、rebuild.log和逐任务comparison.json（边差异证据列表为空）。本阶段单独本地提交“Prompt 4.0”，随后才实现第1–5部分；未push、未训练。实施、复核与记录AI：Codex。
+
+
+## 2026-10-24 Prompt 4 L3实施中：等待一项已确认的AST适配决策（Codex）
+
+阶段4.0已提交71f19dc，后续实现目前尚未提交、未封存L3正式产物。新增env.py/tokens.py/l3.py/l3_build.py/l3_forward.py及test_env.py/test_tokens.py/test_l3.py/test_l3_build.py。已完成14键/18写法、词法遮蔽和明确import别名、辅助节点旁路叠加、离线冻结token编码、L2链式绑定及隔离CPU前向验收入口。未修改HGT、tokenizer原逻辑、训练脚本或原图标签。
+
+独立定向测试：env 63项、tokens 42项、archive/forward guards 24项通过；L3集成除下述待决策反例外23项通过（1项明确deselected，不计作全套通过）。重入合约原图token离线抽样20/20逐位一致。首次集成测试另有5项因共享合成夹具正例缺category而失败，现仅补齐新测试夹具schema；没有修改真实标签、模型或降低断言。真实L3四任务构图和8次CPU前向尚未执行，无训练。
+
+阻断反例：实际grammar把msg.gas + gasleft()解析成call_expression(function=binary_expression(...,gasleft))；this.balance + address(this).balance的最外member对象也可能是binary_expression。按文档仅识别裸function/direct object会漏识别合法写法。完整20例探针在prompt4_v1/env/call_precedence_probe.json。保留test_spellings_merge_per_file_and_edge_not_per_occurrence的失败断言，没有用改写源码或删测试掩盖问题。
+
+已通过异步问题请求用户批准“受限AST后缀适配”：仅沿已确认的未加括号binary右侧/unary参数恢复已知ENV调用/成员，继续检查遮蔽；不越过显式计算括号，不修改grammar、源码、HCG或模型。此项超出文档字面AST匹配规则，按用户“替代方案须先征求同意”要求暂未应用。备选是保留规则并明确漏识别限制。待答复后继续完成测试、真实图验收、详细记录和Prompt 4第二次提交。状态证据在prompt4_v1/pending_decision.json。实施与记录AI：Codex。
+
+
+## 2026-10-24 DFG v2 Prompt 4 L3完成补记（Codex）
+
+- 第0部分已单独提交71f19dc；第44节对应的待决策记录保留。用户已批准受限AST后缀适配：仅已确认的binary.right/unary.argument、保持遮蔽与显式复合括号边界；新增可审计原/leaf跨度。相同84项测试从13失败修复至全部通过。
+- 新增env.py、tokens.py、l3.py、l3_build.py、l3_forward.py及4个测试文件。14键/18写法按文件合并env_source，只向精确投影的原Unit节点加ENV_FLOW；REV在模型adapter生成。原节点、标签/token、CFG/CG/L1/L2全部保持；aux不监督、不池化。离线固定tokenizer重编码80/80逐位一致。
+
+| 任务 | 文件 | 原节点 | env节点 | ENV_FLOW | unmapped出现 | L1回退中有ENV的函数/回退总数 | 回退贡献ENV边 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 重入合约 | 142 | 18312 | 298 | 3857 | 288 | 56/276 | 108 |
+| 访问控制合约 | 114 | 13432 | 261 | 2536 | 314 | 97/357 | 160 |
+| 重入节点 | 71 | 12036 | 187 | 3200 | 126 | 26/85 | 42 |
+| 访问控制节点 | 57 | 7710 | 182 | 1948 | 121 | 37/102 | 58 |
+
+- 四任务8次CPU eval/no_grad前向全部finite；G3每层同键跨文件差异0，G3R确实获得使用上下文。不代表检测F1提升。部分不同邻域仍在1e-6内容差相同，已逐对记录并作静态解释；未确认原因明确保留，不宣称全部已解释。
+- 最终v2 538＋旧DDG/graph_utils 223＝761 passed，0失败/跳过；8/29条既有弃用warning。独立验收365 runtime SHA、L2/L1绑定、不变量、80边/84处源码和8前向收据通过；11095个保护文件及历史文档prefix不变。
+- 最终图：artifacts/dfg_v2/l3_build/；L2输入：l2_build_r1/；验收/审批/前后测试/只读静态复核：prompt4_v1/。详细选择和命令见training_changes第45节，PROGRESS附每任务20条共80条样本。
+- 本轮只完成Prompt 4，不训练、不算F1、不测GPU、不执行solc、不开始Prompt 5；按共享要求本地提交后停止，未push。实施、复核与记录AI：Codex。

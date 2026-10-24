@@ -3697,3 +3697,207 @@ python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_ut
 CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_build --output scripts/DFG/experiments/artifacts/dfg_v2/l2_build_r1
 ~~~
 输出已存在，禁止覆盖重跑。证据在artifacts/dfg_v2/prompt4_v1/p4zero/，包括grammar_probe、before/after、全回归日志/XML、rebuild.log和逐任务comparison.json（边差异证据列表为空）。本阶段单独本地提交“Prompt 4.0”，随后才实现第1–5部分；未push、未训练。实施、复核与记录AI：Codex。
+
+
+## 44. 2026-10-24 Prompt 4 L3实施中：等待一项已确认的AST适配决策（Codex）
+
+阶段4.0已提交71f19dc，后续实现目前尚未提交、未封存L3正式产物。新增env.py/tokens.py/l3.py/l3_build.py/l3_forward.py及test_env.py/test_tokens.py/test_l3.py/test_l3_build.py。已完成14键/18写法、词法遮蔽和明确import别名、辅助节点旁路叠加、离线冻结token编码、L2链式绑定及隔离CPU前向验收入口。未修改HGT、tokenizer原逻辑、训练脚本或原图标签。
+
+独立定向测试：env 63项、tokens 42项、archive/forward guards 24项通过；L3集成除下述待决策反例外23项通过（1项明确deselected，不计作全套通过）。重入合约原图token离线抽样20/20逐位一致。首次集成测试另有5项因共享合成夹具正例缺category而失败，现仅补齐新测试夹具schema；没有修改真实标签、模型或降低断言。真实L3四任务构图和8次CPU前向尚未执行，无训练。
+
+阻断反例：实际grammar把msg.gas + gasleft()解析成call_expression(function=binary_expression(...,gasleft))；this.balance + address(this).balance的最外member对象也可能是binary_expression。按文档仅识别裸function/direct object会漏识别合法写法。完整20例探针在prompt4_v1/env/call_precedence_probe.json。保留test_spellings_merge_per_file_and_edge_not_per_occurrence的失败断言，没有用改写源码或删测试掩盖问题。
+
+已通过异步问题请求用户批准“受限AST后缀适配”：仅沿已确认的未加括号binary右侧/unary参数恢复已知ENV调用/成员，继续检查遮蔽；不越过显式计算括号，不修改grammar、源码、HCG或模型。此项超出文档字面AST匹配规则，按用户“替代方案须先征求同意”要求暂未应用。备选是保留规则并明确漏识别限制。待答复后继续完成测试、真实图验收、详细记录和Prompt 4第二次提交。状态证据在prompt4_v1/pending_decision.json。实施与记录AI：Codex。
+
+
+## 45. 2026-10-24 Prompt 4 L3完成：环境源节点、ENV_FLOW与双向前向验收（Codex）
+
+**45.1 起点、授权与历史关系**
+
+本条是第44节“等待决策”的完成续记；保留第44节及 pending_decision.json 的原始内容，不把历史待审批状态改写成已获批。Prompt 4起点为47f3f2c7a12aa10fec740b17d80f1421179ffc63，已完成pull --ff-only与共享§4.1核对。第0部分已独立提交71f19dc6848e88fc24fb38be5759d1ebd0fcb326，本次第1–5部分随后单独本地提交，未push。没有自动开展Prompt 5。
+
+用户通过 call_a73e5a2e373d45e8984d39d0f0d288e0 明确批准“同意增加受限 AST 适配（推荐）”。批准记录另存 prompt4_v1/approved_decision.json。修改理由是当前实际grammar的后缀优先级形状导致文档裸callee/direct receiver规则漏掉合法环境读取；并非为了增加图边数或改变标签。
+
+**45.2 文件清单、复用与未变范围**
+
+本次新增5个生产文件和4个测试文件，均在 scripts/DFG/dfg_v2/：
+
+| 文件 | 职责与关键实现 |
+| --- | --- |
+| env.py | 固定14个ENV_KEYS、18种SPELLINGS；EnvExtractor只遍历Unit regions；整callable局部名/合约成员/文件级显式声明遮蔽；已确认grammar后缀适配与审计。 |
+| tokens.py | TokenEncoder复用原TOKENIZER/REVISION/cached_tokenizer/encode_ids；冻结recipe与完整资产SHA校验，离线编码，不加载LLM权重。 |
+| l3.py | augment_l3、strip_aux、输入与原图不变量；先在原节点图投影，后统一分配文件级环境节点及ENV_FLOW。 |
+| l3_build.py | L2→L1→原任务输入链式只读核验；四任务构图、特征重编码对比、覆盖/抽样、CPU独立worker、manifest/receipt。 |
+| l3_forward.py | 每profile一次CPU eval/no_grad前向；每层环境表示按键跨文件比较，输出shape/finite、canonical、参数量、RSS、时间和零差异文件对。 |
+| tests/test_env.py | 84项环境键、写法、遮蔽、声明位置、assembly、实际AST及后缀边界回归。 |
+| tests/test_tokens.py | 42项编码流程、类型/长度/特征recipe、资产绑定与加载前后核验。 |
+| tests/test_l3.py | 24项辅助节点/边、原图不变量、别名合并、缺节点不误投影、同文件合并、监督池化排除和小图梯度。 |
+| tests/test_l3_build.py | 24项归档链、拒绝错误输入/重复输出、token抽样一致性和按类型内行身份比较。 |
+
+旧代码无本阶段修改：原process_graphs/sco_models、HGT、tokenizer生成逻辑、训练脚本、所有已冻结DDG模块与旧图/标签/折/产物保持。P4.0的7个代码/测试文件在本阶段也保持该提交的SHA。只追加HANDOVER.md、本训练文档及PROGRESS.md。未改PROMPTS.md。新产物保存在未跟踪artifacts/dfg_v2，不加入源码提交。
+
+**45.3 获批解析调整与边界**
+
+实际解析器将 msg.gas + gasleft() 的调用function置为整个binary_expression；this.balance + address(this).balance 的object也可能包含二元表达式。适配只沿原始未括号包围的 binary.right / unary.argument，并要求 child.end_byte 与父表达式结尾对齐，最后仍须匹配已有已知ENV写法。禁止穿越显式复合括号、三元表达式或任意计算callee；(a+msg).sender、(1+gasleft)() 不猜测。普通裸callee规则与遮蔽判定保持；this/address按模板作为保留语法处理。
+
+每次适配记录 grammar_shape_recovered、原AST跨度、leaf跨度/文本、路径、checked_name及shadow_reason；EnvOccurrence接口不变。仍遍历左操作数和调用参数，避免恢复右侧时丢失其他读取。以相同最终test_env.py断言验证：修复前13 failed/71 passed，修复后84 passed；加test_l3原合并写法断言共108 passed。未删除测试、替换成错误期望或给源码加括号掩盖缺陷。证据 env/postfix_recovery_v1/receipt.json 与原20例AST探针均保留。
+
+其他实现选择沿用文档：显式import alias只作为文件级已知遮蔽名，不读取外部文件；普通now名字字段、member property、类型名不当成环境值；builtin revert参数的当前grammar包装被遍历，自定义error名不当成值；assembly只计数不解释。Unit边界/ProjectionView/StateBinder直接复用P3，L1是否回退不阻止独立L3事实。绑定不明确或投影不到的事实审计丢弃，样本与原图保留。
+
+**45.4 图、特征与监督约定**
+
+一个(source_file,ENV_KEY)最多一个env_source，仅至少一条已投影用途时生成。按文件词典序及固定ENV_KEYS顺序，自最大原整数ID+1连续追加。每个(env,unit)一条正向ENV_FLOW；同语句多次读取合并为一条边，spellings排序、evidence_indices保留所有出现。因此“出现数”和“边数”不是同一统计。原节点、节点顺序、全部原属性、CFG/CG/L1/L2边及key/属性均逐项保持，strip_aux后fingerprint与输入完全一致，文件之间无连接。
+
+新节点属性恰为9个原键加dfg_v2_aux；method为空、node_source_code_lines为空、node_info_vulnerabilities=None，没有伪造源码位置/标签。NetworkX只存正向；G3R通过既有模型输入adapter增加独立REV_ENV_FLOW，G3与G3R共用同一个NetworkX图。监督按env_source类型排除、合约_pool_rows排除；合约bookkeeping可包含辅助行，但不参与池化或损失。训练读取路径不调用需要source_path的get_function_boundaries，故无需额外添加属性。
+
+原token实际类型为numpy.ndarray/float32/(512,)；保留原图code原样（含原存储引号），tokenizer取完整input_ids并包含special tokens，然后使用原encode_ids取前512、右补0；不启用truncation=True，不加载完整语言模型。固定TOKENIZER/REVISION/本地资产集合及SHA写入audit，加载前后和构图后再核验。四任务seed=0各抽20个原节点，80/80逐位一致且重复编码一致。访问控制合约抽样曾出现683>512的tokenizer提示，这是先完整分词再截512的预定流程；没有把超长序列传给LLM模型，最终形状与原特征严格一致。
+
+**45.5 四任务真实验收统计**
+| 任务 | 文件 | 原节点 | env节点 | ENV_FLOW | unmapped出现 | L1回退中有ENV的函数/回退总数 | 回退贡献ENV边 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 重入合约 | 142 | 18312 | 298 | 3857 | 288 | 56/276 | 108 |
+| 访问控制合约 | 114 | 13432 | 261 | 2536 | 314 | 97/357 | 160 |
+| 重入节点 | 71 | 12036 | 187 | 3200 | 126 | 26/85 | 42 |
+| 访问控制节点 | 57 | 7710 | 182 | 1948 | 121 | 37/102 | 58 |
+
+| 任务 | profile | 参数量 | 输出形状 | 前向秒（含hook） | 进程峰值RSS MiB | 两层同键跨文件最大差异 |
+| --- | --- | ---: | --- | ---: | ---: | --- |
+| 重入合约 | G3 | 5004308 | [142, 2] | 3.2534 | 2034.66 | 0.00000000 / 0.00000000 |
+| 重入合约 | G3R | 5283380 | [142, 2] | 4.2754 | 2167.25 | 0.49534172 / 0.49247390 |
+| 访问控制合约 | G3 | 5004308 | [114, 2] | 2.4988 | 1806.25 | 0.00000000 / 0.00000000 |
+| 访问控制合约 | G3R | 5299796 | [114, 2] | 3.1733 | 1899.18 | 0.43592823 / 0.42361152 |
+| 重入节点 | G3 | 4840148 | [12223, 2] | 2.3031 | 1734.73 | 0.00000000 / 0.00000000 |
+| 重入节点 | G3R | 5111012 | [12223, 2] | 2.7119 | 1835.71 | 0.44532990 / 0.43481565 |
+| 访问控制节点 | G3 | 4922228 | [7892, 2] | 1.8451 | 1561.85 | 0.00000000 / 0.00000000 |
+| 访问控制节点 | G3R | 5217716 | [7892, 2] | 1.9676 | 1610.03 | 0.36489880 / 0.36927533 |
+
+上述unmapped均来自原作者图缺少对应emit_statement节点的出现，不挂到函数节点，不创建孤立环境节点；均非丢弃文件。四任务无file/projection fallback、shadowed与unknown_env_member均为0；这些路径另有合成回归，不意味着所有真实源码不存在其他不支持语义。跳过assembly分别15/14/12/9处。获批AST恢复实际触发20/22/14/14次，均记录原跨度与恢复路径。
+
+完整14键统计（包括零出现项）、各写法数量、unmapped AST类别、shadow原因、各文件与L1回退函数明细在每任务summary/acceptance/audit。ENV新增canonical：重入合约5正向+5反向、访问控制合约5+5、重入节点4+4、访问控制节点5+5；不是将14个ENV键分别注册为14种关系。环境键通过各env_source的code/token区分。
+
+**45.6 真实模型前向与证据边界**
+
+每任务G3与G3R各一次CPU、eval、torch.no_grad前向，共8次；没有loss、backward、optimizer或训练。小图单元测试的反传与真实图验收严格区分。节点输出包含辅助节点行，原监督mask仍排除这些行；合约输出是每文件两类logits。默认原HGT计算结构、512输入、128hidden/2层/8头保持。前向时间包含hooks与跨文件比较开销，RSS是独立worker进程峰值，不是GPU显存。
+
+四任务两层G3同键跨文件最大差异全部为0；G3R两层最大差异见表，确认REV_ENV_FLOW让环境节点表示受使用处上下文影响。这是未训练初值上的消息接入证据，不是F1提升或纯语义因果效果。只有一个文件使用某键时没有跨文件可比对，不把它记为失败。
+
+每个键和文件对的零/容差内差异均列入G3R_forward.json：同一incoming关系和上一层源表示集合是已确证解释；集合不同时保留“聚合碰撞/对称性未解析”分类，不伪造注意力因果。额外静态复核只读图、token和模型输入关系，不追加forward或训练；结论另附于下方及prompt4_v1/zero_pair_static_review/。部分不同邻域在1e-6内相同的确切数值原因仍未确定，不据此宣称所有文件表示都不同。
+
+**45.7 测试、完整性与真实抽样**
+
+最终DFG v2全集538 passed（相对P4.0新增174项），0 failed/error/skipped，8条既有DGL/NetworkX弃用warning，11.47秒；旧scripts/DFG/tests及tests/test_graph_utils.py为223 passed，0 failed/error/skipped，29条既有弃用warning，3.06秒。合计761项，通过数不重复叠加此前定向执行。新增样例按当前parser健壮性/语义边界测试理解，未执行Solidity编译验证。
+
+初次L3合成集成测试另有5项因共享合成夹具正例缺category失败，仅在新test_l3夹具补齐该字段，不修改真实标签/模型。最初6失败和23 passed/1 deselected记录仍保留；当前最终全套无跳过。L2归档审查补充summary.all_acceptance_passed必须为True，错误来源/摘要/资产/图特征/重复任务/重复输出均拒绝。
+
+冻结11095个既有受保护文件SHA未变；P4.0代码SHA未变；L3构建365个runtime SHA在开始、结束与提交前核对一致。三文档原文prefix保留。各任务receipt/manifest/input/graph/feature/source链式校验通过，原标签与特征不重新生成；新的token只用于新增环境节点。
+
+独立最终复核final_independent_review.json已accepted：四任务祖先链/manifest、365个runtime文件、全部原图不变量、8份CPU收据通过；80条固定边共84处出现均验证源码SHA、字节区间、AST区域和精确原节点投影，复核没有再次运行模型。
+
+四任务每任务seed=0抽20条ENV_FLOW，80条完整key、spellings和目标语句原code写入PROGRESS，完整source SHA和evidence在对应edge_sample/audit/inputs。复核是AI辅助源码检查，不等同独立专家Oracle或编译器证明。
+
+**45.8 命令、输出与停止点**
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l3_build --l2-directory scripts/DFG/experiments/artifacts/dfg_v2/l2_build_r1 --output scripts/DFG/experiments/artifacts/dfg_v2/l3_build
+~~~
+
+上面构图命令已执行，输出目录存在时拒绝覆盖，勿直接重复。最终数据在artifacts/dfg_v2/l3_build/；测试日志/XML、批准前后证据、独立复核、提交收据在artifacts/dfg_v2/prompt4_v1/。本地正式图不自动上传GitHub。
+
+仍保留范围限制：环境键是源码中的环境量类别，不是记录动态运行时取值；只实现文档14键，assembly不解释；不进行跨文件连边、完整Solidity类型/版本验证、调用语义总结或缺失HCG节点补建。旧P3全L2图此次P4.0重建虽逐图完全相同，反例修复仍有必要。L3新增关系是否有收益须留给后续既定训练阶段，本轮未训练、未测F1、未做GPU显存验收、未执行solc、未开始Prompt 5或推送。实施、复核与记录AI：Codex。
+
+**45.9 零/容差内文件对静态补充（不再前向）**
+
+原前向报告中未解析的1,970个“任务×层×键×文件对”里，900对满足token与canonical归一化邻域的参数无关充分条件，解释精确算术下的表示等价；另外1,070对仍未解析。此计数不是独立实验次数，也不是所有零差异对的总数。每对及原forward SHA保存在zero_pair_static_review/，原forward JSON保持不变。
+
+| 任务 | 第一层：静态充分条件 / 未解析 | 第二层：静态充分条件 / 未解析 |
+| --- | ---: | ---: |
+| 重入合约 | 0 / 68 | 7 / 4 |
+| 访问控制合约 | 435 / 44 | 11 / 435 |
+| 重入节点 | 0 / 65 | 4 / 4 |
+| 访问控制节点 | 435 / 105 | 8 / 345 |
+
+例如访问控制buggy_11与buggy_14的this.balance分别接7条、4条相同token的_recipient.transfer(address(this).balance);，同canonical消息值相同，softmax加权和不会仅因重复次数改变。这适用于第一层，不能直接推广至第二层；其余不同输入但输出≤1e-6的情况可能涉及注意力集中、聚合或数值消差，但本轮没有保存attention权重，不将推测写成已证原因。900对的静态充分条件也不等于浮点计算的逐位因果证明。
+
+Per-key coverage (nodes / ENV_FLOW / occurrences / unmapped; spelling counts):
+
+#### 重入合约 / reentrancy_author_contract
+
+| key | nodes | edges | occurrences | unmapped | spellings |
+| --- | ---: | ---: | ---: | ---: | --- |
+| msg.sender | 136 | 3381 | 4141 | 267 | {"msg.sender": 4141} |
+| msg.value | 50 | 107 | 121 | 11 | {"msg.value": 121} |
+| msg.data | 5 | 5 | 5 | 0 | {"msg.data": 5} |
+| msg.sig | 0 | 0 | 0 | 0 | {} |
+| tx.origin | 3 | 3 | 3 | 0 | {"tx.origin": 3} |
+| tx.gasprice | 0 | 0 | 0 | 0 | {} |
+| block.timestamp | 48 | 130 | 151 | 10 | {"now": 136, "block.timestamp": 15} |
+| block.number | 4 | 10 | 10 | 0 | {"block.number": 10} |
+| block.difficulty | 0 | 0 | 0 | 0 | {} |
+| block.coinbase | 0 | 0 | 0 | 0 | {} |
+| block.gaslimit | 0 | 0 | 0 | 0 | {} |
+| blockhash | 2 | 2 | 2 | 0 | {"blockhash(...)": 2} |
+| gasleft | 0 | 0 | 0 | 0 | {} |
+| this.balance | 50 | 219 | 219 | 0 | {"address(this).balance": 217, "this.balance": 2} |
+
+#### 访问控制合约 / access_control_author_contract
+
+| key | nodes | edges | occurrences | unmapped | spellings |
+| --- | ---: | ---: | ---: | ---: | --- |
+| msg.sender | 112 | 979 | 1468 | 292 | {"msg.sender": 1468} |
+| msg.value | 22 | 49 | 60 | 10 | {"msg.value": 60} |
+| msg.data | 6 | 14 | 14 | 0 | {"msg.data": 14} |
+| msg.sig | 0 | 0 | 0 | 0 | {} |
+| tx.origin | 42 | 1114 | 1114 | 0 | {"tx.origin": 1114} |
+| tx.gasprice | 0 | 0 | 0 | 0 | {} |
+| block.timestamp | 22 | 85 | 98 | 11 | {"now": 84, "block.timestamp": 14} |
+| block.number | 3 | 8 | 8 | 0 | {"block.number": 8} |
+| block.difficulty | 0 | 0 | 0 | 0 | {} |
+| block.coinbase | 0 | 0 | 0 | 0 | {} |
+| block.gaslimit | 0 | 0 | 0 | 0 | {} |
+| blockhash | 1 | 1 | 1 | 0 | {"blockhash(...)": 1} |
+| gasleft | 0 | 0 | 0 | 0 | {} |
+| this.balance | 53 | 286 | 287 | 1 | {"address(this).balance": 277, "this.balance": 10} |
+
+#### 重入节点 / reentrancy_author_node
+
+| key | nodes | edges | occurrences | unmapped | spellings |
+| --- | ---: | ---: | ---: | ---: | --- |
+| msg.sender | 70 | 2814 | 3310 | 111 | {"msg.sender": 3310} |
+| msg.value | 36 | 81 | 88 | 6 | {"msg.value": 88} |
+| msg.data | 2 | 2 | 2 | 0 | {"msg.data": 2} |
+| msg.sig | 0 | 0 | 0 | 0 | {} |
+| tx.origin | 2 | 2 | 2 | 0 | {"tx.origin": 2} |
+| tx.gasprice | 0 | 0 | 0 | 0 | {} |
+| block.timestamp | 33 | 87 | 102 | 9 | {"now": 97, "block.timestamp": 5} |
+| block.number | 3 | 9 | 9 | 0 | {"block.number": 9} |
+| block.difficulty | 0 | 0 | 0 | 0 | {} |
+| block.coinbase | 0 | 0 | 0 | 0 | {} |
+| block.gaslimit | 0 | 0 | 0 | 0 | {} |
+| blockhash | 1 | 1 | 1 | 0 | {"blockhash(...)": 1} |
+| gasleft | 0 | 0 | 0 | 0 | {} |
+| this.balance | 40 | 204 | 204 | 0 | {"address(this).balance": 204} |
+
+#### 访问控制节点 / access_control_author_node
+
+| key | nodes | edges | occurrences | unmapped | spellings |
+| --- | ---: | ---: | ---: | ---: | --- |
+| msg.sender | 56 | 459 | 646 | 106 | {"msg.sender": 646} |
+| msg.value | 14 | 33 | 40 | 6 | {"msg.value": 40} |
+| msg.data | 4 | 11 | 11 | 0 | {"msg.data": 11} |
+| msg.sig | 0 | 0 | 0 | 0 | {} |
+| tx.origin | 42 | 1114 | 1114 | 0 | {"tx.origin": 1114} |
+| tx.gasprice | 0 | 0 | 0 | 0 | {} |
+| block.timestamp | 13 | 41 | 51 | 9 | {"now": 46, "block.timestamp": 5} |
+| block.number | 3 | 8 | 8 | 0 | {"block.number": 8} |
+| block.difficulty | 0 | 0 | 0 | 0 | {} |
+| block.coinbase | 0 | 0 | 0 | 0 | {} |
+| block.gaslimit | 0 | 0 | 0 | 0 | {} |
+| blockhash | 1 | 1 | 1 | 0 | {"blockhash(...)": 1} |
+| gasleft | 0 | 0 | 0 | 0 | {} |
+| this.balance | 49 | 281 | 281 | 0 | {"address(this).balance": 273, "this.balance": 8} |

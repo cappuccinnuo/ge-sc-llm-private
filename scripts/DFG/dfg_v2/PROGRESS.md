@@ -646,3 +646,717 @@ python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_ut
 CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_build --output scripts/DFG/experiments/artifacts/dfg_v2/l2_build_r1
 ~~~
 输出已存在，禁止覆盖重跑。证据在artifacts/dfg_v2/prompt4_v1/p4zero/，包括grammar_probe、before/after、全回归日志/XML、rebuild.log和逐任务comparison.json（边差异证据列表为空）。本阶段单独本地提交“Prompt 4.0”，随后才实现第1–5部分；未push、未训练。实施、复核与记录AI：Codex。
+
+
+## 2026-10-24 Prompt 4 L3实施中：等待一项已确认的AST适配决策（Codex）
+
+阶段4.0已提交71f19dc，后续实现目前尚未提交、未封存L3正式产物。新增env.py/tokens.py/l3.py/l3_build.py/l3_forward.py及test_env.py/test_tokens.py/test_l3.py/test_l3_build.py。已完成14键/18写法、词法遮蔽和明确import别名、辅助节点旁路叠加、离线冻结token编码、L2链式绑定及隔离CPU前向验收入口。未修改HGT、tokenizer原逻辑、训练脚本或原图标签。
+
+独立定向测试：env 63项、tokens 42项、archive/forward guards 24项通过；L3集成除下述待决策反例外23项通过（1项明确deselected，不计作全套通过）。重入合约原图token离线抽样20/20逐位一致。首次集成测试另有5项因共享合成夹具正例缺category而失败，现仅补齐新测试夹具schema；没有修改真实标签、模型或降低断言。真实L3四任务构图和8次CPU前向尚未执行，无训练。
+
+阻断反例：实际grammar把msg.gas + gasleft()解析成call_expression(function=binary_expression(...,gasleft))；this.balance + address(this).balance的最外member对象也可能是binary_expression。按文档仅识别裸function/direct object会漏识别合法写法。完整20例探针在prompt4_v1/env/call_precedence_probe.json。保留test_spellings_merge_per_file_and_edge_not_per_occurrence的失败断言，没有用改写源码或删测试掩盖问题。
+
+已通过异步问题请求用户批准“受限AST后缀适配”：仅沿已确认的未加括号binary右侧/unary参数恢复已知ENV调用/成员，继续检查遮蔽；不越过显式计算括号，不修改grammar、源码、HCG或模型。此项超出文档字面AST匹配规则，按用户“替代方案须先征求同意”要求暂未应用。备选是保留规则并明确漏识别限制。待答复后继续完成测试、真实图验收、详细记录和Prompt 4第二次提交。状态证据在prompt4_v1/pending_decision.json。实施与记录AI：Codex。
+
+
+## 2026-10-24 Prompt 4验收完成（Codex，接续待审批记录）
+
+用户已批准 call_a73e5a2e373d45e8984d39d0f0d288e0 的受限AST后缀适配；pending_decision保留为历史，approved_decision单独记录。先前“未完成”的条目在此得到完成续记。P4.0已提交71f19dc，第1–5部分独立本地提交，不push。
+
+新增文件：env.py、tokens.py、l3.py、l3_build.py、l3_forward.py，以及tests/test_env.py、test_tokens.py、test_l3.py、test_l3_build.py。旧计算文件无进一步修改。完整实施选择、函数职责、修复理由和边界见training_changes第45节。
+
+关键约定：14键/18写法；每文件每键一个有已投影用途的env_source；保留原9属性并仅加dfg_v2_aux；token float32 ndarray[512]按固定离线tokenizer完整编码再裁剪/右补0；原节点hetero行顺序/标签/token及基础/L1/L2边完全不变。env_source不在节点监督或合约池化，实际训练读取路径不调用需要source_path的函数；method空及源码行空符合当前十属性schema。REV仅在模型输入生成，G3/G3R共享前向NetworkX图。
+
+测试：获批后缀84项修复前13失败、修复后全通过，集成原强断言保持；最终v2 538 passed/8 warnings，旧DDG+graph_utils 223 passed/29 warnings，0失败/跳过。所有warning为既有DGL/NetworkX弃用提示。四任务token抽20条共80/80逐位一致，全部图不变量和独立来源核验通过；8次真实图CPU eval/no_grad、无loss/backward/optimizer。完整命令与路径见第45.8节，下方再列测试入口。
+
+~~~bash
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l3_build --l2-directory scripts/DFG/experiments/artifacts/dfg_v2/l2_build_r1 --output scripts/DFG/experiments/artifacts/dfg_v2/l3_build
+~~~
+
+构图命令已完成，已有输出拒绝覆盖。设置环境沿用§4.1的mando/TREE_SITTER_LIB_DIR/PYTHONDONTWRITEBYTECODE/OMP_NUM_THREADS/MKL_NUM_THREADS。
+| 任务 | 文件 | 原节点 | env节点 | ENV_FLOW | unmapped出现 | L1回退中有ENV的函数/回退总数 | 回退贡献ENV边 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 重入合约 | 142 | 18312 | 298 | 3857 | 288 | 56/276 | 108 |
+| 访问控制合约 | 114 | 13432 | 261 | 2536 | 314 | 97/357 | 160 |
+| 重入节点 | 71 | 12036 | 187 | 3200 | 126 | 26/85 | 42 |
+| 访问控制节点 | 57 | 7710 | 182 | 1948 | 121 | 37/102 | 58 |
+
+| 任务 | profile | 参数量 | 输出形状 | 前向秒（含hook） | 进程峰值RSS MiB | 两层同键跨文件最大差异 |
+| --- | --- | ---: | --- | ---: | ---: | --- |
+| 重入合约 | G3 | 5004308 | [142, 2] | 3.2534 | 2034.66 | 0.00000000 / 0.00000000 |
+| 重入合约 | G3R | 5283380 | [142, 2] | 4.2754 | 2167.25 | 0.49534172 / 0.49247390 |
+| 访问控制合约 | G3 | 5004308 | [114, 2] | 2.4988 | 1806.25 | 0.00000000 / 0.00000000 |
+| 访问控制合约 | G3R | 5299796 | [114, 2] | 3.1733 | 1899.18 | 0.43592823 / 0.42361152 |
+| 重入节点 | G3 | 4840148 | [12223, 2] | 2.3031 | 1734.73 | 0.00000000 / 0.00000000 |
+| 重入节点 | G3R | 5111012 | [12223, 2] | 2.7119 | 1835.71 | 0.44532990 / 0.43481565 |
+| 访问控制节点 | G3 | 4922228 | [7892, 2] | 1.8451 | 1561.85 | 0.00000000 / 0.00000000 |
+| 访问控制节点 | G3R | 5217716 | [7892, 2] | 1.9676 | 1610.03 | 0.36489880 / 0.36927533 |
+
+**Prompt 4 零/容差内文件对静态补充（不再前向）**
+
+原前向报告中未解析的1,970个“任务×层×键×文件对”里，900对满足token与canonical归一化邻域的参数无关充分条件，解释精确算术下的表示等价；另外1,070对仍未解析。此计数不是独立实验次数，也不是所有零差异对的总数。每对及原forward SHA保存在zero_pair_static_review/，原forward JSON保持不变。
+
+| 任务 | 第一层：静态充分条件 / 未解析 | 第二层：静态充分条件 / 未解析 |
+| --- | ---: | ---: |
+| 重入合约 | 0 / 68 | 7 / 4 |
+| 访问控制合约 | 435 / 44 | 11 / 435 |
+| 重入节点 | 0 / 65 | 4 / 4 |
+| 访问控制节点 | 435 / 105 | 8 / 345 |
+
+例如访问控制buggy_11与buggy_14的this.balance分别接7条、4条相同token的_recipient.transfer(address(this).balance);，同canonical消息值相同，softmax加权和不会仅因重复次数改变。这适用于第一层，不能直接推广至第二层；其余不同输入但输出≤1e-6的情况可能涉及注意力集中、聚合或数值消差，但本轮没有保存attention权重，不将推测写成已证原因。900对的静态充分条件也不等于浮点计算的逐位因果证明。
+
+数据限制：unmapped四任务288/314/126/121均为emit读取，无可投影用途时不建hub，不猜映射；assembly跳过15/14/12/9。真实语料shadow/unknown均0，仍由合成测试覆盖；6个键在本批无出现，不等于没有实现。grammar恢复20/22/14/14次，保留每次来源。未进行专家Oracle或solc验证，尚未训练或证实F1收益；未开始Prompt 5。
+
+### Prompt 4固定ENV_FLOW抽样（每任务20条，seed=0，共80条）
+
+下面目标code按原图存储原样展示，不去引号或重新编码。完整出现字节跨度、Unit范围、source SHA见同任务audit.json/inputs.json。独立复核80边/84处出现全部通过精确AST归属和原节点投影；这属于AI辅助核验。
+
+#### 重入合约 / reentrancy_author_contract
+
+**1 / buggy_47.sol / 18578 -> 9136 / this.balance**
+
+- spellings: ["address(this).balance"]; source SHA256: e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a; evidence: [4087]
+
+~~~solidity
+"jackpot_re_ent37    = address(this).balance;"
+~~~
+
+**2 / buggy_20.sol / 18507 -> 7395 / this.balance**
+
+- spellings: ["address(this).balance"]; source SHA256: 76d607594dc5be00d665f8948c880d9823ae65efe29e27cedb811d3abb670af5; evidence: [1952]
+
+~~~solidity
+"jackpot_re_ent30    = address(this).balance;"
+~~~
+
+**3 / buggy_42.sol / 18565 -> 12268 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: a9fd9daea7ecd533097b164b791977b949d9a00ffc2190675df56becb4050095; evidence: [3784]
+
+~~~solidity
+"balances_re_ent3[msg.sender] -= _weiToWithdraw;"
+~~~
+
+**4 / buggy_6.sol / 18587 -> 5190 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 3dc08fe3140eee0e3f9d85d00a917678e30eedbcef6708a4bb10c8ec408e96e7; evidence: [4421]
+
+~~~solidity
+"balances_re_ent36[msg.sender] = 0;"
+~~~
+
+**5 / buggy_22.sol / 18511 -> 6466 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 64addaa381f3df0852487c66cc85730aa67affd7cd84f4fe616ff9d2ec9826fb; evidence: [2138]
+
+~~~solidity
+"require(redeemableEther_re_ent4[msg.sender] > 0);"
+~~~
+
+**6 / 0x4927643162fe6d18c7f046b3d155d8da0eee80e8.sol / 18343 -> 18245 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 72f2f65fabb1882b877cd469def4062297f1127c0e99ea355a34d5fd57f053ef; evidence: [212]
+
+~~~solidity
+"_transfer(msg.sender, to, value);"
+~~~
+
+**7 / buggy_16.sol / 18490 -> 15913 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 52d8e426ad01e71771b316b6635c0116efacb7b38c19d25c7ac5d4eae561d4ea; evidence: [1378]
+
+~~~solidity
+"if( ! (msg.sender.send(1 ether) ) ){\n            revert();\n        }"
+~~~
+
+**8 / buggy_27.sol / 18526 -> 4840 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: e47d29695de23df62ebfb68db99311a6b01b28f3844f78a37936277f3efc8043; evidence: [2568]
+
+~~~solidity
+"uint transferValue_re_ent25 = redeemableEther_re_ent25[msg.sender];"
+~~~
+
+**9 / buggy_26.sol / 18524 -> 3860 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: c3f36ced6b7f8b8481716b60acf85e3e77f2f579e65cbb67a3255b0822025182; evidence: [2441, 2442]
+
+~~~solidity
+"(bool success,)= msg.sender.call.value(userBalance_re_ent26[msg.sender])(\"\");"
+~~~
+
+**10 / buggy_22.sol / 18511 -> 6211 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 64addaa381f3df0852487c66cc85730aa67affd7cd84f4fe616ff9d2ec9826fb; evidence: [2061]
+
+~~~solidity
+"balances_re_ent15[msg.sender] = 0;"
+~~~
+
+**11 / buggy_7.sol / 18589 -> 6756 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec; evidence: [4552]
+
+~~~solidity
+"require(balances_re_ent31[msg.sender] >= _weiToWithdraw);"
+~~~
+
+**12 / buggy_43.sol / 18568 -> 11649 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584; evidence: [3917]
+
+~~~solidity
+"require(Operated.isActiveOperator(msg.sender), \"only active operator\");"
+~~~
+
+**13 / buggy_47.sol / 18575 -> 9240 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: e883200a181e6df6fb29e78558d591c539fc59d55d766c97b9174576fe67b37a; evidence: [4123]
+
+~~~solidity
+"uint transferValue_re_ent32 = redeemableEther_re_ent32[msg.sender];"
+~~~
+
+**14 / buggy_18.sol / 18497 -> 2753 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec; evidence: [1581]
+
+~~~solidity
+"require(msg.sender == newOwner);"
+~~~
+
+**15 / buggy_25.sol / 18520 -> 573 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: f6f9402e91da66253215c19f8603252a7de8b5006e38367007b82789e0f2b337; evidence: [2397]
+
+~~~solidity
+"redeemableEther_re_ent32[msg.sender] = 0;"
+~~~
+
+**16 / buggy_2.sol / 18503 -> 5040 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f; evidence: [1835]
+
+~~~solidity
+"msg.sender.transfer(transferValue_re_ent32);"
+~~~
+
+**17 / buggy_30.sol / 18536 -> 2508 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: e980c9dc84521ae5f3b610bd5eb94b6114a2cddc6b77ea9b4c498582caf23464; evidence: [2926]
+
+~~~solidity
+"userBalance_re_ent19[msg.sender] = 0;"
+~~~
+
+**18 / buggy_6.sol / 18587 -> 5211 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 3dc08fe3140eee0e3f9d85d00a917678e30eedbcef6708a4bb10c8ec408e96e7; evidence: [4429]
+
+~~~solidity
+"_owner = msg.sender;"
+~~~
+
+**19 / buggy_7.sol / 18589 -> 6599 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec; evidence: [4503]
+
+~~~solidity
+"userBalance_re_ent40[msg.sender] = 0;"
+~~~
+
+**20 / buggy_11.sol / 18484 -> 15390 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: ecad8ee7cc70794da610ae66c76de0fd8f7befe9c606a2c8a33106f9bdd3cba1; evidence: [1186]
+
+~~~solidity
+"redeemableEther_re_ent4[msg.sender] = 0;"
+~~~
+
+#### 访问控制合约 / access_control_author_contract
+
+**1 / buggy_30.sol / 13586 -> 1156 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: afbb76650f23d7e9fc5ba07e735c08c4ff6a80ca914ae5fc33491a4f47ef05a9; evidence: [1965]
+
+~~~solidity
+"require(tx.origin == owner_txorigin35);"
+~~~
+
+**2 / buggy_34.sol / 13599 -> 4462 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: afe641e5e3e75ae90778bb8e27ca9b0af76c4d3f30ec4615b051a718f4646eb2; evidence: [2114]
+
+~~~solidity
+"require(tx.origin == owner_txorigin24);"
+~~~
+
+**3 / 0x0a7073207bac23865e0e3b204615364b5a9d3783.sol / 13451 -> 3108 / msg.value**
+
+- spellings: ["msg.value"]; source SHA256: ad119b2bfe3abf641327a053947f8834b4ff83e3bded59444f63736c1990aa24; evidence: [200]
+
+~~~solidity
+"uint256 amount = msg.value;"
+~~~
+
+**4 / buggy_20.sol / 13545 -> 4841 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 05c8e66580eea0f1c776a153e2ca3cbda486d4e70d5b8ed5689ba3479940ffc9; evidence: [1397]
+
+~~~solidity
+"require(tx.origin == owner_txorigin39);"
+~~~
+
+**5 / buggy_43.sol / 13629 -> 8355 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 7e0232977cf6d105598c2b137ffa185bd4bac95da9cf4e40925957c4744f77f2; evidence: [2577]
+
+~~~solidity
+"require(tx.origin == owner_txorigin36);"
+~~~
+
+**6 / buggy_40.sol / 13622 -> 7758 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 41b0d0180a5e0d00a61616c6cf79c387f0fd5aa685d44b87bc3c455eb007d7d3; evidence: [2448]
+
+~~~solidity
+"require (tx.origin == owner_txorigin37);"
+~~~
+
+**7 / buggy_33.sol / 13594 -> 2700 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 5df3b24de3ddded0edafe8a337916892b86f0d87ab78ffa15fd0618588594bc0; evidence: [2085]
+
+~~~solidity
+"require(token.balanceOf(msg.sender) >= stakeTokens + findOnePercent(stakeTokens));"
+~~~
+
+**8 / buggy_24.sol / 13562 -> 777 / this.balance**
+
+- spellings: ["address(this).balance"]; source SHA256: 1c5ac378add0c2d531237ca87366e49101a7002528c81a90f8355d9bc66c2a4b; evidence: [1625]
+
+~~~solidity
+"_recipient.transfer(address(this).balance);"
+~~~
+
+**9 / buggy_4.sol / 13617 -> 5616 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 1c963c08a66e6516d74a296676631091f82a275d88a8a1539eb7de6ba119114e; evidence: [2437]
+
+~~~solidity
+"if(balances[msg.sender] - value < toWei(200000000))\n                require(now >= 1683644400);"
+~~~
+
+**10 / buggy_29.sol / 13577 -> 12567 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: ca020711c077a3052a10499a2f49209f52e39384409016f57d06e767020fbdb8; evidence: [1874]
+
+~~~solidity
+"require(raffleContract.allowance(msg.sender, address(this)) >= initialAmount, \"Allowance is to small (increase allowance)!\");"
+~~~
+
+**11 / buggy_6.sol / 13655 -> 3366 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 42ff356fd98fd142cec6d65382226a716f579e5465ad72b78b295e1cee0ec948; evidence: [2894]
+
+~~~solidity
+"require(tx.origin == owner_txorigin19);"
+~~~
+
+**12 / buggy_19.sol / 13537 -> 139 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 4acf0d793c74383045ccc83d6b8da68992a1fe3a9970975f4ef5601686d2fa43; evidence: [1289]
+
+~~~solidity
+"require(msg.sender == owner, \"only owner can use this method\");"
+~~~
+
+**13 / buggy_43.sol / 13630 -> 8328 / this.balance**
+
+- spellings: ["address(this).balance"]; source SHA256: 7e0232977cf6d105598c2b137ffa185bd4bac95da9cf4e40925957c4744f77f2; evidence: [2571]
+
+~~~solidity
+"_recipient.transfer(address(this).balance);"
+~~~
+
+**14 / 0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol / 13507 -> 2111 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 5ba33ed867cf8870b8eaeddd07d9db1ed26d95acd09c3376ca4aa57665a9c456; evidence: [867]
+
+~~~solidity
+"if (msg.sender != upgradeMaster) throw;"
+~~~
+
+**15 / buggy_22.sol / 13552 -> 4109 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: fe9c3fddfc9d98c90437e2fba629dd60d1f3c7216c0f8986a638676bfd9771b4; evidence: [1494]
+
+~~~solidity
+"require(tx.origin == owner_txorigin40);"
+~~~
+
+**16 / 0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol / 13507 -> 2147 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 5ba33ed867cf8870b8eaeddd07d9db1ed26d95acd09c3376ca4aa57665a9c456; evidence: [869]
+
+~~~solidity
+"owner = msg.sender;"
+~~~
+
+**17 / 0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol / 13483 -> 6396 / block.timestamp**
+
+- spellings: ["now"]; source SHA256: 20bb5bcde2e3db6ac2d2ba1a76d9fcda049716f273324f9e437ec09377c723f5; evidence: [582]
+
+~~~solidity
+"auctions[_auctionId].stopTime = now + (_duration * 1 minutes);"
+~~~
+
+**18 / wallet_04_confused_sign.sol / 13690 -> 9869 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d; evidence: [3048]
+
+~~~solidity
+"require(creator == msg.sender);"
+~~~
+
+**19 / buggy_20.sol / 13546 -> 4777 / this.balance**
+
+- spellings: ["address(this).balance"]; source SHA256: 05c8e66580eea0f1c776a153e2ca3cbda486d4e70d5b8ed5689ba3479940ffc9; evidence: [1380]
+
+~~~solidity
+"_recipient.transfer(address(this).balance);"
+~~~
+
+**20 / buggy_45.sol / 13636 -> 7077 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 20a5500adf14cb8eeeb3edb432413408ede4b46cba01d459f1ca6ef24cd25382; evidence: [2664]
+
+~~~solidity
+"require(tx.origin == owner_txorigin14);"
+~~~
+
+#### 重入节点 / reentrancy_author_node
+
+**1 / buggy_29.sol / 18419 -> 17224 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 118efce476d6db982437b4440bfa9dd7e7bd210c252a46c2d9c80f35f8c47bfe; evidence: [1804]
+
+~~~solidity
+"redeemableEther_re_ent4[msg.sender] = 0;"
+~~~
+
+**2 / buggy_7.sol / 18478 -> 6756 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec; evidence: [3618]
+
+~~~solidity
+"require(balances_re_ent31[msg.sender] >= _weiToWithdraw);"
+~~~
+
+**3 / buggy_30.sol / 18425 -> 2480 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: e980c9dc84521ae5f3b610bd5eb94b6114a2cddc6b77ea9b4c498582caf23464; evidence: [1980]
+
+~~~solidity
+"require(balances_re_ent3[msg.sender] >= _weiToWithdraw);"
+~~~
+
+**4 / 0xbaf51e761510c1a11bf48dd87c0307ac8a8c8a4f.sol / 18362 -> 3103 / msg.value**
+
+- spellings: ["msg.value"]; source SHA256: 59ebd4fa5520fb501e02a072751299037ef827a8efef1ca06dcb23ce1e862510; evidence: [166]
+
+~~~solidity
+"if(msg.value > MinDeposit)\n        {\n            balances[msg.sender]+=msg.value;\n            TransferLog.AddMessage(msg.sender,msg.value,\"Deposit\");\n        }"
+~~~
+
+**5 / buggy_22.sol / 18400 -> 6439 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 64addaa381f3df0852487c66cc85730aa67affd7cd84f4fe616ff9d2ec9826fb; evidence: [1199]
+
+~~~solidity
+"msg.sender.transfer(transferValue_re_ent32);"
+~~~
+
+**6 / buggy_35.sol / 18438 -> 8117 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: ef0be568a9870bd223f6a8665f09384d4458d3f0c41c716b6062219a131cc2a0; evidence: [2426]
+
+~~~solidity
+"msg.sender.transfer(transferValue_re_ent4);"
+~~~
+
+**7 / buggy_34.sol / 18435 -> 7053 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 2182dadd5be822e13020b02e918d2d0eddaf942f26fc11ca9c5af2104b3d6dc4; evidence: [2293]
+
+~~~solidity
+"require(balances_re_ent38[msg.sender] >= _weiToWithdraw);"
+~~~
+
+**8 / buggy_3.sol / 18423 -> 3539 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 9eaa874f037cc6ee0f642d250d199a4722d3f8265e1654d9a33565a1237ca21a; evidence: [1904]
+
+~~~solidity
+"userBalance_re_ent40[msg.sender] = 0;"
+~~~
+
+**9 / buggy_24.sol / 18405 -> 1990 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb; evidence: [1407]
+
+~~~solidity
+"balances_re_ent8[msg.sender] = 0;"
+~~~
+
+**10 / buggy_34.sol / 18435 -> 6899 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 2182dadd5be822e13020b02e918d2d0eddaf942f26fc11ca9c5af2104b3d6dc4; evidence: [2242]
+
+~~~solidity
+"balances_re_ent10[msg.sender] -= _weiToWithdraw;"
+~~~
+
+**11 / buggy_27.sol / 18415 -> 4946 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: e47d29695de23df62ebfb68db99311a6b01b28f3844f78a37936277f3efc8043; evidence: [1675]
+
+~~~solidity
+"if( ! (msg.sender.send(10 ether) ) ){\n            revert();\n        }"
+~~~
+
+**12 / buggy_40.sol / 18452 -> 10815 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: f530b30562180ec1150773025b7f45856c96a44121c5bc3bcdbf25be4cc03f64; evidence: [2786]
+
+~~~solidity
+"if( ! (msg.sender.send(10 ether) ) ){\n            revert();\n        }"
+~~~
+
+**13 / buggy_20.sol / 18394 -> 7330 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 76d607594dc5be00d665f8948c880d9823ae65efe29e27cedb811d3abb670af5; evidence: [1004]
+
+~~~solidity
+"require(msg.sender.send(_weiToWithdraw));"
+~~~
+
+**14 / buggy_35.sol / 18438 -> 8043 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: ef0be568a9870bd223f6a8665f09384d4458d3f0c41c716b6062219a131cc2a0; evidence: [2382]
+
+~~~solidity
+"balances_re_ent3[msg.sender] -= _weiToWithdraw;"
+~~~
+
+**15 / buggy_18.sol / 18386 -> 2695 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec; evidence: [629]
+
+~~~solidity
+"msg.sender.transfer(transferValue_re_ent11);"
+~~~
+
+**16 / buggy_24.sol / 18407 -> 1884 / block.timestamp**
+
+- spellings: ["now"]; source SHA256: 56a65952a6be4eaf4f21d09d2e2c10d99dfebfb0cf85bf16b7e085af76197bdb; evidence: [1382]
+
+~~~solidity
+"addInvestRecord(msg.sender, now, investAmount, investCycle);"
+~~~
+
+**17 / buggy_18.sol / 18386 -> 2700 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec; evidence: [631, 632]
+
+~~~solidity
+"(bool success,) =msg.sender.call.value(balances_re_ent1[msg.sender ])(\"\");"
+~~~
+
+**18 / buggy_7.sol / 18478 -> 6721 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 4745c8d488084c7e7004857903e3b82e68753a5bf6379bc97061277bc0f2f6ec; evidence: [3608]
+
+~~~solidity
+"require(redeemableEther_re_ent4[msg.sender] > 0);"
+~~~
+
+**19 / buggy_16.sol / 18379 -> 15860 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 52d8e426ad01e71771b316b6635c0116efacb7b38c19d25c7ac5d4eae561d4ea; evidence: [426]
+
+~~~solidity
+"if( ! (msg.sender.send(10 ether) ) ){\n            revert();\n        }"
+~~~
+
+**20 / buggy_43.sol / 18457 -> 11548 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 1c5706bcd9dee3ac66c4ce60a2f396906ad830191d52fb9db7cccdf6a6c30584; evidence: [2956]
+
+~~~solidity
+"require(balances_re_ent31[msg.sender] >= _weiToWithdraw);"
+~~~
+
+#### 访问控制节点 / access_control_author_node
+
+**1 / buggy_49.sol / 13251 -> 9889 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 00fdccd8d219a6a854ccee41e813bff6c8a1a8aaf98177c9be40a3036400e23d; evidence: [1918]
+
+~~~solidity
+"require(tx.origin == owner_txorigin31);"
+~~~
+
+**2 / buggy_27.sol / 13176 -> 2778 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 9303069fc1046277df405eae6053f9a09e8bd536e2859702de1edce333c76e23; evidence: [816]
+
+~~~solidity
+"require(tx.origin == owner_txorigin34);"
+~~~
+
+**3 / buggy_45.sol / 13238 -> 7015 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 20a5500adf14cb8eeeb3edb432413408ede4b46cba01d459f1ca6ef24cd25382; evidence: [1748]
+
+~~~solidity
+"require(msg.sender == owner);"
+~~~
+
+**4 / buggy_7.sol / 13263 -> 4264 / this.balance**
+
+- spellings: ["address(this).balance"]; source SHA256: 0a5d21c387405e2a5ad6ac20dfa11099fc3eaf41c87cc3e35c9e73d3a08b0b9e; evidence: [2029]
+
+~~~solidity
+"_recipient.transfer(address(this).balance);"
+~~~
+
+**5 / buggy_28.sol / 13179 -> 12865 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 491b8f8cc3f11bdea6b745a5e878ac6ea9f84cc61739456456a031a339b7af44; evidence: [915]
+
+~~~solidity
+"require(tx.origin == owner_txorigin23);"
+~~~
+
+**6 / buggy_15.sol / 13124 -> 12389 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 5b114255f8da2572ff28770d772ba9f6b7404f2e1544ea45ce89d71c51869520; evidence: [98]
+
+~~~solidity
+"balanceOf[msg.sender] = totalSupply;"
+~~~
+
+**7 / buggy_22.sol / 13155 -> 4128 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: fe9c3fddfc9d98c90437e2fba629dd60d1f3c7216c0f8986a638676bfd9771b4; evidence: [602]
+
+~~~solidity
+"require(msg.sender == chairmanAddress);"
+~~~
+
+**8 / buggy_32.sol / 13196 -> 2520 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 850f1b2de2a4bea0030726cee6cc81eeba108af2b53f129d5b7f4755ba15e674; evidence: [1132]
+
+~~~solidity
+"require(tx.origin == owner_txorigin14);"
+~~~
+
+**9 / buggy_30.sol / 13190 -> 1187 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: afbb76650f23d7e9fc5ba07e735c08c4ff6a80ca914ae5fc33491a4f47ef05a9; evidence: [1076]
+
+~~~solidity
+"require (tx.origin == owner_txorigin25);"
+~~~
+
+**10 / buggy_28.sol / 13178 -> 12879 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 491b8f8cc3f11bdea6b745a5e878ac6ea9f84cc61739456456a031a339b7af44; evidence: [919, 920]
+
+~~~solidity
+"_balances[msg.sender] = _balances[msg.sender].sub(value);"
+~~~
+
+**11 / parity_wallet_bug_2.sol / 13279 -> 9588 / block.timestamp**
+
+- spellings: ["now"]; source SHA256: 3026bd9ff80d0a4b7d166c0d4d2aad07063d05a67e3df9267d9580933d1a529e; evidence: [2101]
+
+~~~solidity
+"return now / 1 days;"
+~~~
+
+**12 / buggy_47.sol / 13242 -> 6536 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: eac2fdbab5e24c8d8e6889afc0e4d8d9c1dfb6b8181c6ffd9c0e84dfe5d4d348; evidence: [1802]
+
+~~~solidity
+"require(balances[msg.sender] >= tokens && tokens > 0);"
+~~~
+
+**13 / buggy_48.sol / 13248 -> 10304 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: f59bf750df27f14f4657dce4b7876fd4308f5d6202974962c6bd55393bea07e1; evidence: [1869]
+
+~~~solidity
+"require(tx.origin == owner_txorigin38);"
+~~~
+
+**14 / buggy_24.sol / 13165 -> 680 / block.timestamp**
+
+- spellings: ["now"]; source SHA256: 1c5ac378add0c2d531237ca87366e49101a7002528c81a90f8355d9bc66c2a4b; evidence: [706]
+
+~~~solidity
+"user.currentInvestTime = now;"
+~~~
+
+**15 / buggy_30.sol / 13190 -> 1054 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: afbb76650f23d7e9fc5ba07e735c08c4ff6a80ca914ae5fc33491a4f47ef05a9; evidence: [1044]
+
+~~~solidity
+"require(tx.origin == owner_txorigin16);"
+~~~
+
+**16 / buggy_26.sol / 13172 -> 2470 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: 129a0b4301ccaaba94cb50772fbfefe574f59ee088373a03380faa25ea0f6d74; evidence: [805, 806]
+
+~~~solidity
+"_approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));"
+~~~
+
+**17 / buggy_35.sol / 13210 -> 5368 / this.balance**
+
+- spellings: ["address(this).balance"]; source SHA256: cbceb18bb70b1400dee01790610b829e7eae7b6be8588d39b75b16aefbb6d209; evidence: [1296]
+
+~~~solidity
+"_recipient.transfer(address(this).balance);"
+~~~
+
+**18 / buggy_7.sol / 13263 -> 4359 / this.balance**
+
+- spellings: ["address(this).balance"]; source SHA256: 0a5d21c387405e2a5ad6ac20dfa11099fc3eaf41c87cc3e35c9e73d3a08b0b9e; evidence: [2053]
+
+~~~solidity
+"_recipient.transfer(address(this).balance);"
+~~~
+
+**19 / incorrect_constructor_name1.sol / 13264 -> 7884 / msg.sender**
+
+- spellings: ["msg.sender"]; source SHA256: d918731cebddf34ad385dd799691237e0ec1aab09f34ce7eb6bbe83ec86cd8c8; evidence: [2058]
+
+~~~solidity
+"require(msg.sender==owner);"
+~~~
+
+**20 / buggy_20.sol / 13149 -> 4704 / tx.origin**
+
+- spellings: ["tx.origin"]; source SHA256: 05c8e66580eea0f1c776a153e2ca3cbda486d4e70d5b8ed5689ba3479940ffc9; evidence: [465]
+
+~~~solidity
+"require (tx.origin == owner_txorigin37);"
+~~~
