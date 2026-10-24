@@ -151,8 +151,12 @@
 
 ### 3.4 L3（环境源）
 
-- 环境键：`msg.sender`、`msg.value`、`msg.data`、`msg.sig`、`tx.origin`、`tx.gasprice`、`block.timestamp`、`now`、`block.number`、`block.difficulty`、`block.coinbase`、`block.gaslimit`、`blockhash`、`gasleft`、`this.balance`。名字被局部或成员遮蔽时跳过。
-- 每个文件中，每个实际用到的键建一个 `env_source` 节点，再加边 `ENV_FLOW`（环境源 → 使用语句）。
+- 环境键（14 个，固定顺序）：`msg.sender`、`msg.value`、`msg.data`、`msg.sig`、`tx.origin`、`tx.gasprice`、`block.timestamp`、`block.number`、`block.difficulty`、`block.coinbase`、`block.gaslimit`、`blockhash`、`gasleft`、`this.balance`。名字被局部或成员遮蔽时跳过。
+- **同一个运行时值的不同写法合并为一个键（2026-10-24 修订）**：`now` → `block.timestamp`，`msg.gas` → `gasleft`，`block.blockhash(...)` → `blockhash`，`address(this).balance` → `this.balance`。写法记在边属性 `spellings` 中。
+  - 理由：env_source 的作用是在本文件内汇总并分发某个环境值的使用情况。`now` 与 `block.timestamp` 是同一个值，拆成两个节点会把一个中转点拆成两半，同一文件里混用两种写法的语句就无法经由同一个节点互相影响。
+  - 不损失信息：语句节点自己的 token 仍含原写法。
+  - 原版本把 `now` 与 `block.timestamp` 列为两个键、却把 `block.blockhash` 并入 `blockhash`，口径不一致；修订后统一按"值"合并。
+- 每个文件中，每个至少连到一个语句的键建一个 `env_source` 节点，再加边 `ENV_FLOW`（环境源 → 使用语句）。只出现在没有 HCG 节点的语句（emit/revert）中的键不建节点。
 - 这些节点不参与节点监督、不计入指标、不参与合约池化。
 
 ### 3.5 HGT 接入
@@ -294,6 +298,7 @@ DATA_DEF_USE、WRITES_STATE、READS_STATE、ENV_FLOW；
 - L1（Prompt 2）的新分析路径使用 scripts/DFG/state/stage_k/profile.py::SupportedSourceView 及源码清单中已绑定的版本元数据；旧标量对照仍使用原 SourceView 和原 pipeline。
 - L2/L3（Prompt 3/4）只需要 AST 身份映射，不需要词法作用域模式，使用 Prompt 3 第 0 部分定义的 ProjectionView。
 - G* 只按内层验证选择（见 Prompt 8）。
+- L3 环境键按运行时值合并写法（now 并入 block.timestamp 等，见第 3.4 节与 Prompt 4）。
 - 训练 checkpoint 改用已有的 nested 格式 scripts/DFG/experiments/checkpoint.py，由 dfg_v2 包装 schema 与协议绑定；不使用 paper_checkpoint.py（见 Prompt 7）。
 ```
 
@@ -682,57 +687,113 @@ i) L1 回退的函数（例如含 assembly）仍然能产生 L2 边。
 - 固定 seed=0 抽 20 条边，打印两端代码，写进 PROGRESS.md 供人工检查。
 ```
 
-### 4.6 Prompt 4：L3 环境源
+（状态：2026-10-24 已完成并验收，提交 a37acf4。状态声明锚点四任务均 100%；WRITES/READS 边 R 合约 3108/4314、AC 合约 1609/2208、R 节点 2254/3070、AC 节点 767/1091；L1 回退函数中产生 L2 边的 182/276、224/357、51/85、72/102。审查后的三处小修订放在 Prompt 4 第 0 部分。）
+
+### 4.6 Prompt 4：L3 环境源（含 Prompt 3 的小修订）
 
 ```text
 # Prompt 4：L3 环境源 ENV_FLOW 与 env_source 节点
 
-前置：Prompt 0 第 4 项（token 重编码一致率）为 100%。
+前置：Prompt 3 已完成（提交 a37acf4）；Prompt 0 第 4 项 token 重编码一致率为 100%（已满足）。先 git pull --ff-only origin dfg-v2，读第 3.4 节（本次修订了环境键的合并规则）。
+本 Prompt 分两次提交：第 0 部分单独提交（提交信息写 "Prompt 4.0"），第 1–5 部分再提交一次。
+
+## 0. Prompt 3 小修订（先做）
+审查 a37acf4 后发现下面几处。都只涉及 Prompt 3 新增的 dfg_v2 文件，不在 L1 路径上（l1*.py 不 import units/state_binding/state_access），所以不需要重跑 L1；在 PROGRESS 中写明这一理由。
+
+1. struct_field_assignment 的字段名被当作标识符读取。
+   - 现状：grammar 把 a.call{value: x, gas: g}("") 解析为 call_expression(function=struct_expression(type=a.call, struct_field_assignment(name=value, value=x), ...))。state_access.py::_visit 对 struct_field_assignment 没有专门分支，通用递归会访问 name 字段的 identifier。合约里若恰好有名为 value、gas、salt 的状态变量，就会多出一条错误的 READS_STATE。
+   - 改法：加 struct_field_assignment 分支，只访问 value 字段（与现有 call_struct_argument 分支相同）。struct_expression 的 type 字段照常访问，所以 a 是状态变量时仍记 READ。
+   - 测试：先用真实解析器确认上面的形状并在测试中断言；uint value; function f(address a, uint x) public { a.call{value: x}(""); } 不产生 decl(value) 的边；把 a 换成状态变量时有 decl(a) → 该语句。
+2. legacy 隐式 storage 别名漏掉 string 和 bytes。
+   - 现状：state_binding.py::_reference_type 只认 "["、mapping 和 struct。0.4.x 中没有数据位置的 string/bytes 局部变量同样默认是 storage 引用；push/pop 判定已经把 bytes 当作动态数组，两处口径不一致。
+   - 改法：类型文本恰好是 string 或 bytes 的 type_name 也算引用类型。只影响有版本证据的 legacy 局部变量（含 var 的选中类型检查）；显式 storage 的处理不变；bytes1…bytes32 不是引用类型。
+   - 测试：pragma ^0.4.24 下 bytes data; function f() public { bytes b = data; b[0] = 1; } 产生对 data 的 WRITES（via_alias=True）；pragma ^0.5.0 下同样的源码不建别名（只测解析器行为，该写法在 0.5 不能编译）；bytes32 c = h; 不建别名。
+3. try_statement 的 attempt 表达式不在任何区域里，其中的读写既不连边，也不计入 unmapped，审计口径漏数。
+   - 改法：units.py::_regions 增加 try_statement → (attempt,)。有精确 HCG 节点就投影，没有就计入 unmapped（作者图没有 try 节点，预期全部是 unmapped）。catch/returns 参数已被局部遮蔽收集，不变。
+   - 测试：try 语句中读状态变量计入 unmapped，不挂到函数节点上。
+4. 删除 l2.py、projection_view.py、tests/test_l2.py 末尾多余的空行。Prompt 3 为保持 SHA 绑定没有改；本步本来就要重建 L2，绑定会重新生成。
+
+然后：
+- 跑新增测试、dfg_v2/tests 全部测试和旧 DDG 回归；
+- 用 l2_build 把四个任务的 L2 图重建到新目录 artifacts/dfg_v2/l2_build_r1/（输入仍是 l1_build/final_route_audit/，不覆盖 l2_build/）；
+- 与 l2_build/ 逐任务比较：新增或消失的边（逐条列出证据）、unmapped 与 alias 绑定数的变化。预期差异很小或为 0，以实测为准；
+- 之后的 L3 以 l2_build_r1/ 为输入；G2R 剖面以后也使用 l2_build_r1/，l2_build/ 只作为历史记录保留。
 
 ## 1. 环境键 dfg_v2/env.py
-ENV_KEYS（固定顺序）：msg.sender, msg.value, msg.data, msg.sig, tx.origin, tx.gasprice, block.timestamp, now, block.number, block.difficulty, block.coinbase, block.gaslimit, blockhash, gasleft, this.balance。
-识别规则（在 Prompt 3 的 Unit regions 内）：
-- member_expression，对象是 msg/tx/block，属性在上表中 → 对应的键。
-- 标识符 now → now；调用 blockhash(...) 或 block.blockhash(...) → blockhash；gasleft() → gasleft；this.balance 与 address(this).balance → this.balance。
-- 遮蔽：msg/tx/block/now/blockhash/gasleft 在该 callable 的局部、合约成员（ClosedScopeJ.members）或文件顶层声明中有同名时，跳过并记为 shadowed。
+键表示"运行时的同一个值"。同一个值的不同写法合并为一个键，写法记在边属性 spellings 中（理由见第 3.4 节）。
+
+ENV_KEYS（固定顺序的 tuple）：
+  msg.sender, msg.value, msg.data, msg.sig, tx.origin, tx.gasprice,
+  block.timestamp, block.number, block.difficulty, block.coinbase, block.gaslimit,
+  blockhash, gasleft, this.balance
+写法 → 键（SPELLINGS 表）：
+- msg.<p>、tx.<p>、block.<p>：p 与上表中的同名键一致时直接对应；
+- now → block.timestamp；
+- msg.gas、gasleft() → gasleft；
+- blockhash(...)、block.blockhash(...) → blockhash；
+- this.balance、address(this).balance → this.balance。
+msg/tx/block 的其他属性（如 block.chainid、block.basefee）不建节点，按写法计入 audit 的 unknown_env_member。以后扩展只需改这两个表。
+
+识别规则：只在 Prompt 3 的 Unit regions 内识别，区域划分直接调用 units.iter_statement_regions(view, projector)，与 L2 相同。
+- member_expression：对象去括号后是裸标识符 msg、tx 或 block，property 在表中 → 对应键。对象必须是标识符，所以只匹配最内层：msg.sender.call.value(...)() 只识别一次 msg.sender。block.blockhash 在 member 这一层就匹配，外层调用不再重复匹配。
+- call_expression：function 是裸标识符 blockhash 或 gasleft → 对应键。
+- 标识符 now：排除下面这些位置——member_expression 的 property；任何父节点的 name 字段（call_struct_argument、struct_field_assignment、variable_declaration、parameter 等）；type_name 内部。
+- this.balance：member_expression 的 property 为 balance，对象是标识符 this，或是 address(this)。address(this) 在当前 grammar 中的实际形状（type_cast_expression 或 call_expression）先用真实解析器确认，测试中断言该形状。
+- 不进入 assembly（yul 中的 timestamp()、caller() 不解释），计入 audit 的 assembly_skipped。
+遮蔽：
+- 被检查的名字：msg/tx/block 写法检查对象名；now 检查 now；blockhash()/gasleft() 检查函数名。this 与 address 不会被遮蔽。
+- 以下任一成立就跳过并计为 shadowed（按键与原因计数）：该名字在当前 owner 的局部名中（直接复用 Prompt 3 的 StateBinder(view, owner).locals，即同样的"整个 callable 保守遮蔽"）；在 binder.members 中存在（ClosedScopeJ 成员或回退后的当前合约成员，任何种类）；是文件顶层声明的名字。
+- 状态变量初始化表达式同样适用（owner 是该声明，局部名为空）。
 
 ## 2. 节点与边 dfg_v2/l3.py
-augment_l3(graph, sources, metadata, token_encoder) -> (graph, audit)：
-- 每个文件中，每个实际出现的键建一个节点，属性：
-  - node_type = "env_source"
-  - source_file = 该文件
-  - label = "ENV:<键>"
-  - code = <键>
-  - node_info_vulnerabilities = None
-  - node_source_code_lines = []
-  - token = token_encoder(code)（方式与 Prompt 0 确定的完全一致，dtype 与长度相同）
-  - method = ""
-  - type_label = "env_source"
-  - dfg_v2_aux = True
-  Prompt 0 确认原节点属性键恰好是 code、label、method、node_info_vulnerabilities、node_source_code_lines、node_type、source_file、token、type_label；新节点必须包含这 9 个键（外加 dfg_v2_aux），测试中断言键集合。
-  token 生成方式按 Prompt 0：对 code 文本先用 Salesforce/codet5p-770m tokenizer（离线、固定 revision）以 add_special_tokens=True 完整编码，再用 scripts/encode_tokenizer_features.py::encode_ids 截取前 512 个 ID、右侧补 0、float32[512]。不要改用 truncation=True。
-  view 使用 Prompt 3 第 0 部分的 ProjectionView。
-- 节点 ID：在原图最大整数 ID 之后，按 (source_file, ENV_KEYS 顺序) 依次分配。如果原图的 ID 不是整数，停下报告。
-- 边：env 节点 → Unit 节点，edge_type=ENV_FLOW，每对一条；属性 dfg_v2_version、env_key、evidence_indices。
-- 必须在 L1、L2 之后执行（Projector 会拒绝没有 AST 锚点的节点）。此后任何对 Projector 的调用，都要先过滤掉 env_source 节点。
+augment_l3(graph, sources, metadata, token_encoder) -> (graph, audit)
+- 输入检查：MultiDiGraph；允许原关系与 DATA_DEF_USE、WRITES_STATE、READS_STATE；拒绝已有的 ENV_FLOW、任何 REV_*、已有的 env_source 节点；原节点 ID 必须全是整数，否则停下报告。
+- 先在输入图上构造 Projector（此时还没有 env_source），收集全部出现，最后一次性加点加边。
+- 节点：每个文件中，每个至少有一条已投影 ENV_FLOW 的键建一个节点。只出现在 unmapped 语句（emit、revert 等）中的键不建节点，避免孤立节点。
+  属性恰好是 Prompt 0 确认的 9 个原键加 dfg_v2_aux（测试断言键集合）：
+    node_type="env_source"，source_file=该文件，code=键文本，label="ENV:"+键，method=""，
+    node_info_vulnerabilities=None（原 get_node_label 把 None 当 valid；监督另外按节点类型排除 env_source），
+    node_source_code_lines=[]，type_label="env_source"，token=token_encoder(code)，dfg_v2_aux=True
+  token 的 Python 类型、dtype、shape 与原节点 token 完全一致（先读几个原节点确认），不要混用 list、ndarray、tensor。
+  逐一检查训练路径上读取节点属性的代码（sco_models/graph_utils.py 中被 model_hgt.py 与 dfg_v2/model.py、supervision.py 调用的函数）：确认 method=""、node_source_code_lines=[] 不会进入 get_function_boundaries 一类函数（它们需要 source_path 键，训练路径不调用）。结论写进 PROGRESS。
+- 节点 ID：从原图最大整数 ID + 1 开始，按 (source_file 排序, ENV_KEYS 顺序) 连续分配，加在 NetworkX 图末尾。
+- 边：env 节点 → Unit 节点，edge_type=ENV_FLOW，每个 (env, unit) 一条；属性 dfg_v2_version、env_key、spellings（排序）、evidence_indices。
+- 不变量：原节点、原边、L1/L2 边及其 key/属性/顺序全部不变；新增节点都是 env_source，只有 ENV_FLOW 出边；各文件之间仍不连通（runtime.assert_disconnected_files）。
+- audit：每个文件、每个键的出现数、已投影数、unmapped（按所在语句的 AST 类型计数，例如 emit_statement、revert_statement）、shadowed、unknown_env_member、assembly_skipped；L1 回退函数中产生的 ENV_FLOW 边数（与 Prompt 3 的独立性报告相同）。
+- 提供 strip_aux(graph)：返回去掉 env_source 节点及其边的副本。以后在 L3 图上构造 Projector 之前都要先调用它（Prompt 5 的 pipeline 会用到）；测试 strip_aux(augment_l3(g)) 与 g 的 fingerprint 相同。
 
 ## 3. token_encoder dfg_v2/tokens.py
-按 Prompt 0 的结论封装，离线加载 tokenizer（local_files_only=True），同一输入的输出必须确定。
-测试：对原图中 20 个节点用它编码，与原 token 完全相同。
+复用 scripts/DFG/experiments/prepare.py 的 TOKENIZER、REVISION、cached_tokenizer（Prompt 0 的 recon_tokens.py 已用过），设置 HF_HUB_OFFLINE=1、TRANSFORMERS_OFFLINE=1，local_files_only=True。
+编码：对 code 取 tokenizer(code, add_special_tokens=True) 的完整 input_ids，再交给 scripts/encode_tokenizer_features.py::encode_ids（前 512 个、右侧补 0、float32）。不要用 truncation=True。
+encoder 记录 tokenizer 名称、revision 与资产 SHA（沿用任务清单中的 asset_hashes），写入 audit。
+测试：每个任务用固定 seed 抽 20 个原节点，用它编码 code，与原 token 逐位相同；同一输入两次输出相同。
 
-## 4. 测试 scripts/DFG/dfg_v2/tests/test_l3.py
-a) require(msg.sender == owner)：有 ENV_FLOW(msg.sender → 该语句)；同时 L2 有 decl(owner) → 该语句。
+## 4. 测试 tests/test_env.py、tests/test_l3.py
+a) require(msg.sender == owner)：ENV_FLOW(msg.sender → 该语句)；同时 L2 有 decl(owner) → 该语句。
 b) require(tx.origin == owner)：产生 tx.origin 节点。
-c) if (now % 15 == 0) 与 if (block.timestamp > deadline)：产生 now 和 block.timestamp 两个节点，分别连到各自的 if。
-d) 参数名为 now（或 grammar 允许的其他遮蔽写法）：被遮蔽，不产生边。
-e) 同一文件中多处 msg.sender 只建一个节点；不同文件各自建一个。
-f) 把 L1 + L2 + L3 的图分别以 G3R 和 G3 送入 Prompt 1 的模型：env_source 不在节点监督 mask 中，也不在合约池化的行中；G3R 中 env_source 有入边（REV_ENV_FLOW），其表示在不同文件之间不同；G3 中 env_source 没有入边。新节点类型有梯度。
-g) 原节点的 node_hetero_id、各原节点类型内的行顺序都不变。
+c) 同一文件中 if (now % 15 == 0) 与 if (block.timestamp > deadline)：只有一个 block.timestamp 节点，两条 ENV_FLOW，spellings 分别是 ["now"] 与 ["block.timestamp"]。
+d) msg.gas 与 gasleft() 合并为 gasleft；block.blockhash(n) 与 blockhash(n) 合并为 blockhash；this.balance 与 address(this).balance 合并为 this.balance。
+e) 遮蔽：参数名为 now；合约成员函数名为 gasleft；局部变量名为 msg（grammar 能解析时）。都不产生边，shadowed 计数正确。
+f) 非变量位置：x.now、f({now: 1}) 中的 now 不识别；a.call{value: msg.value}("") 中字段名 value 不影响，仍识别 msg.value。
+g) msg.sender.call.value(...)() 只产生一条 msg.sender 边。
+h) emit Transfer(msg.sender, to, v)：作者图没有 emit 节点，计入 unmapped；若文件中别处没有 msg.sender，不建该节点。
+i) 状态变量初始化 address owner = msg.sender;：ENV_FLOW(msg.sender → 该声明的 new_variable 节点)。
+j) modifier 体内的 msg.sender 连到 modifier 中的语句。
+k) 同一文件多处 msg.sender 只有一个节点；不同文件各一个；文件之间不连通。
+l) 用 L1+L2+L3 的小图分别以 G3R、G3 构造模型（CPU）：env_source 不在节点监督 mask 中，也不在合约池化行中；G3 中 env_source 入度为 0；G3R 中有 REV_ENV_FLOW 入边；一次前向与反传后，env_source 相关参数有梯度（小图测试允许反传）。
+m) 原节点的 node_hetero_id、各原节点类型内的行顺序不变；G0/G1R/G2R 用 L3 图构造时被拒绝（build_dgl 已有检查，这里补测试）。
+n) 新节点属性键集合 = 9 个原键 + dfg_v2_aux。
 
-## 5. 真实数据验收
-在 R/AC 四个任务上构建 L1 + L2 + L3 的图（供 G3R 与 G3 共用），输出到 artifacts/dfg_v2/l3_build/：
-- 报告每类每个键的节点数、ENV_FLOW 边数、遮蔽数；
-- 不变量全部通过。
+## 5. 真实数据验收（不训练）
+输入：第 0 部分的 artifacts/dfg_v2/l2_build_r1/（先核对 receipt、manifest 与 SHA，方式同 l2_build.verify_l1）。输出 artifacts/dfg_v2/l3_build/，G3 与 G3R 共用这一张图。
+- 不变量全部通过；L1/L2 边与属性逐条不变。
+- 每个任务、每个键：env 节点数（即用到该键的文件数）、ENV_FLOW 边数、unmapped 出现数（按语句类型）、shadowed 数、合并前各写法的数量（例如 now 与 block.timestamp 各多少）、unknown_env_member 分布。
+- 每个任务：env 节点总数、ENV_FLOW 总数、新增 canonical（正向与 REV_ 各自计数）、G3R 与 G3 的参数量；L1 回退函数中的 ENV_FLOW 边数。
+- 真实图上的模型检查（只允许下面这些）：每个任务分别构造 G3 与 G3R 模型（CPU、eval()、torch.no_grad()），各做一次前向；不算损失、不反传、不建优化器。用 forward hook 取每层 HGT 输出中的 env_source 行，按键分组，报告不同文件之间的最大差异：
+  - G3：同一个键在各文件应完全相同（容差 1e-6），因为 env_source 没有入边，表示只取决于它自己的 token；
+  - G3R：一般应不同；差异为 0 的键与文件对逐一列出并说明原因。
+  这是第 3.1 节双向理由在真实图上的验证。同时报告输出形状、是否全部有限、单次前向耗时和进程峰值内存（RSS）。不做 GPU 显存测量（留给 Prompt 7）。
+- 固定 seed=0 每个任务抽 20 条 ENV_FLOW 边，打印键、spellings 与目标语句代码，写进 PROGRESS.md。
 ```
 
 ### 4.7 Prompt 5：统一构图入口、任务注册表与输入清单
