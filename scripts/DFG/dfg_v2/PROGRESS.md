@@ -170,3 +170,60 @@ CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tes
 固定的是输入token；无入边env仍有可学习投影/偏置/残差/norm，不能说每层就是固定原始token。单向只限制相应关系的消息路径，原节点仍可能经CFG/CG收到其它上下文。“ENV_FLOW收益最大”及F1改善均尚未验证；同文件共享环境节点也不是相同交易/调用者证明。以上仅澄清理由，不修改用户已批准方案。
 
 没有fit、optimizer.step、GPU预检、solc、真实v2语义图生成或新成绩；手工特征小图只验路由，不证明分析器完整性。未开始Prompt 2。按共享上下文本地提交Prompt 1b后停止；本轮未push。实施、复核、记录AI：Codex。
+
+
+## 2026-10-24 · Prompt 2 L1扩展与四任务验收完成 · Codex
+
+### 版本与范围
+
+起点55260099dc53603d5cc6f5a7a803d77fd5d77f98，先读取共享上下文/P2及现有模块，pull --ff-only确认最新。Prompt 1b此前已推送；本轮仅新增v2内11个代码/测试文件并追加三份记录，未改旧DDG、HGT、tokenizer、标签、固定折或已有模型输入代码。无训练、solc或Prompt 3实施。
+
+### 实现和选择
+
+- l1_symbols.py、l1_models.py、l1_access.py：冻结V2Event、聚合符号附加信息、声明/作用域身份、整体强写及成员/下标/push/pop/delete弱写。
+- l1_cfg.py：只替换Stage J的table/access，继承原CFG和受限modifier/继承/终止调用处理；构造复制来源有SHA。
+- l1_rd.py：复制有SHA的原solver，弱写只GEN、强写KILL，块内顺序重放一致，兼容旧IR。
+- l1.py：旧成功函数直接复用，失败函数才重试；整体失败无残留；每条事实按产生视图投影、去重、过滤共享modifier锚点并保留证据。
+- l1_build.py：冻结输入/P0绑定、旧逐函数/逐边/solver/Projector验收、新G1R CPU模型注册、不覆盖输出。
+- tests/test_l1_access.py、test_l1_rd.py、test_l1.py、test_l1_build.py：最终分别38/30/19/9项。
+
+未提出或实施替代设计。必要兼容处理：grammar把delete a[i]解析成array_access(base=unary(delete,a), index=i)，v2只适配顶层AST目标链，保持锚点；嵌套/索引写仍回退，原parser不改。ordinary call聚合参数只记读，是文档已明确的近似，不分析引用副作用或跨函数alias。
+
+### 真实数据验收
+
+| 任务 | 旧支持→新支持/全部函数 | 支持率前→后 | scalar边→L1边 |
+| --- | --- | --- | --- |
+| 重入合约 | 2035→3128 / 3404 | 59.78%→91.89% | 3561→5659 |
+| 访问控制合约 | 2128→2791 / 3148 | 67.60%→88.66% | 4032→5713 |
+| 重入节点 | 1210→1960 / 2045 | 59.17%→95.84% | 1894→3419 |
+| 访问控制节点 | 1550→1856 / 1958 | 79.16%→94.79% | 2836→3889 |
+
+P0分母与输入身份逐SHA一致；原节点/属性/标签/token/CFG/CG边完全不变。6923个旧成功任务内函数实例的完整RDResult相同，旧投影事实/边逐项相同；包括零投影事实函数569/286/382/159。两种视图by_ast一致文件实例136/102/69/55，modifier锚点事实丢弃数均0。
+
+四个G1R CPU模型schema通过，inside_token宽度512；DATA_DEF_USE正向canonical为21/22/21/22，显式REV同数，总42/44/42/44。新关系清单及各边数见model_schema.json。未在真实图上forward、训练或计算F1。
+
+### 审计修正、最终路径与测试
+
+首轮恢复route遗漏无名称聚合参数/返回值，因为没有Symbol ID。已改为检查成功接受的声明类型，并为前缀AST兼容记录v2_access_shape；添加2个回归。修正只影响审计routes，不改事实或模型计算。
+
+首轮artifacts/dfg_v2/l1_build/不覆盖；最终产物为其final_route_audit/子目录。四任务重新验收，首轮与最终的computation_fingerprint及投影事实身份完全一致，证明不涉及重新选择更有利结果。
+
+最终v2 182 passed、旧DDG+graph_utils 223 passed，共405；0失败/跳过，8/29条已有弃用warning。证据artifacts/dfg_v2/prompt2_v1/包含完整log/XML、两轮构图日志、route_correction_comparison.json及validation.json。11077个受保护文件SHA不变，三文档仅追加。详细代码、选择、route交叉表/Top10解释和命令见training_changes第41节。
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l1_build --output scripts/DFG/experiments/artifacts/dfg_v2/l1_build/final_route_audit
+~~~
+
+以上是实际执行命令；输出已存在，重跑需要新路径。完整逐函数记录和旧原因→新route/仍回退原因在最终audit与summary JSON。
+
+### 限制和下一步
+
+仍回退276/357/85/102个函数，原样本/HCG保留。主要为复杂modifier、无可靠版本、assembly/new/inline-array/嵌套写。var tuple仍回退。聚合基变量合并字段/元素，不代表精确别名或完整Solidity数据流；扩大覆盖不保证F1提升。所有本轮Solidity测试均未独立编译。
+
+Prompt 2已完成；下一步Prompt 3的L2状态锚点尚未开始，L3和训练也未开展。按共享约定本地提交后停止，本轮未push。实施、复核与记录AI：Codex。

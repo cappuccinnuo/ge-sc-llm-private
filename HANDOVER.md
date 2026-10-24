@@ -1837,3 +1837,14 @@ hashes and receipts without training or changing execution guards.
 - 新验收86 passed，旧DDG+graph_utils223 passed，共309；0失败/跳过，8/29条已有弃用警告。两文件环境干预在同一profile同初值下执行：G3环境表示不受使用处改变，G3R实际收到使用上下文，且不跨文件传播。这不证明F1提升。
 - 11072个受保护已跟踪文件SHA一致，三文档仅追加。证据artifacts/dfg_v2/prompt1b_v1/；详细方案选择、实现、数值、命令和限制见training_changes第40节及dfg_v2/PROGRESS.md。固定token不等于隐藏表示不学习，“环境收益最大”尚无效果证据。
 - CPU小图接口验证，无新训练、真实v2语义图、GPU/solc验收；未开始Prompt 2。依共享约定本地提交后停止，本轮未push。修改、复核与记录AI：Codex。
+
+
+## 2026-10-24 DFG v2 Prompt 2 L1扩展完成（Codex）
+
+- 基于dfg-v2@5526009，pull --ff-only确认最新，新增v2内7个生产模块和4个测试文件；旧DDG/HGT/tokenizer、P1/P1b、标签、固定折和历史产物不改。无替代方案变更，沿用已批准SupportedSourceView。
+- L1支持聚合局部/参数、legacy单变量var、强/弱定义以及Stage J受限modifier/继承。旧成功函数直接保留；仅回退函数重试。不同来源视图精确投影，函数级失败无残留，保留所有原HCG节点/属性/基础边，只加正向DATA_DEF_USE；G1R在模型输入加显式REV。
+- 四任务支持数：R合约2035→3128/3404，AC合约2128→2791/3148，R节点1210→1960/2045，AC节点1550→1856/1958；对应DDG边3561→5659、4032→5713、1894→3419、2836→3889。6923个旧成功任务内函数实例solver全字段一致，原事实和边逐项保留；modifier事实过滤均0。
+- 四个CPU G1R模型注册通过，512维特征保持。最终v2 182＋旧回归223＝405项通过，0失败/跳过，8/29条既有弃用warning。11077个受保护文件SHA不变，三文档只追加。
+- 实际grammar的delete/前缀update下标形状做v2顶层AST适配；未改parser。无名称聚合声明的恢复route审计已修正；首轮产物不覆盖，最终图/报告在artifacts/dfg_v2/l1_build/final_route_audit/。两轮图计算摘要和投影事实相等，仅route证明信息变化。
+- 详细记录见training_changes第41节与dfg_v2/PROGRESS.md；测试/构图/比较/保护收据在artifacts/dfg_v2/prompt2_v1/。依旧是基变量近似，ordinary call引用副作用不跟踪，复杂modifier/版本不明/assembly等仍回退；覆盖提升不代表F1提升。
+- 未训练、未执行solc、未开始Prompt 3/L2或L3。按共享约定本地提交Prompt 2后停止，本轮未push。实施、复核与记录AI：Codex。

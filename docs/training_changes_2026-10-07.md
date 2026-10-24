@@ -3429,3 +3429,135 @@ before.json、v2_tests.log/xml、legacy_regression.log/xml、environment_context
 已完成Prompt 1b配置和模型输入接入验收。尚未实施Prompt 2的L1扩展、L2状态锚点抽取或L3环境分析与编码；未生成真实v2增强数据集、未开展nested训练/显存预检、新图推理或F1评估。未下载/执行solc，解析生成测试图不等同编译合法性验证。
 
 本步没有发现阻断双向接入的正确性问题；测试通过只证明指定接口与小图路由性质，不宣称完整Solidity DFG或检测增益。保留G3单向对照，后续效果由预定实验验证。完成本地提交后停止于Prompt 1b。实施、复核与记录AI：Codex。
+
+
+## 41. 2026-10-24：DFG v2 Prompt 2函数内L1扩展及真实数据验收（Codex）
+
+**41.1 授权、起点与不变部分**
+
+用户要求先读PROMPTS第4.1节共享上下文，再实施Prompt 2；若提出实质替代方案须先征求同意并记录。已读取最新共享上下文、P2、原scalar/Stage J/K及P0/P1记录，pull --ff-only origin dfg-v2返回Already up to date。起点为55260099dc53603d5cc6f5a7a803d77fd5d77f98，Prompt 1b已按此前用户授权推送；本轮继续在ge-sc-llm-ddg-v11的dfg-v2分支开发。
+
+本步全部生产和测试新增文件均位于scripts/DFG/dfg_v2/。旧DDG、原HGT、tokenizer、P1/P1b模型输入/监督代码、标签、固定折和历史产物不修改；不启动训练，不执行solc，不开始Prompt 3。before.json保存11077个受保护已跟踪文件SHA和三份文档原长度/SHA，验收目录为artifacts/dfg_v2/prompt2_v1/。
+
+没有替换用户批准的方案，无新增待批准的设计选择。继续采用已有SupportedSourceView和已绑定版本元数据；旧成功函数走原SourceView与原标量结果。下面的AST形状适配和审计分类修正是实现明确要求的兼容性/正确性修复，不扩大程序分析范围。
+
+**41.2 新增文件与职责**
+
+| 文件（相对scripts/DFG/dfg_v2） | 内容 |
+| --- | --- |
+| l1_models.py | frozen V2Event，新增weak_writes，保留id/function/anchor/reads/writes/kind。 |
+| l1_symbols.py | ExtendedSymbolTable保留声明身份和作用域，登记用户类型、数组、mapping引用、string/bytes与legacy单变量var；aggregate_info记录类型/位置，不改原Symbol。 |
+| l1_access.py | ExtendedAccessExtractor：整体赋值/整体delete强写，成员/下标/push/pop/局部delete弱写，读取根和索引，拒绝嵌套写和重复目标。 |
+| l1_cfg.py | V2CFGBuilder仅替换Stage J构造器的table/access，沿用ClosedScopeJ、StageFCallResolver、前缀modifier和原分支/循环/终止处理。复制来源及SHA写在文件头。 |
+| l1_rd.py | solve_v2保留原工作队列、输出结构和统计；弱写GEN不KILL，强写KILL同一符号全部旧强/弱定义；块传递与事件顺序重放一致。复制来源及SHA写在文件头。 |
+| l1.py | analyze_file及augment_l1：旧结果优先、只重试回退函数、函数级提交、按产生视图精确投影、端点去重及全局证据索引。 |
+| l1_build.py | 冻结manifest/P0输入绑定、真实四任务构图、独立旧结果/solver/Projector核验、CPU模型注册与不覆盖产物。 |
+| tests/test_l1_access.py | 38项类型/作用域/强弱访问/AST形状/嵌套拒绝测试。 |
+| tests/test_l1_rd.py | 30项弱GEN、强KILL、分支、循环、不动点、无闭包、非法IR和旧solver全字段等价测试。 |
+| tests/test_l1.py | 最终19项P2源码事实、回退无残留、投影、不变量、元数据和恢复route集成测试。 |
+| tests/test_l1_build.py | 9项不覆盖、输入SHA/任务矩阵拒绝、零事实旧成功函数及证据篡改拒绝测试。 |
+
+共7个生产模块、4个测试文件。既有代码没有修改；无FunctionType重绑定、无新模型结构或训练器。
+
+**41.3 类型、作用域、强弱定义与CFG处理**
+
+符号仍按函数/声明字节位置/名称唯一标识，继承原legacy/modern作用域与现代初始化自引用检查，不按同名字符串连边。类型位置在aggregate_info中记录，不能识别的类型和函数类型仍Unsupported。legacy单个var可恢复；当前grammar的var tuple没有原声明节点，仍整函数回退，不伪造声明身份。
+
+整体赋值x=...和delete x为强写；x.f、x[i]、x.push/pop等基变量聚合操作为弱写。成员/下标访问读取根符号及索引；未知或状态根不升格成本地定义。tuple重复目标包括强弱目标重叠均拒绝。普通调用继续按已有规则读参数，不建立跨函数摘要或修改alias。
+
+CFG是分析中间表示，未替换模型原CFG/CG。只支持Stage J已有的单个、无参、末尾唯一占位符的前缀modifier；复杂modifier、assembly、嵌套赋值/delete、无法确认终止调用等按原策略回退。模型节点集合不增加。
+
+到达定义仍从真实分析CFG正向后继传播，分支取union、循环到不动点。强写覆盖旧强/弱定义；弱写仅追加可能定义；每个事件先读后写，不计算传递闭包。未能投影的定义仍参与覆盖，再在物化阶段丢弃无法映射的事实，不为补边猜近邻行号。
+
+**41.4 实际grammar兼容处理与边界**
+
+针对测试发现：现有tree-sitter将delete a[i]解析为array_access(base=unary(delete,a), index=i)，前缀--a[i]也类似。若只处理通常的unary(array_access)形状，会漏掉P2明确要求的delete下标弱写。
+
+处理限于v2的顶层成员/下标base/object链：确认前缀操作符起点与整个表达式起点一致，沿AST字段识别根与索引，保留原始Span作为锚点。索引或调用参数中的赋值/update/delete仍触发Unsupported；不修改源码文本、grammar或原提取器。另覆盖透明括号的(arr).push(v)、(arr)[i]=v，避免遗漏弱定义。相关定向测试最初3失败/27通过，完成兼容处理与新增断言后38项全部通过。
+
+这些样例由真实tree-sitter解析；部分用于解析器健壮性验证。本轮没有运行编译器，不能将解析成功、元数据中记录的compiled version或本地人工预期等同于独立solc合法性验证。
+
+**41.5 旧结果优先、回退与投影**
+
+analyze_file先调用原DDGBuilder.analyze_source。旧成功集合按函数清单减去明确回退记录判定，包含零事实函数；不以“有没有边”判断成功。旧成功函数事实按原顺序直接保留。只对旧回退函数尝试SupportedSourceView＋V2CFGBuilder＋solve_v2，旧文件级回退则逐函数重试。新视图失败时旧成功结果仍保留。
+
+一个新函数完成CFG与RD后才提交事实；不支持语句即使出现在函数后半段，也不会留下前半段的部分DDG。任何definition/use锚点落在modifier_definition内的事实都过滤计数，避免把函数私有依赖挂到共享modifier节点；本批四任务计数均为0。
+
+旧事实用原SourceView的Projector，新事实用SupportedSourceView的Projector。两视图可构造并可投影时by_ast完全相同；失败的来源不借用另一视图。Projector读取的label是保存AST身份的字符串，不是漏洞标签；分析不读取node_info_vulnerabilities、token或预测。
+
+复用DDGBuilder.projected_edges：同端点合一、不加自环，ddg_fact_indices正确转为全局证据偏移；新边加dfg_v2_version及routes。证据中保留函数/符号/定义/使用身份和analysis_path。原节点、顺序、属性、源码映射、标签、token及CFG/CG边key/属性逐项保持；新图只增加正向DATA_DEF_USE，REV由P1b的G1R模型输入产生。
+
+**41.6 恢复原因审计修正与保留证据**
+
+首轮四任务已通过旧边、事实、solver和模型schema验收；检查报告时发现无名称的string或用户类型参数/返回值虽已通过扩展类型检查，却没有Symbol ID。因此仅检查aggregate_info会遗漏其v2_aggregate原因，少数函数被记为v2_retry或仅inheritance。
+
+最终修复只改route判定：在已成功构造的函数中检查参数和局部声明是否需要扩展类型接受，包括未命名声明；并把顶层前缀AST适配单列v2_access_shape。新增两个回归用例，没有改变IR、facts、投影端点、原标签或模型计算。
+
+首轮产物artifacts/dfg_v2/l1_build/保持不动。最终交付位于其新子目录artifacts/dfg_v2/l1_build/final_route_audit/。最终四任务全部重新验收，两个批次的每任务computation_fingerprint及投影事实身份多重集完全相等，只有审计route及相关边证明属性变化。比较证据为prompt2_v1/route_correction_comparison.json；旧收据未覆盖。
+
+route可组合，表示实际采用的恢复手段，不是单因素因果贡献；不能把重叠route计数相加当作恢复函数总数。旧回退原因是原路径首先遇到的阻断，也不代表函数只存在该一种复杂结构。
+
+**41.7 四任务最终真实数据结果（无训练）**
+
+| 任务 | 原节点/原边 | 全部函数分母 | 旧支持→新支持 | 支持率前→后 | 原scalar DDG→L1 DDG | 增加 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 重入合约 | 18312 / 19267 | 3404 | 2035→3128 | 59.78%→91.89% | 3561→5659 | 2098 |
+| 访问控制合约 | 13432 / 15538 | 3148 | 2128→2791 | 67.60%→88.66% | 4032→5713 | 1681 |
+| 重入节点 | 12036 / 11710 | 2045 | 1210→1960 | 59.17%→95.84% | 1894→3419 | 1525 |
+| 访问控制节点 | 7710 / 8840 | 1958 | 1550→1856 | 79.16%→94.79% | 2836→3889 | 1053 |
+
+函数分母与P0同一manifest和源码SHA绑定，包含文件级回退函数，不靠缩小分母提高支持率。节点任务仍为漏洞文件HCG节点任务，不改成去重源码行计分。这里只统计构图覆盖，没有新F1。
+
+按旧首次回退原因分组的恢复数/原回退数：
+
+| 任务 | modifier | inheritance_binding_not_supported | 非标量/推断类型 | 版本/多pragma/缺pragma等 |
+| --- | --- | --- | --- | --- |
+| 重入合约 | 251/441 | 374/374 | 218/258 | 247/287 |
+| 访问控制合约 | 222/370 | 21/23 | 165/214 | 251/404 |
+| 重入节点 | 83/127 | 363/363 | 130/161 | 171/177 |
+| 访问控制节点 | 87/145 | 9/10 | 86/119 | 121/127 |
+
+最终route分布（恢复手段可重叠；legacy单独为旧支持）：
+
+| 任务 | legacy | modifier | inheritance | version | aggregate | access_shape |
+| --- | --- | --- | --- | --- | --- | --- |
+| 重入合约 | 2035 | 281 | 731 | 247 | 252 | 5 |
+| 访问控制合约 | 2128 | 254 | 416 | 251 | 201 | 5 |
+| 重入节点 | 1210 | 103 | 529 | 171 | 151 | 3 |
+| 访问控制节点 | 1550 | 107 | 177 | 121 | 107 | 3 |
+
+旧成功函数共6923个任务内实例（两粒度有重叠，非6923个独立源码函数）全部比较原solve与solve_v2的完整RDResult，facts/in/out/definitions/reachable/iterations/uses均一致；旧投影事实、端点和边重数逐函数一致，包括零投影事实函数569/286/382/159。by_ast对比通过文件实例为136/102/69/55；这仅统计两种视图都可构造的文件，并非把文件级版本回退排除出支持率分母。modifier事实过滤均为0。
+
+四任务各用inside_token float32[512]、CPU、G1R构造一次对应模型并validate_registration。L1正向canonical数为21/22/21/22，对应独立REV相同数量，总新增类型组合42/44/42/44；逐canonical名称和边数存model_schema.json。参数量依次4871698、4871698、4715746、4789618。只做构造/注册，没有真实图forward、loss或optimizer。最终验收耗时约91.72/61.41/52.94/31.50秒，是CPU构图核验时间，不是训练耗时。
+
+**41.8 剩余范围限制和结果解释**
+
+四任务仍回退276/357/85/102个函数。完整Top10、旧原因→新route或仍回退原因的交叉表在各summary.json。主要类别是多个/带参数/带副作用或嵌套调用的modifier、版本域无证据或跨作用域边界、assembly、new_expression、inline_array_expression和真正嵌套写；均保留原文件和HCG。
+
+当前L1是聚合基变量粒度：不同成员或数组元素会合并到同一声明的基变量上，弱定义是保守“可能更新”，不是字段敏感的数据流。用户类型中的contract/enum也按文档保守归为aggregate。ordinary call的聚合参数只记读取，内部函数对memory/storage引用的修改与别名传播没有摘要，因此不能宣称完整、无漏报的数据依赖分析。
+
+单个前缀modifier恢复不等于新增控制依赖，也不等于支持任意modifier内联。新增跨函数状态锚点关系与环境源节点分别属于Prompt 3/4，尚未在本阶段实施。支持率与边数增加不证明漏洞检测F1提升，也未解决作者标签的历史争议。
+
+**41.9 测试、实际运行命令与收据**
+
+最终定向集合为38访问＋30RD＋19集成＋9验收入口，共96项。全部v2含P1/P1b共182 passed、0 failed/skipped、8条既有DGL/NetworkX弃用warning，8.06秒；原DDG＋graph_utils 223 passed、0 failed/skipped、29条既有warning，3.44秒。合计405项，不重复累计定向执行、不宣称全仓库测试全集。
+
+MY_BANK.Collect预期5类def-use事实与acc弱写通过；弱写不KILL、整体赋值KILL、storage数组push、前缀modifier、string参数、晚失败无残留、旧fixture超集均通过。额外核验声明遮蔽、unknown/函数类型回退、重复tuple、嵌套mutation、空事实旧成功、SHA绑定版本、错投影不猜近邻以及标签/token干预不改变边。测试中最初版本元数据fixture不完整及CSV转义错误已按现有CSV/源码/行记录校验格式修正，未放宽生产校验。
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l1_build --output scripts/DFG/experiments/artifacts/dfg_v2/l1_build/final_route_audit
+~~~
+
+上述构图命令是本轮实际执行命令；该目录已经存在，重跑须显式换新输出路径，不能覆盖。入口另支持--manifest、--baseline-summary、--max-iterations，未虚构原脚本参数。最终每任务含hcg.gpickle、audit/inputs/acceptance/model_schema/manifest/summary JSON；批次含summary.csv/json、run_inputs.json和receipt.json。输入图/源码/manifest/P0摘要、运行前后代码SHA均核验。原write_bundle会写旧adapter/version，本步在v2入口独立包装正确的v2 manifest，未修改旧工具。
+
+完整测试log/XML、两次构图日志、route修正前后比较和最终validation在prompt2_v1。最终源代码与产物路径/摘要由该收据绑定，不把首轮旧route报告当作最终审计。11077个受保护文件SHA不变，三文档旧字节前缀一致。代码与三文档按共享约定本地提交，未stage图/锁文件或其他历史资产。
+
+**41.10 停止点**
+
+本轮完成Prompt 2的L1扩展、全部要求测试和四任务真实构图/模型注册验收，无方案替换待批。按共享约定本地提交后停止，未自动push、未启动Prompt 3/4/7/8或任何模型训练。实施、复核与记录AI：Codex。
