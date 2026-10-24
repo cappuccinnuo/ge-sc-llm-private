@@ -449,7 +449,7 @@ PROFILES 改为：
 ## 4. 验收
 dfg_v2 全部测试与原有回归通过；PROGRESS.md、HANDOVER.md、training_changes 追加"Prompt 1b"记录，写明剖面名变更与原因。
 
-（状态：待执行。）
+（状态：2026-10-23 已完成并验收，提交 5526009。）
 ```
 
 ### 4.4 Prompt 2：L1 函数内定义—使用的扩展
@@ -564,6 +564,8 @@ h) 超集：对 scripts/DFG/tests/fixtures 中旧标量测试用过的所有合�
 - 报告：函数支持率（前 → 后，分母沿用 Prompt 0 的全部源码函数：3404/3148/2045/1958）、route 分布、"旧回退原因 → 新结果"交叉表、新增边数、新的 canonical 关系、回退原因 Top 10 的变化。Prompt 0 中占比最大的旧回退原因是 modifier（441/370/127/145）、inheritance_binding_not_supported（374/23/363/10）和 string/bytes/var 等非标量类型，报告要说明这几类各恢复了多少。
 - 用 Prompt 1 的 make_model（CPU，不训练，profile="G1R"）在四个 L1 图上各构造一次节点或合约模型，确认 schema 能被接受，并列出新增的 canonical 关系及其边数。
 完成后更新 PROGRESS.md 并提交。
+
+（状态：2026-10-24 已完成并验收，提交 d8abc4d。L1 图在 artifacts/dfg_v2/l1_build/final_route_audit/；函数支持率 R 合约 59.78%→91.89%、AC 合约 67.60%→88.66%、R 节点 59.17%→95.84%、AC 节点 79.16%→94.79%。）
 ```
 
 ### 4.5 Prompt 3：L2 状态变量中转关系
@@ -609,7 +611,10 @@ class StateBinder（每个 callable 一个实例）：
 - constant 状态变量默认跳过（配置项 include_constants=False）。
 
 ## 3. 读写分类 dfg_v2/state_access.py
-在每个 Unit 的 regions 内分类：
+在每个 Unit 的 regions 内分类。
+
+**语法树形状（Prompt 2 发现）**：当前 grammar 把 `delete a[i]` 解析为 array_access(base=unary_expression(delete, a), index=i)，前缀 `++a[i]`/`--a[i]` 同理。Prompt 2 在 l1_access.py::ExtendedAccessExtractor._prefix_access_event 中只按 AST 字段处理了这种顶层形状。L2 必须用同一规则识别写目标，否则 `delete balances[msg.sender]` 会被误判为只读。做法：把该形状识别抽成 dfg_v2 内一个纯函数（输入 AST 节点，返回 (运算符, 被操作的访问链, 下标列表) 或 None），l1_access 改为调用它（行为不变，用 Prompt 2 全部测试与四任务 L1 图 computation_fingerprint 不变来证明），L2 也调用它。测试加入 `delete balances[msg.sender];`、`++counts[k];`、`delete holders[i].amount;` 三种写法。
+
 - 写（WRITE）：
   - assignment_expression 左侧链的根；
   - augmented_assignment_expression 左侧链的根（同时也是 READ）；
@@ -668,7 +673,11 @@ i) L1 回退的函数（例如含 assembly）仍然能产生 L2 边。
 
 ## 6. 真实数据验收
 在 R/AC 四个任务上构建 L1 + L2 的图（供 G2R 使用），输出到 artifacts/dfg_v2/l2_build/：
+- 输入是 Prompt 2 最终的 L1 图（artifacts/dfg_v2/l1_build/final_route_audit/，先核对其 manifest 与 SHA）；L2 只追加 WRITES_STATE/READS_STATE，L1 的 DATA_DEF_USE 边及属性逐条不变。
 - 不变量全部通过（原节点、原边不变，只多出 v2 关系）。
+- L2 覆盖要和 L1 的函数支持情况分开报告：特别列出在 L1 中仍回退的函数（Prompt 2 中 276/357/85/102 个）里产生了多少 L2 边，用来确认 L2 确实不依赖 L1。
+- 中转节点的度分布：每个任务列出 READS_STATE 出度、WRITES_STATE 入度最大的 10 个状态变量（变量名、所在文件、度数）。度数很高的变量（例如 owner、balances）是正常现象，只记录，不截断；它们是 Prompt 7 显存估计的输入。
+- 用 Prompt 1/1b 的 make_model（CPU，不训练，profile="G2R"）在四个图上各构造一次，列出新增的 canonical 关系及边数（正向与 REV_ 各自计数）。
 - 报告每类：状态变量声明数、锚点命中率、WRITES/READS 边数、跨函数连通对数（同一个 decl 的写语句与读语句位于不同 callable 的对数）、经别名的边的比例、unresolved 原因分布。
 - 固定 seed=0 抽 20 条边，打印两端代码，写进 PROGRESS.md 供人工检查。
 ```
