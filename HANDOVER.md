@@ -1848,3 +1848,23 @@ hashes and receipts without training or changing execution guards.
 - 实际grammar的delete/前缀update下标形状做v2顶层AST适配；未改parser。无名称聚合声明的恢复route审计已修正；首轮产物不覆盖，最终图/报告在artifacts/dfg_v2/l1_build/final_route_audit/。两轮图计算摘要和投影事实相等，仅route证明信息变化。
 - 详细记录见training_changes第41节与dfg_v2/PROGRESS.md；测试/构图/比较/保护收据在artifacts/dfg_v2/prompt2_v1/。依旧是基变量近似，ordinary call引用副作用不跟踪，复杂modifier/版本不明/assembly等仍回退；覆盖提升不代表F1提升。
 - 未训练、未执行solc、未开始Prompt 3/L2或L3。按共享约定本地提交Prompt 2后停止，本轮未push。实施、复核与记录AI：Codex。
+
+
+## 2026-10-24 DFG v2 Prompt 3 L2状态声明中转关系完成（Codex）
+
+- 起点为dfg-v2@80afa66681ba46f848472895eae6871957a3c7ec，已核对远端同一提交。按最新版共享上下文与Prompt 3实施，新增8个生产文件、8个测试文件；既有代码只在v2/l1_access.py提取共享AST形状识别函数。旧DDG、HGT、tokenizer、标签、固定折和历史产物不变。
+- L2在Prompt 2最终L1图上增加WRITES_STATE（语句→已有状态声明）与READS_STATE（声明→语句），不新建节点。G2R通过既有adapter生成显式REV；NetworkX只存正向。局部遮蔽按整个callable保守处理，同文件C3唯一声明绑定，有限storage别名取并集，不做调用摘要或跨函数到达定义。
+- ProjectionView仅去掉词法作用域版本门槛，保留预处理token一致性与精确AST映射。四任务362个原SourceView成功文件实例映射一致；额外恢复8个文件的59个状态锚点，四任务锚点全部100%。L1仍使用既有视图；四任务L1完整图与计算fingerprint重建均相同。
+- 用户明确批准收紧push/pop：仅确认接收者为动态数组或bytes时记录读＋写；合约对象同名方法和类型不明者按普通调用记录可确认读取，审计跳过写入原因。核验实际被访问的字段/元素类型与alias指向类型，不只看根变量名。修复前2项回归失败，修复后相关72项通过。
+
+| 任务 | 原节点 | WRITES_STATE | READS_STATE | L1回退函数中有L2的数量/总数 | 来自回退函数的L2边 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 重入合约 | 18312 | 3108 | 4314 | 182/276 | 480 |
+| 访问控制合约 | 13432 | 1609 | 2208 | 224/357 | 707 |
+| 重入节点 | 12036 | 2254 | 3070 | 51/85 | 195 |
+| 访问控制节点 | 7710 | 767 | 1091 | 72/102 | 284 |
+
+- 四个CPU G2R模型构造/schema通过，512维特征保持；没有真实图前向、训练、优化器更新或F1结果。原节点顺序/属性/标签/token、原CFG/CG及L1边/key/证据全部保留。无对应节点的读写只审计丢弃，四任务unmapped出现数219/228/101/93。
+- 新增162项测试；全部v2 344项＋旧DDG/graph_utils 223项＝567 passed，0失败/跳过；8/29条既有弃用warning。每任务seed=0抽20条，共80条边经独立Codex源码复核（85处出现、5条alias边），未发现具体错误；不等同专家标注或solc编译验证。
+- 最终图和manifest/audit/acceptance/model_schema/edge_sample在artifacts/dfg_v2/l2_build/；前后证据、测试日志/XML、投影比较和复核在artifacts/dfg_v2/prompt3_v1/。旧push_pop_review顶层source字段误被后续语料覆盖，已保留原件并另写corrected审计，源码身份与70处语料出现重新核验；未因此改变图或标签。
+- 详细文件、选择、命令和限制见training_changes第42节；20条完整端点源码见dfg_v2/PROGRESS.md。L2为流不敏感的基变量中转关系，不证明执行可达、别名精确或检测收益。未开展L3/Prompt 4、外部编译或训练；按共享约定本地提交后停止，本轮未push。实施、复核与记录AI：Codex。

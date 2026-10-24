@@ -227,3 +227,403 @@ CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l1_build --output scrip
 仍回退276/357/85/102个函数，原样本/HCG保留。主要为复杂modifier、无可靠版本、assembly/new/inline-array/嵌套写。var tuple仍回退。聚合基变量合并字段/元素，不代表精确别名或完整Solidity数据流；扩大覆盖不保证F1提升。所有本轮Solidity测试均未独立编译。
 
 Prompt 2已完成；下一步Prompt 3的L2状态锚点尚未开始，L3和训练也未开展。按共享约定本地提交后停止，本轮未push。实施、复核与记录AI：Codex。
+
+
+## 2026-10-24 Prompt 3：L2状态声明中转关系完成
+
+起点dfg-v2@80afa66681ba46f848472895eae6871957a3c7ec，远端同一HEAD。沿用最新§4.1，原作者代码、冻结DDG、HGT、tokenizer、训练规则、标签、折和旧产物不变。实施、复核与记录AI：Codex。
+
+### 实现和已批准的调整
+
+新增projection_view.py、units.py、access_shape.py、state_binding.py、state_access.py、l2.py、l2_projection_audit.py、l2_build.py及8个同名测试文件。既有代码仅l1_access.py将前缀delete/update形状识别抽到共享纯函数；原行为以四任务L1重建逐fingerprint证明保持。三文档只追加，详细逐文件说明与选择在training_changes第42节。
+
+ProjectionView保留原SourceView的token一致性及raw/compat映射，只不推断lexical scope mode；L1不使用它。Units只分析节点自己的表达式区域；if/while只看条件，for独立子节点自己负责，未映射emit/revert不挂父节点。StateBinder按整个callable保守遮蔽，唯一C3状态绑定，Unsupported时当前合约唯一声明回退，常量默认排除；storage别名只支持直接状态根及有限多目标并集。
+
+用户批准（call_813c0a5a2e4e40c890a79d25c61b0f9a）不按名字把所有push/pop认作状态写入。现核验实际接收者类型，只有动态数组/bytes写入；合约对象、固定数组、未知类型等保留可确认读取并记录跳过原因。字段/元素/alias使用选中位置的类型，避免只看根状态变量。legacy隐式storage仅限有版本证据的局部引用，不泛化至参数/返回值。revert_arguments实际AST包装的读取遍历已修正；缺HCG节点仍unmapped。
+
+修复前2项push/pop回归失败，修复后相关72项通过。初次push_pop_review顶层source字段被后续语料覆盖，旧记录保留；corrected记录给出正确反例SHA、旧事件和修复后重探，重新核验70处语料出现。它是审计说明修正，不是图或标签修改。
+
+### 真实数据验收
+
+| 任务 | 文件/原节点 | 原Supported锚点→当前锚点 | WRITES | READS | L1回退中有L2/总数 | 回退函数贡献边 |
+| --- | --- | --- | ---: | ---: | --- | ---: |
+| 重入合约 | 142 / 18312 | 2360/2369→2369/2369 | 3108 | 4314 | 182/276 | 480 |
+| 访问控制合约 | 114 / 13432 | 872/922→922/922 | 1609 | 2208 | 224/357 | 707 |
+| 重入节点 | 71 / 12036 | 1788/1788→1788/1788 | 2254 | 3070 | 51/85 | 195 |
+| 访问控制节点 | 57 / 7710 | 403/403→403/403 | 767 | 1091 | 72/102 | 284 |
+
+SourceView可用文件的mapping/compat_ids/compat_nodes全部相同，四任务136/102/69/55个文件实例，共362。ProjectionView恢复8文件59锚点，失败文件0。锚点100%不代表全部访问可投影。unmapped出现219/228/101/93，anchor_missing均0；原图节点/key/属性/标签/token、原CFG/CG与5659/5713/3419/3889条L1边全部保留。
+
+| 任务 | 跨callable写读对 | alias边/比例 | L2 canonical含REV | G2R参数量 |
+| --- | ---: | --- | ---: | ---: |
+| 重入合约 | 10667 | 231 / 3.1124% | 16 | 5003026 |
+| 访问控制合约 | 7009 | 148 / 3.8774% | 18 | 5019442 |
+| 重入节点 | 7692 | 223 / 4.1886% | 16 | 4847074 |
+| 访问控制节点 | 3974 | 148 / 7.9656% | 18 | 4937362 |
+
+跨callable对仅表示同声明共享的写读上下文，排除initializer，不保证可行执行路径。Top10声明读出度/写入度及完整unresolved分布见各任务summary.json；所有canonical和边数见model_schema.json。热点不截断，REV逐关系与正向边数一致。四个CPU G2R模型构造/schema通过，512维特征不变；真实图未前向或训练。
+
+### 测试、保护和产物
+
+新增162项回归；全部v2 344 passed、旧DDG+graph_utils 223 passed，合计567；0失败/跳过，8/29条既有弃用warning。log/XML及修复前后证据在artifacts/dfg_v2/prompt3_v1/。L1四图完整与计算fingerprint均和P2最终图相同。独立只读复核355项runtime SHA与四任务输入/图/源码链式摘要通过。
+
+最终产物为artifacts/dfg_v2/l2_build/，每任务含hcg.gpickle、audit、inputs、acceptance、model_schema、edge_sample、manifest、summary；批次receipt绑定runtime和所有任务。ProjectionView普查在prompt3_v1/projection_audit/。输入为P2的l1_build/final_route_audit/，无覆盖。最终validation另核对11087个受保护已跟踪文件和三文档旧字节前缀；提交SHA在独立commit_receipt记录。
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_projection_audit --output scripts/DFG/experiments/artifacts/dfg_v2/prompt3_v1/projection_audit
+CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_build --l1-directory scripts/DFG/experiments/artifacts/dfg_v2/l1_build/final_route_audit --output scripts/DFG/experiments/artifacts/dfg_v2/l2_build
+~~~
+
+命令输出已存在，再运行须换新目录。未执行solc编译，测试不等同语言合法性已验证。L2不做精确字段/别名/callee摘要或跨函数RD；没有原HCG节点的事实继续丢弃计数。尚无检测效果结论。Prompt 3完成后本地提交，未push，未进入Prompt 4/L3或训练。
+
+### 固定抽样端点源码（20条）
+
+各任务分别seed=0抽20条unique L2边，共80条；独立Codex对80条边/85处出现（5条alias边）做源码与证据复核，没有发现具体错误。下面按固定任务顺序各取其既定样本前5条，共20条，完整展示两端源码，不按结果挑例。完整80条及审核身份保留在edge_sample.json和manual_edge_review.json。此为AI辅助复核，仍待领域专家确认。
+
+源码从inputs绑定的文件、audit中的精确AST字节跨度提取。if节点源码可能包含函数体片段，但READ/WRITE只来自其condition region，不会因展示完整AST文本而纳入子语句。source/target ID是已有HCG节点身份。
+
+#### P3 sample 1: reentrancy_author_contract / buggy_20.sol / WRITES_STATE
+
+- HCG: 7386 -> 7381; via_alias=False; source SHA256=76d607594dc5be00d665f8948c880d9823ae65efe29e27cedb811d3abb670af5
+
+Source (raw lines 479-479, bytes 16780-16823):
+
+~~~solidity
+jackpot_re_ent2    = address(this).balance;
+~~~
+
+Target (raw lines 474-474, bytes 16601-16622):
+
+~~~solidity
+uint jackpot_re_ent2;
+~~~
+
+#### P3 sample 2: reentrancy_author_contract / buggy_23.sol / READS_STATE
+
+- HCG: 5677 -> 5680; via_alias=False; source SHA256=0ea2e8d84a5c1f18db073809e603c2c5743af4f0f139dd613c168982b339fa56
+
+Source (raw lines 368-368, bytes 13439-13475):
+
+~~~solidity
+address payable lastPlayer_re_ent30;
+~~~
+
+Target (raw lines 371-372, bytes 13551-13619):
+
+~~~solidity
+if (!(lastPlayer_re_ent30.send(jackpot_re_ent30)))
+        revert();
+~~~
+
+#### P3 sample 3: reentrancy_author_contract / 0x634446285f22aa660b36424ecd27455ab9bde51c.sol / WRITES_STATE
+
+- HCG: 3780 -> 3776; via_alias=False; source SHA256=147024d9c713ee84dfb8fc252636d3ecabebb61708af7d8471b917f9d0e0f255
+
+Source (raw lines 435-435, bytes 11304-11321):
+
+~~~solidity
+symbol = _symbol;
+~~~
+
+Target (raw lines 430-430, bytes 11164-11185):
+
+~~~solidity
+string public symbol;
+~~~
+
+#### P3 sample 4: reentrancy_author_contract / buggy_19.sol / WRITES_STATE
+
+- HCG: 94 -> 80; via_alias=False; source SHA256=20ff5ab2123fdff3afefefc8e3c7abd3b292fe329badcd552b4c08fc10018d08
+
+Source (raw lines 94-94, bytes 2324-2341):
+
+~~~solidity
+owner = newOwner;
+~~~
+
+Target (raw lines 64-64, bytes 1511-1532):
+
+~~~solidity
+address public owner;
+~~~
+
+#### P3 sample 5: reentrancy_author_contract / buggy_34.sol / READS_STATE
+
+- HCG: 6880 -> 7134; via_alias=False; source SHA256=2182dadd5be822e13020b02e918d2d0eddaf942f26fc11ca9c5af2104b3d6dc4
+
+Source (raw lines 161-161, bytes 4768-4823):
+
+~~~solidity
+mapping (address => transferMapping) private _balances;
+~~~
+
+Target (raw lines 669-669, bytes 22249-22314):
+
+~~~solidity
+_balances[account].amount = _balances[account].amount.sub(value);
+~~~
+
+#### P3 sample 6: access_control_author_contract / buggy_24.sol / WRITES_STATE
+
+- HCG: 728 -> 490; via_alias=True; source SHA256=1c5ac378add0c2d531237ca87366e49101a7002528c81a90f8355d9bc66c2a4b
+
+Source (raw lines 596-596, bytes 22563-22610):
+
+~~~solidity
+user.currentStaticCommissionWithdrawAmount = 0;
+~~~
+
+Target (raw lines 272-272, bytes 9083-9129):
+
+~~~solidity
+mapping (address => User) private userMapping;
+~~~
+
+#### P3 sample 7: access_control_author_contract / 0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol / READS_STATE
+
+- HCG: 6329 -> 6358; via_alias=False; source SHA256=20bb5bcde2e3db6ac2d2ba1a76d9fcda049716f273324f9e437ec09377c723f5
+
+Source (raw lines 146-146, bytes 4611-4663):
+
+~~~solidity
+mapping(address => uint256[]) private ownedAuctions;
+~~~
+
+Target (raw lines 216-216, bytes 7345-7386):
+
+~~~solidity
+ownedAuctions[_from].push(lastAuctionId);
+~~~
+
+#### P3 sample 8: access_control_author_contract / 0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol / WRITES_STATE
+
+- HCG: 4902 -> 4886; via_alias=False; source SHA256=ee88135813a8224b7c9455c79f335d64116c772850184403b8bc1734e9e396ef
+
+Source (raw lines 172-172, bytes 6039-6106):
+
+~~~solidity
+_allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);
+~~~
+
+Target (raw lines 106-106, bytes 3274-3341):
+
+~~~solidity
+mapping (address => mapping (address => uint256)) private _allowed;
+~~~
+
+#### P3 sample 9: access_control_author_contract / 0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol / WRITES_STATE
+
+- HCG: 8880 -> 8856; via_alias=False; source SHA256=9338961d1813f14219e9c09d12788804f5f5a8ef6ace1b884ff104d363104a05
+
+Source (raw lines 49-49, bytes 987-1000):
+
+~~~solidity
+locked=false;
+~~~
+
+Target (raw lines 7-7, bytes 280-306):
+
+~~~solidity
+bool public locked = true;
+~~~
+
+#### P3 sample 10: access_control_author_contract / buggy_50.sol / READS_STATE
+
+- HCG: 7154 -> 7224; via_alias=False; source SHA256=c90006c8a348d37e9fca70098a17e57bcccf6e314a4f6cc640d2e32d887dcf26
+
+Source (raw lines 14-14, bytes 324-356):
+
+~~~solidity
+address payable private manager;
+~~~
+
+Target (raw lines 147-147, bytes 4305-4320):
+
+~~~solidity
+return manager;
+~~~
+
+#### P3 sample 11: reentrancy_author_node / buggy_40.sol / WRITES_STATE
+
+- HCG: 10821 -> 10732; via_alias=False; source SHA256=f530b30562180ec1150773025b7f45856c96a44121c5bc3bcdbf25be4cc03f64
+
+Source (raw lines 429-429, bytes 15018-15068):
+
+~~~solidity
+_balances[sender] = _balances[sender].sub(amount);
+~~~
+
+Target (raw lines 224-224, bytes 7893-7940):
+
+~~~solidity
+mapping (address => uint256) private _balances;
+~~~
+
+#### P3 sample 12: reentrancy_author_node / buggy_48.sol / WRITES_STATE
+
+- HCG: 13903 -> 13883; via_alias=False; source SHA256=1eacdda7fa2de58517083454d8de92932b7a0dec0eccfa1ac3a3081c085bf887
+
+Source (raw lines 195-195, bytes 7634-7655):
+
+~~~solidity
+newOwner = _newOwner;
+~~~
+
+Target (raw lines 164-164, bytes 6770-6794):
+
+~~~solidity
+address public newOwner;
+~~~
+
+#### P3 sample 13: reentrancy_author_node / spank_chain_payment.sol / READS_STATE
+
+- HCG: 12933 -> 12982; via_alias=False; source SHA256=15724a9aecd227749e4e3441bf408892ead6639d7c2830b116014183fb537d09
+
+Source (raw lines 378-378, bytes 14625-14669):
+
+~~~solidity
+mapping(bytes32 => Channel) public Channels;
+~~~
+
+Target (raw lines 471-479, bytes 18908-19377):
+
+~~~solidity
+if (Channels[_lcID].partyAddresses[0] == recipient) {
+             if(isToken) {
+                 require(Channels[_lcID].token.transferFrom(msg.sender, this, _balance),"deposit: token transfer failure");
+                 Channels[_lcID].erc20Balances[2] += _balance;
+             } else {
+                 require(msg.value == _balance, "state balance does not match sent value");
+                 Channels[_lcID].ethBalances[2] += msg.value;
+             }
+         }
+~~~
+
+#### P3 sample 14: reentrancy_author_node / buggy_23.sol / READS_STATE
+
+- HCG: 5619 -> 5622; via_alias=False; source SHA256=0ea2e8d84a5c1f18db073809e603c2c5743af4f0f139dd613c168982b339fa56
+
+Source (raw lines 234-234, bytes 7931-7981):
+
+~~~solidity
+mapping(address => uint) redeemableEther_re_ent32;
+~~~
+
+Target (raw lines 238-238, bytes 8142-8209):
+
+~~~solidity
+uint transferValue_re_ent32 = redeemableEther_re_ent32[msg.sender];
+~~~
+
+#### P3 sample 15: reentrancy_author_node / buggy_18.sol / WRITES_STATE
+
+- HCG: 2893 -> 2774; via_alias=False; source SHA256=b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec
+
+Source (raw lines 406-406, bytes 14895-14921):
+
+~~~solidity
+rewardEra = rewardEra + 1;
+~~~
+
+Target (raw lines 244-244, bytes 8337-8359):
+
+~~~solidity
+uint public rewardEra;
+~~~
+
+#### P3 sample 16: access_control_author_node / buggy_50.sol / WRITES_STATE
+
+- HCG: 7230 -> 7154; via_alias=False; source SHA256=c90006c8a348d37e9fca70098a17e57bcccf6e314a4f6cc640d2e32d887dcf26
+
+Source (raw lines 157-157, bytes 4613-4631):
+
+~~~solidity
+manager = newmngr;
+~~~
+
+Target (raw lines 14-14, bytes 324-356):
+
+~~~solidity
+address payable private manager;
+~~~
+
+#### P3 sample 17: access_control_author_node / buggy_21.sol / READS_STATE
+
+- HCG: 5105 -> 5153; via_alias=False; source SHA256=a56027eab5cd86b394c4af105aa36f7fc91f24aefa636eaa2b640eb164a0402f
+
+Source (raw lines 142-142, bytes 4542-4587):
+
+~~~solidity
+mapping(address=>uint256) public withdrawfee;
+~~~
+
+Target (raw lines 212-212, bytes 7457-7558):
+
+~~~solidity
+require(amount>0 && amount <= userDetails[msg.sender][address(0)] && withdrawfee[address(0)]<amount);
+~~~
+
+#### P3 sample 18: access_control_author_node / buggy_34.sol / WRITES_STATE
+
+- HCG: 4544 -> 4518; via_alias=False; source SHA256=afe641e5e3e75ae90778bb8e27ca9b0af76c4d3f30ec4615b051a718f4646eb2
+
+Source (raw lines 200-200, bytes 6394-6434):
+
+~~~solidity
+_maxTotalSupply = 1000000000 * 10 ** 18;
+~~~
+
+Target (raw lines 159-159, bytes 4939-4970):
+
+~~~solidity
+uint256 public _maxTotalSupply;
+~~~
+
+#### P3 sample 19: access_control_author_node / parity_wallet_bug_2.sol / WRITES_STATE
+
+- HCG: 9516 -> 9610; via_alias=False; source SHA256=3026bd9ff80d0a4b7d166c0d4d2aad07063d05a67e3df9267d9580933d1a529e
+
+Source (raw lines 259-259, bytes 9473-9502):
+
+~~~solidity
+m_txs[o_hash].value = _value;
+~~~
+
+Target (raw lines 405-405, bytes 14314-14353):
+
+~~~solidity
+mapping (bytes32 => Transaction) m_txs;
+~~~
+
+#### P3 sample 20: access_control_author_node / buggy_4.sol / READS_STATE
+
+- HCG: 5571 -> 5607; via_alias=False; source SHA256=1c963c08a66e6516d74a296676631091f82a275d88a8a1539eb7de6ba119114e
+
+Source (raw lines 86-86, bytes 2766-2786):
+
+~~~solidity
+address public team;
+~~~
+
+Target (raw lines 141-149, bytes 4617-5136):
+
+~~~solidity
+if(msg.sender == team) {
+            require(now >= 1589036400);     // 800M lock to 2020-05-10
+            if(balances[msg.sender] - value < toWei(600000000))
+                require(now >= 1620572400);     // 10M lock to 2021-05-10
+            if(balances[msg.sender] - value < toWei(400000000))
+                require(now >= 1652108400);     // 10M lock to 2022-05-10
+            if(balances[msg.sender] - value < toWei(200000000))
+                require(now >= 1683644400);     // 10M lock to 2023-05-10
+        }
+~~~
+
+
+提交前补充：对新增文件执行暂存区格式检查时，发现 l2.py、projection_view.py、tests/test_l2.py 各多一个文件末尾空行；未发现其他格式问题。为保持已验收源码与四任务产物的 SHA 绑定，不再改动这三个文件。最终格式检查仅在该次命令中关闭 blank-at-eof 提示（未修改 Git 配置），其余空白错误检查仍启用；默认检查输出及此处理记入 staging_validation.json。这是格式提示，不涉及计算或测试结果。

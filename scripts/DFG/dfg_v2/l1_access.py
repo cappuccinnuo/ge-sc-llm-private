@@ -8,6 +8,7 @@ from ..access_extractor import AccessExtractor
 from ..frontend import span
 from ..models import Unsupported
 from .l1_models import V2Event
+from .access_shape import prefix_access_shape
 
 
 class ExtendedAccessExtractor(AccessExtractor):
@@ -97,36 +98,20 @@ class ExtendedAccessExtractor(AccessExtractor):
         Follow AST base/object fields, never text replacement or line proximity.
         Nested operators in indices/arguments still pass through reads() and fail.
         """
-        pointer, indices = node, []
-        while pointer is not None and pointer.type in ("member_expression", "array_access"):
-            if pointer.type == "array_access":
-                indices.append(pointer.child_by_field_name("index"))
-                pointer = pointer.child_by_field_name("base")
-            else:
-                pointer = pointer.child_by_field_name("object")
-        if pointer is None or pointer.type not in ("unary_expression", "update_expression"):
+        shape = prefix_access_shape(node)
+        if shape is None:
             return None
-        operator = pointer.child_by_field_name("operator")
-        argument = pointer.child_by_field_name("argument")
-        if operator is None or argument is None:
-            raise Unsupported("V2: malformed prefix access chain")
-        spelling = self._name(operator)
-        if (pointer.start_byte != node.start_byte
-                or operator.start_byte != node.start_byte
-                or operator.end_byte > argument.start_byte
-                or spelling not in ("delete", "++", "--")):
-            # Do not reinterpret non-prefix or nested side effects.
-            return None
+        spelling, argument, indices = shape
         root = self._chain_root(argument)
         symbol = self._resolve(root) if root is not None else None
         reads = self.reads(argument)
-        for index in reversed(indices):
+        for index in indices:
             reads += self.reads(index)
         weak = [symbol] if self._aggregate(symbol) else []
         self.diagnostics.append({
             "kind": "v2_prefix_access_chain",
             "operator": spelling, "byte": node.start_byte,
-            "parser_shape": pointer.type, "anchor_preserved": True,
+            "parser_shape": argument.parent.type, "anchor_preserved": True,
         })
         return self.event(owner, reads, kind="delete" if spelling == "delete" else "update",
                           weak_writes=weak)

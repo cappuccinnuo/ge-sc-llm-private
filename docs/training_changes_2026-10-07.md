@@ -3561,3 +3561,120 @@ CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l1_build --output scrip
 **41.10 停止点**
 
 本轮完成Prompt 2的L1扩展、全部要求测试和四任务真实构图/模型注册验收，无方案替换待批。按共享约定本地提交后停止，未自动push、未启动Prompt 3/4/7/8或任何模型训练。实施、复核与记录AI：Codex。
+
+
+## 42. 2026-10-24 DFG v2 Prompt 3：L2状态变量声明中转关系（Codex）
+
+**42.1 起点、授权与修改边界**
+
+本轮按最新PROMPTS.md第4.1共享上下文和Prompt 3实现。工作树为/home/zhao/SmartContract/ge-sc-llm-ddg-v11，分支dfg-v2，起点80afa66681ba46f848472895eae6871957a3c7ec；只读核验远端同一HEAD。before.json保存起点、11087个受保护已跟踪文件SHA、三文档原始字节数/SHA、l1_access.py原SHA和已有未跟踪清单。本轮不改PROMPTS、不改冻结DDG/HGT/tokenizer/训练代码，不覆盖旧图、标签、折或产物。实现、复核与记录AI均为Codex。
+
+范围为在P2最终L1图上旁路添加L2；L2不依赖L1成功，不新建state节点，不实现L3、控制依赖或训练。旧HCG的节点集合、顺序、属性、标签和token，原CFG/CG边/key/属性及L1 DATA_DEF_USE边/证明属性均严格保留。模型仍由P1/P1b的G2R adapter生成独立REV关系，NetworkX中只存正向。
+
+**42.2 文件清单与修改原因**
+
+以下均在scripts/DFG/dfg_v2/：
+
+| 文件 | 动作 | 核心职责/原因 |
+| --- | --- | --- |
+| projection_view.py | 新建 | 复制SourceView构造逻辑并注明原路径/SHA；只去掉scope_mode，mode=None，保留预处理token校验及raw/compat映射 |
+| units.py | 新建 | AST精确投影并划分语句自己的表达式区域；有独立节点的for子表达式自己负责，缺投影的语句不得上挂父节点 |
+| access_shape.py | 新建 | 抽取P2实际grammar的前缀delete/update访问链识别纯函数，L1/L2共用 |
+| l1_access.py | 最小修改 | 原内联形状识别改调共享函数；6行增加、21行删除，四任务重建证明计算不变 |
+| state_binding.py | 新建 | callable级保守局部遮蔽、C3/当前合约唯一状态绑定、常量排除、受限storage别名及接收者类型证据 |
+| state_access.py | 新建 | 各Unit区域内READ/WRITE提取；赋值/复合/update/delete/tuple/index/确认数组push-pop及alias |
+| l2.py | 新建 | 旁路加两种关系、去重、证据索引、分类回退与不变量检查 |
+| l2_projection_audit.py | 新建 | 全部真实文件投影等价、声明锚点及恢复文件审计 |
+| l2_build.py | 新建 | 绑定P2最终产物，四任务构图、L1回退独立覆盖、Top10度、固定抽边、CPU G2R注册、manifest/receipt |
+
+新增测试8个：test_access_shape.py、test_projection_view.py、test_units.py、test_state_binding.py、test_state_access.py、test_l2.py、test_l2_projection_audit.py、test_l2_build.py，分别24/10/11/25/47/13/11/21项，合计162项。三份已有文档只追加本轮记录，所有原文保持。
+
+**42.3 审查中确认的选择、用户批准与修复证据**
+
+1. 用户明确批准push/pop类型核验。审批问题ID为call_813c0a5a2e4e40c890a79d25c61b0f9a，回复“同意，只对确认的数组记录 push/pop 写入（推荐）”。原模板按方法名识别，会把合约对象target.push(1)/target.pop()误判为写target。现只对接收者实际类型为动态数组或bytes记录READ+WRITE；固定数组、bytesN、string、合约和未知类型按普通调用读取可确认根及参数，记录跳过写入的理由。bytes是动态字节数组的实现口径，不泛化到所有字节/字符串类型。不增加完整类型系统或调用摘要。
+2. 类型核验使用访问链选中后的类型，不只看状态根类型。struct.array、mapping[key]、多维数组元素逐层识别；alias初始化/重绑定保留指向位置类型，再解释alias后续访问链。union中有不同目标，分别依据证据判定。
+3. legacy无数据位置的隐式storage只用于符合版本和类型证据的局部引用；参数/返回值不能仅因legacy就视作storage。memory/calldata不建storage别名；重复局部名禁用别名推断，名字仍用于保守遮蔽。这些是模板“局部p”的落实，不扩大支持范围。
+4. 实际grammar的revert_arguments包装节点原先会漏遍历状态读取，已在新增L2提取器中修复并回归。原HCG无对应revert节点时，该读取被审计为unmapped，不猜测挂到相邻节点。
+5. push/pop最小反例修复前定向测试2项失败，修复后相关state_binding/state_access共72项通过。证据在prompt3_v1/push_pop_fix/{before.log,after.log,after.xml,regression.json}，保存命令、前后SHA，不删除关键断言或更改错误期望。
+6. 初次push_pop_review.json的顶层source字段被探针后续读取的Wallet源码覆盖，审计发现后保留原文件，新增push_pop_review_corrected.json。新记录绑定旧件SHA、正确反例源码SHA、旧反例事件、修复后重探结果和当前runtime；重新校验70处语料出现的源码SHA/字节跨度。明确旧事件与修复后事件不相同，不伪造“修复前输出”。该问题仅影响探针说明字段，未用于L2输入构图。
+7. 原模板与实际既有代码无其他需要替换的方案。本轮未修订PROMPTS原文；批准的收紧在三文档与证据中记录，后续需按这些约束解释L2。
+
+**42.4 语义、投影和失败处理**
+
+局部遮蔽收集整个callable的参数/返回值/局部声明（包括出现在引用之后的声明）；按声明身份绑定，非同名即连边。C3必须获得唯一state_variable_declaration；ClosedScopeJ不支持时仅检查当前合约体内唯一声明，记录回退依据。this.x、Contract.x和a.x的属性x不会单独当状态；默认排除constant。
+
+Unit中if/while/do只分析条件，for按现有独立HCG节点归属；callable节点只分析modifier实参，不吞入函数体。state声明只分析初始化表达式。分析器读取源码/元数据与AST，不从token/标签/预测提取关系。statement或state声明不能精确投影时记录unmapped/anchor_missing，保留样本，不按最近行号补边。
+
+显式storage和有证据的legacy局部引用只接受状态根初始化/整体重绑定，可能目标取并集；不追踪alias-of-alias，不分析被调函数修改，不处理精确storage slot。L2本身流不敏感：跨函数“写→声明→读”表示共享状态上下文，不能解释为读必然读取该写的值。每个(src,dst,relation)只保留一条边，state_vars排序，via_alias取OR，evidence_indices保留所有对应事实；不加声明自环，不删除同端点其他关系。
+
+
+**42.5 投影视图和L1无变化验收**
+
+| 任务 | SourceView成功文件映射一致数 | P0 Supported锚点 | 本轮ProjectionView锚点 |
+| --- | ---: | ---: | ---: |
+| 重入合约 | 136 | 2360/2369 | 2369/2369 |
+| 访问控制合约 | 102 | 872/922 | 922/922 |
+| 重入节点 | 69 | 1788/1788 | 1788/1788 |
+| 访问控制节点 | 55 | 403/403 | 403/403 |
+
+四任务合计362个原SourceView成功文件实例，mapping/compat_ids/compat_nodes完全相同。R合约2个、AC合约6个原版本作用域受阻文件恢复9+50个声明锚点；ProjectionView失败文件为0。这里100%是已有状态声明的投影命中率，不是所有状态访问或语义的支持率。L1仍按既有SupportedSourceView策略，不因ProjectionView而放宽。
+
+共享prefix helper提取后，四任务重新运行L1，完整graph_fingerprint和computation_fingerprint均与P2 final_route_audit逐项一致，DATA_DEF_USE仍为5659/5713/3419/3889条。L1复核耗时约31.15/22.74/20.34/12.62秒；未覆盖P2图。绑定证据在prompt3_v1/l1_equivalence/receipt.json和各任务记录。
+
+**42.6 四任务真实L2构图与模型接入**
+
+| 任务 | 文件 | 原节点 | 新WRITES | 新READS | 总L2 | L1回退函数有L2/总数 | 回退函数贡献边 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 重入合约 | 142 | 18312 | 3108 | 4314 | 7422 | 182/276 | 480 |
+| 访问控制合约 | 114 | 13432 | 1609 | 2208 | 3817 | 224/357 | 707 |
+| 重入节点 | 71 | 12036 | 2254 | 3070 | 5324 | 51/85 | 195 |
+| 访问控制节点 | 57 | 7710 | 767 | 1091 | 1858 | 72/102 | 284 |
+
+| 任务 | 跨callable写读对 | alias边/占L2比例 | unmapped出现 | L2 canonical含REV | 模型参数 | 构图及验收秒 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 重入合约 | 10667 | 231 / 3.1124% | 219 | 16 | 5003026 | 63.5195 |
+| 访问控制合约 | 7009 | 148 / 3.8774% | 228 | 18 | 5019442 | 42.0626 |
+| 重入节点 | 7692 | 223 / 4.1886% | 101 | 16 | 4847074 | 38.6041 |
+| 访问控制节点 | 3974 | 148 / 7.9656% | 93 | 18 | 4937362 | 21.0660 |
+
+cross_callable_pairs按同一声明的唯一写语句/读语句对统计，且callable不同；状态初始化不作为callable对。不代表跨函数控制流或可行路径。unmapped是访问出现数，不是文件数或节点数；四任务anchor_missing均0。L2 callable统计含modifier，不能拿它直接当L1函数支持率分母。
+
+Top10 READS出度和WRITES入度逐声明完整列在各任务summary.json（变量/文件/节点/度）。例如spank_chain_payment.sol的Channels在重入任务READS出度85；热点未截断。每个新增canonical及正向/REV边数在model_schema.json；同一正反关系边数逐项相等。只构造四个CPU G2R模型并验证schema，inside_token维度512；没有真实图forward、fit或optimizer step，不据此宣称GPU显存或训练表现通过。
+
+绑定unresolved主要为state_name_missing，四任务分别2340/2529/1550/1744次；state_name_ambiguous为96/51/18/17次。这里包括无法归到状态声明的普通调用名字，不等同全部是错误或漏掉的实际状态访问。别名未确认原因包括重复局部声明、RHS被局部遮蔽、非链式RHS、版本证据不足；详细分布及排除项分别存summary/audit，避免合并为一个“失败率”。
+
+**42.7 测试、样本复核与证据强度**
+
+先通过模块定向测试与push/pop前后回归，再完成全v2与旧DDG回归。最终v2 344 passed、0 failed/errors/skipped、8条warning、8.18秒；旧DDG＋tests/test_graph_utils.py为223 passed、0 failed/errors/skipped、29条warning、3.52秒。合计567项通过（不重复计入此前定向执行），不是全仓库测试全集。警告为既有DGL/NetworkX等弃用提示，无新增失败。
+
+测试覆盖if/for/modifier/initializer单元边界、前缀delete/update、storage/memory/legacy及遮蔽、继承回退、状态重绑定、未知类型push/pop、缺失语句不误投影、标签/token干预不影响事实、图边去重及原始属性保留、错误输入摘要和重复输出目录拒绝。L1四图重建是独立于单元测试的计算不变证据。
+
+每任务排序后random.Random(0)抽20条唯一L2边，四任务共80条。独立Codex复核80条边对应85处源码出现，含5条alias边；源码SHA、AST跨度、绑定、Unit归属和读写方向均核对，未发现具体错误。PROGRESS附各任务固定样本前5条共20条完整端点源码；完整80条在各任务edge_sample.json和prompt3_v1/manual_edge_review.json。此为AI辅助源码检查，尚无领域专家独立标注和外部solc编译验证。
+
+最终另行只读复核355个当前runtime SHA、4任务manifest/file SHA和P2链式绑定，352个唯一输入/源码/产物路径、384个任务内源码实例和172个元数据路径实例均通过。原HCG与L1/新L2的节点、基础边、L1 key/属性再次逐项核验，80条样本审查身份仍一致。
+
+**42.8 实际命令、产物与恢复**
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+CUDA_VISIBLE_DEVICES= python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_projection_audit --output scripts/DFG/experiments/artifacts/dfg_v2/prompt3_v1/projection_audit
+CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_build --l1-directory scripts/DFG/experiments/artifacts/dfg_v2/l1_build/final_route_audit --output scripts/DFG/experiments/artifacts/dfg_v2/l2_build
+~~~
+
+这些输出目录已存在，重跑必须使用新输出目录，入口拒绝覆盖。测试完整log/XML保存在prompt3_v1，构图入口无resume训练含义。新图按l2_build/<task>/hcg.gpickle保存，配套audit、inputs、acceptance、model_schema、edge_sample、manifest、summary JSON；批次summary.csv/json、run_inputs.json、receipt.json绑定运行代码、源文件与输入SHA。include_constants默认False，可显式配置；本轮四任务均为False。
+
+运行期间原图、原P2 L1产物和历史文档正文没有改动。最终保护校验、测试XML摘要与三文档追加前缀证明写入prompt3_v1/validation.json；本地提交SHA另写commit_receipt.json，避免文档嵌入自身提交哈希循环。产物不加入本轮Git提交，原有未跟踪资产/lock保留。
+
+**42.9 限制、未执行事项和停止点**
+
+当前L2为保守、流不敏感的状态基变量关系，字段/数组元素汇总到声明，alias多目标取并集可能增加过近似；不支持完整指针/引用分析、被调用函数摘要和精确存储位置。无版本证据只影响需要版本判定的alias分支，不以无版本为理由删整个文件。缺原HCG emit/revert等节点的事实仍未接入模型。构图正确不代表噪声和新增聚合参数不会影响后续训练。
+
+本轮未下载/安装/执行新的solc，Solidity样例只进行了当前解析器和语义/投影测试，不能称编译验证通过。未启动Prompt 4/L3、环境节点、正式或smoke训练，没有新增F1结论。按共享上下文本地提交Prompt 3后停止，未自动push。后续Prompt 4可复用ProjectionView/Units，但须单独按其要求实施验收。
+
+
+提交前补充：对新增文件执行暂存区格式检查时，发现 l2.py、projection_view.py、tests/test_l2.py 各多一个文件末尾空行；未发现其他格式问题。为保持已验收源码与四任务产物的 SHA 绑定，不再改动这三个文件。最终格式检查仅在该次命令中关闭 blank-at-eof 提示（未修改 Git 配置），其余空白错误检查仍启用；默认检查输出及此处理记入 staging_validation.json。这是格式提示，不涉及计算或测试结果。
