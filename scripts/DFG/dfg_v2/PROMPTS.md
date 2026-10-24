@@ -796,48 +796,82 @@ n) 新节点属性键集合 = 9 个原键 + dfg_v2_aux。
 - 固定 seed=0 每个任务抽 20 条 ENV_FLOW 边，打印键、spellings 与目标语句代码，写进 PROGRESS.md。
 ```
 
+（状态：2026-10-24 已完成并验收，提交 71f19dc（4.0）与 8f8702c。L2 重建到 l2_build_r1/，与 l2_build/ 逐图相同；env 节点 / ENV_FLOW：R 合约 298/3857、AC 合约 261/2536、R 节点 187/3200、AC 节点 182/1948；真实图 CPU 前向中 G3 同键跨文件差异为 0，G3R 不为 0。用户批准的偏离：grammar 会让二元/一元表达式吞掉后缀（a + gasleft() 解析为 (a + gasleft)()），L3 沿未加括号的 binary.right/unary.argument 恢复已知写法，不越过显式括号。遗留的两项只读诊断放在 Prompt 5 第 0 部分。）
+
 ### 4.7 Prompt 5：统一构图入口、任务注册表与输入清单
 
 ```text
-# Prompt 5：统一构图入口、任务注册表、输入清单与构图审计
+# Prompt 5：统一构图入口、任务注册表、输入清单与图存储
 
-## 1. dfg_v2/pipeline.py
-build(graph, sources, metadata, profile, token_encoder=None, max_iterations=100000) -> (graph, audit)
-- profile 必须在 PROFILES 中。G0 返回深拷贝，fingerprint 与输入相同。
-- 按剖面中的正向关系决定要建哪几层：含 DATA_DEF_USE 建 L1，含 WRITES_STATE/READS_STATE 建 L2，含 ENV_FLOW 建 L3；执行顺序 L1 → L2 → L3。
-- NetworkX 图只含正向关系；反向关系只在 model_input.materialize 中生成。正向关系集合相同的剖面（G3 与 G3R）只建一次、共用同一张图。audit 中记录该剖面是否在模型输入阶段加反向。
-- 结束时检查：
-  - 原节点、原边不变；
-  - v2 关系没有自环、没有重复；
-  - 每条 v2 边都能追溯到 evidence；
-  - 没有跨文件的边；
-  - env_source 节点只出现在 G3/G3R。
-- audit 字段：版本、profile、各层统计、输入/输出 fingerprint、computation_fingerprint（复用 integration/pipeline.py）、源码 SHA、labels_used_for_analysis=False。
+前置：Prompt 4 已完成（提交 71f19dc、8f8702c）。先 git pull --ff-only origin dfg-v2。
+本 Prompt 分两次提交：第 0 部分单独提交（提交信息写 "Prompt 5.0"），第 1–5 部分再提交一次。
+
+目标：用一个入口从原始冻结输入重建全部剖面的图，并证明它与 Prompt 2–4 分阶段产物逐图相同。此后 Prompt 6–8 只读取本步生成并封存的图存储（graph store），不再读取 l1_build/、l2_build_r1/、l3_build/。
+
+## 0. Prompt 4 审查遗留的两项只读诊断（先做，不改任何已有代码与图）
+
+1. 解释 G3R 中"邻域不同、但表示在 1e-6 内相同"的 1,070 个文件对。
+   - 推测原因：inside_token 特征是 token ID 原值（0 到约 32100 的 float32），经 adapt_ws 线性层与 gelu 后数值很大，HGT 的注意力分数 q·k/√d_k 随之极大，edge_softmax 在初始化时几乎是 one-hot。env_source 的消息于是近似只取每个 canonical 中得分最高的那一个邻居。两个文件只要各 canonical 的得分最高邻居表示相同（例如同样文本的 require(msg.sender == owner);），输出就相同，其余邻居的差异被抹掉。
+   - 新文件 dfg_v2/attention_probe.py：CPU、eval()、torch.no_grad()，每个任务对 l3_build 的图构造一次 G3R 模型并前向一次。不训练、不算损失、不反传。
+   - 用 forward hook 拿到每层 HGTLayer 的输入 h 与输出。对每个以 env_source 为目标的 canonical，用该层自身的参数按 sco_models/model_hgt.py::HGTLayer.forward 的公式重算注意力（k/q/v 线性层、relation_att/relation_msg/relation_pri、edge_softmax(norm_by='dst')、fn.sum、跨关系 mean、a_linear、skip）。不 monkeypatch、不改原代码。
+   - 正确性检查：用重算结果拼出的 env_source 输出与 hook 拿到的真实输出最大差 ≤ 1e-5，否则停下报告，不使用重算结论。
+   - 报告：
+     - 每层 adapt_ws 之后各节点类型 h 的绝对值均值与最大值；
+     - env_source 每个目标行、每个 canonical 的最大注意力权重分布（≥0.99 的比例、中位数）；
+     - 对 Prompt 4 记录为"未解析"的每个文件对：各 canonical 的得分最高邻居表示是否逐位相同。
+     - 同样统计 READS_STATE 的目标（语句节点）和一个原关系（next_line）的最大注意力权重，作为对照。
+   - 结论写进 PROGRESS 和 training_changes。如果确认是注意力饱和，这是原作者 inside_token 特征本身的性质，G0 同样存在。不改特征、不加归一化（会破坏 G0 与历史的一致性）；只作为 Prompt 8 解释结果时的已知事实。
+2. 当前 grammar 的表达式形状对 L1/L2/L3 是否还有遗漏。
+   - 背景：Prompt 4 发现二元/一元表达式可能吞掉后缀（a + gasleft() 解析成 (a + gasleft)()）。L1/L2 按"根变量与出现集合"工作，这种形状不改变它们看到的标识符集合；写操作来自赋值（优先级最低，不受影响）、delete/++ 前缀（Prompt 2/3 已按同一现象处理）和 push/pop。理论上只有"二元/一元表达式吞掉 x.push(...)/x.pop()"会让 L2 漏掉一次写入。
+   - 另一个未核实的风险：grammar 的 _primary_expression 包含 user_defined_type（点分标识符路径）。如果某处 msg.sender 或 s.field 被解析为 user_defined_type 而不是 member_expression，L2 与 L3 都会把它当作类型名跳过，不留任何诊断。
+   - 新文件 dfg_v2/grammar_shape_audit.py：对 R/AC 四个任务的全部源码（用 l3_build 输入清单中的源码与 SHA），用 ProjectionView 的 raw 树统计：
+     (a) call_expression.function、member_expression.object、array_access.base 是未加括号的 binary_expression/unary_expression 的次数，按外层类型与运算符分类；其中被吞掉的后缀是 push/pop 成员调用的次数，并逐条列出；
+     (b) 出现在表达式位置的 user_defined_type（父节点不是 type_name、inheritance_specifier、using_directive、override_specifier、modifier_invocation、import 等声明/类型位置），逐条列出文本、位置和父节点类型；其中文本以 msg./tx./block. 开头，或第一段是状态变量名、局部变量名的，单独计数。
+   - 只读，不改分析器。若 (a) 中 push/pop 或 (b) 中有可能影响 L2/L3 的条目大于 0，停下报告条目和建议改法，由用户决定是否修订（修订会使 L2/L3 重建）；若都为 0，记录结论后继续。
+
+## 1. 统一入口 dfg_v2/pipeline.py
+build(graph, sources, metadata, layers, token_encoder=None, max_iterations=100000) -> (graph, audit)
+- layers 取 ()、("L1",)、("L1","L2")、("L1","L2","L3") 之一，按 L1 → L2 → L3 依次调用已有的 l1.augment_l1、l2.augment_l2、l3.augment_l3。只组合、不复制、不修改它们。
+- 图键（graph key）按正向关系集合命名：F0={}、F1={DATA_DEF_USE}、F2=F1∪{WRITES_STATE, READS_STATE}、F3=F2∪{ENV_FLOW}。剖面到图键：G0→F0，G1R→F1，G2R→F2，G3R/G3→F3（以后的 G1/G2 也分别映射到 F1/F2）。映射由 PROFILES 的 forward_relations 推导，不手写第二份表；推导出的正向集合不是这四个之一就报错。
+- F0 不重建：直接引用原 HCG 路径与 SHA（不复制、不重新序列化），保证 G0 与历史逐字节相同。
+- 结束检查：原节点/原边/属性不变；v2 关系无自环、无重复；每条 v2 边都能追溯到 evidence；没有跨文件的边；env_source 只出现在 F3；NetworkX 图中没有 REV_*。
+- audit：版本、图键、对应剖面、各层 audit 的汇总、输入/输出 fingerprint 与 computation_fingerprint（复用 integration/pipeline.py）、源码 SHA、tokenizer provenance、labels_used_for_analysis=False。
 
 ## 2. 任务注册表与输入清单 dfg_v2/tasks.py、dfg_v2/inputs.py
-- tasks.py：任务注册表，每个类别一条记录，字段为类别名、合约级与节点级作者图路径和 SHA、源码清单、标签文件、折文件。现在只填 reentrancy 与 access_control；其余 5 类（arithmetic、denial_of_service、front_running、time_manipulation、unchecked_low_level_calls）只在注释中列出。任务名格式 <类别>_<contract|node>。
-- inputs.py：按注册表为选中的任务生成 artifacts/dfg_v2/inputs/manifest.json，内容包括原 HCG 的路径与 SHA、源码清单（file → path, sha256, metadata）、标签文件、折文件。R/AC 一律用已冻结的折与标签。
-- 为以后扩展预留：inputs.py 提供 make_folds(category)，内部调用 scripts/DFG/experiments/freeze_splits.py 的同一个函数与同样的参数（seed=1, inner_fraction=0.2）。现在不对其余 5 类运行它。若 Prompt 0 确认 R/AC 的冻结折就是由该函数生成，测试它能逐文件复现；否则只测试它能对 R/AC 生成合法折文件，并在 PROGRESS.md 记录差异。
-- 清单生成后写 manifest.seal.json（记录 SHA）。之后的步骤只读这个清单。
-- 写 scripts/DFG/dfg_v2/EXTENDING.md：新增一类的五个步骤（注册 → Prompt 0 中该类的锚点与 token 核对 → 生成并封存折 → cli build --tasks → run plan --tasks），并写明不需要改任何分析或模型代码。
+- tasks.py：每个类别一条记录。字段：类别名；合约级与节点级各自的冻结任务清单引用（integration/rebuild.py::DEFAULT_MANIFEST 中的 source_task_manifest 与 SHA，内含原 HCG 与源码清单）；graph_labels.json 路径与 SHA；nested 折文件路径与 SHA。路径与 SHA 取 RECON.md 第 5 节已核对的值，构造时逐个 checked()。
+  - 现在只填 reentrancy 与 access_control。其余 5 类（arithmetic、denial_of_service、front_running、time_manipulation、unchecked_low_level_calls）只在注释中列出。
+  - 任务名格式 <类别>_<contract|node>。代码中不出现类别名分支。
+- inputs.py：为选中的任务生成 artifacts/dfg_v2/inputs/manifest.json 与 manifest.seal.json。内容：每个任务的原 HCG 路径与 SHA、源码清单（file → path、sha256、metadata）、标签文件、折文件、tokenizer 的 feature 记录（含 asset_hashes）。之后的步骤只读这份清单。
+- make_folds(category)：调用 scripts/DFG/experiments/protocol.py::make_fold_document（seed=1、inner_fraction=0.2；合约级 5 折，节点级为 10 折且只含 buggy 文件），与 freeze_splits.py 用的是同一个函数。现在不对其余 5 类运行它。测试：对 R/AC 四个任务在内存中重建，与冻结的 nested 折文件逐字段相同（Prompt 0 已确认 4/4 一致）。
+- 写 scripts/DFG/dfg_v2/EXTENDING.md：新增一类的五个步骤（注册 → Prompt 0 中该类的锚点与 token 核对 → make_folds 生成并封存折 → cli build --tasks → run plan --tasks），并写明不需要改任何分析或模型代码。
 
 ## 3. 命令行 dfg_v2/cli.py
-python -B -m scripts.DFG.dfg_v2.cli build --manifest <清单> --tasks reentrancy_contract,reentrancy_node,access_control_contract,access_control_node --profiles G0,G1R,G2R,G3R,G3 --output <新目录>
-（G3 与 G3R 只输出一份图，目录按正向关系集合命名并在 build_summary.csv 中注明对应的剖面。）
-（--tasks 默认就是这四个任务。）
-- 输出 <output>/<task_id>/<profile>/hcg.gpickle 与 audit.json；拒绝覆盖已有目录。
-- 写 <output>/build_summary.csv，列：task_id, profile, nodes, edges, 每个 v2 关系的边数, 新 canonical 数, 函数支持率, 锚点命中率, 耗时。
+build：
+  python -B -m scripts.DFG.dfg_v2.cli build --manifest <inputs 清单> --tasks reentrancy_contract,reentrancy_node,access_control_contract,access_control_node --graph-keys F1,F2,F3 --output artifacts/dfg_v2/graphs_v1
+- --tasks 默认就是这四个任务；--graph-keys 默认 F1,F2,F3（F0 只登记引用）。
+- 每个任务只解析一次源码，L1 → L2 → L3 逐层构建，逐层保存：<output>/<task_id>/<图键>/hcg.gpickle 与 audit.json。F2 由 F1 的结果继续构建、F3 由 F2 继续，不从头重复 L1。
+- 为每个 (任务, 剖面) 构造一次 CPU 模型（make_model，G0/G1R/G2R/G3R/G3 共 20 次），只验证 schema 并记录 canonical 数与参数量，不前向。
+- 写图存储 <output>/store.json 与 store.seal.json：每个任务 → 每个图键 → 路径、SHA、fingerprint、computation_fingerprint、正向关系集合、对应剖面及各剖面是否加反向、模型 schema 摘要。G0 指向原 HCG。拒绝覆盖已有目录。
+- 写 <output>/build_summary.csv，列：task_id、graph_key、profiles、nodes、edges、各 v2 关系边数、env 节点数、新 canonical 数、L1 函数支持率、状态声明锚点命中率、耗时。
+verify：
+  python -B -m scripts.DFG.dfg_v2.cli verify --store <store.json>
+- 核对 seal、每个图文件的 SHA 与 fingerprint、输入清单 seal。Prompt 7/8 训练前调用它。
+- verify 不要求当前代码树与构图时的 runtime 相同（runtime 只记录在 store 中，供追溯）。原因：以后任何无关的提交都会改变 runtime SHA；训练需要的是"图与构图记录对得上"，而不是"代码从未改过"。构图过程内部仍要求开始与结束时 runtime 相同。
 
-## 4. 测试
-- G0 的 fingerprint 与输入相同。
-- L1 图 ⊆ L1+L2 图 ⊆ L1+L2+L3 图（按 (src, dst, edge_type) 比较边集合）。
+## 4. 测试 tests/test_pipeline.py、tests/test_tasks.py、tests/test_cli.py
+- F0 引用的就是原 HCG，SHA 与 fingerprint 相同。
+- F1 ⊆ F2 ⊆ F3（按 (src, dst, edge_type) 比较边集合；F3 去掉 env_source 后 fingerprint 等于 F2）。
 - 同一输入重复构建，computation_fingerprint 相同（确定性）。
+- 剖面到图键的推导：G3 与 G3R 落到同一个 F3；在临时 PROFILES 中加入 G1/G2 时分别落到 F1/F2；不在四个集合中的正向集合报错。
 - 缺源码的文件保留原图，并在 audit 中列出。
-- 接口通用性：在注册表中临时注册一个虚构类别（复用 R 的 3 个文件改名），走完 注册 → 构图 → make_model 前向，证明代码不依赖类别名；该测试不写入正式注册表。
-- make_folds 的测试见本节第 2 条。
+- 接口通用性：临时注册一个虚构类别（复用 R 的 3 个文件改名），走完 注册 → make_folds → build → make_model 前向（小图）。该测试不写入正式注册表。
+- verify：篡改任一图文件或 store.json 时报错；只新增一个无关 .py 文件时不报错。
 
-## 5. 验收
-R/AC 四个任务 × 4 个剖面全部构建成功；build_summary.csv 写入 PROGRESS.md；不变量全部通过。
+## 5. 真实数据验收
+- 用 cli build 对四个任务构建 F1/F2/F3，输出到 artifacts/dfg_v2/graphs_v1/。
+- 与分阶段产物逐任务比较 fingerprint 与 computation_fingerprint：F1 vs l1_build/final_route_audit，F2 vs l2_build_r1，F3 vs l3_build。必须全部相同；不同就停下，逐条列出边差异，不得用新结果覆盖旧结论。
+- cli verify 通过；build_summary.csv 写进 PROGRESS.md；不变量全部通过；20 次模型构造的 schema 记录写进 store。
+- 记录每任务总构图耗时（应在几分钟以内）与峰值 RSS。
 ```
 
 ### 4.8 Prompt 6：正确性验证
@@ -918,7 +952,7 @@ initialize_family(models, seed)，models 是 profile → model 的映射：
 
 ## 4. 运行器 dfg_v2/experiment/run.py
 命令：
-  python -B -m scripts.DFG.dfg_v2.experiment.run plan --manifest <Prompt 5 清单> --build <Prompt 5 构图目录> --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--reducer mean|nonempty_mean] --output <新批次目录>
+  python -B -m scripts.DFG.dfg_v2.experiment.run plan --store <Prompt 5 的 graphs_v1/store.json>（先调用 cli verify） --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--reducer mean|nonempty_mean] --output <新批次目录>
   python -u -B -m scripts.DFG.dfg_v2.experiment.run execute --plan <批次>/plan.json [--only task/fold/seed/profile]
   python -B -m scripts.DFG.dfg_v2.experiment.run verify --plan <批次>/plan.json
   python -B -m scripts.DFG.dfg_v2.experiment.run select --plan <批次>/plan.json
