@@ -183,4 +183,3 @@ def test_missing_source_keeps_entire_graph_and_repeated_layer_rejected():
     graph, _ = augment_l2(base, {FILE: REENTRANCY})
     with pytest.raises(ValueError, match="without L2"):
         augment_l2(graph, {FILE: REENTRANCY})
-

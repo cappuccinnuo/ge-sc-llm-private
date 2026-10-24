@@ -163,6 +163,10 @@ class StateBinder:
             return False
         if any(child.type in ("[", "mapping") for child in node.children):
             return True
+        # Legacy local string/bytes references have the same storage default
+        # as arrays. Exact spelling excludes fixed-size bytes1 ... bytes32.
+        if node.type == "type_name" and text(self.view.source, node) in ("string", "bytes"):
+            return True
         return self._struct(node) is not None
 
     def _alias_kind(self, declaration):

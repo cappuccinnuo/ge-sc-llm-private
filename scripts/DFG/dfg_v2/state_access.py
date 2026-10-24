@@ -142,7 +142,9 @@ class StateAccessExtractor:
         if kind in ("variable_declaration_statement", "state_variable_declaration"):
             self._visit(node.child_by_field_name("value"))
             return
-        if kind == "call_struct_argument":
+        if kind in ("call_struct_argument", "struct_field_assignment"):
+            # Named-call/struct/call-option keys are field names, not reads.
+            # The containing struct_expression still visits its type/receiver.
             self._visit(node.child_by_field_name("value"))
             return
         if kind == "emit_statement":

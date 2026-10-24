@@ -209,4 +209,3 @@ def augment_l2(graph, sources, metadata=None, include_constants=False):
     if fingerprint(graph) != before:
         raise AssertionError("L2 input graph mutated")
     return output, audit
-

@@ -56,6 +56,11 @@ def _regions(node, view, projector):
     if node.type in CONDITIONALS:
         condition = node.child_by_field_name("condition")
         return () if condition is None else (condition,)
+    if node.type == "try_statement":
+        # The attempt is owned by try itself, never by the enclosing function.
+        # Absent exact HCG try nodes remain auditable unmapped occurrences.
+        attempt = node.child_by_field_name("attempt")
+        return () if attempt is None else (attempt,)
     if node.type == "for_statement":
         parts = [node.child_by_field_name(field) for field in HEADER_FIELDS]
         return tuple(part for part in parts if part is not None

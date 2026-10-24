@@ -62,4 +62,3 @@ class ProjectionView(SourceView):
                 self.mapping[k]=matches[0]
         self.functions = [n for n in walk(self.tree.root_node)
                           if n.type in FUNCTION_TYPES and n.child_by_field_name("body")]
-
