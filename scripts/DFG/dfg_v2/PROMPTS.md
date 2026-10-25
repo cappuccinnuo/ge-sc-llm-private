@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b →（可选 P6c）→ P7 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -943,6 +943,73 @@ expected.json 格式：
 - 不训练，不修改 graphs_v1。
 ```
 
+（状态：2026-10-25 已完成，提交 aded502（期望）、f80073f、ec6b700。Oracle 20 例中 17 例完全匹配、32 条禁止边全部满足；3 例差异已复核：04_for_update（6 项）与 18_environment_synonyms（1 项）是期望写错，16_call_option_fields（1 项）是 L1 实现缺口，交给 Prompt 6b。Slither 因缺少离线 solc 全部跳过；人工抽查表 review_v1/ 共 512 条边，等待用户标注。用户批准的偏离：tuple 赋值按语句粒度验证（输入 x/y → tuple 语句 → a/b 的使用），不验证语句内部逐元素来源。）
+
+### 4.8b Prompt 6b：修复 L1 的 call 选项缺口并重建图存储
+
+```text
+# Prompt 6b：L1 支持 call 选项表达式，重建 graphs_v2
+
+前置：Prompt 6 已完成（提交 ec6b700）。先 git pull --ff-only origin dfg-v2。
+
+## 背景
+Oracle 16_call_option_fields：target.call{value: x}("") 被 grammar 解析为 call_expression(function=struct_expression(type=target.call, struct_field_assignment(name=value, value=x)), 参数)。旧 AccessExtractor.reads 与 v2 的 V2AccessExtractor.reads（它最后调用 super().reads）都对 struct_expression 抛 Unsupported，整个函数回退，漏掉 x 的使用。L2/L3 已正确处理（只读 type 一侧与字段的 value，不读字段名）。
+
+## 1. 修改 dfg_v2/l1_access.py::V2AccessExtractor.reads（只改这一个函数）
+- 在调用 super().reads 之前增加一个分支：node.type == "struct_expression" 时，返回
+  self.reads(node 的 type 字段) + 各个 struct_field_assignment 子节点的 self.reads(value 字段)。
+  字段名（name 字段）不是读取。不要碰冻结的 scripts/DFG/access_extractor.py。
+- 不改 CFG、符号表、到达定义、投影。旧路径成功的函数仍然直接复用旧结果（路由规则不变），所以它们的边不可能变化。
+- new C{value: v}(...)、addr.call{value: v, gas: g}(data) 走同一分支；字段值里出现的局部变量都是使用。
+
+## 2. 测试（tests/test_l1_access.py、tests/test_l1.py 中追加）
+- target.call{value: x}("")：x 是使用；字段名 value 不是使用，即使函数里恰好有名为 value 的局部变量或参数。
+- t.call{value: a, gas: b}(data)：t、a、b、data 都是使用（t 为局部 address 变量时）。
+- 只含 call 选项、此前回退的函数，修复后状态为 supported，route 为 v2_retry。
+- 此前已支持的函数：用 Prompt 2 的四任务 L1 比较方法证明边与证据逐条不变（见第 3 部分）。
+- Oracle 16_call_option_fields 的 DATA_DEF_USE 期望现在满足。
+
+## 3. 重建与比较
+- 用 cli build 生成新的图存储 artifacts/dfg_v2/graphs_v2/（输入仍是 artifacts/dfg_v2/inputs/manifest.json，不覆盖 graphs_v1）。
+- 写 dfg_v2/store_diff.py：逐任务、逐图键比较 graphs_v1 与 graphs_v2，输出新增/消失的边（按 relation 分组，逐条附 L1 证据中的函数与语句文本）、L1 函数状态从 fallback 变为 supported 的清单及原回退原因。
+- 必须满足：
+  - 消失的边为 0；L2、L3 的边与属性完全相同（这次修改不在它们的路径上）；
+  - 新增边全部是 DATA_DEF_USE，且全部来自状态由 fallback 变为 supported 的函数；
+  - 其他函数的 L1 证据逐条相同。
+  任何一条不满足就停下报告。
+- R/AC 数据集以 0.4/0.5 为主，call 选项可能很少甚至没有；如实报告恢复的函数数和新增边数，0 也是有效结果。
+
+## 4. 重新运行 Prompt 6 的验证
+- 在 graphs_v2 上重跑 oracle_check，输出到 prompt6b_v1/oracle_run_v3/。预期 16_call_option_fields 通过；04_for_update 与 18_environment_synonyms 仍按 oracle/CLASSIFICATIONS.json 归为期望写错（不修改原期望文件）。在 CLASSIFICATIONS.json 的新版本（新文件 CLASSIFICATIONS_v2.json，旧文件保留）中把 16 标为 fixed，并写明修复提交。
+- 人工抽查表不重新抽样：review_v1 仍是唯一的标注表，避免用户重复标注。由 store_diff 证明 review_v1 中的 512 条边在 graphs_v2 中全部存在且属性不变，并报告 graphs_v2 中有多少条边不在 graphs_v1 中（这些新增边不在抽查范围内，写明这一点）。score_review 增加可选参数 --equivalence <store_diff 结果>，用于把评分结果绑定到 graphs_v2。
+- Slither 仍按 Prompt 6 的结论跳过，除非用户已完成 Prompt 6c 的准备。
+
+## 5. 验收
+- 新测试、dfg_v2/tests 全部、旧 DDG 回归通过。
+- cli verify graphs_v2 通过；store_diff 的约束全部满足。
+- 从本步开始，Prompt 7/8 一律使用 graphs_v2/store.json；graphs_v1 只作为历史记录保留。在 PROGRESS 中写明这一点。
+```
+
+### 4.8c Prompt 6c（可选）：启用 Slither 对照
+
+```text
+# Prompt 6c（可选）：Slither 对照
+
+只有当用户决定需要真实语料上的外部召回参照时才执行。Prompt 6 中所有文件都因缺少离线 solc 而跳过，这是目前唯一能估计 L1/L2 漏边的外部参照；Oracle 只覆盖手写用例，人工抽查表只能估计精确率。
+
+## 0. 用户先完成的准备（需要联网，由用户本人执行，Codex 不得自行安装）
+- Codex 先运行 python -B -m scripts.DFG.dfg_v2.validate_slither --list-versions，列出 R/AC 合约级任务每个文件所需的 solc 版本：有 metadata 精确版本的用 metadata；没有的（Prompt 6 中 213 个文件）用仓库根目录 auto_version_solc.py 的规则从 pragma 推出，并标注 "pragma_derived"。输出版本清单和每个版本覆盖的文件数。
+- 用户在 mando 环境中安装 solc-select 并安装清单中的版本（solc-select install <版本>）。安装完成后告诉 Codex。
+
+## 1. L1 改为完整出现集合
+Prompt 6 的 L1 对照只有投影后的端点，所以召回不可计算。改为：在 validate_slither.py 中只读地调用 Prompt 2 的现有组件（V2 符号表、读写提取、CFG 构建，或 l1.analyze_file 返回的 IR 事件），导出每个已支持函数中每次局部变量读写的（原始源码行，变量名，DEF/USE）。不修改这些组件。回退的函数不计入 v2 一侧，在报告中单独列出 Slither 在这些函数里看到的读写数，作为"回退造成的漏边"。
+
+## 2. 运行与报告
+- 对每个能用对应版本编译的文件运行 Slither 0.8.0；编译失败的文件列出原因，不重试其他版本。
+- 按 Prompt 6 第 2 部分的口径报告 L1/L2 的精确率和召回率、前 20 个不一致样例与原因分类；pragma_derived 版本与 metadata 版本分开统计。
+- 不进入构图，不修改任何图。
+```
+
 ### 4.9 Prompt 7：训练接入与小规模验收
 
 ```text
@@ -978,7 +1045,7 @@ initialize_family(models, seed)，models 是 profile → model 的映射：
 
 ## 4. 运行器 dfg_v2/experiment/run.py
 命令：
-  python -B -m scripts.DFG.dfg_v2.experiment.run plan --store <Prompt 5 的 graphs_v1/store.json>（先调用 cli verify） --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--reducer mean|nonempty_mean] --output <新批次目录>
+  python -B -m scripts.DFG.dfg_v2.experiment.run plan --store <Prompt 6b 的 graphs_v2/store.json>（先调用 cli verify） --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--reducer mean|nonempty_mean] --output <新批次目录>
   python -u -B -m scripts.DFG.dfg_v2.experiment.run execute --plan <批次>/plan.json [--only task/fold/seed/profile]
   python -B -m scripts.DFG.dfg_v2.experiment.run verify --plan <批次>/plan.json
   python -B -m scripts.DFG.dfg_v2.experiment.run select --plan <批次>/plan.json
