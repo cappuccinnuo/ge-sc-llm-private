@@ -3950,3 +3950,103 @@ python -B -m scripts.DFG.dfg_v2.attention_probe --bundle <l3_build的任务目�
 
 
 Final verification: v2 597 passed (8 existing warnings), legacy DDG/graph_utils 223 passed (29 existing warnings); 820 passed, 0 failed/skipped. Grammar targeted 42 passed, attention targeted 17 passed. Logs: prompt5_v1/phase0_final_v2.log and phase0_final_legacy.log. All 11114 protected tracked file SHAs and all three original document prefixes verified unchanged. Grammar r1 task JSON SHAs equal the prior scan; only audit input guards improved.
+
+
+## 47. 2026-10-25 DFG v2 Prompt 5 第1–5部分：统一入口与封存图存储（Codex）
+
+### 47.1 基线、范围与文件
+
+第0部分先独立提交d6c7007，随后才开始本部分。新增pipeline.py、tasks.py、inputs.py、store.py、cli.py、EXTENDING.md、tests/test_pipeline.py、tests/test_tasks.py、tests/task_fixtures.py、tests/test_cli.py，均位于scripts/DFG/dfg_v2/。原分析器、原模型、训练代码、tokenizer、标签、旧实验产物均不修改；三份主文档只追加。这里只构图和验收，不启动Prompt6–8或新实验。
+
+### 47.2 决策、接口实际差异与理由
+
+1. 用户批准的“加载一次”指输入源码文本每任务加载一次、每个augment仅调用一次、F2接F1/F3接F2；现有L1/L2/L3内部仍各自解析。没有伪称跨层共享单次AST，也没有为缓存去修改冻结分析器。
+2. 通用类别验收按用户批准使用20个合成文件身份（10 clean/10 buggy；节点任务仅10 buggy），完整经过注册、原5/10折、构图、两粒度G3R小图前向。真实源码和冻结折不为测试而改动。
+3. 原任务manifest不内嵌后来核验的版本元数据，因此注册表额外固定source_metadata_manifest及SHA；这是保留现有SupportedSourceView输入所需的实际接口补全，不猜编译器版本。
+4. make_folds严格重建并逐字段核验已冻结nested文档，不能把新inputs SHA替代原prepared SHA，也不能误取旧paper_kfold路径。新类别第一次生成折的bootstrap调用原protocol.make_fold_document并拒绝覆盖，然后注册SHA；EXTENDING明确此顺序，未假称本轮已有run plan训练入口。
+5. --graph-keys只保存显式请求的层与F0，所需前置层仍只计算一次但不额外保存；默认四任务F1/F2/F3对应20次CPU模型构造。F0没有新hcg文件，直接原路径和SHA。G3与G3R共用F3文件，REV只由原v2 adapter在模型输入时生成。
+6. store额外单文件封装便于CLI复用。verify重新检查图和schema而不创建HGT模型，不比较当前源码runtime是否等于构建时runtime。构建开始与结束仍要求同一runtime。RSS注明为截至任务结束的进程累计高水位，不能写成各任务独立进程峰值。
+
+### 47.3 核心实现与不变量
+
+pipeline.build/iter_build只组合已有augment。图键由PROFILES正向集合推导，未来G1/G2无须加第二份映射；非法关系组合、未知关系名、非连续层、输入已有v2/REV、原图跨文件连接会拒绝。每层验证原节点ID/顺序/全部属性、原边key/属性/顺序和graph属性不变；所有新增边无自环/重复/跨文件，且证据端点、关系、投影状态和引用全集一致。F3去除env节点后与F2完整指纹相同。缺源码清单项是显式fallback，不删除原图；已登记源码消失或SHA改变则报错，不将输入漂移当fallback。
+
+输入manifest绑定原HCG、源码逐文件path/SHA/metadata、graph labels、原nested折、原prepared身份及完整feature和tokenizer资产。版本metadata引用的原源码和CSV双SHA、唯一行、准确版本字符串也核验；不会让StateBinder吞掉错误后静默降级。构图分析器不读取标签/预测/token；输入与结果校验会检查标签和特征不变，这是验收用途。
+
+store绑定manifest/seal、逐层图SHA/full fingerprint/computation fingerprint、audit SHA、正向关系、剖面方向、canonical schema与参数量、实际构建参数和runtime。G0使用已准备作者拓扑/作者标签、带本地冻结512维token IDs的原HCG；不把这些向量称作作者发布的token特征。默认真实模型检查仅CPU构造+validate_registration，无forward/loss/backward/optimizer。
+
+### 47.4 测试、失败记录与修正
+
+新增定向：pipeline43、tasks31、CLI/store28，全部通过。包括未来剖面映射、缺源码保留、证据损坏拒绝、构图确定性、真实四份nested逐字段一致、20身份完整链、源/CSV/标签/特征/schema/图/seal篡改拒绝、只新增无关py仍可verify、构图中runtime变化拒绝。CLI测试对classifier.forward设陷阱，默认20次模型构造仍通过；verify额外HGT构造0。
+
+CLI首次26 passed/2 failed原因是测试格式假设：seal JSON末尾空白不改变其任何绑定语义，改为篡改store_sha256；argparse帮助自动折行，改为规范空白后核验原短语。没有放宽图、证据或schema关键断言。原失败日志保留于prompt5_v1/cli_tests/first.log。
+
+最终全v2 699 passed、旧DDG+graph_utils 223 passed，共922 passed，0 failed/0 skipped；分别8/29条既有DGL distutils/NetworkX gpickle弃用warning。日志/XML在prompt5_v1/phase1_final_v2.*及phase1_final_legacy.*。未升级依赖、未执行solc；合成测试不宣称完成Solidity编译验证。
+
+### 47.5 真实构图验收
+
+四任务源码清单共384个实例（142/71/114/57），无缺源码；inputs与store分别独立seal。F0四项均为原路径与原文件SHA直引，未新建F0的hcg文件。默认构建得到12张新图+4个F0引用，共16项，记录20个CPU模型schema；无真实图前向、loss或训练。构图开始/结束runtime一致。独立读取12张新图的两种指纹均与历史P2/P3/P4参照一致，4/4 F3去辅助节点后精确等于F2；原节点、原边与各前层属性逐项保持。历史bundle/receipt/图SHA也重新核验，原产物没有覆盖。
+
+实际每任务耗时包含加载、分析、序列化和schema构造；RSS为同一进程截至任务结束的累计高水位，不是各任务独立峰值：
+
+| 任务 | 总秒数 | 进程累计峰值 MiB |
+| --- | ---: | ---: |
+| reentrancy_contract | 280.51 | 2293.73 |
+| reentrancy_node | 175.84 | 2293.73 |
+| access_control_contract | 200.96 | 2293.73 |
+| access_control_node | 99.88 | 2293.73 |
+
+验收绑定与产物：
+
+- `inputs/manifest.json`: `a5d7f7a080a617dcda1ffc56804e581fa5b6ce2850c8d82f62ee47be75d23edf`
+- `inputs/manifest.seal.json`: `81d36660f044ebc71921aaf98f165104a880bb2e3eced14354f2b4afe4d5c786`
+- `graphs_v1/store.json`: `43e45227f7ccd9ebcbb034cb9e64b2cf430acf2c81dfb458b6ceadc344c67d5b`
+- `graphs_v1/store.seal.json`: `ca6c7ea13cc7304a2de863c14ed9e6fbbac31ec554350894d61a5839197d46fb`
+- `prompt5_v1/independent_graph_comparison.json`: `a5ed87cfd41d72cab51a05d55cf8f395e904aae9cdc636ceba980305e0145513`
+
+完整build_summary.csv（与封存文件同内容，cumulative_seconds为该任务从开始到该层的累计耗时；new_canonical为对应剖面的最大新增数，方向区别见new_canonical_by_profile）：
+
+~~~csv
+task_id,graph_key,profiles,nodes,edges,DATA_DEF_USE,WRITES_STATE,READS_STATE,ENV_FLOW,env_nodes,new_canonical,new_canonical_by_profile,L1_functions,L1_supported,L1_support_fraction,state_declarations,anchored_state_declarations,state_anchor_fraction,cumulative_seconds
+reentrancy_contract,F0,G0,18312,19267,0,0,0,0,0,0,"{""G0"": 0}",0,0,,0,0,,44.49224733401206
+reentrancy_contract,F1,G1R,18312,24926,5659,0,0,0,0,42,"{""G1R"": 42}",3404,3128,0.918918918918919,0,0,,110.59969158700551
+reentrancy_contract,F2,G2R,18312,32348,5659,3108,4314,0,0,58,"{""G2R"": 58}",3404,3128,0.918918918918919,2369,2369,1.0,177.51898770302068
+reentrancy_contract,F3,"G3R,G3",18610,36205,5659,3108,4314,3857,298,68,"{""G3"": 34, ""G3R"": 68}",3404,3128,0.918918918918919,2369,2369,1.0,278.6237832000188
+reentrancy_node,F0,G0,12036,11710,0,0,0,0,0,0,"{""G0"": 0}",0,0,,0,0,,24.43905459198868
+reentrancy_node,F1,G1R,12036,15129,3419,0,0,0,0,42,"{""G1R"": 42}",2045,1960,0.9584352078239609,0,0,,65.26113055300084
+reentrancy_node,F2,G2R,12036,20453,3419,2254,3070,0,0,58,"{""G2R"": 58}",2045,1960,0.9584352078239609,1788,1788,1.0,109.0333901779959
+reentrancy_node,F3,"G3R,G3",12223,23653,3419,2254,3070,3200,187,66,"{""G3"": 33, ""G3R"": 66}",2045,1960,0.9584352078239609,1788,1788,1.0,174.89089208998485
+access_control_contract,F0,G0,13432,15538,0,0,0,0,0,0,"{""G0"": 0}",0,0,,0,0,,30.342772722011432
+access_control_contract,F1,G1R,13432,21251,5713,0,0,0,0,44,"{""G1R"": 44}",3148,2791,0.886594663278272,0,0,,79.46025053001358
+access_control_contract,F2,G2R,13432,25068,5713,1609,2208,0,0,62,"{""G2R"": 62}",3148,2791,0.886594663278272,922,922,1.0,127.71584202800295
+access_control_contract,F3,"G3R,G3",13693,27604,5713,1609,2208,2536,261,72,"{""G3"": 36, ""G3R"": 72}",3148,2791,0.886594663278272,922,922,1.0,199.33407922001788
+access_control_node,F0,G0,7710,8840,0,0,0,0,0,0,"{""G0"": 0}",0,0,,0,0,,14.905203856003936
+access_control_node,F1,G1R,7710,12729,3889,0,0,0,0,44,"{""G1R"": 44}",1958,1856,0.947906026557712,0,0,,38.528895382012706
+access_control_node,F2,G2R,7710,14587,3889,767,1091,0,0,62,"{""G2R"": 62}",1958,1856,0.947906026557712,403,403,1.0,62.25203139000223
+access_control_node,F3,"G3R,G3",7892,16535,3889,767,1091,1948,182,72,"{""G3"": 36, ""G3R"": 72}",1958,1856,0.947906026557712,403,403,1.0,99.24081490701064
+~~~
+
+11114个开始前受保护文件SHA和三份历史文档前缀均保持。新代码摘要见phase1_code_inventory.json；独立验收见independent_graph_comparison.json。具体输入/构图/verify命令日志在prompt5_v1/，完整schema与参数量在graphs_v1/store.json。
+
+### 47.6 实际命令与后续使用
+
+在mando环境、工作树根目录、§4.1环境变量下执行：
+~~~bash
+python -B -c "from scripts.DFG.dfg_v2.inputs import build_manifest; build_manifest('scripts/DFG/experiments/artifacts/dfg_v2/inputs')"
+python -B -u -m scripts.DFG.dfg_v2.cli build \
+  --manifest scripts/DFG/experiments/artifacts/dfg_v2/inputs/manifest.json \
+  --tasks reentrancy_contract,reentrancy_node,access_control_contract,access_control_node \
+  --graph-keys F1,F2,F3 \
+  --output scripts/DFG/experiments/artifacts/dfg_v2/graphs_v1
+python -B -m scripts.DFG.dfg_v2.cli verify \
+  --store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v1/store.json
+~~~
+
+输入与图存储已生成，不应对已有目录重复build；程序会拒绝覆盖。后续步骤使用新的inputs/manifest与graphs_v1/store，不再把历史l1_build/l2_build_r1/l3_build当作运行入口；它们作为本次等价验收参照原样保留。
+
+### 47.7 限制与停止位置
+
+本轮证明的是统一入口不改变既有构图结果，不等于完整Solidity数据流分析或预测精度改善。L1/L2/L3已有支持范围、精确投影缺口与回退保持；注意力诊断限制见第46节，不因第一层集中而修改token ID或归一化。未运行正式训练、GPU显存预检、新seed、其他五类或下一Prompt。按要求第二次本地提交，未自动push。实施、交叉审查与记录AI：Codex。
+
+
+Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph entries, 20 recorded schemas, 0 verification HGT constructions/forwards). Actual runtime SHA map still matches build-time; original 11114 protected files and historical document prefixes verified unchanged. Proof: prompt5_v1/final_acceptance.json.

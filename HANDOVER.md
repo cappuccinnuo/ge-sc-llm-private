@@ -1926,3 +1926,14 @@ CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_build --output scrip
 
 
 Final verification: v2 597 passed (8 existing warnings), legacy DDG/graph_utils 223 passed (29 existing warnings); 820 passed, 0 failed/skipped. Grammar targeted 42 passed, attention targeted 17 passed. Logs: prompt5_v1/phase0_final_v2.log and phase0_final_legacy.log. All 11114 protected tracked file SHAs and all three original document prefixes verified unchanged. Grammar r1 task JSON SHAs equal the prior scan; only audit input guards improved.
+
+
+## 2026-10-25 DFG v2 Prompt 5 统一入口完成（Codex）
+
+- 新增pipeline、tasks/inputs、store/cli及EXTENDING与测试，旧L1/L2/L3、HGT、tokenizer、标签、折和训练代码不变。两项用户批准选择已落实：每任务源码加载一次、各层调用一次复用；20合成身份验证原5/10折。额外固定source_metadata引用，保留原版本证据。
+- 四任务12张新增图的完整/计算指纹全部与历史产物一致；4个F0原文件引用保持，4/4 F3去aux等于F2。新store登记16个图项与20个模型schema。源码384实例全部可用；原标签、token和fold没有改变。
+- 最终699 v2＋223旧回归＝922 passed，0失败/跳过，8/29条既有弃用warning；三组新增定向43/31/28项。真实图构建只做20次CPU schema构造，未训练。F0原路径/SHA直引，F3供G3/G3R共用；REV只在adapter。
+- 产物inputs/、graphs_v1/；验收日志与历史12图比较在prompt5_v1/；后续读新store。verify核验数据与schema，允许无关代码新增；build期间runtime必须一致。详细选择和实际命令见training_changes第47节与PROGRESS。按要求本地提交，未push/执行下一Prompt。修改AI：Codex。
+
+
+Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph entries, 20 recorded schemas, 0 verification HGT constructions/forwards). Actual runtime SHA map still matches build-time; original 11114 protected files and historical document prefixes verified unchanged. Proof: prompt5_v1/final_acceptance.json.
