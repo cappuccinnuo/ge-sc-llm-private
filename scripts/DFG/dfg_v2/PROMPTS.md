@@ -874,47 +874,73 @@ verify：
 - 记录每任务总构图耗时（应在几分钟以内）与峰值 RSS。
 ```
 
+（状态：2026-10-25 已完成并验收，提交 d6c7007（5.0）与 7f8a340。graphs_v1/store.json 登记四任务 F0–F3 共 16 个图项与 20 个模型 schema；F1/F2/F3 与 l1_build/final_route_audit、l2_build_r1、l3_build 的两种指纹全部相同。5.0 诊断：第一层注意力在多邻居目标上大多集中于一个邻居（REV_ENV_FLOW 55–86%、READS_STATE 与 next_line 96–99% 的最大权重 ≥0.99），第二层没有；1,070 对中 731 对是第二层上 1.2e-7–9.5e-7 的真实非零差（约为 float32 舍入量级），不是同一表示；吞掉的 push/pop 与表达式位置的 user_defined_type 均为 0。用户批准的两项接口调整：每任务源码只加载一次、各层各调用一次；通用类别测试改用 20 个合成文件以满足 5/10 折。）
+
 ### 4.8 Prompt 6：正确性验证
 
 ```text
 # Prompt 6：依赖正确性验证（Oracle + Slither + 人工抽查表）
 
-本步只做验证，不修改分析算法。发现的错误记下来，修复放到单独的 Prompt 6b，修复后重新运行本步。
+前置：Prompt 5 已完成（提交 d6c7007、7f8a340）。先 git pull --ff-only origin dfg-v2。所有真实图一律从 artifacts/dfg_v2/graphs_v1/store.json 读取，读取前调用 store.verify_store。
+
+本步只做验证，不修改 L1/L2/L3 分析器、pipeline 或已有图。发现的错误记下来，修复放到单独的 Prompt 6b；6b 修复后必须用 cli build 生成新的图存储（graphs_v2/），并重新运行本步。Prompt 7/8 以最后一次通过本步的图存储为准。
+本 Prompt 分三次提交：(1) 只含 oracle 源码与 expected.json（提交信息 "Prompt 6.1 oracle expectations"）；(2) 比较代码、Slither 对照与抽查表；(3) 文档。
 
 ## 1. 手写 Oracle（先封存期望，再运行）
-在 scripts/DFG/dfg_v2/oracle/ 下放 12–16 个最小合约。覆盖 Prompt 2/3/4 测试中的例子，并补充：
-- for 循环中的 i++
-- if/else 合流
-- 循环回边
-- return 之后的不可达语句
-- tuple 赋值
-- 状态变量的初始化表达式
-- 两个合约的继承
-- storage 别名被重新赋值
+目录 scripts/DFG/dfg_v2/oracle/，每个用例一个 <name>.sol 和 <name>.expected.json。
 
-每个合约配一个 expected.json，列出期望的 (relation, src 语句文本, dst 语句文本, 变量)。先单独提交 expected.json（一次独立的 commit），再运行比较，避免看到结果后改期望。
-报告精确率、召回率和不一致清单。
+用例（18–20 个，每个只测少数几件事，pragma 写明版本）：
+- L1：覆盖赋值后的读取（不应连旧定义）；if/else 合流（两个定义都到达）；while 循环回边（循环体末尾的赋值到达循环条件）；for 循环中的 i++；return 之后的不可达语句；tuple 赋值 (a, b) = (x, y)（x 只到 a）；结构体局部变量的成员写（弱定义，不 KILL）；带一个前缀 modifier 的函数。
+- L2：跨函数写→声明→读（Prompt 3 的 reentrancy_simple）；两个合约的继承；var/storage 别名及其被重新赋值（取并集）；memory 拷贝（无 WRITES）；常量（无边）；参数遮蔽状态变量（无边）；delete balances[msg.sender] 与 ++counts[k]（写）；合约对象的同名 push（只有 READS，无 WRITES）；call 选项 a.call{value: x}("") 中的字段名不算读取；状态变量初始化表达式。
+- L3：同一文件 now 与 block.timestamp 合并为一个节点；msg.gas + gasleft()（需要后缀恢复）；参数名为 now 时被遮蔽；emit 中的 msg.sender 计入 unmapped、不建节点；modifier 体内的 msg.sender。
+
+expected.json 格式：
+{
+  "source_sha256": "...",
+  "edges": [ {"relation": "DATA_DEF_USE", "src": "<语句文本>", "dst": "<语句文本>", "var": "a"}, ... ],
+  "absent": [ 同上格式，必须不存在的边 ],
+  "counts": { "unmapped_env": 1, "env_nodes": {"block.timestamp": 1} }
+}
+- 语句文本按"去掉多余空白后的完整语句"书写；状态变量声明用其声明文本；env 节点写成 "ENV:<键>"。每个用例中同一段语句文本只能出现一次，比较代码先断言这一点。
+- 期望按本文第 3.2–3.4 节写明的语义来写，而不是按完整的 Solidity 语义。设计中有意的近似（L2 不做流分析，同一函数里"读在写之前"也会通过声明节点相连；L1 字段写是基变量弱定义）要按设计写进期望。若在用例里遇到这类近似与真实语义不一致的地方，在该条目加 "approximation": "<说明>"，单独统计。
+- 写期望时不得运行任何分析器、不得查看工具输出。写完先做提交 (1)，并把这次提交的 SHA 与每个 expected.json 的 SHA 写入 oracle/SEAL.json，然后才运行比较。
+
+比较 dfg_v2/oracle_check.py：
+- 对每个用例：tests/test_l1.py::graph_for 同样的方式用 generate_cfg_from_source 生成 HCG，再调用 pipeline.build(..., layers=("L1","L2","L3"))。token_encoder 用一个确定性桩函数（返回固定的 float32[512]）；另写一条测试说明边集合与 encoder 无关。
+- 用节点的 code 规范化后与 expected 比较；env 节点用 "ENV:"+code。
+- 报告每个关系的精确率、召回率，以及 absent 条目中被违反的数量；不一致项逐条列出，并归入三类之一：实现错误 / 设计中的近似 / 期望写错。
+- "期望写错"只有在给出语言规则依据时才能成立；修改期望要在新的提交中进行，保留原文件与原 SHA，在 PROGRESS 中写明理由。不能在看到结果后静默改期望。
 
 ## 2. Slither 对照（只在可编译的子集上做，可选）
-脚本 scripts/DFG/dfg_v2/validate_slither.py：
-- 先检查 slither-analyzer（requirements.txt 中是 0.8.0）与 solc-select 是否可用，离线是否有所需的 solc 版本（版本选择参考 auto_version_solc.py）。不可用就写明原因并跳过，不要联网安装。
-- 对每个可编译的合约，取 Slither 每个 CFG 节点的 state_variables_read / state_variables_written / local_variables_read / local_variables_written 以及源码行号。
+脚本 dfg_v2/validate_slither.py：
+- 先检查 slither-analyzer（requirements.txt 中是 0.8.0）与 solc-select 是否可用，离线是否已有所需的 solc 版本（版本取源码清单 metadata 中记录的 version，选择逻辑参考仓库根目录的 auto_version_solc.py）。不可用就写明原因并跳过，不要联网安装。
+- 只对 R/AC 两个合约级任务的文件做（节点级任务的文件是它的子集）。
+- 对每个可编译的文件，取 Slither 每个 CFG 节点的 state_variables_read / state_variables_written / local_variables_read / local_variables_written 以及源码行号。
 - 对照粒度（只用于本验证，不进入构图）：
-  - 按"语句起始行 + 变量名"比较 L2 的 READ/WRITE 出现集合；
-  - 按同样粒度比较 L1 的 def/use 出现集合。
-  注意 Slither 基于原始源码行号，HCG 基于预处理后的行号；用 SourceView 的 raw 视图行号对齐。
-- 报告每类的精确率、召回率，前 20 个不一致样例，并按原因分类（grammar 差异、别名、继承、内联汇编、modifier 内联方式等）。
-- Slither 会把 modifier 内联，也会把 storage 引用的写算到状态变量上。统计时把这两类分开列出。
+  - L2：按"原始源码行 + 状态变量名 + READ/WRITE"比较出现集合。v2 一侧取 L2 audit evidence 的 occurrence 字节区间换算成原始源码行（ProjectionView 的 raw 树就是原始源码，不要用 HCG 的 node_source_code_lines，后者基于预处理后的行号）。
+  - L1：按"原始源码行 + 局部变量名 + def/use"比较。
+- 报告每个任务的精确率、召回率，前 20 个不一致样例，并按原因分类：grammar 差异、别名、继承、内联汇编、modifier 内联方式、v2 的有意近似（字段汇总到基变量、流不敏感）、v2 回退的函数、其他。
+- Slither 会把 modifier 内联，也会把通过 storage 引用的写算到状态变量上；这两类单独列出，不计入 v2 的错误。
 
-## 3. 人工抽查表
-从 R、AC 两类中各随机抽 15 个合约（seed=0）；每个合约每种关系最多抽 5 条边，导出 CSV，列为：
-task, file, relation, src_line, src_code, dst_line, dst_code, vars, via_alias, 判定（留空）, 备注（留空）
-供用户人工标注。
+## 3. 人工抽查表 dfg_v2/review_sheet.py
+- 从 R、AC 两个合约级任务的 F3 图中各随机抽 15 个文件（seed=0）；每个文件每种关系（DATA_DEF_USE、WRITES_STATE、READS_STATE、ENV_FLOW）最多抽 5 条边。
+- 导出 artifacts/dfg_v2/review_v1/review_sheet.csv（UTF-8 带 BOM，便于 Excel 打开），列：
+  review_id, task, file, relation, src_line, src_code, dst_line, dst_code, vars_or_key, via_alias, spellings, grammar_recovered, evidence_occurrence_text, verdict, note
+  - 行号用原始源码行（同第 2 部分的换算）；verdict 和 note 留空。verdict 只允许填 correct / wrong / unsure。
+  - 同时导出 review_sheet.seal.json（CSV 未填写时的 SHA 与抽样参数），以后可以证明抽样没有被改动。
+- 评分脚本 dfg_v2/score_review.py：读取用户填好的 CSV，先核对除 verdict/note 外的列与封存版本完全相同，再按关系计算 correct 比例及 Wilson 95% 区间（unsure 单独计数，不算入分母）。本步只交付脚本和空表，不由 AI 填写 verdict。
 
-## 4. 验收
-- Oracle 全部通过，或者每个不一致项都有归因；
-- Slither 对照有结果，或者有明确的跳过原因；
-- 抽查表已生成。
+## 4. 测试 tests/test_oracle_check.py、tests/test_review_sheet.py
+- 比较代码在人为删掉一条边、多加一条边、违反一条 absent 时分别报出对应错误。
+- 文本不唯一的用例被拒绝。
+- 抽查表：同一 seed 两次导出逐字节相同；篡改非 verdict 列时 score_review 拒绝。
+- validate_slither 在没有 slither 或 solc 时给出跳过原因，不抛出未处理异常。
+
+## 5. 验收
+- Oracle：全部通过，或每个不一致项都已归类；"实现错误"类的数量与条目写进 PROGRESS，作为 Prompt 6b 的输入（本步不修复）。
+- Slither：有结果，或有明确的跳过原因。
+- 抽查表与封存文件已生成；在 PROGRESS 中写明交给用户标注的文件路径与填写说明。
+- 不训练，不修改 graphs_v1。
 ```
 
 ### 4.9 Prompt 7：训练接入与小规模验收
