@@ -1,0 +1,48 @@
+{
+  "source_sha256": "9a59c4f85dd9cf5730c35e39db6608694678d69c468e8ba29de1d19b30c5f4ba",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L1 strong assignment KILL",
+    "No transitive closure"
+  ],
+  "notes": [],
+  "edges": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "x = 2;",
+      "dst": "uint answer = x;",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint answer = x;",
+      "dst": "return answer;",
+      "var": "answer"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint x = 1;",
+      "dst": "uint answer = x;",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint x = 1;",
+      "dst": "return answer;",
+      "var": "x"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {}
+  }
+}

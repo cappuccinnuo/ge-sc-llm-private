@@ -1,0 +1,44 @@
+{
+  "source_sha256": "b2c4d598fefd107900bf1ebf65040c42f68f5d992374541823c181fd12cad714",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L2 unique state declaration in same-file inheritance",
+    "Cross-function mediated flow"
+  ],
+  "notes": [],
+  "edges": [
+    {
+      "relation": "WRITES_STATE",
+      "src": "inherited = 7;",
+      "dst": "uint inherited;",
+      "var": "inherited",
+      "approximation": "L2 declaration mediation is flow-insensitive and does not prove that a write reaches a read, including reads preceding writes."
+    },
+    {
+      "relation": "READS_STATE",
+      "src": "uint inherited;",
+      "dst": "return inherited;",
+      "var": "inherited",
+      "approximation": "L2 declaration mediation is flow-insensitive and does not prove that a write reaches a read, including reads preceding writes."
+    }
+  ],
+  "absent": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "inherited = 7;",
+      "dst": "return inherited;",
+      "var": "inherited"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {}
+  }
+}

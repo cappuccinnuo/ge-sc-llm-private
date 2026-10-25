@@ -1,0 +1,81 @@
+{
+  "source_sha256": "a0380d6eb572f54e1e85171c4ff27153dda68f03424d804581f1ceca87f38f7e",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L1 tuple RHS reads",
+    "Tuple LHS strong definitions",
+    "Statement-granularity limit"
+  ],
+  "notes": [
+    "Approved by user during Prompt 6: one tuple assignment is one original HCG node. This oracle checks x/y inputs and separate a/b consumers and does not claim to prove within-node x-to-a and y-to-b value provenance. No new variable nodes are introduced."
+  ],
+  "edges": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint x = 4;",
+      "dst": "(a, b) = (x, y);",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint y = 8;",
+      "dst": "(a, b) = (x, y);",
+      "var": "y"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "(a, b) = (x, y);",
+      "dst": "uint left = a;",
+      "var": "a"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "(a, b) = (x, y);",
+      "dst": "uint right = b;",
+      "var": "b"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint left = a;",
+      "dst": "return left + right;",
+      "var": "left"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint right = b;",
+      "dst": "return left + right;",
+      "var": "right"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint a = 0;",
+      "dst": "uint left = a;",
+      "var": "a"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint b = 1;",
+      "dst": "uint right = b;",
+      "var": "b"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint x = 4;",
+      "dst": "uint left = a;",
+      "var": "x"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {}
+  }
+}

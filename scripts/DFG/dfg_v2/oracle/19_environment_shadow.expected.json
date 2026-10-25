@@ -1,0 +1,38 @@
+{
+  "source_sha256": "9c21ab123e930a42a5ef7211b2c82749e1217201c63ea77a834ed81e4f6a6088",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L3 parameter now shadows environment alias",
+    "L1 ordinary parameter tracking"
+  ],
+  "notes": [
+    "No claim of compiler acceptance; this fixture tests explicit binding policy on source syntax."
+  ],
+  "edges": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "function read(uint now) public pure returns (uint) { return now; }",
+      "dst": "return now;",
+      "var": "now"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "ENV_FLOW",
+      "src": "ENV:block.timestamp",
+      "dst": "return now;",
+      "var": "block.timestamp"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {}
+  }
+}

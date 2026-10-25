@@ -1,0 +1,51 @@
+{
+  "source_sha256": "2d27ec446ad94044515a8689148801a5c4df6108699dd20424788077ce5fefa8",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L2 state variable initializer region",
+    "No self write on declaration",
+    "L3 initializer environment"
+  ],
+  "notes": [],
+  "edges": [
+    {
+      "relation": "READS_STATE",
+      "src": "uint seed = 2;",
+      "dst": "uint derived = seed + 1;",
+      "var": "seed"
+    },
+    {
+      "relation": "ENV_FLOW",
+      "src": "ENV:msg.sender",
+      "dst": "address creator = msg.sender;",
+      "var": "msg.sender"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "WRITES_STATE",
+      "src": "uint derived = seed + 1;",
+      "dst": "uint derived = seed + 1;",
+      "var": "derived"
+    },
+    {
+      "relation": "WRITES_STATE",
+      "src": "uint seed = 2;",
+      "dst": "uint seed = 2;",
+      "var": "seed"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {
+      "msg.sender": 1
+    }
+  }
+}

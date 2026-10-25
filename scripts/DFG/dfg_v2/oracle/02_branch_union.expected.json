@@ -1,0 +1,55 @@
+{
+  "source_sha256": "dff4b3853e6b1a694067cd1148faace39377096d71ebd8685243665b2f89bd71",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L1 if/else reaching-definition union"
+  ],
+  "notes": [
+    "Path-insensitive CFG analysis retains both branches despite literal initialization of choose; no constant propagation is assumed."
+  ],
+  "edges": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "bool choose = true;",
+      "dst": "if (choose) { x = 11; } else { x = 22; }",
+      "var": "choose"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "x = 11;",
+      "dst": "uint merged = x;",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "x = 22;",
+      "dst": "uint merged = x;",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint merged = x;",
+      "dst": "return merged;",
+      "var": "merged"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint x = 0;",
+      "dst": "uint merged = x;",
+      "var": "x"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {}
+  }
+}

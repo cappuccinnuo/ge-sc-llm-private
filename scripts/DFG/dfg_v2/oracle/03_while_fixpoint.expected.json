@@ -1,0 +1,63 @@
+{
+  "source_sha256": "626bbbde40f39b4846b1658f3a600ec4ef77e1221f92342f8fdd993bd915751a",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L1 while loop back edge",
+    "Reaching definitions fixpoint",
+    "Self edges suppressed"
+  ],
+  "notes": [
+    "The condition may be false in path-insensitive CFG semantics; initial x reaches the exit without constant evaluation."
+  ],
+  "edges": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint x = 0;",
+      "dst": "while (x < 3) { x = x + 1; }",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "x = x + 1;",
+      "dst": "while (x < 3) { x = x + 1; }",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint x = 0;",
+      "dst": "x = x + 1;",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint x = 0;",
+      "dst": "return x;",
+      "var": "x"
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "x = x + 1;",
+      "dst": "return x;",
+      "var": "x"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "x = x + 1;",
+      "dst": "x = x + 1;",
+      "var": "x"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {}
+  }
+}

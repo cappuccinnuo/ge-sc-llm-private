@@ -1,0 +1,69 @@
+{
+  "source_sha256": "5deaf4cb395986123ac8719d7859cebb34935873ab568c915e33b1fec2f0468c",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L2 memory copy is not storage alias",
+    "L1 local member weak definition"
+  ],
+  "notes": [],
+  "edges": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "Box memory copied = stored;",
+      "dst": "copied.left = 8;",
+      "var": "copied",
+      "approximation": "Base-variable weak definition summarizes distinct fields and retains previous whole-object definitions; it is not field-sensitive alias analysis."
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "Box memory copied = stored;",
+      "dst": "uint answer = copied.right;",
+      "var": "copied",
+      "approximation": "Base-variable weak definition summarizes distinct fields and retains previous whole-object definitions; it is not field-sensitive alias analysis."
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "copied.left = 8;",
+      "dst": "uint answer = copied.right;",
+      "var": "copied",
+      "approximation": "Base-variable weak definition summarizes distinct fields and retains previous whole-object definitions; it is not field-sensitive alias analysis."
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint answer = copied.right;",
+      "dst": "return answer;",
+      "var": "answer"
+    },
+    {
+      "relation": "READS_STATE",
+      "src": "Box stored;",
+      "dst": "Box memory copied = stored;",
+      "var": "stored"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "WRITES_STATE",
+      "src": "copied.left = 8;",
+      "dst": "Box stored;",
+      "var": "stored"
+    },
+    {
+      "relation": "READS_STATE",
+      "src": "Box stored;",
+      "dst": "uint answer = copied.right;",
+      "var": "stored"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {}
+  }
+}

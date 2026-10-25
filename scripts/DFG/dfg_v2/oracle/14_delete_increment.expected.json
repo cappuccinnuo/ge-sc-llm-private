@@ -1,0 +1,63 @@
+{
+  "source_sha256": "3acaf2683561939f6efb0a77ddf7947c3bd02f6e392a544bbb4ec77462b6ffa3",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L2 delete chain write",
+    "L2 prefix increment read and write",
+    "L3 delete index source"
+  ],
+  "notes": [],
+  "edges": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint k = 7;",
+      "dst": "++counts[k];",
+      "var": "k"
+    },
+    {
+      "relation": "WRITES_STATE",
+      "src": "delete balances[msg.sender];",
+      "dst": "mapping(address => uint) balances;",
+      "var": "balances"
+    },
+    {
+      "relation": "WRITES_STATE",
+      "src": "++counts[k];",
+      "dst": "mapping(uint => uint) counts;",
+      "var": "counts"
+    },
+    {
+      "relation": "READS_STATE",
+      "src": "mapping(uint => uint) counts;",
+      "dst": "++counts[k];",
+      "var": "counts"
+    },
+    {
+      "relation": "ENV_FLOW",
+      "src": "ENV:msg.sender",
+      "dst": "delete balances[msg.sender];",
+      "var": "msg.sender"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "READS_STATE",
+      "src": "mapping(address => uint) balances;",
+      "dst": "delete balances[msg.sender];",
+      "var": "balances"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {
+      "msg.sender": 1
+    }
+  }
+}

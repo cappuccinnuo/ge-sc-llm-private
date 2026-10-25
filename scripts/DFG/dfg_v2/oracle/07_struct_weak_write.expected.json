@@ -1,0 +1,59 @@
+{
+  "source_sha256": "97fc201875763f2cbf7a84176b5c6d401d7a225cfb56f41a19ef4cba668874dc",
+  "schema_version": "dfg-v2-handwritten-oracle-v1",
+  "expectation_origin": "Handwritten from PROMPTS.md sections 3.2-3.4 and explicit Prompt 2-4 examples; no analyzers or analyzer outputs used.",
+  "compilation": {
+    "status": "not_executed",
+    "reason": "No Solidity compiler invoked while writing expectations; Tree-sitter parsing is not compiler validation."
+  },
+  "semantic_scope": "Exhaustive forward relation edges between original HCG statement/declaration endpoints and projected environment nodes; no REV relations or transitive closure.",
+  "endpoint_text_policy": "Complete source statements normalized by collapsing whitespace. For condition/update control endpoints the complete if/while/for statement identifies the AST node; for parameters the complete function definition identifies the entry node. State declarations retain visibility/storage qualifiers. These strings are source identity selectors, not parser output.",
+  "coverage": [
+    "L1 struct local tracking",
+    "Member weak definition does not KILL"
+  ],
+  "notes": [
+    "A member assignment accesses the base reference; incoming base definition is expected under whole-object abstraction."
+  ],
+  "edges": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "Pair memory p = Pair(1, 2);",
+      "dst": "p.left = 3;",
+      "var": "p",
+      "approximation": "Base-variable weak definition summarizes distinct fields and retains previous whole-object definitions; it is not field-sensitive alias analysis."
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "Pair memory p = Pair(1, 2);",
+      "dst": "uint observed = p.right;",
+      "var": "p",
+      "approximation": "Base-variable weak definition summarizes distinct fields and retains previous whole-object definitions; it is not field-sensitive alias analysis."
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "p.left = 3;",
+      "dst": "uint observed = p.right;",
+      "var": "p",
+      "approximation": "Base-variable weak definition summarizes distinct fields and retains previous whole-object definitions; it is not field-sensitive alias analysis."
+    },
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "uint observed = p.right;",
+      "dst": "return observed;",
+      "var": "observed"
+    }
+  ],
+  "absent": [
+    {
+      "relation": "DATA_DEF_USE",
+      "src": "p.left = 3;",
+      "dst": "p.left = 3;",
+      "var": "p"
+    }
+  ],
+  "counts": {
+    "unmapped_env": 0,
+    "env_nodes": {}
+  }
+}
