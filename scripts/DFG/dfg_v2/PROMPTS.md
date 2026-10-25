@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b →（可选 P6c）→ P7 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d →（如有缺陷 P6e）→ P7 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1010,6 +1010,83 @@ Prompt 6 的 L1 对照只有投影后的端点，所以召回不可计算。改�
 - 不进入构图，不修改任何图。
 ```
 
+（6b/6c 状态：2026-10-25 已完成，提交 f270ed6、c09bbbc、7918427、2aec59a。有效图存储为 graphs_v2_r1/store.json（首次 graphs_v2 因临时 .py 进入 runtime 摘要而封存失败，作废保留）。L1 恢复函数 7/4/6/3 个、每张增强图新增 DATA_DEF_USE 51/50/60/34 条，全部来自 new_expression；消失边 0，L2/L3 不变；Oracle 18/20。用户批准的偏离：补 new_expression 类型名的读取处理；store_diff 允许 ddg_fact_indices 重编号（解引用后事实逐字段相同）；仍回退函数允许回退原因推进；6 个无 pragma 文件用 0.4.25 并单列；6c 由 Codex 下载安装 solc。Slither 可比较 239/256 文件：L1 P/R 72.9/89.0（重入）、60.5/87.9（访问控制），L2 P/R 98.9/86.9、98.3/85.4；差异大部分尚未归类，见 Prompt 6d。）
+
+### 4.8d Prompt 6d：Slither 差异的完整归类与比较口径修正（进入 Prompt 7 前的门槛）
+
+```text
+# Prompt 6d：Slither 差异归类、跨度对齐与小项加固
+
+前置：Prompt 6b/6c 已完成（提交 2aec59a）。先 git pull --ff-only origin dfg-v2。
+本步只读已有产物并改进验证工具；不修改 L1/L2/L3 分析器、pipeline 与图，除第 5 部分明确允许的一处。需要改分析器的发现一律停下报告，进入单独的 Prompt 6e。
+输入：graphs_v2_r1/store.json（先 verify），prompt6c_v1/slither_full/report.json 及其 seal。不重新运行 Slither，第 4 部分除外。输出：artifacts/dfg_v2/prompt6d_v1/。
+
+## 背景：为什么需要这一步
+6c 的主指标保留不变，但它目前不能回答"v2 的读写提取有没有实现错误"：
+- L2 漏掉的 1055（重入）/602（访问控制）条参考事件只核查了 3 条；L1 多出的事件中，入口初始化以外的 45/377 条、已支持函数中漏掉的 37/30 条都没有归类。
+- 比较按"起始行"对齐：v2 的 L2 用出现位置所在行，Slither 用 CFG 节点起始行，跨行语句会同时产生一个假"多出"和一个假"漏掉"（6c 已确认的 3 例中有 2 例就是这种情况）。
+- 有几类差异是两边约定不同，而非任何一方出错，需要用确定的判据单独计数，例如：
+  - Slither 的 state_variables_read 包含 constant 状态变量，v2 按设计排除；
+  - 对 m[k] = v、s.f = v、delete m[k]，Slither 的 IR 先对基变量做 Index/Member 操作，可能把 m/s 记为读取；v2 按设计只记写；
+  - 状态变量初始化表达式：Slither 放在合成的构造函数中并记写，v2 不记声明对自身的写；
+  - v2 的 L1 在函数入口为参数/命名返回值记定义，Slither 没有对应项。
+
+## 1. 跨度对齐的比较（附加口径，不替换 6c 主指标）
+新文件 dfg_v2/slither_align.py：
+- v2 一侧：L2 用 F3 audit evidence 的 occurrence 字节区间；L1 用 l1_occurrences 导出的事件所在语句 anchor 的字节区间（入口定义用声明区间）。
+- Slither 一侧：用 report.json 中每个参考事件已记录的 CFG 节点字节区间（start, length）。
+- 匹配规则：变量名与读/写类型相同，且 v2 的区间与 Slither 节点区间相交；同一 (变量, 类型) 内按区间做一对一匹配（贪心按起点排序即可，写明规则）。
+- 报告与 6c 相同分组（任务、版本来源、supported/fallback）的 P/R，并列出从"行口径不匹配"变为"跨度口径匹配"的事件数。
+
+## 2. 每一条差异的确定性归类
+在跨度口径的结果上，对每个 L1/L2 的多出项（FP）和漏掉项（FN）按下表顺序判定，取第一个成立的类别。每个类别的判据必须是可以从 report.json、F3 audit、l1_occurrences 和源码 AST 中机械检查的条件，写进代码和报告；不允许"看起来像"。
+L2：
+  1. constant_excluded（FN）：Slither 变量 is_constant 为真（若 report 未记录，用源码中该声明是否带 constant 判定）。
+  2. state_initializer（FN）：Slither 事件所在函数是合成构造函数（名字以 slitherConstructor 开头），或节点区间落在一个 state_variable_declaration 内。
+  3. write_base_read（FN）：Slither 记 READ 的同一节点、同一变量，v2 在相交区间有 WRITE 而没有 READ，且该写是 index/member/delete 链的根。
+  4. modifier_inlining、alias：沿用 6c 的标签。
+  5. v2_binding_unresolved（FN）：在该出现位置 v2 有 state_binding_unresolved/excluded 诊断（给出 reason，例如 scope fallback 后的 state_name_missing）。
+  6. assembly（FN）：Slither 节点类型为 INLINE ASM，或区间落在 assembly 块内。
+  7. push_pop_skipped（FN）：v2 在该位置有 push_pop_write_skipped 诊断。
+  8. other。
+L1：
+  1. entry_initialization（FP）：沿用 6c。
+  2. v2_fallback（FN）：沿用 6c。
+  3. unreachable_ir：沿用 6c。
+  4. named_return_implicit（FN/FP）：Slither 在 return 节点读命名返回值，或 v2/Slither 对命名返回值的隐式定义不同。
+  5. declaration_without_initializer：uint x; 一类声明，两边对是否记 DEF 的约定不同（按版本：legacy 下 v2 不记）。
+  6. tuple_or_var_declaration：var (a, b) = ...、(uint a, uint b) = ...。
+  7. other。
+- 报告每个类别的数量、占该方向差异的比例和 5 个样例（含源码行、Slither 节点文本、v2 证据）。
+
+## 3. 剩余 other 的人工判定（AI 辅助，逐条留证据）
+- 对每个任务、每层、每个方向（FP/FN），从 other 中用 seed=0 抽 30 条（不足 30 条则全部）。
+- 逐条读源码与两边证据，判定为：v2_defect（v2 的提取违反第 3.2–3.4 节写明的语义）/ slither_convention（Slither 的约定与 v2 设计不同，写明是哪条约定）/ comparator_artifact（比较工具本身的问题）/ unclear。每条写一句依据。
+- 发现 comparator_artifact 时修复比较工具并重算第 1、2 部分，保留修复前的结果。
+- 门槛：
+  - 任何 v2_defect 都要汇总成"模式"（同一语法形状算一个模式），写出最小复现源码、受影响的事件数估计（按该模式在全部 other 中的机械匹配计数）和建议改法；
+  - 只要出现 v2_defect 模式，就在本步结束时停下，由用户决定是否执行 Prompt 6e（修分析器、重建 graphs_v3、重跑 6/6c/6d）。Prompt 7 不能在此之前开始。
+  - 没有 v2_defect 时，在报告中写明 graphs_v2_r1 是 Prompt 7/8 的最终图存储。
+
+## 4. 六个不可比较文件的可证明映射（可选，推荐）
+6c 中 0.4.0/0.4.2/0.4.9 编译的 6 个文件，Slither 节点缺 filename。只有同时满足以下条件时才把缺 filename 的节点归到目标文件：
+- 源码中没有 import 指令（单文件编译，没有其他来源）；
+- 每个这样的节点的 (start, length) 落在目标文件字节范围内，且该区间的源码文本与 Slither 记录的节点表达式/源码文本一致（逐个核对）；
+- 任何一个节点不满足就保持 not_comparable。
+满足的文件在新的报告中加入比较，单独列出其 P/R，不并入 6c 的封存结果。
+
+## 5. 小项加固
+1. new_expression 的防御（唯一允许的分析器改动，且必须证明不改变任何图）：grammar 的 new_expression 规则允许直接带调用参数。当前 ExtendedAccessExtractor.reads 对 new_expression 返回 []，依赖"参数在外层 call_expression 中"这一实测形状。改为：若 new_expression 自己带 call_argument 子节点，就读取这些子节点；否则行为不变。
+   - 先统计四任务源码中 new_expression 直接带 call_argument 子节点的次数。预期为 0；若为 0，用 cli build 重建到临时目录，证明 F1–F3 两种指纹与 graphs_v2_r1 完全相同，graphs_v2_r1 继续有效，临时目录只保留比较记录。若不为 0，停下报告（这会改变图）。
+   - 补测试：new uint[](n)、new bytes(len)、new string(len)、new C(a, b) 中的 n、len、a、b 都是使用；new_expression 的类型名不是使用。
+2. 新增 111 条边的补充抽查表：6b 恢复函数在两个合约任务 F3 中新增的 111 条 DATA_DEF_USE 不在 review_v1 中。用 review_sheet 的同一格式导出 review_v1b/（全部 111 条，不抽样），单独封存；score_review 可分别评分，也可在报告中合并。不由 AI 填写 verdict。
+
+## 6. 报告与验收
+- 写 dfg_v2/PROMPT6D_REPORT.md：6c 主指标（原样）、跨度口径指标、每个类别的数量与比例、人工判定结果、v2_defect 模式清单（或"没有"的结论及依据）、第 4/5 部分结果。
+- 测试：类别判据各一个正例和一个反例；跨度匹配的一对一性质；第 4 部分在有 import 或文本不一致时拒绝映射。
+- dfg_v2/tests 全部、旧 DDG 回归通过；所有已有产物不被覆盖。
+```
+
 ### 4.9 Prompt 7：训练接入与小规模验收
 
 ```text
@@ -1045,7 +1122,7 @@ initialize_family(models, seed)，models 是 profile → model 的映射：
 
 ## 4. 运行器 dfg_v2/experiment/run.py
 命令：
-  python -B -m scripts.DFG.dfg_v2.experiment.run plan --store <Prompt 6b 的 graphs_v2/store.json>（先调用 cli verify） --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--reducer mean|nonempty_mean] --output <新批次目录>
+  python -B -m scripts.DFG.dfg_v2.experiment.run plan --store <Prompt 6d 确认的最终图存储，目前为 graphs_v2_r1/store.json>（先调用 cli verify） --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--reducer mean|nonempty_mean] --output <新批次目录>
   python -u -B -m scripts.DFG.dfg_v2.experiment.run execute --plan <批次>/plan.json [--only task/fold/seed/profile]
   python -B -m scripts.DFG.dfg_v2.experiment.run verify --plan <批次>/plan.json
   python -B -m scripts.DFG.dfg_v2.experiment.run select --plan <批次>/plan.json
