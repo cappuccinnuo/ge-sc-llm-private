@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d →（如有缺陷 P6e）→ P7 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 →（如有缺陷 P6e）→ P7 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1085,6 +1085,64 @@ L1：
 - 写 dfg_v2/PROMPT6D_REPORT.md：6c 主指标（原样）、跨度口径指标、每个类别的数量与比例、人工判定结果、v2_defect 模式清单（或"没有"的结论及依据）、第 4/5 部分结果。
 - 测试：类别判据各一个正例和一个反例；跨度匹配的一对一性质；第 4 部分在有 import 或文本不一致时拒绝映射。
 - dfg_v2/tests 全部、旧 DDG 回归通过；所有已有产物不被覆盖。
+```
+
+（6d 状态：2026-10-25 已完成，提交 bb337ae。跨度口径下全部 13,857 条差异各归一类，other 773 条；分层抽样 172 条逐条判定，0 条 v2_defect。new_expression 直接参数防御分支在语料中触发 0 次，临时重建的 16 个图项文件 SHA 与 graphs_v2_r1 逐字节相同。六个旧编译器文件映射证明不成立，仍不可比较。补充抽查表 review_v1b（111 条）已导出。执行偏差：对 buggy_43.sol、buggy_30.sol 做了 3 次计划外的只读 Slither 探针，未并入统计，已如实记录。审查后需要补的工作见 Prompt 6d.1。）
+
+### 4.8e Prompt 6d.1：把抽样得到的约定变成全量判据，修正比较单位与标签
+
+```text
+# Prompt 6d.1：other 全量机械归类、比较单位修正与 Slither 约定实证
+
+前置：Prompt 6d 已完成（提交 bb337ae）。先 git pull --ff-only origin dfg-v2。
+本步只改验证工具，不改分析器、pipeline、图。输入：graphs_v2_r1/store.json、prompt6c_v1/slither_full/report.json、prompt6d_v1/alignment_v3/report.json 与 review_other_v3/。输出：artifacts/dfg_v2/prompt6d1_v1/。所有旧产物保留不覆盖。
+
+## 背景（审查 6d 后发现的三处不足）
+1. 比较单位不一致被记成了 Slither 约定。L2 一侧按每个词法出现计数，Slither 按 CFG 节点的变量集合计数；同一语句里两次读取 balances 会在 v2 一侧多出一条。这是比较工具选择的计数单位造成的，按 Prompt 6d 第 3 部分应归为 comparator_artifact 并修复，而不是 slither_convention。v2 模型边本身按 (语句, 声明, 关系) 去重，所以语句粒度才是与图一致的比较单位。
+2. 标签混用。172 条判定把"v2 有意不支持的范围"（例如不单独分析 modifier 体、版本证据不足时不建 legacy 隐式别名）也记为 slither_convention。这两者含义不同：前者是 v2 的已声明限制，后者是参考工具的约定。论文与后续解释需要分开。
+3. other 只抽查了 172/773 条。访问控制 L1 多出项中的 other 有 352 条（占 6.24%），只抽查了 30 条。抽样 0 缺陷在这个规模上不能排除几十条同类问题。抽样中已经识别出 5 种模式，应把它们写成机械判据作用到全部 773 条，使剩余部分小到可以全部人工判定。
+另外，"循环条件处 Slither 记写"的解释只基于阅读 Slither 源码，没有直接观察到具体节点上的读写集合。
+
+## 1. 比较单位修正（slither_align 新版本，旧版本输出保留）
+- L2 候选按 (v2 语句单元, 变量名, 读/写) 去重，跨度取该语句单元在 evidence 中的语句区间（与 occurrence 区间的并集作为备用）；参考仍是 Slither CFG 节点的变量集合。
+- L1 保持按 IR 事件（它本身已在语句内对同一符号去重）。
+- 重算第 6d 的全部表格，并与 alignment_v3 对照，列出因单位修正而消失的 FP 数。
+
+## 2. 标签拆分
+VERDICTS 改为：v2_defect / v2_scope_limit / slither_convention / comparator_artifact / unclear。
+- v2_scope_limit：v2 按第 3.2–3.4 节或已批准偏离有意不覆盖的情形，必须写明对应的条文或批准记录（例如"L1 不单独分析 modifier 体"、"无版本证据时不建 legacy 隐式别名"）。
+- slither_convention：参考工具的口径不同，必须写明是哪条约定，并在第 4 部分有实证。
+- 172 条已有判定按新标签重新归类（只改标签与依据，不改事实），旧 decisions.json 保留。
+
+## 3. 抽样模式的全量机械化
+把 6d 抽样中识别的模式写成可机械检查的判据，加入第 2 部分的分类顺序（排在 other 之前），作用于全部差异：
+- L1 modifier_body_unanalyzed（FN）：Slither 事件属于 modifier 上下文，且该 modifier 没有被任何 L1 已支持函数内联（v2 事件中没有落在该 modifier 体内的）。→ v2_scope_limit
+- L1/L2 loop_header_merge_write（FN）：Slither 节点类型为 IF_LOOP/循环条件，记录的 DEF/WRITE 在该条件表达式源码中没有对应赋值，且该变量在循环体内被写。→ slither_convention（需第 4 部分实证）
+- L1 aggregate_base_use（FP）：v2 的 USE 位于对同一局部变量的成员/下标写语句中（x.f = …、x[i] = …），Slither 同节点只记该变量的写。→ slither_convention（v2 按第 3.2 节把这类写视为对 x 的使用加弱定义）
+- L1 bare_expression_use（FP）：语句是单独的标识符或未调用的成员链（x;、to.call.value(amount);），Slither 节点没有对应读取。→ slither_convention
+- L2 legacy_alias_unconfirmed（FN）：该位置 v2 有 legacy_alias_version_unconfirmed 诊断。→ v2_scope_limit
+- 其余 6d 中出现、可写成判据的模式同样处理；每个判据写一个正例、一个反例的单元测试。
+然后：
+- 若剩余 other ≤ 150 条，全部逐条判定（不抽样）；否则每个任务×层×方向再抽 30 条，并在报告中写明剩余量。
+- 机械判据不能自动说明 v2 正确：对每个新判据，从其命中集合中再随机抽 5 条人工核对判据确实成立，记入报告。
+
+## 4. Slither 约定的直接实证（允许的 Slither 调用仅限这里）
+用已在 trusted_compilers_complete.json 中的编译器，对 4–6 个手写最小合约运行 Slither，记录目标节点的 local/state variables read/written：
+- while (i < n) { i = i + 1; } 与 for 循环：条件节点是否记 i 的写；
+- 状态 mapping 的 m[k] = v 与 delete m[k]：是否记 m 的读；
+- 同一语句两次读同一状态变量：是否只记一次；
+- 局部 memory 数组 a[i] = v：是否记 a 的读；
+- 带参数的 modifier：modifier 体节点归属哪个函数上下文。
+合约源码、编译器版本、Slither 输出原文、结论存入 prompt6d1_v1/slither_conventions/。结论与第 3 部分判据对不上的，回到第 3 部分修正判据。
+
+## 5. 绑定未解析的细分
+L2 v2_binding_unresolved（53/23 条 FN）按诊断 reason 细分，尤其区分"ClosedScopeJ 失败后只看当前合约导致继承状态找不到"与其他原因；逐条列出文件与变量。属于已声明保守范围的标 v2_scope_limit；不属于的进入第 3 部分判定。
+
+## 6. 门槛与报告
+- 写 dfg_v2/PROMPT6D1_REPORT.md：单位修正前后的指标；每个类别（含新判据）的数量、比例、标签；第 3 部分判定结果；第 4 部分实证；v2_defect 模式清单。
+- 出现任何 v2_defect 模式：停下报告最小复现、影响事件数与建议改法，由用户决定是否执行 Prompt 6e。
+- 没有 v2_defect：在报告中写明 graphs_v2_r1 是 Prompt 7/8 的最终图存储，并给出"仍未逐条判定的差异数"（应为 0 或明确的抽样剩余量）。
+- dfg_v2/tests 全部、旧 DDG 回归通过。不训练。
 ```
 
 ### 4.9 Prompt 7：训练接入与小规模验收
