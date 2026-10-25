@@ -49,6 +49,22 @@ class ExtendedAccessExtractor(AccessExtractor):
             symbol = self.table.resolve(self._name(root), root)
             if symbol is not None and self._aggregate(symbol.id):
                 raise Unsupported("V2: nested aggregate mutation / unspecified operand order")
+        if node is not None and node.type == "new_expression":
+            # P6b approved AST adaptation: the new-expression name is a type,
+            # not a value read. Outer call/options nodes read their arguments.
+            declared_type = node.child_by_field_name("name")
+            if declared_type is None or declared_type.type != "type_name":
+                raise Unsupported("V2: unknown new-expression type shape")
+            return []
+        if node is not None and node.type == "struct_expression":
+            # P6b: call options are encoded as a struct-shaped wrapper.
+            # Read the callee/base and option values, never the option names.
+            # Recursive reads preserve inherited unknown/nested-write fallback.
+            result = self.reads(node.child_by_field_name("type"))
+            for child in node.named_children:
+                if child.type == "struct_field_assignment":
+                    result += self.reads(child.child_by_field_name("value"))
+            return result
         return super().reads(node)
 
     def targets(self, node):

@@ -268,3 +268,86 @@ def test_parenthesized_local_base_does_not_silently_lose_weak_write(statement):
     assert result.writes == ()
     assert names(table, result.reads) == ({"arr", "v"} if "push" in statement
                                          else {"arr", "i", "v"})
+
+
+# Prompt 6b: parser-backed cases, not compilation validation.
+@pytest.mark.parametrize("statement,params,expected", [
+    ('target.call{value: x}("");', "address target, uint x, uint value",
+     {"target", "x"}),
+    ('t.call{value: a, gas: b}(data);',
+     "address t, uint a, uint b, bytes memory data, uint value, uint gas",
+     {"t", "a", "b", "data"}),
+])
+def test_prompt6b_call_options_read_values_not_option_names(statement, params, expected):
+    view, _, table, access = build(statement, params=params, version="^0.6.12")
+    result = event(view, access, statement)
+    assert names(table, result.reads) == expected
+    assert not result.writes and not result.weak_writes
+    for identity in result.reads:
+        symbol = table.symbols[identity]
+        assert identity == named(table, symbol.name)[0].id
+
+
+def test_prompt6b_call_option_field_name_does_not_read_same_named_local():
+    statement = 'target.call{value: x}("");'
+    view, _, table, access = build(
+        "uint value = 7; uint x = 1; " + statement,
+        params="address target", version="^0.6.12")
+    result = event(view, access, statement)
+    assert names(table, result.reads) == {"target", "x"}
+    assert named(table, "value")[0].id not in result.reads
+
+
+@pytest.mark.parametrize("value", ["x++", "(x = 2)", "(delete x)"])
+def test_prompt6b_call_options_keep_nested_write_rejection(value):
+    # Nested writes are intentionally unsupported, even if parseable.
+    statement = 'target.call{value: ' + value + '}("");'
+    view, _, _, access = build(
+        statement, params="address target, uint x", version="^0.6.12")
+    with pytest.raises(Unsupported, match="Nested"):
+        event(view, access, statement)
+
+
+def test_prompt6b_call_options_keep_unknown_value_expression_rejection():
+    # P6b approved new-expression support supersedes the first probe's new C
+    # fallback expectation. Keep an independent unknown-expression guard here.
+    # This is parser robustness only, not a claim of a valid value type.
+    statement = 'target.call{value: type(C)}("");'
+    view, _, _, access = build(
+        statement, params="address target", version="^0.6.12")
+    with pytest.raises(Unsupported, match="meta_type_expression"):
+        event(view, access, statement)
+
+
+@pytest.mark.parametrize("statement,params,expected", [
+    ("new C{value: v}(i);", "uint v, uint i", {"v", "i"}),
+    ("new C{value: v, salt: s}(i);", "uint v, uint i, bytes32 s", {"v", "i", "s"}),
+    ("new C(i);", "uint v, uint i", {"i"}),
+])
+def test_prompt6b_new_contract_reads_options_and_arguments_not_type(statement, params, expected):
+    # Parser-backed extraction fixtures; constructors are not compile-verified.
+    view, _, table, access = build(statement, params=params, version="^0.6.12")
+    result = event(view, access, statement)
+    assert names(table, result.reads) == expected
+    assert not result.writes and not result.weak_writes
+
+
+def test_prompt6b_new_contract_type_is_not_a_same_named_local_value():
+    # A same-named local/type is parser robustness, not a Solidity legality claim.
+    statement = "new C{value: v}(i);"
+    view, _, table, access = build(
+        statement, params="uint v, uint i, uint C", version="^0.6.12")
+    result = event(view, access, statement)
+    assert names(table, result.reads) == {"v", "i"}
+    assert named(table, "C")[0].id not in result.reads
+
+
+@pytest.mark.parametrize("statement", [
+    "new C{value: v++}(i);",
+    "new C{value: v}(i++);",
+])
+def test_prompt6b_new_contract_does_not_allow_nested_writes(statement):
+    view, _, _, access = build(
+        statement, params="uint v, uint i", version="^0.6.12")
+    with pytest.raises(Unsupported, match="Nested"):
+        event(view, access, statement)

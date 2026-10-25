@@ -331,3 +331,91 @@ def test_prefix_ast_compatibility_recovery_has_explicit_route():
     assert stats["functions"][0]["routes"] == ["v2_access_shape"]
     assert (entry(source, "remove"), "delete data[i];", "i") in edges(source, facts)
     assert not any(f.symbol.endswith(":data") for f in facts)
+
+
+def test_prompt6b_call_option_recovery_preserves_legacy_facts_and_hcg():
+    source = """pragma solidity ^0.6.12;
+    contract C {
+      address target;
+      function recovered(uint value) public {
+        uint x = 1;
+        target.call{value: x}("");
+      }
+      function stable(uint n) public returns(uint) { uint y=n; return y; }
+    }"""
+    old = DDGBuilder().analyze_source(source, FILE)
+    facts, _, stats = analyze_file(source, FILE)
+    records = {record["name"]: record for record in stats["functions"]}
+    recovered = records["recovered"]
+    assert recovered["old_status"] == "fallback"
+    assert recovered["old_reason"] == "Unsupported expression: struct_expression"
+    assert recovered["status"] == "supported" and recovered["routes"] == ["v2_retry"]
+    assert recovered["recovered"] and not recovered["legacy_reused"]
+    assert records["stable"]["routes"] == ["legacy"]
+    assert facts[:len(old.facts)] == old.facts
+    expected = ('uint x = 1;', 'target.call{value: x}("");', "x")
+    actual = edges(source, facts)
+    assert expected in actual
+    assert not any(variable == "value" for _, _, variable in actual)
+    graph = graph_for(source)
+    before = fingerprint(graph)
+    enhanced, audit = augment_l1(graph, {FILE: source})
+    assert fingerprint(graph) == before
+    assert fingerprint(enhanced, exclude_ddg=True) == before
+    evidence = [item for item in audit["evidence"] if item["analysis_path"] == "v2"]
+    assert evidence and all(item["routes"] == ["v2_retry"] for item in evidence)
+    assert all(enhanced.has_edge(item["source"], item["target"])
+               for item in evidence if not item["self_fact"])
+
+
+def test_prompt6b_unsupported_nested_option_retains_function_without_partial_facts():
+    source = """pragma solidity ^0.6.12;
+    contract C {
+      function bad(address t, uint x) public {
+        uint y = x;
+        t.call{value: x++}("");
+      }
+      function stable(uint n) public returns(uint) { return n; }
+    }"""
+    facts, _, stats = analyze_file(source, FILE)
+    records = {record["name"]: record for record in stats["functions"]}
+    bad = records["bad"]
+    assert bad["status"] == "fallback"
+    assert "Nested expression write" in bad["reason"]
+    assert not bad["partial_facts_published"]
+    assert not any(fact.use.function == bad["function"] for fact in facts)
+    assert records["stable"]["status"] == "supported"
+    graph = graph_for(source)
+    before = fingerprint(graph)
+    enhanced, _ = augment_l1(graph, {FILE: source})
+    assert fingerprint(graph) == before
+    assert fingerprint(enhanced, exclude_ddg=True) == before
+
+
+def test_prompt6b_new_contract_option_function_recovers_by_v2_retry():
+    source = """pragma solidity ^0.6.12;
+    contract D { constructor(uint n) public payable {} }
+    contract C {
+      function f(uint amount, uint n, bytes32 seed) public {
+        new D{value: amount, salt: seed}(n);
+      }
+    }"""
+    facts, _, stats = analyze_file(source, FILE)
+    record = next(item for item in stats["functions"] if item["name"] == "f")
+    assert record["old_status"] == "fallback"
+    assert record["status"] == "supported" and record["routes"] == ["v2_retry"]
+    assert record["recovered"]
+    target = "new D{value: amount, salt: seed}(n);"
+    # The existing entry() helper assumes every function has a name; a
+    # constructor has no name. Select this function by its recorded byte ID.
+    view = SupportedSourceView(source, FILE)
+    function = next(node for node in view.functions if node.start_byte == record["start"])
+    function_text = normalized(text(source, function))
+    assert {(definition, use, variable) for definition, use, variable in edges(source, facts)
+            if use == target} == {(function_text, target, variable)
+                                 for variable in ("amount", "n", "seed")}
+    graph = graph_for(source)
+    before = fingerprint(graph)
+    enhanced, _ = augment_l1(graph, {FILE: source})
+    assert fingerprint(graph) == before
+    assert fingerprint(enhanced, exclude_ddg=True) == before
