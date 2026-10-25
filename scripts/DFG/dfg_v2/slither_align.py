@@ -1,7 +1,8 @@
 """Prompt 6d: additional byte-span comparison of sealed 6c read/write evidence.
 
 No compiler, analyzer, graph builder, tokenizer or training code is invoked.
-Main additional counts are unique byte-event identities, NOT the 6c line sets.
+L1 counts IR events; L2 candidates count (statement Unit, variable, READ/WRITE).
+Slither references remain CFG-node variable sets. These are NOT 6c line sets.
 Within each name/kind group, candidates and references are sorted by
 (start,entry-last-on-equal-start,end,stable identity); each candidate takes the first unused overlapping
 reference. Inherited-context copies of the same source event are unioned.
@@ -17,13 +18,17 @@ from pathlib import Path
 from scripts.DFG.frontend import parse, walk, library_path
 from .validate_slither import _sha, _json, _checked, _write_json, _load_inputs
 
-VERSION = "dfg-v2-slither-span-alignment-v3"
+from .slither_units import normalize_l2_units, unit_comparison
+from .slither_patterns import classify_pattern, audit_binding_unresolved, PATTERN_CATEGORIES
+
+VERSION = "dfg-v2-slither-statement-alignment-v4.2"
 L2_CATEGORIES = ("constant_excluded", "state_initializer", "write_base_read",
                  "modifier_inlining", "alias", "v2_binding_unresolved",
-                 "assembly", "push_pop_skipped", "other")
+                 "assembly", "push_pop_skipped", "loop_header_merge_write", "legacy_alias_unconfirmed", "other")
 L1_CATEGORIES = ("entry_initialization", "v2_fallback", "unreachable_ir",
                  "named_return_implicit", "declaration_without_initializer",
-                 "tuple_or_var_declaration", "other")
+                 "tuple_or_var_declaration", "modifier_body_unanalyzed", "loop_header_merge_write",
+                 "aggregate_base_use", "bare_expression_use", "other")
 EXCLUSIONS = {"alias", "modifier_inlining"}
 
 
@@ -282,6 +287,15 @@ class SourceFacts:
         return None
 
 
+def _access_overlaps(candidate, span):
+    """Classify access locations, not a control Unit's enclosing body range."""
+    locations = [r["occurrence"] for r in candidate.get("evidence", [])
+                 if r.get("occurrence") is not None]
+    if locations:
+        return any(overlap([r["start"], r["end"]], span) for r in locations)
+    return overlap(candidate["span"], span)
+
+
 def classify(event, direction, ast, candidate, diagnostics):
     """First satisfied predicate in Prompt 6d order, with replayable evidence."""
     layer = event["layer"]
@@ -330,11 +344,11 @@ def classify(event, direction, ast, candidate, diagnostics):
                                            "state_span": ast.interval(init_node) if init_node is not None else None}
         if event["kind"] == "READ":
             writes = [c for c in candidate if c["name"] == event["name"] and c["kind"] == "WRITE"
-                      and overlap(c["span"], event["span"]) and ast.root_is_chain(c)
+                      and _access_overlaps(c, event["span"]) and ast.root_is_chain(c)
                       and (c["declaration"] is None or event["declaration"] is None or
                            c["declaration"][0] == event["declaration"][0])]
             reads = [c for c in candidate if c["name"] == event["name"] and c["kind"] == "READ"
-                     and overlap(c["span"], event["span"])]
+                     and _access_overlaps(c, event["span"])]
             if writes and not reads:
                 return "write_base_read", {"predicate": "same_node_chain_root_WRITE_without_READ",
                                           "write_event_ids": [c["event_id"] for c in writes]}
@@ -369,7 +383,7 @@ def _aggregate(metrics_rows):
     return result
 
 
-def compare_file(task, record, raw, audit, source_path):
+def compare_file(task, record, raw, audit, source_path, conventions=None, prior_diffs=None):
     functions = record["v2_scope"]["L1"]["functions"]
     ast = SourceFacts(raw.decode("utf8"))
     diagnostics = audit["layers"]["L2"]["files"].get(record["file"], {}).get("diagnostics", [])
@@ -377,11 +391,15 @@ def compare_file(task, record, raw, audit, source_path):
                   version=record["version"], version_origin=record["version_origin"],
                   status=record["status"], layers={})
     differences = []
+    binding_audits = audit["layers"]["L2"]["files"].get(record["file"], {}).get("binding_audits", {})
     for layer in ("L1", "L2"):
         cr = (record["v2_scope"]["L1"]["occurrences"] if layer == "L1" else [
             e for e in audit["layers"]["L2"]["evidence"] if e["file"] == record["file"]])
         rr = [e for e in record["slither_extraction"]["occurrences"] if e["layer"] == layer]
         candidate = _normalize(cr, "v2", layer, raw, functions, ast)
+        lexical = candidate
+        if layer == "L2":
+            candidate = normalize_l2_units(lexical, raw)
         reference = _normalize(rr, "slither", layer, raw, functions, ast)
         matches, extra, missing = match_spans(candidate, reference)
         metric = metrics(candidate, reference, matches)
@@ -416,9 +434,27 @@ def compare_file(task, record, raw, audit, source_path):
                           declaration_identity_equal=c["declaration"] == r["declaration"],
                           function_identity_equal=c["function_start"] == r["function_start"])
                      for c,r in matches])
+        if layer == "L2" and prior_diffs is not None:
+            result["layers"][layer]["unit_comparison"] = unit_comparison(
+                lexical, candidate, reference, matches,
+                [d for d in prior_diffs if d["layer"] == "L2" and d["direction"] == "FP"])
         for direction, events in (("FP", extra), ("FN", missing)):
             for event in events:
                 category, basis = classify(event, direction, ast, candidate, diagnostics)
+                suggested_verdict = None
+                if category == "other":
+                    pattern = classify_pattern(event, direction, ast, candidate, reference,
+                                               diagnostics, conventions)
+                    if pattern is not None:
+                        category, basis, suggested_verdict = pattern
+                if category == "v2_binding_unresolved":
+                    basis["binding_subtypes"] = audit_binding_unresolved(
+                        event, ast, diagnostics, binding_audits)
+                    if basis["binding_subtypes"] and all(
+                            b["verdict"] == "v2_scope_limit" for b in basis["binding_subtypes"]):
+                        suggested_verdict = "v2_scope_limit"
+                # Categories remain mechanical descriptions. They are not final
+                # semantic verdicts, even where a probe supports the pattern.
                 near_c = [e for e in candidate if overlap(e["span"], event["span"])]
                 near_r = [e for e in reference if overlap(e["span"], event["span"])]
                 ident = _id([task, record["file"], record["source_sha256"], layer, direction, event["event_id"]])
@@ -431,7 +467,7 @@ def compare_file(task, record, raw, audit, source_path):
                     kind=event["kind"], line=event["line"], function_scope=event["function_scope"],
                     source_excerpt=event["source_text"], primary=event,
                     nearby_candidate=near_c, nearby_reference=near_r,
-                    classification_evidence=basis, human_verdict=None))
+                    classification_evidence=basis, suggested_verdict=suggested_verdict, human_verdict=None))
     return result, differences
 
 
@@ -458,7 +494,16 @@ def summarize(files, differences):
     return result
 
 
-def run(store_path, report_path, output):
+def validate_prior_binding(prior, store_sha256, reference_report_sha256):
+    if prior.get("version") != "dfg-v2-slither-span-alignment-v3":
+        raise ValueError("Expected the immutable v3 alignment as baseline")
+    if prior["inputs"]["store"]["sha256"] != store_sha256:
+        raise ValueError("Prior alignment store mismatch")
+    if prior["inputs"]["report"]["sha256"] != reference_report_sha256:
+        raise ValueError("Prior alignment references a different 6c report")
+
+
+def run(store_path, report_path, output, prior_alignment, conventions_path):
     output = Path(output).resolve()
     if output.exists():
         raise FileExistsError("Refusing existing span comparison output: " + str(output))
@@ -478,6 +523,26 @@ def run(store_path, report_path, output):
     inputs = {"store": {"path": str(path), "sha256": _sha(path)},
               "report": {"path": str(report_path), "sha256": _sha(report_path)},
               "report_seal": {"path": str(seal_path), "sha256": _sha(seal_path)}}
+    prior_path, conventions_path = Path(prior_alignment).resolve(), Path(conventions_path).resolve()
+    prior = _json(prior_path)
+    prior_seal_path = prior_path.with_name("report.seal.json")
+    if _json(prior_seal_path)["report_sha256"] != _sha(prior_path):
+        raise ValueError("Prior alignment seal mismatch")
+    validate_prior_binding(prior, _sha(path), _sha(report_path))
+    conventions = _json(conventions_path)
+    convention_seal = conventions_path.with_name(conventions_path.stem + ".seal.json")
+    if _json(convention_seal)["report_sha256"] != _sha(conventions_path):
+        raise ValueError("Convention conclusions seal mismatch")
+    observation_path = _checked(conventions["observation_report"])
+    observation_seal_path = _checked(conventions["observation_seal"])
+    if _json(observation_seal_path)["report_sha256"] != _sha(observation_path):
+        raise ValueError("Direct probe observation seal mismatch")
+    inputs.update(conventions_seal=dict(path=str(convention_seal), sha256=_sha(convention_seal)),
+                  convention_observations=conventions["observation_report"],
+                  convention_observations_seal=conventions["observation_seal"])
+    inputs.update(prior_alignment=dict(path=str(prior_path), sha256=_sha(prior_path)),
+                  prior_alignment_seal=dict(path=str(prior_seal_path), sha256=_sha(prior_seal_path)),
+                  conventions=dict(path=str(conventions_path), sha256=_sha(conventions_path)))
     result = dict(version=VERSION, inputs=inputs, runtime=runtime,
         parser_library=parser_library, graph_store_verification=verification,
         matching_rule=__doc__, tasks={}, differences=[],
@@ -487,7 +552,8 @@ def run(store_path, report_path, output):
             "Additional byte-event metrics do not replace sealed 6c line-set metrics.",
             "Greedy span overlap does not establish exact declaration binding or DDG-edge correctness.",
             "L1 structural anchors may cover nested statements; matches record binding equality for audit.",
-            "L2 multiple lexical occurrences may correspond to one Slither CFG set item; unmatched duplicates remain reviewable.",
+            "L2 Unit AST statement spans can cover nested bodies; broad-anchor matches remain diagnostic, not exact binding proof.",
+            "L1 function_scope inventories are also attached to L2 for continuity; they are not L2 support status.",
             "No classification category alone establishes which implementation is semantically correct.",
             "Unknown/failing files remain excluded exactly as in sealed 6c."])
     for task, task_record in old["tasks"].items():
@@ -501,7 +567,8 @@ def run(store_path, report_path, output):
             source_path = _checked(source)
             if source["sha256"] != record["source_sha256"]:
                 raise ValueError("Source identity mismatch for sealed Slither file")
-            row, diffs = compare_file(task, record, source_path.read_bytes(), audit, source_path)
+            row, diffs = compare_file(task, record, source_path.read_bytes(), audit, source_path,
+                conventions["conventions"], [d for d in prior["differences"] if d["task"] == task and d["file"] == record["file"]])
             files.append(row)
             task_diffs.extend(diffs)
         result["tasks"][task] = dict(
@@ -514,6 +581,14 @@ def run(store_path, report_path, output):
                 [d for d in task_diffs if d["version_origin"] == origin])
                 for origin in ("metadata", "pragma_derived", "fallback_default")},
             audit=audit_ref)
+        result["tasks"][task]["prior_alignment_v3_summary"] = prior["tasks"][task]["summary"]
+        if result["tasks"][task]["summary"]["L1"]["metrics"] != prior["tasks"][task]["summary"]["L1"]["metrics"]:
+            raise ValueError("L1 IR-event metrics changed unexpectedly")
+        comparisons = [f["layers"]["L2"]["unit_comparison"] for f in files]
+        result["tasks"][task]["unit_correction"] = {
+            k: sum(c[k] for c in comparisons) for k in (
+                "removed_lexical_event_count", "old_fp_count", "resolved_old_fp_count",
+                "duplicate_counting_resolved", "anchor_or_matching_resolved")}
         result["differences"].extend(task_diffs)
         print(json.dumps(dict(task=task, compared=len(files), differences=len(task_diffs))), flush=True)
     for ref in inputs.values():
@@ -539,8 +614,10 @@ def main(argv=None):
     parser.add_argument("--store", required=True)
     parser.add_argument("--report", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--prior-alignment", required=True)
+    parser.add_argument("--conventions", required=True)
     args = parser.parse_args(argv)
-    result = run(args.store, args.report, args.output)
+    result = run(args.store, args.report, args.output, args.prior_alignment, args.conventions)
     print(json.dumps({k:v["summary"] for k,v in result["tasks"].items()}, indent=2))
     return 0
 

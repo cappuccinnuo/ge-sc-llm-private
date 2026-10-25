@@ -1980,3 +1980,13 @@ Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph 
 - 最终970项v2＋223项旧DDG/graph_utils＝1193 passed，0失败/跳过，8/29条已有弃用warning。详细选择、命令、全部分类和证据见training_changes第51节、PROMPT6D_REPORT.md与PROMPT6D_CATEGORY_EXAMPLES.md。
 - 执行偏差如实保留：辅助复核超范围运行2文件共3次只读Slither，发现后停止，未并入正式统计；没有安装下载或改变样本。另5条modifier初读判断已撤回，封存产物未改。
 - 本轮停在6d：未训练、未开始Prompt7/8、未push。实施、复核与记录AI：Codex。
+
+
+## 2026-10-25 DFG v2 Prompt 6d.1 完成（Codex）
+
+- 已读更新§4.1/6d.1并pull --ff-only确认最新；6b复用。本轮仅修改验证工具，不改分析器/pipeline/HGT/tokenizer/图/标签/划分/训练。新增slither_units、slither_patterns、slither_conventions及六个手写例/测试，扩展slither_align和slither_review。
+- L2改为(Unit,变量,READ/WRITE)计数：R候选7658→7485、FP290→117；AC3994→3863、FP192→61，匹配/FN不变。明确消除同一已匹配Unit中的重复FP135/120，共255；净FP减少304还含49个未匹配alias Unit内的重复归并。L1完全不变，指标是事件一致性而非漏洞F1。
+- 原773 other=255重复已解决+517新谓词+1 rubixi状态循环未解释。五类各5例谓词核查全部成立；旧172重分类+剩余1+新25共198审查记录：60artifact、50scope、72convention、16unclear，0确认v2_defect。16unclear对应15身份；另76绑定差异全部state_name_ambiguous→scope_limit，没有真实继承回退丢状态的命中。
+- 已有可信solc0.5.11运行6手写文件，6/6成功；无真实语料Slither重跑/下载。局部标量循环Phi与L2状态循环证据不相同；storage/reference不以memory探针强推。241个状态成员链write_base_read尚缺对应最小机制实证，不能称全部convention。
+- 最终1075 v2+223旧=1298 passed，0失败/跳过，8/29既有warning。中间转义/集成错误、Unit跨度分类修订及输入SHA绑定修订均留日志，不覆盖旧报告。最终alignment_v4_r2、review_r2、binding_review及final_acceptance在prompt6d1_v1/。
+- 图仍是graphs_v2_r1。全部13553差异中203逐条审阅、13350未逐条语义判定；新谓词517中391未逐条审阅。剩余other未查0不等于所有差异已证明正确；review gate仍unresolved_analyst_findings。原512/111边人工表未填，不训练/不开始6e、7、8。详细见training_changes§52、PROMPT6D1_REPORT.md。实施、复核与记录AI：Codex。
