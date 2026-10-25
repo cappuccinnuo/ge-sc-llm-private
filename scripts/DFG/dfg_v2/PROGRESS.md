@@ -1550,3 +1550,26 @@ python -B -m scripts.DFG.dfg_v2.validate_slither \
 上述正式输出已存在，重跑应指定新目录。实际运行219.89秒；report.json约152MB，逐事件证据及seal保留本地。可读摘要results_compact.json，独立复核result_review.json，最终不变量/测试final_acceptance.json。源码与F3/audit/store输入摘要在运行结束重新核验。
 
 后续仍使用graphs_v2_r1/store.json。未改旧seal或人工表，未编译现代Oracle样例，未开始Prompt7/8、训练或push。外部事件一致性不能替代人工边判断和最终模型实验。
+
+
+## 2026-10-25 Prompt 6d 完成（Codex）
+
+已读更新后的§4.1和6d，git pull --ff-only返回已最新。6b/6c的批准选择保持；本轮只增加验证工具，不重新执行6b。
+
+文件：新增slither_align.py、slither_mapping.py、slither_review.py、review_supplement.py及4个测试文件；仅修改l1_access.py的new_expression直接call_argument分支和test_l1_access.py。新增PROMPT6D_REPORT.md、PROMPT6D_CATEGORY_EXAMPLES.md，同时追加HANDOVER和training_changes第51节，历史文字保留。
+
+最终输入仍为graphs_v2_r1/store.json。源码形状清点直接call_argument为0/0/0/0；临时重建12张F1–F3图双指纹全部相同，16个图项SHA完全相同，F0引用/20模型schema不变。临时图仅作不变量验证，未前向、训练或优化；成功后仅删除本轮31个重复临时文件，保留比较记录。
+
+跨度一对一对照修正IR事件合并、scope重命名、entry同起点抢配和delete operand分类；旧alignment_v1/v2不覆盖。原6c指标保持；新版候选/参考/匹配：
+- 重入L1：12345/10215/8974，P/R 72.6934/87.8512%；
+- 重入L2：7658/8563/7368，96.2131/86.0446%；
+- 访问控制L1：14359/10024/8719，60.7215/86.9812%；
+- 访问控制L2：3994/4425/3802，95.1928/85.9209%。
+
+全部13,857差异有互斥类别；773条other按固定规则抽172条，逐条AI辅助审阅，无已确认v2_defect；165条旧判断仅在完整证据相等后复用，另7条新核验。这里的保守版本/别名和modifier范围差异仍是限制，不是已经补齐的功能。未抽中部分及人工边精度未验收；原Oracle18/20不改。
+
+六旧文件全节点严格映射仍不通过：254=76精确+98无表达式+80不等，均继续不可比较；111条新边空白表review_v1b已封存，verdict/note未填。额外2文件3次只读Slither超范围探针已停止且单列，未并入正式指标；不把该偏差记成用户批准。原5条modifier误读已记录纠正，原seal与selection未变化。
+
+验收命令：python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests（970通过、8已有warning）；同命令路径scripts/DFG/tests tests/test_graph_utils.py（223通过、29已有warning）；总1193，0失败/跳过。比较器34、映射23、抽样16、L1/补表组合92定向测试通过（不重复计数）。实际CLI及输出见PROMPT6D_REPORT.md。
+
+产物：artifacts/dfg_v2/prompt6d_v1/（alignment_v3、review_other_v3、mapping、tests、temporary_rebuild_comparison、final_acceptance）及review_v1b/。正式新关系、HGT、tokenizer、标签、fold和旧训练代码未改。本轮本地提交后停止，不push、不开始Prompt7/8。

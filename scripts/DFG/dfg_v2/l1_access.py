@@ -55,7 +55,15 @@ class ExtendedAccessExtractor(AccessExtractor):
             declared_type = node.child_by_field_name("name")
             if declared_type is None or declared_type.type != "type_name":
                 raise Unsupported("V2: unknown new-expression type shape")
-            return []
+            # P6d defensive grammar branch: some supported parser versions
+            # allow arguments directly under new_expression. Never traverse
+            # the type_name as a value; inherited reads retain nested-write
+            # and unknown-expression rejection for each direct argument.
+            result = []
+            for child in node.named_children:
+                if child.type == "call_argument":
+                    result += self.reads(child)
+            return result
         if node is not None and node.type == "struct_expression":
             # P6b: call options are encoded as a struct-shaped wrapper.
             # Read the callee/base and option values, never the option names.

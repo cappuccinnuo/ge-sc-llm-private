@@ -351,3 +351,60 @@ def test_prompt6b_new_contract_does_not_allow_nested_writes(statement):
         statement, params="uint v, uint i", version="^0.6.12")
     with pytest.raises(Unsupported, match="Nested"):
         event(view, access, statement)
+
+# Prompt 6d: parser-backed cases; these assertions are not solc validation.
+@pytest.mark.parametrize("statement,params,expected", [
+    ("new uint[](n);", "uint n", {"n"}),
+    ("new bytes(len);", "uint len", {"len"}),
+    ("new string(len);", "uint len", {"len"}),
+    ("new C(a, b);", "uint a, uint b", {"a", "b"}),
+])
+def test_prompt6d_allocation_arguments_are_reads(statement, params, expected):
+    view, _, table, access = build(statement, params=params, version="^0.6.12")
+    result = event(view, access, statement)
+    assert names(table, result.reads) == expected
+    assert not result.writes and not result.weak_writes
+    allocations = [n for n in walk(view.tree.root_node) if n.type == "new_expression"]
+    assert len(allocations) == 1
+    # Installed grammar places these arguments in the enclosing call.
+    assert not [c for c in allocations[0].named_children if c.type == "call_argument"]
+    assert access.reads(allocations[0]) == []
+
+
+class DirectArgumentsNewNode:
+    """Parser robustness adapter using real type/argument AST children.
+
+    This models the grammar-permitted direct-child branch; it does not claim
+    the installed parser emits that branch for the fixtures above.
+    """
+    type = "new_expression"
+
+    def __init__(self, allocation, arguments):
+        self.declared_type = allocation.child_by_field_name("name")
+        self.named_children = [self.declared_type] + list(arguments)
+
+    def child_by_field_name(self, name):
+        return self.declared_type if name == "name" else None
+
+
+def test_prompt6d_direct_new_arguments_read_declaration_identities_not_type():
+    # Same local/type spelling is deliberately parser robustness only.
+    view, _, table, access = build(
+        "new C(a, b);", params="uint a, uint b, uint C", version="^0.6.12")
+    call = node(view, "new C(a, b)", "call_expression")
+    allocation = next(n for n in walk(call) if n.type == "new_expression")
+    args = [n for n in call.named_children if n.type == "call_argument"]
+    assert len(args) == 2
+    result = access.reads(DirectArgumentsNewNode(allocation, args))
+    assert set(result) == {named(table, "a")[0].id, named(table, "b")[0].id}
+    assert named(table, "C")[0].id not in result
+
+
+def test_prompt6d_direct_new_arguments_keep_nested_write_fallback():
+    view, _, _, access = build(
+        "new C(a++);", params="uint a", version="^0.6.12")
+    call = node(view, "new C(a++)", "call_expression")
+    allocation = next(n for n in walk(call) if n.type == "new_expression")
+    args = [n for n in call.named_children if n.type == "call_argument"]
+    with pytest.raises(Unsupported, match="Nested"):
+        access.reads(DirectArgumentsNewNode(allocation, args))

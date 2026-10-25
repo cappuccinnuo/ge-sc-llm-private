@@ -1969,3 +1969,14 @@ Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph 
 - L1 extra主要是Slither集合没有对应项的入口DEF，missing主要来自保留的回退函数。支持函数内召回99.573%/99.646%仅作诊断，不替换主分母。已核验L2一例初始化范围差异及两例多行位置差异（实际边存在）；其余不一致尚未逐一人工判断。
 - 实现提交7918427；最终886 v2＋223旧回归=1109通过，0失败/跳过，8/29条既有弃用警告。11,172个其他原跟踪文件及历史文档前缀不变。完整结果与封存位于prompt6c_v1/slither_full/，独立复核result_review.json；大报告和编译器保留本地，不纳入普通Git提交。
 - 详细记录见training_changes第50节、PROGRESS及PROMPT6BC_REPORT.md。当前可用图仍为graphs_v2_r1/store.json；人工512边表未填写，Oracle样例未做编译验证。未启动Prompt7/8或模型训练，未push。实施、复核与记录AI：Codex。
+
+
+## 2026-10-25 DFG v2 Prompt 6d 完成（Codex）
+
+- 先核验更新文档、dfg-v2/f14194b、旧store及6c seal。新增slither_align/slither_mapping/slither_review/review_supplement和测试；唯一分析器改动为new_expression直接call_argument读取。四任务该形状均0，未重做6b或扩展DDG。
+- 修正比较器的IR事件合并、Slither内部scope重命名、entry抢配和delete分类，保留v1/v2/v3。最终13,857差异逐条机械分类；773 other固定seed0抽172，逐条核对未发现支持范围内的v2_defect，不能推广为全部DDG正确。6c原指标不变；新增跨度P/R与漏洞F1无关。
+- 6个缺filename文件254节点，仅76精确、98无独立文本、80文本不等，整文件门槛均未过，继续not_comparable。111条新增边已导出review_v1b（51/60），人工verdict/note全空，未报告人工precision。
+- 临时cli build成功：四任务12张增强图完整/计算指纹均与graphs_v2_r1一致；16图项文件SHA相同，4个F0引用及20个schema不变。只删除本轮临时重复图约0.84GB，保留比较证明和日志；原图、标签、token、CFG/CG/HGT/训练代码不变。graphs_v2_r1继续作为Prompt7/8输入。
+- 最终970项v2＋223项旧DDG/graph_utils＝1193 passed，0失败/跳过，8/29条已有弃用warning。详细选择、命令、全部分类和证据见training_changes第51节、PROMPT6D_REPORT.md与PROMPT6D_CATEGORY_EXAMPLES.md。
+- 执行偏差如实保留：辅助复核超范围运行2文件共3次只读Slither，发现后停止，未并入正式统计；没有安装下载或改变样本。另5条modifier初读判断已撤回，封存产物未改。
+- 本轮停在6d：未训练、未开始Prompt7/8、未push。实施、复核与记录AI：Codex。
