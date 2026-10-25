@@ -40,7 +40,7 @@ def wilson95(correct, total):
     return [max(0.0, center - radius), min(1.0, center + radius)]
 
 
-def score_review(csv_path, seal_path):
+def score_review(csv_path, seal_path, equivalence=None):
     seal_path = Path(seal_path).resolve()
     seal = read_json(seal_path)
     if (seal.get("version") != VERSION or seal.get("columns") != list(COLUMNS)
@@ -82,11 +82,16 @@ def score_review(csv_path, seal_path):
         result[relation] = dict(values, reviewed_denominator=total, sampled=sum(values.values()),
             correct_proportion=values["correct"] / total if total else None,
             wilson95=wilson95(values["correct"], total))
-    return dict(version=VERSION, status="scored", row_count=len(filled), relations=result,
+    report = dict(version=VERSION, status="scored", row_count=len(filled), relations=result,
         completed=not any(v["blank"] for v in counts.values()),
         excluded_from_denominator=["unsure", "blank"],
         interval_scope="descriptive edge judgments in a file-clustered sample; not independent model trials",
         seal=str(seal_path), csv=str(Path(csv_path).resolve()))
+    if equivalence is not None:
+        from .store_diff import verify_equivalence
+        report["equivalence"] = verify_equivalence(equivalence, seal_path)
+        report["scoring_store"] = report["equivalence"]["scoring_store"]
+    return report
 
 
 def main(argv=None):
@@ -94,11 +99,12 @@ def main(argv=None):
     parser.add_argument("--csv", required=True)
     parser.add_argument("--seal", required=True)
     parser.add_argument("--output")
+    parser.add_argument("--equivalence", help="Sealed store_diff.json proving review carry-forward")
     args = parser.parse_args(argv)
     output = Path(args.output).resolve() if args.output else None
     if output is not None and output.exists():
         raise FileExistsError("Refusing existing score output")
-    result = score_review(args.csv, args.seal)
+    result = score_review(args.csv, args.seal, equivalence=args.equivalence)
     if output is not None:
         output.parent.mkdir(parents=True, exist_ok=True)
         write_json(output, result)

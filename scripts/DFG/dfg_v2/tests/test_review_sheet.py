@@ -236,3 +236,28 @@ def test_sampling_cap_and_deterministic_subset(tmp_path):
     assert sum(r["relation"]==rs.DATA_DEF_USE for r in rows)==5
     assert pop[0]["available_edges"][rs.DATA_DEF_USE]==11
     assert pop[0]["sampled_edges"][rs.DATA_DEF_USE]==5
+
+
+def test_scoring_cli_passes_optional_equivalence(tmp_path,monkeypatch,capsys):
+    from scripts.DFG.dfg_v2 import score_review as module
+    called={}
+    def fake(csv_path,seal_path,equivalence=None):
+        called.update(csv=csv_path,seal=seal_path,equivalence=equivalence)
+        return {"status":"scored","scoring_store":{"path":"new/store.json"}}
+    monkeypatch.setattr(module,"score_review",fake)
+    module.main(["--csv","review.csv","--seal","review.seal.json",
+                 "--equivalence","diff/store_diff.json"])
+    assert called==dict(csv="review.csv",seal="review.seal.json",
+                       equivalence="diff/store_diff.json")
+    assert "new/store.json" in capsys.readouterr().out
+
+
+def test_equivalence_failure_does_not_emit_scored_output(tmp_path,monkeypatch):
+    from scripts.DFG.dfg_v2 import score_review as module
+    def reject(*args,**kwargs):raise ValueError("equivalence rejected")
+    monkeypatch.setattr(module,"score_review",reject)
+    output=tmp_path/"score.json"
+    with pytest.raises(ValueError,match="equivalence"):
+        module.main(["--csv","review.csv","--seal","review.seal.json",
+                     "--equivalence","bad.json","--output",str(output)])
+    assert not output.exists()
