@@ -4050,3 +4050,159 @@ python -B -m scripts.DFG.dfg_v2.cli verify \
 
 
 Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph entries, 20 recorded schemas, 0 verification HGT constructions/forwards). Actual runtime SHA map still matches build-time; original 11114 protected files and historical document prefixes verified unchanged. Proof: prompt5_v1/final_acceptance.json.
+
+
+## 48. 2026-10-25 DFG v2 Prompt 6：独立 Oracle 与正确性验证（Codex）
+
+### 48.1 任务边界、版本与提交顺序
+
+实施工作树：/home/zhao/SmartContract/ge-sc-llm-ddg-v11，分支dfg-v2。开始HEAD为f5e1260a3b017640f0795c49bc4cc98e0c15881d（Refine Prompt 6 after Prompt 5 review）；按更新后的PROMPTS第4.1和Prompt 6执行，git pull --ff-only origin dfg-v2返回已是最新。本轮没有checkout/reset、迁移旧实验或改动用户原有修改。
+
+严格执行“先独立期望、后运行比较、最后文档”的三次提交：
+1. aded5023a0adb759cb458b2e238ccdc480be1d35，Prompt 6.1 oracle expectations，仅20个.sol及20个.expected.json。
+2. f80073f34d6747a9e94fa67c0a1fefa93e231bc9，Prompt 6.2 sealed correctness checks and manual review tools，仅验证工具/测试/SEAL/分类。
+3. 文档提交：HANDOVER、training_changes、本PROGRESS及PROMPT6_REPORT，本节记录对应实施。
+
+手写期望阶段不运行分析器、不从结果倒推期望。SEAL绑定第1次提交及各文件SHA，比较器核验工作树内容和Git blob一致。看到不一致后没有修改原.sol/.expected.json，也没有重写seal以制造通过。所有源码样例都明确标记未执行编译验证；本轮使用解析器与图验证，不能称已通过Solidity编译。
+
+真实图只读graphs_v1/store.json并先调用verify_store；不再读取历史分层目录作为运行入口。原L1/L2/L3、pipeline、HGT、tokenizer、作者图/标签、原折和训练逻辑没有修改。
+
+### 48.2 用户批准的选择与未擅自扩展的范围
+
+发现模板tuple“x只到a”与当前语句级HCG粒度不一致：整个(a,b)=(x,y)是同一模型节点，语句间关系不能证明节点内部的逐元素值流。已明确询问，用户答复“同意按语句粒度验证并记录限制（推荐）”。
+
+采用：验证x/y定义→tuple语句、tuple语句→a/b后续使用，检查声明身份、KILL与禁止边；不增加表达式/变量节点、不调整分析器。限制：该Oracle不能验证tuple内部逐元素来源，不把语句关系结果解释成表达式级证明。
+
+其余模板语义保持：L1字段写是基变量弱定义；L2通过状态声明中转且流不敏感，读先于写也可能形成声明连接。相关期望显式带approximation并单独计数，不能冒充精确到达定义。
+
+可选Slither存在证据限制：冻结L1 audit只保存已投影定义—使用端点，不能恢复所有未参与关系的局部def/use出现。工具明确标记L1对照为partial，而非完整事件级召回。本轮不为可选外部验证修改冻结分析器；要补全必须另行确定新审计接口。L2使用现有原始字节出现位置。实际没有可用编译器，外部对照未执行，未用partial结果宣称通过。
+
+### 48.3 新增文件与核心逻辑
+
+| 新增文件（均在scripts/DFG/dfg_v2/） | 用途与限制 |
+| --- | --- |
+| oracle/*.sol、*.expected.json（各20个） | 独立手写赋值/分支/循环/终止/tuple/modifier、状态与环境量用例 |
+| oracle/SEAL.json | 绑定原始期望提交与文件SHA；核对成对文件及18–20例范围 |
+| oracle/CLASSIFICATIONS.json | 最终报告SHA、逐项issue ID、类别、理由及语言/代码证据 |
+| oracle_check.py | 生成合成HCG、调用冻结pipeline，比较关系事实/图边、禁止项、计数及属性 |
+| validate_slither.py | 离线能力检查、精确版本和可信编译器门禁、可选对照及跳过报告 |
+| review_sheet.py | 只读F3图，固定随机抽样，原源码位置/evidence导出和封存 |
+| score_review.py | 只允许verdict/note修改，统计正确比例与Wilson95%区间 |
+| tests/test_oracle_check.py | 删除/多加/禁止边、重复文本、封存、属性、错误完整性等回归 |
+| tests/test_validate_slither.py | 无工具/无版本跳过、API/位置/输入保护等回归 |
+| tests/test_review_sheet.py | 确定性、来源、空表、篡改拒绝与统计回归 |
+| PROMPT6_REPORT.md | 本轮结果、限制、后续6b输入及人工填写入口 |
+
+Oracle合成HCG复用与test_l1相同的原generate_cfg_from_source路径，token_encoder固定float32[512]；额外测试0与17000常量编码不会改变边。投影采用ProjectionView/Projector身份与raw源码，规范化完整语句文本；不按最近行猜测。重复规范化端点文本拒绝比较，env使用ENV:键。
+
+关系事实按(relation,src,dst,var)比较，图边按(relation,src,dst)另报；还校验env计数、unmapped、spellings/via_alias等已指定属性。原节点、边key/属性及labels保持。执行错误单列、metrics_complete=false，不能把异常转换为空图“通过”或静默从分母删除。新增关系的REV仍属于已有adapter职责，本轮未调整方向策略。
+
+复核器要求分类文件精确对应所有差异并绑定报告SHA；期望错误必须附语言依据，同时保存HCG投影代码依据。存在差异时CLI仍以非零结束，不能把“已分类”伪装成原始Oracle全通过。
+
+
+### 48.4 Oracle实际结果、逐项归因与6b输入
+
+最终输出：artifacts/dfg_v2/prompt6_v1/oracle_run_v2/summary.json。20例全部执行；17例完全匹配，3例有差异；85条期望关系事实，32条禁止项，禁止边违反数0。24个期望条目明确标记设计近似。
+
+| 关系 | TP | FP | FN | Precision | Recall |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| DATA_DEF_USE | 47 | 4 | 3 | 92.16% | 94.00% |
+| WRITES_STATE | 8 | 0 | 0 | 100% | 100% |
+| READS_STATE | 15 | 0 | 0 | 100% | 100% |
+| ENV_FLOW | 12 | 0 | 0 | 100% | 100% |
+
+本批关系事实与图边级计数相同。这是对原始封存期望的原始比较，包含期望错误，不能用来宣称真实全语料准确率/召回率。8项差异分别如下，分类均已封存：
+
+**04_for_update：6项expectation_error。** 手写期望认为i++没有独立HCG节点，把更新定义投到整个for。实际旧CFG_solidity.py在621–627、654–656创建并连接update_node_id；此例原始区间135:138对应节点32。实际7条关系反映更新的读/写、循环条件和退出使用。Solidity规定for更新发生于循环体之后，但模型节点粒度要由已有生成器判断。这里是期望中的投影假设错误，不能归咎于L1。保留原期望及SHA，通过分类说明，未调整代码或期望以强行通过。语言依据：[Solidity 0.5.17 control structures](https://docs.soliditylang.org/en/v0.5.17/control-structures.html#control-structures)。
+
+**18_environment_synonyms：1项expectation_error。** 可选spellings属性期望写gasleft，而源码拼写是gasleft()；实际msg.gas与gasleft()都存在，合并为一个gasleft环境键。此项由新增属性断言检出，不能仅因ENV_FLOW边端点相同就认为两种语法都已覆盖。依据：[Solidity 0.4.26 block and transaction properties](https://docs.soliditylang.org/en/v0.4.26/units-and-global-variables.html#block-and-transaction-properties)。本轮未修改原封存期望。
+
+**16_call_option_fields：1项implementation_error，属于覆盖缺口。** 例子先定义uint x = 1，再执行target.call{value: x}("")。L1的AccessExtractor.reads不支持此AST中的struct_expression，v2重试也未处理，最终函数级保守回退，漏掉x定义→调用的真实读取。定位scripts/DFG/access_extractor.py::AccessExtractor.reads（29–66）及scripts/DFG/dfg_v2/l1_access.py::V2AccessExtractor.reads（43–52）。该函数支持数0/1、partial_facts_published=false；原函数/HCG保留，没有基于不完整CFG发布部分DDG。L2正常读取target，不把value/gas/salt字段标签误当变量。调用选项中的value是表达式，x应被读取，参见[Solidity 0.6.12 external function calls](https://docs.soliditylang.org/en/v0.6.12/control-structures.html#external-function-calls)。
+
+Prompt 6b应先针对该缺口补测试并修复，再用cli build输出新的graphs_v2、重跑Oracle和验收。不能修改graphs_v1、原SEAL或本轮报告。当前没有测量它在真实语料的恢复量，也没有依据称其造成历史F1停滞。本轮按验证限定未实现修复。
+
+### 48.5 比较工具自身的复核与报告版本
+
+初版oracle_run_v1检查边、禁止项和计数，18/20例匹配、7项差异。复核发现还需对期望指定的spellings/via_alias做断言，否则不同语法映射到同一边时可能掩盖漏识别。补充这些属性检查后，生成独立oracle_run_v2，变为17/20例、8项差异；v1未覆盖，原期望未改。
+
+同时补齐：执行错误不能静默减少评分样本；源码/期望必须一一配对且数量合法；语句歧义拒绝；分类绑定最终报告。对验证程序自身的改进不改变被测L1/L2/L3。独立复核确认40个Oracle资产SHA未变，8个issue与CLASSIFICATIONS一一对应，最终报告摘要匹配，唯一实现缺陷描述准确。
+
+### 48.6 Slither实际执行情况及限制
+
+仅检查现有离线环境：slither-analyzer 0.8.0、crytic_compile 0.2.4可用；solc-select与获准的本地编译器资产不可用。没有下载、安装或运行新的solc。源码清单缺精确版本时不猜测pragma范围，也不借系统默认版本。
+
+| 任务 | 文件数 | 有精确版本但无编译器 | 缺精确版本 | 比较数 |
+| --- | ---: | ---: | ---: | ---: |
+| reentrancy_contract | 142 | 27 | 115 | 0 |
+| access_control_contract | 114 | 16 | 98 | 0 |
+
+所有256个文件明确记录跳过；compilation_executed=false，编译失败0（因为根本未编译），Precision/Recall为null而非100%。结果/封存：prompt6_v1/slither/report.json、report.seal.json。不能把“工具具备可选入口”说成“已完成外部验证”。
+
+未来启用时必须有准确metadata版本、可信编译器清单和现有授权。Slither API/源码映射缺失或无可比较CFG时不允许返回空集合成功；modifier内联、别名等差异独立列出。L2现有v2侧使用出现位置起始原始行，Slither侧来自CFG source mapping，粒度仍需解释；L1仅已投影端点partial，不能报告完整事件级覆盖率。
+
+### 48.7 人工抽查表、原始位置与防篡改
+
+真实F3图来自已verify的graphs_v1。seed=0，按稳定文件顺序R/AC各抽15个文件、每文件每关系最多5边，最终512行：R 254，AC 258；DATA_DEF_USE 132、WRITES_STATE 122、READS_STATE 129、ENV_FLOW 129。
+
+交付目录scripts/DFG/experiments/artifacts/dfg_v2/review_v1/：
+- review_sheet.csv：用户填写表，UTF-8 BOM。
+- review_sheet.blank.csv：不可修改的空表参照。
+- review_sheet.provenance.json：source SHA、原节点/边key、证据索引、原源码字节位置。
+- review_sheet.seal.json：空表SHA与抽样参数。
+
+CSV SHA：f274e5c0bcbbd0719a2622d71e662c2e52da57b9ae39ccda8c80d6301e438a62。
+seal SHA：ff3bd40d23a03b52a9debacd2c3bee6d5b4d4ca3937b204fd86bdba73ae3a99d。
+
+行号来自raw源码和字节证据，不使用预处理后的HCG行号；ENV源节点没有源码行则留空。L1证据标为statement_anchors，不能伪造标识符出现位置。grammar_recovered区分occurrence_confirmed、function_route_recorded、not_recorded，最后一类不等于已证明没有恢复。
+
+只允许用户填写verdict（correct/wrong/unsure）和note。AI未填写任何判断；512行两列均为空。评分前核验封存参照、不可修改列、行数/顺序/唯一ID，拒绝篡改、删除/追加/重复行。每关系正确比例为correct/(correct+wrong)，报告Wilson95%区间；unsure与空白单列，不算分母。空表统计返回null，未将空白视为正确。人工审阅尚未完成。
+
+
+### 48.8 实际测试、不变量、命令与编码处理
+
+沿用mando、Python3.7.12与共享上下文环境，未升级依赖。Oracle定向19 passed，Slither定向19 passed，review定向28 passed，各4条已有warning。最终整套v2为765 passed（8 warning，约62.97秒），旧DDG＋graph_utils为223 passed（29 warning，约3.68秒），共988 passed、0 failed、0 skipped。warning为既有DGL distutils/NetworkX gpickle弃用提示。不要把测试框架通过与“被测Oracle完全匹配”混同；测试包含对正确检出不一致的断言。
+
+本轮11128个受保护文件SHA未变；HANDOVER/training_changes/PROGRESS的任务前字节前缀保持。graphs_v1/store.json SHA仍为43e45227f7ccd9ebcbb034cb9e64b2cf430acf2c81dfb458b6ceadc344c67d5b。final_acceptance.json记录文件、空表、图store和测试结果；既有图、标签、token、折、checkpoint均未修改。
+
+实际命令（工作树根目录；新输出目录已存在，不能直接覆盖重跑）：
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests/test_oracle_check.py
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests/test_validate_slither.py
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests/test_review_sheet.py
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+
+python -B -m scripts.DFG.dfg_v2.oracle_check \
+  --output scripts/DFG/experiments/artifacts/dfg_v2/prompt6_v1/oracle_run_v2
+python -B -m scripts.DFG.dfg_v2.validate_slither \
+  --store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v1/store.json \
+  --output scripts/DFG/experiments/artifacts/dfg_v2/prompt6_v1/slither
+python -B -m scripts.DFG.dfg_v2.review_sheet \
+  --store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v1/store.json \
+  --output scripts/DFG/experiments/artifacts/dfg_v2/review_v1
+
+# 用户填写后可执行；不会修改抽查表
+python -B -m scripts.DFG.dfg_v2.score_review \
+  --csv scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.csv \
+  --seal scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.seal.json
+~~~
+
+Oracle存在差异的退出码1是正确检出结果；分类不将其改成全通过。所有构建/报告输出拒绝覆盖既有目录，复验应指定新目录并按新报告摘要记录分类。
+
+文档初次写入时Windows PowerShell管道把本轮中文转为字面问号；提交前发现并修复。修复仅重写本轮尚未提交的新增段落，依据before.json验证三份历史前缀SHA，使用ASCII管道承载Unicode转义、UTF-8写入，未猜测或更改历史正文。新报告同样修复。此问题未影响ASCII代码、JSON证据或测试结果。
+
+### 48.9 验收结论、未执行项与下一步
+
+满足本Prompt“Oracle全部通过或逐项归类、Slither有结果或明确跳过、空表和seal交付”的验证限定；不能据此宣布完整Solidity DFG正确、全图无错或模型性能提升。剩余项：
+1. Prompt 6b修复call选项引起的L1函数级回退，并新建graphs_v2复验；本轮只登记1项实现覆盖缺口。
+2. 人工表尚未填写；无正确率结论。
+3. 没有可用可信solc，未执行Oracle/真实源码编译和Slither实质对照；L1外部事件对照仍partial。
+4. tuple内部逐元素流未验证，L1/L2既有近似/不支持范围没有扩大。
+5. 未运行Prompt 7/8、真实模型训练、GPU预检、新seed或其余五类实验。
+
+本轮三次本地提交完成后停止，按共享上下文不自动push。独立复核与实施记录AI：Codex。

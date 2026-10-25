@@ -1937,3 +1937,14 @@ Final verification: v2 597 passed (8 existing warnings), legacy DDG/graph_utils 
 
 
 Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph entries, 20 recorded schemas, 0 verification HGT constructions/forwards). Actual runtime SHA map still matches build-time; original 11114 protected files and historical document prefixes verified unchanged. Proof: prompt5_v1/final_acceptance.json.
+
+
+## 2026-10-25 DFG v2 Prompt 6 正确性验证完成（Codex）
+
+- 按要求先封存20组手写Oracle源码/期望（提交aded502），再新增oracle_check、validate_slither、review_sheet、score_review及测试（提交f80073f）。L1/L2/L3、HGT、tokenizer、图、标签和训练代码均未修改；11128个受保护文件SHA及三份历史文档前缀保持。
+- 用户批准tuple按现有语句节点验证：检查定义→tuple→使用及声明身份/禁止边，明确未验证tuple内部逐元素值流，不增加节点或改分析器。此选择已详记training_changes第48节。
+- 最终Oracle 20例全部执行，17例与封存期望完全一致；8个差异逐项分类为7个期望问题、1个L1实现覆盖缺口。for更新已有独立HCG节点；gasleft的实际拼写为gasleft()。真实缺口为call{value: x}中的struct_expression使L1函数级回退、漏掉x的读取。原函数/图仍保留，无部分DDG残留。本轮未修复，作为Prompt 6b输入；原期望未改。
+- v2测试765＋旧DDG/graph_utils测试223＝988 passed，0失败/跳过，8/29条既有弃用warning。测试通过不代表Oracle全部匹配或完整Solidity语义已验证。
+- 人工空表：scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.csv，R/AC各15文件、共512条边。只填写verdict（correct/wrong/unsure）和note；其他列、顺序和行数保持。空表/来源/封存均已保存，AI未填写判定。
+- Slither可用，但无获准的离线solc，且部分清单缺精确版本；R 142/AC 114文件全部明确跳过，未执行编译、下载或安装。L1外部对照仅有已投影端点证据，不宣称完整事件级召回。
+- 详细结论见scripts/DFG/dfg_v2/PROMPT6_REPORT.md；审计产物在artifacts/dfg_v2/prompt6_v1/。本轮新增中文段落曾受PowerShell管道编码影响，已按UTF-8重写并验证历史前缀未变。仅本地三阶段提交，未push、训练或开始Prompt 6b/7/8。实施、复核与记录AI：Codex。

@@ -1433,3 +1433,57 @@ access_control_node,F3,"G3R,G3",7892,16535,3889,767,1091,1948,182,72,"{""G3"": 3
 
 
 Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph entries, 20 recorded schemas, 0 verification HGT constructions/forwards). Actual runtime SHA map still matches build-time; original 11114 protected files and historical document prefixes verified unchanged. Proof: prompt5_v1/final_acceptance.json.
+
+
+## 2026-10-25 Prompt 6：封存 Oracle、可选外部对照与人工抽查（Codex）
+
+### 本轮实现和顺序
+
+起点f5e1260，dfg-v2分支，开始时pull --ff-only确认已同步。先独立编写20对.sol/.expected.json并提交aded5023a0adb759cb458b2e238ccdc480be1d35，再写SEAL及比较器；工具/测试/分类记录提交f80073f34d6747a9e94fa67c0a1fefa93e231bc9。原始期望未按运行结果修改。
+
+新增oracle_check.py、validate_slither.py、review_sheet.py、score_review.py；测试test_oracle_check.py、test_validate_slither.py、test_review_sheet.py；oracle/SEAL.json、CLASSIFICATIONS.json。这里只验证，不改分析器/pipeline/HGT/tokenizer/标签/既有图。
+
+用户批准的调整：tuple在原HCG中为一个语句节点；验证x/y定义→tuple、tuple→a/b使用，附声明身份和禁止边检查。明确不验证tuple内部逐元素值流，不新增节点、不调整分析器。Slither的L1对照另外标记为partial：冻结audit只有投影端点，不能冒充完整def/use出现集合。
+
+### Oracle验收与Prompt 6b输入
+
+最终报告：scripts/DFG/experiments/artifacts/dfg_v2/prompt6_v1/oracle_run_v2/summary.json。20例执行，17例完全匹配、3例存在差异；85条期望关系事实、32条禁止项，禁止边违反数为0。24个有意近似条目独立标记。所有样例未执行编译验证，Tree-sitter解析成功不等于编译通过。
+
+| 关系 | TP | FP | FN | Precision | Recall |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| DATA_DEF_USE | 47 | 4 | 3 | 92.16% | 94.00% |
+| WRITES_STATE | 8 | 0 | 0 | 100% | 100% |
+| READS_STATE | 15 | 0 | 0 | 100% | 100% |
+| ENV_FLOW | 12 | 0 | 0 | 100% | 100% |
+
+以上为对原封存期望的原始比较，包含期望本身的错误，不能当作全数据集真实正确率。8项差异全部有分类和证据：
+
+- 04_for_update：6项期望错误。原CFG_solidity.py在621–627、654–656行已创建/连接独立update节点，不能把i++投影到整个for；保留原期望，记录代码与语言循环顺序依据。
+- 18_environment_synonyms：1项期望拼写错误。期望属性gasleft应与源码的gasleft()区别；真实msg.gas和gasleft()均被识别并合并到同一环境键。没有改期望或分析器。
+- 16_call_option_fields：1项实现覆盖缺口。L1对call{value: x}的struct_expression未识别，函数级回退漏掉x定义→调用的读取边。定位scripts/DFG/access_extractor.py::AccessExtractor.reads及dfg_v2/l1_access.py::V2AccessExtractor.reads。原HCG、函数保留，无部分事实提交。L2仍正确读取target，value/gas/salt字段名不被当成变量。Prompt 6b应修复此项后另建graphs_v2并复验；本轮未修复/重构图。
+
+比较器除边集合还检查spellings/via_alias属性、env计数、禁止边、encoder无关及执行错误；执行失败不会作为空成功样例计入。v1原报告保留，强化检查后的v2为最终依据。分类文件绑定最终报告SHA。
+
+### 外部对照及待人工填写内容
+
+Slither0.8.0/crytic_compile0.2.4已安装；无solc-select与获准离线编译器。重入142文件（27有精确版本、115缺精确版本）、访问控制114文件（16有精确版本、98缺精确版本）全部跳过，编译次数0、比较次数0，P/R为null。见prompt6_v1/slither/report.json。未联网安装或执行新编译器。
+
+交给用户的空表：scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.csv（UTF-8 BOM）。seed=0，R/AC各15文件，共512边：DATA_DEF_USE 132、WRITES_STATE 122、READS_STATE 129、ENV_FLOW 129。只填verdict为correct/wrong/unsure及note；不要修改其他列、顺序或行数。AI未填写判定。原始空表、字节定位来源与SHA封存齐全。按关系统计correct/(correct+wrong)和Wilson95%，unsure/空白单列；全空表返回null，不会伪报100%。
+
+~~~bash
+python -B -m scripts.DFG.dfg_v2.score_review \
+  --csv scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.csv \
+  --seal scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.seal.json
+~~~
+
+### 测试、不变量与停止位置
+
+在mando环境及共享上下文变量下：
+~~~bash
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+~~~
+
+最终765＋223＝988 passed，0 failed/skipped；8/29条既有DGL distutils、NetworkX gpickle弃用warning。定向Oracle19、Slither19、review28项通过。11128个保护文件SHA及三份历史文档前缀保持；store.json SHA仍为43e45227f7ccd9ebcbb034cb9e64b2cf430acf2c81dfb458b6ceadc344c67d5b。证据prompt6_v1/final_acceptance.json。
+
+验收范围是“所有不一致项已归类”，不是Oracle全绿或完整Solidity验证。人工判定与外部编译对照尚未完成。Prompt 6b缺口修复后需新图/新报告，不能覆盖graphs_v1。中文新增段落的管道编码问题已修复，历史前缀未变。按要求本地三次提交后停止，未push、训练或开始Prompt 6b/7/8。详细实施见training_changes第48节和PROMPT6_REPORT.md。
