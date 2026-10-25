@@ -3901,3 +3901,52 @@ Per-key coverage (nodes / ENV_FLOW / occurrences / unmapped; spelling counts):
 | blockhash | 1 | 1 | 1 | 0 | {"blockhash(...)": 1} |
 | gasleft | 0 | 0 | 0 | 0 | {} |
 | this.balance | 49 | 281 | 281 | 0 | {"address(this).balance": 273, "this.balance": 8} |
+
+
+## 46. 2026-10-25 DFG v2 Prompt 5.0：注意力与 grammar 只读诊断（Codex）
+
+### 46.1 范围、输入与实施选择
+
+从 dfg-v2 分支 3379d2e7c281b7b9cbf389b4c979135510c0ffe9 开始；已执行 git pull --ff-only origin dfg-v2，读取更新后的 §4.1 与 Prompt 5。仅新增 attention_probe.py、grammar_shape_audit.py 及对应两份 tests；三份文档只追加。未修改旧分析器、HGT、tokenizer、图、标签、划分或训练程序。Prompt 5.0 与之后统一入口按要求分开本地提交，不自动推送。
+
+用户已批准两项后续接口调整（call_5b82ed0af4c443a8ad73d74579bde566）：现有各层内部独立解析，故改为任务源码清单只加载/校验一次、各层各调用一次并复用中间图；通用类别验收由不足以执行5/10折的3文件改为20个小型合成身份。真实分析器和划分函数均保持，批准不等于允许修订 L1/L2/L3。
+
+### 46.2 注意力诊断实现与事实
+
+attention_probe 用 forward hook 捕获每层输入/输出，以 frozen HGT 自身参数重算 k/q/v、relation变换、dst softmax、sum、跨关系 mean、a_linear、skip 和 norm；只做 CPU eval/no_grad，无 loss、反传、优化器。每任务一次真实前向，四任务共4次，8个层输出的最大重算误差全部0（门槛1e-5）。1070/1070历史文件对重现1e-6容差内接近。单邻居权重1不作为饱和证据，报告多邻居目标/head分布；另保留同h/value邻居组的合计权重，避免重复邻居稀释单边权重导致误读。
+
+| 任务 | 第一层 REV_ENV_FLOW max>=.99 | READS_STATE | next_line | 历史对 | RSS MiB | 诊断秒数 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 重入合约 | 85.82% | 98.62% | 98.91% | 72 | 2179 | 29.88 |
+| 访问控制合约 | 62.04% | 99.29% | 98.23% | 479 | 1911 | 23.53 |
+| 重入节点 | 76.48% | 99.76% | 98.26% | 69 | 1841 | 18.79 |
+| 访问控制节点 | 54.68% | 99.77% | 96.35% | 450 | 1627 | 8.81 |
+
+第二层三类关系的多邻居 max>=.99 比例均为0%。第一层各类型h的abs_mean约111–1309，abs_max约14522–17001；第二层abs_mean约0.774–0.878、abs_max约5.95–6.06。adapt_ws只执行一次，第二层输入是前层归一化输出，不能声称每层重新投影token ID而持续饱和。
+
+1070对中70对的各canonical消息与残差输入逐位相同；269对最高邻居value相同但只是解释证据，不能都归因为one-hot；其余731对全部在第二层，真实输出差均非零，仅为1.192e-7–9.537e-7的容差内接近。这731对完整canonical消息差最大4.029e-6，自身上一层输入差最大2.384e-7。未保存逐pair的skip前后/pre-norm张量，不把所有差异归因某单一步骤。重算完整输出吻合，未发现新关系未接入或模型计算错误。
+
+模板中的“全部1070对由one-hot解释”及“G0同样存在”不能直接当作实测结论：本次测的是G3R中的ENV、READS_STATE及原next_line；G0使用同类原始token ID和计算机制，但未额外执行G0诊断。保留为可能机制，不更改特征或归一化，不声称F1收益。
+
+### 46.3 grammar 普查与审查修正
+
+按L3输入收据/图bundle/源码SHA，扫描四任务384个文件实例、256个唯一source path+SHA。直接后缀槽为binary/unary的次数依次363/296/218/164；被吞push/pop成员调用全部0，表达式位置user_defined_type全部0，解析失败0。真实类型/继承位置单独排除，不把解析成功称作Solidity编译通过。没有触发模板要求的分析器修订门槛。
+
+独立复核后，仅修正新审计器两项健壮性：环境前缀允许点号周围空白；直接核验metadata引用的版本CSV/源码资产，避免版本回退吞掉输入漂移。旧分析器不变，原诊断保留，新结果写grammar_shape_audit_r1。详细逐文件证据、候选和SHA均在prompt5_v1，不按名字猜测源码。
+
+### 46.4 验证与产物
+
+最终测试数量与保护文件核验见本节末尾执行补记。警告仅已有DGL distutils、NetworkX gpickle弃用；未安装依赖或执行solc。attention_probe_tests保存17项定向测试及源码seal；attention_probe/保存4任务完整JSON、pair_summary.csv、summary/seal；grammar_shape_audit_r1为最终扫描。前一版grammar_shape_audit及phase0_v2_tests记录保留，不覆盖。
+
+实际命令（mando环境，§4.1环境变量）：
+~~~bash
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+python -B -m scripts.DFG.dfg_v2.grammar_shape_audit --output scripts/DFG/experiments/artifacts/dfg_v2/prompt5_v1/grammar_shape_audit_r1
+python -B -m scripts.DFG.dfg_v2.attention_probe --bundle <l3_build的任务目录> --static-review scripts/DFG/experiments/artifacts/dfg_v2/prompt4_v1/zero_pair_static_review --output <该任务的新诊断目录>
+~~~
+
+已有输出目录不得覆盖。以上真实诊断已完成，不是要求重复执行。下一步仅组合已有层与输入/图存储，不训练。实施、复核与记录AI：Codex。
+
+
+Final verification: v2 597 passed (8 existing warnings), legacy DDG/graph_utils 223 passed (29 existing warnings); 820 passed, 0 failed/skipped. Grammar targeted 42 passed, attention targeted 17 passed. Logs: prompt5_v1/phase0_final_v2.log and phase0_final_legacy.log. All 11114 protected tracked file SHAs and all three original document prefixes verified unchanged. Grammar r1 task JSON SHAs equal the prior scan; only audit input guards improved.

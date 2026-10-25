@@ -1360,3 +1360,19 @@ CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l3_build --l2-directory
 ~~~solidity
 "require (tx.origin == owner_txorigin37);"
 ~~~
+
+
+## 2026-10-25 Prompt 5.0：诊断完成（Codex）
+
+文件：新增attention_probe.py、grammar_shape_audit.py、tests/test_attention_probe.py、tests/test_grammar_shape_audit.py；旧实现不改。
+
+四任务各一次CPU eval/no_grad，八层精确重算误差0，1070/1070对重现。第一层ENV多邻居head max>=.99依次85.82%/62.04%/76.48%/54.68%，READS_STATE98.62–99.77%、next_line96.35–98.91%；第二层均0%。70对消息及残差输入完全同，269对最高value同但不足以全部归因，731对是第二层非零的容差内接近，未发现模型接入错误。G0没有独立测量，不把推测写成实证。详表及解释边界见training_changes第46节和prompt5_v1/attention_probe/。
+
+grammar四任务384实例/256唯一源码身份；直接binary/unary后缀槽363/296/218/164次，吞push/pop与表达式user_defined_type均0。最终grammar_shape_audit_r1补充新审计器空白前缀与metadata外部资产校验，不修改分析器。原审计产物保留。
+
+用户批准call_5b82ed0af4c443a8ad73d74579bde566的两项最小调整已存approved_interface_adjustments.json：源码清单只加载/校验一次、各层调用一次复用中间图；通用性测试用20个合成身份以满足原5/10折。后续不复写真实划分或冻结分析器。
+
+命令：python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests；同命令目标scripts/DFG/tests tests/test_graph_utils.py。真实诊断命令与产物路径见training_changes第46节。最终数量见下方补记。未训练、未GPU测量、未solc、未push；本阶段先单独本地提交。
+
+
+Final verification: v2 597 passed (8 existing warnings), legacy DDG/graph_utils 223 passed (29 existing warnings); 820 passed, 0 failed/skipped. Grammar targeted 42 passed, attention targeted 17 passed. Logs: prompt5_v1/phase0_final_v2.log and phase0_final_legacy.log. All 11114 protected tracked file SHAs and all three original document prefixes verified unchanged. Grammar r1 task JSON SHAs equal the prior scan; only audit input guards improved.

@@ -1916,3 +1916,13 @@ CUDA_VISIBLE_DEVICES= python -B -u -m scripts.DFG.dfg_v2.l2_build --output scrip
 - 最终v2 538＋旧DDG/graph_utils 223＝761 passed，0失败/跳过；8/29条既有弃用warning。独立验收365 runtime SHA、L2/L1绑定、不变量、80边/84处源码和8前向收据通过；11095个保护文件及历史文档prefix不变。
 - 最终图：artifacts/dfg_v2/l3_build/；L2输入：l2_build_r1/；验收/审批/前后测试/只读静态复核：prompt4_v1/。详细选择和命令见training_changes第45节，PROGRESS附每任务20条共80条样本。
 - 本轮只完成Prompt 4，不训练、不算F1、不测GPU、不执行solc、不开始Prompt 5；按共享要求本地提交后停止，未push。实施、复核与记录AI：Codex。
+
+
+## 2026-10-25 DFG v2 Prompt 5.0 完成（Codex）
+
+新增attention_probe/grammar_shape_audit及两份测试；旧分析器、HGT、特征、图、标签和训练逻辑保持。四次CPU诊断的8层重算误差全部0，1070对历史观测均重现。第一层多邻居注意力高度集中，第二层没有相同的饱和现象；731对实际是非零但1e-6容差内接近，不能将全部对称作one-hot导致完全相同，也未额外实测G0。grammar覆盖384文件实例：吞push/pop与表达式user_defined_type候选均0，无分析器修订阻断。新审计器补齐空白前缀及metadata资产校验，最终证据在prompt5_v1/grammar_shape_audit_r1/与attention_probe/。
+
+用户已批准后续“清单加载一次、各层调用一次复用图”和“20个合成身份进行5/10折通用性测试”两项调整，真实fold和旧解析器不变。详细选择、指标与限制见training_changes第46节，测试执行结果见PROGRESS本轮记录。按要求先本地提交Prompt5.0，之后继续统一入口，未push/训练/solc。修改AI：Codex。
+
+
+Final verification: v2 597 passed (8 existing warnings), legacy DDG/graph_utils 223 passed (29 existing warnings); 820 passed, 0 failed/skipped. Grammar targeted 42 passed, attention targeted 17 passed. Logs: prompt5_v1/phase0_final_v2.log and phase0_final_legacy.log. All 11114 protected tracked file SHAs and all three original document prefixes verified unchanged. Grammar r1 task JSON SHAs equal the prior scan; only audit input guards improved.
