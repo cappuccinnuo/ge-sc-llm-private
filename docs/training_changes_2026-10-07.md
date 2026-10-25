@@ -4206,3 +4206,275 @@ Oracle存在差异的退出码1是正确检出结果；分类不将其改成全�
 5. 未运行Prompt 7/8、真实模型训练、GPU预检、新seed或其余五类实验。
 
 本轮三次本地提交完成后停止，按共享上下文不自动push。独立复核与实施记录AI：Codex。
+
+
+## 49. 2026-10-25 DFG v2 Prompt 6b：调用选项读取修复与图存储复验（Codex）
+
+### 49.1 任务边界、提交与历史保护
+
+工作树ge-sc-llm-ddg-v11，分支dfg-v2；按共享上下文及Prompt 6b执行。6c另报。修复提交为 f270ed68d218160be56f8bafba19e070737dab5d。审计实现提交c09bbbc；本节文档提交以Git历史为准，不在正文自引用未来提交SHA。
+
+冻结代码、模型、特征、标签、折与原训练器不变；旧标量成功结果继续复用。graphs_v1、原Oracle期望/SEAL/分类、review_v1和历史产物保留；未训练。
+
+### 49.2 根因、最小实现与用户批准的new_expression补充
+
+Oracle16的target.call{value: x}("")被解析为struct_expression；旧/v2读取器均不支持，函数回退并漏掉x依赖。
+
+实际修改位于dfg_v2/l1_access.py::ExtendedAccessExtractor.reads。对struct_expression读取type字段代表的调用基表达式，再递归读取各struct_field_assignment的value字段。name仅是选项标签，不因存在同名value、gas或salt局部变量就把标签当作使用。未知子表达式、嵌套副作用继续沿既有规则回退，不产生跨函数摘要。
+
+模板同时要求new C{value: v}(...)。实测只补struct_expression仍会在new_expression失败；已先说明并获得用户批准做最小补齐：确认name字段为type_name时，该类型名本身不产生变量读取；构造参数和选项值由外层call/options提取。不新增节点，不扩展完整类型系统，不改变编译版本，不把C误当同名局部变量。未知new-expression形状继续回退。
+
+### 49.3 修复前后证据及Oracle复验
+
+保留失败日志，不删除测试或修改原Oracle期望：
+- 调用选项定向回归：修复前9项失败；补struct_expression后9项通过。
+- 获准补new_expression后：未实现该分支时7项失败、原9项通过；补齐后16项全部通过。
+- Oracle重跑结果为18/20例匹配；16_call_option_fields通过。剩余04_for_update与18_environment_synonyms对应7项既有expectation_error。
+- 新建并验证CLASSIFICATIONS_v2.json，记录16为fixed，绑定上述修复提交；原CLASSIFICATIONS、期望文件及SEAL保持不变。
+- 6b与6c共同最终回归：v2共886 passed，旧DDG＋graph_utils共223 passed，合计1109 passed。最终日志为prompt6c_v1/v2_final.log与legacy_final.log，8/29条既有DGL/NetworkX弃用warning；0失败/跳过，约59.02/3.77秒。
+
+18/20不是原始期望全通过；解析器和图断言也不代替编译验证。
+
+### 49.4 逐图审计与锚点增强
+
+store_diff先验证旧新store及输入身份，逐F0–F3保留节点ID/顺序/属性、图属性及旧边key/顺序；消失边为0。新增仅限恢复函数的DATA_DEF_USE，附函数、回退原因、源码SHA/区间、语句和事实。
+
+L2/L3边、属性及语义审计逐项相同。其invariants含上游L1边数等派生值，仅排除该派生容器的直接相等要求；边、出现位置、证据和canonical统计不放宽。
+
+锚点独立复核：旧node_id＋Span完整条目按多重集保留，允许既有共享node_id；新增仅限恢复函数合法原始字节范围。补测未抽样锚点篡改、删除、越界新增及共享ID。
+
+### 49.5 用户批准的两项审计规则调整
+
+**调整一：只允许全局证据引用编号重排。** 实际新增事实插入全局evidence数组后，会改变旧边ddg_fact_indices，但原事实可以完全不变。首次严格diff在重入合约F1的10380→10381、key=1处失败：buggy_44.sol的success依赖由索引3849变为3869，完整解析事实相同。未静默放宽；经用户明确同意后，仅对DATA_DEF_USE使用证据身份核验。
+
+旧新索引必须是唯一、有效、非布尔的整数引用；解引用后的事实同序、同重数、全部字段完全相同，端点及self_fact也须正确。逐边记录old→new映射、两侧属性摘要和事实摘要。其余属性、节点、标签、边key严格不变。人工表对应的evidence_indices采用同一受限规则；不能把原始属性字节相同与语义证据相同混为一谈。错误引用、重复、越界、丢失、事实改动仍拒绝。
+
+新增两个正向回归在旧规则下均失败，见reference_identity_before_v2.log；实现后定向77项通过，见reference_identity_after.log。原失败日志和目录保留。
+
+**调整二：单列仍回退函数的原因推进。** 补new_expression后，spank_chain_payment.sol字节4070、5410、6033处的3个函数仍回退；后续限制分别为嵌套写入、assembly、嵌套写入。重入合约和节点两任务均出现这3例。旧新事实均为空、计数0，partial_facts_published=false；仅最后回退原因及对应诊断变化。
+
+r1严格整体记录相等检查因此失败。再次先说明并获得用户批准：仅两侧status均fallback、事实列表为空/计数0且不发布部分结果时，允许reason及唯一对应v2_function_fallback.reason变化，逐文件逐函数记录reason_changes。身份、路由、old_reason、其他元数据、诊断结构、锚点与已支持函数规则不变。
+
+新正例先在旧规则失败，见fallback_reason_before.log；实现后完整定向90项通过，见fallback_reason_after.log。真实源码SHA、函数源码和旧新诊断保存在fallback_reason_examples_r2.json。没有把这3个仍失败函数算作恢复。
+
+### 49.6 构图失败、独立重建与真实恢复量
+
+首次graphs_v2构图末尾源码摘要检查失败：运行期间临时候选以.py扩展名进入scripts/DFG树，而既有_runtime()递归扫描全部.py。该次未完成可接受封存，目录和日志保留。候选改为staging_fix/*.py.txt，正式源码固定后另建graphs_v2_r1；不修改扫描器、不篡改旧seal、不覆盖失败批次。
+
+graphs_v2_r1的cli verify已通过；四任务12张F1/F2/F3增强图的直接compare_graphs预检全部通过，F0保留输入引用。详细记录为preflight_all_graphs_r2.json：
+
+| 任务 | 恢复函数 | 每张增强图新增DATA_DEF_USE | 引用换号旧边 | 仍回退原因变化 |
+| --- | ---: | ---: | ---: | ---: |
+| reentrancy_contract | 7 | 51 | 2709 | 3 |
+| reentrancy_node | 4 | 50 | 1294 | 3 |
+| access_control_contract | 6 | 60 | 2231 | 0 |
+| access_control_node | 3 | 34 | 1147 | 0 |
+
+每任务F1/F2/F3计数相同、消失边0；节点、非引用属性、旧事实、锚点及L2/L3通过。累计图不可重复计数，合约/节点也含重叠源码。
+
+真实恢复函数的旧最终回退原因均为Unsupported expression: new_expression。本轮真实恢复量主要来自获准补齐的new_expression路径，不能把这些数字全部归因于现代call选项；Oracle则独立证明call选项缺口已经修复。
+
+后续Prompt 7/8的输入应在完整验收通过后登记为graphs_v2_r1/store.json；首次graphs_v2仅保留失败记录，不作为有效训练入口。
+
+### 49.7 人工表沿用、最终绑定与实际命令
+
+最终store_diff_r2为accepted；512条原表边语义相同，76行仅引用换号；两个合约任务F3新增111条未抽样。--equivalence评分退出0，原表仍512行空白、完成数0，正确比例null，不能宣称人工精确率通过。
+
+新store登记4任务、16图项和20个schema。build退出0，891.38秒，387个运行SHA前后一致；独立cli verify退出0，80.29秒；最终差异267.02秒，等价评分281.39秒。11,172个未授权修改的任务前跟踪文件SHA未变，三份文档历史字节前缀保持。完整证据在prompt6c_v1/final_acceptance.json。
+
+以下SHA均为实际文件摘要：
+- `graphs_v1/store.json`: `43e45227f7ccd9ebcbb034cb9e64b2cf430acf2c81dfb458b6ceadc344c67d5b`
+- `graphs_v2_r1/store.json`: `ed02ad029392db4a142e1a17a0a1a3577bc9f104377bf304bc64f630c6d286c4`
+- `graphs_v2_r1/store.seal.json`: `c12cb77c0e4e311e0ac7410e268c50ab5f82c203c1a69ebbf7075f48a7943bde`
+- `prompt6b_v1/store_diff_r2/store_diff.json`: `c2c5bb5bfa20f4fa1c500a44a201756d15c7cf5452d95069deb5866461e16232`
+- `prompt6b_v1/store_diff_r2/store_diff.seal.json`: `d04cfffcee583ce9de534add717e140eac2de996bde4dcd006f7dc8d1a4234eb`
+- `prompt6b_v1/score_review_equivalent_r2.json`: `6807a8773862c26d5ac0b4113aa68ad0071602099e7a2b4c1127fc6d4fffc183`
+
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+python -B -m scripts.DFG.dfg_v2.cli build --manifest scripts/DFG/experiments/artifacts/dfg_v2/inputs/manifest.json --tasks reentrancy_contract,reentrancy_node,access_control_contract,access_control_node --graph-keys F1,F2,F3 --output scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1
+python -B -m scripts.DFG.dfg_v2.cli verify --store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/store.json
+python -B -m scripts.DFG.dfg_v2.store_diff --old-store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v1/store.json --new-store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/store.json --review-seal scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.seal.json --output scripts/DFG/experiments/artifacts/dfg_v2/prompt6b_v1/store_diff_r2
+python -B -m scripts.DFG.dfg_v2.score_review --csv scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.csv --seal scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.seal.json --equivalence scripts/DFG/experiments/artifacts/dfg_v2/prompt6b_v1/store_diff_r2/store_diff.json
+~~~
+
+以上是实际执行命令；build/diff输出目录已存在，复验须使用新目录。verify/score为只读可重复执行。Oracle runner没有--store参数：手写用例使用同一当前pipeline，真实图不变量单独核验；绑定见oracle_store_binding.json。
+
+### 49.8 研究结论与停止边界
+
+仅证明特定缺口修复及证据保留，不能宣称完整DFG正确或性能提升。6c另报；未训练，不自动启动Prompt 7/8、多seed或其余五类。实施及复核AI：Codex。
+
+
+
+## 50. 2026-10-25 DFG v2 Prompt 6c：完整 IR 读写事件与 Slither 外部对照（Codex）
+
+### 50.1 本轮目标、授权与记录状态
+
+工作树：/home/zhao/SmartContract/ge-sc-llm-ddg-v11，分支 dfg-v2。依据更新后的 PROMPTS 第4.1节及 Prompt 6c，在 Prompt 6b 最小修复与新图验收之后启用真实 R/AC 语料的外部参照。Prompt 6c 不新增图关系、不构图、不改标签、tokenizer、HGT、划分、checkpoint 或训练逻辑。
+
+正式工具与26个编译器准备、接口测试以及256文件的Slither尝试均已完成。239个文件可比较，11个solc编译失败，6个源码映射不完整不可比较。正式运行exit=0、219.89秒，结果封存在prompt6c_v1/slither_full/。实现提交7918427；没有把全部文件称为编译/比较成功。
+
+更新模板原先要求“由用户本人安装，Codex不得自行安装”。本轮用户明确说“Prompt 6c may be need install solc verion, you can install and if needed you can download”，因此已获得下载与安装的任务授权；该指令覆盖模板旧限制。安装仍限定到当前 mando 环境所需工具和本地版本资产，没有全局切换 solc，没有因安装需要升级 Slither 或模型环境。
+
+另经确认，版本选择继续严格保留仓库 auto_version_solc.py 的首个 pragma 匹配和无匹配默认0.4.25规则；将无 pragma 的6个文件明确标记为 fallback_default。没有偷偷改成选择最高版本、多 pragma 交集或编译失败后的第二版本。编译尝试版本不是原作者编译版本证明，也不写回源码元数据。
+
+### 50.2 版本清单与来源分组
+
+先 verify_store，再从输入 manifest 取得源码路径、源码 SHA 与原有 metadata。版本选择顺序为：
+1. 已绑定源文件 SHA 的精确 metadata 版本。
+2. 没有精确 metadata 时，仅调用仓库 get_solc_version 的只读规则；有正则匹配标 pragma_derived。
+3. 没有匹配时沿用 DEFAULT_VERSION=0.4.25，标 fallback_default。
+
+| 任务 | 文件数 | metadata | pragma_derived | fallback_default |
+| --- | ---: | ---: | ---: | ---: |
+| reentrancy_contract | 142 | 27 | 114 | 1 |
+| access_control_contract | 114 | 16 | 93 | 5 |
+| 合计 | 256 | 43 | 207 | 6 |
+
+涉及26个不同版本。保存逐文件选择、原始 pragma 匹配列表、选择规则、来源类别、源码 SHA、auto_version_solc.py SHA 及版本清单 seal。不能把先前“213个缺 metadata”直接写为“213个 pragma 推导”；其中6个只是默认值。
+
+例如重入0x966889549fe7b3b950063151f6e2ad7651becdb9.sol先出现^0.4.16，后面还有^0.4.20；旧规则仍选0.4.16。此规则可能导致编译失败，但本轮保留已指定的选择策略，失败原因如实记录，不为提高成功率改选其他版本。
+
+### 50.3 安装、下载来源与二进制核验
+
+mando 中仅新增 solc-select 1.0.4 和 pycryptodome 3.20.0。Slither 0.8.0、crytic-compile 0.2.4、Python3.7及模型依赖保持原版本。package_install_manifest.json 保存包文件、来源、版本和 SHA；environment_before.json、environment_after_install.json 用于核对环境变化。
+
+Solidity 主下载端 binaries.soliditylang.org 返回 HTTP403。采用官方 ethereum/solc-bin 的 GitHub镜像清单与对应二进制；0.4.0、0.4.2、0.4.9使用 solc-select 原有 crytic/solc 旧版本来源。保存两份 list.json 及来源 SHA，不将 crytic 旧版来源误称为 Solidity 官方主站资产。
+
+官方镜像清单 SHA256：b44c1d0e598ed0bcbf4ee49c86c5ae85b63718c1591689b02d12d7a11d45a2ac。
+旧版清单 SHA256：a524a402d0657b7073ad967fedc4118f3dd758175124c93f181587e673a1db41。
+
+下载后逐个核对清单 SHA256 和 Keccak256，再赋予可执行权限并运行 --version 核验。trusted_compilers_complete.json 绑定26个版本的绝对路径、SHA、来源和选择清单；compiler_version_checks.json 保存版本输出。没有运行 solc-select use 修改全局默认。
+
+0.5.1曾发生一次下载失败，随后对同一 URL 重试下载并完成哈希校验。这是同一二进制的网络传输重试，不是源码编译失败后换版本，也不是重复实验或模型重训。
+
+### 50.4 正式文件、接口与完整 L1 的准确含义
+
+| 正式文件（scripts/DFG/dfg_v2/下） | 本轮作用 |
+| --- | --- |
+| l1_occurrences.py（新增） | 只读重建既有成功函数的 IR，导出完整事件读写、声明与函数身份、路由、入口初始化和不可达标记 |
+| validate_slither.py（修改） | 版本清单、可信编译器门禁、Slither逐文件运行、完整L1/L2对照、分组统计、映射与异常审计 |
+| tests/test_l1_occurrences.py（新增） | 没有DU边的定义、参数位置、同名声明、弱写、不可达、回退无残留等 |
+| tests/test_validate_slither6c.py（新增） | 版本/身份/继承上下文/映射不完整/异常链、主入口与旧兼容接口验证 |
+
+Prompt 6的L1候选只来自已投影的定义—使用端点，未用定义、无到达定义的读取、不可投影事件均可能缺失，因此当时不能计算完整出现层召回。此次复用 l1._analyze 确定真实路由：legacy已支持函数继续用原CFGBuilder；仅v2恢复函数用V2CFGBuilder。l1.analyze_file实际并不返回IR，不能假装它已有返回接口。
+
+每个成功函数读取FunctionIR全部blocks/events的reads、writes及weak_writes；未形成DU关系的事件也保留。symbols记录声明字节区间、函数身份及名称，同名变量不能仅按名字混淆。失败函数不导出部分IR；重建成功函数的身份不符视为验证接口错误，不悄悄改成新回退。原始metadata保持原样，pragma/default选出的外部编译器版本绝不传给SupportedSourceView作为新版本证据。
+
+“完整”限定为当前分析器支持函数的未投影IR事件—符号集合。Event本身会对同一语句中同一符号去重，所以x+x通常是一个USE事件项；这里不是逐token出现次数，也不是DATA_DEF_USE边的召回。普通事件使用原始源码语句anchor起始行，entry定义使用声明起始行。不可达事件仍保留并标记；完整出现集合不等同于可达DU边集合。
+
+Slither端只收集实际CFG的local/state read/write集合，不补造参数或命名return的DEF来提高对齐数。v2入口初始化与Slither集合的差异作为entry_initialization筛查类别保留。弱写、别名、modifier、不可达事件等证据可追溯，不改变分析器语义。
+
+主比较保持模板的(原始行,变量名,读/写类型)三元组；另附function/declaration字节身份、同一三元组多身份以及“共同三元组却没有共同声明”的审计。三元组匹配不等于证明声明绑定完全一致。L2继续只读冻结F3审计里的原始出现位置，不重新构建图。
+
+### 50.5 分母、回退与外部参照限制
+
+每个任务分别输出整体L1/L2precision/recall，同时按metadata、pragma_derived、fallback_default分组。L1还按Slither函数字节身份分为supported、fallback、unmapped：成功支持函数与整体参照分开；回退函数候选为空，Slither参考读写量单列；无法可靠匹配函数身份不按同名猜测，放入unmapped。
+
+所有组同时保留原始参考三元组数量及排除上下文数量。只有模板已有alias、modifier_inlining从主错误计数排除，排除数必须可见。inheritance只是分类标签，不减主分母，不能把继承文件整体视为不可比或自动判对。
+
+Slither的同一源码函数可能在多个继承上下文中出现。初始候选曾按源码span保留首个上下文，复核发现它可能让参考集合依赖遍历顺序。已修为收集所有上下文，再对三元组做set union；每条出现保留context_index、contract、declarer和继承标志，重复上下文另计。顺序置换和额外上下文事实不丢的测试已覆盖。
+
+这些指标衡量的是当前v2读写事件相对于Slither集合的一致性，不是漏洞定位性能、完整Solidity语义正确率或图边召回。别名近似、入口语义、语句位置粒度、跨行表达式和声明身份歧义均可产生差异。每任务前20个不一致样例只是按稳定遍历顺序截取，保持requires_review；不得将其直接归为已确认实现缺陷，也不能当作随机代表性样本。
+
+### 50.6 验证器自身的正确性复核
+
+**部分映射不完整。** 初始候选将缺filename_absolute与真实foreign节点一起跳过；如果文件同时有有效节点，就可能拿部分参考集合报告完整P/R。现已区分有效foreign绝对路径、missing_filename、invalid_filename及缺失/非法start。任何不可靠CFG映射使整个文件为not_comparable，保留原因而不生成comparison；不能用其余可映射节点补成“完整”。真正foreign节点正常排除。函数或变量缺文件身份时保留None及unknown identity计数，不从当前上下文伪造target文件名。越界或不合法UTF-8字节位置显式报错。
+
+**外部异常阶段。** Slither构造包含solc编译和后续分析两阶段。旧status=compile_failed仅为接口兼容，新增failure_phase、exception class/module和详情，区分solc_compile、slither_analysis、external_pipeline_unknown。Slither0.8会把InvalidCompilation包装为SlitherError，不能只看顶层异常类型。现优先遍历__cause__/__context__寻找InvalidCompilation，以对象身份集合防止循环链；找不到编译异常时再保留真正Slither分析错误或unknown类别。没有按错误文本猜测。
+
+**暂存与摘要。** 6b构图运行时，已有_runtime会扫描scripts/DFG/**/*.py。6c候选因此转为artifact中的.py.txt；提前测试以内存加载方式接入，测试副本只放/tmp，避免新增候选进入6b运行摘要。正式接入在构图版本稳定后进行，四文件逐字节核对与候选一致。相关6b失败attempt及重建细节见第49节，旧产物未覆盖。
+
+### 50.7 测试、日志与实际可用命令
+
+候选接口先运行新测试与原Prompt6 Slither兼容测试。candidate_tests_01.log保留首轮46通过、1失败：候选文本替换误把inherited引用带入旧兼容helper，导致NameError。仅修复该验证器错误后candidate_tests_02.log为47通过；补完整runner集成用例后candidate_tests_03.log为49通过；补映射不完整负例后candidate_tests_04.log为58通过。各轮4条现有DGL distutils警告，无测试断言被放宽。
+
+正式接入定向58通过；随后异常链分类补4项用例，failure_phase_directed.log中选中的6项通过、25项未选择，0警告。最终本轮全套v2测试886通过，旧DDG及graph_utils测试223通过，合计1109通过；测试统计包含本轮6b/6c新增验证，不能将其解释成真实源码全部能编译或Slither全部一致。
+
+环境与工作目录：
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+
+python -B -m scripts.DFG.dfg_v2.validate_slither --help
+python -B -m pytest -q -p no:cacheprovider \
+  scripts/DFG/dfg_v2/tests/test_l1_occurrences.py \
+  scripts/DFG/dfg_v2/tests/test_validate_slither6c.py \
+  scripts/DFG/dfg_v2/tests/test_validate_slither.py
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+~~~
+
+以下是已实际执行的版本清单与正式比较命令；这些输出目录已存在，重跑需指定新目录，不得覆盖：
+~~~bash
+python -B -m scripts.DFG.dfg_v2.validate_slither \
+  --store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/store.json \
+  --list-versions \
+  --output scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/version_inventory
+
+python -B -m scripts.DFG.dfg_v2.validate_slither \
+  --store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/store.json \
+  --trusted-compilers scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/trusted_compilers_complete.json \
+  --output scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/slither_full
+~~~
+
+当前正式CLI的--help已返回0，参数均实际存在。必须conda activate mando或将mando/bin置于PATH；仅指定Python绝对路径而未激活环境，会使工具清单中的shutil.which找不到solc-select。--list-versions不安装、不编译；可信编译器清单之外的版本不能执行。真实运行每文件只使用预先选定版本一次，异常不会换版本重试。
+
+准备与候选记录集中在scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/：安装前后环境、包manifest、两份编译器来源清单、trusted_compilers_complete.json、compiler_version_checks.json、版本清单及seal、候选/正式测试日志、staging及本草稿。正式结果为slither_full/report.json及report.seal.json；版本清单为version_inventory/；摘要为results_compact.json，原始逐事件大报告保留本地。
+
+### 50.8 真实Slither结果、诊断与证据绑定
+
+整体指标按文件内集合计数后跨文件累加计算，是micro事件一致性；不是等权文件均值，不是漏洞F1或DDG边召回。
+
+|任务|总文件|可比较|solc编译失败|Slither分析失败|unknown异常|不可比较|工具跳过|
+|---|---:|---:|---:|---:|---:|---:|---:|
+|reentrancy_contract|142|131|8|0|0|3|0|
+|access_control_contract|114|108|3|0|0|3|0|
+
+|任务/版本来源|总数/可比/编译失败/不可比|L1候选/参考/匹配|L1 P/R (%)|L2候选/参考/匹配|L2 P/R (%)|
+|---|---|---|---|---|---|
+|reentrancy_contract/all|142/131/8/3|11821/9693/8623|72.9465/88.9611|7105/8082/7027|98.9022/86.9463|
+|reentrancy_contract/metadata|27/25/0/2|767/687/583|76.0104/84.8617|508/637/501|98.6220/78.6499|
+|reentrancy_contract/pragma_derived|114/105/8/1|11054/9004/8040|72.7339/89.2936|6591/7439/6520|98.9228/87.6462|
+|reentrancy_contract/fallback_default|1/1/0/0|0/2/0|null/0.0000|6/6/6|100.0000/100.0000|
+|access_control_contract/all|114/108/3/3|13956/9613/8447|60.5259/87.8706|3587/4128/3526|98.2994/85.4167|
+|access_control_contract/metadata|16/14/0/2|62/70/40|64.5161/57.1429|117/124/117|100.0000/94.3548|
+|access_control_contract/pragma_derived|93/89/3/1|13894/9219/8407|60.5081/91.1921|3308/3819/3249|98.2164/85.0746|
+|access_control_contract/fallback_default|5/5/0/0|0/324/0|null/0.0000|162/185/160|98.7654/86.4865|
+
+L1差异解释（保留主指标，不用更有利口径替换）：
+- 重入extra=3198，其中3153（98.59%）带入口初始化差异；访问控制extra=5509，其中5132（93.16%）。这些多为参数/返回值入口DEF，Slither CFG没有对应写入集合项；不能直接认定为错误DDG边。
+- 重入missing=1070，其中1033（96.54%）来自L1回退函数；访问控制missing=1166，其中1136（97.43%）来自回退。仅支持函数的未匹配参考为37/30，supported-only召回分别8623/8660=99.5727%、8447/8477=99.6461%。这些是诊断子集，不替换主召回88.9611%/87.8706%。
+- 回退函数数为可比文件内264/333；不与全任务构图的269/351混为同一分母。没有删掉模型样本。supported/fallback/unmapped原始与排除量均在报告中；excluded集合为两侧上下文的并集，不能简单当作仅reference被删除的计数。
+
+已核验的L2实例：重入0x01f8…第13行MinSum声明初始化，Slither合成构造函数记WRITE，现L2写证据只覆盖函数内赋值；这是真实范围差别。重入0x123456…第140–142行return，Slither记首行140，L2读取在141/142行且投影边3327→3359存在；访问控制0x01a47…第303–304行赋值，Slither读记303，L2 RHS读记304且边9673→9695存在。后两例是位置粒度差异，不是没有提取关系。全文身份、源码SHA与审计证据在result_review_l2_examples.json。不能把少量例证推广为全部L2差异已解释。
+
+6个not_comparable来自旧0.4.0/0.4.2/0.4.9输出在当前Slither中缺少CFG文件名；不猜来源、不以部分数据输出P/R。本轮没有扩展旧工具源码映射兼容。名单及阻断原因：
+- reentrancy_contract/0x6817178368e30a0cd92662442a966b428e8f2d49.sol (0.4.0): {"status": "not_comparable", "blockers": {"missing_filename": 3, "no_target_cfg_nodes": 1}, "foreign_nodes_excluded": 0}
+- reentrancy_contract/etherbank.sol (0.4.0): {"status": "not_comparable", "blockers": {"missing_filename": 10, "no_target_cfg_nodes": 1}, "foreign_nodes_excluded": 0}
+- reentrancy_contract/simple_dao.sol (0.4.2): {"status": "not_comparable", "blockers": {"missing_filename": 9, "no_target_cfg_nodes": 1}, "foreign_nodes_excluded": 0}
+- access_control_contract/0x0bec4767cd170242895d244d7ff73feaff6c2598.sol (0.4.2): {"status": "not_comparable", "blockers": {"missing_filename": 3, "no_target_cfg_nodes": 1}, "foreign_nodes_excluded": 0}
+- access_control_contract/parity_wallet_bug_2.sol (0.4.9): {"status": "not_comparable", "blockers": {"missing_filename": 227, "no_target_cfg_nodes": 1}, "foreign_nodes_excluded": 0}
+- access_control_contract/simple_suicide.sol (0.4.0): {"status": "not_comparable", "blockers": {"missing_filename": 2, "no_target_cfg_nodes": 1}, "foreign_nodes_excluded": 0}
+
+11个编译失败均保留原版本和错误详情；元数据版本组没有编译失败，失败来自pragma_derived。原规则取首个匹配版本字符串matches[0]，不是求所有pragma的最低兼容版本。1个文件的后续pragma要求更高版本，另10个在选定旧版本下出现语法或名称解析错误（pure、constructor、emit、require及tuple声明等）。这不证明源码在其pragma允许的其他兼容版本下也无法编译；本轮未切换版本重试，也未修改源码。每任务first_20_mismatches保持requires_review，自动类别只作筛查。剩余other、身份歧义、初始化与位置差异不在本轮修改分析器。
+
+正式报告与输入摘要：
+- `prompt6c_v1/slither_full/report.json`: `db56b7066430813540e468c900283414bf49c5e7c1f519cded8a874a760fd2a6`
+- `prompt6c_v1/slither_full/report.seal.json`: `91e054c9cdd2331b7f21bc48e195a394d6034ffe85f878daa8fb013c9431e49c`
+- `prompt6c_v1/version_inventory/versions.json`: `fede2ce63cb3da7cd2cb1b6bab7d2176eb13de0360d759312a979166b5b663ad`
+- `prompt6c_v1/trusted_compilers_complete.json`: `c836e07304aa94f6036fda7c9aae43ee8095066b94cf68a72b116302ba0a4c7e`
+
+运行末尾已重新验证源码、F3图及audit、store和计算文件摘要；final_acceptance.json核验11,172个其他任务前跟踪文件未变、三文档原始前缀未变。机器读写比较报告约152MB，作为本地产物保存，不默认把二进制、图或大报告提交Git。
+
+### 50.9 交付边界及后续事项
+
+本轮解决的是Prompt6“没有编译器只能跳过、L1仅投影端点无法计召回”的验证入口问题。完整L1事件清单仍受当前分析器的支持范围限制；Slither本身及版本/源码粒度也有限制。外部一致性、Oracle语义用例、人工边抽查和最终检测效果是不同证据，不能互相替代。
+
+不增加新的DDG语义，不根据Slither差异自动修改标签/图，也不以一个低召回值直接推断历史99%F1的原因。没有运行Prompt7/8、正式模型训练、新seed或其余五类实验。本轮239个可比较文件上的结果已记录，不代表其余17个文件的正确性；人工边表尚未填写，新增111条边也不在旧抽样范围内。实施与复核AI：Codex。

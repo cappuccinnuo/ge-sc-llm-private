@@ -1487,3 +1487,66 @@ python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_ut
 最终765＋223＝988 passed，0 failed/skipped；8/29条既有DGL distutils、NetworkX gpickle弃用warning。定向Oracle19、Slither19、review28项通过。11128个保护文件SHA及三份历史文档前缀保持；store.json SHA仍为43e45227f7ccd9ebcbb034cb9e64b2cf430acf2c81dfb458b6ceadc344c67d5b。证据prompt6_v1/final_acceptance.json。
 
 验收范围是“所有不一致项已归类”，不是Oracle全绿或完整Solidity验证。人工判定与外部编译对照尚未完成。Prompt 6b缺口修复后需新图/新报告，不能覆盖graphs_v1。中文新增段落的管道编码问题已修复，历史前缀未变。按要求本地三次提交后停止，未push、训练或开始Prompt 6b/7/8。详细实施见training_changes第48节和PROMPT6_REPORT.md。
+
+
+## 2026-10-25 Prompt 6b：L1修复、重建与证据身份验收完成
+
+修改AI：Codex。实际类名为ExtendedAccessExtractor；文档中的V2AccessExtractor是描述名。L1只改reads函数：struct_expression读callee/type和各value、不读字段名；用户批准补new_expression的type_name处理，不把类型名当值读取，未知形状继续回退。
+
+新增store_diff.py、tests/test_store_diff.py、oracle/CLASSIFICATIONS_v2.json；修改l1_access.py、score_review.py、test_l1.py、test_l1_access.py、test_review_sheet.py。未改旧DDG、HGT、特征、标签、折或训练。
+
+|任务|恢复函数|新增DATA_DEF_USE（每个F1/F2/F3）|旧引用换号边|仍fallback原因变化|
+|---|---:|---:|---:|---:|
+|reentrancy_contract|7|51|2709|3|
+|reentrancy_node|4|50|1294|3|
+|access_control_contract|6|60|2231|0|
+|access_control_node|3|34|1147|0|
+
+20是跨任务函数实例数，不是去重源码函数数。各累积图重复计边合计585，不能当成585个独立新增事实。真实恢复原因为new_expression。16个图项、20个schema完整，旧节点/属性和基础边保持，L2/L3语义和边属性逐项相同，新增边仅来自恢复函数。
+
+用户批准两项验收调整并已记录原失败：证据索引换号必须解析为同序同重数、全字段相同事实，输出old→new映射；仍回退函数仅诊断reason可推进，事实必须为空、partial=false，身份/其他元数据不变。错指、篡改、重复引用、旧事实变化和回退残留的负例均保留。
+
+原512条人工表全部通过语义绑定，76行只换引用，两个合约任务新增111边不在原样本内。未重采样或代填verdict/note。--equivalence实际评分通过，空表完成数0、比例null。
+
+Oracle18/20，7项expectation_error，16_call_option_fields fixed；原20组期望/原分类不改。修复提交f270ed6，审计提交c09bbbc。定向9失败→9通过；new分支7失败/9通过→16通过；索引2失败→通过；reason1失败→通过。最终定向90 passed；与6c共同整套886 v2+223旧=1109 passed，0失败/跳过，8/29既有警告。
+
+首次graphs_v2构图末尾被runtime摘要拒绝：临时候选.py落入全树扫描；保留失败目录，将候选改.py.txt，不改扫描器，另建graphs_v2_r1。重建891.38秒、387运行SHA前后一致；cli verify80.29秒；最终diff267.02秒，等价评分281.39秒。旧两次验收日志分别保留索引字面差异和回退原因变化，不改旧seal。
+
+后续Prompt7/8使用graphs_v2_r1/store.json；graphs_v1仅历史，第一次graphs_v2不可用。详细SHA/命令见training_changes§49及prompt6b_v1/store_diff_r2。未执行模型前向训练或更多类别。
+
+
+## 2026-10-25 Prompt 6c：完整L1事件与版本绑定的Slither验证完成
+
+修改AI：Codex。用户本轮直接授权安装/下载编译器，故执行模板中的外部验证准备；既有分析语义不变。新增l1_occurrences.py、tests/test_l1_occurrences.py、tests/test_validate_slither6c.py，修改validate_slither.py。正式提交7918427；完整选择与证据见training_changes第50节。
+
+版本清单覆盖256文件，26个版本；43 metadata、207 pragma_derived、6 fallback_default。用户批准六个无pragma文件沿用auto_version_solc默认0.4.25并单列来源。没有从pragma/default推导结果伪造SupportedSourceView精确元数据。新装solc-select1.0.4及pycryptodome3.20.0，原Slither0.8.0/crytic_compile0.2.4及其他包版本不变；编译器双哈希和--version核验通过，不改全局版本。逐文件预选版本只运行一次，失败不切换版本。
+
+|任务|总数|比较|solc失败|映射不可比|L1 P/R (%)|L2 P/R (%)|
+|---|---:|---:|---:|---:|---|---|
+|reentrancy_contract|142|131|8|3|72.9465 / 88.9611|98.9022 / 86.9463|
+|access_control_contract|114|108|3|3|60.5259 / 87.8706|98.2994 / 85.4167|
+
+Slither分析失败、unknown异常和工具缺失跳过均0。6个不可比文件缺CFG filename，涉及0.4.0/0.4.2/0.4.9；包括simple_dao和parity_wallet_bug_2，未猜测映射。11个编译失败均属pragma_derived，详情与source SHA保留。所有原模型样本仍在图中。
+
+“完整L1”是当前支持函数的未投影IR事件—符号集合，非逐token计数或DDG边。支持函数沿真实legacy/v2路由，只读收集reads/writes/weak_writes；回退无部分结果。Slither多继承上下文取并集并保留来源；主匹配仍为原始行/名字/读写三元组，声明身份另审计。alias/modifier排除量可见，inheritance不排除。缺CFG来源时整个文件不比较，编译异常按异常链分类而不是靠顶层SlitherError猜测。
+
+L1额外项中入口初始化占重入98.59%、访问控制93.16%；缺失项中回退贡献96.54%/97.43%。支持函数召回99.5727%/99.6461%仅诊断，整体召回仍88.9611%/87.8706%。L2已确认一例状态声明初始化范围差别，另两例只是Slither语句首行与L2实际读取行不同且投影边存在；其余差异仍待人工判断。first20按稳定顺序展示，不是随机样本，不自动判错。
+
+最终v2 886 passed（8条既有警告），旧DDG/graph_utils 223 passed（29条既有警告）；总1109，0失败/跳过。定向58通过，异常链专项6通过/25未选择。候选首轮NameError失败及修正过程已保留。命令：
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+python -B -m scripts.DFG.dfg_v2.validate_slither \
+  --store scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/store.json \
+  --trusted-compilers scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/trusted_compilers_complete.json \
+  --output scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/slither_full
+~~~
+
+上述正式输出已存在，重跑应指定新目录。实际运行219.89秒；report.json约152MB，逐事件证据及seal保留本地。可读摘要results_compact.json，独立复核result_review.json，最终不变量/测试final_acceptance.json。源码与F3/audit/store输入摘要在运行结束重新核验。
+
+后续仍使用graphs_v2_r1/store.json。未改旧seal或人工表，未编译现代Oracle样例，未开始Prompt7/8、训练或push。外部事件一致性不能替代人工边判断和最终模型实验。

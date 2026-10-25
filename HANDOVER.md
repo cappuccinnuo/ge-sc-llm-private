@@ -1948,3 +1948,24 @@ Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph 
 - 人工空表：scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.csv，R/AC各15文件、共512条边。只填写verdict（correct/wrong/unsure）和note；其他列、顺序和行数保持。空表/来源/封存均已保存，AI未填写判定。
 - Slither可用，但无获准的离线solc，且部分清单缺精确版本；R 142/AC 114文件全部明确跳过，未执行编译、下载或安装。L1外部对照仅有已投影端点证据，不宣称完整事件级召回。
 - 详细结论见scripts/DFG/dfg_v2/PROMPT6_REPORT.md；审计产物在artifacts/dfg_v2/prompt6_v1/。本轮新增中文段落曾受PowerShell管道编码影响，已按UTF-8重写并验证历史前缀未变。仅本地三阶段提交，未push、训练或开始Prompt 6b/7/8。实施、复核与记录AI：Codex。
+
+
+## 2026-10-25 DFG v2 Prompt 6b 完成（Codex）
+
+- 仅在v2的ExtendedAccessExtractor.reads补call选项与经用户批准的new_expression类型名处理；原分析器/HGT/tokenizer/标签/折不改。修复提交f270ed6，审计与新分类提交c09bbbc。
+- 四任务重建通过verify与完整store_diff_r2：重入合约/节点、访问控制合约/节点分别恢复7/4/6/3个函数，新增DATA_DEF_USE 51/50/60/34条；旧边消失0，L2/L3、节点/标签/token保持。真实恢复均来自new_expression，不能全部归因于call选项语法。
+- 两项验收调整均先获用户同意：只允许ddg_fact_indices编号重排且解析事实逐条相同；仍fallback且无事实/无残留的函数允许回退原因推进并单列。R两个任务各3个原因推进，未算恢复。其他属性和身份严格。
+- 原review_v1的512条边全部保持语义，76行仅引用换号；合约任务新增111条不在旧抽样范围。空表仍未人工填写，评分已通过--equivalence绑定新store，不能据空表声称精确率。
+- Oracle18/20匹配；16_call_option_fields已修复，剩余7项仍为原期望问题。CLASSIFICATIONS_v2绑定修复提交，原Oracle/CLASSIFICATIONS不改。最终共同回归886 v2+223旧=1109 passed；8/29条既有warning。
+- 后续入口为scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/store.json。首次graphs_v2因临时.py被runtime扫描导致封存失败，原件保留；同输入独立重建r1，387个运行文件摘要一致。不得使用失败目录或覆写旧graphs_v1。
+- 详细选择、命令和SHA见training_changes第49节与PROGRESS；11,172个非授权修改的原跟踪文件SHA保持。未训练、未push。实施、复核和记录AI：Codex。
+
+
+## 2026-10-25 DFG v2 Prompt 6c：真实Slither对照完成（Codex）
+
+- 用户明确允许安装/下载solc，覆盖模板“仅用户自行安装”限制。新增solc-select 1.0.4、pycryptodome 3.20.0，原包版本保持；26个编译器逐个校验SHA256/Keccak和版本，未修改全局solc版本。源码版本来源为43 metadata、207 pragma_derived、6 fallback_default；最后一类经用户批准单列，不因编译失败换版本。
+- 新增l1_occurrences.py及两份测试，扩展validate_slither.py；只读复用L1实际分析路由，导出未投影事件集合。入口初始化、回退、继承上下文及声明身份均可追溯；不能映射的整文件不报部分P/R。没有修改L2/L3、图、标签、HGT或训练。
+- 256文件：239可比较，11 solc编译失败，6旧编译器CFG缺文件名不可比较；Slither分析失败/unknown/工具跳过均0。重入L1 P/R=72.946%/88.961%，L2=98.902%/86.946%；访问控制L1=60.526%/87.871%，L2=98.299%/85.417%。这是读写事件集合一致性，不是漏洞F1或DDG边召回。
+- L1 extra主要是Slither集合没有对应项的入口DEF，missing主要来自保留的回退函数。支持函数内召回99.573%/99.646%仅作诊断，不替换主分母。已核验L2一例初始化范围差异及两例多行位置差异（实际边存在）；其余不一致尚未逐一人工判断。
+- 实现提交7918427；最终886 v2＋223旧回归=1109通过，0失败/跳过，8/29条既有弃用警告。11,172个其他原跟踪文件及历史文档前缀不变。完整结果与封存位于prompt6c_v1/slither_full/，独立复核result_review.json；大报告和编译器保留本地，不纳入普通Git提交。
+- 详细记录见training_changes第50节、PROGRESS及PROMPT6BC_REPORT.md。当前可用图仍为graphs_v2_r1/store.json；人工512边表未填写，Oracle样例未做编译验证。未启动Prompt7/8或模型训练，未push。实施、复核与记录AI：Codex。
