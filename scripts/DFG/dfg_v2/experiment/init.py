@@ -119,6 +119,8 @@ def initialize_family(models, anchor_seed):
         validate_registration(model)
         if model.dfg_task != anchor.dfg_task:
             raise ValueError("Cannot mix classifier tasks")
+        if model.dfg_layer_impl != anchor.dfg_layer_impl:
+            raise ValueError("Cannot mix layer_impl within an initialization family")
         if model.node_feature != anchor.node_feature:
             raise ValueError("Cannot mix feature modes")
         if not set(anchor.ntypes_dict).issubset(model.ntypes_dict):
@@ -197,6 +199,7 @@ def initialize_family(models, anchor_seed):
             raise AssertionError("G0-shared initial parameters differ")
         extras = {key: value for key, value in semantic.items() if key not in common_source}
         records[profile] = {
+            "layer_impl": model.dfg_layer_impl,
             "state_sha256": _state_digest(target),
             "shared_semantic_sha256": _state_digest(common),
             "new_semantic_sha256": _state_digest(extras),
@@ -214,6 +217,7 @@ def initialize_family(models, anchor_seed):
     if _state_digest(anchor.state_dict()) != anchor_sha:
         raise AssertionError("Family initialization mutated G0")
     return {"initialization_version": INITIALIZATION_VERSION,
+            "layer_impl": anchor.dfg_layer_impl,
             "anchor_seed": anchor_seed, "anchor_state_sha256": anchor_sha,
             "new_relation_policy": NEW_RELATION_POLICY,
             "freshness_contract": "caller supplies fresh constructor models; no checkpoints",

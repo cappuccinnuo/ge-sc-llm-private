@@ -119,3 +119,49 @@ nested split's first epochs to paper-split history.
 
 No standalone F1 improvement conclusion is supported by these four fold0 tasks.
 No Prompt 8 matrix, new seed, or additional vulnerability category runs here.
+
+
+## Prompt 7b: shared projection implementation and acceptance
+
+`make_model(..., layer_impl="original")` retains the old default.
+`layer_impl="shared_projection"` selects the optional shared per-node-type
+K/V/Q implementation; both `mean` and `nonempty_mean` reducers are supported.
+Constructors, parameter keys/shapes and construction RNG consumption are
+unchanged. Backward accumulation order is different. This is **not** a claim
+that multi-epoch optimization is bitwise identical.
+
+The implementation identity is bound to plans, effective configs, untrained
+states, initialization records, checkpoints and results. Restoring a checkpoint
+under another implementation is rejected even when initial tensor digests match.
+A missing historical field means `original`; old artifacts are not rewritten.
+
+New numerical diagnostics use `experiment.projection_validation`. All CPU cases
+must pass before GPU numerical comparisons, the memory probe or pilot training.
+The user approved this precise gradient criterion before real-data execution:
+
+```
+max_abs_gradient_difference <= 1e-8 + 1e-5 * max(max_abs_old, max_abs_new)
+```
+
+Tensor-relative and elementwise-relative errors are both retained. The absolute
+term covers near-zero gradient cancellation; it does not change either the exact
+forward requirement or the CPU 3-epoch loss tolerance of 1e-6. The planned six
+CPU pairs (twelve three-epoch diagnostic fits) are separate from the eight pilot
+fits. This run stopped after four trajectory pairs and the fifth static pair;
+only eight three-epoch CPU fits actually ran. See the report for failed gates.
+
+Example CPU diagnostic (the destination must be new):
+
+~~~bash
+python -u -B -m scripts.DFG.dfg_v2.experiment.projection_validation cpu-case \
+  --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt7_v1/pilot/plan.json \
+  --task access_control_node --profile G0 --reducer mean \
+  --output <NEW_CPU_CASE_DIRECTORY>
+~~~
+
+For an accepted future batch, plan creation accepts
+`--layer-impl shared_projection`; use a new batch directory. Never retry or
+reseal the original Prompt 7 plan under a different implementation. See
+`../PROMPT7B_REPORT.md` for the actual gate outcome. A failed CPU trajectory gate
+blocks GPU and pilot execution; the existence of this CLI is not an acceptance.
+No Prompt 8 execution or F1 efficacy conclusion follows from these diagnostics.

@@ -21,7 +21,7 @@ from scripts.DFG.integration.io import checked, read_json, sha256, write_json
 from scripts.labeling_v2.safe_graph import read_graph
 from .. import PROFILES, AUX_NODE_TYPES
 from ..inputs import load_manifest
-from ..model import make_model, validate_registration
+from ..model import make_model, validate_registration, LAYER_IMPLEMENTATIONS
 from ..pipeline import key_for_profile
 from ..store import verify_store
 from ..supervision import DfgV2Supervision
@@ -67,7 +67,7 @@ def _select(values, allowed, default, name):
     return list(values)
 
 
-def _effective_config(record, test_mode, test_config):
+def _effective_config(record, test_mode, test_config, layer_impl="original"):
     source = read_json(checked_ref(record["provenance"]["source_task_manifest"]))
     if test_mode:
         if record.get("label_version") != "synthetic_only" or not test_config:
@@ -81,7 +81,7 @@ def _effective_config(record, test_mode, test_config):
                 or config["patience"] != 7 or config["delta"] != .001
                 or config["feature"] != "inside_token"):
             raise ValueError("Frozen task training configuration differs")
-    config.update(protocol=PROTOCOL_NAME, protocol_version=PROTOCOL_VERSION,
+    config.update(layer_impl=layer_impl, protocol=PROTOCOL_NAME, protocol_version=PROTOCOL_VERSION,
         forward_scope=FORWARD_SCOPE, score_role=SCORE_ROLE, selection_role=SELECTION_ROLE,
         selection="strict minimum inner validation loss; post-update eval forward",
         partition_policy="fixed_graph_nested_file_supervision",
@@ -91,13 +91,15 @@ def _effective_config(record, test_mode, test_config):
 
 
 def create_plan(store, output, tasks=None, profiles=None, seeds=(1,), folds=None,
-                reducer="mean", test_mode=False, test_config=None):
+                reducer="mean", test_mode=False, test_config=None, layer_impl="original"):
     """Seal inputs, untrained initial states and the complete requested matrix."""
     output = Path(output).resolve()
     if output.exists():
         raise FileExistsError("Refusing existing experiment directory: " + str(output))
     if reducer not in ("mean", "nonempty_mean"):
         raise ValueError("Unknown reducer")
+    if layer_impl not in LAYER_IMPLEMENTATIONS:
+        raise ValueError("Unknown layer_impl")
     store = Path(store).resolve()
     accepted = verify_store(store)
     document = read_json(store)
@@ -118,7 +120,7 @@ def create_plan(store, output, tasks=None, profiles=None, seeds=(1,), folds=None
         test_mode=bool(test_mode), git_head=_git_head(), runtime=runtime,
         store=_ref(store), store_seal=_ref(store.with_name("store.seal.json")),
         store_verification=accepted, input_manifest=document["input_manifest"],
-        reducer=reducer, profiles=profiles, seeds=seed_values, requested_folds=wanted_folds,
+        reducer=reducer, layer_impl=layer_impl, profiles=profiles, seeds=seed_values, requested_folds=wanted_folds,
         initialization_version=INITIALIZATION_VERSION, selection_rule=SELECTION_RULE,
         seed_rule="10000+fold+(1000 if contract else 0)+100000*(seed-1); fit=constructor+1000000",
         execution_policy="serial one model; failed attempts retained; explicit whole-fit retry",
@@ -130,7 +132,7 @@ def create_plan(store, output, tasks=None, profiles=None, seeds=(1,), folds=None
         selected = list(range(folded["k_folds"])) if wanted_folds is None else wanted_folds
         if any(type(f) is not int or not 0 <= f < folded["k_folds"] for f in selected):
             raise ValueError("Unknown frozen fold")
-        config = _effective_config(record, test_mode, test_config)
+        config = _effective_config(record, test_mode, test_config, layer_impl)
         task_info = dict(record=record, config=config, folds=selected, prepared={})
         plan["tasks"][task_id] = task_info
         family_profiles = ["G0"] + [p for p in profiles if p != "G0"]
@@ -150,7 +152,7 @@ def create_plan(store, output, tasks=None, profiles=None, seeds=(1,), folds=None
                     seed_all(seed_record["constructor"])
                     models[profile] = make_model(record["task"], graph, profile, "cpu",
                         hidden_size=config["hidden_size"], layers=config["layers"],
-                        heads=config["heads"], reducer=reducer)
+                        heads=config["heads"], reducer=reducer, layer_impl=layer_impl)
                     del graph
                 pairing = initialize_family(models, seed_record["constructor"])
                 folder = output / "prepared" / task_id / ("fold_%d" % fold) / ("seed_%d" % seed)
@@ -165,13 +167,14 @@ def create_plan(store, output, tasks=None, profiles=None, seeds=(1,), folds=None
                     torch.save(dict(kind="untrained_initial", optimizer_steps=0,
                         task_id=task_id, fold=fold, seed=seed, profile=profile,
                         fit_seed=seed_record["fit"], state_dict=state, state_sha256=state_sha,
-                        initialization_version=INITIALIZATION_VERSION), str(path))
-                    entries[profile] = dict(graph=graphs[profile], support=supports[profile],
+                        initialization_version=INITIALIZATION_VERSION, layer_impl=layer_impl), str(path))
+                    entries[profile] = dict(layer_impl=layer_impl, graph=graphs[profile], support=supports[profile],
                         initial=dict(_ref(path), state_sha256=state_sha),
                         parameter_count=sum(p.numel() for p in model.parameters()))
                     if profile in profiles:
-                        plan["jobs"].append(dict(task_id=task_id, fold=fold, seed=seed, profile=profile))
-                info = dict(task_id=task_id, fold=fold, seed=seed, seeds=seed_record, split=split,
+                        plan["jobs"].append(dict(task_id=task_id, fold=fold, seed=seed, profile=profile,
+                                                 layer_impl=layer_impl))
+                info = dict(layer_impl=layer_impl, task_id=task_id, fold=fold, seed=seed, seeds=seed_record, split=split,
                     initialization=_ref(folder / "initialization.json"), profiles=entries)
                 write_json(folder / "task.json", info)
                 task_info["prepared"]["%d/%d" % (fold, seed)] = _ref(folder / "task.json")
@@ -197,6 +200,10 @@ def _load_plan(path, check_code=True):
             or plan.get("score_role") != SCORE_ROLE or plan.get("selection_role") != SELECTION_ROLE
             or seal["jobs"] != len(plan["jobs"]) or seal["test_mode"] != plan["test_mode"]):
         raise ValueError("Experiment protocol/seal mismatch")
+    layer_impl = plan.get("layer_impl", "original")
+    if (layer_impl not in LAYER_IMPLEMENTATIONS
+            or any(job.get("layer_impl", "original") != layer_impl for job in plan["jobs"])):
+        raise ValueError("Plan/job layer_impl mismatch")
     identities = [job_id(job) for job in plan["jobs"]]
     if not identities or len(identities) != len(set(identities)):
         raise ValueError("Missing or duplicate execution jobs")
@@ -208,6 +215,8 @@ def _load_plan(path, check_code=True):
     checked_ref(inputs)
     checked(inputs["seal_path"], inputs["seal_sha256"])
     for task_id, task in plan["tasks"].items():
+        if task["config"].get("layer_impl", "original") != layer_impl:
+            raise ValueError("Plan/config layer_impl mismatch")
         record = task["record"]
         for key in ("folds", "labels", "original_graph"):
             checked_ref(record[key])
@@ -219,8 +228,15 @@ def _load_plan(path, check_code=True):
             checked_ref(ref)
         for ref in task["prepared"].values():
             info = read_json(checked_ref(ref))
-            checked_ref(info["initialization"])
+            initialization = read_json(checked_ref(info["initialization"]))
+            if (info.get("layer_impl", "original") != layer_impl
+                    or initialization.get("layer_impl", "original") != layer_impl
+                    or any(row.get("layer_impl", "original") != layer_impl
+                           for row in initialization["profiles"].values())):
+                raise ValueError("Prepared/initialization layer_impl mismatch")
             for entry in info["profiles"].values():
+                if entry.get("layer_impl", "original") != layer_impl:
+                    raise ValueError("Prepared profile layer_impl mismatch")
                 checked_ref(entry["graph"])
                 checked_ref(entry["initial"])
     return plan
@@ -239,11 +255,22 @@ def _prepared(plan, job):
     info = read_json(checked_ref(task["prepared"]["%d/%d" % (job["fold"], job["seed"])]))
     if (info["task_id"], info["fold"], info["seed"]) != (job["task_id"], job["fold"], job["seed"]):
         raise ValueError("Prepared task identity differs")
-    return task, info, info["profiles"][job["profile"]]
+    entry = info["profiles"][job["profile"]]
+    layer_impl = plan.get("layer_impl", "original")
+    if (layer_impl not in LAYER_IMPLEMENTATIONS
+            or any(record.get("layer_impl", "original") != layer_impl
+                   for record in (job, task["config"], info, entry))):
+        raise ValueError("Prepared job/config layer_impl mismatch")
+    return task, info, entry
 
 
 def _initial(entry, info, job):
     record = torch.load(str(checked_ref(entry["initial"])), map_location="cpu")
+    layer_impl = job.get("layer_impl", "original")
+    if (layer_impl not in LAYER_IMPLEMENTATIONS
+            or any(row.get("layer_impl", "original") != layer_impl
+                   for row in (record, info, entry))):
+        raise ValueError("Untrained initial layer_impl mismatch")
     if (record.get("kind") != "untrained_initial" or record.get("optimizer_steps") != 0
             or any(record.get(k) != job[k] for k in ("task_id", "fold", "seed", "profile"))
             or record.get("fit_seed") != info["seeds"]["fit"]
@@ -301,7 +328,8 @@ def _run_one(plan, job, attempt, plan_path):
         torch.cuda.set_device(device)
     seed_all(info["seeds"]["constructor"])
     model = make_model(task["record"]["task"], checked_ref(entry["graph"]), job["profile"], "cpu",
-        hidden_size=config["hidden_size"], layers=config["layers"], heads=config["heads"], reducer=plan["reducer"])
+        hidden_size=config["hidden_size"], layers=config["layers"], heads=config["heads"], reducer=plan["reducer"],
+        layer_impl=plan.get("layer_impl", "original"))
     model.load_state_dict(initial["state_dict"], strict=True)
     if tensor_digest(model.state_dict()) != entry["initial"]["state_sha256"]:
         raise ValueError("Loaded initial state differs")
@@ -405,13 +433,19 @@ def _verify_attempt(attempt, plan, job, plan_path):
     expected_binding = dict(protocol=PROTOCOL_NAME, protocol_version=PROTOCOL_VERSION,
         task_id=job["task_id"], task=task["record"]["task"], fold=job["fold"], seed=job["seed"],
         profile=job["profile"], reducer=plan["reducer"], score_role=SCORE_ROLE,
+        layer_impl=plan.get("layer_impl", "original"),
         selection_role=SELECTION_ROLE, forward_scope=FORWARD_SCOPE,
         graph=entry["graph"], folds=task["record"]["folds"], labels=task["record"]["labels"],
         initial_weights_sha256=entry["initial"]["sha256"], split=info["split"],
         initial_state_sha256=entry["initial"]["state_sha256"],
         effective_config_sha256=digest(task["config"]), support_sha256=digest(entry["support"]),
         registered_schema=entry["support"]["schema"], initialization=info["initialization"])
-    if digest(binding) != receipt["binding_sha256"] or any(binding.get(k) != v for k,v in expected_binding.items()):
+    observed_binding = dict(binding)
+    # Historical Prompt 7 bindings predate this field; their missing value means
+    # original only. Preserve their serialized bytes and receipt digest.
+    if "layer_impl" not in plan:
+        observed_binding.setdefault("layer_impl", "original")
+    if digest(binding) != receipt["binding_sha256"] or any(observed_binding.get(k) != v for k,v in expected_binding.items()):
         raise ValueError("Binding differs from sealed plan")
     if read_json(attempt / "initialization_ref.json") != entry["initial"]:
         raise ValueError("Initial state reference differs")
@@ -422,7 +456,8 @@ def _verify_attempt(attempt, plan, job, plan_path):
     result = read_json(attempt / "result.json")
     if (result.get("status") != "complete" or result.get("score_role") != SCORE_ROLE
             or result.get("selection_role") != SELECTION_ROLE
-            or result.get("initial_sha256") != entry["initial"]["state_sha256"]):
+            or result.get("initial_sha256") != entry["initial"]["state_sha256"]
+            or result.get("layer_impl", "original") != plan.get("layer_impl", "original")):
         raise ValueError("Incomplete/misbound fit result")
     history = [json.loads(line) for line in (attempt / "history.jsonl").read_text().splitlines()]
     if (not history or [r["epoch"] for r in history] != list(range(len(history)))
@@ -626,6 +661,7 @@ def main(argv=None):
     command.add_argument("--seeds", default="1")
     command.add_argument("--folds")
     command.add_argument("--reducer", choices=("mean", "nonempty_mean"), default="mean")
+    command.add_argument("--layer-impl", choices=LAYER_IMPLEMENTATIONS, default="original")
     command.add_argument("--output", required=True)
     for name in ("execute", "verify", "select", "summarize"):
         command = commands.add_parser(name)
@@ -636,7 +672,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.command == "plan":
         result = create_plan(args.store, args.output, args.tasks, args.profiles,
-                             args.seeds, args.folds, args.reducer)
+                             args.seeds, args.folds, args.reducer, layer_impl=args.layer_impl)
         answer = dict(plan=str(Path(args.output).resolve() / "plan.json"), jobs=len(result["jobs"]))
     elif args.command == "execute":
         answer = execute(args.plan, args.only, args.retry)

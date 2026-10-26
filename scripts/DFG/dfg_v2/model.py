@@ -24,7 +24,24 @@ from scripts.DFG.experiments.runtime import assert_disconnected_files
 
 from . import AUX_NODE_TYPES
 from .model_input import build_dgl, edge_data, materialize
-from .hgt_layer import HGTLayerNonEmptyMean
+from .hgt_layer import (HGTLayerNonEmptyMean, HGTLayerSharedProjection,
+                        HGTLayerSharedProjectionNonEmptyMean)
+
+
+LAYER_IMPLEMENTATIONS = ("original", "shared_projection")
+
+
+def _layer_type(layer_impl, reducer):
+    if layer_impl not in LAYER_IMPLEMENTATIONS:
+        raise ValueError("Unsupported layer_impl")
+    if reducer not in ("mean", "nonempty_mean"):
+        raise ValueError("Unsupported relation reducer")
+    return {
+        ("original", "mean"): HGTLayer,
+        ("original", "nonempty_mean"): HGTLayerNonEmptyMean,
+        ("shared_projection", "mean"): HGTLayerSharedProjection,
+        ("shared_projection", "nonempty_mean"): HGTLayerSharedProjectionNonEmptyMean,
+    }[(layer_impl, reducer)]
 
 
 def _original_nodes(graph):
@@ -63,14 +80,13 @@ def _features(model):
 
 
 def _construct(model, task, graph_or_path, profile, device, node_feature,
-               hidden_size, layers, heads, reducer):
+               hidden_size, layers, heads, reducer, layer_impl):
     nn.Module.__init__(model)
     if task not in ("node", "contract"):
         raise ValueError("Unknown task")
     if node_feature not in ("inside_token", "nodetype"):
         raise ValueError("Unsupported node feature")
-    if reducer not in ("mean", "nonempty_mean"):
-        raise ValueError("Unsupported relation reducer")
+    layer_type = _layer_type(layer_impl, reducer)
     model.compressed_global_graph_path = (str(graph_or_path) if not isinstance(graph_or_path, nx.Graph)
                                          else "<in-memory-frozen-graph>")
     source = graph_or_path if isinstance(graph_or_path, nx.Graph) else read_graph(Path(graph_or_path))
@@ -81,6 +97,7 @@ def _construct(model, task, graph_or_path, profile, device, node_feature,
     model.nx_graph = gu.add_hetero_ids(nx.convert_node_labels_to_integers(copy.deepcopy(source)))
     model.hidden_size, model.num_heads, model.device = hidden_size, heads, str(device)
     model.dfg_profile, model.dfg_reducer, model.dfg_task = profile, reducer, task
+    model.dfg_layer_impl = layer_impl
     model.total_nodes = len(model.nx_graph)
     model.node_ids_dict = gu.get_node_ids_dict(model.nx_graph)
     model.supervised_node_mask = torch.tensor(
@@ -122,7 +139,6 @@ def _construct(model, task, graph_or_path, profile, device, node_feature,
     model.gcs = nn.ModuleList()
     model.out_size, model.num_layers = 2, layers
     model.adapt_ws = nn.ModuleList([nn.Linear(model.in_size, hidden_size) for _ in model.ntypes_dict])
-    layer_type = HGTLayer if reducer == "mean" else HGTLayerNonEmptyMean
     for _ in range(layers):
         model.gcs.append(layer_type(hidden_size, hidden_size, model.ntypes_dict,
                                    model.etypes_dict, heads, use_norm=True))
@@ -131,31 +147,34 @@ def _construct(model, task, graph_or_path, profile, device, node_feature,
 
 class DfgV2NodeClassifier(HGTVulNodeClassifier):
     def __init__(self, graph_or_path, profile, device="cpu", node_feature="inside_token",
-                 hidden_size=128, layers=2, heads=8, reducer="mean"):
+                 hidden_size=128, layers=2, heads=8, reducer="mean", layer_impl="original"):
         _construct(self, "node", graph_or_path, profile, device, node_feature,
-                   hidden_size, layers, heads, reducer)
+                   hidden_size, layers, heads, reducer, layer_impl)
 
 
 class DfgV2GraphClassifier(HGTVulGraphClassifier):
     def __init__(self, graph_or_path, profile, device="cpu", node_feature="inside_token",
-                 hidden_size=128, layers=2, heads=8, reducer="mean"):
+                 hidden_size=128, layers=2, heads=8, reducer="mean", layer_impl="original"):
         _construct(self, "contract", graph_or_path, profile, device, node_feature,
-                   hidden_size, layers, heads, reducer)
+                   hidden_size, layers, heads, reducer, layer_impl)
 
 
 def make_model(task, graph_or_path, profile, device="cpu", node_feature="inside_token",
-               hidden_size=128, layers=2, heads=8, reducer="mean"):
+               hidden_size=128, layers=2, heads=8, reducer="mean", layer_impl="original"):
     if task not in ("node", "contract"):
         raise ValueError("Unknown task")
     cls = DfgV2NodeClassifier if task == "node" else DfgV2GraphClassifier
     model = cls(graph_or_path, profile, device, node_feature, hidden_size,
-                layers, heads, reducer).to(device)
+                layers, heads, reducer, layer_impl).to(device)
     validate_registration(model)
     return model
 
 
 def validate_registration(model, expected_schema=None, deep=True):
     """Reuse frozen schema checks; validate v2 direction and auxiliary masks."""
+    expected_layer = _layer_type(model.dfg_layer_impl, model.dfg_reducer)
+    if any(type(layer) is not expected_layer for layer in model.gcs):
+        raise ValueError("Model layer_impl does not match actual HGT layer classes")
     schema = native_registration(model, expected_schema, deep=False)
     if not deep:
         return schema

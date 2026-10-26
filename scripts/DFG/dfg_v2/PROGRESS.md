@@ -1618,3 +1618,27 @@ python -B -m scripts.DFG.dfg_v2.validate_slither \
 - 本地旧torch库未检出模板allocator选项字符串，不能保证max_split_size_mb有效；未设置/升级。当前probe已独立进程，需用户选择释放外部显存/核实allocator/更大兼容GPU等方案后再显式retry，不自动降配。
 
 产物O=artifacts/dfg_v2/prompt7_v1，实际命令与失败路径见报告。三份旧文档只追加，原代码/旧产物不变；本地commit，不自动push。本轮按显存门槛停止。
+
+
+## 2026-10-26 DFG v2 Prompt 7b：接入完成，CPU 数值验收未通过（Codex）
+
+实施、复核与记录AI：Codex。基于60aa23e，新增共享K/Q/V层及nonempty_mean版本，默认original保留；layer_impl进入模型、plan、初值、checkpoint/result，跨实现恢复被拒绝。原HGT/DDG/tokenizer/图/标签/fold及优化器数值规则未改。
+
+用户批准：相对梯度按参数张量尺度计算，同时报告逐元素差；小图近零梯度纯相对门槛失败后增加1e-8绝对容差。前向逐位一致、CPU三轮损失1e-6门槛未放宽。新增94项；全部1366v2+223旧=1589通过，0失败/跳过，8/29条既有警告。
+
+四组mean真实CPU前向/梯度通过，三轮损失差均超过1e-6；R/G0/nonempty_mean前向一致，但一个query权重梯度差1.593e-8>允许1.023e-8，随后停止。共5组静态、4对/8次CPU三轮诊断（24epoch）；最后一组和nonempty轨迹未跑。CPU best/last重载一致；不混计为8次GPU pilot。
+
+未发现AC/G0初值/监督/优化器混用；证据符合反向累加与Adam放大解释，但无逐步轨迹不能认定唯一原因。0次GPU诊断、0/8pilot，新pilot plan未封存，旧P7失败记录不改。不能宣称显存已解决，不开始Prompt8。
+
+详见PROMPT7B_REPORT.md、training_changes§55；产物prompt7b_v1留WSL。冻结范围外11061个跟踪文件SHA一致，固定4任务16图校验通过；三文档旧正文仅追加。代码/报告本地提交，不自动推送。
+
+| 任务 | 剖面 | reducer | 三轮最大损失绝对差 | 结果 |
+|---|---|---|---:|---|
+| reentrancy_contract | G0 | mean | 2.92062759e-06 | 轨迹门槛失败 |
+| reentrancy_contract | G3R | mean | 7.03334808e-06 | 轨迹门槛失败 |
+| access_control_node | G0 | mean | 8.82148743e-06 | 轨迹门槛失败 |
+| access_control_node | G3R | mean | 2.31862068e-05 | 轨迹门槛失败 |
+| reentrancy_contract | G0 | nonempty_mean | — | 梯度门槛失败，未训练 |
+| reentrancy_contract | G3R | nonempty_mean | — | 此前门槛失败，未执行 |
+
+验收状态：implementation_tests_passed_cpu_numerical_gate_failed。完整文件清单、命令、批准和未执行事项见报告。

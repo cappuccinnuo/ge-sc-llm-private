@@ -29,6 +29,8 @@ def _validate_fit_inputs(model, parts, task, labels, config, binding, original_i
 
     if task != model.dfg_task or binding.get("task") != task:
         raise ValueError("Fit task differs from model/binding")
+    if config.get("layer_impl", "original") != model.dfg_layer_impl:
+        raise ValueError("Fit config layer_impl differs from model")
     if binding.get("effective_config_sha256") != digest(config):
         raise ValueError("Effective config differs from checkpoint binding")
     if binding.get("support_sha256") != digest(registration_support):
@@ -184,7 +186,8 @@ def _fit(model, parts, task, labels, config, dest, binding, original_ids, suppor
     if registered_parameters != {n:id(p) for n,p in model.named_parameters()}:
         raise AssertionError("Parameter creation/replacement during fitting/scoring")
     memory_guard.check()
-    result = dict(status="complete", protocol=PROTOCOL_NAME,protocol_version=PROTOCOL_VERSION,
+    result = dict(status="complete", layer_impl=model.dfg_layer_impl,
+        protocol=PROTOCOL_NAME,protocol_version=PROTOCOL_VERSION,
         score_role=SCORE_ROLE,selection_role=SELECTION_ROLE,forward_scope=FORWARD_SCOPE,
         interpretation="nested outer test; inner validation selects best",
         best_epoch=best_epoch,last_epoch=epoch,best_inner_val_loss=stop.best,

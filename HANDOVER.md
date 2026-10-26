@@ -2014,3 +2014,16 @@ alias178FP实际全为READ，0多根FP；4FN为callable内同名局部的保守�
 8job计划已封存于artifacts/dfg_v2/prompt7_v1/pilot。首个R合约G3R在第1轮后因最低空闲12MiB<100停止（allocated3299.85/reserved3536MiB；非OOM）。0/8成功，1失败，0重试；partial best及失败/资源记录保留。其余7job、GPU历史对照与完整GPU验收未执行，不报告F1提升，不进入Prompt8。未修改模型/图/超参，未自动切CPU/降配/关闭其他程序。
 
 模板allocator方案在旧torch1.8.1上尚未确认支持；当前probe已独立进程。需用户决定资源措施后再显式重跑该失败fit。代码和记录本地提交，原始运行产物留WSL，不自动push。
+
+
+## 2026-10-26 DFG v2 Prompt 7b：接入完成，CPU 数值验收未通过（Codex）
+
+实施、复核与记录AI：Codex。基于60aa23e，新增共享K/Q/V层及nonempty_mean版本，默认original保留；layer_impl进入模型、plan、初值、checkpoint/result，跨实现恢复被拒绝。原HGT/DDG/tokenizer/图/标签/fold及优化器数值规则未改。
+
+用户批准：相对梯度按参数张量尺度计算，同时报告逐元素差；小图近零梯度纯相对门槛失败后增加1e-8绝对容差。前向逐位一致、CPU三轮损失1e-6门槛未放宽。新增94项；全部1366v2+223旧=1589通过，0失败/跳过，8/29条既有警告。
+
+四组mean真实CPU前向/梯度通过，三轮损失差均超过1e-6；R/G0/nonempty_mean前向一致，但一个query权重梯度差1.593e-8>允许1.023e-8，随后停止。共5组静态、4对/8次CPU三轮诊断（24epoch）；最后一组和nonempty轨迹未跑。CPU best/last重载一致；不混计为8次GPU pilot。
+
+未发现AC/G0初值/监督/优化器混用；证据符合反向累加与Adam放大解释，但无逐步轨迹不能认定唯一原因。0次GPU诊断、0/8pilot，新pilot plan未封存，旧P7失败记录不改。不能宣称显存已解决，不开始Prompt8。
+
+详见PROMPT7B_REPORT.md、training_changes§55；产物prompt7b_v1留WSL。冻结范围外11061个跟踪文件SHA一致，固定4任务16图校验通过；三文档旧正文仅追加。代码/报告本地提交，不自动推送。

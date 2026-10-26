@@ -13,10 +13,12 @@ def build_binding(model, *, task_id, fold, seed, profile, reducer, graph_ref,
                   fold_ref, label_ref, initial_sha256, config, split, support,
                   initialization_record=None):
     schema = validate_registration(model)
+    if config.get("layer_impl", "original") != model.dfg_layer_impl:
+        raise ValueError("Config layer_impl differs from model")
     return dict(protocol=PROTOCOL_NAME, protocol_version=PROTOCOL_VERSION,
         score_role=SCORE_ROLE, selection_role=SELECTION_ROLE, forward_scope=FORWARD_SCOPE,
         task_id=task_id, task=model.dfg_task, fold=fold, seed=seed, profile=profile,
-        reducer=reducer, registered_schema=schema,
+        reducer=reducer, layer_impl=model.dfg_layer_impl, registered_schema=schema,
         canonical=sorted([list(c) for c in model.etypes_dict]),
         auxiliary_node_types=sorted(set(model.ntypes_dict) & set(AUX_NODE_TYPES)),
         auxiliary_policy="excluded from supervision, scoring and contract pooling",
@@ -35,8 +37,9 @@ def validate_binding(model, binding, check_files=True):
         raise ValueError("Nested experiment protocol/role binding mismatch")
     if (binding.get("task") != model.dfg_task
             or binding.get("profile") != model.dfg_profile
-            or binding.get("reducer") != model.dfg_reducer):
-        raise ValueError("Model/profile/reducer binding mismatch")
+            or binding.get("reducer") != model.dfg_reducer
+            or binding.get("layer_impl", "original") != model.dfg_layer_impl):
+        raise ValueError("Model/profile/reducer/layer_impl binding mismatch")
     validate_registration(model, binding["registered_schema"])
     if (binding.get("canonical") != sorted([list(c) for c in model.etypes_dict])
             or binding.get("auxiliary_node_types") != sorted(set(model.ntypes_dict) & set(AUX_NODE_TYPES))):
