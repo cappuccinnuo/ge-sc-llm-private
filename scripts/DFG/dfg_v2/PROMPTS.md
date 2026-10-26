@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 → P7c（服务器） … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 → P7c（本地 pilot）→ P8（本地）→（以后）服务器迁移 4.9h … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1546,12 +1546,57 @@ Prompt 7 时进程外只占约 0.55 GB；7b.3 全程约 2.0–2.3 GB，而且在
 
 （Prompt 7b.4 状态：2026-10-26 停止，提交 e61ffd8。启动前基线检查与新计划已实现；基线通过（CUDA 初始化前 used 450 / free 3526 MiB），完整探针第 1 轮后最低空闲 76 MiB（门槛 100），停止，pilot 0/8。Codex 核实后否定了 7b.4 背景中的推测：并不存在约 2 GB 的外部占用；最小 CUDA/DGL 初始化本身就使空闲下降 1292 MiB（PyTorch 1.8.1 + CUDA 11.1 + DGL 0.6.1 的上下文与内核），4 GiB 显卡扣除基线与上下文后只剩约 2.35 GB 给训练，R/G3R 的 reserved 2048 MiB 已接近上限。用户决定正式实验在显存充足的服务器上进行。用户批准：进程外占用改称"分配器之外的未归属占用估计"；新资源策略每次只允许一个 --only 任务、独立进程执行。）
 
-### 4.9g Prompt 7c：迁移到服务器，完成环境验收与 8 次 pilot
+### 4.9g Prompt 7c：在本地完成 8 次 pilot（本地开发用的显存策略）
+
+用户决定：先在本地 RTX 3050 4 GiB 上跑，看到效果后再迁移到服务器。迁移步骤保留在第 4.9h 节，以后执行。
 
 ```text
-# Prompt 7c：服务器环境复现、输入迁移与身份核验、GPU 冒烟、8 次 pilot
+# Prompt 7c：本地显存策略 local_dev_v1、8 次 pilot 与 Prompt 8 本地时长估算
 
-前置：Prompt 7b.4（提交 e61ffd8）。本地 4 GiB 显卡只作开发与验收用；Prompt 7c 之后的全部训练（含 Prompt 8 的每一次）都在同一台服务器、同一块 GPU 型号上进行，不与本地结果混用。
+前置：Prompt 7b.4（提交 e61ffd8）。先 git pull --ff-only origin dfg-v2。
+不修改 hgt_layer.py、model.py、trainer.py 与任何数值规则；7b.4 的失败现场保留。
+
+## 背景：为什么可以在本地放宽运行中的显存门槛
+- 100 MiB 的"整卡最低空闲"是我们自己设的合作式安全余量，不是硬件限制。R 合约 G3R 在 7b.4 中最低空闲 76 MiB，没有 OOM，第 1 轮的训练、验证与保存都正常完成。
+- 显存紧张不改变数值结果。它只可能带来两种后果：一是 CUDA OOM，任务失败，失败记录保留，可以从同一初值重跑；二是在 WSL/Windows 上，驱动可能把部分显存换到系统内存（共享 GPU 内存），这只会变慢、不会算错。Prompt 7 中 reserved 3536 MiB 加上约 1.3 GB 的 CUDA/DGL 上下文已经超过 4096 MiB 却没有 OOM，说明发生过这种换出。
+- 全图训练每一轮的显存模式相同，第 1 轮能完成，后面各轮通常也能完成。
+所以本地改用"只在 OOM 或非有限值时停止，紧张时记录和提醒"的策略。正式实验迁移到服务器时，恢复 100 MiB 门槛（见 4.9h）。
+
+## 1. 资源策略 local_dev_v1（新增，写进新 plan；旧策略保留不变）
+- 启动前基线：空闲 ≥ 3000 MiB（不变）。
+- 运行中：不再因整卡最低空闲低于 100 MiB 停止；只在 CUDA OOM、非有限损失或其他错误时停止。
+- 记录与提醒：
+  - 整卡最低空闲 < 100 MiB 的 job 在 receipt 中标 memory_tight=true；
+  - 每轮耗时记录；若某轮耗时超过该 job 前 3 轮中位数的 2 倍，记 possible_memory_spill（只提醒，不停止），提示可能发生了显存换出；
+  - 用户可在 Windows 任务管理器的 GPU 页查看"共享 GPU 内存"是否上升，作为佐证。
+- OOM 时：保留失败 attempt，停止整个批次；需要用户确认后才能用 --retry 从同一初值重跑（不是续训）。
+- 这项改动需要用户批准；批准记录写入 PROGRESS。
+
+## 2. 新 plan 与 8 次 pilot
+- 新 plan：artifacts/dfg_v2/prompt7c_v1/pilot/，用 run plan --from-plan 引用 prompt7b4_v1/pilot/plan.json，沿用同一 prepared/initial 文件，资源策略改为 local_dev_v1；逐项对照证明只有资源策略（以及因此变化的代码摘要）不同。
+- 先跑 reentrancy_contract/0/1/G3R，之后其余 7 项；每项独立进程、--only 串行；全部 shared_projection。
+- 检查项与 Prompt 7b 第 5 部分相同：训练文件中有边的新 canonical（含 REV_*）第一轮 relation_msg 梯度非零，只在内层验证或外层测试中出现的单独计数；env_source 不出现在任何指标与预测中；best/last 重载后 logits 逐位一致；每项的基线、上下文占用、peak allocated/reserved、整卡最低空闲、memory_tight、possible_memory_spill、每轮耗时、停止轮数、总耗时。
+- 不报告这 8 次的 F1 比较结论。
+
+## 3. Prompt 8 本地时长估算
+- 用 8 次实测耗时按任务估算批次 1（合约 5 折 × 5 剖面，节点 10 折 × 5 剖面）；G1R、G2R、G3 没有实测，按 canonical 数在 G0 与 G3R 之间线性插值，标明是估计。
+- 同时给出分阶段执行的估计：阶段 A 只跑 G0 与 G3R（60 次），阶段 B 再跑 G1R、G2R、G3（90 次）。见 Prompt 8 的分阶段说明。
+- 写进 PROGRESS 后停下，等用户确认再进入 Prompt 8。
+
+## 4. 测试与记录
+- local_dev_v1：最低空闲低于 100 MiB 时不停止但标 memory_tight；模拟 OOM 时批次停止、失败保留；耗时突增时记 possible_memory_spill；旧策略的 plan 行为不变。
+- dfg_v2/tests 全部、旧 DDG 回归通过。结论写进 PROMPT7C_REPORT.md 与三份记录文档。
+```
+
+### 4.9h 以后执行：迁移到服务器（本地结果出来后，由用户决定何时开始）
+
+迁移后，Prompt 8 的全部训练（含 G0）都在服务器上重新运行，不与本地结果混用；资源策略恢复为 100 MiB 门槛。以下为迁移步骤。
+
+
+```text
+# 服务器迁移（以后执行）：服务器环境复现、输入迁移与身份核验、GPU 冒烟、8 次 pilot
+
+前置：本地 Prompt 8 的结果已经出来，用户决定迁移。迁移后的全部训练（含 Prompt 8 的每一次）都在同一台服务器、同一块 GPU 型号上进行，不与本地结果混用。
 
 ## 0. 先收集服务器信息（由用户提供，写进 PROGRESS）
 - GPU 型号、计算能力（sm_XX）、显存；驱动版本与 nvidia-smi 显示的最高 CUDA 版本；
@@ -1603,9 +1648,12 @@ Prompt 7 时进程外只占约 0.55 GB；7b.3 全程约 2.0–2.3 GB，而且在
 ```text
 # Prompt 8：R/AC 实验与统计
 
-前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1、7b.2、7b.3、7b.4 与 7c 都验收通过；全部训练在同一台服务器上进行；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1、7b.2、7b.3、7b.4 与 7c 都验收通过；当前在本地运行（资源策略 local_dev_v1），一个批次内的全部训练都在同一台机器上进行，迁移到服务器后整批重跑、不与本地结果混用；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
 
 ## 批次 1：主矩阵（必跑）
+- 分阶段执行（本地推荐）：plan 一次性写入全部 150 次与选择规则并封存，执行顺序为阶段 A（G0 与 G3R，60 次）→ 阶段 B（G1R、G2R、G3，90 次）。
+  - 阶段 A 结束后可以出一份中间报告，只比较 G3R 与 G0（G3R 是预先指定的主方案），标明"中间结果"；它不改变 plan、选择规则或阶段 B 的执行。
+  - G* 只在阶段 B 完成后按预先登记的内层验证规则选出；中间报告不得用于挑选剖面。
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
 - 剖面：G0、G1R、G2R、G3R、G3；种子只用 seed 1。
 - 共 30 × 5 = 150 次。按 Prompt 7 实测耗时估算总时长（参考：此前在 RTX 3050 4GiB 上约 165 秒/次，约 7 小时）。
