@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1448,6 +1448,54 @@ c) 两者的 peak allocated/reserved 与整卡最低空闲。
 ```
 
 
+（Prompt 7b.2 状态：2026-10-26 停止，提交 6f5deb1。6 个真实案例的 float64 静态检查全部通过：逐层输出与 logits 差 0，梯度最大差 1.7e-16 至 4.2e-16 量级，最大占用门槛的 0.025%。R/G0/mean 的 3 轮 float64 轨迹通过（最大差 1.55e-15）。R/G3R/mean 的 float64 轨迹在 CPU 上被 WSL 内核 OOM 终止（匿名驻留约 7.24 GiB，WSL 可见内存 7.9 GiB），其余 4 组未启动；GPU、显存探针、pilot 未运行。收尾工作见 Prompt 7b.3。）
+
+### 4.9e Prompt 7b.3：按证据收窄 float64 轨迹范围，完成 GPU 与 pilot
+
+```text
+# Prompt 7b.3：收窄 float64 轨迹、补零梯度结构归类、完成 GPU 对照、显存探针与 8 次 pilot
+
+前置：Prompt 7b.2（提交 6f5deb1）。先 git pull --ff-only origin dfg-v2。
+不修改 hgt_layer.py、model.py、trainer.py、model_validation.py 与任何生产数值规则；7b.2 的全部产物与失败记录保留。
+
+## 背景：为什么可以不再要求 6 组 float64 轨迹全部完成
+- 等价性的核心证据已经齐全：6 个真实案例覆盖两个任务、G0/G3R、mean/nonempty_mean，前向逐位相同，全部参数梯度的差在 float64 舍入量级（≤ 4.2e-16）。共享投影只改变前向中投影的计算位置，代码路径与关系、reducer 无关，因此"梯度函数相同"已在所有用到的关系与 reducer 上得到检验。
+- 优化器是同一份代码；梯度相同、参数相同，下一步参数也相同。3 轮轨迹只是对这一推理的数值确认，R/G0/mean 已经确认（差 1.55e-15）。
+- float64 让内存翻倍，R/G3R（233 个 canonical、18,610 个节点）在 WSL 的 7.9 GiB 内存中放不下。为此去调整 WSL 内存不划算，也不必要。
+因此改为：在内存放得下的案例上补齐轨迹，覆盖剩下的维度（G3R 关系集合、nonempty_mean）；R/G3R 的两组轨迹记为"因 CPU 内存不运行，以静态检查为证据"，并在报告中写明理由。
+
+## 1. 补齐的 float64 轨迹（每组独立进程，依次运行）
+- AC 节点 fold0 G0 mean；AC 节点 fold0 G3R mean；R 合约 fold0 G0 nonempty_mean。门槛不变：逐轮 train/inner_val 损失差 ≤ 1e-9。
+- 内存保护：每组启动前记录可用内存；运行时每 2 秒采样进程 RSS，超过 6.5 GiB 就由脚本自己终止该组并记为 skipped_cpu_memory（不是失败，不重试）。7b.2 中 AC/G3R 的取证前向曾因内存压力中止，若 AC/G3R 轨迹也被跳过，照实记录。
+- 不运行：R 合约 G3R mean、R 合约 G3R nonempty_mean（理由见背景）。
+- 门槛：已运行的组全部通过，且至少 AC/G3R mean 与 R/G0 nonempty_mean 中有一组完成（保证 G3R 关系集合或 nonempty_mean 至少有一个被轨迹覆盖；最好两组都完成）。若两组都因内存被跳过，停下报告。
+- 修改 precision_gpu.py 的 CPU 放行条件（这是 7b.2 新增的文件，允许修改）：从"6 组静态 + 6 组轨迹"改为"6 组静态全部通过 + 本部分规定的轨迹集合"；被跳过的组必须有 skipped_cpu_memory 记录，不能缺失。新的放行清单单独封存，7b.2 的清单不改。
+
+## 2. 近零梯度的结构归类（文档项，不影响门槛）
+这些张量已经通过门槛：两种实现上都 ≤ 1e-12 × G。下面的归类只用于说明，不作为等价性证据。
+- 对 6 个案例都只用图结构与参数名做静态归类，不需要额外前向：
+  a) key bias（softmax 平移不变）；
+  b) 目标节点在该关系上只有一个不同的来源节点（含同源多重边）的 key/query 相关参数；
+  c) G3R 最后一层中没有监督路径的目标（如 env_source）的参数；
+  d) 不属于以上三类的，记为"数值上接近零（可能是初始注意力饱和）"，只列出，不再做前向取证。
+- 7b.2 已完成的 R/G0、AC/G0 动态取证结果原样保留。
+
+## 3. GPU（float32，AC 节点 fold0）
+按 Prompt 7b.2 第 3 部分第 3 步执行：original 两次的噪声水平与 shared 一次（门槛 max(1e-4, 3 × 噪声)），用 projection_validation.py::run_gpu_diagnostic 与历史 history.jsonl 对照（≤ 1e-4），记录显存。
+
+## 4. 显存探针与 8 次 pilot
+按 Prompt 7b.2 第 3 部分第 4、5 步执行：
+- 探针：shared_projection，R 合约 fold0，G3R，seed 1，完整训练到早停；整卡最低空闲 ≥ 100 MiB、无 OOM；余量 < 300 MiB 时提醒。仍不足就停下，第二级做法由用户决定。
+- pilot：新 plan 目录 artifacts/dfg_v2/prompt7b3_v1/pilot/，全部剖面 shared_projection，8 次；检查项同 Prompt 7b 第 5 部分。
+- 按实测耗时分任务估算 Prompt 8 批次 1 的总时长（合约 5 折 × 5 剖面，节点 10 折 × 5 剖面），写进 PROGRESS。
+
+## 5. 测试与记录
+- 新的放行条件测试：缺少 skipped 记录、跳过了规定之外的组、已运行的组超门槛时都被拒绝。
+- RSS 保护测试：模拟超过上限时进程被脚本终止并写出 skipped 记录。
+- dfg_v2/tests 全部、旧 DDG 回归通过。结论写进 PROMPT7B3_REPORT.md 与三份记录文档。
+```
+
+
 ### 4.10 Prompt 8：R/AC 实验与统计
 
 先用 1 个种子跑 5 个剖面（150 次，约 7 小时），之后的诊断组和补种子都要你确认才跑；其余 5 类只写扩展说明。
@@ -1455,7 +1503,7 @@ c) 两者的 peak allocated/reserved 与整卡最低空闲。
 ```text
 # Prompt 8：R/AC 实验与统计
 
-前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1 与 7b.2 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1、7b.2 与 7b.3 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
 
 ## 批次 1：主矩阵（必跑）
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
