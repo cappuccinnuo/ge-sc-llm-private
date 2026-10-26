@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1293,6 +1293,64 @@ initialize_family(models, anchor_seed)，models 为 profile → 新构造、未�
 ```
 
 
+（Prompt 7 状态：2026-10-26 部分完成，提交 204dfb9。训练接入代码、CPU 测试（1495 passed）、R 合约 fold0 的 CPU 引擎对照（每轮损失差 0.0）通过。GPU 显存探针 R 合约 fold0 G3R 第 1 轮后整卡最低空闲 12 MiB（peak allocated 3300 MiB、reserved 3536 MiB），触发 100 MiB 门槛停止，没有 OOM；0/8 成功，GPU 历史对照未运行。用户批准的两处选择：新增关系行按各剖面自己关系库的 Xavier 界限独立抽取；三次短数值检查单列、不计入 8 次。剩余工作见 Prompt 7b。）
+
+### 4.9b Prompt 7b：显存——等价的共享投影 HGT 层，并完成 Prompt 7 的 GPU 验收
+
+```text
+# Prompt 7b：共享投影 HGT 层（数值等价）、GPU 对照与 8 次小规模验收
+
+前置：Prompt 7 已完成到显存门槛（提交 204dfb9）。先 git pull --ff-only origin dfg-v2。
+本步需要用户先批准第 1 部分的做法（它改变了训练时使用的层实现，但不改变模型的数学定义与参数）。批准记录写入 PROGRESS。
+
+## 背景：显存花在哪里
+sco_models/model_hgt.py::HGTLayer.forward 对每个 canonical 关系都重新计算一次
+  k_linear(h[srctype])、v_linear(h[srctype])、q_linear(h[dsttype])，
+计算对象是该节点类型的全部节点，而不是只有这条关系的端点；之后再与该关系的 relation_att/relation_msg 做 einsum。于是每个 canonical 都在显存里保留 3 份 N_type×128 的线性输出与 2 份 einsum 输出，还要为反向传播保留它们。显存因此随 canonical 数 × 节点数增长，而不是随边数增长。G0 有 165 个 canonical，G3R 有 233 个。历史上 R 合约 G0 已经只剩 29 MiB 空闲，按现在的 100 MiB 门槛连 G0 也通不过。这不是 v2 关系本身的代价，而是原实现的重复计算。
+
+## 1. 共享投影层 dfg_v2/hgt_layer.py（新类，不改原文件）
+- HGTLayerSharedProjection(HGTLayer)：只重写 forward。每层先对每个节点类型各算一次 k_linear、v_linear、q_linear（同一个线性层作用于同一个输入），再在每个 canonical 里复用这些结果，做 relation_att/relation_msg 的 einsum 与后续的注意力、消息、cross_reducer='mean'、a_linear、skip、norm，其余一行不变。
+- HGTLayerSharedProjectionNonEmptyMean：同样的改动应用到 Prompt 1 的 HGTLayerNonEmptyMean（批次 2 的 G0M/G3RM 使用）。
+- 两个新类与原类的 __init__ 完全相同（直接继承，不加参数），因此 state_dict 键、参数形状、构造时的随机数消耗都不变；Prompt 7 的共同初值、检查点格式都不受影响。
+- dfg_v2/model.py 的 make_model 增加参数 layer_impl ∈ {"original", "shared_projection"}，默认 "original"（保留 Prompt 1 的全部等价性测试）。layer_impl 写入 binding、plan 与 result。
+- 原理上前向是逐位相同的：每个节点类型的线性输出与原来逐关系重复计算时完全一样，后续运算的输入与顺序都没有变。反向传播中，同一线性层的梯度从"多次分别回传后累加"变成"先在共享输出上累加再一次回传"，浮点累加顺序不同，梯度可能有末位差异。
+
+## 2. 等价性验收（必须全部通过，才可用于实验）
+在 CPU 上，用相同权重的两份模型（original 与 shared_projection），任务与图取 R 合约 fold0 的 G0 与 G3R、AC 节点 fold0 的 G0 与 G3R：
+a) eval 模式前向：每层 HGT 输出与最终 logits 逐位相等（torch.equal）。若不相等，停下报告，不要放宽成容差。
+b) 一次反向：每个参数的梯度最大绝对差与最大相对差；要求最大相对差 ≤ 1e-5，并逐参数记录。
+c) 训练轨迹：用 trainer.fit、同一初值、同一 fit seed、nested fold0 划分各跑 3 轮；逐轮 train/inner_val 损失最大绝对差 ≤ 1e-6。
+d) nonempty_mean 两个类做同样的 a)–c)（只用 R 合约 fold0 的 G0 与 G3R）。
+
+## 3. GPU 对照（改在显存充足的任务上做）
+R 合约在原实现下显存已经贴近上限，不适合做 GPU 数值对照。改用 AC 节点 fold0（7,710 个原节点）：
+a) 原实现、G0：用新 trainer 跑 3 轮，与 overall_cv_v1 中 access_control_author_node fold_0 的历史 history.jsonl 前 3 轮对比，最大绝对差 ≤ 1e-4（DGL 在 GPU 上的原子加导致的差异）。若该任务没有对应历史记录，改用 Prompt 7 的 CPU 对照结论并写明原因。
+b) 同一初值下，original 与 shared_projection 在 GPU 上各跑 3 轮，逐轮损失最大绝对差 ≤ 1e-4。
+c) 两者的 peak allocated/reserved 与整卡最低空闲。
+
+## 4. 显存探针重做
+- 用 shared_projection，R 合约 fold0、G3R、seed 1，完整训练到早停（这是 8 次中的第一次）。
+- 门槛不变：整卡最低空闲 ≥ 100 MiB，且没有 OOM。另外报告余量；若余量 < 300 MiB，在报告中提醒"其他程序占用显存时可能失败"，但不阻止继续。
+- 若仍低于 100 MiB：停下报告，并给出第二级做法供用户决定——只为有边的端点计算 k/v（按边而不是按全部节点做 einsum）。它不再逐位相同，需要按第 2 部分的 b)、c) 用容差验收。本步不实施第二级。
+- 同时报告同一 job 用 original 实现时的显存（从 Prompt 7 的失败记录读取，不重跑）与每轮耗时的对比。
+
+## 5. 小规模验收（8 次）
+- 新建 plan 目录 artifacts/dfg_v2/prompt7b_v1/pilot/（Prompt 7 的 pilot/ 及其失败 attempt 保留，不用 --retry 复用旧 plan，因为 layer_impl 变了）。
+- R 与 AC 的合约 fold0 与节点 fold0，G0 与 G3R，seed 1，全部使用 shared_projection，共 8 次。G0 也用 shared_projection，保证配对比较只差在关系上。
+- 检查并写入 PROGRESS：
+  - 训练文件中有边的每个新 canonical（含 REV_*），第一轮 relation_msg 梯度非零；只在内层验证或外层测试文件中出现的 canonical 单独计数；
+  - env_source 不出现在任何指标与预测中；
+  - best/last 重载后 logits 逐位一致；
+  - 每次的 peak allocated/reserved、整卡最低空闲、每轮耗时、停止轮数、总耗时；
+  - 用 8 次的实测耗时估算 Prompt 8 批次 1 的总时长（按任务分别估算：合约 5 折 × 5 剖面、节点 10 折 × 5 剖面）。Prompt 7 中 R 合约 G3R 第 1 轮 23.5 秒，比历史均值慢很多，原因可能是显存贴近上限；以新的实测为准。
+- 不报告这 8 次的 F1 比较结论。
+
+## 6. 文档与后续
+- Prompt 8 的所有剖面（含 G0）统一使用 shared_projection，并在 plan 中登记；报告中写明：G0 与历史结果不可直接比较（协议不同、层实现的反向浮点累加顺序不同）。
+- dfg_v2/tests 全部、旧 DDG 回归通过；新增测试覆盖第 2 部分的 a)、b) 在小图上的情形，以及 layer_impl 不同时 binding 不一致被拒绝。
+```
+
+
 ### 4.10 Prompt 8：R/AC 实验与统计
 
 先用 1 个种子跑 5 个剖面（150 次，约 7 小时），之后的诊断组和补种子都要你确认才跑；其余 5 类只写扩展说明。
@@ -1300,7 +1358,7 @@ initialize_family(models, anchor_seed)，models 为 profile → 新构造、未�
 ```text
 # Prompt 8：R/AC 实验与统计
 
-前置：Prompt 6 系列（到 6d.2）与 Prompt 7 都验收通过；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 6 系列（到 6d.2）、Prompt 7 与 7b 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
 
 ## 批次 1：主矩阵（必跑）
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
