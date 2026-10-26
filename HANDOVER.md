@@ -2046,3 +2046,11 @@ alias178FP实际全为READ，0多根FP；4FN为callable内同名局部的保守�
 - 零梯度并非只有key bias；单来源/无监督末层/初始饱和均存在。两组额外项已取证，其余4组解释待完成。
 - 新138含于全量：1531v2+223旧=1754通过，0失败/跳过。11,254旧文件、184旧产物、固定16图/20schema不变；新GPU验收另补best/last实际SHA检查。
 - 详情PROMPT7B2_REPORT.md、PROGRESS.md、training_changes §57；产物prompt7b2_v1含resource_failure/kernel。先确认WSL资源方案再显式新attempt；本地commit，不自动push。
+
+
+## 2026-10-26：DFG v2 Prompt 7b.3 数值通过、pilot显存门槛停止（修改AI：Codex）
+
+- 新增RSS守护、新版CPU放行和近零梯度静态分类；原HGT/model/trainer/DDG/token/图/标签/fold不改。六静态复用，补跑AC/G0与AC/G3R float64三轮通过；R/G0nonempty实际RSS超6.5GiB主动终止。两R/G3R按更新模板不运行，旧OOM失败保留，新清单不覆盖旧政策。
+- 7次GPU三轮诊断完成：G0/G3R共享相对原实现最大差7.6294e-6／3.5763e-7，历史重放差0；best/last验收通过。全部1884测试通过（1661v2＋223旧）。
+- 新8项pilot计划/初值/输入已封存。第一项R合约G3R shared在第1轮后整卡最低空闲66MiB<100停止，allocated1824.086／reserved2048MiB，无CUDAOOM。0/8完成，其余7未跑，不修改门槛、不重试、不启动Prompt8。partial best不是完整成绩。
+- 三份记录已追加，详见PROMPT7B3_REPORT.md、training_changes §58；运行产物prompt7b3_v1留现有WSL。旧246诊断产物、图/标签/折/源码绑定不变，本地提交但未自动push。下一步先由用户决定显存方案；单模型独立进程串行本轮已经使用。

@@ -41,6 +41,12 @@ def validate_cpu_acceptance(path):
         validate_static_evidence, validate_trajectory_evidence, _source_identity,
     )
     path = Path(path).resolve()
+    schema = read_json(path).get("schema")
+    if schema is not None:
+        from .precision_policy import SCHEMA, validate_release
+        if schema != SCHEMA:
+            raise ValueError("Unknown CPU acceptance policy schema")
+        return validate_release(path)
     seal = read_json(path.with_name("acceptance.seal.json"))
     reference = _ref(path)
     if seal.get("acceptance_sha256") != reference["sha256"]:

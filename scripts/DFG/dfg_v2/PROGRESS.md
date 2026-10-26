@@ -1676,3 +1676,26 @@ R/G0/mean三轮差1.55431e-15通过，共2完整诊断fit/6epoch。R/G3R/mean原
 
 新GPU验收补实际checkpoint SHA/sidecar/绑定，未跑真实GPU。新138（含于全量），1531v2+223旧=1754 passed，0失败/跳过，8/29既有warning。11,254旧非文档跟踪文件、184旧产物、34store引用SHA一致，16图/20schema不变；三文档仅追加。
 产物prompt7b2_v1含内核、部分结果、静态、测试与零梯度取证（3次完成no-grad前向，1次资源终止；无optimizer）。未自动重试/改WSL/降门槛；先确认资源方案，才以新attempt继续。本地commit，不自动push。
+
+
+## 2026-10-26 Prompt 7b.3：执行前登记（Codex）
+
+基线07a0846，已读更新§4.1/P7b.3，pull --ff-only确认最新。新版模板授权收窄轨迹范围；不是运行后放宽数值阈值。保留6组旧静态与R/G0/mean已通过轨迹；按AC/G0/mean→AC/G3R/mean→R/G0/nonempty_mean补跑，各组独立进程串行，2秒采样子进程RSS，超过6.5GiB脚本终止并记录skipped_cpu_memory、不重试。R/G3R两组明确策略跳过，mean引用旧OOM、nonempty未运行，不伪造采样。
+
+新放行版本独立封存：六静态通过，规定轨迹均有通过或合法跳过证据，AC/G3R/mean或R/G0/nonempty至少一组成功；实际数值失败不改记为内存跳过。旧六组严格策略保留可校验。新政策通过后才GPU两剖面各3次噪声诊断、1次历史对照、共享投影R合约G3R完整显存探针及8pilot（含探针）。内存/数值门槛不变，原HGT/model/trainer/优化器等不改。
+
+零梯度仅按结构/参数名补分类，不增加前向取证；无法证明恒零者保留近零、饱和仅可能原因。有限初值案例是数值证据，不将其称为对任意输入的普遍证明。新产物prompt7b3_v1；旧产物不覆盖。系统内存/WSL/交换盘配置不变，不启动Prompt8。
+
+
+## 2026-10-26 Prompt 7b.3：CPU/GPU数值通过，完整显存探针停止（Codex）
+
+- 基线07a0846，先读§4.1／更新7b.3并pull --ff-only确认最新。新增 precision_guard／precision_policy／precision_zero 与130项测试；precision_gpu仅6行显式新schema分派，旧六轨迹政策保留。HGT/shared层/model/trainer/model_validation/优化器/DDG/token/图/标签/fold均未改。
+- 更新模板直接授权：三组RSS保护轨迹、两组R/G3R策略不运行、至少一个额外维度完成后才放行；执行前已登记，无事后改数值门槛。旧6组static、R/G0mean成功轨迹及OOM记录只读复用。
+- AC/G0mean三轮差1.110223e-16、峰值RSS4.105GiB；AC/G3Rmean差2.586820e-14、峰值5.850GiB，均过1e-9。R/G0nonempty在58.07s采样RSS6.953GiB>6.5，由脚本SIGTERM(-15)，未重试。两秒采样不是硬配额。覆盖条件由AC/G3R满足，新CPU清单/seal独立封存。
+- 六组近零静态分类463次张量观测：a198 key bias，b180单不同来源，c18无监督末层目标，d67仅数值接近零；没有额外模型前向。不是463独立实验，d不冒称已证明饱和，监督梯度近零不排除weight decay更新。
+- GPU G0/G3R各原实现2次＋shared1次三轮，通过；original重复差0，shared差7.629395e-6／3.576279e-7<1e-4。另1次原实现历史重放损失差0。共7诊断fit/21epoch，best/last与重载核验通过；不计pilot。
+- 新pilot计划8项、独立目录，8组初值实际tensor digest与旧准备一致，配置/图/支持/seed/split一致（只layer_impl标识改为shared）。首项R合约G3R完成1epoch后，整卡最低空闲66MiB<100而停止；allocated1824.086MiB、reserved2048MiB、44.33s。无CUDAOOM；旧原实现探针allocated3299.848／reserved3536／free12保留。显存确实降低但门槛仍未通过，不把两次整卡差异全归因于层实现。
+- 完整pilot=0/8，其余7未启动。部分best保留、last/result/成功receipt不存在；首轮canonical梯度未最终落盘，不臆报通过。没有完整每任务耗时，Prompt8的150次总时长估算待pilot完成；不从单轮外推，不启动Prompt8。
+- 新130含于全部v2 1661＋旧223＝1884通过，0失败/跳过，8/29既有警告。11264旧跟踪文件仅允许4处改变，246旧产物不变；固定16图/20schema不变，三文档旧前缀保留。
+- 详情PROMPT7B3_REPORT.md、training_changes §58；产物prompt7b3_v1含cpu、zero_classification、gpu_noise/history、独立pilot计划及失败收据。最终状态cpu_policy_gpu_numeric_passed_pilot_memory_stopped。本地commit，不自动push。
+- 待用户选择资源方案后才显式新attempt：核查非必要GPU占用／单独allocator资源试验／更大显存设备；独立进程串行本轮已经采用。不自行修改WSL、模型或数值规则，不自动重试。

@@ -5515,3 +5515,63 @@ O=scripts/DFG/experiments/artifacts/dfg_v2/prompt7b2_v1，运行原件留WSL。�
 
 状态implementation_tests_passed_static_numeric_passed_cpu_trajectory_resource_stopped，非整体验收完成。
 先确认资源方案并获用户同意，在新attempt重跑失败完整对/未执行案例，不覆盖旧证据、不叫epoch续训；四组额外近零解释待补。之后才CPU acceptance→GPU noise/history→显存探针→8pilot。本轮未放宽阈值、改hidden/layers/图、降精度或绕过原实现。
+
+
+## 58. 2026-10-26：Prompt 7b.3 收窄CPU轨迹、完成GPU数值验收及pilot资源停止
+
+实施、复核、记录AI：Codex。工作树ge-sc-llm-ddg-v11，dfg-v2，开始HEAD=07a0846。阅读更新§4.1／7b.3，pull --ff-only已最新。详细数值、命令、限制见scripts/DFG/dfg_v2/PROMPT7B3_REPORT.md。本节只追加，不改历史正文。
+
+### 58.1 授权选择、审查与冻结范围
+
+用户更新模板在执行前已授权：复用六静态及R/G0mean成功轨迹；只补AC/G0mean、AC/G3Rmean、R/G0nonempty三对；每2秒采RSS，>6.5GiB主动终止、记skipped_cpu_memory、不重试；R/G3R两reducer明确不运行；额外维度AC/G3R或R/G0nonempty至少一项完成。PROGRESS先登记，再执行，没有根据结果追加放宽。
+数值门槛沿用7b.2：float64轨迹1e-9，GPU max(1e-4,3×original重复差)，历史重放1e-4，显存最低100MiB／低于300提醒。
+没有替换文档方案，未另行扩大支持范围。审查只收紧证据：外部SIGKILL不可伪装成主动RSS跳过、实际数值失败优先保留、同名参数跨关系结构证明要覆盖全部相关关系、有限案例不能声称普遍数学证明。更新模板的近零说明不作为新的数值门槛。
+hgt_layer.py、model.py、trainer.py、model_validation.py、sco_models／旧DDG、tokenizer、优化器和scheduler、图／标签／fold／旧计划/初始化/产物不变。未调整WSL内存、swap或系统设置。
+
+### 58.2 文件与实现
+
+新增experiment/precision_guard.py：仅允许三规定case，stdlib父进程＋独立precision_real子进程，绑定argv/cwd/输入/源码，启动前记录MemAvailable与swap，2秒采RSS，超限SIGTERM、10秒不退出再SIGKILL，保留采样与stdout/stderr。原始数值或执行失败不可转为skip；return -9仅当确有主动SIGKILL升级才可资源跳过。外部内核kill、监测错误按失败处理。实际仅SIGTERM，未强杀其他程序。
+新增experiment/precision_policy.py：schema=prompt7b3-cpu-release-v1；新CPU清单及seal独立存放。重验六组raw静态、冻plan/seal/prepared/config/split/初值/sourcehash、成功轨迹raw输出；两策略skip区分prior_oom与not_run，无伪造argv/RSS；三受监护组必须有完整guard；缺失／非规定跳过／实际失败／覆盖不足拒绝。
+precision_gpu.py仅新增6行新schema分派，旧无schema清单保持六静态＋六轨迹严格门槛；未知schema拒绝。
+新增experiment/precision_zero.py：冻结NX／物化边、节点排序、canonical字典、训练可达路径与旧static SHA校验；没有模型构造、forward/backward/optimizer。共享k/q参数b类需全部相关关系满足单不同来源；c限末层目标q/a/norm，不误扩展到源k/v或全部env参数。
+新增三个对应测试44／48／38=130项。新增PROMPT7B3_REPORT.md，本节与HANDOVER／PROGRESS追加，运行证据只写新prompt7b3_v1。
+
+### 58.3 CPU执行与回退
+
+AC节点G0mean原/共享各3轮成功，train/val最大差1.1102230246251565e-16，采样峰值RSS4.105278GiB。
+AC节点G3Rmean原/共享各3轮成功，最大差2.5868196473766147e-14，RSS5.849632GiB。
+R合约G0nonempty在58.07秒采样RSS6.953140GiB，超过6.5，脚本SIGTERM，return -15。总58.737s，未得到完整轨迹对，原partial保留，guard明确终止；非内核OOM／非数值失败，不重试。2秒采样不是严格硬内存配额，存在采样间超过阈值后被检测的余量。
+本轮CPU完整fit4／12epoch、部分fit1；旧R/G0mean2fit只读复用；R/G3Rmean旧OOM失败保留，nonempty未尝试。新清单六行：成功3（含复用），内存策略/采样跳过3；通过AC/G3R覆盖条件，不能写成六轨迹全通过。
+静态近零463个跨case张量观测：a198、b180、c18、d67。d只数值近零，可能初始饱和但未新增证明；旧动态证据原样引用。解释的是监督梯度，weight decay仍可能更新；不是463个独立实验。
+
+### 58.4 GPU数值与历史重放
+
+AC节点fold0，G0/G3R各original_1、original_2、shared三轮。两剖面original重复差均0，shared对两次原实现最大差分别7.62939453125e-6、3.5762786865234375e-7，门槛均1e-4，通过。
+另1次GPU原实现历史paper配置与51/6划分重放，三轮train/val与历史逐项差0；该诊断不与nested划分混用，不称独立测试。
+共7完整GPU诊断fit／21epoch，非pilot。重新核验原始history、seal/文件SHA、binding、配置、best/last磁盘文件与重载；gpu_execution.jsonl逐调用记argv/返回码/耗时。
+G0原两次allocated920.462MiB／reserved1004，最低free999；shared561.415／608，free1367。
+G3R原两次allocated1459.798／reserved1594，free413／407；shared850.383／946，free869。
+历史重放free966。计时包含构造/设备转移/训练/评分/重载，不当作kernel性能对比。
+
+### 58.5 新pilot计划与资源停止
+
+独立pilot/plan.json、plan.seal.json封存8项（四任务、G0/G3R、fold0、seed1、shared_projection）。原fixed store16图/20schema检查通过；8组实际tensor_digest与旧Prompt7未训练初值相同，optimizer_steps=0、原fit_seed、图/支持/config/split一致，仅layer_impl标识不同；详情pilot_initial_alignment.json。
+先执行reentrancy_contract/0/1/G3R，最多50epoch、原Adam/OneCycle/earlystop/best规则不变。第1轮训练与inner_val完成，存best，trainer.py:136资源check抛MemoryGateError：minimum_free66MiB<100。allocated1824.08642578125MiB、reserved2048、64采样无错误，资源计时44.327s。无CUDAOOM。
+旧Prompt7原实现同case历史探针allocated3299.84765625、reserved3536、free12保留。共享投影峰值分配降低约1475.76MiB／44.72%，但整卡资源门槛仍不满足；外部/驱动占用不同，不能将整卡差异全部归因于这一实现。
+只完成1个epoch，partial best、binding、model_input、history保留；无last/result/成功receipt。首轮gradient_history未到最终落盘，不推断完整canonical审计已通过。pilot_matrix_verification=0/8完成，其余7未启动，无自动retry／换CPU／降维／改图／关闭其他程序。
+七次GPU诊断重载通过与未完成的pilot大图重载分开。没有本批可比较的完整F1，不做漏洞效果结论；150次Prompt8按任务时长估算缺完整fit，不从一轮外推，明确待办。
+
+### 58.6 验证、不变量与记录
+
+新130项包含于v2全量1661通过/8warning/97.44s；旧DDG+graph_utils223通过/29warning/3.09s，共1884，0失败/pytest跳过。warning为既有DGL distutils／NetworkX gpickle弃用，不改变依赖。定向中间测试日志保留。
+命令：
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+实际命令/JUnit/log在prompt7b3_v1，CPUguard与GPUexecution记录完整argv。新代码在全量测试后冻结，没有为了GPU结果修改规则。
+11264旧跟踪文件只允许三文档和precision_gpu.py变化，其余SHA相同；246旧诊断产物相同；固定store SHA ed02ad029392db4a142e1a17a0a1a3577bc9f104377bf304bc64f630c6d286c4，三文档旧前缀保留。新运行产物留现有WSL，未删除历史数据。
+final_acceptance状态cpu_policy_gpu_numeric_passed_pilot_memory_stopped；probe_stop_evidence绑定失败文件，完整矩阵明确未验收。按共享上下文本地commit，不自动push。
+
+### 58.7 未执行与下一步边界
+
+本轮到显存门槛即停：不运行剩余7pilot、不开始Prompt8／150次、多seed、其他五类或新关系/模型。
+下一步需用户选择资源方案再显式新attempt。从同一未训练初值重跑，不称epoch续训。可评估非必要Windows GPU占用、单独授权allocator设置、或更大显存设备；本轮已经独立进程串行，不能再以此作为尚未做的优化。reserved−allocated约224MiB不是保证可回收量。不擅自混合精度/改维度/采样，不能以测试通过宣称资源问题已解决。
