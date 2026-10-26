@@ -1990,3 +1990,14 @@ Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph 
 - 已有可信solc0.5.11运行6手写文件，6/6成功；无真实语料Slither重跑/下载。局部标量循环Phi与L2状态循环证据不相同；storage/reference不以memory探针强推。241个状态成员链write_base_read尚缺对应最小机制实证，不能称全部convention。
 - 最终1075 v2+223旧=1298 passed，0失败/跳过，8/29既有warning。中间转义/集成错误、Unit跨度分类修订及输入SHA绑定修订均留日志，不覆盖旧报告。最终alignment_v4_r2、review_r2、binding_review及final_acceptance在prompt6d1_v1/。
 - 图仍是graphs_v2_r1。全部13553差异中203逐条审阅、13350未逐条语义判定；新谓词517中391未逐条审阅。剩余other未查0不等于所有差异已证明正确；review gate仍unresolved_analyst_findings。原512/111边人工表未填，不训练/不开始6e、7、8。详细见training_changes§52、PROMPT6D1_REPORT.md。实施、复核与记录AI：Codex。
+
+
+## 2026-10-25 DFG v2 Prompt 6d.2 验证收尾（Codex）
+
+修改与审查AI：Codex。开始95775d3，分支dfg-v2；仅新增验证工具、测试与记录，原分析器、HGT、图/特征/标签/折不变。详细选择、尝试和命令见training_changes§53及dfg_v2/PROMPT6D2_REPORT.md。
+
+最终gate为passed_with_bounded_FN_residuals。28非空组固定随机242样本全部谓词成立；25组accepted、3组带残留。全量仍10个FN（9聚合loop＋rubixi1），按用户同意附加条件核查无真实body写遗漏、无定义覆盖/KILL及已有依赖污染（限当前抽象），不宣称机制全部查明。**graphs_v2_r1/store.json确定为Prompt7/8最终图存储**，SHA ed02ad029392db4a142e1a17a0a1a3577bc9f104377bf304bc64f630c6d286c4。
+
+alias178FP实际全为READ，0多根FP；4FN为callable内同名局部的保守范围。bare342、initializer771、fallback2402、aggregate25已全量身份/形状核验。批准补两版shape probe；总16尝试13成功3语法失败，失败保留且只重试失败项，无语料重编译/安装。旧分类和512/111人工表未改。
+
+全部1159v2＋223旧＝1382 passed，0失败/跳过；16图20schema只读校验通过。新增7验证.py、5测试、9fixture及报告；三文档仅追加。运行产物在WSL的prompt6d2_v1，本地提交代码/报告，不自动push，不开始训练或Prompt7。

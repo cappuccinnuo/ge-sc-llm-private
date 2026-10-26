@@ -1585,3 +1585,19 @@ python -B -m scripts.DFG.dfg_v2.validate_slither \
 - 图仍是graphs_v2_r1。全部13553差异中203逐条审阅、13350未逐条语义判定；新谓词517中391未逐条审阅。剩余other未查0不等于所有差异已证明正确；review gate仍unresolved_analyst_findings。原512/111边人工表未填，不训练/不开始6e、7、8。详细见training_changes§52、PROMPT6D1_REPORT.md。实施、复核与记录AI：Codex。
 
 实际最终命令和详细表格见PROMPT6D1_REPORT.md。旧v3与6c报告、graphs_v2_r1/store SHA不变；r1/r2全部差异精确相等后才引用审查事实。没有需要替换用户方案的设计变更；未知实证保留unclear，不为压低other而伪造确定结论。下一步必须保留这些限制，不将本轮event一致性当作Buggy-F1或人工边正确率。
+
+
+## 2026-10-25 DFG v2 Prompt 6d.2：类别验证门槛通过，保留有界残留（Codex）
+
+修改与审查AI：Codex。pull --ff-only至95775d3；仅新增7验证工具、5测试、9fixture及报告，原分析器/pipeline/HGT/token/图/标签/折/训练均不改。完整记录见training_changes§53、PROMPT6D2_REPORT.md。
+
+- 28非空分层各seed0随机10/不足全取，242逐条：129convention、110scope、3unclear；机械谓词全部成立。25组accepted、3组accepted_with_residual。
+- 全量残留10个FN（9聚合loop＋1rubixi），不是样本3个；按批准的收紧门槛逐条核查定义/KILL及已有事实影响，在当前弱定义抽象范围内通过。机制仍unclear，无确认v2_defect。
+- 最终gate：passed_with_bounded_FN_residuals；**graphs_v2_r1/store.json为Prompt7/8最终图存储**（SHA ed02ad029392db4a142e1a17a0a1a3577bc9f104377bf304bc64f630c6d286c4），须携带残留和范围限制，不能说全部差异清零。
+- alias178FP全部单根READ，0WRITE缺失/0多根FP；4FN为不同块同名user触发callable保守拒绝，不是语言自身歧义。bare342、initializer771、fallback2402、aggregate25全量身份/形状核验完成。
+- 四项用户批准：附加FN影响核查；原fixture声明控制；alias按READ补实证；额外shape fixture两版各一次。真实16attempt=13success+3syntaxfail，成功13个distinct身份；保留indexed/byte转换失败，仅重试失败项。无语料重编译/安装。
+- 原15unique未决中9storage下标写解释，5loop+rubixi保留，全量再加4同类loop。原分类和判断不覆盖。
+- 新84测试；全部1159v2＋223旧＝1382 passed，0失败/跳过，8/29既有warning。16图20schema只读verify通过；原11208非文档文件和三文档旧前缀不变。
+- 附加pickle读取被自动审批拒绝后未绕过，改用冻结JSON及图SHA；先前独立cli verify另存，不冒充未执行读取。
+- 产物prompt6d2_v1：categories/validation.json与summary.csv、两类impact、全部probe/retry、followup、测试XML/log及final_acceptance。selection SHA94e545c3a56c41b9fa1d3bc967af6b928c79a2c2edd5bd0126a801420255c678。
+- 实际命令见报告第8节；生成输出拒绝覆盖。代码/报告本地提交，运行原件留WSL，不push、不训练、不开始Prompt7。原人工边表未代填。
