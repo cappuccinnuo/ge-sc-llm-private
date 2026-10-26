@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1496,6 +1496,54 @@ c) 两者的 peak allocated/reserved 与整卡最低空闲。
 ```
 
 
+（Prompt 7b.3 状态：2026-10-26 停止，提交 54f21b5。CPU 放行政策通过：AC 节点 G0/G3R 的 float64 3 轮轨迹差 1.1e-16 与 2.6e-14；R/G0 nonempty_mean 被 RSS 保护终止，按策略记为跳过。GPU（AC 节点）：G0 与 G3R 的 original 两次重复差为 0，shared 与 original 差 7.6e-6 与 3.6e-7（门槛 1e-4），历史重放差 0，均通过。共享投影把 R 合约 G3R 的 peak allocated 从 3300 降到 1824 MiB、reserved 从 3536 降到 2048 MiB；但完整训练探针第 1 轮后整卡最低空闲 66 MiB（门槛 100 MiB），停止；pilot 0/8。等价性验收（7b–7b.3）到此结束；剩余的是资源问题，见 Prompt 7b.4。）
+
+### 4.9f Prompt 7b.4：找出训练进程之外的显存占用，加入启动前检查，完成显存探针与 8 次 pilot
+
+```text
+# Prompt 7b.4：显存基线检查、显存探针重做与 8 次 pilot
+
+前置：Prompt 7b.3（提交 54f21b5）。先 git pull --ff-only origin dfg-v2。
+共享投影的数值等价验收已经完成，本步不再做任何数值对照。不修改 hgt_layer.py、model.py、trainer.py 与数值规则；7b.3 的失败现场保留。
+
+## 背景：显存不足的直接原因在训练进程之外
+用"总显存 − PyTorch reserved − 整卡最低空闲"估算训练进程之外的占用（包含本进程的 CUDA/DGL 上下文与其他程序），按已有记录（总量按 4096 MiB 计）：
+| 运行 | reserved | 最低空闲 | 进程外占用 |
+|---|---:|---:|---:|
+| Prompt 7 原实现 R/G3R | 3536 | 12 | ≈ 548 |
+| 7b.3 AC 节点 GPU 诊断（7 次） | 608–1594 | 407–1367 | ≈ 2089–2281 |
+| 7b.3 共享投影 R/G3R 探针 | 2048 | 66 | ≈ 1982 |
+Prompt 7 时进程外只占约 0.55 GB；7b.3 全程约 2.0–2.3 GB，而且在本轮第一个 GPU 任务开始前就已如此。也就是说，有约 1.5 GB 显存被训练进程以外的东西占用（另一个仍在运行的 CUDA 进程，或 Windows 中使用独显的程序，例如开启硬件加速的浏览器、视频、其他 AI 工具）。如果占用回到 Prompt 7 时的水平，共享投影下的 R/G3R 探针预计有约 1.5 GB 余量。
+请先用实际记录（resources.json 中的总显存字段）重算这张表，确认或否定这个判断，写进 PROGRESS。
+
+## 1. 用户先做的检查（Codex 不得自行结束任何进程）
+- WSL 中：nvidia-smi 与 nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv；列出所有持有 CUDA 的进程。
+- Windows 中：任务管理器 → 性能 → GPU（NVIDIA）→ 专用 GPU 内存；详细信息页加"专用 GPU 内存"列，找出占用大的程序。
+- 关闭不需要的占用后，再运行下面的步骤。Codex 可以先执行只读查询并把结果交给用户，但不结束、不改动任何进程。
+
+## 2. 启动前基线检查（加入 experiment/run.py）
+- 每个 job 在初始化 CUDA 之前，用 nvidia-smi 子进程（本进程不建立 CUDA 上下文）读取总显存、已用、空闲，记为 baseline。
+- 初始化 CUDA 与 DGL 之后、构造模型之前，再读一次，差值记为本进程上下文占用。
+- 启动条件：baseline 空闲 ≥ 3000 MiB（写进 plan，可在 plan 时用参数修改，但必须登记）。不满足就不启动该 job，写出 preflight_blocked 记录并停止，提示用户检查第 1 部分。
+- 每个 job 的 resources 中增加：baseline、上下文占用、进程外占用估计（总量 − 最低空闲 − peak reserved − 上下文）。
+- 运行中的 100 MiB 门槛与停止规则不变。
+- 这是 run.py 的改动，plan 会绑定新的代码摘要，因此建立新 plan：artifacts/dfg_v2/prompt7b4_v1/pilot/（与 7b.3 的 plan 相同的任务、剖面、折、种子、shared_projection、冻结初值；写出与 7b.3 plan 的逐项对照，证明只有代码摘要与新登记的阈值不同）。7b.3 的 plan 与失败 attempt 保留。
+
+## 3. 显存探针与 8 次 pilot
+- 先跑 reentrancy_contract/0/1/G3R（shared_projection），完整训练到早停；新 plan 中这是第一次运行，从冻结的未训练初值开始，不是续训。
+- 通过（无 OOM、整卡最低空闲 ≥ 100 MiB）后，按顺序跑其余 7 项。
+- 检查项同 Prompt 7b 第 5 部分：训练文件中有边的新 canonical（含 REV_*）第一轮 relation_msg 梯度非零，只在内层验证或外层测试中出现的单独计数；env_source 不出现在指标与预测中；best/last 重载 logits 逐位一致；每次的 baseline、peak allocated/reserved、整卡最低空闲、进程外占用、每轮耗时、停止轮数、总耗时。
+- 若探针仍不通过：停下报告。此时进程外占用若已回到约 0.5 GB 以下，说明训练本身仍超出，再由用户决定是否实施第二级做法（只为有边的端点计算 k/v，需按 7b 的方法重新做等价性验收）。
+
+## 4. Prompt 8 时长估算
+用 8 次实测耗时，按任务分别估算批次 1：合约任务 5 折 × 5 剖面、节点任务 10 折 × 5 剖面。G1R、G2R、G3 没有实测，用 G0 与 G3R 按 canonical 数线性插值，写明这是估计。写进 PROGRESS，等用户确认后才进入 Prompt 8。
+
+## 5. 测试与记录
+- 基线检查测试：空闲不足时 job 不启动且写出 preflight_blocked；nvidia-smi 不可用时报错停止，不默认放行；基线检查本身不建立 CUDA 上下文。
+- dfg_v2/tests 全部、旧 DDG 回归通过。结论写进 PROMPT7B4_REPORT.md 与三份记录文档。
+```
+
+
 ### 4.10 Prompt 8：R/AC 实验与统计
 
 先用 1 个种子跑 5 个剖面（150 次，约 7 小时），之后的诊断组和补种子都要你确认才跑；其余 5 类只写扩展说明。
@@ -1503,7 +1551,7 @@ c) 两者的 peak allocated/reserved 与整卡最低空闲。
 ```text
 # Prompt 8：R/AC 实验与统计
 
-前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1、7b.2 与 7b.3 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1、7b.2、7b.3 与 7b.4 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
 
 ## 批次 1：主矩阵（必跑）
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
