@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 → P7c（服务器） … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1544,6 +1544,58 @@ Prompt 7 时进程外只占约 0.55 GB；7b.3 全程约 2.0–2.3 GB，而且在
 ```
 
 
+（Prompt 7b.4 状态：2026-10-26 停止，提交 e61ffd8。启动前基线检查与新计划已实现；基线通过（CUDA 初始化前 used 450 / free 3526 MiB），完整探针第 1 轮后最低空闲 76 MiB（门槛 100），停止，pilot 0/8。Codex 核实后否定了 7b.4 背景中的推测：并不存在约 2 GB 的外部占用；最小 CUDA/DGL 初始化本身就使空闲下降 1292 MiB（PyTorch 1.8.1 + CUDA 11.1 + DGL 0.6.1 的上下文与内核），4 GiB 显卡扣除基线与上下文后只剩约 2.35 GB 给训练，R/G3R 的 reserved 2048 MiB 已接近上限。用户决定正式实验在显存充足的服务器上进行。用户批准：进程外占用改称"分配器之外的未归属占用估计"；新资源策略每次只允许一个 --only 任务、独立进程执行。）
+
+### 4.9g Prompt 7c：迁移到服务器，完成环境验收与 8 次 pilot
+
+```text
+# Prompt 7c：服务器环境复现、输入迁移与身份核验、GPU 冒烟、8 次 pilot
+
+前置：Prompt 7b.4（提交 e61ffd8）。本地 4 GiB 显卡只作开发与验收用；Prompt 7c 之后的全部训练（含 Prompt 8 的每一次）都在同一台服务器、同一块 GPU 型号上进行，不与本地结果混用。
+
+## 0. 先收集服务器信息（由用户提供，写进 PROGRESS）
+- GPU 型号、计算能力（sm_XX）、显存；驱动版本与 nvidia-smi 显示的最高 CUDA 版本；
+- 操作系统与 glibc 版本；是否有 conda；能否联网安装包；
+- 是否能独占一块 GPU（多人共用时，其他人的任务会影响显存与耗时）；
+- 可用磁盘空间（需要约 10 GB 以上：图、源码、tokenizer 资产与检查点）。
+兼容性先判断：PyTorch 1.8.1+cu111 与 DGL 0.6.1 cu111 的预编译库支持到 Ampere（sm_80 A100、sm_86 RTX 30xx/A6000/A40）。Ada（sm_89，RTX 40xx/L40）与 Hopper（sm_90，H100）不在其中，能否靠 PTX 即时编译运行没有保证。若服务器是这两类 GPU，先停下报告，由用户决定换卡或另立环境升级方案（升级会改变数值环境，需要单独的等价性验收）。
+
+## 1. 环境复现
+- 在本地导出：conda env export --no-builds、pip freeze、python -c 打印 torch/dgl/numpy/networkx/transformers/tokenizers/tree_sitter 的版本与 torch.version.cuda；写入 artifacts/dfg_v2/prompt7c_v1/local_env/。
+- 在服务器上用同一组版本建立 conda 环境 mando（Python 3.7.12、torch 1.8.1+cu111、dgl-cu111 0.6.1 等），不升级、不替换任何包。tree-sitter 的 Solidity 动态库（build/linux-x86_64 下的 .so）从本地拷贝并核对 SHA；若服务器 glibc 不兼容导致无法加载，在服务器上用仓库 vendor 中同一份 grammar 源码重新编译，并用 Prompt 5 的 cli verify 证明解析结果不影响已冻结图（训练本身不调用解析器）。
+- 写 dfg_v2/experiment/env_check.py：逐项比较服务器与本地记录的包版本，任何不同都列出；只有用户批准的差异才能继续。
+- GPU 冒烟：torch.cuda.get_arch_list() 是否包含服务器 GPU 的架构；在 GPU 上用 DGL 做一个小异构图的前向与反向；HGTLayer 与 HGTLayerSharedProjection 各一次。
+
+## 2. 输入迁移与身份核验
+已封存的清单里写的是本地绝对路径（/home/zhao/SmartContract/ge-sc-llm/... 与 /home/zhao/SmartContract/ge-sc-llm-ddg-v11/...），例如 tasks.py 的注册表、inputs/manifest.json、graphs_v2_r1/store.json、各 plan。为了不改动任何已封存文件，在服务器上复现同样的绝对路径（目录不归 zhao 时可用符号链接把这两个路径指到实际位置），不要改写清单中的路径。
+- 写 dfg_v2/experiment/transfer.py：
+  - collect：从 graphs_v2_r1/store.json、inputs/manifest.json、prompt7b4_v1/pilot/plan.json 出发，递归收集它们引用的全部文件（原 HCG、源码与元数据 CSV、标签、nested 折、prepared 清单、tokenizer 资产、F1–F3 图、audit、plan 的 prepared/initial 文件与 seal），写出 transfer_manifest.json（绝对路径、大小、SHA256）并打包；
+  - verify：在服务器上逐个核对路径与 SHA，缺一个或不符一个都失败。
+- 代码：在服务器上 clone dfg-v2，检出与本地相同的提交；git 跟踪文件的 SHA 与本地 before_tracked 记录一致。
+- 在服务器上运行 cli verify（store）与 run verify --plan（只读，允许未完成）。
+
+## 3. 服务器上的数值与资源检查
+- 新 plan：artifacts/dfg_v2/prompt7c_v1/pilot/，用 run plan --from-plan 引用 prompt7b4_v1/pilot/plan.json，沿用同一 prepared/initial 文件（不重新随机初始化），登记服务器的 GPU 型号、驱动、包版本与资源策略。逐项对照证明只有环境与资源字段不同。
+- 共享投影与原实现的 GPU 对照（AC 节点 fold0 的 G0、G3R，3 轮）：original 两次的噪声与 shared 一次，门槛 max(1e-4, 3 × 噪声)。这验证的是服务器 GPU 上的同一结论，不是重新证明等价。
+- 与本地 GPU 历史 history.jsonl 的对照只报告、不作门槛：不同 GPU 型号的浮点累加不同，3 轮后有小差异是正常的。所有正式比较都在服务器内部进行。
+- 资源策略沿用：启动前基线空闲 ≥ 3000 MiB；运行中整卡最低空闲 ≥ 100 MiB；多卡机器用 CUDA_VISIBLE_DEVICES 固定一块卡，预检核对 UUID。
+
+## 4. 8 次 pilot（服务器）
+- reentrancy_contract/0/1/G3R 先跑，之后其余 7 项，每项独立进程、--only 串行。全部 shared_projection。
+- 检查项与 Prompt 7b 第 5 部分相同：训练文件中有边的新 canonical（含 REV_*）第一轮 relation_msg 梯度非零，只在内层验证或外层测试中出现的单独计数；env_source 不出现在任何指标与预测中；best/last 重载后 logits 逐位一致；每项的基线、上下文占用、peak allocated/reserved、整卡最低空闲、每轮耗时、停止轮数、总耗时。
+- 不报告 F1 比较结论。
+
+## 5. Prompt 8 时长估算与停止
+- 用服务器上 8 次实测耗时按任务估算批次 1（合约 5 折 × 5 剖面，节点 10 折 × 5 剖面）；G1R、G2R、G3 按 canonical 数在 G0 与 G3R 之间线性插值，标明是估计。
+- 写进 PROGRESS 后停下，等用户确认再进入 Prompt 8。
+
+## 6. 测试与记录
+- transfer.py：缺文件、SHA 不符、路径不同时 verify 失败；collect 的结果覆盖 store/inputs/plan 引用的全部文件（用小型合成清单测试）。
+- env_check.py：版本不同时列出差异并拒绝。
+- dfg_v2/tests 全部、旧 DDG 回归分别在本地与服务器上通过。结论写进 PROMPT7C_REPORT.md 与三份记录文档。
+```
+
+
 ### 4.10 Prompt 8：R/AC 实验与统计
 
 先用 1 个种子跑 5 个剖面（150 次，约 7 小时），之后的诊断组和补种子都要你确认才跑；其余 5 类只写扩展说明。
@@ -1551,7 +1603,7 @@ Prompt 7 时进程外只占约 0.55 GB；7b.3 全程约 2.0–2.3 GB，而且在
 ```text
 # Prompt 8：R/AC 实验与统计
 
-前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1、7b.2、7b.3 与 7b.4 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1、7b.2、7b.3、7b.4 与 7c 都验收通过；全部训练在同一台服务器上进行；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
 
 ## 批次 1：主矩阵（必跑）
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
