@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1400,6 +1400,54 @@ c) 两者的 peak allocated/reserved 与整卡最低空闲。
 ```
 
 
+（Prompt 7b.1 状态：2026-10-26 停止，提交 8cfb10d。DGL 0.6.1 在 CPU 上支持所需的 float64 运算；小图前向逐位相同，全部参数梯度最大绝对差 1.5e-16；但 k_linears.0.bias 的梯度在数学上恒为 0（softmax 平移不变），两边只剩约 1e-17 的抵消残差，纯相对差 0.133，超过 1e-10，按规定停止。故障注入（去掉一个关系的消息）在 mean 与 nonempty_mean 下都被前向与梯度门槛检出。真实图、GPU、显存探针与 pilot 均未运行。收尾工作见 Prompt 7b.2。）
+
+### 4.9d Prompt 7b.2：修正梯度判据、真实图 float64 诊断的数据类型处理，并完成剩余步骤
+
+```text
+# Prompt 7b.2：float64 梯度判据修正、真实图诊断与 GPU/显存/pilot
+
+前置：Prompt 7b.1（提交 8cfb10d）。先 git pull --ff-only origin dfg-v2。
+不修改 hgt_layer.py、model.py、trainer.py、model_validation.py、优化器与任何生产数值规则；7b/7b.1 的失败记录保留。
+
+## 背景：7b.1 的梯度判据为什么不成立（方案作者的错误）
+对同一 canonical、同一目标节点与注意力头，k_linear 的 bias 经过 relation_att 后，给该目标所有入边的注意力分数加上同一个常数；softmax(z + c) = softmax(z)，所以这个 bias 的精确梯度恒为 0，两种实现都只剩浮点抵消残差（约 1e-17）。用残差作分母的纯相对差没有意义，7b 中"近零 key bias"失败也是同一原因。Codex 在 7b.1 中的数学分析正确，按规定停止也正确。
+"float64 下任何失败都说明是实现错误"的说法过强，同样更正。
+
+## 1. 修正后的判据（先写入代码与 PROGRESS，再运行任何真实图）
+对每个案例：
+- 前向：逐层输出与 logits 的 maxabs 差 ≤ 1e-12（不变）。
+- 梯度：令 G = 该案例所有参数张量中 maxabs(g_original) 的最大值（全局梯度尺度）。每个参数张量满足
+    maxabs(g_shared − g_original) ≤ 1e-12 × G + 1e-10 × maxabs(g_original)。
+  绝对项取全局尺度的 1e-12，是因为恒为 0 的梯度上残差的大小由经过该路径的梯度量级决定，而不是由该张量自己的值决定；不用固定常数，避免依赖量纲。
+- 同时输出每个张量的纯相对差（只报告，不判定），以及"结构性零梯度"清单：maxabs(g) ≤ 1e-12 × G 的张量。预期只有各层的 k_linears.*.bias；两种实现在这些张量上都必须 ≤ 1e-12 × G。清单之外出现结构性零梯度时，逐个说明原因。
+- 7b.1 的小图预检按新判据重新判定（不重跑也可，用已有的梯度记录重算），原失败结论保留。
+- 故障注入负例必须在新判据下仍被拒绝（7b.1 的数据显示前向差约 0.07–0.10，远超 1e-12，应当仍然拒绝）。
+
+## 2. 真实图 float64 诊断的数据类型处理（只在诊断代码中，不改生产路径）
+在新文件 experiment/precision_real.py 中实现，生产的构造、校验与训练代码一律不动：
+- 先用正常流程构造 float32 模型（全部原校验照常通过），再深拷贝出诊断模型：
+  - model64.double()；
+  - 把 symmetrical_global_graph 每种节点类型的 data['inp'] 转为 float64；
+  - 检查：float32 → float64 是无损转换，转换后的 inp 与 state_dict 逐元素等于原 float32 值；记录原 float32 摘要与转换后的 float64 摘要两种身份。
+- 原 forward 中 torch.zeros 未指定 dtype：诊断前向在 torch.set_default_dtype(torch.float64) 的上下文中执行，退出时恢复为 float32，并用测试证明恢复。
+- 诊断模型不调用 model_validation 与 trainer 的 float32 身份校验（它们按设计会拒绝 float64），也不改它们。改为在 precision_real.py 中做等价的身份检查：两种实现的诊断模型来自同一个 float32 源模型、同一转换。
+- 3 轮轨迹不用 trainer.fit：在 precision_real.py 中写一个最小循环，逐项沿用 trainer 的数值规则（Adam 与 OneCycleLR 的参数取该任务的冻结配置、每轮一次全图前向与 step、eval 前向算 inner_val 损失、同一 fit seed、同一 nested fold0 监督行）。两种实现用同一个循环，所以这个循环是否与 trainer.fit 逐行相同不影响等价性结论；在报告中写明这一点。
+
+## 3. 运行顺序与门槛（按顺序，任一失败即停）
+1. 6 个真实案例的静态检查（R 合约 fold0 与 AC 节点 fold0 的 G0、G3R，reducer=mean；R 合约 fold0 的 G0、G3R，reducer=nonempty_mean）：第 1 部分的前向与梯度判据。
+2. 同 6 个案例的 3 轮 float64 轨迹：逐轮 train/inner_val 损失 maxabs 差 ≤ 1e-9（不变）。
+3. GPU（float32，AC 节点 fold0，Prompt 7b.1 第 2 部分）：original 两次的噪声水平、shared 一次，门槛 max(1e-4, 3 × 噪声)；历史对照改用 projection_validation.py::run_gpu_diagnostic（equivalence.py 只支持重入合约），≤ 1e-4；记录显存。
+4. 显存探针：shared_projection，R 合约 fold0，G3R，seed 1，完整训练到早停；整卡最低空闲 ≥ 100 MiB、无 OOM；余量 < 300 MiB 时提醒。仍不足就停下，第二级做法（只为有边的端点算 k/v）由用户决定。
+5. 8 次 pilot：新 plan 目录 artifacts/dfg_v2/prompt7b2_v1/pilot/，全部剖面 shared_projection；检查项同 Prompt 7b 第 5 部分；按实测耗时分任务估算 Prompt 8 批次 1 的总时长。
+
+## 4. 测试与记录
+- 新判据的边界测试：恒零梯度张量在两种实现残差不同时通过；把某个非零梯度张量人为放大 1+1e-8 时被拒绝；故障注入负例被拒绝。
+- dtype 上下文测试：退出后默认 dtype 恢复为 float32；生产路径构造的模型仍是 float32，原校验照常拒绝 float64 输入。
+- dfg_v2/tests 全部、旧 DDG 回归通过。结论写进 PROMPT7B2_REPORT.md 与三份记录文档。
+```
+
+
 ### 4.10 Prompt 8：R/AC 实验与统计
 
 先用 1 个种子跑 5 个剖面（150 次，约 7 小时），之后的诊断组和补种子都要你确认才跑；其余 5 类只写扩展说明。
@@ -1407,7 +1455,7 @@ c) 两者的 peak allocated/reserved 与整卡最低空闲。
 ```text
 # Prompt 8：R/AC 实验与统计
 
-前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b 与 7b.1 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1 与 7b.2 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
 
 ## 批次 1：主矩阵（必跑）
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
