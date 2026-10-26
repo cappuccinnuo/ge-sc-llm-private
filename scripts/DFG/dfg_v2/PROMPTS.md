@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1306,7 +1306,7 @@ initialize_family(models, anchor_seed)，models 为 profile → 新构造、未�
 ## 背景：显存花在哪里
 sco_models/model_hgt.py::HGTLayer.forward 对每个 canonical 关系都重新计算一次
   k_linear(h[srctype])、v_linear(h[srctype])、q_linear(h[dsttype])，
-计算对象是该节点类型的全部节点，而不是只有这条关系的端点；之后再与该关系的 relation_att/relation_msg 做 einsum。于是每个 canonical 都在显存里保留 3 份 N_type×128 的线性输出与 2 份 einsum 输出，还要为反向传播保留它们。显存因此随 canonical 数 × 节点数增长，而不是随边数增长。G0 有 165 个 canonical，G3R 有 233 个。历史上 R 合约 G0 已经只剩 29 MiB 空闲，按现在的 100 MiB 门槛连 G0 也通不过。这不是 v2 关系本身的代价，而是原实现的重复计算。
+计算对象是该节点类型的全部节点，而不是只有这条关系的端点；之后再与该关系的 relation_att/relation_msg 做 einsum。于是每个 canonical 都在显存里保留 3 份 N_type×128 的线性输出与 2 份 einsum 输出，还要为反向传播保留它们。显存因此随 canonical 数 × 节点数增长，而不是随边数增长。G0 有 165 个 canonical，G3R 有 233 个。历史上 R 合约 G0 已经只剩 29 MiB 空闲，按现在的 100 MiB 门槛连 G0 也通不过。其中重复的线性投影是原实现的冗余（新增关系本身的 einsum、注意力与消息张量仍有代价，见 Prompt 7b.1 的更正）。
 
 ## 1. 共享投影层 dfg_v2/hgt_layer.py（新类，不改原文件）
 - HGTLayerSharedProjection(HGTLayer)：只重写 forward。每层先对每个节点类型各算一次 k_linear、v_linear、q_linear（同一个线性层作用于同一个输入），再在每个 canonical 里复用这些结果，做 relation_att/relation_msg 的 einsum 与后续的注意力、消息、cross_reducer='mean'、a_linear、skip、norm，其余一行不变。
@@ -1351,6 +1351,55 @@ c) 两者的 peak allocated/reserved 与整卡最低空闲。
 ```
 
 
+（Prompt 7b 状态：2026-10-26 部分完成，提交 50ff30b。共享投影层已实现并接入（layer_impl，默认 original）。CPU 上 5 组静态对照的逐层输出与 logits 全部逐位相同；mean 四组梯度在用户批准的门槛内；但四组 3 轮损失差 2.9e-6–2.3e-5，超过 1e-6；nonempty_mean 的 R/G0 有一个梯度张量（绝对差 1.59e-8）超过门槛，按规定停止。GPU 对照、显存探针、8 次 pilot 均未执行。用户批准：梯度门槛采用 1e-8 + 1e-5 × 张量尺度的组合公式。审查结论与修订后的验收方法见 Prompt 7b.1。）
+
+### 4.9c Prompt 7b.1：用 float64 证明数学等价，按实验环境的噪声水平验收 float32 轨迹
+
+```text
+# Prompt 7b.1：修订共享投影的数值验收，并完成 Prompt 7b 的剩余步骤
+
+前置：Prompt 7b 已完成到 CPU 数值门槛（提交 50ff30b）。先 git pull --ff-only origin dfg-v2。
+不修改 HGTLayerSharedProjection*、trainer、优化器与任何数值规则。Prompt 7b 的失败记录全部保留。
+
+## 背景：为什么 7b 的两个门槛设错了（方案作者的错误，不是实现的问题）
+- 7b 已经观察到：前向在全部节点、两层输出与 logits 上逐位相同。共享投影唯一的改动是反向传播中同一线性层梯度的累加顺序。float32 下这只会造成舍入级差异（观察到的梯度差约 1e-8，与 float32 机器精度一致）。
+- "3 轮损失差 ≤ 1e-6"假定训练轨迹也逐位相同，这在累加顺序改变后不可能成立：Adam 对每个参数按梯度的均方根归一化，梯度接近 0 的元素会因为舍入差异得到符号不同的、大小约为学习率的更新（7b 观察到的最大参数差 8.35e-4 正是学习率的量级）。这种放大在 GPU 上同一份代码重复运行时同样存在（DGL 的原子加使每次累加顺序不同），Prompt 7 本身已经接受 GPU 上 1e-4 的差异。
+- nonempty_mean 那个超标的梯度张量，尺度 2.3e-5、绝对差 1.6e-8，是许多大项相互抵消后剩下的小值，舍入误差相对它显得大；"1e-5 × 张量尺度"的相对门槛在这种情况下过严。
+因此需要换一种能区分"舍入"与"逻辑错误"的验收方法：
+- float64 下舍入误差约 1e-16。若两种实现只差累加顺序，梯度差应在 1e-12 以下；若有逻辑错误（漏掉一项、梯度断开等），差异不会因为换成 float64 而消失。
+另外更正：PROMPTS 第 4.9b 背景中"这不是 v2 关系本身的代价"说得过强。共享投影只去掉了重复的线性投影；新增关系仍有自己的 einsum 输出、注意力与消息张量。
+
+## 1. float64 数学等价检查（主门槛，CPU）
+- 先确认 DGL 0.6.1 在 CPU 上支持 float64 的 edge_softmax、u_mul_e/sum、v_dot_u 与 multi_update_all。用小图测试；不支持就停下报告，改用第 2 部分作为唯一证据，并说明原因。
+- 对 6 个组合（R 合约 fold0 与 AC 节点 fold0 的 G0、G3R，reducer=mean；R 合约 fold0 的 G0、G3R，reducer=nonempty_mean）：
+  - 构造同一初值的 original 与 shared_projection 模型，把参数和输入特征都转成 float64（model.double()；不改变图与标签）。
+  - a) eval 前向：逐层输出与 logits 最大绝对差，要求 ≤ 1e-12（期望为 0）。
+  - b) 一次训练模式前向与反向（关闭 dropout，或两边用同一个 fit seed 的 dropout 掩码）：每个参数张量的 max|Δg| / max(max|g|, 1e-30)，要求全部 ≤ 1e-10。
+  - c) 用 trainer.fit 各跑 3 轮（float64，同一初值、同一 fit seed、nested fold0）：逐轮 train/inner_val 损失最大绝对差，要求 ≤ 1e-9。
+- 同时记录：同一组合下 float32 的 original 与 shared 之差（7b 已有，直接引用），以及 float32 original 与 float64 original 之差。这可以说明 float32 下两种实现的误差同在舍入量级。
+- 任何一项不满足：停下报告，不放宽门槛。这时差异不是舍入造成的，需要查实现。
+
+## 2. 实验环境下的噪声水平（GPU，AC 节点 fold0，显存充足）
+- original 实现、G0 与 G3R 各从同一初值、同一 fit seed 在 GPU 上跑两次 3 轮：记录两次之间逐轮损失的最大绝对差（同一代码、同一输入，只因 GPU 原子加的累加顺序不同）。若两次逐位相同，写明 GPU 在该规模上恰好是确定的。
+- shared_projection 在 GPU 上跑一次 3 轮：与两次 original 的逐轮损失最大差。
+- 门槛：shared 与 original 的差 ≤ max(1e-4, 3 × original 两次之间的差)。1e-4 是 Prompt 7 已登记的 GPU 容差。
+- 再按 Prompt 7b 第 3 部分 a)：原实现 G0 用 experiment/equivalence.py（--device cuda，paper 划分 51/6）与 overall_cv_v1 中 access_control_author_node fold_0 的历史 history.jsonl 前 3 轮对比，≤ 1e-4。
+- 记录 original 与 shared 在 AC 节点上的 peak allocated/reserved 与整卡最低空闲。
+
+## 3. float32 CPU 轨迹的重新判定
+7b 中四组 mean 的 3 轮损失差（2.9e-6–2.3e-5）不再按 1e-6 判定。第 1 部分 b)、c) 通过且第 2 部分通过时，记为"舍入级差异，低于实验环境的 GPU 噪声容差"。原记录保留，报告中两种判定都列出。nonempty_mean 的静态梯度在第 1 部分 b) 中重新判定；R/G3R nonempty_mean 的静态对照在第 1 部分中补做。
+
+## 4. 继续 Prompt 7b 的剩余步骤（第 1、2 部分都通过后）
+- 第 4 部分显存探针：shared_projection，R 合约 fold0，G3R，seed 1，完整训练到早停；门槛与停止规则不变（整卡最低空闲 ≥ 100 MiB、无 OOM；余量 < 300 MiB 时提醒）。仍低于 100 MiB 就停下报告，第二级做法（只为有边的端点计算 k/v）留给用户决定。
+- 第 5 部分 8 次 pilot：新 plan 目录 artifacts/dfg_v2/prompt7b_v1/pilot/，全部剖面 shared_projection，检查项与 Prompt 7b 第 5 部分相同。
+- 按实测耗时估算 Prompt 8 批次 1 的总时长（按任务分开）。
+
+## 5. 测试与记录
+- 小图上：float64 下两种实现的前向差为 0、梯度相对差 ≤ 1e-10 的单元测试；人为在共享实现里去掉一个关系的贡献时，float64 检查必须失败（证明这项检查能抓到逻辑错误）。
+- dfg_v2/tests 全部、旧 DDG 回归通过。结论写进 PROMPT7B1_REPORT.md 与三份记录文档。
+```
+
+
 ### 4.10 Prompt 8：R/AC 实验与统计
 
 先用 1 个种子跑 5 个剖面（150 次，约 7 小时），之后的诊断组和补种子都要你确认才跑；其余 5 类只写扩展说明。
@@ -1358,7 +1407,7 @@ c) 两者的 peak allocated/reserved 与整卡最低空闲。
 ```text
 # Prompt 8：R/AC 实验与统计
 
-前置：Prompt 6 系列（到 6d.2）、Prompt 7 与 7b 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b 与 7b.1 都验收通过；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
 
 ## 批次 1：主矩阵（必跑）
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
