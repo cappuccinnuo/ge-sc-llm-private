@@ -2027,3 +2027,12 @@ alias178FP实际全为READ，0多根FP；4FN为callable内同名局部的保守�
 未发现AC/G0初值/监督/优化器混用；证据符合反向累加与Adam放大解释，但无逐步轨迹不能认定唯一原因。0次GPU诊断、0/8pilot，新pilot plan未封存，旧P7失败记录不改。不能宣称显存已解决，不开始Prompt8。
 
 详见PROMPT7B_REPORT.md、training_changes§55；产物prompt7b_v1留WSL。冻结范围外11061个跟踪文件SHA一致，固定4任务16图校验通过；三文档旧正文仅追加。代码/报告本地提交，不自动推送。
+
+
+## 2026-10-26 DFG v2 Prompt 7b.1：严格float64预检停止（修改AI：Codex）
+
+在dfg-v2@c079e3a新增隔离数值验收入口及27测试；原HGT/shared层、trainer、优化器、特征、图、标签、折不改。DGL支持float64且小图前向逐位相同；但近零key bias残差的相对差0.13316>1e-10（绝对差2.76e-18），严格验收仍失败。未放宽门槛，未启动真实图fit/GPU/8次pilot。
+
+漏关系负例可检出：两种reducer前向差0.0695/0.1032、各9个非bias梯度失败。新27测试、全v2 1393＋旧223＝1616通过；数值门槛失败和工具测试通过分别记录。11251旧跟踪文件、前批164文件SHA不变，旧文仅追加。最初诊断注入的shape错误与修正日志保留，未改关键断言。
+
+详见scripts/DFG/dfg_v2/PROMPT7B1_REPORT.md、PROGRESS.md和training_changes§56；产物prompt7b1_v1留WSL。下一步须确认近零梯度的混合容差及隔离float64输入适配，不能直接宣布等价或进入Prompt8。本轮仅本地提交，不自动推送。

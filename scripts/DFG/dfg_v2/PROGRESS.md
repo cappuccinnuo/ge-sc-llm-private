@@ -1642,3 +1642,16 @@ python -B -m scripts.DFG.dfg_v2.validate_slither \
 | reentrancy_contract | G3R | nonempty_mean | — | 此前门槛失败，未执行 |
 
 验收状态：implementation_tests_passed_cpu_numerical_gate_failed。完整文件清单、命令、批准和未执行事项见报告。
+
+
+## 2026-10-26 Prompt 7b.1：小图float64严格验收失败，未启动训练（Codex）
+
+基线c079e3a，pull --ff-only后读取§4.1和P7b.1。仅新增experiment/precision_validation.py、tests/test_precision_validation.py与PROMPT7B1_REPORT.md，三份记录追加。HGT、trainer、优化器、DDG、tokenizer、图/标签/fold均不改。
+
+DGL所需CPU float64运算支持，正常小图前向逐位一致。正式mean/norm预检只有k_linears.0.bias未通过：绝对差2.7647e-18、参考梯度2.0762e-17、相对差0.13316>1e-10；全参数最大绝对差1.5266e-16。按模板停止，不增加atol、不排除bias。近零相消使纯相对门槛仍可能失败，不能凭此宣称实现逻辑错误。
+
+临时图漏一个canonical消息负例：mean/nonempty_mean前向差0.06952/0.10319，各9个非bias梯度失败。最初注入移除stack槽位造成测试23通过1失败；修正仅诊断注入，断言不改，旧日志保留。新27通过；完整1393v2＋223旧=1616通过、0失败/跳过，8/29既有警告。测试通过不是数值验收通过。
+
+原11251跟踪文件及前批164产物SHA一致，三文档旧前缀保留；固定store SHA不变。真实图float64=0、optimizer fit=0、GPU=0、pilot=0/8。未重判P7b旧失败，未新建pilot计划，不进入P8。真实float64还需诊断dtype/初值摘要适配，未擅自改校验。
+
+详见报告、training_changes§56与产物prompt7b1_v1。建议混合float64容差需用户确认，本轮未采用。代码/文档本地commit，不自动push。
