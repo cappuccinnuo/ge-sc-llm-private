@@ -1601,3 +1601,20 @@ python -B -m scripts.DFG.dfg_v2.validate_slither \
 - 附加pickle读取被自动审批拒绝后未绕过，改用冻结JSON及图SHA；先前独立cli verify另存，不冒充未执行读取。
 - 产物prompt6d2_v1：categories/validation.json与summary.csv、两类impact、全部probe/retry、followup、测试XML/log及final_acceptance。selection SHA94e545c3a56c41b9fa1d3bc967af6b928c79a2c2edd5bd0126a801420255c678。
 - 实际命令见报告第8节；生成输出拒绝覆盖。代码/报告本地提交，运行原件留WSL，不push、不训练、不开始Prompt7。原人工边表未代填。
+
+
+## 2026-10-26 Prompt 7：训练接入完成，GPU显存验收停止（Codex）
+
+实施/测试/记录AI：Codex。先读更新§4.1/P7、RECON§5及依赖，再pull --ff-only确认44f714c已最新。新增experiment/训练/协议/初始化/检查点/资源/runner/等价性入口及README、5个测试文件，旧DDG/HGT/tokenizer/图/标签/折/训练脚本不变。详细见PROMPT7_REPORT.md与training_changes§54。
+
+两项用户批准：G0共有参数完全一致，新增关系采用各剖面完整Xavier范围（新增同名行不承诺跨增强剖面相等）；三次3轮等价性检查单列、不算8次pilot，且G3R显存门槛在其他GPU运行之前。三分区full-graph forward保留，inner_train更新、inner_val选best、outer_test只在fit完成后监督评分，不再使用paper CV validation口径。capture_model_input可处理env/REV，额外绑定profile/reducer；checkpoint沿用通用ddg-controlled-v1。
+
+- store verify：4任务16图20schema通过；graphs_v2_r1保持最终输入，6d.2范围限制不消除。
+- 新113项；全部1272v2＋223旧＝1495 passed，0失败/跳过，8/29既有warning。CPU小图及20文件端到端通过。
+- 真实R合约fold0原/新CPU各3轮，历史113/29相同划分/初值/fit seed；每轮train/val损失最大差0.0，CPU重载逐位一致。不是nested成绩。
+- pilot plan封存4任务G0/G3R各fold0，共8job；nested文件数R合约90/23/29、R节点50/13/8、AC合约72/19/23、AC节点40/11/6。新初值按语义绑定，未复用训练权重。
+- 首个R合约G3R只完成第1轮，显存minimum free12 MiB <100；allocated3299.8477/reserved3536 MiB，76次采样无错误，程序主动MemoryGateError停止，非OOM。partial best/history/failure保留，无last/result/成功receipt，0/8完成、1失败、0重试。
+- GPU历史3轮对照、其他7job、完整GPU梯度和重载验收均未执行；无8次F1结论，无可靠150次耗时估算。不能进入Prompt8。
+- 本地旧torch库未检出模板allocator选项字符串，不能保证max_split_size_mb有效；未设置/升级。当前probe已独立进程，需用户选择释放外部显存/核实allocator/更大兼容GPU等方案后再显式retry，不自动降配。
+
+产物O=artifacts/dfg_v2/prompt7_v1，实际命令与失败路径见报告。三份旧文档只追加，原代码/旧产物不变；本地commit，不自动push。本轮按显存门槛停止。

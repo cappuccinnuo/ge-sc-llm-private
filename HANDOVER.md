@@ -2001,3 +2001,16 @@ Final acceptance: cli build exited 0; independent cli verify exited 0 (16 graph 
 alias178FP实际全为READ，0多根FP；4FN为callable内同名局部的保守范围。bare342、initializer771、fallback2402、aggregate25已全量身份/形状核验。批准补两版shape probe；总16尝试13成功3语法失败，失败保留且只重试失败项，无语料重编译/安装。旧分类和512/111人工表未改。
 
 全部1159v2＋223旧＝1382 passed，0失败/跳过；16图20schema只读校验通过。新增7验证.py、5测试、9fixture及报告；三文档仅追加。运行产物在WSL的prompt6d2_v1，本地提交代码/报告，不自动push，不开始训练或Prompt7。
+
+
+## 2026-10-26 DFG v2 Prompt 7：接入通过，GPU验收受显存阻断（Codex）
+
+修改、复核与记录AI：Codex。新增dfg_v2/experiment/及5测试文件，保留旧实现。新协议dfg-v2-nested：inner_train监督、inner_val早停和strict-min best、outer_test训练后评分；完整固定图前向，env_source不进入监督/池化/指标。支持seal/初值/实际checkpoint/原节点预测身份核验及成功复用、失败显式retry。
+
+用户批准两处选择：G0共同参数精确对齐，新增关系用各剖面原Xavier界限；原/新CPU及GPU各3轮短检查单列，先过G3R显存门槛。详见training_changes§54、PROGRESS和PROMPT7_REPORT.md。
+
+1495测试通过（1272v2+223旧），0失败/跳过；真实R合约fold0两引擎CPU三轮train/val损失最大差0。4任务16图20schema核验通过，最终图仍graphs_v2_r1。
+
+8job计划已封存于artifacts/dfg_v2/prompt7_v1/pilot。首个R合约G3R在第1轮后因最低空闲12MiB<100停止（allocated3299.85/reserved3536MiB；非OOM）。0/8成功，1失败，0重试；partial best及失败/资源记录保留。其余7job、GPU历史对照与完整GPU验收未执行，不报告F1提升，不进入Prompt8。未修改模型/图/超参，未自动切CPU/降配/关闭其他程序。
+
+模板allocator方案在旧torch1.8.1上尚未确认支持；当前probe已独立进程。需用户决定资源措施后再显式重跑该失败fit。代码和记录本地提交，原始运行产物留WSL，不自动push。
