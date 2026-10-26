@@ -1198,64 +1198,100 @@ L2 v2_binding_unresolved（53/23 条 FN）按诊断 reason 细分，尤其区分
 - dfg_v2/tests 全部、旧 DDG 回归通过；所有已有产物保留；不训练。
 ```
 
+（6d.2 状态：2026-10-25 已完成，提交 4a6d52b。28 个非空类别随机抽查 242 条，25 个 accepted、3 个 accepted_with_residual；残留 10 个事件，全部是 FN（9 个聚合变量循环条件处的 Slither 合并写，1 个 rubixi 状态循环条件写），条件表达式均为纯比较、无赋值，且已核对它们不影响 L1 的定义覆盖与已有依赖。门槛结论 passed_with_bounded_FN_residuals：graphs_v2_r1/store.json 定为 Prompt 7/8 的最终图存储。用户批准的调整：残留门槛加"定义覆盖/KILL 影响核查"；补声明控制用例；alias 按实际 READ 细分；补一个形状实证合约。验证阶段（Prompt 6 系列）到此结束。）
+
 ### 4.9 Prompt 7：训练接入与小规模验收
 
 ```text
-# Prompt 7：训练接入、嵌套协议与小规模验收（不跑正式矩阵）
+# Prompt 7：训练接入、嵌套协议、共同初值与小规模验收（不跑正式矩阵）
+
+前置：Prompt 6d.2 已完成（提交 4a6d52b），最终图存储为 artifacts/dfg_v2/graphs_v2_r1/store.json。先 git pull --ff-only origin dfg-v2，并运行 cli verify。
+新代码放在 scripts/DFG/dfg_v2/experiment/（含 __init__.py）。本步只允许第 6 部分的 8 次训练；其余全部在 CPU 上用小图测试。
+
+## 0. 先读、后写（结果记入 PROGRESS）
+逐个阅读并列出与 v2 不兼容的依赖及处理方式：
+- scripts/DFG/experiments/paper_run.py::fit_variant（训练循环）；
+- paper_runtime.py 的 Supervision、validate_registration、graph_schema_and_support、gradient_audit；
+- checkpoint.py 的 StopMonitor、save_checkpoint、restore_checkpoint、snapshot_input；
+- scripts/DFG/model_validation.py::capture_model_input（确认它对含 env_source 与 REV_* 的 v2 模型给出确定的指纹；不支持就写包装，不改原文件）；
+- state/stage_f/initialization.py::initialize_pair；
+- RECON.md 第 5 节记录的配置（学习率、OneCycle、50 轮、patience=7、delta=0.001、best 取验证损失严格最小）与种子派生规则。
+已知必须处理的点：
+- fit_variant 的 gradient_audit 与 ddg_message_update_l1 只统计 DATA_DEF_USE；v2 要覆盖全部 v2 关系与 REV_*。
+- graph_schema_and_support 按原 reflect_graph 计算 schema，且只接受 train/val 两部分；v2 要用 model_input.materialize，并接受 inner_train/inner_val/outer_test 三部分。
+- paper_checkpoint.py 写死了 paper_kfold 的协议名与 CV validation，不能用；改用 checkpoint.py（格式 ddg-controlled-v1）。
+- initialize_pair 要求两个模型的节点类型集合与 state_dict 键完全相同；G3/G3R 多了 env_source，adapt_ws、k/q/v/a_linears、norms、skip 的键和下标都不同。
 
 ## 1. 训练器 dfg_v2/experiment/trainer.py
-- 复用 scripts/DFG/experiments/paper_run.py::fit_variant 的数值规则：优化器、学习率与调度、最大轮数、patience、delta、损失、best = 验证损失严格最小、last 另存。
-- fit_variant 依赖 paper_runtime 的 Supervision、validate_registration、gradient_audit，以及 paper_checkpoint 的 StopMonitor、snapshot_input、save_checkpoint、restore_checkpoint。其中有些按原 reflect_graph 检查 schema，与 v2 不兼容（逐个检查，在 PROGRESS.md 列出哪些需要替换）。不要用 FunctionType 重绑。做法是：
-  - 把 fit_variant 复制为 trainer.fit，文件头注明来源路径与 SHA256；
-  - 只替换与 schema 和协议有关的依赖：Supervision → DfgV2Supervision；validate_registration → dfg_v2 版本（按 model_input.materialize 检查 canonical 与端点）；paper_checkpoint 的 save/restore/validate_binding → dfg_v2/experiment/checkpoint.py。
-  - paper_checkpoint.py 不能用于 nested：它的 validate_binding 写死了 paper_protocol 的 NAME/VERSION/FORWARD_SCOPE/SCORE_ROLE（paper_kfold、CV validation），并调用基于原 reflect_graph 的 paper_runtime.validate_registration。
-  - 改为复用已有的 scripts/DFG/experiments/checkpoint.py（格式 ddg-controlled-v1，monitor 字段即 best_inner_val_loss，save/restore 本身不绑定协议名）：直接 import 其 StopMonitor、save_checkpoint、restore_checkpoint、snapshot_input。
-  - dfg_v2/experiment/checkpoint.py 只做一层包装：保存前和恢复后调用 dfg_v2 的 validate_registration 与 binding 校验；binding 字典包含 dfg_v2 协议名与版本、score_role="outer_test"、selection_role="inner_val"、profile、reducer、canonical 列表、辅助节点类型、输入图与折文件 SHA。
-  - 其他依赖原样 import。
-- 等价性测试（必须通过才能继续）：
-  - 取 G0 图、R 合约 fold0 与 R 节点 fold0，使用 overall_cv_v1 保存的 HCG 未训练初值和 fit_seed，用新 fit 跑 3 轮；
-  - 逐轮的训练与验证损失必须与原 fit 一致：在同一设备上，同时用原 fit 与新 fit 从同一初值跑 3 轮对比；CPU 上允许 1e-6 误差，GPU 上与历史 history.jsonl 的前 3 轮对比。
+- 把 fit_variant 复制为 trainer.fit，文件头注明来源路径与 SHA256。数值规则逐行保持：Adam、OneCycleLR（total_steps=schedule_epochs）、每轮一次全图前向、一次 optimizer.step、一次 scheduler.step、之后 eval 前向计算验证损失；StopMonitor 的 best/patience 规则不变；CrossEntropyLoss 不加权。
+- 只替换与 schema 和协议有关的部分：
+  - Supervision → dfg_v2.supervision.DfgV2Supervision；
+  - validate_registration → dfg_v2.model.validate_registration；
+  - schema/support → 新函数 support(graph, profile, parts)：按 materialize 后的 canonical 统计每个关系在各部分文件中的边数；
+  - gradient_audit → 覆盖全部 v2 关系与 REV_*，按 canonical 记录 relation_msg/relation_att 的梯度 L1，并区分"训练文件中有边"与"只在内层验证/外层测试文件中有边"；
+  - 检查点 → dfg_v2/experiment/checkpoint.py（见第 2 部分）；
+  - 历史行中的 cv_validation_* 字段改名为 inner_val_*。
+- 训练结束后：对 best 与 last 各在内层验证集和外层测试集上评估一次；重载检查点后 logits 必须逐位一致（沿用原 roundtrip 检查）。外层测试只在这里出现，训练循环中不得前向外层测试的监督行。
+- result.json 记录：best_epoch、last_epoch、best_inner_val_loss、best 与 last 在内层验证和外层测试上的 Buggy-F1/Macro-F1/Precision/Recall/混淆矩阵、梯度审计、检查点 SHA、初值 SHA、显存与耗时。
+- 预测导出：outer_test_predictions.json 与 inner_val_predictions.json，带原图节点 ID（节点任务）或文件名（合约任务）、真值、best/last 预测与正类概率。env_source 行不得出现。
 
-## 2. 嵌套协议 dfg_v2/experiment/protocol.py
-- 外层折：沿用 Prompt 5 清单中的冻结折。
-- 内层：从外层训练文件中取冻结的 inner 验证列表（protocol.make_fold_document 已生成），用于早停和选 best。外层测试折只在训练结束后，对 best 和 last 各评估一次。
-- 输出指标：外层测试的 Buggy-F1、Macro-F1、Precision、Recall、混淆矩阵。节点任务排除辅助节点。
-- 同时导出逐节点/逐文件的预测（带原图节点 ID），供配对比较与 OOF 统计使用。
+## 2. 检查点包装 dfg_v2/experiment/checkpoint.py
+直接 import checkpoint.py 的 StopMonitor、save_checkpoint、restore_checkpoint、snapshot_input。保存前与恢复后调用 dfg_v2 的 validate_registration 与 binding 校验。binding 包含：协议名与版本、score_role="outer_test"、selection_role="inner_val"、task、fold、seed、profile、reducer、canonical 列表（按名字排序）、辅助节点类型、图文件 SHA 与 fingerprint、折文件与标签文件 SHA、初值 SHA。
 
-## 3. 共同初值 dfg_v2/experiment/init.py
-initialize_family(models, seed)，models 是 profile → model 的映射：
-- 以 G0 模型为锚，所有剖面共有的参数（同名同形状）逐张量相同。
-- 只在部分剖面存在的参数（新 canonical 的 relation_att/relation_msg/relation_pri，新节点类型的 adapt_ws、k/q/v/a_linears、norms、skip），用 seed 派生的独立随机数生成器确定性地初始化，分布与原 HGTLayer/HGT 构造时相同。
-- 参考 scripts/DFG/state/stage_f/initialization.py::initialize_pair 推广到多个剖面。注意 initialize_pair 要求两边节点类型集合相同，而 G3 多了 env_source，需要扩展。
-- HGTLayer 的 relation_* 张量第一维按 etypes_dict 排列，不同剖面中同一个 canonical 的下标可能不同；共享参数必须按 canonical 名和节点类型名对齐，不能按下标对齐。
-- 测试：共有参数逐张量相等；重复调用结果相同；G0 不被修改。
-- nodetype 特征（仅可选组使用）：原 _nodetype2onehot 的维度等于该图的节点类型数，G3 多了 env_source，而 DGL 的节点类型按名字排序，env_source 会插在中间，使 G0 与 G3 的 one-hot 维度和位置都不同，adapt_ws 无法共享初值。实验中 nodetype 模式改用固定词表：所有剖面都用"原 16 种类型 + env_source"排序后的同一词表生成 one-hot（make_model 增加 nodetype_vocab 参数，默认 None 时保持原行为，以保留 Prompt 1 中与原构造函数的等价测试）。
+## 3. 嵌套协议 dfg_v2/experiment/protocol.py
+- 从 inputs/manifest.json 中登记的冻结 nested 折文件读取每折的 inner_train_files、inner_val_files、outer_test_files；检查三者互不相交、并集等于任务的全部文件。
+- 训练只用 inner_train 的监督行；早停与 best 只看 inner_val；outer_test 只在训练结束后评估。
+- 指标：Buggy-F1（正类=有漏洞）、Macro-F1、Precision、Recall、混淆矩阵。节点任务只统计原 HCG 节点。
+- 这是与原 paper 协议（在 CV 验证折上选择并报告）不同的协议，PROGRESS 中写明差异；历史 F1 不能与本协议的外层测试结果直接比较。
 
-## 4. 运行器 dfg_v2/experiment/run.py
+## 4. 共同初值 dfg_v2/experiment/init.py
+initialize_family(models, anchor_seed)，models 为 profile → 新构造、未训练的模型：
+- 以 G0 为锚，所有剖面中同名同形状的参数逐张量相同：
+  - 节点类型相关的参数（adapt_ws、k/q/v/a_linears、norms、skip 的行）按节点类型名对齐；
+  - relation_att/relation_msg/relation_pri 的行按 canonical 名对齐（各剖面 etypes_dict 的下标可能不同，不能按下标）；
+  - 分类头相同。
+- 只在部分剖面存在的参数（新 canonical 的 relation 行、env_source 的各层参数）：用由 (anchor_seed, 参数名, canonical 或节点类型名) 派生的独立生成器初始化。这样某个参数的初值只取决于它自己的名字，不取决于同一次调用里还有哪些剖面；加入或去掉一个剖面不会改变其他剖面的初值。
+- 分布与该剖面自己的构造函数相同。注意：relation_att/relation_msg 用 xavier_uniform_ 初始化整块张量，界限依赖关系总数；因此新增行用该剖面自己的关系总数计算界限，共享行沿用 G0 的值。在文档中写明这一点。
+- 种子：anchor_seed 沿用 RECON 第 5 节的派生规则（constructor = 10000 + fold，合约任务另加 1000），fit_seed（dropout 等）= constructor + 1000000；同一 (任务, 折, 种子) 下所有剖面用同一 anchor_seed 和 fit_seed。多种子（Prompt 8 批次 3）时 constructor 另加 100000 × (seed − 1)，使 seed 1 与历史规则完全一致、不同种子互不重叠；把这条规则写进 plan。
+- 测试：共有参数逐张量相等；重复调用结果相同；G0 不被修改；某个剖面的初值不受同一次调用中其他剖面的影响。
+
+## 5. 运行器 dfg_v2/experiment/run.py
 命令：
-  python -B -m scripts.DFG.dfg_v2.experiment.run plan --store <Prompt 6d 确认的最终图存储，目前为 graphs_v2_r1/store.json>（先调用 cli verify） --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--reducer mean|nonempty_mean] --output <新批次目录>
-  python -u -B -m scripts.DFG.dfg_v2.experiment.run execute --plan <批次>/plan.json [--only task/fold/seed/profile]
+  python -B -m scripts.DFG.dfg_v2.experiment.run plan --store <graphs_v2_r1/store.json> --tasks <任务列表> --profiles <剖面列表> --seeds <种子列表> [--folds <折列表>] [--reducer mean|nonempty_mean] --output <新批次目录>
+  python -u -B -m scripts.DFG.dfg_v2.experiment.run execute --plan <批次>/plan.json [--only task/fold/seed/profile] [--retry]
   python -B -m scripts.DFG.dfg_v2.experiment.run verify --plan <批次>/plan.json
   python -B -m scripts.DFG.dfg_v2.experiment.run select --plan <批次>/plan.json
   python -B -m scripts.DFG.dfg_v2.experiment.run summarize --plan <批次>/plan.json
-- select 只读取内层验证指标，按 plan 中登记的规则写出并封存 selection.json（G* 与补种子是否触发）；summarize 在 selection.json 不存在时拒绝运行。
-- plan：写死任务列表、剖面、种子、折、配置、输入 SHA，以及预先登记的选择规则（见 Prompt 8），然后写 plan.seal.json。
-- --tasks 默认是 R/AC 四个任务，--seeds 默认是 1；任务名只从任务注册表读取，不在运行器里写死类别。
-- execute：
-  - GPU 串行，单进程锁；
-  - 每个 job 一个目录（history.jsonl、best.pt、last.pt、predictions、receipt.json）；
-  - 成功的 job 直接复用；失败的保留 attempt 并停止，需显式 --retry 才重跑；
-  - 不自动降配、不改参数、不切换到 CPU；
-  - 按 receipt 判断断点续跑。
+- plan：先 cli verify；写死任务、剖面、种子、折、配置、所有输入 SHA 与预先登记的选择规则（Prompt 8），写 plan.seal.json。--tasks 默认 R/AC 四个任务，--seeds 默认 1；任务名只从注册表读取。
+- execute：GPU 串行、单进程锁；每个 job 一个目录（history.jsonl、best.pt、last.pt、预测、result.json、receipt.json）；成功的 job 直接复用，失败的保留 attempt 并停止，需显式 --retry；不自动降配、不改参数、不切换到 CPU；按 receipt 断点续跑。每个 job 开始前 torch.cuda.reset_peak_memory_stats，结束后记录 max_memory_allocated/max_memory_reserved，并用 nvidia-smi 或 pynvml 记录整卡最低空闲。
+- select 只读内层验证指标，写并封存 selection.json；summarize 在 selection.json 不存在时拒绝运行。
+- verify：核对每个 job 的 receipt、检查点 SHA、binding 与 plan。
 
-## 5. 小规模验收（本步唯一允许的训练）
-R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3R，seed 1，完整训练到早停，共 8 次。其中 R 合约 fold0 的 G3R 同时是显存探针（边数最多的任务与剖面；历史 guard 批次在该任务上已用到 reserved 3068MiB、整卡最低只剩 29MiB），建议最先运行。检查：
-- 在训练文件中有边的新 canonical 关系，relation_msg 梯度非零；只出现在内层验证或外层测试文件中的 canonical 不要求梯度，单独列出其数量；
-- env_source 不出现在任何指标和预测导出中；
-- best/last 重新加载后 logits 逐位一致；
-- 显存峰值（allocated/reserved）、整卡最低空闲与耗时写入 PROGRESS.md，用于估算 Prompt 8 批次 1。G3R 探针若 OOM 或整卡空闲低于 100MiB，停下报告，不自动降配。
-不要报告这 8 次的 F1 比较结论。
+## 6. 测试（全部在 CPU、小图上）
+- 训练器等价性（必须通过才能做第 7 部分）：在 R 合约 fold0 的 G0 图上，用原 fit_variant 与新 trainer.fit，从同一初值、同一 (train, val) 文件划分各跑 3 轮。两边用同一划分是为了只比较训练引擎，协议差异另测。CPU 上逐轮 train/val 损失差 ≤ 1e-6。
+- 再在 GPU 上用新 trainer 跑同样 3 轮，与 overall_cv_v1 历史 history.jsonl 的前 3 轮对比。DGL 在 GPU 上的消息聚合使用原子加，结果可能有极小差异：记录最大绝对差，≤ 1e-4 视为一致，超过则停下报告。
+- 嵌套协议：三部分互不相交；外层测试监督行在训练循环中从不参与前向的损失计算（用 hook 或计数断言）。
+- 共同初值：见第 4 部分。
+- 端到端：用 Prompt 5 测试中的 20 个合成文件，plan → execute（CPU，2 轮）→ verify → select → summarize 走通；summarize 在 select 之前被拒绝。
+- env_source 不出现在任何预测与指标中。
+
+## 7. 小规模验收（本步唯一允许的训练）
+- 显存探针最先跑：R 合约 fold0、G3R、seed 1。它是边数最多的任务与剖面（36,256 条 NetworkX 边，G3R 新增 68 个 canonical）。历史上 R 合约 G0 已用到 reserved 3068MiB、整卡最低空闲只剩 29MiB，G3R 很可能更紧。
+  - 若 OOM 或整卡最低空闲 < 100MiB：停下报告，不自动降配。报告中列出下面几种不改变数值语义的做法，由用户选择：
+    a) PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:<值>，减少显存碎片；
+    b) 每个 job 用独立进程运行，job 之间释放 CUDA 上下文；
+    c) 关闭桌面或其他占用 GPU 的进程后重测；
+    d) 其他做法（混合精度、减少层数或隐藏维度、子图采样等）会改变模型或数值，不在本方案中使用。
+- 探针通过后：R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 与 G3R，seed 1，完整训练到早停，共 8 次（含探针）。
+- 检查并写入 PROGRESS：
+  - 训练文件中有边的每个新 canonical，relation_msg 的梯度在第一轮非零；只在内层验证或外层测试文件中出现的 canonical 单独列出数量，不要求梯度；
+  - env_source 不出现在任何指标与预测导出中；
+  - best/last 重载后 logits 逐位一致；
+  - 每次的最大 allocated/reserved、整卡最低空闲、每轮耗时与总耗时、停止轮数；
+  - 按实测耗时估算 Prompt 8 批次 1（150 次）的总时长。
+- 不报告这 8 次的 F1 比较结论（只有 1 折，不能说明差异）。
 ```
+
 
 ### 4.10 Prompt 8：R/AC 实验与统计
 
@@ -1264,7 +1300,7 @@ R 与 AC 各自的合约 fold0 与节点 fold0，剖面 G0 和 G3R，seed 1，�
 ```text
 # Prompt 8：R/AC 实验与统计
 
-前置：Prompt 6 与 Prompt 7 都验收通过。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 6 系列（到 6d.2）与 Prompt 7 都验收通过；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
 
 ## 批次 1：主矩阵（必跑）
 - 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
