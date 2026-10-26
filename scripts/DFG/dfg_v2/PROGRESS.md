@@ -1699,3 +1699,29 @@ R/G0/mean三轮差1.55431e-15通过，共2完整诊断fit/6epoch。R/G3R/mean原
 - 新130含于全部v2 1661＋旧223＝1884通过，0失败/跳过，8/29既有警告。11264旧跟踪文件仅允许4处改变，246旧产物不变；固定16图/20schema不变，三文档旧前缀保留。
 - 详情PROMPT7B3_REPORT.md、training_changes §58；产物prompt7b3_v1含cpu、zero_classification、gpu_noise/history、独立pilot计划及失败收据。最终状态cpu_policy_gpu_numeric_passed_pilot_memory_stopped。本地commit，不自动push。
 - 待用户选择资源方案后才显式新attempt：核查非必要GPU占用／单独allocator资源试验／更大显存设备；独立进程串行本轮已经采用。不自行修改WSL、模型或数值规则，不自动重试。
+
+
+## 2026-10-26 Prompt 7b.4：执行前登记与资源统计澄清（Codex）
+
+开始HEAD=54f21b5，按模板pull --ff-only到c97d737；阅读更新§4.1/7b.4。新增产物prompt7b4_v1，旧538个7系列产物先封存SHA。本轮不重做已经通过的数值等价检查；原HGT/shared层/model/trainer/DDG/图/token/标签/fold/初始化/优化器/早停均保持。
+
+用户已明确批准两处调整：（1）原“进程外占用”改为“PyTorch分配器之外的未归属占用估计”，保留原公式与前后原始读数、增加近同时刻采样；（2）新策略每次必须--only一个任务、独立进程，外部串行调用8项；旧plan行为不变。实际旧resources没有total字段，4096MiB来自独立设备查询；peak reserved与最低free并非同一时刻。本进程CUDA/DGL/driver及后续惰性库分配也可进入差额，不能将约2GiB全归因于其他程序。
+
+P7b3启动前记录used464/free3512MiB，不能支持“第一个任务前已占2GiB”。本轮只读查询used457/free3519MiB（total4096，三项差120MiB原样保留）；WSL未列出CUDA计算进程，Windows另存专用显存计数器/进程名，不将不同口径相加。未结束或修改任何程序。
+
+新启动基线free>=3000MiB、运行最低free>=100MiB；失败即停，不降低阈值。先验证新接入，再从上一轮同一冻结初值运行R合约G3R完整探针，成功验收后才其余7项。新plan只引用旧prepared/initial，不重建随机初值；计划新增来源和资源策略绑定。若未完成8项，不生成伪精确150fit耗时估计、不启动Prompt8。
+
+用户明确：最终实验计划在显存充足的服务器上完成；当前4GiB RTX3050限制仅是本地开发验收约束，不作为最终研究模型规模上限。尚未取得服务器具体设备/环境，迁移时仍需核验环境、输入/初值/配置身份及真实资源记录。
+
+
+## 2026-10-26 Prompt 7b.4：资源接入通过、探针再次触发门槛（Codex）
+
+新增preflight/resource_plan及64测试，run.py最小接入。用户批准未归属统计名称与逐任务新进程；旧plan行为保持。8个初值实际文件直接复用，来源比较只变runtime/git_head/resource_policy/resource_origin，其他配置/输入相同；新plan SHA e0ff577cd73f7fa1da841cf2f1fdd1e890ebc2ede27ac047cf369ff2db5c8344。
+
+R合约G3R baseline4096/450/3526MiB，通过3000；CUDA/DGL最小初始化后4096/1742/2234，变化1292且Torch reserved=0。训练allocated1824.086/reserved2048，minfree76<100，epoch1后停止，无CUDAOOM。60个采样，0错误，原公式差额1972、减初始context观测后680，均不是其他进程归属结论。退出后free3503；“开始前就有约2GiB外部占用”无依据，旧表仅算术成立。
+
+guard43.00s、完整子进程119.56s、完成epoch19.17s；partial best保留，无last/result/成功receipt，完整新关系梯度/重载/最终预测未验收。pilot0/8，1失败、7未启动，无重试；完整矩阵verify明确拒绝，非完整清点只报告缺失。未重复已通过数值对照，不开始Prompt8/150fit，也无完整耗时估计。
+
+全部1725v2＋223旧=1948通过，0失败/跳过，8/29既有warning；新增64包含其中。11,271旧跟踪文件仅run.py+三文档变化、538旧产物SHA不变，原文前缀保留。HGT/shared层/model/trainer/DDG/token/图/标签/fold/优化器不变。详情PROMPT7B4_REPORT.md、training_changes §59；新产物prompt7b4_v1留WSL。
+
+最终实验按用户计划在显存充足服务器；当前本地4GiB限制不应迫使继续改模型。服务器需另核验环境/路径/输入初值身份。本轮状态baseline_passed_pilot_memory_stopped，到资源门槛停止，本地commit、不自动push。

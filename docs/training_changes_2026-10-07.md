@@ -5575,3 +5575,60 @@ final_acceptance状态cpu_policy_gpu_numeric_passed_pilot_memory_stopped；probe
 
 本轮到显存门槛即停：不运行剩余7pilot、不开始Prompt8／150次、多seed、其他五类或新关系/模型。
 下一步需用户选择资源方案再显式新attempt。从同一未训练初值重跑，不称epoch续训。可评估非必要Windows GPU占用、单独授权allocator设置、或更大显存设备；本轮已经独立进程串行，不能再以此作为尚未做的优化。reserved−allocated约224MiB不是保证可回收量。不擅自混合精度/改维度/采样，不能以测试通过宣称资源问题已解决。
+
+
+## 59. 2026-10-26：Prompt 7b.4 显存基线、归属澄清及新探针停止
+
+实施、审查、记录AI：Codex。开始54f21b5，按更新模板pull --ff-only到c97d737，分支dfg-v2。先读§4.1及7b.4。完整报告scripts/DFG/dfg_v2/PROMPT7B4_REPORT.md；本节只追加，不覆盖旧数值验收或失败记录。
+
+### 59.1 用户批准的选择及原假设纠正
+
+用户明确同意：（1）原“进程外占用”更名为“PyTorch分配器之外的未归属占用估计”；原公式保留，另记基线、context前后值和近时间配对读数；（2）新策略每次--only一项、单独进程，外部串行调度；无策略的旧计划行为不变。先写PROGRESS/HANDOVER登记，再运行。
+原因：旧resources缺少total，4096来自独立查询；peak reserved/min free不一定同时。P7b3前置used464/free3512与“首次任务前已经2GiB外部占用”不符。本进程CUDA/DGL/driver/lazy library不在Torch allocator内，也能进入差额。不得把本轮context1292倒扣旧记录或断言其他程序是唯一原因。
+本轮只读WSL nvidia-smi没有计算进程；Windows另列dwm/Code/chrome等专用显存计数，不能跨计数口径求和。未替用户关闭程序，未修改驱动/系统设置。total-used-free=120MiB原样保留。
+
+### 59.2 修改文件与实现逻辑
+
+新增experiment/preflight.py：stdlib单GPU查询UUID/total/used/free并核验有限值；检查本进程CUDA未初始化；基线低于登记值写preflight_blocked并停止，查询异常写preflight_error并停止，不创建训练attempt。不成功时不偷偷降阈值。
+初始化使用确定性1元素Torch CUDA tensor和1节点1边DGL CUDA graph，无RNG/HGT算术；同步释放并empty_cache后记录context差值。仅是阶段观测，不保证之后所有CUDA库都已初始化。
+通过继承冻结Resources记录raw samples、allocator当前值、时间窗口、两种未归属残差；原0.5秒等待和100MiB合作式检查保留。summary锁避免采样线程与hash/count不一致，记录实际UUID并拒绝换设备。
+
+新增experiment/resource_plan.py：--from-plan只读旧seal/plan/prepared/实际initial；_initial逐个核验optimizer_steps=0、task/fold/profile/fit_seed及tensor摘要。新计划仅runtime/git_head/resource_policy/resource_origin四个字段不同；只允许run.py及两个新资源模块在runtime变动，原计算变化即拒绝。不生成新初值，不创建新模型。
+修改experiment/run.py最小接入：新plan强制--only；成功attempt核验复用；低基线记录独立于fit attempt；真正训练失败仍须显式--retry。preflight对象与磁盘收据、当前PID/job/plan/policy一致；context在构造CPU模型前落盘。成功/失败resources都带preflight、context、策略与PID。新增校验raw sample SHA/count/index/min/peak/公式和context身份，不接受错绑收据。
+新增tests/test_preflight.py（41），test_resource_plan.py与test_preflight_integration.py（共23）；合计64。新报告及三份追加记录。HGT/shared层、model/trainer/resources原文件、DDG、tokenizer、图/标签/fold、优化器/学习率/早停一律未改。
+
+### 59.3 新计划、输入与实际运行
+
+新产物O=scripts/DFG/experiments/artifacts/dfg_v2/prompt7b4_v1，拒绝覆盖；旧P7b3 plan/seal/失败现场保留。
+新pilot plan SHA e0ff577cd73f7fa1da841cf2f1fdd1e890ebc2ede27ac047cf369ff2db5c8344，8项与旧P7b3相同、shared_projection、fold0/seed1、原max50/每任务config。直接引用旧8份initial实际文件，source_plan_comparison逐项记录，不是重新初始化后只比较种子。
+baseline_minimum_free_mib=3000，running_minimum_free_mib=100；旧图仍graphs_v2_r1/store.json SHA ed02ad029392db4a142e1a17a0a1a3577bc9f104377bf304bc64f630c6d286c4。协议仍dfg-v2-nested-v1；inner_val选best，outer_test只计划最终评分，不混用paper_kfold。
+
+先跑R合约G3R：baseline total4096/used450/free3526，通过3000。CUDA/DGL最小初始化后used1742/free2234，变化1292，Torch allocated/reserved均0。
+训练peak allocated1824.08642578125/reserved2048，整卡minimum free76<100；60个采样、0错误，配对查询窗口0.202–0.378秒。原公式残差1972，减context观测后680；其中仍含基线570（used450+读数差120）及约110阶段差异，不将680全部叫其他程序。
+退出后读4096/473/3503MiB。结合原始前后证据，更支持大量开销随本训练进程初始化和退出变化；不声称精确逐进程归属。
+
+完成epoch0/显示第1轮，train_loss0.7187948226928711、inner_val_loss0.6839135885238647，epoch19.17s；guard42.999s，完整子进程119.563s。记录首轮学习率0.0005000000000000004与原OneCycle/Adam快照。失败为MemoryGateError，不是CUDAOOM。
+partial best和sidecar保留；无last/result/成功receipt。梯度明细仅在正常结束后落盘，故首轮新canonical梯度验收本轮未完成；best/last重载及最终预测检查同样未完成，不用旧诊断通过代替。
+pilot清点0/8成功、1失败、7未启动、0重试；严格完整矩阵verify应报错，另用require_complete=False如实清点，不把0/8叫验收通过。
+
+### 59.4 历史公式重算与证据
+
+O/historical_accounting.json绑定9份旧resources与旧启动查询。total统一参考独立4096设备记录，旧文件均无total字段。
+原P7 R/G3R：3536reserved/12free/548残差；P7b3 AC G0 original两次1004/999/2093、shared608/1367/2121；AC G3R original1594/413/2089及1594/407/2095、shared946/869/2281；history1004/966/2126；R G3R shared2048/66/1982。
+原算术可以重现，但不能据此判定多出1.5GiB一定来自其他程序，更不能保证清理后剩1.5GiB余量。本轮没有继续数值诊断或第二级模型优化。
+
+### 59.5 测试与不变量
+
+最终新增64通过/4warning；全v2 1725通过/8warning（114.45s），旧DDG+graph_utils223通过/29warning（3.50s）；总1948、0失败/跳过，64包含在1725中。警告为既有DGL distutils和NetworkX gpickle弃用，没有升级依赖。
+实际argv、返回码、JUnit与日志在O/test_commands.jsonl、targeted_tests/v2_tests/legacy_tests.*。
+11,271旧跟踪文件仅run.py和三文档可变化；538旧P7系列产物SHA保持；三文档原始字节前缀保留；原HGT/DDG/token/训练数学、store图与seal不改。源码hash在建plan后冻结，未因结果调整实现。
+原始产物保留现有WSL（E盘承载），没有清理旧文件，没有向C盘写大模型日志。本地只提交本轮源码/测试/四份文档，产物不自动入Git、不自动push。
+
+### 59.6 实际命令与后续边界
+
+环境沿用mando/Python3.7、OMP/MKL2和原TREE_SITTER_LIB_DIR。详细可复制多行命令见PROMPT7B4_REPORT.md。
+计划：python -B -m scripts.DFG.dfg_v2.experiment.run plan --from-plan scripts/DFG/experiments/artifacts/dfg_v2/prompt7b3_v1/pilot/plan.json --output scripts/DFG/experiments/artifacts/dfg_v2/prompt7b4_v1/pilot --baseline-min-free-mib 3000。
+首项：python -B -m scripts.DFG.dfg_v2.experiment.run execute --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt7b4_v1/pilot/plan.json --only reentrancy_contract/0/1/G3R。
+测试：python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests；旧路径scripts/DFG/tests tests/test_graph_utils.py；三个新测试另先定向执行。
+
+用户明确最终完整实验在显存充足服务器运行；当前4GiB只是本地限制。服务器设备/环境尚待实际核验，不能改写旧环境绑定来静默兼容。此轮不降门槛、不--retry、不续跑7项、不做150fit时长估算、不启动Prompt8/七类/新seed/第二级k-v改造。建议下一步准备服务器的环境/路径/输入初值身份核验，再继续独立验收；不为本地资源继续扩大数学改动。

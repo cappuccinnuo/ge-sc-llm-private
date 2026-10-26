@@ -200,6 +200,13 @@ def _load_plan(path, check_code=True):
             or plan.get("score_role") != SCORE_ROLE or plan.get("selection_role") != SELECTION_ROLE
             or seal["jobs"] != len(plan["jobs"]) or seal["test_mode"] != plan["test_mode"]):
         raise ValueError("Experiment protocol/seal mismatch")
+    if "resource_policy" in plan:
+        from .preflight import validate_policy
+        from .resource_plan import validate_resource_origin
+        validate_policy(plan["resource_policy"])
+        validate_resource_origin(plan)
+    elif "resource_origin" in plan:
+        raise ValueError("Resource origin requires registered resource policy")
     layer_impl = plan.get("layer_impl", "original")
     if (layer_impl not in LAYER_IMPLEMENTATIONS
             or any(job.get("layer_impl", "original") != layer_impl for job in plan["jobs"])):
@@ -308,7 +315,7 @@ def _move_model(model, device):
     return model
 
 
-def _run_one(plan, job, attempt, plan_path):
+def _run_one(plan, job, attempt, plan_path, preflight=None):
     from .checkpoint import build_binding
     from .trainer import fit
     from .resources import Resources
@@ -316,6 +323,20 @@ def _run_one(plan, job, attempt, plan_path):
     config = copy.deepcopy(task["config"])
     initial = _initial(entry, info, job)
     device = config["device"]
+    context = None
+    if "resource_policy" in plan:
+        from .preflight import initialize_context
+        if device == "cpu" or preflight is None or preflight.get("status") != "passed":
+            raise ValueError("Resource policy requires a passed fresh-process CUDA preflight")
+        preflight_body = read_json(checked_ref(preflight["receipt_ref"]))
+        if (dict(preflight_body, receipt_ref=preflight["receipt_ref"]) != preflight
+                or preflight_body.get("job") != job
+                or preflight_body.get("plan_sha256") != sha256(plan_path)
+                or preflight_body.get("policy") != plan["resource_policy"]
+                or preflight_body.get("pid") != os.getpid()
+                or preflight_body.get("cuda_initialized_before") is not False
+                or preflight_body.get("cuda_initialized_after") is not False):
+            raise ValueError("Preflight observation differs from its sealed receipt")
     torch.set_num_threads(config.get("threads", 2))
     if device != "cpu":
         import sys, dgl, sklearn, numpy, networkx
@@ -325,6 +346,9 @@ def _run_one(plan, job, attempt, plan_path):
             raise ValueError("Frozen training package environment differs")
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA unavailable; CPU fallback forbidden")
+        if preflight is not None:
+            context = initialize_context(preflight["baseline"], device)
+            write_json(attempt.with_suffix(".context.json"), context)
         torch.cuda.set_device(device)
     seed_all(info["seeds"]["constructor"])
     model = make_model(task["record"]["task"], checked_ref(entry["graph"]), job["profile"], "cpu",
@@ -337,7 +361,22 @@ def _run_one(plan, job, attempt, plan_path):
     if observed_support != entry["support"]:
         raise ValueError("Prepared support/schema differs")
     validate_registration(model, entry["support"]["schema"])
-    guard = Resources(device)
+    if context is None:
+        guard = Resources(device)
+    else:
+        from .preflight import make_observed_resources
+        guard = make_observed_resources(device, preflight["baseline"], context,
+            attempt.with_suffix(".memory_samples.jsonl"),
+            minimum_free_mib=plan["resource_policy"]["running_minimum_free_mib"])
+    def resource_summary():
+        observed = guard.summary()
+        if preflight is not None:
+            observed["preflight"] = preflight["receipt_ref"]
+            observed["resource_policy"] = plan["resource_policy"]
+            observed["training_pid"] = os.getpid()
+            observed["context_ref"] = _ref(attempt.with_suffix(".context.json"))
+        return observed
+
     try:
         with guard:
             guard.check()
@@ -357,10 +396,10 @@ def _run_one(plan, job, attempt, plan_path):
                 binding, model.original_graph_node_ids, entry["support"], memory_guard=guard)
         guard.check()
     finally:
-        write_json(attempt.with_suffix(".resources.json"), guard.summary())
+        write_json(attempt.with_suffix(".resources.json"), resource_summary())
     if result.get("status") != "complete":
         raise ValueError("Trainer did not complete")
-    result["resources"] = guard.summary()
+    result["resources"] = resource_summary()
     write_json(attempt / "result.json", result)
     write_json(attempt / "effective_config.json", config)
     write_json(attempt / "schema_support_audit.json", entry["support"])
@@ -459,6 +498,9 @@ def _verify_attempt(attempt, plan, job, plan_path):
             or result.get("initial_sha256") != entry["initial"]["state_sha256"]
             or result.get("layer_impl", "original") != plan.get("layer_impl", "original")):
         raise ValueError("Incomplete/misbound fit result")
+    if "resource_policy" in plan:
+        from .resource_plan import validate_resource_result
+        validate_resource_result(result, plan, job, plan_path)
     history = [json.loads(line) for line in (attempt / "history.jsonl").read_text().splitlines()]
     if (not history or [r["epoch"] for r in history] != list(range(len(history)))
             or result["last_epoch"] != len(history)-1 or result["history_rows"] != len(history)
@@ -510,6 +552,8 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False):
         raise ValueError("Synthetic CPU execution requires explicit programmatic test allowance")
     if not plan["test_mode"] and allow_cpu_test:
         raise ValueError("Cannot run production plan as a CPU test")
+    if "resource_policy" in plan and only is None:
+        raise ValueError("Resource policy requires --only and one fresh process per job")
     jobs = [j for j in plan["jobs"] if only is None or job_id(j) == only]
     if not jobs:
         raise ValueError("Unknown requested job")
@@ -528,6 +572,10 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False):
             if old and not retry:
                 raise RuntimeError("Previous failed/incomplete attempt retained; explicit --retry required")
             folder.mkdir(parents=True, exist_ok=True)
+            preflight = None
+            if "resource_policy" in plan:
+                from .preflight import run_preflight
+                preflight = run_preflight(job, sha256(plan_path), folder, plan["resource_policy"])
             previous_indices = [int(p.name.split(".")[0].split("_")[1]) for p in old]
             attempt = folder / ("attempt_%03d" % (max(previous_indices, default=0) + 1))
             if attempt.exists() or attempt.with_suffix(".started.json").exists():
@@ -536,7 +584,10 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False):
                 started_unix=time.time(), pid=os.getpid(), retry_of=[str(p) for p in old],
                 resume_epoch=False, retry_from_same_untrained_initial=True))
             try:
-                _run_one(plan, job, attempt, plan_path)
+                if preflight is None:
+                    _run_one(plan, job, attempt, plan_path)
+                else:
+                    _run_one(plan, job, attempt, plan_path, preflight=preflight)
                 _verify_attempt(attempt, plan, job, plan_path)
             except Exception as exc:
                 write_json(attempt.with_suffix(".failure.json"), dict(job=job,
@@ -655,7 +706,11 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     command = commands.add_parser("plan")
-    command.add_argument("--store", required=True)
+    source = command.add_mutually_exclusive_group(required=True)
+    source.add_argument("--store")
+    source.add_argument("--from-plan", help="Reuse a sealed pilot and its exact frozen initial files")
+    command.add_argument("--baseline-min-free-mib", type=float, default=None,
+                         help="Fresh-process CUDA baseline; --from-plan only, default 3000")
     command.add_argument("--tasks")
     command.add_argument("--profiles", default=",".join(DEFAULT_PROFILES))
     command.add_argument("--seeds", default="1")
@@ -671,8 +726,19 @@ def main(argv=None):
             command.add_argument("--retry", action="store_true")
     args = parser.parse_args(argv)
     if args.command == "plan":
-        result = create_plan(args.store, args.output, args.tasks, args.profiles,
-                             args.seeds, args.folds, args.reducer, layer_impl=args.layer_impl)
+        if args.from_plan:
+            if (args.tasks is not None or args.folds is not None
+                    or args.profiles != ",".join(DEFAULT_PROFILES) or args.seeds != "1"
+                    or args.reducer != "mean" or args.layer_impl != "original"):
+                raise ValueError("--from-plan preserves the source matrix/config; selector overrides forbidden")
+            from .resource_plan import create_resource_plan
+            result = create_resource_plan(args.from_plan, args.output,
+                baseline_minimum_free_mib=3000 if args.baseline_min_free_mib is None else args.baseline_min_free_mib)
+        else:
+            if args.baseline_min_free_mib is not None:
+                raise ValueError("--baseline-min-free-mib requires --from-plan")
+            result = create_plan(args.store, args.output, args.tasks, args.profiles,
+                                 args.seeds, args.folds, args.reducer, layer_impl=args.layer_impl)
         answer = dict(plan=str(Path(args.output).resolve() / "plan.json"), jobs=len(result["jobs"]))
     elif args.command == "execute":
         answer = execute(args.plan, args.only, args.retry)

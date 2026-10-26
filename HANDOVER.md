@@ -2054,3 +2054,19 @@ alias178FP实际全为READ，0多根FP；4FN为callable内同名局部的保守�
 - 7次GPU三轮诊断完成：G0/G3R共享相对原实现最大差7.6294e-6／3.5763e-7，历史重放差0；best/last验收通过。全部1884测试通过（1661v2＋223旧）。
 - 新8项pilot计划/初值/输入已封存。第一项R合约G3R shared在第1轮后整卡最低空闲66MiB<100停止，allocated1824.086／reserved2048MiB，无CUDAOOM。0/8完成，其余7未跑，不修改门槛、不重试、不启动Prompt8。partial best不是完整成绩。
 - 三份记录已追加，详见PROMPT7B3_REPORT.md、training_changes §58；运行产物prompt7b3_v1留现有WSL。旧246诊断产物、图/标签/折/源码绑定不变，本地提交但未自动push。下一步先由用户决定显存方案；单模型独立进程串行本轮已经使用。
+
+
+## 2026-10-26：最终实验设备安排及Prompt 7b.4启动（修改AI：Codex）
+
+用户明确最终实验会迁移到显存充足的服务器；当前4GiB RTX3050仅为本地开发/验收环境，不将本地显存限制作为最终实验规模约束。服务器型号/环境尚未核验，届时仍须绑定图、初值、配置和设备记录，不能仅凭计划宣称已经完成服务器验收。
+
+Prompt 7b.4按用户批准增加启动基线与逐任务独立进程；原模型/图/训练数学不改，旧失败保留。统计名称改为“PyTorch分配器之外的未归属占用估计”，不能用整卡减reserved推断其他进程占用。详细选择与最终结果将追加到training_changes §59及PROGRESS；当前只是执行前登记。
+
+
+## 2026-10-26：DFG v2 Prompt 7b.4资源核验与停止（修改AI：Codex）
+
+- 新增启动前显存检查及资源计划，仅最小改run.py；旧HGT/model/trainer/DDG/图/特征/标签/fold/数值规则不改。用户批准逐任务独立进程与“未归属占用估计”名称，旧计划行为保持。新8项plan直接引用旧未训练初值。
+- 实测CUDA前free3526MiB，初始化CUDA/DGL后2234MiB，1292MiB差额不在Torch reserved内。因此旧“约2GiB来自其他程序”的归因不成立。训练peak allocated1824.086/reserved2048，minimum free76<100，第1轮后按门槛停止；无CUDAOOM。
+- pilot0/8：1失败、7未启动，无自动retry。partial best保留，无last/最终结果/完整梯度与重载验收；不进入Prompt8、不用单轮估计150fit时长。
+- 全1725v2+223旧=1948测试通过；新增64包含其中。旧538产物、原计算文件/图/标签/初值/计划及三文档旧正文保留。详细见PROMPT7B4_REPORT.md、PROGRESS及training_changes §59。运行产物prompt7b4_v1留WSL，源码/报告本地commit，不自动push。
+- **最终实验将放到显存充足的服务器；现在只是本地RTX3050 4GiB受限。** 尚未实际验收服务器，后续应先核验环境、路径和冻结输入身份，再继续验收；本轮不自动改模型或降低资源门槛。
