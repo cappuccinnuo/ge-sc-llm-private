@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 →（如有缺陷 P6e）→ P7 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1143,6 +1143,59 @@ L2 v2_binding_unresolved（53/23 条 FN）按诊断 reason 细分，尤其区分
 - 出现任何 v2_defect 模式：停下报告最小复现、影响事件数与建议改法，由用户决定是否执行 Prompt 6e。
 - 没有 v2_defect：在报告中写明 graphs_v2_r1 是 Prompt 7/8 的最终图存储，并给出"仍未逐条判定的差异数"（应为 0 或明确的抽样剩余量）。
 - dfg_v2/tests 全部、旧 DDG 回归通过。不训练。
+```
+
+（6d.1 状态：2026-10-25 已完成，提交 a32caa2。L2 改为语句级计数后 FP 482→178，L2 精确率 98.44%/98.42%，L1 与全部 FN 不变；全部 13,553 条差异有机械类别，other 只剩 rubixi 的 1 条。198 条审阅记录：0 v2_defect、16 unclear（15 个事件）。6 个手写 Slither 实证完成；76 条绑定差异全部是 state_name_ambiguous（v2_scope_limit），"ClosedScopeJ 失败导致继承状态找不到"在真实语料中为 0。Codex 将状态记为 unresolved_analyst_findings，未宣布 graphs_v2_r1 为最终图存储。收尾工作见 Prompt 6d.2。）
+
+### 4.8f Prompt 6d.2：剩余机制的定向实证与验证门槛的收尾
+
+```text
+# Prompt 6d.2：定向实证、类别级验收与门槛结论
+
+前置：Prompt 6d.1 已完成（提交 a32caa2）。先 git pull --ff-only origin dfg-v2。
+本步只做验证：不改分析器、pipeline、图，不改 alignment_v4_r2 的分类结果（第 3 部分的判据修正除外）。Slither 调用只允许用于第 1 部分的手写合约，使用 trusted_compilers_complete.json 中已有的编译器。输出：artifacts/dfg_v2/prompt6d2_v1/。
+
+## 0. 验收标准（本步要明确达到的终点）
+"13,350 条未逐条判定"本身不是缺陷：按设计定义的机械类别不需要逐条人工判定。需要的是每个类别同时满足下面三条：
+(a) 有机械判据（已有）；
+(b) 判据在随机样本上成立：每个非空类别用 seed=0 随机抽 10 条（不足则全部），逐条确认判据确实成立；6d/6d.1 已做过的抽查可以计入，但必须是随机抽取的，按出现顺序取前 5 条的示例不算；
+(c) 有成立的理由：v2_scope_limit 引用第 3.2–3.4 节原文或已批准偏离；slither_convention 有直接实证（第 1 部分或 6d.1 的手写合约）。
+三条都满足的类别记为 accepted。剩余 unclear 必须由第 1 部分的实证消解，或按第 4 部分的规则处理。
+
+## 1. 定向实证（新增手写合约，放在 convention_cases/ 下）
+每个合约用两个编译器各跑一次：0.4.24（若不在可信清单中，用清单里最接近的 0.4.x）与 0.5.11。语料以 0.4.x 为主，只用 0.5.11 的实证不能直接推到 0.4.x。
+1. 状态变量循环与外部调用（对应 rubixi 的 1 条）。
+   推测：rubixi 循环体内有 send 外部调用，Slither 的 SSA 在外部调用后重新定义状态变量，循环头的 Phi 因此合并出 balance 的写；6d.1 的 whileState 循环体里没有外部调用，所以看不到这个写。
+   用例：while (balance > x) { a.send(1); balance -= 1; }，以及去掉 send 的对照版本。观察循环条件节点的 state_variables_written。
+2. storage 数组/引用的循环合并写（对应 aggregate/storage 循环的 unclear）。
+   用例：for (uint i = 0; i < n; i++) { arr[i] = v; }（arr 为状态数组）；S storage p = m[k]; while (p.x < n) { p.x += 1; }。观察条件节点的读写集合。
+3. 状态结构体/成员链赋值的基读取（对应 write_base_read 中 241 条成员链）。
+   用例：s.f = v；m[k].f = v；arr[i].f = v；s.inner.g = v。对照 6d.1 已有的 m[k] = v（只写）与 delete m[k]（读+写）。观察是否记 s/m/arr 的 READ。
+4. storage 引用局部的成员写（对应 aggregate_base_use 中 storage 引用的 unclear）。
+   用例：S storage p = m[k]; p.f = v; 以及 legacy 写法 var p = m[k]; p.f = v;（0.4.24）。观察局部 p 的读写与状态 m 的读写。
+5. alias 类别（117/61 条 FP，2/2 条 FN，此前没有逐条判定）。
+   用例：Box storage ref = first; ref.value = 7;；Box storage ref = first; ref = second; ref.value = 7;。观察 Slither 把写记到 first、second、两者，还是只记局部 ref。
+每个用例保存源码、编译器版本与 SHA、Slither 的节点集合与 IR/SSA 原文、结论。结论写成"在版本 X 下观察到 Y"，不外推。
+
+## 2. 用实证回看对应类别
+- 实证支持的，把对应类别或子集标为 slither_convention 并引用实证。
+- 实证与 6d.1 的解释相反的，重新判定受影响的事件（逐条，不抽样），并检查是否构成 v2_defect。
+- alias：结合实证，把 alias FP 拆成"Slither 不把经 storage 引用的写算到状态变量"与"v2 的流不敏感并集多出的根"（第 3.3 节已声明的近似，属于 v2_scope_limit）两部分，分别计数；无法归入二者的逐条判定。
+
+## 3. 大类别的形状分布与随机抽查
+- 对每个非空类别输出源码形状直方图：按规范化后的语句文本模板（变量名替换为占位符）统计前 10 种形状及其数量。
+- 重点：访问控制 L1 bare_expression_use 有 340 条，而重入只有 2 条，差别很大。逐一确认这 340 条的语句确实是"单独的标识符"或"没有调用括号的成员链"（例如 to.call.value(amount); 没有后面的 ()）；若有任何一条实际上是被调用的表达式（源码中有调用括号），说明判据过宽，修正判据并重新归类，那些事件逐条判定。
+- 对第 0 部分 (b) 要求的每个类别完成随机抽查，记录抽中的 difference_id 与逐条结论。
+
+## 4. 门槛结论
+- 若出现 v2_defect：停下，给出最小复现、受影响事件数与建议改法，由用户决定是否执行 Prompt 6e。
+- 若全部类别 accepted，且 unclear 为 0：在报告中写明"验证门槛通过，graphs_v2_r1/store.json 是 Prompt 7/8 的最终图存储"。
+- 若仍有少量 unclear：只有同时满足以下条件才可通过——总数 ≤ 20 个事件；全部是 FN（Slither 有、v2 没有，即不会在图中引入错误边）；逐条列出并写明已做过的实证。否则停下报告。
+- 结论写进 dfg_v2/PROMPT6D2_REPORT.md，并在 PROGRESS.md 中登记最终图存储。
+
+## 5. 测试与不变量
+- 新的判据修正（若有）各配正例与反例测试。
+- dfg_v2/tests 全部、旧 DDG 回归通过；所有已有产物保留；不训练。
 ```
 
 ### 4.9 Prompt 7：训练接入与小规模验收
