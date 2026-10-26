@@ -1655,3 +1655,24 @@ DGL所需CPU float64运算支持，正常小图前向逐位一致。正式mean/n
 原11251跟踪文件及前批164产物SHA一致，三文档旧前缀保留；固定store SHA不变。真实图float64=0、optimizer fit=0、GPU=0、pilot=0/8。未重判P7b旧失败，未新建pilot计划，不进入P8。真实float64还需诊断dtype/初值摘要适配，未擅自改校验。
 
 详见报告、training_changes§56与产物prompt7b1_v1。建议混合float64容差需用户确认，本轮未采用。代码/文档本地commit，不自动push。
+
+
+## 2026-10-26 Prompt 7b.2：运行前登记的新验收规则（Codex）
+
+已读取更新§4.1与P7b.2，基线a2957d6，git pull --ff-only确认最新。用户要求执行新文档，授权本节阈值与隔离float64诊断路径；先登记，随后才执行真实图。本节不表示验收已经通过，完成后另追加结果。
+
+每案例G=max所有参数maxabs(g_original)，逐张量门槛maxabs(Δg)<=1e-12*G+1e-10*maxabs(g_original)。纯相对差保留只报告；参考端maxabs(g)<=1e-12*G者逐项列出，并检查候选端也<=1e-12*G；非key-bias零梯度逐项解释，未用张量自身残差做唯一判据。前向1e-12、三轮float64轨迹1e-9不变。
+
+实现仅新增诊断模块；不改生产HGT/model/trainer/model_validation/优化器。保留7b与7b.1失败记录。顺序：重判小图/负例→六组真实静态→六组三轮轨迹→AC节点GPU噪声与历史对照→R合约G3R显存探针→其余pilot。任一门槛失败停止；GPU100MiB门槛不变，不自动降配。新产物prompt7b2_v1，原产物不可覆盖。
+
+
+## 2026-10-26 Prompt 7b.2：静态数值通过，CPU float64轨迹OOM停止（Codex）
+
+新增precision_gate/precision_real/precision_gpu及三测试、PROMPT7B2_REPORT；既有Python计算文件均不改。详细记录training_changes §57。按更新模板授权的全局尺度混合容差执行，先登记后运行，旧7b/7b.1失败不覆盖。
+
+小图重判通过、漏消息负例仍拒绝。六真实静态两层/logits逐位相同，最大梯度差4.22853e-16，全部通过。双端近零清单一致；除key bias还有单来源注意力、末层无监督目标、初始饱和。R/G0和AC/G0额外14/22项已取证，其余4案例额外项动态解释未完成，不全部称结构性零。
+
+R/G0/mean三轮差1.55431e-15通过，共2完整诊断fit/6epoch。R/G3R/mean原实现被WSL内核OOM杀死(-9，anon-rss7595332KiB)，WSL7865MiB+swap2048MiB；不是GPU显存或数值失败。原partial不改，resource_failure.json记录终止。剩余4对及全部GPU/显存探针/8pilot未执行；无新pilot plan/CPU成功seal，不进入Prompt8。
+
+新GPU验收补实际checkpoint SHA/sidecar/绑定，未跑真实GPU。新138（含于全量），1531v2+223旧=1754 passed，0失败/跳过，8/29既有warning。11,254旧非文档跟踪文件、184旧产物、34store引用SHA一致，16图/20schema不变；三文档仅追加。
+产物prompt7b2_v1含内核、部分结果、静态、测试与零梯度取证（3次完成no-grad前向，1次资源终止；无optimizer）。未自动重试/改WSL/降门槛；先确认资源方案，才以新attempt继续。本地commit，不自动push。

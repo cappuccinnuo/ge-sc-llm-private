@@ -2036,3 +2036,13 @@ alias178FP实际全为READ，0多根FP；4FN为callable内同名局部的保守�
 漏关系负例可检出：两种reducer前向差0.0695/0.1032、各9个非bias梯度失败。新27测试、全v2 1393＋旧223＝1616通过；数值门槛失败和工具测试通过分别记录。11251旧跟踪文件、前批164文件SHA不变，旧文仅追加。最初诊断注入的shape错误与修正日志保留，未改关键断言。
 
 详见scripts/DFG/dfg_v2/PROMPT7B1_REPORT.md、PROGRESS.md和training_changes§56；产物prompt7b1_v1留WSL。下一步须确认近零梯度的混合容差及隔离float64输入适配，不能直接宣布等价或进入Prompt8。本轮仅本地提交，不自动推送。
+
+
+## 2026-10-26：DFG v2 Prompt 7b.2 数值验收与CPU OOM停止（修改AI：Codex）
+
+- 新增3诊断模块/3测试；原HGT/model/trainer/优化器/DDG/token/图/标签/fold不改。按新模板登记全局尺度梯度容差，旧失败保留。
+- 六真实静态前向逐位一致/梯度通过；R/G0/mean三轮差1.55431e-15通过。
+- R/G3R/mean的float64原实现被WSL内核OOM杀死(-9，匿名RSS约7.24GiB；WSL7865MiB+2GiBswap)，这是CPU内存，不是RTX3050显存。剩余4轨迹对、全部GPU/pilot未跑；无新pilot计划，不进入Prompt8、不自动重试。
+- 零梯度并非只有key bias；单来源/无监督末层/初始饱和均存在。两组额外项已取证，其余4组解释待完成。
+- 新138含于全量：1531v2+223旧=1754通过，0失败/跳过。11,254旧文件、184旧产物、固定16图/20schema不变；新GPU验收另补best/last实际SHA检查。
+- 详情PROMPT7B2_REPORT.md、PROGRESS.md、training_changes §57；产物prompt7b2_v1含resource_failure/kernel。先确认WSL资源方案再显式新attempt；本地commit，不自动push。

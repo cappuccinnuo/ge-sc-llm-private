@@ -5464,3 +5464,54 @@ python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_ut
 建议事先固定float64混合绝对/相对误差规则，例如maxabs(Δg)<=1e-12+1e-10×maxabs(g_original)，保留全部参数原始纯相对误差和漏关系负例。**仅为建议，本轮未采用。** 再为真实图设计隔离、可审计的dtype转换，不改生产特征、模型或训练算法。确认后仍需完成六组真实图与GPU对照，才能决定是否推进8次pilot。
 
 停止状态：strict_float64_small_gate_failed_tests_passed；不能称Prompt 7b.1全部完成。
+
+
+## 57. 2026-10-26：Prompt 7b.2 全局梯度判据、真实float64诊断与CPU资源停止
+
+实施、复核与记录AI：Codex。工作树ge-sc-llm-ddg-v11，dfg-v2，开始HEAD=a2957d6；先读更新§4.1/P7b.2、pull --ff-only已最新。本节只追加；详细数值/命令见scripts/DFG/dfg_v2/PROMPT7B2_REPORT.md。
+
+### 57.1 授权选择与不变项
+
+用户本轮模板直接授权G=maxabs(所有参考梯度)，逐张量门槛1e-12*G+1e-10*maxabs(g_ref)，参考近零者候选也须<=1e-12*G；纯相对差只报告。前向1e-12/轨迹1e-9不变。PROGRESS运行前已登记，不事后放宽、不排除bias。
+隔离float64循环已获模板授权：生产float32构造/校验→深拷贝无损拓宽→双摘要；默认dtype正常/异常恢复。两种实现共用循环，结论不等于生产trainer的float64兼容认证。
+既有HGT/model/trainer/model_validation/优化器/DDG/token、所有旧.py、图/标签/折及计划/产物不改。没有另行替换用户方案。
+
+### 57.2 新文件与实现
+
+新增experiment/precision_gate.py、precision_real.py、precision_gpu.py及三个对应test；新增报告，三文档追加。
+gate保留旧raw判定并独立重算，缺失/非有限/异常拒绝，G=0/阈值边界有测试。
+real绑定冻结初值/图/标签/split/seed/config；权重/DGL inp转换，NX token不变；逐层完整输出/梯度、监督行、RNG一致性核验。循环沿用Adam/OneCycle50step、train后eval inner_val；3epoch，无生产checkpoint/outer监督。
+gpu需六CPU案例清单+seal并独立重算证据/源码/input绑定；GPU噪声门槛固定，最低100MiB/低于300提醒。pilot仍委托原fit与receipt。
+审查发现noise汇总曾只信任checkpoint roundtrip标记，未查实际权重。已补best/last .pt及sidecar/model_input SHA/格式/绑定/epoch，13项篡改/缺失测试；这是新验收器纠错，不改训练。真实GPU未执行，CPU证据绑定源码未变化。
+
+### 57.3 数值执行
+
+小图旧strict失败保留，新判据通过（G=24.020718399476486），两个漏消息负例仍拒绝。
+六静态最大梯度差依次R/G0 mean5.03142e-17、R/G3R mean1.00088e-16、AC/G0 mean1.69510e-16、AC/G3R mean5.55112e-17、R/G0 nonempty4.22853e-16、R/G3R nonempty1.24700e-16。所有层/logits逐位一致，diff/tolerance最高0.000253323，双端近零不一致0；12次静态forward/backward、0optimizer。
+R/G0 mean原/共享3epoch各一次成功，train差0、val最高1.5543122344752192e-15；循环约68.88/26.20s不含构造，不作性能基准。
+26身份核验后，原float32→64三轮最高差1.4534227625873086e-6；旧float32配对差2.9206275939941406e-6仍保留。不能以单例宣布全部GPU等价。
+
+### 57.4 零梯度清单与额外取证
+
+近零张量76/74/82/81/76/74，不只是key bias。逐项静态清单含拓扑/监督路径；不能仅据拓扑解释者标observed numerical zero。
+完成3次no-grad前向：R/G0先按边、再按不同源；AC/G0一次。R额外14=4单源不变+10初始饱和，AC额外22=4单源+18饱和；非胜出源权重最高2.41e-13/1.20e-27。饱和近零非恒零。
+AC/G3R取证约22.48s后按内存提醒主动终止，保留日志。其余4案例额外项动态解释未完，不能套用G0结论。取证0backward/0step，初值不变，与训练分开计数；zero_audit保存脚本/证据/attempt_inventory/resource_stop。
+
+### 57.5 停止原因与未执行
+
+轨迹R/G0 mean成功后，R/G3R mean在original执行期间-9；内核2026-10-26 04:43:42明确OOM killer，anon-rss7595332KiB≈7.24GiB；WSL7865MiB RAM+2048MiBswap。这是CPU内存，不是CUDA或数值失败。
+original.json没写出，具体完成epoch无持久化证据不臆报，shared未开始；其他4对未启动。partial trajectory.json保留running现场，resource_failure.json绑定其SHA和coordinator/kernel证据，最终状态明确失败。
+共2完整诊断fit/6完成epoch、1中断fit；无六案例CPU成功seal，无GPU/显存探针，0/8pilot，无新pilot plan/150fit耗时估算。按失败即停不跳过案例、不自动重试。
+短暂WSL服务0x8007274c在释放内存后恢复；未重启/改WSL/关闭用户程序。宿主约16GiB，故障后free约4.14GiB，增加WSL资源须先确认Windows余量及用户授权。
+
+### 57.6 测试、产物与历史保护
+
+最终新138通过/4warning（gate53/real32/gpu53），全部v2 1531通过/8warning，旧DDG+graph_utils223通过/29warning；总1754，0失败/跳过，不重复加新138。warning均既有DGL distutils/NetworkX read_gpickle弃用。
+命令：python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests；同命令路径scripts/DFG/tests tests/test_graph_utils.py。完整argv、XML/log见O/test_commands.json与*_tests_final.*；中间日志保留。
+11,254旧非三文档跟踪文件、184旧7b/7b.1产物、固定store34引用SHA不变；16图/20schema不变。store SHA=ed02ad029392db4a142e1a17a0a1a3577bc9f104377bf304bc64f630c6d286c4；三文档旧前缀单独核验。
+O=scripts/DFG/experiments/artifacts/dfg_v2/prompt7b2_v1，运行原件留WSL。新代码/文档本地commit，未自动push，旧未跟踪产物不提交。
+
+### 57.7 后续门槛
+
+状态implementation_tests_passed_static_numeric_passed_cpu_trajectory_resource_stopped，非整体验收完成。
+先确认资源方案并获用户同意，在新attempt重跑失败完整对/未执行案例，不覆盖旧证据、不叫epoch续训；四组额外近零解释待补。之后才CPU acceptance→GPU noise/history→显存探针→8pilot。本轮未放宽阈值、改hidden/layers/图、降精度或绕过原实现。
