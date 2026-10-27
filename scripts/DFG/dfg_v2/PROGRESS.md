@@ -1770,3 +1770,29 @@ guard43.00s、完整子进程119.56s、完成epoch19.17s；partial best保留，
 
 Prompt8时长只作估计：150fit约14.79h，阶段A60约5.83h，B90约8.95h；G1R/G2R/G3按canonical线性插值，20个schema计数与store核验一致。真实其他折早停和负载可能明显不同，不把这8次用于F1比较结论。未执行Prompt8。
 最终实验按用户意向迁移足量VRAM服务器，本机限制仅当前开发；本轮先本机，服务器条件待实际核验。完成后停止并等用户确认；按共享规则本地提交，不自动push。
+
+
+## 2026-10-26 Prompt 8 执行前登记（Codex）
+
+已同步4f537d9，先读共享§4.1和最新Prompt8。用户批准保留旧8项批准记录、另建150项批次来源授权；批准5折合约仅描述性、节点zsplit、阶段A原始p且Holm待B。当前只授权准备计划，按模板在计划/磁盘/时长具体可审阅后确认执行A；B仍须中间报告后另确认。
+
+既有16图/20schema及8pilot全部核验通过，未读取pilot F1作设计选择。新批次prompt8_v1；report_spec冻结6个带类别和源码SHA的争议文件，1/2跳按真实模型消息方向且路径含指定新增关系，人工审阅按现有表记录。统计方法细节随plan封存。150fit不复用pilot；阶段A60约5.8h，阶段B90约9.0h，均为单折插值排期估计。
+
+本机RTX3050 4GiB仅当前开发条件，最终完整实验按用户计划在显存充足服务器整批重跑，不与本机结果混用；服务器环境尚未实际验收。
+
+
+## 2026-10-26 Prompt 8：150项计划封存与训练前验收（Codex）
+
+新增batch_plan、batch、stats、reporting及四组测试，仅最小接入run.py，README追加命令。原DDG、HGT/shared层、model/trainer、tokenizer、输入图/标签/token/fold、学习率/优化器/早停及初始化算法均不改。审批范围和统计解释采用前节用户批准的两项选择；没有改变主要终点或选型规则。
+
+计划SHA 07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de，seal SHA 55aebf929cd578a4a9cd6df4956a4cc3816af010d1963b57a52a1559db5a59f8；新批次prompt8_v1/batch1，150个全新初值、30个5剖面家族全部完成。独立只读验收150/150：optimizer_steps=0、task/fold/profile/fit_seed、文件/tensor SHA和G0共同语义参数逐值一致；正式fit=0/150，A=0/60、B=0/90。准备2172.81秒，初值验收20.82秒。新关系沿用各profile自己Xavier范围的既有批准规则，不宣称所有新增关系跨profile数值完全一致。
+
+配置shared_projection/mean/inside_token/seed1、hidden128/2层8头；合约LR0.0005→max0.01、节点0.0002→max0.005，50轮、patience7、delta0.001保持。协议dfg-v2-nested-v1，inner_train监督、inner_val选best/早停、结束后outer_test；全固定图前向，非完全归纳测试，不直接和旧paper_kfold历史F1比较。关系支持CSV已生成，真实梯度/重载/F1尚待正式训练。
+
+空间预估checkpoint23.42GiB+initial2.93GiB=26.35GiB，要求52.70GiB；WSL内部准备时825.96GiB，Windows E实际248.15GiB，均足够。WSL位于E:/Smartcontract/Ubuntu-22.04，实际initial2.73GiB，无C盘大型产物或旧文件删除。A约5.83h、B约8.95h只是原pilot排期估计；新150fit不复用8pilot，不打开其F1用于选择。
+
+最终测试175定向（包含于全量）、1967 v2＋223旧=2190通过，0失败/跳过，4/8/29既有弃用警告；日志/JUnit/argv在新批次。集成修复了interim包装结果与完整summarize分发，并增加真实调用链回归；失败前置检查、中断记录、显式重试和直接入口顺序均测试。11280原跟踪文件除允许5处外不变；817历史产物、三文档前缀不变。
+
+完整报告和逐文件实施见PROMPT8_REPORT.md、training_changes §61。A执行前仍需按§4.10第1部分确认；A中间报告固定G3R/G0，不选G*，Holm等待B；中间报告后停下再确认B。未授权执行记录不会伪造为approved，未启动GPU训练、额外seed、诊断组或其他五类。本地提交，不自动push。
+
+未来五类按EXTENDING：注册任务→核验源码锚点/token→生成封存fold→cli build→run plan(G0与R/AC内层选择的G*)，不在新增类别重新选型；现在仅预留通用接口。最终正式实验按用户计划在显存充足服务器整批运行，当前4GiB只是本机开发约束；服务器环境/输入迁移未验收，不与本机分数混用。

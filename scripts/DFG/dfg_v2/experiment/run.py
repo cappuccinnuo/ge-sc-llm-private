@@ -91,7 +91,8 @@ def _effective_config(record, test_mode, test_config, layer_impl="original"):
 
 
 def create_plan(store, output, tasks=None, profiles=None, seeds=(1,), folds=None,
-                reducer="mean", test_mode=False, test_config=None, layer_impl="original"):
+                reducer="mean", test_mode=False, test_config=None, layer_impl="original",
+                _batch_registration=None):
     """Seal inputs, untrained initial states and the complete requested matrix."""
     output = Path(output).resolve()
     if output.exists():
@@ -125,6 +126,11 @@ def create_plan(store, output, tasks=None, profiles=None, seeds=(1,), folds=None
         seed_rule="10000+fold+(1000 if contract else 0)+100000*(seed-1); fit=constructor+1000000",
         execution_policy="serial one model; failed attempts retained; explicit whole-fit retry",
         tasks={}, jobs=[])
+    if _batch_registration is not None:
+        if test_mode:
+            raise ValueError("Production batch registration cannot wrap a synthetic test")
+        from .batch_plan import attach_registration
+        attach_registration(plan, _batch_registration)
     output.mkdir(parents=True)
     for task_id in task_ids:
         record = inputs["tasks"][task_id]
@@ -204,8 +210,14 @@ def _load_plan(path, check_code=True):
         from .preflight import validate_policy
         from .resource_plan import validate_resource_origin
         validate_policy(plan["resource_policy"])
-        validate_resource_origin(plan)
-    elif "resource_origin" in plan:
+        if plan.get("resource_origin", {}).get("version") == "prompt8-fresh-batch-resource-v1":
+            from .batch_plan import validate_batch_plan
+            validate_batch_plan(plan, path)
+        else:
+            if "batch_registration" in plan:
+                raise ValueError("Batch registration requires its own resource origin")
+            validate_resource_origin(plan)
+    elif "resource_origin" in plan or "batch_registration" in plan:
         raise ValueError("Resource origin requires registered resource policy")
     layer_impl = plan.get("layer_impl", "original")
     if (layer_impl not in LAYER_IMPLEMENTATIONS
@@ -418,6 +430,8 @@ def _run_one(plan, job, attempt, plan_path, preflight=None):
     if plan.get("resource_policy", {}).get("version") == "local_dev_v1":
         receipt.update(memory_tight=result["memory_tight"],
                        possible_memory_spill=result["possible_memory_spill"])
+    if "batch_registration" in plan:
+        receipt["execution_start"] = _ref(attempt.with_suffix(".started.json"))
     write_json(attempt / "receipt.json", receipt)
     del model, parts, initial
     gc.collect()
@@ -462,8 +476,34 @@ def _validate_predictions(rows, role, task, info, entry):
     if observed != expected:
         raise ValueError("Missing original prediction identities")
 
+def _verify_execution_authorization(attempt, plan, job, plan_path, receipt):
+    """Archive-safe authorization proof; do not re-run live retry/failure gates."""
+    if "batch_registration" not in plan:
+        return
+    from .batch import stage_jobs, validate_authorization
+    started_path = attempt.with_suffix(".started.json")
+    start_ref = receipt.get("execution_start", {})
+    if start_ref != _ref(started_path):
+        raise ValueError("Successful batch receipt execution-start binding differs")
+    started = read_json(checked_ref(start_ref))
+    if (started.get("job") != job or started.get("plan_sha256") != sha256(plan_path)
+            or started.get("resume_epoch") is not False
+            or started.get("retry_from_same_untrained_initial") is not True):
+        raise ValueError("Successful batch start identity/plan/restart policy differs")
+    authorization = started.get("execution_authorization", {})
+    authorization_path = checked_ref(authorization)
+    stages = [stage for stage in ("A", "B")
+              if job_id(job) in [job_id(j) for j in stage_jobs(plan, stage)]]
+    if len(stages) != 1:
+        raise ValueError("Successful job must belong to exactly one approved stage")
+    verified, unused = validate_authorization(plan_path, plan, stages[0], authorization_path)
+    if verified != authorization:
+        raise ValueError("Successful batch stage authorization changed")
+
+
 def _verify_attempt(attempt, plan, job, plan_path):
     receipt = read_json(attempt / "receipt.json")
+    _verify_execution_authorization(attempt, plan, job, plan_path, receipt)
     if (receipt.get("status") != "complete" or receipt.get("job") != job
             or receipt.get("plan_sha256") != sha256(plan_path)
             or receipt.get("score_role") != SCORE_ROLE or receipt.get("selection_role") != SELECTION_ROLE):
@@ -560,7 +600,7 @@ def _completed(output, plan, job, plan_path):
     return None
 
 
-def execute(plan_path, only=None, retry=False, allow_cpu_test=False):
+def execute(plan_path, only=None, retry=False, allow_cpu_test=False, execution_authorization=None):
     plan_path = Path(plan_path).resolve()
     output, plan = plan_path.parent, _load_plan(plan_path)
     if plan["test_mode"] and not allow_cpu_test:
@@ -572,6 +612,14 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False):
     jobs = [j for j in plan["jobs"] if only is None or job_id(j) == only]
     if not jobs:
         raise ValueError("Unknown requested job")
+    authorizations = {}
+    if "batch_registration" in plan:
+        from .batch import authorize_job
+        for job in jobs:
+            authorizations[job_id(job)] = authorize_job(
+                plan_path, plan, job, execution_authorization, retry=retry)
+    elif execution_authorization is not None:
+        raise ValueError("Execution authorization is only valid for a registered batch")
     outcomes = []
     lock = (output / ".synthetic.lock" if plan["test_mode"] else
             ROOT / "scripts/DFG/experiments/artifacts/dfg_v2/.training.lock")
@@ -605,9 +653,12 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False):
             attempt = folder / ("attempt_%03d" % (max(previous_indices, default=0) + 1))
             if attempt.exists() or attempt.with_suffix(".started.json").exists():
                 raise FileExistsError("Refusing to overwrite an existing attempt")
-            write_json(attempt.with_suffix(".started.json"), dict(job=job, plan_sha256=sha256(plan_path),
+            started_record = dict(job=job, plan_sha256=sha256(plan_path),
                 started_unix=time.time(), pid=os.getpid(), retry_of=[str(p) for p in old],
-                resume_epoch=False, retry_from_same_untrained_initial=True))
+                resume_epoch=False, retry_from_same_untrained_initial=True)
+            if authorizations:
+                started_record["execution_authorization"] = authorizations[job_id(job)]
+            write_json(attempt.with_suffix(".started.json"), started_record)
             try:
                 if preflight is None:
                     _run_one(plan, job, attempt, plan_path)
@@ -704,6 +755,15 @@ def select(plan_path):
     if path.exists():
         raise FileExistsError("Selection is already sealed")
     selection = _selection(plan, plan_path.parent)
+    if "batch_registration" in plan:
+        registered = plan["batch_registration"]["jobs"]
+        if (selection.get("complete_matrix") is not True
+                or selection.get("candidate_set_complete") is not True
+                or selection.get("outer_test_used") is not False
+                or set(selection.get("receipts", {})) != set(registered)
+                or len(registered) != len(plan["jobs"])
+                or registered != [job_id(job) for job in plan["jobs"]]):
+            raise ValueError("Registered batch selection requires every frozen job and candidate")
     write_json(path, selection)
     write_json(path.with_name("selection.seal.json"), dict(version=VERSION,
         selection_sha256=sha256(path), plan_sha256=sha256(plan_path)))
@@ -730,6 +790,15 @@ def summarize(plan_path):
     dest = plan_path.parent / "summary.json"
     if dest.exists():
         raise FileExistsError("Refusing existing summary")
+    plan = _load_plan(plan_path)
+    if "batch_registration" in plan:
+        from .reporting import build_report
+        report["report_artifacts"] = build_report(
+            plan_path, stage="complete",
+            verified_results={identity: item["result"]
+                              for identity, item in acceptance["results"].items()})
+        report["interpretation"] = (
+            "Complete registered nested outer-test matrix; profile selection uses inner validation only")
     write_json(dest, report)
     return report
 
@@ -744,9 +813,13 @@ def main(argv=None):
     command.add_argument("--baseline-min-free-mib", type=float, default=None,
                          help="Fresh-process CUDA baseline; --from-plan only, default 3000")
     command.add_argument("--resource-policy", choices=("local_dev_v1",), default=None,
-                         help="New explicitly approved local development policy; --from-plan only")
+                         help="Approved local policy; inherited pilot or independently authorized fresh batch")
     command.add_argument("--approval-record",
                          help="Bound explicit user approval JSON; required for local_dev_v1")
+    command.add_argument("--authorization-record",
+                         help="New preparation-only authorization for a fresh Prompt 8 batch")
+    command.add_argument("--report-spec",
+                         help="Frozen Prompt 8 reporting/statistics specification")
     command.add_argument("--tasks")
     command.add_argument("--profiles", default=",".join(DEFAULT_PROFILES))
     command.add_argument("--seeds", default="1")
@@ -760,10 +833,13 @@ def main(argv=None):
         if name == "execute":
             command.add_argument("--only", help="task/fold/seed/profile")
             command.add_argument("--retry", action="store_true")
+            command.add_argument("--execution-authorization",
+                                 help="Separate stage execution approval bound to the sealed batch")
     args = parser.parse_args(argv)
     if args.command == "plan":
         if args.from_plan:
             if (args.tasks is not None or args.folds is not None
+                    or args.authorization_record is not None or args.report_spec is not None
                     or args.profiles != ",".join(DEFAULT_PROFILES) or args.seeds != "1"
                     or args.reducer != "mean" or args.layer_impl != "original"):
                 raise ValueError("--from-plan preserves the source matrix/config; selector overrides forbidden")
@@ -775,14 +851,24 @@ def main(argv=None):
                 baseline_minimum_free_mib=3000 if args.baseline_min_free_mib is None else args.baseline_min_free_mib,
                 **extra)
         else:
-            if (args.baseline_min_free_mib is not None or args.resource_policy is not None
-                    or args.approval_record is not None):
-                raise ValueError("Resource policy, approval and --baseline-min-free-mib requires --from-plan")
-            result = create_plan(args.store, args.output, args.tasks, args.profiles,
-                                 args.seeds, args.folds, args.reducer, layer_impl=args.layer_impl)
+            if args.resource_policy == "local_dev_v1":
+                if args.baseline_min_free_mib is not None:
+                    raise ValueError("Fresh local batch preserves the registered baseline threshold")
+                from .batch_plan import create_batch_plan
+                result = create_batch_plan(args.store, args.output, args.tasks, args.profiles,
+                    args.seeds, args.folds, args.reducer, layer_impl=args.layer_impl,
+                    approval_record=args.approval_record,
+                    authorization_record=args.authorization_record, report_spec=args.report_spec)
+            else:
+                if (args.baseline_min_free_mib is not None or args.approval_record is not None
+                        or args.authorization_record is not None or args.report_spec is not None):
+                    raise ValueError("Resource policy, approval and --baseline-min-free-mib requires --from-plan")
+                result = create_plan(args.store, args.output, args.tasks, args.profiles,
+                                     args.seeds, args.folds, args.reducer, layer_impl=args.layer_impl)
         answer = dict(plan=str(Path(args.output).resolve() / "plan.json"), jobs=len(result["jobs"]))
     elif args.command == "execute":
-        answer = execute(args.plan, args.only, args.retry)
+        answer = execute(args.plan, args.only, args.retry,
+                         execution_authorization=args.execution_authorization)
     elif args.command == "verify":
         result = verify(args.plan)
         answer = {k: v for k, v in result.items() if k != "results"}
