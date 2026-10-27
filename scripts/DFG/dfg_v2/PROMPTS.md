@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 → P7c（本地 pilot）→ P8（本地，计划与准备）→ P8A（阶段 A 与中间报告）→ P8B（阶段 B 与完整报告）→（以后）服务器迁移 4.9h … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 → P7c（本地 pilot）→ P8（本地，计划与准备）→ P8A（阶段 A 与中间报告）→ P8B.0（执行器性能修订）→ P8B（阶段 B 与完整报告）→（以后）服务器迁移 4.9h … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1745,6 +1745,91 @@ python -u -B -m scripts.DFG.dfg_v2.experiment.batch execute --plan scripts/DFG/e
 ## 4. 停止条件
 - 任何 job 失败、OOM 或 verify 不通过：停下报告。
 - 中间报告完成后停下，把报告交给用户；阶段 B 需要用户另行授权。
+```
+
+
+
+（Prompt 8A 状态：2026-10-27 已完成，提交 a26f801、dc909c7。阶段 A 60/60 通过逐项与整阶段验收，0 失败、0 重试；中间报告 REPORT_INTERIM_A.md（SHA 55933fa8…）已封存，结果文本已归档到 Git，.pt 权重留在本地。主要终点（best 外层 Buggy-F1，G3R − G0，百分点）：重入合约 +1.43（1 升 4 平 0 降，只描述）、重入节点 +0.51（10 折全部提升，原始 Wilcoxon p = 0.00195）、访问控制合约 +0.80（1/3/1，只描述）、访问控制节点 −0.20（2/5/3，p = 0.61）。审查已按逐折表复算全部均值与差值，并按混淆矩阵复算 pooled OOF，数字一致。耗时：execute 墙钟 9.32 小时，其中真正的训练轮次计算约 1 小时，其余主要是重复验收与检查点处的深度校验，见 Prompt 8B.0。）
+
+### 4.10b Prompt 8B.0：去除重复验收与重复深度校验（不改训练数值），并为阶段 B 登记修订
+
+```text
+# Prompt 8B.0：执行器性能修订与等价性证明
+
+前置：Prompt 8A 已完成（提交 dc909c7）。先 git pull --ff-only origin dfg-v2。
+本步不训练正式 job，不修改 trainer 的数值规则、HGT 层、模型、初始化、优化器、图、标签与折。
+
+## 背景：阶段 A 的 9.3 小时花在哪里（审查根据已归档的 process/started/result/history 记录计算）
+| 部分 | 秒 | 占比 | 是否必要 |
+|---|---:|---:|---|
+| 子进程启动后、写 attempt.started 之前（主要是对此前所有 job 的重复验收） | 14,467 | 43% | 绝大部分不必要 |
+| 训练结束后的评估与 8 次检查点重载（每次重载前后都做深度校验） | 7,265 | 22% | 大部分不必要 |
+| 每次保存 best 时额外的校验与写盘（764 次，中位每次约 7.3 秒，图越大越慢） | 约 5,200 | 16% | 大部分不必要 |
+| 训练轮次本身（1,271 轮，不保存的轮中位约 2.9 秒） | 约 3,700 | 11% | 必要 |
+| 模型构造等其他进程内时间 | 2,251 | 7% | 部分必要 |
+| 父进程在 job 之间的验收 | 409 | 1% | 可保留 |
+日志不是原因：每个 job 的终端日志只有 15–25 行。
+
+三个具体原因：
+1. 重复验收随 job 数线性增长。每个新 job 启动时，batch.authorize_job 对同阶段此前的每个 job 调用 _accept → run._completed → _verify_attempt；随后 run.execute 在 local_dev_v1 下又对 plan 中所有已启动的 job 调用一次 _completed。_verify_attempt 会重新计算该 job 所有产物的 SHA256，包括每个约 60–80 MB 的 best.pt 与 last.pt。阶段 A 中这段时间从第 1 个 job 的 14 秒增加到第 60 个的 400 秒，斜率约每个已完成 job 6.9 秒。阶段 B 照此运行时，run.execute 还会扫描阶段 A 的全部 60 个 job，仅这一项估计约 13–14 小时。
+2. 每次保存检查点都做整图深度校验。experiment/checkpoint.py::save_checkpoint 先调用 validate_binding（其中 dfg_v2.model.validate_registration 的 deep 分支会重新从 NetworkX 图生成边数据、标签、文件池化行，并调用 sco_models.graph_utils.get_node_token，它对每个节点做一次 torch.cat，耗时随节点数平方增长；同时重新计算图、折、标签文件的 SHA），再调用 native.snapshot_input 重新计算整个模型输入的指纹。这些输入在训练中不会变化，但每次 val loss 创新低都要重做一遍。
+3. 训练结束后，inner_val 与 outer_test 各对 best、last 重载两次（共 8 次），每次 restore_checkpoint 前后各做一次 validate_binding，native.restore_checkpoint 内部还会 assert_model_input，同样是整图深度校验。
+
+## 1. 修订内容（只改 experiment/ 下的编排与校验代码）
+a) 验收结果缓存：
+   - 某个 job 第一次通过完整的 _verify_attempt 与 audit 后，写 acceptance_seal.json（排他创建），内容为：receipt.json 的 SHA、全部产物的路径/SHA/字节数/mtime_ns、验收代码版本、验收时间。
+   - 之后需要确认"此 job 已成功"时：核对 seal 文件自身的 SHA、receipt 的 SHA，以及每个产物的字节数与 mtime_ns 与 seal 一致；不再重新计算大文件的 SHA。任一不一致就回退到完整验收。
+   - 阶段结束时的 batch verify、run select、run summarize 仍对每个 job 做完整验收（重新计算全部 SHA），保证最终结论的证据强度不变。
+b) 去掉 run.execute 中重复的已启动 job 扫描：失败检测只需要判断"有 attempt_*.started.json 而没有成功 receipt"，不需要对成功的 job 重做完整验收；成功的 job 使用 a) 的缓存。authorize_job 与 run.execute 不再各自扫描一遍。
+c) 一个进程内只做一次深度校验：
+   - fit 开始前照常做完整的 validate_binding 与 snapshot_input，并记下模型输入相关张量（各类型 inp、图的边索引、监督 mask、标签张量）的 data_ptr 与 _version 计数，以及 graph/folds/labels 文件的 SHA（本进程只计算一次）。
+   - 之后每次保存与重载前后，只核对这些张量的 data_ptr 与 _version 没有变化，以及 schema 与 binding 字段相同；任何变化就立刻做完整校验并报错。
+   - 训练结束后、开始评估前，再做一次完整校验；评估完成后、写 receipt 前再做一次。这样每个 fit 有三次完整校验（开始、训练后、结束），而不是约 20–30 次。
+   - native.restore_checkpoint 内部的 assert_model_input 不改原文件；在 dfg_v2 的包装中改为：读取检查点后核对其中保存的 model_input 与本进程开始时的 snapshot 完全相同（字典比较，不重算指纹），再加载 state_dict。
+d) 可选，先测再决定：GPU 显存采样间隔从 0.5 秒改为 1 秒，各测一个 job 比较耗时；差异小于 2% 就保持 0.5 秒不变。
+不做：不改 best 的保存规则与检查点格式（仍在每次 val loss 创新低时写 best.pt）；不改 patience、轮数与评估方式；不复用进程（仍然每个 job 一个新进程）。
+
+## 2. 等价性证明（必须全部通过）
+- 选两个阶段 A 已完成的 job：access_control_node/0/1/G0 与 access_control_node/0/1/G3R（Prompt 7b.3 中 AC 节点在本机 GPU 上重复运行的损失差为 0）。
+- 在一个新的、仅用于证明的目录中，用新代码、同一份冻结初值、同一 fit seed 重新训练这两个 job（不写入 batch1，不计入正式结果）。
+- 要求：history.jsonl 中每一轮的 train/inner_val 损失、best_epoch、last_epoch 与阶段 A 记录完全相同；best/last 的 state_dict 张量摘要与阶段 A 相同；inner_val 与 outer_test 预测逐行相同。若 GPU 在这两个 job 上不是逐位确定的，改为与"旧代码在同一证明目录中再跑一次"的结果比较，并报告两者差异与 7b.3 噪声水平的关系；不能逐位相同时停下报告。
+- 计时对比：新旧代码各自在这两个 job 上的总耗时、启动前时间、保存检查点的平均额外时间、训练后评估时间。
+- 再用合成 20 文件批次测试：缓存命中、产物被改动（字节数或 mtime 变化）时回退到完整验收并报错、seal 被篡改时报错、张量 _version 变化时报错；stage 结束的完整 verify 仍重新计算全部 SHA。
+
+## 3. 阶段 B 的计划修订登记
+- 阶段 B 仍使用同一个 plan（prompt8_v1/batch1/plan.json）的 job 列表、初值、配置、选择规则与统计方法，不重新随机初始化，不改动任何预先登记的内容。
+- 因为编排与校验代码变了，写 stage_B_amendment.json（排他创建），内容：修订原因（上表）、变更的文件清单与新旧 SHA、证明"训练计算相关文件逐字节未变"（trainer.py、model.py、hgt_layer.py、model_input.py、init.py、protocol.py、support.py、supervision.py 以及 sco_models 下被导入的文件）、第 2 部分的等价性证明结果的 SHA、用户批准原文。
+- batch 执行器在阶段 B 读取并核对该修订记录，再检查 plan 绑定的 runtime 中，只有修订清单里的文件发生了变化；其余任何文件变化都拒绝执行。阶段 A 的结果不重新运行。
+- 用实测的新耗时重新估计阶段 B 的总时长，写进 PROGRESS，等用户授权。
+
+## 4. 测试与记录
+- 新增测试见第 2 部分末尾；dfg_v2/tests 全部、旧 DDG 回归通过。
+- 结论写进 PROMPT8B0_REPORT.md 与三份记录文档。
+```
+
+### 4.10c Prompt 8B：执行阶段 B、选择 G* 与完整报告
+
+```text
+# Prompt 8B：阶段 B（G1R、G2R、G3，90 次）、select、summarize
+
+前置：Prompt 8B.0 已完成，修订记录 stage_B_amendment.json 已获用户批准；用户的阶段 B 授权原文写入 prompt8_v1/batch1/stage_B_authorization.json（排他创建，绑定 plan 与 seal 的 SHA、修订记录的 SHA、job 数 90、资源策略 local_dev_v1）。
+
+## 1. 执行
+python -u -B -m scripts.DFG.dfg_v2.experiment.batch execute --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.json --stage B --authorization-record <stage_B_authorization.json> --amendment <stage_B_amendment.json>
+- 每项独立子进程、按 plan 顺序串行；任何失败就停止整批，保留现场，等用户确认后才 --retry。
+- 运行中只记录进度，不打开、不汇总任何 F1。
+
+## 2. 验收、选择与完整报告
+- batch verify --stage B，然后 run verify（150/150，完整重算全部 SHA）。
+- run select：按封存规则只读内层验证选出 G*，写并封存 selection.json。
+- run summarize：生成完整 REPORT.md 与 CSV，内容按 Prompt 8 第 5 部分：
+  - 五个剖面的 best/last 折均值 ± 样本标准差（Buggy-F1、Macro-F1、Precision、Recall）；
+  - 每个剖面 vs G0 的配对比较（提升/持平/下降、配对差均值与 95% bootstrap 区间、A12、节点任务的 Wilcoxon 原始 p 与每任务 4 个比较的 Holm 校正 p）；G3R vs G3 方向消融；
+  - pooled OOF、错误变化、标签争议文件敏感性、节点任务 1/2 跳机制统计（用 G*）；
+  - 若阶段 A 中间报告的 G3R − G0 与完整报告的 G3R − G0 有任何差别，说明原因（应完全相同，因为是同一批 fit）；
+  - 人工抽查表若已填写，加入精确率一节；未填写写"未完成"；
+  - 是否满足补种子条件（只记录，不执行）。
+- 写入 PROGRESS 与三份记录文档后停下，把完整报告交给用户。批次 2、批次 3 与服务器迁移都需要用户另行决定。
 ```
 
 
