@@ -2,7 +2,7 @@
 
 审查对象：`cappuccinnuo/ge-sc-llm-private`，`main@e76285a` 与 `ddg-v1.1-correctness@e7bcb84`（2026-10-22）。审查方式是通读代码与文档；云端环境装不上 tree-sitter 0.20.4，测试没有在这里运行。
 
-使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 → P7c（本地 pilot）→ P8（本地）→（以后）服务器迁移 4.9h … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
+使用方法：每次给 Codex 开新会话，先贴第 4.1 节"共享上下文"，再贴一个 Prompt。按 P0 → P1 → P1b → P2 … → P6 → P6b → P6c → P6d → P6d.1 → P6d.2 →（如有缺陷 P6e）→ P7 → P7b → P7b.1 → P7b.2 → P7b.3 → P7b.4 → P7c（本地 pilot）→ P8（本地，计划与准备）→ P8A（阶段 A 与中间报告）→ P8B（阶段 B 与完整报告）→（以后）服务器迁移 4.9h … → P9 顺序执行，每一步验收通过后再进行下一步。P6 可以和 P7 并行。
 
 ## 1. 仓库现状
 
@@ -1715,6 +1715,36 @@ node_feature="nodetype" 下的 G0 与 G3R，seed 1，共 60 次。需先按 Prom
 ## 停止条件
 - 任何 job 失败、OOM 或 verify 不通过，就停下报告，不自动重试。
 - 阶段 A 的中间报告之后、阶段 B 的汇总之后，都先停下，把结果交给用户；用户同意后再进入下一步。
+```
+
+
+
+（Prompt 8 准备状态：2026-10-26，提交 64f6b35。150 项 plan 已封存（plan SHA 07f1dbc9…、seal SHA 55aebf92…），150 份全新未训练初值与 30 个剖面家族验收通过；正式训练 0/150。用户批准的两项：另建本批次授权记录（不扩大 7c 批准的范围）；合约 5 折只作描述，节点用 zsplit 双侧 Wilcoxon，阶段 A 报原始 p，Holm 在阶段 B 完成后做。审查确认：选择规则的 F1 以百分数计（0.1pp 容差的单位正确）；"关系更少"实现为所有 job 的 canonical 数之和更少，再按剖面名，已随 plan 封存。）
+
+### 4.10a Prompt 8A：执行阶段 A 并出中间报告
+
+```text
+# Prompt 8A：执行阶段 A（G0、G3R，60 次）与中间报告
+
+前置：Prompt 8 计划已封存（prompt8_v1/batch1/plan.json，SHA 07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de）。先 git pull --ff-only origin dfg-v2，运行 cli verify 与 batch verify（应报告 0/150 完成，且计划、初值与 seal 一致）。
+
+## 1. 授权记录
+用户的阶段 A 授权原文写入 prompt8_v1/batch1/stage_A_authorization.json（新文件，排他创建），字段包括：授权原文、授权时间、plan SHA、seal SHA、stage="A"、job 数 60、资源策略 local_dev_v1、execution_authorized=true、stage_B_authorized=false。不修改 batch_authorization.json。
+
+## 2. 执行
+python -u -B -m scripts.DFG.dfg_v2.experiment.batch execute --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.json --stage A --authorization-record scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/stage_A_authorization.json
+- 每项独立子进程，按 plan 中的顺序串行；任何失败（OOM、非有限值、校验失败）立即停止整批，保留现场，不自动重试，等用户确认。
+- 运行中只记录进度（已完成 job 数、每项耗时、memory_tight、possible_memory_spill），不打开、不汇总任何 F1，直到 60 项全部完成并通过 verify。
+
+## 3. 验收与中间报告
+- batch verify --stage A：60 项全部通过（checkpoint、binding、初值、预测身份、env_source 排除、best/last 重载逐位一致、训练支持 canonical 的首轮梯度非零）。
+- batch interim --stage A：生成 REPORT_INTERIM_A.md 与 CSV，标题与文件名标"中间结果"；只比较 G3R 与 G0；报告 SHA 写入批次收据。
+- 报告内容按 Prompt 8 第 5 部分中与这两个剖面相关的部分：每任务 best/last 的折均值 ± 样本标准差（Buggy-F1、Macro-F1、Precision、Recall）、逐折配对差与提升/持平/下降计数、配对差均值与 95% bootstrap 区间、A12、节点任务的原始 Wilcoxon p（合约任务只描述）、pooled OOF、标签争议文件敏感性表、节点任务的 1/2 跳机制统计、实测耗时与显存汇总。
+- 写入 PROGRESS 与三份记录文档后停下。不执行阶段 B，不计算 G*。
+
+## 4. 停止条件
+- 任何 job 失败、OOM 或 verify 不通过：停下报告。
+- 中间报告完成后停下，把报告交给用户；阶段 B 需要用户另行授权。
 ```
 
 
