@@ -5822,3 +5822,154 @@ B完成后才run verify→run select→run summarize。当前完整run verify应
 实际配置补充：hidden=128、layers=2、heads=8、512维inside_token输入保持；合约initial/max LR=0.0005/0.01、weight_decay=5e-6；节点initial/max LR=0.0002/0.005、weight_decay=0。新计划只继承逐任务配置，不统一覆盖学习率。
 全部150份初值、30份家族绑定和关系train/inner_val/outer_test支持量已验收/导出：prepared_acceptance.json与prepared_relation_support.csv。本轮未执行新的反向传播、正式梯度审计、best/last checkpoint重载或实际外层F1；这些须每个真实fit完成后再验收。
 计划以起点HEAD加runtime逐文件SHA绑定本轮计算，随后仅追加文档并本地提交；提交哈希变化不等于计算文件变化，最终再次核对runtime。150份initial与plan/seal等运行产物留WSL，不把模型大文件自动加入Git。
+
+
+## 62. 2026-10-26：Prompt 8A 阶段 A 执行启动与冻结验收（修改AI：Codex）
+
+实施、审查与记录AI：Codex。本节为执行中记录；只登记已经完成的启动前验证、实际授权和已启动的执行流程，不将其写成60项训练完成或已经证明DDG增益。最终执行数量、成功/失败、统计与报告SHA将在结束或真实阻断后另行追加。
+
+### 62.1 需求、代码起点与允许范围
+
+用户要求读取更新后的PROMPTS.md §4.1共享上下文和Prompt 8A，基于现有实现执行阶段A；合理替代方案须先说明并征求同意，改变须留痕。还要求交接明确最终实验在显存充足服务器运行，目前只是本机资源限制。
+按要求pull同步，运行起点为dfg-v2@6dd5d986bf6fa1fade1bc8b247a9fd3035712385。此次复用已完成的Prompt8控制器、训练器、验收与报告，不修改任何生产Python代码，也不改DDG、HGT、shared_projection层、tokenizer、图、标签、折、初始化算法、优化器、学习率、早停或best选择规则。
+新增一次性辅助核验与进度脚本、启动收据和测试记录只放scripts/DFG/experiments/artifacts/dfg_v2/prompt8a_v1；正式fit仍按旧计划指定目录落盘，避免迁移或覆盖历史批次。
+
+### 62.2 阶段 A 授权与计划身份
+
+用户本轮要求执行Prompt8A的原文及时间已排他写入scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/stage_A_authorization.json。该文件绑定原plan/seal、60个A任务的精确身份与顺序、local_dev_v1；execution_authorized=true、stage_B_authorized=false。同时保留现有授权验证器要求的version、approved、plan ref、authorized_jobs、user_answer、recorded_at字段。没有改旧batch_authorization.json，旧准备授权也没有被当作新的执行授权。
+原plan SHA：07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de。
+原seal SHA：55aebf929cd578a4a9cd6df4956a4cc3816af010d1963b57a52a1559db5a59f8。
+整个计划仍150项；本轮只执行其中A的60项G0/G3R，B的90项G1R/G2R/G3仍未授权。每个任务沿原文件K折与seed1运行，合约5折、节点10折，不挑折、不更换seed、不复用旧pilot训练成绩。
+
+### 62.3 已完成的前置检查与命令口径适配
+
+已完成cli图store verify，固定输入仍为graphs_v2_r1/store.json；计划与runtime逐文件摘要一致。前置完整清点时正式结果为0/150，A60/B90。
+Prompt8A写“batch verify应报告0/150”，但现有batch verify必须指定stage且要求该阶段全部完成；run verify的CLI也没有allow-incomplete参数。采用已有API run.verify(plan_path, require_complete=False)执行启动前只读清点，只输出任务总数/完成数等结构字段。最终仍必须执行batch verify --stage A通过60项，不修改验证器、不降低最终验收门槛，也不伪造CLI参数。
+重新读取150份实际已保存untrained_initial，校验文件SHA、tensor digest、task/fold/profile、fit_seed与optimizer_steps=0；30个五剖面家族的G0共有节点类型和canonical语义参数逐值一致。没有重新随机初始化；新增关系仍保留既有各profile自身Xavier范围规则。
+证据：prompt8a_v1/preflight_acceptance.json、authorization_acceptance.json、store_verify.command.json及对应日志。前置验收耗时约27.27秒，仅为核验，不是模型训练。
+
+### 62.4 接入回归与资源条件
+
+沿mando环境执行既有定向及全量回归，无依赖升级：
+
+~~~bash
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests/test_batch.py scripts/DFG/dfg_v2/tests/test_batch_plan.py scripts/DFG/dfg_v2/tests/test_reporting.py scripts/DFG/dfg_v2/tests/test_stats.py
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+~~~
+
+定向175通过，包含于全v2的1967项；旧DDG/graph_utils223项通过，独立计数合计2190，失败/错误/跳过均0。日志、命令JSON、JUnit及test_acceptance.json位于prompt8a_v1；没有用合成测试成绩代替正式实验。
+启动前Windows E盘实际空闲264104554496字节；WSL虚拟盘空闲883910905856字节，二者分开记录，不能用虚拟盘容量替代宿主E盘空间。GPU启动前free3524MiB，通过local_dev_v1的3000MiB要求。资源事实保存在host_disk_preflight.json及前置收据。
+产物继续放现有E盘承载的WSL，不向C盘写入新的大型模型产物，不清理或删除旧实验。
+
+### 62.5 已启动流程、进度读取和异常边界
+
+现有batch控制器按计划顺序，每项独立子进程串行执行A；不同时加载/训练多个模型。正式命令为：
+
+~~~bash
+python -u -B -m scripts.DFG.dfg_v2.experiment.batch execute --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.json --stage A --authorization-record scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/stage_A_authorization.json
+~~~
+
+本节追加时训练已启动且仍执行中；故不写容易过时的已完成数量或任何F1。运行辅助脚本execute_stage.py保留命令/开始/退出证据，progress_only.py仅展示任务、epoch、耗时及memory_tight/possible_memory_spill等资源字段。
+冻结trainer本来会在子进程文件日志/history中写inner-val指标；此次不改trainer日志行为。为遵守60项验收完成前不看成绩的要求，不直接展示或tail完整训练日志，不打开/汇总F1，不据结果改变执行。控制器内部固定完整性验证包含指标重算，这用于核验身份一致性，并非选型或提前比较。
+资源策略继续local_dev_v1：启动前free≥3000MiB；运行free<100MiB仅记录memory_tight与耗时线索，不能据此断言显存换出。OOM、非有限loss、输入/数值/校验错误立即停止整批，保留attempt与失败证据，不自动重试；显式失败重跑必须另经用户确认，仍从原未训练初值开始，不称epoch续训。
+成功任务由原验证器检查绑定、best/last文件与tensor摘要、原节点/文件预测身份、env_source排除、训练结束时逐位checkpoint重载证据、首轮训练支持新增canonical的非零消息梯度。heldout-only关系保留并按无训练支持审计，不删除折或关系。
+
+### 62.6 结束验收与报告边界（尚待执行完成）
+
+只有A全部60项成功且batch verify --stage A通过后，才运行batch interim --stage A生成REPORT_INTERIM_A.md与CSV，并将报告文件SHA写入批次收据。该报告固定比较G3R与G0，best为主、last独立辅助，合约/节点与两类别分别报告；不执行B、不计算G*。
+沿用dfg-v2-nested-v1：inner_train监督，inner_val早停并选strict-min best，训练结束才评分outer_test；全固定图参与前向，不能写成完全归纳测试，也不与旧paper_kfold混写。节点口径保持原HCG节点，env_source不计分。
+统计仍按预登记规则：等权折均值与样本标准差、逐折配对差/改善持平下降、配对bootstrap区间、A12；节点原始Wilcoxon zsplit p，5折合约只描述；四项Holm校正等B完整后再算。pooled OOF与折均值分开，争议文件敏感性表保持冻结身份，机制1/2跳只描述关联。
+耗时说明：当前result.seconds覆盖fit中的训练、验证、checkpoint保存/重载和预测导出，并非纯forward/backward时间；独立子进程墙钟与控制器开销另记。测试通过、启动成功或梯度非零都不等于DDG一定提升。
+用户要求最终实验在显存充足服务器整批重跑；RTX3050 4GiB只是当前本机限制。服务器尚未实际部署/验收，后续仍需核验环境与输入/初值身份，不混用本地与服务器成绩。当前不部署服务器、不启动更多seed/其他五类/新关系/额外模型训练。
+
+
+### 62.7 2026-10-27：阶段 A 实际完成与结束验收（Codex）
+
+前述执行中记录保留；本节更新实际结束事实，不回写启动时状态。60项正式G0/G3R均成功：重入合约10、重入节点20、访问控制合约10、访问控制节点20；0失败、0重试、全部attempt_001。没有重跑旧pilot成绩，没有跳过下降/持平fold。B未执行，全部150任务中本轮已完成60、其余90仍待另行授权。
+stage_A_execute.command.json、stage_A_verify.command.json和stage_A_interim.command.json退出码均0。独立batch verify --stage A通过后才阅读完整F1并生成中间报告；执行期只看进度与资源，没有据分数改变训练。
+原plan SHA 07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de和seal SHA 55aebf929cd578a4a9cd6df4956a4cc3816af010d1963b57a52a1559db5a59f8保持，起点dfg-v2@6dd5d986bf6fa1fade1bc8b247a9fd3035712385；本轮生产代码零修改，新增辅助脚本和核验文件仍在prompt8a_v1。原150初值、30家族、frozen graph/features/labels/folds和runtime逐文件身份沿旧计划验证。
+全部60fit的best/last文件摘要、tensor摘要、binding/schema/config/initial、预测原节点或文件身份、env_source排除、训练结束时两角色best/last逐位重载证据通过。新增canonical共有2080条任务折级审计记录，其中1986条inner_train_edges>0的首轮relation_msg梯度非零，94条仅在留出部分出现的关系梯度0且保留；该数量不是2080种唯一关系，也不是所有DDG语义已被证明正确。
+本轮回归2190项独立测试通过：v2 1967、旧DDG/graph_utils223；定向175是v2子集，不重复相加。失败/错误/跳过均0，旧弃用warning未通过升级依赖消除。没有新增生产逻辑或改变测试断言来追求成绩。
+
+### 62.8 实际四任务结果：best为主、last辅助
+
+单位均为百分数；每任务独立等权折均值±样本标准差。dfg-v2-nested-v1沿用inner_train监督、inner_val早停和最低val loss选best、训练结束才评分outer_test。完整固定任务图仍参与前向，因此不能把本轮称为完全归纳未见图评估，也不使用旧paper_kfold的CV validation名称或直接对比其历史数字。节点口径为原HCG节点，env_source不计分，未改成文件＋源码行去重指标。
+
+best主表：
+
+| 任务 | 剖面 | Buggy-F1 | Macro-F1 | Precision | Recall |
+| --- | --- | --- | --- | --- | --- |
+| 重入合约 | G0 | 92.7326 ± 5.4566 | 92.9185 ± 4.9304 | 94.6429 ± 5.3571 | 91.8095 ± 10.9285 |
+| 重入合约 | G3R | 94.1612 ± 6.3579 | 94.3471 ± 5.8561 | 96.0714 ± 5.7031 | 93.2381 ± 11.5490 |
+| 重入节点 | G0 | 96.4276 ± 6.5918 | 96.5833 ± 6.2102 | 94.8838 ± 10.7762 | 98.7007 ± 1.6415 |
+| 重入节点 | G3R | 96.9344 ± 6.6127 | 97.1078 ± 6.2497 | 95.2233 ± 10.8731 | 99.3820 ± 0.5444 |
+| 访问控制合约 | G0 | 94.6066 ± 1.6532 | 94.7247 ± 1.9229 | 98.3333 ± 3.7268 | 91.2121 ± 0.4149 |
+| 访问控制合约 | G3R | 95.4075 ± 3.2189 | 95.5599 ± 3.2156 | 98.1818 ± 4.0656 | 92.8788 ± 3.9944 |
+| 访问控制节点 | G0 | 96.1753 ± 6.2062 | 96.9674 ± 4.6915 | 94.9521 ± 10.7185 | 98.1252 ± 2.0006 |
+| 访问控制节点 | G3R | 95.9716 ± 6.1255 | 96.8294 ± 4.6304 | 95.0941 ± 10.7852 | 97.5893 ± 2.1300 |
+
+last辅助表：
+
+| 任务 | 剖面 | Buggy-F1 | Macro-F1 | Precision | Recall |
+| --- | --- | --- | --- | --- | --- |
+| 重入合约 | G0 | 92.1620 ± 3.0510 | 92.2508 ± 2.9311 | 93.1429 ± 4.7213 | 91.7143 ± 7.2422 |
+| 重入合约 | G3R | 95.7037 ± 4.7257 | 95.7701 ± 4.5528 | 97.5000 ± 5.5902 | 94.5714 ± 8.7131 |
+| 重入节点 | G0 | 97.0827 ± 6.6227 | 97.1932 ± 6.2630 | 95.6442 ± 10.9093 | 99.2563 ± 0.8098 |
+| 重入节点 | G3R | 97.1568 ± 6.4290 | 97.2679 ± 6.0542 | 95.6345 ± 10.6607 | 99.3890 ± 0.6033 |
+| 访问控制合约 | G0 | 86.6580 ± 6.9124 | 86.7857 ± 7.5300 | 89.5152 ± 9.0475 | 84.2424 ± 7.0132 |
+| 访问控制合约 | G3R | 84.9255 ± 5.7693 | 85.0532 ± 6.5443 | 87.8485 ± 9.3157 | 82.5758 ± 5.6692 |
+| 访问控制节点 | G0 | 93.9087 ± 5.7938 | 95.1391 ± 4.3016 | 93.7821 ± 10.2900 | 95.0205 ± 6.1706 |
+| 访问控制节点 | G3R | 94.7086 ± 5.9949 | 95.6912 ± 4.5592 | 93.5437 ± 10.8126 | 96.7570 ± 3.9015 |
+
+best配对方向与差值：
+
+| 任务 | G0 Buggy-F1 | G3R Buggy-F1 | G3R−G0（pp） | 提升/持平/下降折 |
+| --- | --- | --- | --- | --- |
+| 重入合约 | 92.7326 ± 5.4566 | 94.1612 ± 6.3579 | +1.4286 | 1/4/0 |
+| 重入节点 | 96.4276 ± 6.5918 | 96.9344 ± 6.6127 | +0.5068 | 10/0/0 |
+| 访问控制合约 | 94.6066 ± 1.6532 | 95.4075 ± 3.2189 | +0.8009 | 1/3/1 |
+| 访问控制节点 | 96.1753 ± 6.2062 | 95.9716 ± 6.1255 | -0.2037 | 2/5/3 |
+
+last配对方向与差值：
+
+| 任务 | G0 Buggy-F1 | G3R Buggy-F1 | G3R−G0（pp） | 提升/持平/下降折 |
+| --- | --- | --- | --- | --- |
+| 重入合约 | 92.1620 ± 3.0510 | 95.7037 ± 4.7257 | +3.5417 | 3/1/1 |
+| 重入节点 | 97.0827 ± 6.6227 | 97.1568 ± 6.4290 | +0.0741 | 8/0/2 |
+| 访问控制合约 | 86.6580 ± 6.9124 | 84.9255 ± 5.7693 | -1.7325 | 0/3/2 |
+| 访问控制节点 | 93.9087 ± 5.7938 | 94.7086 ± 5.9949 | +0.7999 | 3/2/5 |
+
+best统计（G3R−G0）：
+
+| 任务 | best ΔBF1均值±样本SD（pp） | 95%配对bootstrap区间（pp） | A12 | 原始p |
+| --- | --- | --- | --- | --- |
+| 重入合约 | +1.4286 ± 3.1944 | [0.0000, 4.2857] | 0.6000 | 不作检验 |
+| 重入节点 | +0.5068 ± 0.5033 | [0.2515, 0.8416] | 0.6400 | 0.001953125 |
+| 访问控制合约 | +0.8009 ± 4.6092 | [-2.5974, 5.0000] | 0.5800 | 不作检验 |
+| 访问控制节点 | -0.2037 ± 0.7030 | [-0.6734, 0.0950] | 0.4650 | 0.605576616 |
+
+重入节点best的10/10折改善，均值+0.506835pp，95%配对折bootstrap区间[0.251500,0.841574]，原始Wilcoxon p=0.001953125。last只+0.074054pp、8升2降、p=0.322265625；这说明checkpoint口径会影响观察到的增益大小，不能用较有利者替换预登记best。
+重入合约best仅1升4平，+1.428571pp来自fold2；访问控制合约best为1升3平1降，均值+0.800866pp，区间包含0。访问控制节点best为2升5平3降、−0.203717pp，p=0.6055766163；last虽+0.799890pp，但3升2平5降且p=1.0。当前证据支持“重入节点best在本固定seed/folds上有方向一致的小幅收益”，不支持“两个漏洞、两种粒度全部稳定改善”。
+合约5折不做推断性p检验；节点为双侧zsplit，含零差值时保存库给出的近似/警告。Holm四项比较家族尚未完整，继续pending_full_family；本轮原始p不宣称已通过多重校正。bootstrap按配对折10000次seed0；折共享训练数据，区间/SD是描述性，不是独立seed不确定性。A12为两组折分数交叉比较，不是提升折比例。
+pooled OOF、冻结争议文件敏感性、逐文件错误/概率变化及方向正确的1/2跳机制分解均保存在原报告和对应CSV。主结果没有删困难文件或改标签。机制覆盖仅描述关联；新增参数、聚合和优化轨迹也改变，不能把全部分差解释为纯依赖语义贡献。
+
+### 62.9 实测耗时、显存及重复完整性核验成本
+
+控制器execute墙钟33548.077秒（9.319h）；60项result.seconds合计16202.666秒（4.501h），后者包括fit内部验证、checkpoint保存/重载和预测导出，并非纯GPU训练时间。独立verify208.231秒，interim432.694秒；interim内部再次verify并独立重算所有报告。与最初约5.83h排期相比实际控制器更久，不能归咎于每轮打印一条文字日志。
+只读审计repeated_verification_timing_audit.json发现：每个新子进程正式attempt开始前对前面所有成功job做两遍完整验收，纯新鲜60项批次的这部分计数为2×sum(k−1)=3540次；未包括当前job的收尾/父控制器验收、最终verify/report。每次涉及图/文件SHA、CPU checkpoint加载及tensor校验等，累计工作随批次大小二次增长。本轮保持封存代码、门槛和顺序，不跳过这些核验。
+其中定点计时只覆盖前31项：attempt前观察区间合计4310.602秒，子进程墙钟合计15966.277秒。该区间还包含进程导入、计划核验、锁/预检和系统负载，缺少逐函数计时，不能全部精确归因到某一个重复调用或把前31数据当作全60测量；context文件mtime也不是纯CUDA初始化时间。
+后续若获用户授权，可设计不削弱篡改/恢复检测的验收复用或合并同进程重复检查，另封存计算批次并测试。当前只是诊断与未来建议，没有改本批数值或绕过验收，不承诺未经测量的提速幅度。
+全批峰值allocated1893.4678MiB、reserved2148MiB，最低整卡空闲18MiB。5个memory_tight全部来自R合约G3R的fold0–4（最低分别51/39/46/18/41MiB）；1个possible_memory_spill为其fold2。该标志由后续epoch耗时超过前3轮中位数两倍触发，只是耗时线索，不证明GPU换出，保存和系统负载也可解释。无OOM、非有限loss或资源验收失败；仍按原local_dev_v1执行。
+
+### 62.10 交付、限制与停止位置
+
+完整中间报告目录：scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/reports/interim_A/。
+- REPORT_INTERIM_A.md SHA256：55933fa880ef9e4f26c6c1d502f4f959d469d0a8fc7aba734403d8a589443b51
+- report.json SHA256：7501eecd75a5326bb50618dba0b9a693a24d6f5df70172242bfe9accc53b80c1
+- report_receipt.json绑定报告及各表；batch1/batch_records/interim_A.json SHA256：d0cc6f8f2d778a27b194c46891c789eb23a457041de06dbfaf6af78587ba695d，status=complete、completed_jobs=60、selected_profile=null、next_stage_execution_authorized=false。
+- 15份CSV包括fold_metrics、file_metrics、pooled_oof、error_changes、changed_predictions、mechanism、sensitivity_fold_means、best_fold_means、last_fold_means、paired、holm、fit_resources、relation_support_and_gradients、disputed_file_metrics、manual_dependency_review。
+
+报告用排他新目录生成，旧报告、旧plan/seal/attempt未覆盖。新增易读摘要为scripts/DFG/dfg_v2/PROMPT8A_REPORT.md；本节、HANDOVER、PROGRESS只追加，保留启动记录与旧正文。
+review_v1的512条和review_v1b的111条人工边判断仍为空，人工precision为“未完成”；不能将Oracle/测试通过等同人工标注完成。阶段B、G*、Holm完整校正、额外seed、聚合/方向细分实验、其他五类、服务器迁移均未执行。此A比较不能单独分离L1/L2/L3或反向边的因果贡献。
+最终实验将在用户安排的显存充足服务器整批重跑；目前RTX3050 4GiB只是本机限制。服务器尚未实际部署或验收，届时需核验软件/硬件、输入/初值与新批次身份，不能混用本机和服务器成绩。本轮已停在60项A验收和中间报告完成，不自动启动90项B；下一阶段需要另行授权。实施、复核及记录AI：Codex。

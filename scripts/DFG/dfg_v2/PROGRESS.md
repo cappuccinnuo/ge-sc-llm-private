@@ -1796,3 +1796,53 @@ Prompt8时长只作估计：150fit约14.79h，阶段A60约5.83h，B90约8.95h；
 完整报告和逐文件实施见PROMPT8_REPORT.md、training_changes §61。A执行前仍需按§4.10第1部分确认；A中间报告固定G3R/G0，不选G*，Holm等待B；中间报告后停下再确认B。未授权执行记录不会伪造为approved，未启动GPU训练、额外seed、诊断组或其他五类。本地提交，不自动push。
 
 未来五类按EXTENDING：注册任务→核验源码锚点/token→生成封存fold→cli build→run plan(G0与R/AC内层选择的G*)，不在新增类别重新选型；现在仅预留通用接口。最终正式实验按用户计划在显存充足服务器整批运行，当前4GiB只是本机开发约束；服务器环境/输入迁移未验收，不与本机分数混用。
+
+
+## 2026-10-26 Prompt 8A：阶段 A 启动与执行中记录（Codex）
+
+已读更新§4.1/8A并pull同步至6dd5d986bf6fa1fade1bc8b247a9fd3035712385。本节仅登记启动事实和验收准备，不代表60项完成；最终结果或阻断原因后续追加。未修改任何生产代码，旧DDG/HGT/shared层/tokenizer/trainer、固定图/标签/fold、初始化及数值训练规则保持。
+
+继续使用prompt8_v1/batch1原计划：plan SHA 07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de，seal SHA 55aebf929cd578a4a9cd6df4956a4cc3816af010d1963b57a52a1559db5a59f8。用户本轮8A原文已排他写入stage_A_authorization.json，明确只授权A的60项G0/G3R，B=false；不修改旧准备授权、plan或seal，不复用旧pilot成绩。
+
+前置cli store verify通过。文档初始“batch verify报告0/150”不适用现有要求完整阶段的CLI，改调用已存在run.verify(require_complete=False)只读清点；前置时0/150，最终仍严格batch verify --stage A验收60项。150份保存初值和30个家族逐值核验通过，optimizer_steps=0、fit_seed和文件/tensor SHA一致，未重新初始化。证据preflight_acceptance.json，runtime精确匹配。
+
+既有定向175通过（包含于v2），全v2 1967加旧223合计2190 passed，0失败/错误/跳过；实际命令与日志/JUnit在新prompt8a_v1，详见training_changes §62。新辅助preflight.py、validate.py、execute_stage.py、progress_only.py仅置该运行产物目录，不接入或更改封存计算代码。
+
+按原plan顺序启动独立子进程串行阶段A；执行中只看epoch/耗时/资源字段，不查看/汇总F1，待全部60项通过后才生成中间报告。冻结trainer原有日志照常写文件，不tail含F1全文。OOM/非有限值/校验错误停整批、不自动retry；成功任务核验后复用，不按成绩挑折。运行free低于100MiB仅记memory_tight，启动free≥3000MiB不变。前置GPU free3524MiB；E盘实际free264104554496字节，WSL虚拟free883910905856字节，分开记录。产物仍在E盘承载WSL，不清理旧数据。
+
+结束步骤为batch verify --stage A，再batch interim --stage A；报告REPORT_INTERIM_A.md/CSV及文件SHA绑定批次收据。只G3R−G0，best主/last辅，节点原始p、合约描述统计、Holm待B，不计算G*，完成后停下。此刻不宣称训练、完整梯度/重载验收或DDG收益已完成。
+
+**最终实验按用户安排在显存充足服务器整批重跑，当前RTX3050 4GiB仅本机限制。** 服务器尚未部署或实际验收，未来不能混合本机/服务器成绩；本轮不开展服务器迁移或阶段B。实施、核验、记录AI：Codex；三份文档旧正文只追加保留。
+
+
+## 2026-10-27 Prompt 8A 完成：60项阶段 A 与中间报告（Codex）
+
+启动节及历史正文保留。本轮生产Python零修改，复用6dd5d98对应冻结runtime；prompt8_v1/batch1 plan SHA仍07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de，seal仍55aebf929cd578a4a9cd6df4956a4cc3816af010d1963b57a52a1559db5a59f8。150保存初值不重建，A的60项全完成、0失败/重试、均attempt_001；B=0执行。execute、独立verify、interim均退出0，60通过后才打开F1。
+
+best主结果（Buggy-F1百分数、等权折均值±样本SD；差值pp）：
+
+| 任务 | G0 Buggy-F1 | G3R Buggy-F1 | G3R−G0（pp） | 提升/持平/下降折 |
+| --- | --- | --- | --- | --- |
+| 重入合约 | 92.7326 ± 5.4566 | 94.1612 ± 6.3579 | +1.4286 | 1/4/0 |
+| 重入节点 | 96.4276 ± 6.5918 | 96.9344 ± 6.6127 | +0.5068 | 10/0/0 |
+| 访问控制合约 | 94.6066 ± 1.6532 | 95.4075 ± 3.2189 | +0.8009 | 1/3/1 |
+| 访问控制节点 | 96.1753 ± 6.2062 | 95.9716 ± 6.1255 | -0.2037 | 2/5/3 |
+
+last辅助结果：
+
+| 任务 | G0 Buggy-F1 | G3R Buggy-F1 | G3R−G0（pp） | 提升/持平/下降折 |
+| --- | --- | --- | --- | --- |
+| 重入合约 | 92.1620 ± 3.0510 | 95.7037 ± 4.7257 | +3.5417 | 3/1/1 |
+| 重入节点 | 97.0827 ± 6.6227 | 97.1568 ± 6.4290 | +0.0741 | 8/0/2 |
+| 访问控制合约 | 86.6580 ± 6.9124 | 84.9255 ± 5.7693 | -1.7325 | 0/3/2 |
+| 访问控制节点 | 93.9087 ± 5.7938 | 94.7086 ± 5.9949 | +0.7999 | 3/2/5 |
+
+协议为dfg-v2-nested-v1：inner_train监督、inner_val早停/选best、结束后outer_test评分；全固定图前向，非完全归纳评估，不直接比旧paper_kfold。原HCG节点计分，env_source不计分。重入节点best10折全改善，均值+0.506835pp、bootstrap95%[0.251500,0.841574]、原始p0.001953125；last仅+0.074054pp且p0.322265625。访问控制节点best−0.203717pp、p0.6055766163；两项合约收益集中个别折，不称全面稳定提升。四任务完整BF1/MF1/P/R、pooled OOF和敏感性表见中间报告；Holm等B，不计算G*。
+
+验收：全部60项binding/checkpoint/预测身份/env排除及训练时best/last逐位重载证据通过；1986条任务折级训练支持canonical首轮消息梯度>0、94条heldout-only零梯度并保留。测试1967v2＋223旧=2190 distinct passed、0失败/跳过；175定向包含在v2，不重复计数。测试及结束命令日志在prompt8a_v1。
+
+资源与耗时：execute33548.08秒（9.32h），fit内部合计16202.67秒（4.50h，含验证/保存/重载/导出）；另verify208.23秒、interim432.69秒。每个新任务启动前两遍完整验收所有前项，60项对应3540次既有结果检查，存在CPU/I/O编排成本。只读timing audit前31项启动前区间4310.60秒、子进程15966.28秒，不能外推为全批纯校验计时；本批未改控制器，也没有把打印日志等同这些检查。最大allocated/reserved1893.47/2148MiB、最低free18MiB；5项memory_tight、1项possible_memory_spill，后者只是时长提醒，不证明显存换出。无OOM/数值/验收失败。
+
+报告prompt8_v1/batch1/reports/interim_A/REPORT_INTERIM_A.md SHA 55933fa880ef9e4f26c6c1d502f4f959d469d0a8fc7aba734403d8a589443b51，report.json＋15CSV由report_receipt及batch_records/interim_A.json绑定。详细记录training_changes §62.7–62.10及PROMPT8A_REPORT.md。人工512/111边表仍未填，完整语义/泛化/因果贡献未证明；不做B、G*、额外seed或其余五类。
+
+最终正式实验按用户安排在足够显存服务器整批重跑；当前4GiB只约束本机，服务器环境未实际验收，不混本机和服务器成绩。阶段A中间报告交付后停止；下一阶段另行授权。实施、复核与记录AI：Codex。
