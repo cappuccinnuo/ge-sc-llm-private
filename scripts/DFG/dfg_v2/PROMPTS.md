@@ -1641,60 +1641,82 @@ Prompt 7 时进程外只占约 0.55 GB；7b.3 全程约 2.0–2.3 GB，而且在
 ```
 
 
+（Prompt 7c 状态：2026-10-26 已完成并验收，提交 79d40da。资源策略 local_dev_v1 经用户批准；8/8 pilot 完成，0 失败、0 重试，全部从冻结的未训练初值开始。只有重入合约 G3R 标 memory_tight（最低空闲 81 MiB），无 OOM、无 possible_memory_spill。四个 G3R 共 266 个训练支持 canonical 第一轮梯度全部非零，12 个只在留出集中出现的单列；8 项 best/last 重载 logits 逐位一致；env_source 未进入任何预测。Prompt 8 本地时长估计：阶段 A 约 5.8 小时、阶段 B 约 9.0 小时、合计约 14.8 小时。Codex 对 7c 背景中"已发生显存换出"的推断作了正确的限定：不同时刻的数值相加不能证明换出。）
+
 ### 4.10 Prompt 8：R/AC 实验与统计
 
-先用 1 个种子跑 5 个剖面（150 次，约 7 小时），之后的诊断组和补种子都要你确认才跑；其余 5 类只写扩展说明。
+先按阶段 A（G0、G3R，60 次）→ 阶段 B（G1R、G2R、G3，90 次）跑完批次 1；诊断组和补种子都要你确认才跑；其余 5 类只写扩展说明。
 
 ```text
-# Prompt 8：R/AC 实验与统计
+# Prompt 8：R/AC 实验与统计（本地，资源策略 local_dev_v1）
 
-前置：Prompt 6 系列（到 6d.2）、Prompt 7、7b、7b.1、7b.2、7b.3、7b.4 与 7c 都验收通过；当前在本地运行（资源策略 local_dev_v1），一个批次内的全部训练都在同一台机器上进行，迁移到服务器后整批重跑、不与本地结果混用；全部剖面使用 layer_impl=shared_projection；图存储为 graphs_v2_r1/store.json。先在 PROGRESS.md 写出按 Prompt 7 实测耗时计算的预计总时长，等用户回复确认后再执行 execute。
+前置：Prompt 7c 已完成（提交 79d40da）。先 git pull --ff-only origin dfg-v2，运行 cli verify（graphs_v2_r1/store.json）与 run verify（prompt7c_v1/pilot/plan.json）。
+所有训练在本机进行；以后迁移到服务器时整批重跑，不与本地结果混用。全部剖面 layer_impl=shared_projection、reducer=mean（批次 2 除外）、inside_token 特征。
+协议 dfg-v2-nested-v1：inner_train 更新参数，inner_val 早停并选 best，训练结束后才评估 outer_test。这与历史 paper_kfold 协议不同，加上层实现的反向累加顺序不同，G0 的结果不能与历史 F1 直接比较；报告中写明。
 
-## 批次 1：主矩阵（必跑）
-- 分阶段执行（本地推荐）：plan 一次性写入全部 150 次与选择规则并封存，执行顺序为阶段 A（G0 与 G3R，60 次）→ 阶段 B（G1R、G2R、G3，90 次）。
-  - 阶段 A 结束后可以出一份中间报告，只比较 G3R 与 G0（G3R 是预先指定的主方案），标明"中间结果"；它不改变 plan、选择规则或阶段 B 的执行。
-  - G* 只在阶段 B 完成后按预先登记的内层验证规则选出；中间报告不得用于挑选剖面。
-- 任务：reentrancy_contract（5 折）、reentrancy_node（10 折）、access_control_contract（5 折）、access_control_node（10 折）。
-- 剖面：G0、G1R、G2R、G3R、G3；种子只用 seed 1。
-- 共 30 × 5 = 150 次。按 Prompt 7 实测耗时估算总时长（参考：此前在 RTX 3050 4GiB 上约 165 秒/次，约 7 小时）。
-- 命令示例：run plan --tasks <四个任务> --profiles G0,G1R,G2R,G3R,G3 --seeds 1 --output <新批次>
+## 0. 批次执行器（新增 experiment/batch.py，不改 trainer 与数值规则）
+- 把 Prompt 7c 的 execute_pilot.py 整理为正式模块：python -B -m scripts.DFG.dfg_v2.experiment.batch execute --plan <plan> --stage A|B。
+- 按 plan 中登记的顺序，每个 job 一个独立子进程（调用 run execute --only），单 GPU 串行。
+- 成功且 verify 通过的 job 直接跳过（可断点续跑）；任何 job 失败（OOM、非有限值、校验失败）就停止整个批次，保留失败现场，需用户确认后用 --retry 从同一未训练初值重跑。
+- 日志排他创建，不覆盖。
+- 顺序：阶段内按 任务 → 折 → 剖面 排列（同一折的各剖面相邻），这样中途停止时已完成的部分仍是完整的配对。
 
-## 批次 2：聚合诊断（可选，批次 1 结束后由用户决定）
-- G0M 与 G3RM（分别是 G0 和 G3R 配 reducer="nonempty_mean"），seed 1，共 60 次，约 2.8 小时。
-- G3RM − G0M 与 G3R − G0 的对比，用来区分"新关系的信息"与"跨关系平均分母变化"两种效应。反向关系会让关系总数翻倍，这个诊断放在双向主方案上做。
+## 1. plan（一次性写入批次 1 的全部 150 次并封存）
+- 命令：run plan --store graphs_v2_r1/store.json --tasks reentrancy_contract,reentrancy_node,access_control_contract,access_control_node --profiles G0,G1R,G2R,G3R,G3 --seeds 1 --layer-impl shared_projection --resource-policy local_dev_v1 --approval-record <prompt7c_v1/local_policy_approval.json> --output artifacts/dfg_v2/prompt8_v1/batch1
+- plan 中登记：阶段划分（A：G0、G3R；B：G1R、G2R、G3）与执行顺序、第 2 部分的主要终点、第 4 部分的选择规则与补种子条件、第 5 部分的统计方法。封存后不能修改。
+- 不复用 Prompt 7c 的 8 次 pilot：它们在 plan 封存之前运行，按预先登记的原则不进入正式结果；fold0 的 G0、G3R 在本批次中重新训练。pilot 的 F1 在本步结束前不打开、不报告。
+- 磁盘：每次 fit 保存 best.pt 与 last.pt（含优化器状态），按 pilot 实测大小估算 150 次的总量；plan 时检查剩余空间至少是估算值的 2 倍。
+- 时长：在 PROGRESS 中写出按 Prompt 7c 实测的估计（阶段 A 约 5.8 小时、阶段 B 约 9.0 小时），等用户确认后才执行 execute。
 
-## 批次 3：补种子（由 selection.json 中预先登记的内层验证条件决定是否触发，再经用户确认执行）
-- G0 与 G* 再跑 seed 2、3：2 × 2 × 30 = 120 次，约 5.5 小时。
-- 所有种子用同一套冻结折；同一 (任务, 折, 种子) 下 G0 与 G* 共享初值。
+## 2. 预先登记的主要终点与中间报告
+- 主要终点：G3R 相对 G0 在外层测试上的 Buggy-F1（best checkpoint），按任务报告；节点任务（10 折）做配对 Wilcoxon，合约任务（5 折，最小 p 值 0.0625）只作描述性比较。
+- 阶段 A 完成后，运行 batch interim --stage A：只生成 G3R 与 G0 的对比报告（第 5 部分中与这两个剖面有关的全部表格），文件名与标题都标"中间结果"，并把报告的 SHA 写入批次记录。
+- 中间报告不改变 plan、选择规则或阶段 B 的执行；G* 只在阶段 B 完成后由 select 按第 4 部分的内层验证规则计算。
+- 中间报告之后停下，把结果交给用户，用户确认后再执行阶段 B。
 
-## 可选组（用户确认后才跑）
-node_feature="nodetype" 下的 G0 与 G3R，seed 1，共 60 次。
+## 3. 阶段 B 与汇总
+- batch execute --stage B；完成后 run verify、run select（写并封存 selection.json）、run summarize（selection.json 不存在时拒绝）。
 
-## 预先登记的选择规则（写进批次 1 的 plan.json 后不能修改）
-- G* = 四个任务的内层验证 Buggy-F1（每折取 best checkpoint 在内层验证集上的值，每个任务先对折取平均）的算术平均最高的剖面。候选只包括 G1R、G2R、G3R、G3。如果与第二名的差距小于 0.1pp，选关系更少的那个。外层测试分数不参与选择。
+## 4. 预先登记的选择规则（写进 plan 后不能修改）
+- G* = 四个任务的内层验证 Buggy-F1（每折取 best checkpoint 在内层验证集上的值，每个任务先对折取平均）的算术平均最高的剖面。候选只包括 G1R、G2R、G3R、G3。若与第二名的差距小于 0.1pp，选关系更少的那个。外层测试分数不参与选择。
 - 补种子触发：G* 与 G0 的四任务平均内层验证 Buggy-F1 之差的绝对值 ≥ 0.2pp。
-- 由 run select 计算并封存 selection.json 后，才允许 summarize 输出外层测试结果。报告中五个剖面的外层测试结果全部列出，并注明 G* 的选择基于内层验证。
+- 报告中五个剖面的外层测试结果全部列出，并注明 G* 的选择基于内层验证。
 
-## 统计 dfg_v2/experiment/stats.py（任务列表由参数传入，不写死类别）
-- 每个 (类, 任务, 剖面)：各折的均值 ± 样本标准差；多种子时先对折取平均，再报告种子间的均值 ± 标准差。best 为主表，last 另列一表。
+## 5. 统计 dfg_v2/experiment/stats.py（任务列表由参数传入，不写死类别）
+- 每个 (任务, 剖面)：各折的均值 ± 样本标准差；多种子时先对折取平均，再报告种子间的均值 ± 标准差。best 为主表，last 另列一表。指标：Buggy-F1、Macro-F1、Precision、Recall。
 - 配对比较：
   - 每个剖面 vs G0；另加 G3R vs G3（方向消融）；跑了批次 2 时加 G3RM vs G0M。
   - 配对单位为折（多种子时为 (折, 种子)）。
-  - scipy.stats.wilcoxon 双侧检验，零差值用 zero_method="zsplit" 并在报告中写明；同时报告 Vargha-Delaney A12，以及配对差的均值和 95% bootstrap 置信区间（10000 次，seed 0）。
-  - 4 个"剖面 vs G0"的比较做 Holm 校正。
-  - 合约任务只有 5 折，配对 Wilcoxon 的最小 p 值为 0.0625；单种子下合约任务只作描述性比较，报告中要写明。
+  - scipy.stats.wilcoxon 双侧检验，零差值用 zero_method="zsplit" 并在报告中写明；同时报告 Vargha-Delaney A12，以及配对差的均值与 95% bootstrap 置信区间（10000 次，seed 0）。
+  - 每个任务内 4 个"剖面 vs G0"的比较做 Holm 校正。
+  - 合约任务只有 5 折，配对 Wilcoxon 的最小 p 值为 0.0625；单种子下合约任务只作描述性比较，报告中写明。
 - pooled OOF：把外层测试预测按任务汇总，计算一次总体 Buggy-F1 与 Macro-F1。
-- 机制统计：每个任务中，G0 错而 G* 对的节点、以及 G0 对而 G* 错的节点，有多少落在 v2 新增关系的 1 跳/2 跳范围内，按关系分解。
+- 机制统计（节点任务）：G0 错而 G* 对、以及 G0 对而 G* 错的节点中，有多少落在 v2 新增关系的 1 跳/2 跳范围内，按关系分解。
 - 标签争议文件（R buggy_18、R buggy_36、AC buggy_18、AC buggy_26，以及 artifacts/targeted_label_review_v1 中列出的文件）单独一张表；主表另给一个"排除这些文件"的敏感性结果。
-- 输出 <批次>/REPORT.md（全部表格用 markdown）和对应的 CSV。
+- 若用户已填写 review_v1 / review_v1b，用 score_review 的结果在报告中加一节"依赖边人工抽查精确率"；未填写就写"未完成"。
+- 解释上的提醒写进报告：历史 F1 已在 94%–96% 附近，单种子、5 折合约任务的差异可能很小，以置信区间与配对方向为主，不以单一点估计下结论。
+- 输出 <批次>/REPORT.md（全部表格用 markdown）与对应 CSV。
+
+## 批次 2：聚合诊断（可选，批次 1 结束后由用户决定）
+- 前置检查：nonempty_mean 的共享投影在 7b.2 中只完成了 float64 静态检查，3 轮轨迹因 CPU 内存被跳过，GPU 上也没有比较过。先在 GPU 上对 AC 节点 fold0 的 G0 与 G3R 做 original 两次与 shared 一次的 3 轮对照，门槛 max(1e-4, 3 × 噪声)，通过后才执行。
+- G0M 与 G3RM（G0 和 G3R 配 reducer="nonempty_mean"），seed 1，共 60 次。时长按批次 1 中 G0、G3R 的实测估计。
+- G3RM − G0M 与 G3R − G0 的对比，用来区分"新关系的信息"与"跨关系平均分母变化"两种效应。
+
+## 批次 3：补种子（由 selection.json 中预先登记的条件决定是否触发，再经用户确认执行）
+- G0 与 G* 再跑 seed 2、3：2 × 2 × 30 = 120 次。种子按 Prompt 7 第 4 部分的规则派生（constructor 另加 100000 × (seed − 1)）。
+- 所有种子用同一套冻结折；同一 (任务, 折, 种子) 下 G0 与 G* 共享初值。
+
+## 可选组（用户确认后才跑）
+node_feature="nodetype" 下的 G0 与 G3R，seed 1，共 60 次。需先按 Prompt 7 第 4 部分实现固定的节点类型词表。
 
 ## 以后扩展到其余 5 类（现在不执行）
 在 PROGRESS.md 末尾写一段说明，按 scripts/DFG/dfg_v2/EXTENDING.md 的步骤：注册新类别 → Prompt 0 中该类的锚点与 token 核对 → 生成并封存折 → cli build --tasks <新类> → run plan --tasks <新类> --profiles G0,<G*> --seeds 1。G* 沿用 R/AC 上按上面规则选出的剖面，不在新类别上重新挑选。
 
 ## 停止条件
-- 任何 job 失败、显存溢出或 verify 不通过，就停下报告，不自动重试。
-- 每个批次结束后先停下，把 summarize 结果交给用户；用户同意后再生成下一个批次的 plan。
+- 任何 job 失败、OOM 或 verify 不通过，就停下报告，不自动重试。
+- 阶段 A 的中间报告之后、阶段 B 的汇总之后，都先停下，把结果交给用户；用户同意后再进入下一步。
 ```
+
 
 ### 4.11 Prompt 9（可选）：新源码的端到端推理
 
