@@ -1725,3 +1725,48 @@ guard43.00s、完整子进程119.56s、完成epoch19.17s；partial best保留，
 全部1725v2＋223旧=1948通过，0失败/跳过，8/29既有warning；新增64包含其中。11,271旧跟踪文件仅run.py+三文档变化、538旧产物SHA不变，原文前缀保留。HGT/shared层/model/trainer/DDG/token/图/标签/fold/优化器不变。详情PROMPT7B4_REPORT.md、training_changes §59；新产物prompt7b4_v1留WSL。
 
 最终实验按用户计划在显存充足服务器；当前本地4GiB限制不应迫使继续改模型。服务器需另核验环境/路径/输入初值身份。本轮状态baseline_passed_pilot_memory_stopped，到资源门槛停止，本地commit、不自动push。
+
+
+## 2026-10-26 Prompt 7c：本机local_dev_v1执行前登记（Codex）
+
+开始读取26ea4cc的服务器迁移版时已询问服务器信息；同步期间文档更新到3aac85f，最新§4.9g明确改为本地8pilot，迁移移到以后§4.9h。本轮按最新文档执行；没有独立7c.4标题，包含本Prompt第4部分测试记录。WSL直接pull因DNS失败；通过用户既有Windows代理fetch，再由WSL git merge --ff-only核验，当前HEAD3aac85f。没有实施服务器迁移工具。
+
+用户明确回复“暂时不考虑服务器，当前实验只是在本机，就是之前配置”，并批准“同意按 local_dev_v1 完成本地 8 次 pilot（推荐）”。新策略只用于新prompt7c_v1计划：基线free>=3000MiB；运行free<100只记memory_tight、不因此停止；OOM、非有限损失及其他执行/身份错误停止且不自动retry。完整批准原文、范围、8任务和直接来源plan SHA写入local_policy_approval.json，后续由plan引用。旧7b4的100MiB硬停止政策和失败产物保留，不重判成成功。
+
+先做资源政策/计划来源链/验收最小接入和回归，再克隆原8份实际初值，R合约G3R先跑，通过完整梯度/重载/预测身份验收后其余7项独立进程串行；不重跑数值等价诊断、不改HGT/shared层/model/trainer/DDG/token/图/标签/fold/优化器/早停。
+审查修正文档推测：旧跨时刻reserved与另次context之和不能证明发生显存换出；第一轮完成不保证后续不会OOM。possible_memory_spill仅耗时异常线索，保存checkpoint/系统负载也可导致；固定前3轮中位数收齐后，从第4轮起比较>2倍，不据此改训练或自动中断。
+
+旧11,277跟踪文件与582历史7系列产物已记录SHA，三文档旧字节前缀封存。本轮产物只写新prompt7c_v1，仍在现有WSL。最终正式实验预计在显存充足服务器完成；本轮只本地开发pilot，不将本地与未来服务器结果混用。完成8项后只估算本地60/90/150fit时间，不自动进入Prompt8。
+
+
+## 2026-10-26 Prompt 7c 完成：local_dev_v1与8项pilot
+
+实施AI：Codex；用户批准已在本节执行前登记，approval JSON绑定新plan。
+- 新增 experiment/local_dev.py：继承现有资源观察器；只将运行期低空闲判定改为提醒。直接读取冻结trainer原有history.jsonl，每轮seconds及连续epoch身份必须有效。前3轮中位数固定，从第4轮开始严格超过2倍才标possible_memory_spill。少于3轮明确不足以形成基线。
+- 修改 experiment/preflight.py：独立注册local_dev_v1；启动≥3000MiB，运行100MiB字段在新版本中为提醒阈值。旧DEFAULT策略和默认行为保持。工厂仅显式新策略时创建LocalResources。
+- 修改 experiment/resource_plan.py：新增prompt7c-local-resource-plan-v1来源协议；P7c→P7b4→P7b3逐层只读验证。绑定用户批准JSON、旧plan/seal与8项身份；逐一核验旧initial文件SHA/tensor digest/optimizer_steps=0/fit_seed。仅允许资源编排相关5个运行文件变化。
+- 修改 experiment/run.py：新增--resource-policy local_dev_v1及--approval-record；向资源观察器传policy/history，result和receipt绑定提醒标志，验收从原采样与history独立重算。失败任务阻止新进程跳过后继续批次，只能用户确认后显式--retry同一任务，从原未训练初值开始。
+- 修改 experiment/precision_gpu.py：audit_pilot_result只在显式传入新策略时切换资源验收。新canonical梯度、heldout支持及checkpoint逐位重载要求不变，默认调用仍保留旧100MiB门槛。
+- 新增tests/test_local_dev.py；追加test_resource_plan.py和test_preflight_integration.py。覆盖低显存继续/旧策略停止、基线、OOM保留与批次停止、时长突增、篡改证据拒绝、成功复用、初值/来源不一致拒绝等。
+- 本轮未修改hgt_layer.py、model.py、experiment/trainer.py、experiment/resources.py、原sco_models、DDG分析器、图/标签/token/fold或任何训练数值规则。
+
+实际8/8通过，0失败/重试；G0/G3R四任务fold0 seed1。全部新canonical梯度、留出支持、env_source排除、预测标签身份、best/last重载通过。原50epoch/早停/学习率/初值保持；协议为dfg-v2-nested-v1，全固定图前向，不能与历史paper_kfold混写。plan SHA 363814c88c3dd9e22aa61a9bf6e2f5ee5f59b7dfc7262d6685e671e287aa94e5。
+
+| 任务/剖面 | best/last轮 | 启动free | peak allocated/reserved | 最低free | 进程秒 |
+| --- | --- | --- | --- | --- | --- |
+| 重入合约/G0 | 8/15 | 3725 | 1229.7/1484 | 707 | 448.75 |
+| 重入合约/G3R | 8/15 | 3538 | 1893.5/2148 | 81 | 415.64 |
+| 重入节点/G0 | 17/24 | 3712 | 807.8/1002 | 1189 | 382.70 |
+| 重入节点/G3R | 18/25 | 3709 | 1258.0/1494 | 662 | 455.54 |
+| 访问控制合约/G0 | 9/16 | 3645 | 919.6/1118 | 976 | 316.81 |
+| 访问控制合约/G3R | 9/16 | 3607 | 1401.1/1610 | 478 | 344.87 |
+| 访问控制节点/G0 | 13/20 | 3611 | 561.4/640 | 1447 | 210.46 |
+| 访问控制节点/G3R | 16/23 | 3601 | 850.4/946 | 1049 | 288.45 |
+
+显存MiB、轮次1起算。唯一memory_tight为R合约G3R min81；全部possible_memory_spill=false，无OOM/非有限/采样错误；不宣称已证明无换出。后台会话中断后核对8项均已完成，未重跑。
+
+测试定向184/4warnings；全1792v2/8warnings＋223旧/29warnings＝2015通过、0失败/跳过，新增67包含其中。命令详见PROMPT7C_REPORT与training_changes§60；测试argv/log/JUnit在新批次。
+11,277原文件和582旧产物核验，三文档只追加。新增报告PROMPT7C_REPORT.md；运行产物prompt7c_v1留E盘承载WSL，无历史清理。
+
+Prompt8时长只作估计：150fit约14.79h，阶段A60约5.83h，B90约8.95h；G1R/G2R/G3按canonical线性插值，20个schema计数与store核验一致。真实其他折早停和负载可能明显不同，不把这8次用于F1比较结论。未执行Prompt8。
+最终实验按用户意向迁移足量VRAM服务器，本机限制仅当前开发；本轮先本机，服务器条件待实际核验。完成后停止并等用户确认；按共享规则本地提交，不自动push。

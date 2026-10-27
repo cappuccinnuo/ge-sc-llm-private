@@ -365,9 +365,14 @@ def _run_one(plan, job, attempt, plan_path, preflight=None):
         guard = Resources(device)
     else:
         from .preflight import make_observed_resources
+        resource_options = {}
+        if plan["resource_policy"]["version"] == "local_dev_v1":
+            resource_options = dict(policy=plan["resource_policy"],
+                                    history_path=attempt / "history.jsonl")
         guard = make_observed_resources(device, preflight["baseline"], context,
             attempt.with_suffix(".memory_samples.jsonl"),
-            minimum_free_mib=plan["resource_policy"]["running_minimum_free_mib"])
+            minimum_free_mib=plan["resource_policy"]["running_minimum_free_mib"],
+            **resource_options)
     def resource_summary():
         observed = guard.summary()
         if preflight is not None:
@@ -400,6 +405,9 @@ def _run_one(plan, job, attempt, plan_path, preflight=None):
     if result.get("status") != "complete":
         raise ValueError("Trainer did not complete")
     result["resources"] = resource_summary()
+    if plan.get("resource_policy", {}).get("version") == "local_dev_v1":
+        result["memory_tight"] = result["resources"]["memory_tight"]
+        result["possible_memory_spill"] = result["resources"]["epoch_timing"]["possible_memory_spill"]
     write_json(attempt / "result.json", result)
     write_json(attempt / "effective_config.json", config)
     write_json(attempt / "schema_support_audit.json", entry["support"])
@@ -407,6 +415,9 @@ def _run_one(plan, job, attempt, plan_path, preflight=None):
     receipt = dict(status="complete", job=job, plan_sha256=sha256(plan_path),
         score_role=SCORE_ROLE, selection_role=SELECTION_ROLE, binding_sha256=digest(binding),
         artifacts={str(p.relative_to(attempt)): sha256(p) for p in sorted(attempt.rglob("*")) if p.is_file()})
+    if plan.get("resource_policy", {}).get("version") == "local_dev_v1":
+        receipt.update(memory_tight=result["memory_tight"],
+                       possible_memory_spill=result["possible_memory_spill"])
     write_json(attempt / "receipt.json", receipt)
     del model, parts, initial
     gc.collect()
@@ -500,7 +511,11 @@ def _verify_attempt(attempt, plan, job, plan_path):
         raise ValueError("Incomplete/misbound fit result")
     if "resource_policy" in plan:
         from .resource_plan import validate_resource_result
-        validate_resource_result(result, plan, job, plan_path)
+        validate_resource_result(result, plan, job, plan_path,
+                                 history_path=attempt / "history.jsonl")
+        if plan["resource_policy"]["version"] == "local_dev_v1":
+            if any(receipt.get(key) != result[key] for key in ("memory_tight", "possible_memory_spill")):
+                raise ValueError("Receipt local memory flags differ from verified evidence")
     history = [json.loads(line) for line in (attempt / "history.jsonl").read_text().splitlines()]
     if (not history or [r["epoch"] for r in history] != list(range(len(history)))
             or result["last_epoch"] != len(history)-1 or result["history_rows"] != len(history)
@@ -561,6 +576,16 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False):
     lock = (output / ".synthetic.lock" if plan["test_mode"] else
             ROOT / "scripts/DFG/experiments/artifacts/dfg_v2/.training.lock")
     with _Lock(lock):
+        if plan.get("resource_policy", {}).get("version") == "local_dev_v1":
+            # A fresh process must not silently skip a prior failed job and
+            # continue the batch. Explicit retry remains whole-fit only.
+            for prior in plan["jobs"]:
+                folder = _job_directory(output, prior)
+                started = list(folder.glob("attempt_*.started.json")) if folder.exists() else []
+                if started and _completed(output, plan, prior, plan_path) is None:
+                    if not (retry and job_id(prior) == only):
+                        raise RuntimeError("Local batch stopped by failed/incomplete job " +
+                                           job_id(prior) + "; user-confirmed explicit --retry required")
         for job in jobs:
             _load_plan(plan_path)
             existing = _completed(output, plan, job, plan_path)
@@ -590,8 +615,15 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False):
                     _run_one(plan, job, attempt, plan_path, preflight=preflight)
                 _verify_attempt(attempt, plan, job, plan_path)
             except Exception as exc:
-                write_json(attempt.with_suffix(".failure.json"), dict(job=job,
-                    exception=repr(exc), traceback=traceback.format_exc(), automatic_retry=False))
+                failure = dict(job=job, exception=repr(exc),
+                               traceback=traceback.format_exc(), automatic_retry=False)
+                if plan.get("resource_policy", {}).get("version") == "local_dev_v1":
+                    failure.update(batch_must_stop=True, resume_epoch=False,
+                        retry_requires_user_confirmation=True,
+                        retry_from_same_untrained_initial=True,
+                        cuda_oom=("out of memory" in str(exc).lower() and
+                                  "cuda" in str(exc).lower()))
+                write_json(attempt.with_suffix(".failure.json"), failure)
                 raise
             outcomes.append(dict(job=job, status="complete", attempt=str(attempt)))
     return outcomes
@@ -711,6 +743,10 @@ def main(argv=None):
     source.add_argument("--from-plan", help="Reuse a sealed pilot and its exact frozen initial files")
     command.add_argument("--baseline-min-free-mib", type=float, default=None,
                          help="Fresh-process CUDA baseline; --from-plan only, default 3000")
+    command.add_argument("--resource-policy", choices=("local_dev_v1",), default=None,
+                         help="New explicitly approved local development policy; --from-plan only")
+    command.add_argument("--approval-record",
+                         help="Bound explicit user approval JSON; required for local_dev_v1")
     command.add_argument("--tasks")
     command.add_argument("--profiles", default=",".join(DEFAULT_PROFILES))
     command.add_argument("--seeds", default="1")
@@ -732,11 +768,16 @@ def main(argv=None):
                     or args.reducer != "mean" or args.layer_impl != "original"):
                 raise ValueError("--from-plan preserves the source matrix/config; selector overrides forbidden")
             from .resource_plan import create_resource_plan
+            extra = {}
+            if args.resource_policy is not None or args.approval_record is not None:
+                extra = dict(resource_policy=args.resource_policy, approval_record=args.approval_record)
             result = create_resource_plan(args.from_plan, args.output,
-                baseline_minimum_free_mib=3000 if args.baseline_min_free_mib is None else args.baseline_min_free_mib)
+                baseline_minimum_free_mib=3000 if args.baseline_min_free_mib is None else args.baseline_min_free_mib,
+                **extra)
         else:
-            if args.baseline_min_free_mib is not None:
-                raise ValueError("--baseline-min-free-mib requires --from-plan")
+            if (args.baseline_min_free_mib is not None or args.resource_policy is not None
+                    or args.approval_record is not None):
+                raise ValueError("Resource policy, approval and --baseline-min-free-mib requires --from-plan")
             result = create_plan(args.store, args.output, args.tasks, args.profiles,
                                  args.seeds, args.folds, args.reducer, layer_impl=args.layer_impl)
         answer = dict(plan=str(Path(args.output).resolve() / "plan.json"), jobs=len(result["jobs"]))

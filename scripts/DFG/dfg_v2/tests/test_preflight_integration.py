@@ -103,3 +103,31 @@ def test_absent_policy_preserves_legacy_multi_job_path(execution,monkeypatch):
     seen=[]
     monkeypatch.setattr(run,"_run_one",lambda *a:seen.append(a[1]))
     assert len(run.execute(path))==2 and len(seen)==2
+
+
+
+def test_local_oom_stops_whole_batch_and_preserves_failed_attempt(execution,monkeypatch):
+    path,doc,job=execution
+    doc["resource_policy"]=copy.deepcopy(preflight.LOCAL_DEV_POLICY)
+    other=dict(job,profile="G0")
+    doc["jobs"].append(other)
+    write_json(path,doc)
+    calls=[]
+    def oom(plan,selected,*a,**kw):
+        calls.append(selected)
+        raise RuntimeError("CUDA out of memory")
+    monkeypatch.setattr(run,"_run_one",oom)
+    with pytest.raises(RuntimeError,match="CUDA out of memory"):
+        run.execute(path,only=run.job_id(job))
+    failed=run._job_directory(path.parent,job)/"attempt_001.failure.json"
+    row=read_json(failed)
+    assert row["cuda_oom"] and row["batch_must_stop"]
+    assert row["retry_requires_user_confirmation"] and not row["automatic_retry"]
+    before=failed.read_bytes()
+    with pytest.raises(RuntimeError,match="batch stopped"):
+        run.execute(path,only=run.job_id(other))
+    assert calls==[job] and failed.read_bytes()==before
+    monkeypatch.setattr(run,"_run_one",lambda *a,**kw:None)
+    retried=run.execute(path,only=run.job_id(job),retry=True)
+    assert retried[0]["attempt"].endswith("attempt_002")
+    assert failed.read_bytes()==before

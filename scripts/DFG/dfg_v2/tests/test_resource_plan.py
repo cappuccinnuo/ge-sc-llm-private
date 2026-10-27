@@ -186,3 +186,188 @@ def test_rehashed_inconsistent_resource_evidence_rejected(resource_result,damage
         resources["non_torch_residual_estimate_mib"]=1
     with pytest.raises(ValueError):
         resource_plan.validate_resource_result(result,plan,job,path)
+
+
+# Prompt 7c: these are synthetic resource/identity tests, never GPU fits.
+def approval_for(path, doc, output):
+    record = dict(version=resource_plan.APPROVAL_VERSION, approved=True,
+        policy="local_dev_v1", source_plan=resource_plan._ref(path),
+        authorized_jobs=[run.job_id(job) for job in doc["jobs"]],
+        user_answer="Synthetic test approval", recorded_at="2026-10-26T12:00:00-04:00",
+        test_fixture=True)
+    write_json(output, record)
+    return output
+
+
+@pytest.fixture
+def strict_parent(source_plan, tmp_path, monkeypatch):
+    old_path, old = source_plan
+    parent = resource_plan.create_resource_plan(old_path, tmp_path/"strict")
+    path = tmp_path/"strict/plan.json"
+    approval = approval_for(path, parent, tmp_path/"approval.json")
+    current = dict(parent["runtime"])
+    current[RUN_PATH] = "local-run"
+    current["scripts/DFG/dfg_v2/experiment/local_dev.py"] = "local-resource-helper"
+    current["scripts/DFG/dfg_v2/experiment/precision_gpu.py"] = "local-policy-audit-dispatch"
+    monkeypatch.setattr(run, "_code_refs", lambda:dict(current))
+    return path, parent, approval
+
+
+def test_local_plan_immediate_parent_chain_initials_and_approval(strict_parent,tmp_path,monkeypatch):
+    path, parent, approval = strict_parent
+    historical = {str(p):p.read_bytes() for folder in ("strict","old")
+                  for p in (tmp_path/folder).rglob("*") if p.is_file()}
+    monkeypatch.setattr(run, "make_model", lambda *a,**k:pytest.fail("No new initialization"))
+    doc = resource_plan.create_resource_plan(path,tmp_path/"local",
+        resource_policy="local_dev_v1",approval_record=approval)
+    assert doc["resource_origin"]["version"] == resource_plan.LOCAL_ORIGIN_VERSION
+    assert doc["resource_origin"]["plan"] == resource_plan._ref(path)
+    assert doc["resource_origin"]["approval"] == resource_plan._ref(approval)
+    assert doc["tasks"] == parent["tasks"] and doc["jobs"] == parent["jobs"]
+    assert doc["resource_policy"]["version"] == "local_dev_v1"
+    assert doc["resource_policy"]["running_minimum_free_mib"] == 100
+    assert run._load_plan(tmp_path/"local/plan.json") == doc
+    assert historical == {str(p):p.read_bytes() for folder in ("strict","old")
+                          for p in (tmp_path/folder).rglob("*") if p.is_file()}
+    # Old origin still validates against its historical source, not current code.
+    assert resource_plan.validate_resource_origin(parent)["frozen_fields_identical"]
+    with pytest.raises(ValueError,match="original production"):
+        resource_plan.create_resource_plan(path,tmp_path/"wrong-default")
+    with pytest.raises(ValueError,match="directly reference"):
+        resource_plan.create_resource_plan(tmp_path/"local/plan.json",tmp_path/"grandchild",
+            resource_policy="local_dev_v1",approval_record=approval)
+
+
+@pytest.mark.parametrize("damage",["missing","unapproved","wrong_source","jobs","answer","time","policy"])
+def test_local_approval_fail_closed(strict_parent,tmp_path,damage):
+    path,parent,approval=strict_parent
+    rec=read_json(approval)
+    if damage=="missing":
+        approval=None
+    elif damage=="unapproved":
+        rec["approved"]=False
+    elif damage=="wrong_source":
+        rec["source_plan"]["sha256"]="0"*64
+    elif damage=="jobs":
+        rec["authorized_jobs"]=rec["authorized_jobs"][:1]
+    elif damage=="answer":
+        rec["user_answer"]=""
+    elif damage=="time":
+        rec["recorded_at"]=""
+    else:
+        rec["policy"]="different"
+    if approval:
+        write_json(approval,rec)
+    with pytest.raises(ValueError):
+        resource_plan.create_resource_plan(path,tmp_path/"blocked",
+            resource_policy="local_dev_v1",approval_record=approval)
+    assert not (tmp_path/"blocked").exists()
+
+
+@pytest.mark.parametrize("damage",["config","initial_ref","graph_ref","approval","parent","runtime"])
+def test_local_resealed_mismatches_rejected(strict_parent,tmp_path,damage):
+    path,parent,approval=strict_parent
+    doc=resource_plan.create_resource_plan(path,tmp_path/"local",
+        resource_policy="local_dev_v1",approval_record=approval)
+    restore = None
+    if damage=="config":
+        doc["tasks"]["synthetic_contract"]["config"]["initial_lr"] *= 2
+    elif damage in ("initial_ref","graph_ref"):
+        task,info,entry=run._prepared(doc,doc["jobs"][0])
+        key="initial" if damage=="initial_ref" else "graph"
+        target=run.Path(entry[key]["path"])
+        restore=(target,target.read_bytes())
+        target.write_bytes(restore[1]+b"tamper")
+    elif damage=="approval":
+        changed=read_json(approval)
+        changed["approved"]=False
+        write_json(approval,changed)
+        doc["resource_origin"]["approval"]=resource_plan._ref(approval)
+    elif damage=="parent":
+        path.write_bytes(path.read_bytes()+b" ")
+    else:
+        doc["runtime"]["sco_models/model_hgt.py"]="changed"
+    reseal(tmp_path/"local/plan.json",doc)
+    try:
+        with pytest.raises(ValueError):
+            run._load_plan(tmp_path/"local/plan.json")
+    finally:
+        if restore:
+            restore[0].write_bytes(restore[1])
+
+
+def test_local_extensions_do_not_relax_old_runtime_allowlist():
+    before={RUN_PATH:"before"}
+    after=dict(before,**{"scripts/DFG/dfg_v2/experiment/local_dev.py":"new"})
+    with pytest.raises(ValueError,match="Frozen computation"):
+        resource_plan.runtime_difference(before,after)
+    assert resource_plan.runtime_difference(before,after,resource_plan.LOCAL_RUNTIME_CHANGES)
+
+
+def test_local_cli_arguments(monkeypatch,tmp_path):
+    calls=[]
+    monkeypatch.setattr(resource_plan,"create_resource_plan",
+        lambda *a,**k:calls.append((a,k)) or {"jobs":[{}]})
+    run.main(["plan","--from-plan","parent.json","--output",str(tmp_path/"new"),
+              "--resource-policy","local_dev_v1","--approval-record","approval.json"])
+    assert calls[0][1]["resource_policy"]=="local_dev_v1"
+    assert calls[0][1]["approval_record"]=="approval.json"
+    with pytest.raises(ValueError,match="requires --from-plan"):
+        run.main(["plan","--store","store.json","--output","x",
+                  "--resource-policy","local_dev_v1"])
+
+
+
+@pytest.fixture
+def local_result(resource_result,tmp_path):
+    import json
+    from scripts.DFG.dfg_v2.experiment.preflight import LOCAL_DEV_POLICY
+    from scripts.DFG.dfg_v2.experiment.local_dev import timing_summary
+    result,plan,job,path,raw,receipt_path=resource_result
+    plan["resource_policy"]=copy.deepcopy(LOCAL_DEV_POLICY)
+    write_json(path,plan)
+    receipt=read_json(receipt_path)
+    receipt["policy"]=plan["resource_policy"]
+    receipt["plan_sha256"]=sha256(path)
+    write_json(receipt_path,receipt)
+    resources=result["resources"]
+    resources["resource_policy"]=plan["resource_policy"]
+    resources["preflight"]=resource_plan._ref(receipt_path)
+    sample=json.loads(raw.read_text())
+    sample.update(free_mib=50,used_mib=4000,
+        non_torch_residual_estimate_mib=3646,
+        context_adjusted_residual_estimate_mib=3546)
+    raw.write_text(json.dumps(sample)+"\n")
+    resources.update(raw_samples_sha256=sha256(raw),minimum_free_mib=50,
+        non_torch_residual_estimate_mib=3546,
+        context_adjusted_residual_estimate_mib=3446,
+        memory_tight=True,possible_memory_spill=True)
+    rows=[dict(epoch=i,seconds=s) for i,s in enumerate([1,1,1,3])]
+    history=tmp_path/"history.jsonl"
+    history.write_text("".join(json.dumps(row)+"\n" for row in rows))
+    resources["epoch_timing"]=timing_summary(rows)
+    result.update(memory_tight=True,possible_memory_spill=True)
+    return result,plan,job,path,raw,receipt_path,history
+
+
+def test_local_low_free_success_requires_consistent_raw_resource_evidence(local_result):
+    result,plan,job,path,raw,receipt,history=local_result
+    resource_plan.validate_resource_result(result,plan,job,path,history_path=history)
+
+
+@pytest.mark.parametrize("damage",["flag","result_flag","timing","history"])
+def test_local_forged_advisory_and_timing_rejected(local_result,damage):
+    import json
+    result,plan,job,path,raw,receipt,history=local_result
+    if damage=="flag":
+        result["resources"]["memory_tight"]=False
+    elif damage=="result_flag":
+        result["possible_memory_spill"]=False
+    elif damage=="timing":
+        result["resources"]["epoch_timing"]["epoch_seconds"][-1]=1
+    else:
+        rows=[json.loads(line) for line in history.read_text().splitlines()]
+        rows[-1]["seconds"]=1
+        history.write_text("".join(json.dumps(row)+"\n" for row in rows))
+    with pytest.raises(ValueError):
+        resource_plan.validate_resource_result(result,plan,job,path,history_path=history)

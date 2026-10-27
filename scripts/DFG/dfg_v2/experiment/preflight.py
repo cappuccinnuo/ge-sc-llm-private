@@ -26,6 +26,8 @@ DEFAULT_PREFLIGHT_POLICY = dict(
     sampling_seconds=0.5,
     process_scope="fresh_process_one_job",
 )
+LOCAL_DEV_POLICY = dict(DEFAULT_PREFLIGHT_POLICY, version="local_dev_v1")
+
 CAVEATS = [
     "Whole-card memory is not a per-process measurement.",
     "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
@@ -54,9 +56,11 @@ class PreflightBlocked(PreflightError):
 def validate_policy(policy):
     if not isinstance(policy, dict) or set(policy) != set(DEFAULT_PREFLIGHT_POLICY):
         raise ValueError("Invalid preflight policy fields")
-    for key, expected in DEFAULT_PREFLIGHT_POLICY.items():
+    registered = (LOCAL_DEV_POLICY if policy.get("version") == "local_dev_v1"
+                  else DEFAULT_PREFLIGHT_POLICY)
+    for key, expected in registered.items():
         value = policy[key]
-        if key == "baseline_minimum_free_mib":
+        if key == "baseline_minimum_free_mib" and registered is DEFAULT_PREFLIGHT_POLICY:
             if isinstance(value, bool) or not isinstance(value, (int, float)):
                 raise ValueError("Invalid baseline memory threshold")
             if not math.isfinite(value) or value <= 0:
@@ -129,7 +133,7 @@ def _write_receipt(output_dir, receipt):
 def run_preflight(job, plan_sha256, output_dir, policy, argv=None):
     """Write a startup receipt; stop before an attempt when the gate fails."""
     receipt = dict(
-        version=DEFAULT_PREFLIGHT_POLICY["version"], job=copy.deepcopy(job),
+        version=policy.get("version") if isinstance(policy, dict) else None, job=copy.deepcopy(job),
         plan_sha256=plan_sha256, unix_seconds=time.time(), pid=os.getpid(),
         argv=list(sys.argv if argv is None else argv), baseline=None,
         status="preflight_error", cuda_initialized_before=None,
@@ -199,11 +203,15 @@ def initialize_context(baseline, device="cuda:0"):
 
 
 def make_observed_resources(device, baseline, context, samples_path,
-                            minimum_free_mib=100):
+                            minimum_free_mib=100, policy=None, history_path=None):
     """Wrap the frozen Resources gate with raw and near-time-paired telemetry."""
     from .resources import Resources
     import torch
 
+    registered = validate_policy(DEFAULT_PREFLIGHT_POLICY if policy is None else policy)
+    local_mode = registered["version"] == "local_dev_v1"
+    if local_mode and history_path is None:
+        raise ValueError("Local resource policy requires an epoch history path")
     if minimum_free_mib != 100:
         raise ValueError("Running free-memory threshold must remain 100 MiB")
     if str(device) not in ("cuda", "cuda:0"):
@@ -276,4 +284,7 @@ def make_observed_resources(device, baseline, context, samples_path,
                 )
                 return result
 
+    if local_mode:
+        from .local_dev import local_resource_class
+        return local_resource_class(ObservedResources, history_path)()
     return ObservedResources()

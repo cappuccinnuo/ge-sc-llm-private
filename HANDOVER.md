@@ -2070,3 +2070,14 @@ Prompt 7b.4按用户批准增加启动基线与逐任务独立进程；原模型
 - pilot0/8：1失败、7未启动，无自动retry。partial best保留，无last/最终结果/完整梯度与重载验收；不进入Prompt8、不用单轮估计150fit时长。
 - 全1725v2+223旧=1948测试通过；新增64包含其中。旧538产物、原计算文件/图/标签/初值/计划及三文档旧正文保留。详细见PROMPT7B4_REPORT.md、PROGRESS及training_changes §59。运行产物prompt7b4_v1留WSL，源码/报告本地commit，不自动push。
 - **最终实验将放到显存充足的服务器；现在只是本地RTX3050 4GiB受限。** 尚未实际验收服务器，后续应先核验环境、路径和冻结输入身份，再继续验收；本轮不自动改模型或降低资源门槛。
+
+
+## 2026-10-26：DFG v2 Prompt 7c 本机8项pilot完成（修改AI：Codex）
+
+- 用户明确选择先留本机，并批准local_dev_v1：启动≥3000MiB不变；运行中<100MiB仅提醒，OOM/非有限/其他错误仍停止。旧策略与P7b4失败现场保留。新增local_dev及最小资源计划/入口/验收接入；HGT/model/trainer/DDG/图/token/标签/fold不改。
+- 新plan 363814c88c3dd9e22aa61a9bf6e2f5ee5f59b7dfc7262d6685e671e287aa94e5，只读引用P7b4→P7b3的原8份未训练初值；shared_projection、fold0/seed1、nested协议与各任务参数不变。
+- 8/8完成并验收、0失败/重试；best/last重载logits逐位一致、预测身份/env_source排除通过。G3R训练支持canonical共266个任务检查非零梯度，留出12个单列；G0不适用新增关系条件。
+- R合约G3R最低81MiB，memory_tight=true；其余最低478–1447MiB。全部无OOM/非有限/采样错误，possible_memory_spill=false。时长提醒并不能证明换出。
+- 全1792v2+223旧=2015测试通过（新增67包含其中），旧582产物与原计算文件不变。报告PROMPT7C_REPORT.md，详记training_changes §60；产物prompt7c_v1留现有WSL。
+- 仅排期估计：Prompt8阶段A60次约5.83h、B90次约8.95h、总150次约14.79h；来自8次单折及canonical插值，不保证其他折耗时。没有启动Prompt8或比较F1优劣。
+- **最终正式实验仍计划在显存充足服务器运行；本机4GiB只是当前开发限制。** 用户本轮暂不迁移，服务器环境尚未实际核验。等待后续确认再开展下一阶段；本地commit，不自动push。

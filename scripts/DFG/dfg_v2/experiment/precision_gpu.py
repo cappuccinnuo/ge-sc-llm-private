@@ -134,7 +134,13 @@ def _cpu_case_matches(report, ctx):
         raise ValueError("GPU inputs differ from accepted CPU inputs")
 
 
-def _resource_check(resources):
+def _resource_check(resources, resource_policy=None):
+    if resource_policy is not None:
+        from .preflight import validate_policy
+        registered = validate_policy(resource_policy)
+        if registered["version"] == "local_dev_v1":
+            from .local_dev import audit_local_resources
+            return audit_local_resources(resources, registered)
     if resources.get("device") != "cuda":
         raise ValueError("GPU resources must describe CUDA execution")
     for key in ("minimum_free_mib", "peak_allocated_mib", "peak_reserved_mib", "seconds"):
@@ -293,11 +299,11 @@ def summarize_noise(output):
     return result
 
 
-def audit_pilot_result(result):
+def audit_pilot_result(result, resource_policy=None):
     """Extra Prompt 7 acceptance; the caller still verifies the formal receipt."""
     problems = []
     try:
-        resource_audit = _resource_check(result.get("resources", {}))
+        resource_audit = _resource_check(result.get("resources", {}), resource_policy)
     except ValueError as exc:
         resource_audit = {}
         problems.append(str(exc))

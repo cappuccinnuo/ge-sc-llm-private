@@ -5632,3 +5632,103 @@ O/historical_accounting.json绑定9份旧resources与旧启动查询。total统�
 测试：python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests；旧路径scripts/DFG/tests tests/test_graph_utils.py；三个新测试另先定向执行。
 
 用户明确最终完整实验在显存充足服务器运行；当前4GiB只是本地限制。服务器设备/环境尚待实际核验，不能改写旧环境绑定来静默兼容。此轮不降门槛、不--retry、不续跑7项、不做150fit时长估算、不启动Prompt8/七类/新seed/第二级k-v改造。建议下一步准备服务器的环境/路径/输入初值身份核验，再继续独立验收；不为本地资源继续扩大数学改动。
+
+
+## 60. 2026-10-26：Prompt 7c 本地资源策略与8项完整pilot（修改AI：Codex）
+
+起点3aac85f3243abf60b884e023a57c8010c897ccc7，dfg-v2；先读共享§4.1及更新§4.9g。报告scripts/DFG/dfg_v2/PROMPT7C_REPORT.md；新产物prompt7c_v1，旧计划、失败和封存文件不改。
+
+### 60.1 用户批准、范围选择及事实限定
+
+用户本轮明确回复：“暂时不考虑服务器，当前实验只是在本机，就是之前配置”，以及“同意按 local_dev_v1 完成本地 8 次 pilot（推荐）”。对应完整记录在新批次local_policy_approval.json，SHA绑定进新plan；不是把无回复当成授权。
+开始时读取的Prompt7c还是服务器迁移版本；同步到3aac85f后第4.9g已经改成本地8次pilot，按新文档和用户回复执行。服务器迁移推迟到第4.9h，没有新增迁移或环境安装功能。
+对模板背景说明作事实限定：不同时刻的peak reserved与另一轮context差值相加超过4096MiB，不能证明已发生换出；本轮不改旧文字或伪造证据。possible_memory_spill只是时长启发式，checkpoint写盘、初始化、CPU/磁盘负载等同样可导致变慢。第一轮能跑完也不是后续一定不会OOM的保证。
+实施细节：提醒基线固定为前三轮，检查从第4轮开始；resource_policy保留running_minimum_free_mib=100字段，版本明确决定其是硬门槛还是提醒。新计划额外变化的git_head/resource_origin是来源登记，训练计算不变。
+
+### 60.2 文件修改、逻辑与原因
+
+- 新增 experiment/local_dev.py：继承现有资源观察器；只将运行期低空闲判定改为提醒。直接读取冻结trainer原有history.jsonl，每轮seconds及连续epoch身份必须有效。前3轮中位数固定，从第4轮开始严格超过2倍才标possible_memory_spill。少于3轮明确不足以形成基线。
+- 修改 experiment/preflight.py：独立注册local_dev_v1；启动≥3000MiB，运行100MiB字段在新版本中为提醒阈值。旧DEFAULT策略和默认行为保持。工厂仅显式新策略时创建LocalResources。
+- 修改 experiment/resource_plan.py：新增prompt7c-local-resource-plan-v1来源协议；P7c→P7b4→P7b3逐层只读验证。绑定用户批准JSON、旧plan/seal与8项身份；逐一核验旧initial文件SHA/tensor digest/optimizer_steps=0/fit_seed。仅允许资源编排相关5个运行文件变化。
+- 修改 experiment/run.py：新增--resource-policy local_dev_v1及--approval-record；向资源观察器传policy/history，result和receipt绑定提醒标志，验收从原采样与history独立重算。失败任务阻止新进程跳过后继续批次，只能用户确认后显式--retry同一任务，从原未训练初值开始。
+- 修改 experiment/precision_gpu.py：audit_pilot_result只在显式传入新策略时切换资源验收。新canonical梯度、heldout支持及checkpoint逐位重载要求不变，默认调用仍保留旧100MiB门槛。
+- 新增tests/test_local_dev.py；追加test_resource_plan.py和test_preflight_integration.py。覆盖低显存继续/旧策略停止、基线、OOM保留与批次停止、时长突增、篡改证据拒绝、成功复用、初值/来源不一致拒绝等。
+- 本轮未修改hgt_layer.py、model.py、experiment/trainer.py、experiment/resources.py、原sco_models、DDG分析器、图/标签/token/fold或任何训练数值规则。
+
+### 60.3 实际冻结计划和参数
+
+沿用dfg-v2-nested-v1，不是此前paper_kfold。完整固定任务图前向；inner_train监督更新参数，inner_val早停并按严格最低loss保存best，结束后才计算outer_test。外层标签不参与训练或选择，但由于全图特征/拓扑参与前向，不能称完全归纳的未知图测试。节点按原HCG节点计分，env_source不参与监督/池化评分/预测输出。
+实际配置从原plan逐项继承：shared_projection、mean聚合、hidden128、2层、8头、dropout0.2、inside_token、seed1/fold0、Adam/OneCycle、每轮一次step、最多50轮、patience7、delta0.001。合约initial/max LR=0.0005/0.01、weight_decay=5e-6；节点=0.0002/0.005、weight_decay=0。没有统一误填学习率，不使用smoke或上次partial best起跑。
+plan SHA 363814c88c3dd9e22aa61a9bf6e2f5ee5f59b7dfc7262d6685e671e287aa94e5；直接来源P7b4 plan SHA e0ff577cd73f7fa1da841cf2f1fdd1e890ebc2ede27ac047cf369ff2db5c8344；祖先P7b3仍只读。新plan只变化runtime/git_head/resource_policy/resource_origin，比较文件绑定进seal链。原8份initial逐一验证optimizer_steps=0/fit_seed/tensor摘要，沿用同一路径，不仅比较seed。
+图store SHA ed02ad029392db4a142e1a17a0a1a3577bc9f104377bf304bc64f630c6d286c4。protected原模型、DDG、tokenizer、数据、标签、fold、训练数学不动。
+
+### 60.4 8次实际运行与验收证据
+
+| 任务/剖面 | best/last轮 | 启动free | peak allocated/reserved | 最低free | 进程秒 |
+| --- | --- | --- | --- | --- | --- |
+| 重入合约/G0 | 8/15 | 3725 | 1229.7/1484 | 707 | 448.75 |
+| 重入合约/G3R | 8/15 | 3538 | 1893.5/2148 | 81 | 415.64 |
+| 重入节点/G0 | 17/24 | 3712 | 807.8/1002 | 1189 | 382.70 |
+| 重入节点/G3R | 18/25 | 3709 | 1258.0/1494 | 662 | 455.54 |
+| 访问控制合约/G0 | 9/16 | 3645 | 919.6/1118 | 976 | 316.81 |
+| 访问控制合约/G3R | 9/16 | 3607 | 1401.1/1610 | 478 | 344.87 |
+| 访问控制节点/G0 | 13/20 | 3611 | 561.4/640 | 1447 | 210.46 |
+| 访问控制节点/G3R | 16/23 | 3601 | 850.4/946 | 1049 | 288.45 |
+
+表显存MiB、轮次1起算；raw epoch仍0起算。8/8完成、0失败/重试；总进程耗时2863.21s。只有R合约G3R memory_tight=true（min81），8项possible_memory_spill均false，0采样错误/非有限/OOM。context前后差1284–1297MiB，不等于精确外部占用。
+8项都从未训练初值开始，独立进程--only串行，先R合约G3R验收再其余7。best仍按严格最低inner_val loss选择；last保留停止时最后一轮，二者规则不变。全部checkpoint两评分角色重载logits逐位一致，env_source排除与原节点/文件/标签身份通过正式验收。
+
+| G3R任务 | 训练支持canonical | 仅留出canonical | 非零训练梯度 | best/last重载 |
+| --- | --- | --- | --- | --- |
+| 重入合约 | 66 | 2 | 全部通过 | 全部逐位一致 |
+| 重入节点 | 62 | 4 | 全部通过 | 全部逐位一致 |
+| 访问控制合约 | 68 | 4 | 全部通过 | 全部逐位一致 |
+| 访问控制节点 | 70 | 2 | 全部通过 | 全部逐位一致 |
+
+四个G3R训练支持66/68/62/70，合计266个任务canonical检查非零；仅留出2/4/4/2共12个，监督梯度0。G0无新增relation。逐轮history、raw样本、preflight/context、resources、gradient_audit、binding、initialization_ref、checkpoint、预测、receipt完整保留。
+对会话中断只核对后台状态，确认后台已完成8项，未重复启动。完整matrix JSON和逐项acceptance保存；再次CLI verify核验完整矩阵。
+
+### 60.5 时长估算与限制
+
+| 任务 | G0秒 | G1R估计秒 | G2R估计秒 | G3R秒 | G3估计秒 | 全折小时 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 重入合约 | 448.75 | 428.30 | 420.51 | 415.64 | 432.19 | 2.98 |
+| 重入节点 | 382.70 | 429.05 | 446.71 | 455.54 | 419.12 | 5.93 |
+| 访问控制合约 | 316.81 | 333.96 | 340.97 | 344.87 | 330.84 | 2.32 |
+| 访问控制节点 | 210.46 | 258.12 | 277.62 | 288.45 | 249.45 | 3.57 |
+
+阶段A60fit约5.83h，阶段B90fit约8.95h，合计150fit约14.79h。中间3profile按canonical数在G0/G3R进程walltime线性插值，再乘任务折数；20个schema计数均复核。原公式及每项估计在prompt8_time_estimate.json。未扣除已跑8项，不自动假定可复用。
+进程walltime含启动/fit/子进程验收，不含父验收；guard时间另存。单折早停/写盘/负载差异使估计不确定，不能用G3R总耗时更短证明计算优化。不作8pilot F1比较结论，不报告显著性或泛化证明。
+
+### 60.6 测试、不变量、文档与存储
+
+定向184 passed/4条既有warning；全v2 1792 passed/8条warning（112.49s）；旧DDG+graph_utils 223 passed/29条warning（3.13s）。合计2015通过，0失败/跳过；新增67项包含于1792，不重复相加。warning为DGL distutils及NetworkX gpickle弃用，未升级依赖。开发阶段新增篡改测试有3个fixture setup错误，修复为finally恢复共享合成fixture，未删除或放宽断言；最终上述三组均通过。
+实际测试argv/返回码/耗时、日志及JUnit均在新批次。没有重新运行已验收的float64/CPU/GPU数值等价性短实验，也没有额外smoke。
+11,277原跟踪文件、582旧P7产物与三文档前缀核验，最终invariants.json。hgt_layer/model/trainer/resources/sco_models不变。新增local_dev代码及测试在dfg_v2，其余原代码不改。
+新PROMPT7C_REPORT、HANDOVER/PROGRESS及本节追加；不覆盖旧文。所有运行产物留现有WSL（E盘），没有清理历史/下载或C盘大型写入。源码/测试/报告按文档本地commit，不自动push。
+
+### 60.7 实际命令与停止点
+
+~~~bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+
+# 已执行：目录存在时plan会拒绝覆盖
+python -B -m scripts.DFG.dfg_v2.experiment.run plan --from-plan scripts/DFG/experiments/artifacts/dfg_v2/prompt7b4_v1/pilot/plan.json --resource-policy local_dev_v1 --approval-record scripts/DFG/experiments/artifacts/dfg_v2/prompt7c_v1/local_policy_approval.json --output scripts/DFG/experiments/artifacts/dfg_v2/prompt7c_v1/pilot
+
+# 已执行8次：每次替换为execution_order.json中的一个身份，独立进程串行
+python -B -m scripts.DFG.dfg_v2.experiment.run execute --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt7c_v1/pilot/plan.json --only reentrancy_contract/0/1/G3R
+
+# 现在可运行的只读完整验收
+python -B -m scripts.DFG.dfg_v2.experiment.run verify --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt7c_v1/pilot/plan.json
+
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests/test_local_dev.py scripts/DFG/dfg_v2/tests/test_preflight.py scripts/DFG/dfg_v2/tests/test_precision_gpu.py scripts/DFG/dfg_v2/tests/test_resource_plan.py scripts/DFG/dfg_v2/tests/test_preflight_integration.py
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+~~~
+
+仅完成本轮8个fold0 pilot，不报告F1比较结论，不据此认定DFG有效或无效。完整5/10折、额外seed、其他五类、Prompt8、服务器迁移均未运行。时长估计不是启动授权。
+最终正式实验将按用户计划放到显存充足的服务器；目前4GiB是本机开发限制。具体服务器型号、依赖兼容性及资源尚未实测，不能把计划当作验收通过。当前按用户最新选择留本机完成pilot，下一阶段仍等用户确认。
+后台采样偶发错误的旧行为未扩展：同步check采样失败立即停止，后台瞬时错误写sampling_errors；本轮8项均为0。命令中断后只读核对确认后台已完整跑完，未重启或重复任何fit。
