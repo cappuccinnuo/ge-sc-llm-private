@@ -1,0 +1,71 @@
+{
+  "job": "access_control_contract/4/1/G3R",
+  "attempt": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/access_control_contract/fold_4/seed_1/G3R/attempt_001",
+  "audit": {
+    "passed": true,
+    "problems": [],
+    "training_supported_canonical_count": 68,
+    "heldout_only_canonical_count": 4,
+    "supported_zero_message_gradients": [],
+    "heldout_only_canonicals": [
+      [
+        "constructor_definition",
+        "REV_READS_STATE",
+        "new_variable"
+      ],
+      [
+        "for",
+        "DATA_DEF_USE",
+        "if"
+      ],
+      [
+        "if",
+        "REV_DATA_DEF_USE",
+        "for"
+      ],
+      [
+        "new_variable",
+        "READS_STATE",
+        "constructor_definition"
+      ]
+    ],
+    "resources": {
+      "minimum_free_mib": 338.0,
+      "below_300_mib_warning": false,
+      "resource_policy": "local_dev_v1",
+      "memory_tight": false,
+      "possible_memory_spill": false,
+      "epoch_timing": {
+        "version": "local-dev-first-three-epoch-median-v1",
+        "status": "evaluated",
+        "epoch_seconds": [
+          12.48845884896582,
+          11.519059953046963,
+          11.084548835002352,
+          10.82606264197966,
+          11.775930738949683,
+          11.460209237004165,
+          11.517908443987835,
+          11.16094204201363,
+          11.05409863794921,
+          11.315864543023054,
+          3.4473760810215026,
+          4.012333272024989,
+          3.6214486740063876,
+          3.793711869046092,
+          3.4009888730361126,
+          3.7810380809823982,
+          3.671246482990682
+        ],
+        "completed_epochs": 17,
+        "baseline_first_three_median_seconds": 11.519059953046963,
+        "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+        "possible_memory_spill_epochs": [],
+        "possible_memory_spill": false,
+        "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging."
+      }
+    },
+    "formal_prediction_and_env_exclusion_verification_required": true
+  },
+  "formal_receipt_verified": true
+}

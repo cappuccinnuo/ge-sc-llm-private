@@ -1,0 +1,121 @@
+{
+  "version": "prompt8-report-spec-v1",
+  "sensitivity": [
+    {
+      "category": "access_control",
+      "file": "buggy_18.sol",
+      "source_sha256": "d8505eecd2d5acd06a30006b1e163a08e5bc3a7918c69c86f809c4e9bdeb8ad4"
+    },
+    {
+      "category": "access_control",
+      "file": "buggy_26.sol",
+      "source_sha256": "129a0b4301ccaaba94cb50772fbfefe574f59ee088373a03380faa25ea0f6d74"
+    },
+    {
+      "category": "access_control",
+      "file": "parity_wallet_bug_2.sol",
+      "source_sha256": "3026bd9ff80d0a4b7d166c0d4d2aad07063d05a67e3df9267d9580933d1a529e"
+    },
+    {
+      "category": "reentrancy",
+      "file": "0x627fa62ccbb1c1b04ffaecd72a53e37fc0e17839.sol",
+      "source_sha256": "295dba1924e8d40f718aa97197ce45871ecae2cec07d13f1bc8ce4b887c06a19"
+    },
+    {
+      "category": "reentrancy",
+      "file": "buggy_18.sol",
+      "source_sha256": "b9e23563d26a4976a295154577358f01d63bf533c67775b065a877b934bef9ec"
+    },
+    {
+      "category": "reentrancy",
+      "file": "buggy_36.sol",
+      "source_sha256": "64addaa381f3df0852487c66cc85730aa67affd7cd84f4fe616ff9d2ec9826fb"
+    }
+  ],
+  "source_audit": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/targeted_label_review_v1/audit.json",
+    "sha256": "49ad1ae956d9e099ec4e995a16cf24f25c8cde97d5ee11ad82333e4fcf58f422"
+  },
+  "review_sources": [
+    {
+      "name": "review_v1",
+      "csv": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.csv",
+        "sha256": "f274e5c0bcbbd0719a2622d71e662c2e52da57b9ae39ccda8c80d6301e438a62"
+      },
+      "seal": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/review_v1/review_sheet.seal.json",
+        "sha256": "ff3bd40d23a03b52a9debacd2c3bee6d5b4d4ca3937b204fd86bdba73ae3a99d"
+      }
+    },
+    {
+      "name": "review_v1b",
+      "csv": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/review_v1b/review_sheet.csv",
+        "sha256": "75b97a5e545c6b9f61304b274e94e6c0f61ccf41a13d913cf0ecdd90813e358a"
+      },
+      "seal": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/review_v1b/review_sheet.seal.json",
+        "sha256": "4897e293ee82122d27b6bed33374d1a026898384451ed6fd0d8a07a03873867d"
+      }
+    }
+  ],
+  "mechanism": {
+    "direction": "model_message",
+    "hops": [
+      1,
+      2
+    ],
+    "path_rule": "directed path length <= h containing named new canonical relation",
+    "count_unit": "changed original HCG node",
+    "interim_profile": "G3R",
+    "final_profile": "G*"
+  },
+  "statistics": {
+    "version": "dfg-v2-statistics-v1",
+    "metrics": [
+      "buggy_f1",
+      "macro_f1",
+      "precision",
+      "recall"
+    ],
+    "metric_units": "percent",
+    "difference_units": "percentage_points",
+    "checkpoint_primary": "best",
+    "checkpoint_auxiliary": "last",
+    "single_seed_aggregation": "equal-fold mean and sample standard deviation",
+    "multiple_seed_aggregation": "mean folds within seed, then mean and sample standard deviation across seeds",
+    "pair_unit": "fold for one seed; (fold, seed) for multiple seeds",
+    "contract_inference": "descriptive_only_no_p_value",
+    "node_wilcoxon": {
+      "alternative": "two-sided",
+      "zero_method": "zsplit",
+      "correction": false,
+      "mode": "auto",
+      "scipy_version": "1.7.3",
+      "warnings": "record verbatim",
+      "all_zero": "statistic n*(n+1)/4; p=1; no normal approximation needed"
+    },
+    "a12": "all cross-distribution pairs: P(profile > baseline) + 0.5*P(tie); not paired win fraction",
+    "bootstrap": {
+      "statistic": "mean paired difference",
+      "repetitions": 10000,
+      "seed": 0,
+      "rng": "numpy.random.RandomState",
+      "interval": "percentile 2.5 and 97.5",
+      "resampling_unit": "paired fold or (fold, seed) differences"
+    },
+    "holm": {
+      "family": [
+        "G1R",
+        "G2R",
+        "G3R",
+        "G3"
+      ],
+      "baseline": "G0",
+      "scope": "within task, checkpoint and metric",
+      "interim": "raw p only; adjustment pending until full four-comparison family"
+    },
+    "interpretation": "folds share training data; intervals are descriptive, not independent-seed or causal evidence"
+  }
+}

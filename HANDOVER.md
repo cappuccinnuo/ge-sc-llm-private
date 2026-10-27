@@ -2122,3 +2122,7 @@ Prompt 7b.4按用户批准增加启动基线与逐任务独立进程；原模型
 - 峰值allocated/reserved=1893.47/2148MiB，整卡最低free18MiB；5项memory_tight，1项possible_memory_spill（R合约G3R fold2），仅为提醒，未发生OOM/数值/验收失败，不据此断言换出。
 - 中间报告：prompt8_v1/batch1/reports/interim_A/REPORT_INTERIM_A.md，SHA 55933fa880ef9e4f26c6c1d502f4f959d469d0a8fc7aba734403d8a589443b51；15份CSV及JSON均由batch_records/interim_A.json绑定。详见dfg_v2/PROMPT8A_REPORT.md及training_changes §62.7起。
 - 仍为单seed、共享训练数据的K折；全固定图前向，并非完全归纳测试，不直接与旧paper_kfold分数比较。人工512/111边表未填，Holm等待B，不归因到单独语义层，不修改争议标签。最终服务器显存充足是用户后续安排，尚未实际验收；需整批重跑，不混本机成绩。实施、复核与记录AI：Codex。
+
+## 2026-10-27：Prompt 8A GitHub 结果归档（修改 AI：Codex）
+
+按用户“将所有结果推送github”的要求，将Prompt8准备与Prompt8A阶段A的1721份文本结果/预测/日志/验收原样纳入Git；没有修改计算代码或原产物。270份.pt（约11.41GiB）与临时锁仍留本地，SHA及范围见docs/github_archive_prompt8a_2026-10-27.json，说明见同名.md。60项已完成，B未执行。只克隆仓库仍需另配输入图/token及模型资产才能重跑。

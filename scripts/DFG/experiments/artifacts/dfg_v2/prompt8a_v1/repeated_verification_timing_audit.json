@@ -1,0 +1,1080 @@
+{
+  "version": "prompt8a-readonly-repeated-verification-timing-audit-v1",
+  "created_at_utc": "2026-10-27T08:08:47.304883+00:00",
+  "scope": "Read-only source and timing/resource metadata review; no model fitting, no code mutation, no training-score inspection.",
+  "input_policy": {
+    "allowed_json": [
+      "*.process.json",
+      "attempt_*.started.json",
+      "attempt_*.context.json",
+      "*.acceptance.json"
+    ],
+    "never_read": [
+      "result.json",
+      "history.jsonl",
+      "*_predictions.json",
+      "training log contents",
+      "checkpoint tensors"
+    ],
+    "source_checksums": [
+      {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/batch.py",
+        "sha256": "66356c9fc5d37277fcd898573a222abb8b6379326c6f86ffe3ec552efb618c5e"
+      },
+      {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/run.py",
+        "sha256": "ca18d0c73eaf5c12610d378cce0af52ac1d3e231be7f166727213075dc1594e2"
+      },
+      {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/resource_plan.py",
+        "sha256": "20917699e1dc7275351576e3b1b9aa99723f5fd05b701ed6611227128b02f90c"
+      }
+    ]
+  },
+  "finding": "Every new Stage A child redundantly performs full acceptance of every prior successful stage job twice before its own preflight and attempt-start record. This gives quadratic batch-level verification count.",
+  "call_paths": [
+    {
+      "location": "batch.py:293-303",
+      "action": "Controller spawns one fresh run.execute child and measures complete child subprocess lifetime."
+    },
+    {
+      "location": "run.py:605 -> _load_plan:199-260",
+      "action": "Full sealed runtime/input/prepared-graph/initial file SHA validation once when entering child."
+    },
+    {
+      "location": "run.py:619 -> batch.py:88-101 -> batch._accept:115-126 -> run._completed:592-599 -> run._verify_attempt:504-589",
+      "action": "For a new job, each earlier stage job receives full acceptance."
+    },
+    {
+      "location": "run.py:626-635 -> run._completed:592-599 -> run._verify_attempt:504-589",
+      "action": "After acquiring training lock, every plan job with a started record is fully checked again for incomplete failure latches."
+    },
+    {
+      "location": "run.py:638 -> _load_plan:199-260",
+      "action": "All frozen runtime/input/prepared graph/initial SHA checks run again before current preflight."
+    },
+    {
+      "location": "run.py:650-661",
+      "action": "Preflight runs before attempt.started timestamp is written."
+    },
+    {
+      "location": "run.py:667; batch.py:310",
+      "action": "Current fit independently receives child-end and parent acceptance checks."
+    },
+    {
+      "location": "batch.py:320 -> verify_stage:134-143",
+      "action": "Whole selected stage accepted again after all jobs finish; later explicit verify/interim also verify the selected stage."
+    }
+  ],
+  "full_attempt_verification_work": [
+    "Hash every receipt artifact, including best.pt and last.pt (run.py:516-520).",
+    "Read and hash resource samples, parse them, and validate all samples/local timing evidence (resource_plan.py:196-262).",
+    "Load both best/last checkpoint payloads on CPU and recompute tensor digests (run.py:567-579).",
+    "Reload graph and validate identities independently for inner_val and outer_test (run.py:443-477,582-584).",
+    "Internally recompute metric equality for integrity; this audit never inspected or emitted those scores (run.py:581-588)."
+  ],
+  "count_analysis": {
+    "assumptions": "Fresh uninterrupted 60-job Stage A; one authorized child per job; no reused or failed jobs.",
+    "prior_job_full_verifications_before_kth_fit": "2 * (k - 1)",
+    "stage_A_count": 60,
+    "prior_job_full_verifications_total": 3540,
+    "formula": "2 * sum(k - 1, k=1..60) = 3540",
+    "not_in_3540": [
+      "Current job child-end acceptance",
+      "Current job controller acceptance",
+      "Final stage-wide verify",
+      "Explicit verify/report generation",
+      "Controller startup verification when resuming an invocation"
+    ],
+    "additional_whole_plan_loads_per_child": 2,
+    "growth": "Per-new-job prior-results verification count is linear in completed jobs; total prior-results verification work is quadratic in stage size."
+  },
+  "timing_definitions": {
+    "child_total_seconds": "batch.py:299-305 subprocess wall time; includes imports, prior-results checks, preflight, model assembly, fit, validation, checkpoint/export and child-end verification; excludes parent acceptance.",
+    "child_start_to_attempt_started_seconds": "attempt.started_unix minus subprocess start. Includes imports, twice prior-result acceptance, twice plan validation, lock acquisition and preflight; model construction/fit not yet started.",
+    "attempt_started_to_context_file_mtime_seconds": "Includes prepared/initial loading and environment checks plus CUDA context initialization and writing context JSON; not pure CUDA-init time.",
+    "child_end_to_acceptance_file_mtime_seconds": "Approximation to parent acceptance elapsed from subprocess completion to acceptance JSON mtime; includes small metadata overhead and relies on filesystem wall-clock mtimes."
+  },
+  "samples_through_job_index": 31,
+  "timing_samples": [
+    {
+      "index": 1,
+      "job": "reentrancy_contract/0/1/G0",
+      "child_total_seconds": 405.0286338329315,
+      "child_start_to_attempt_started_seconds": 14.292750597000122,
+      "attempt_started_to_context_file_mtime_seconds": 10.569211483001709,
+      "child_end_to_acceptance_file_mtime_seconds": 7.158513784408569,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 492.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/001.process.json",
+          "sha256": "1fcc4b2a26c762b4811f9497f20c41f8aa1acbd4ad784509e456ff08e4e155fd"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_0/seed_1/G0/attempt_001.started.json",
+          "sha256": "d126577c527a719e40864efe35b94062c698c37245e49aa97e337fa9e25ae7eb"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_0/seed_1/G0/attempt_001.context.json",
+          "sha256": "e75e37dc20f06b90033b976227f18495c682fe40b12be00113a15c3f8b18e179"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/001.acceptance.json",
+          "sha256": "e3922349df8cb60b2b1359a1e331ef6afd1327cf706e4544e2f416b547ee90b5"
+        }
+      }
+    },
+    {
+      "index": 2,
+      "job": "reentrancy_contract/0/1/G3R",
+      "child_total_seconds": 443.62219405174255,
+      "child_start_to_attempt_started_seconds": 33.18570137023926,
+      "attempt_started_to_context_file_mtime_seconds": 14.84230923652649,
+      "child_end_to_acceptance_file_mtime_seconds": 6.359419822692871,
+      "resource_flags": {
+        "memory_tight": true,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 51.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/002.process.json",
+          "sha256": "910eb633e19bcfc0d8f879ed79b68afdd136b56913a91ccc9eb6397e75b1c041"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_0/seed_1/G3R/attempt_001.started.json",
+          "sha256": "db7c7e9b81647826d3d7229a046db00e4ecfa8a2a82267d681c361af7e4710b4"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_0/seed_1/G3R/attempt_001.context.json",
+          "sha256": "b221df1cc1830f11aee27a7d646e1c769cbedf931c28fda609313d1655a754f0"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/002.acceptance.json",
+          "sha256": "ead889d6f70fea6b389093b5a1fb651c1b8bab94c96ac1b1aee16e01c727dfd8"
+        }
+      }
+    },
+    {
+      "index": 3,
+      "job": "reentrancy_contract/1/1/G0",
+      "child_total_seconds": 443.84239864349365,
+      "child_start_to_attempt_started_seconds": 29.793253660202026,
+      "attempt_started_to_context_file_mtime_seconds": 6.9203715324401855,
+      "child_end_to_acceptance_file_mtime_seconds": 3.8195090293884277,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 621.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/003.process.json",
+          "sha256": "3bf58792803a2f52a32e8fdb96e77f81183248cd1e0c74eacfa776a0922446cb"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_1/seed_1/G0/attempt_001.started.json",
+          "sha256": "8ad4d58fc6959781c1e250fa808fbd7e689f297f34279000cfec54e7ab410dd2"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_1/seed_1/G0/attempt_001.context.json",
+          "sha256": "b1b70a8fca743ec56391d02d59b05119a18721df5fca58c15d9707a2a072eed0"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/003.acceptance.json",
+          "sha256": "a6def3f37a9a2458f5553ff6c9be991a317d2eb821a9efd9ab6513684c19d187"
+        }
+      }
+    },
+    {
+      "index": 4,
+      "job": "reentrancy_contract/1/1/G3R",
+      "child_total_seconds": 465.883309841156,
+      "child_start_to_attempt_started_seconds": 33.74440383911133,
+      "attempt_started_to_context_file_mtime_seconds": 7.495586633682251,
+      "child_end_to_acceptance_file_mtime_seconds": 6.55268120765686,
+      "resource_flags": {
+        "memory_tight": true,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 39.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/004.process.json",
+          "sha256": "e8f703ac0f63dd21750728e362427f06c122e3a835270e4c45dbac2086b01a03"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_1/seed_1/G3R/attempt_001.started.json",
+          "sha256": "8467f583fd4d39dd0d2c58dbdb91fe61a46df7ee90de23530db3dced5855b2c6"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_1/seed_1/G3R/attempt_001.context.json",
+          "sha256": "b7402e7171fefe6953270cc5781f4115176a32f578afdf34c43965a92804a4ac"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/004.acceptance.json",
+          "sha256": "2c3aa89ffc7abc6404e4f7edb15316f3633fc711abf2a517e8b4eda61ff48cc0"
+        }
+      }
+    },
+    {
+      "index": 5,
+      "job": "reentrancy_contract/2/1/G0",
+      "child_total_seconds": 513.4869976043701,
+      "child_start_to_attempt_started_seconds": 39.248291969299316,
+      "attempt_started_to_context_file_mtime_seconds": 6.603771924972534,
+      "child_end_to_acceptance_file_mtime_seconds": 3.7480814456939697,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 698.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/005.process.json",
+          "sha256": "168d0f674b40ef03cbeea5ac4f02666dd0ed009a9134fb6e898406c6c69f4005"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_2/seed_1/G0/attempt_001.started.json",
+          "sha256": "877fbc0448dee2adbd3148611dee98b5924648a042b0ac5de2996c18b1abadf9"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_2/seed_1/G0/attempt_001.context.json",
+          "sha256": "67d397a73e9aa0dedaaa1a25be09c9592913cd06adc7e4024f4097a3c94efe01"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/005.acceptance.json",
+          "sha256": "f33a95b017ce22ba78985cb31496c68b4f2b1f7a32c41f5ccf18f99c6fa23da9"
+        }
+      }
+    },
+    {
+      "index": 6,
+      "job": "reentrancy_contract/2/1/G3R",
+      "child_total_seconds": 554.7748665809631,
+      "child_start_to_attempt_started_seconds": 43.81156945228577,
+      "attempt_started_to_context_file_mtime_seconds": 6.806631326675415,
+      "child_end_to_acceptance_file_mtime_seconds": 7.2881505489349365,
+      "resource_flags": {
+        "memory_tight": true,
+        "possible_memory_spill": true,
+        "minimum_free_mib": 46.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/006.process.json",
+          "sha256": "e5f9ee06e1a075bf0cebff614d694544ef4ba87092154aeff80d33d9feef7ed2"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_2/seed_1/G3R/attempt_001.started.json",
+          "sha256": "72c7ce2b546afeb0f22b42876f0e51c91e565cfdd9c8ac8d74cf65ebf4c05c62"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_2/seed_1/G3R/attempt_001.context.json",
+          "sha256": "222ec089bd4d3a7dc3cc4f3df4b310be9d74d9460cf5fbd2a3d4256f6a0d8df5"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/006.acceptance.json",
+          "sha256": "96364f8d54c8f36845597409e7390dd0fa35560422f6293bc28fa5adada1e14b"
+        }
+      }
+    },
+    {
+      "index": 7,
+      "job": "reentrancy_contract/3/1/G0",
+      "child_total_seconds": 448.66221356391907,
+      "child_start_to_attempt_started_seconds": 68.03672170639038,
+      "attempt_started_to_context_file_mtime_seconds": 14.851567029953003,
+      "child_end_to_acceptance_file_mtime_seconds": 3.6435065269470215,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 739.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/007.process.json",
+          "sha256": "011371bb7aa0eb57920873eaf81a4fc2f5e761be7331360dd664c80471eff21d"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_3/seed_1/G0/attempt_001.started.json",
+          "sha256": "2106231eddea9475fa0d623fc42140730e3d4bf296ece11b7076e1bffe3ead33"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_3/seed_1/G0/attempt_001.context.json",
+          "sha256": "52f6799e98dcf71de683baab3be460cde587d3d6da25a6c6f33dd170f4dd45ea"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/007.acceptance.json",
+          "sha256": "c089fedabddc4abad4f724ff9d3a523a36665ebf39a3eb219913d65a8cbe5571"
+        }
+      }
+    },
+    {
+      "index": 8,
+      "job": "reentrancy_contract/3/1/G3R",
+      "child_total_seconds": 539.3219273090363,
+      "child_start_to_attempt_started_seconds": 55.735589027404785,
+      "attempt_started_to_context_file_mtime_seconds": 6.4649529457092285,
+      "child_end_to_acceptance_file_mtime_seconds": 14.466149091720581,
+      "resource_flags": {
+        "memory_tight": true,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 18.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/008.process.json",
+          "sha256": "1a85287464d480c0ce3cc1d854f039e222383f0db029743a846a4afdc17cf12b"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_3/seed_1/G3R/attempt_001.started.json",
+          "sha256": "e16d0db9ce7d67503755c81e879d85b06adf971b222b4a5f3a3cf89967baf14f"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_3/seed_1/G3R/attempt_001.context.json",
+          "sha256": "ca97dc4e1667332f8a53c6234aa74120987fe638fc1ccb562dd3de3fed410904"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/008.acceptance.json",
+          "sha256": "096824e89d95b9b5f64b96e5e74ba9cab0f9102a757044da6bd4db47dea830ff"
+        }
+      }
+    },
+    {
+      "index": 9,
+      "job": "reentrancy_contract/4/1/G0",
+      "child_total_seconds": 488.4658281803131,
+      "child_start_to_attempt_started_seconds": 105.5136411190033,
+      "attempt_started_to_context_file_mtime_seconds": 19.18119978904724,
+      "child_end_to_acceptance_file_mtime_seconds": 6.715468406677246,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 739.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/009.process.json",
+          "sha256": "66cee9c275bc64b3b001b4e5a199c2d46ae9ba513e2150b12e2c28966fa579f4"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_4/seed_1/G0/attempt_001.started.json",
+          "sha256": "8cd33a4a634491cb88ed029b381296b02e53181e36a32c0611d28202ef18e49d"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_4/seed_1/G0/attempt_001.context.json",
+          "sha256": "d321bc494a208a7b93ecad37817b272d5a599e38c3c48aac7ea9cee1b8094517"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/009.acceptance.json",
+          "sha256": "2cb5c1be86bbec264d9508be6a66389bb0c7058d1c74f3d619b77e6a04756b16"
+        }
+      }
+    },
+    {
+      "index": 10,
+      "job": "reentrancy_contract/4/1/G3R",
+      "child_total_seconds": 482.3727490901947,
+      "child_start_to_attempt_started_seconds": 71.89918851852417,
+      "attempt_started_to_context_file_mtime_seconds": 7.392539978027344,
+      "child_end_to_acceptance_file_mtime_seconds": 5.253719091415405,
+      "resource_flags": {
+        "memory_tight": true,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 41.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/010.process.json",
+          "sha256": "c660ce05fd144cd3ceefe56f1a1b8d73f1eaee00ce27bf2873f55e48a9d9de90"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_4/seed_1/G3R/attempt_001.started.json",
+          "sha256": "bcdea4d4ec1994c9c159d424b48fddf3625e5cd2a1a94af8e1c30ccd7209cc2e"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_4/seed_1/G3R/attempt_001.context.json",
+          "sha256": "7fbdc43acdcab939ee173543074c059f9d20b87860f029c7772656565a3001b1"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/010.acceptance.json",
+          "sha256": "3508f15ef4132089f64fb1e5ea255015d9d11a4e48d5672b962b14c662f63b04"
+        }
+      }
+    },
+    {
+      "index": 11,
+      "job": "reentrancy_node/0/1/G0",
+      "child_total_seconds": 404.1152081489563,
+      "child_start_to_attempt_started_seconds": 75.86922883987427,
+      "attempt_started_to_context_file_mtime_seconds": 6.802325963973999,
+      "child_end_to_acceptance_file_mtime_seconds": 6.7554709911346436,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 1204.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/011.process.json",
+          "sha256": "d8db64a4326d41f5557dc63fc69278bd231b9857fd5cbaf9abfec4e845d05058"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_0/seed_1/G0/attempt_001.started.json",
+          "sha256": "e297bf02de2b3b7781536da5ffa033bce98e3abc8800fcf0433ebe8554964486"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_0/seed_1/G0/attempt_001.context.json",
+          "sha256": "21f44d1168c4dc85a5a3a928a93347cab757811b17dd7208b63a754b28602913"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/011.acceptance.json",
+          "sha256": "29fe4e17eddb74cfe1240e69f20a9422f854751f6cde4b7cb397a2cb5b886fc8"
+        }
+      }
+    },
+    {
+      "index": 12,
+      "job": "reentrancy_node/0/1/G3R",
+      "child_total_seconds": 498.93131279945374,
+      "child_start_to_attempt_started_seconds": 83.97720861434937,
+      "attempt_started_to_context_file_mtime_seconds": 6.942491292953491,
+      "child_end_to_acceptance_file_mtime_seconds": 10.782766819000244,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 658.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/012.process.json",
+          "sha256": "264a3f0d95c112e61e543adca0ae0a311f379f338ae52587d2f942a8b09582d9"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_0/seed_1/G3R/attempt_001.started.json",
+          "sha256": "e102edf194edbb176821eb587bb94e42374da498621f2f2dfaa609b7268c8ec4"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_0/seed_1/G3R/attempt_001.context.json",
+          "sha256": "2b2841fad86ac76d1b8ba22730d79aa5e8a901e53f9121a0d4bb10433a5e3f1c"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/012.acceptance.json",
+          "sha256": "1ad9be55c82ffc7eee3dbadf07f6e078b0b633d119028cd686cb5bac0a479230"
+        }
+      }
+    },
+    {
+      "index": 13,
+      "job": "reentrancy_node/1/1/G0",
+      "child_total_seconds": 493.73837971687317,
+      "child_start_to_attempt_started_seconds": 132.63467621803284,
+      "attempt_started_to_context_file_mtime_seconds": 11.63991641998291,
+      "child_end_to_acceptance_file_mtime_seconds": 6.624912977218628,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 1196.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/013.process.json",
+          "sha256": "74b6e0bb53e983021ec997163f71ae848b0040748580274a07ac8818394379ee"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_1/seed_1/G0/attempt_001.started.json",
+          "sha256": "be98694a4d6fde4c86ccf8106bd88fdc63d8484dd86f94ea3054f95c0f37347a"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_1/seed_1/G0/attempt_001.context.json",
+          "sha256": "eb93fea05ba164761d7930be879b04330f20485432f1db7d6aa457789dee3a01"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/013.acceptance.json",
+          "sha256": "30e0939f573ee7f0ae32d90c96e11873ea87ddcd46e8fb9c9bbae29a89295b52"
+        }
+      }
+    },
+    {
+      "index": 14,
+      "job": "reentrancy_node/1/1/G3R",
+      "child_total_seconds": 461.6090874671936,
+      "child_start_to_attempt_started_seconds": 102.61590528488159,
+      "attempt_started_to_context_file_mtime_seconds": 6.713844537734985,
+      "child_end_to_acceptance_file_mtime_seconds": 7.283335208892822,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 657.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/014.process.json",
+          "sha256": "3be5bbc703d9aefcc14e3015660f193fe4d7c001eb79ae9ce261cbfc4ce607c4"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_1/seed_1/G3R/attempt_001.started.json",
+          "sha256": "9c3e9d0851753739d93532b1775e6f1aa624ab2f3769c7f45038a09df8569b4a"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_1/seed_1/G3R/attempt_001.context.json",
+          "sha256": "095307dea16b7cfbe14b7387138c7428e21b18f062df4dcf74552ae73252bcc4"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/014.acceptance.json",
+          "sha256": "8e494c3d592e60ee1a3fc2386202b2390ea977501419e355d7ce4b32a38374aa"
+        }
+      }
+    },
+    {
+      "index": 15,
+      "job": "reentrancy_node/2/1/G0",
+      "child_total_seconds": 473.37530517578125,
+      "child_start_to_attempt_started_seconds": 113.40649890899658,
+      "attempt_started_to_context_file_mtime_seconds": 6.870717287063599,
+      "child_end_to_acceptance_file_mtime_seconds": 7.234646797180176,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 1134.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/015.process.json",
+          "sha256": "922a7cc820c4ac5d8db0ab5238d090e04a4890a2dfd708850401d215f01fb5f8"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.started.json",
+          "sha256": "f7a0b2ff133849836e0e92be553175974a9881c379b63a605a40069b988af2a0"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.context.json",
+          "sha256": "7386c00927acc8570088c18a3e2842e596963fefe41f39a4f4681857e0bc3330"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/015.acceptance.json",
+          "sha256": "e5b95b51dcfa7d65c1bf9db645d746aa3458aa45161e4331e0cf42290a8ce202"
+        }
+      }
+    },
+    {
+      "index": 16,
+      "job": "reentrancy_node/2/1/G3R",
+      "child_total_seconds": 484.007262468338,
+      "child_start_to_attempt_started_seconds": 122.62687063217163,
+      "attempt_started_to_context_file_mtime_seconds": 7.5768773555755615,
+      "child_end_to_acceptance_file_mtime_seconds": 7.936589002609253,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 661.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/016.process.json",
+          "sha256": "ee8efd62e4a0252a1cffbe2a09685d6e4e0c1e2c8b0379e4d233708688c37b1c"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G3R/attempt_001.started.json",
+          "sha256": "d0c3dfc44918140dfd3661080c3982f5a47b3398bd2cc40885cc306644c9bc31"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G3R/attempt_001.context.json",
+          "sha256": "9f09f85b99fd3a75189ec5981af19c268ed06c193574050ca77bffac02ef8199"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/016.acceptance.json",
+          "sha256": "7bf18fbd221ac2d2b2e0f39820bd07b13312654ecbedba1c7aa2ce42f4bdd0ea"
+        }
+      }
+    },
+    {
+      "index": 17,
+      "job": "reentrancy_node/3/1/G0",
+      "child_total_seconds": 511.1393783092499,
+      "child_start_to_attempt_started_seconds": 131.55155062675476,
+      "attempt_started_to_context_file_mtime_seconds": 8.13815426826477,
+      "child_end_to_acceptance_file_mtime_seconds": 7.375739097595215,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 1136.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/017.process.json",
+          "sha256": "ad8dc30663ef2d4fcccb20e951b1f619a3ba4be22fa71428abb61f367c1bcca0"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_3/seed_1/G0/attempt_001.started.json",
+          "sha256": "ecefc11115c69e8ad35e761d977884fb6065052758fafe47c2b23ce79d013c8f"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_3/seed_1/G0/attempt_001.context.json",
+          "sha256": "f65482d91dfbbec7d31510240093b0d3f8389a74d132626bc16a3a9f9ef39390"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/017.acceptance.json",
+          "sha256": "45121447722dc96b819314a08880559e7aa9e7f3e4d4f5875d97e0a187d162b3"
+        }
+      }
+    },
+    {
+      "index": 18,
+      "job": "reentrancy_node/3/1/G3R",
+      "child_total_seconds": 483.1469933986664,
+      "child_start_to_attempt_started_seconds": 142.66099643707275,
+      "attempt_started_to_context_file_mtime_seconds": 7.886213302612305,
+      "child_end_to_acceptance_file_mtime_seconds": 7.588679552078247,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 623.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/018.process.json",
+          "sha256": "c522214ab5b80a77d87030be1851de7945818d75d10e769d4dbb1d16ae268b80"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_3/seed_1/G3R/attempt_001.started.json",
+          "sha256": "6e2918032af8d730d843b58c4e101418de0e6bf5b71c5d523cfe9af3fbcd7e92"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_3/seed_1/G3R/attempt_001.context.json",
+          "sha256": "2c555a20d635be6f1ae92804035f823ef5316aa4b9ab210377411ffd71e23531"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/018.acceptance.json",
+          "sha256": "bdf592dc996c2356307b8e1d1c0c1aa0b622a221a7513eee77272786302d432d"
+        }
+      }
+    },
+    {
+      "index": 19,
+      "job": "reentrancy_node/4/1/G0",
+      "child_total_seconds": 417.84667134284973,
+      "child_start_to_attempt_started_seconds": 151.40114545822144,
+      "attempt_started_to_context_file_mtime_seconds": 7.0812695026397705,
+      "child_end_to_acceptance_file_mtime_seconds": 7.0857603549957275,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 1094.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/019.process.json",
+          "sha256": "3cefed7867a5b3c29b177e335c206951f004efd1df78814ffcc96f8c7997fb7f"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_4/seed_1/G0/attempt_001.started.json",
+          "sha256": "a8a7540dd811b55b823b7812febbc7e4f24f2afad1c0bcde8cd2ba268846d77a"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_4/seed_1/G0/attempt_001.context.json",
+          "sha256": "dd9b36b0a4fca3a94931976f1590451d0231afe04e944d1ee51c3ca73b5e6e8f"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/019.acceptance.json",
+          "sha256": "a72cee8429b551ed499ec72527ddfb9acb522535dcd11bcaff256ae3746b90aa"
+        }
+      }
+    },
+    {
+      "index": 20,
+      "job": "reentrancy_node/4/1/G3R",
+      "child_total_seconds": 465.777973651886,
+      "child_start_to_attempt_started_seconds": 162.5099105834961,
+      "attempt_started_to_context_file_mtime_seconds": 7.08182430267334,
+      "child_end_to_acceptance_file_mtime_seconds": 8.674327373504639,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 586.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/020.process.json",
+          "sha256": "d1a5a71657a72eb9d74e4963babf056579a26492fc5793a815cf9a4ac7bb730c"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_4/seed_1/G3R/attempt_001.started.json",
+          "sha256": "b1df8cc32eee45ac56f9cf255c4708869ff0a18718c8bdf79e8f1c22716449c6"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_4/seed_1/G3R/attempt_001.context.json",
+          "sha256": "2694ea361cc2e8634dc465f226df8e07b55f079f6957685ad923f72f193235b0"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/020.acceptance.json",
+          "sha256": "ec50c1adba80f267fb582cfec919bdfdb8983103a07b1f4d83d9c4b1d47f775b"
+        }
+      }
+    },
+    {
+      "index": 21,
+      "job": "reentrancy_node/5/1/G0",
+      "child_total_seconds": 502.45870757102966,
+      "child_start_to_attempt_started_seconds": 170.31753492355347,
+      "attempt_started_to_context_file_mtime_seconds": 7.231346130371094,
+      "child_end_to_acceptance_file_mtime_seconds": 8.971707344055176,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 1127.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/021.process.json",
+          "sha256": "7199775a650b1a8b2f33bada0826c84a1f2945e5741252b723f24ea72c5b0ed0"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_5/seed_1/G0/attempt_001.started.json",
+          "sha256": "82704742c90772b7b9cc4d2c06b3cba671f6e6145fcadb083090992b94c0e68e"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_5/seed_1/G0/attempt_001.context.json",
+          "sha256": "54ae11f4f0cdb5d71dca8469296de6ab634c299f63557299f03f1c23671f46c5"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/021.acceptance.json",
+          "sha256": "8acd8747c6e90d7f0b3976f63fc356f4e7ecfeaf2cbb4fe21a4bede93cfa5afa"
+        }
+      }
+    },
+    {
+      "index": 22,
+      "job": "reentrancy_node/5/1/G3R",
+      "child_total_seconds": 555.6754369735718,
+      "child_start_to_attempt_started_seconds": 183.00645089149475,
+      "attempt_started_to_context_file_mtime_seconds": 8.033462047576904,
+      "child_end_to_acceptance_file_mtime_seconds": 9.015939235687256,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 591.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/022.process.json",
+          "sha256": "68e0210fc67921a17597d83a589ecb98b02b0048d7899effc838af8fce0748b2"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_5/seed_1/G3R/attempt_001.started.json",
+          "sha256": "ccc36418a3c828461b6e8bf0f4cf4ec557b6a6f4a33976da37748851051bd544"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_5/seed_1/G3R/attempt_001.context.json",
+          "sha256": "f4870b70a747c096ed28d590960d725f03f68e8386a00759b0cb9c8decf97786"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/022.acceptance.json",
+          "sha256": "864ecaa4e94b6e914ac318128f7dc17457055694f6458ab736b220d4c0070e32"
+        }
+      }
+    },
+    {
+      "index": 23,
+      "job": "reentrancy_node/6/1/G0",
+      "child_total_seconds": 536.3737869262695,
+      "child_start_to_attempt_started_seconds": 192.74000096321106,
+      "attempt_started_to_context_file_mtime_seconds": 7.666645288467407,
+      "child_end_to_acceptance_file_mtime_seconds": 14.70200252532959,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 981.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/023.process.json",
+          "sha256": "5ba1c9b529eb142c6e4b137a473bb18831dd2c149a1e80f5646c81452b19b2be"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_6/seed_1/G0/attempt_001.started.json",
+          "sha256": "ffb1e5431db1febe751a3b1df97b6527a25b6269cccdc45fff93bd23b3fa3929"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_6/seed_1/G0/attempt_001.context.json",
+          "sha256": "b8ad7ab6e991ab929dbb0772e9268ff9783b8905f38065ce71e6dbc4cd90ef69"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/023.acceptance.json",
+          "sha256": "0941773818ff7eb65c57cb9ae43902da973746613626e743ae9e639fef08cfb5"
+        }
+      }
+    },
+    {
+      "index": 24,
+      "job": "reentrancy_node/6/1/G3R",
+      "child_total_seconds": 626.4780797958374,
+      "child_start_to_attempt_started_seconds": 264.8580708503723,
+      "attempt_started_to_context_file_mtime_seconds": 11.215380668640137,
+      "child_end_to_acceptance_file_mtime_seconds": 9.666229009628296,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 527.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/024.process.json",
+          "sha256": "2e484cd77c24d0ed2ab315228a6021844a2fc2aad7a02e671ceebfd1745883e5"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_6/seed_1/G3R/attempt_001.started.json",
+          "sha256": "859d84fbd2d8b70ab3b63c73f29d7e28bcf8edf0498edc197bf4bf9ec73dc533"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_6/seed_1/G3R/attempt_001.context.json",
+          "sha256": "ab7c07138a2af2906854c0c06446650259fd20ba8eadf1396ecb9fbd77bb6d46"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/024.acceptance.json",
+          "sha256": "ff3b5f8a1b068e58fef892072878f8b662258112ce78e3caba8bd60fa11ee433"
+        }
+      }
+    },
+    {
+      "index": 25,
+      "job": "reentrancy_node/7/1/G0",
+      "child_total_seconds": 615.6819550991058,
+      "child_start_to_attempt_started_seconds": 218.58033871650696,
+      "attempt_started_to_context_file_mtime_seconds": 11.422621726989746,
+      "child_end_to_acceptance_file_mtime_seconds": 9.149866819381714,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 932.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/025.process.json",
+          "sha256": "7166fb446295fd650a7aa31f3fbe85ae4b1fc8bd19757e23f7e4f11f10a1627c"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_7/seed_1/G0/attempt_001.started.json",
+          "sha256": "13787c13c30cebfb10f37586f2f4e425c14b9c4b7ab978c8e2f0ed4090534cba"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_7/seed_1/G0/attempt_001.context.json",
+          "sha256": "d515214967c5d1495e9c02fc2f16c3be233fa70c5dad2872651db2621a1c5f1f"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/025.acceptance.json",
+          "sha256": "7ad5a541cf1ade22c9afc2327000d040973643e875d124a82ef7874064d617ae"
+        }
+      }
+    },
+    {
+      "index": 26,
+      "job": "reentrancy_node/7/1/G3R",
+      "child_total_seconds": 630.1399457454681,
+      "child_start_to_attempt_started_seconds": 257.6160817146301,
+      "attempt_started_to_context_file_mtime_seconds": 9.039941787719727,
+      "child_end_to_acceptance_file_mtime_seconds": 9.702592134475708,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 374.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/026.process.json",
+          "sha256": "33dc032e5eb410a5462773bcb1eb1331a4c21c93a471b1a02acaf24bca7c0073"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_7/seed_1/G3R/attempt_001.started.json",
+          "sha256": "e046b6de600fcee66ea42ef49be7cc5907d49793ab65e063de7e527a96205dae"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_7/seed_1/G3R/attempt_001.context.json",
+          "sha256": "43888870faf83ca4a656a63357cf8d67b7680701e3df870f60b3a37e4866b674"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/026.acceptance.json",
+          "sha256": "2ff033c7a9224f0a0c19e331d6999c52c0a24f2ad2592eced76e71146c56c72b"
+        }
+      }
+    },
+    {
+      "index": 27,
+      "job": "reentrancy_node/8/1/G0",
+      "child_total_seconds": 585.9826164245605,
+      "child_start_to_attempt_started_seconds": 234.0137538909912,
+      "attempt_started_to_context_file_mtime_seconds": 7.8520121574401855,
+      "child_end_to_acceptance_file_mtime_seconds": 6.594843864440918,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 787.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/027.process.json",
+          "sha256": "1b68bce8c6ceff1cd1a41db87d70ddc70bc0148601052b8d62a665931f271d81"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_8/seed_1/G0/attempt_001.started.json",
+          "sha256": "4ce22f245a6701deb5952c27381df70ee140ed9ab6a912981aaf8106381ae61f"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_8/seed_1/G0/attempt_001.context.json",
+          "sha256": "6bc36d41c8cecf0c7822dc98fe218ec7ef9f290904781e1aaac7c88f86dfa365"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/027.acceptance.json",
+          "sha256": "b26e5e1c0ad2ef09b56f58b0c6e8e4283a20c5652e2cea20baf0d382058a3783"
+        }
+      }
+    },
+    {
+      "index": 28,
+      "job": "reentrancy_node/8/1/G3R",
+      "child_total_seconds": 641.5726528167725,
+      "child_start_to_attempt_started_seconds": 286.4561114311218,
+      "attempt_started_to_context_file_mtime_seconds": 9.47631549835205,
+      "child_end_to_acceptance_file_mtime_seconds": 7.549566268920898,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 499.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/028.process.json",
+          "sha256": "4e1a4c7b52119d848816789a05f62e86619da52702949fd2ab2c5713382d2cb7"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_8/seed_1/G3R/attempt_001.started.json",
+          "sha256": "69cb47bd15eec139e88cdc049a0bd9d0f497d222b624a48762a5323d2b2d1fdf"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_8/seed_1/G3R/attempt_001.context.json",
+          "sha256": "aa15cc03f241e7cbad376d91e0ed66eec53d1c3f795502923c3a9089d5bfc6c0"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/028.acceptance.json",
+          "sha256": "d78386ef3954f4c0ea5472ff6097c65ee44d8845901c35e4947f779f42fecc7a"
+        }
+      }
+    },
+    {
+      "index": 29,
+      "job": "reentrancy_node/9/1/G0",
+      "child_total_seconds": 623.8497784137726,
+      "child_start_to_attempt_started_seconds": 257.01212549209595,
+      "attempt_started_to_context_file_mtime_seconds": 16.836896896362305,
+      "child_end_to_acceptance_file_mtime_seconds": 8.820854187011719,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 1013.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/029.process.json",
+          "sha256": "e805e2a7ce4fc6828bd6c30d8ca4aab18adc4e5af920c857479cbf162d15b6cb"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_9/seed_1/G0/attempt_001.started.json",
+          "sha256": "326d54e10887b8d5ba7d3be820df83fe09b5ad7cd0ad419bad6afd2989689ef9"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_9/seed_1/G0/attempt_001.context.json",
+          "sha256": "bab074ba62b7f285c41962764752be64efe45a66dfcccb04fd44de809e6d1133"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/029.acceptance.json",
+          "sha256": "a6d922f3862896ca344671cb700294f05f7b0c9f642371b99fa508a9e87d861c"
+        }
+      }
+    },
+    {
+      "index": 30,
+      "job": "reentrancy_node/9/1/G3R",
+      "child_total_seconds": 629.1833093166351,
+      "child_start_to_attempt_started_seconds": 261.3525252342224,
+      "attempt_started_to_context_file_mtime_seconds": 7.53762412071228,
+      "child_end_to_acceptance_file_mtime_seconds": 6.686583518981934,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 502.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/030.process.json",
+          "sha256": "a665824a9dcb21e8a61f535b63ad87a4af93f22cca83b5e66586dbe588a88197"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_9/seed_1/G3R/attempt_001.started.json",
+          "sha256": "2344abb7f1d0f02ae0694c1b36c467a5998220ca86dec5448863cb4324b6e851"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_9/seed_1/G3R/attempt_001.context.json",
+          "sha256": "9edafccf9bc23acddef73ec351715852a65a87782676eb4f814c19e87253aa34"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/030.acceptance.json",
+          "sha256": "236ce8a2f096a93d8ead70ac49e2051f9e7ca55c9c6f2ea6135a930f99568e2b"
+        }
+      }
+    },
+    {
+      "index": 31,
+      "job": "access_control_contract/0/1/G0",
+      "child_total_seconds": 539.7321183681488,
+      "child_start_to_attempt_started_seconds": 270.1341919898987,
+      "attempt_started_to_context_file_mtime_seconds": 7.550950288772583,
+      "child_end_to_acceptance_file_mtime_seconds": 5.175510406494141,
+      "resource_flags": {
+        "memory_tight": false,
+        "possible_memory_spill": false,
+        "minimum_free_mib": 816.0
+      },
+      "references": {
+        "process": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/031.process.json",
+          "sha256": "e53e5f2184d3ca549ddcbea58e351ea13d56a7a35ac07eac00bb3faf4ea054c7"
+        },
+        "attempt_started": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/access_control_contract/fold_0/seed_1/G0/attempt_001.started.json",
+          "sha256": "b7cfe49e5188956dc59a40e5f4c8e69c0c06e1d44966ada108ebb49291ad446e"
+        },
+        "context": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/access_control_contract/fold_0/seed_1/G0/attempt_001.context.json",
+          "sha256": "f7217bec4da98a64ed9d53d7bc5dfec1e520c70286d184852a6ce73ae1360c8f"
+        },
+        "acceptance": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/batch_records/executions/A/invocation_001/031.acceptance.json",
+          "sha256": "8fcc4929a9f0cc99c9c08856a2764aff4a5024e292daa8e6791e6c4eead8edeb"
+        }
+      }
+    }
+  ],
+  "pre_attempt_total_observed_seconds_through_sample": 4310.6022889614105,
+  "child_total_observed_seconds_through_sample": 15966.27707862854,
+  "interpretation_limits": [
+    "The rising pre-attempt interval and the deterministic two prior-job scans corroborate increasing orchestration/verification cost, not high GPU-training cost.",
+    "No per-function timer exists in these records: the entire pre-attempt interval cannot be attributed numerically to authorize_job, the second pass, hashing, or CPU checkpoint load individually.",
+    "Filesystem cache, CPU load, disk load and process startup also affect elapsed time.",
+    "The sampled context-file mtime intervals are not pure GPU initialization measurements.",
+    "No training/history log was read; this audit does not independently time the first epoch or estimate pure fit speed.",
+    "Hash/checkpoint/graph validation is substantially different work from writing a short progress text line.",
+    "This evidence does not diagnose CUDA spilling/OOM and does not prove correctness failures or numerical changes."
+  ],
+  "batch_policy": "Keep Stage A code, sealed plan, authorization, validation gates and serial execution unchanged. Do not bypass repeated checks during this batch.",
+  "possible_followup_after_stage_A_user_review": [
+    "Report fit/epoch timing separately from subprocess and controller wall time.",
+    "Design an integrity-preserving acceptance reuse mechanism or consolidate duplicate same-child full checks; validate tamper/failure/resume detection before any new sealed batch.",
+    "Add explicit timers around plan validation, prior-job validation, model assembly, fit, export and final verification in a later authorized change.",
+    "Do not promise an exact speedup until those phases have been separately measured."
+  ]
+}

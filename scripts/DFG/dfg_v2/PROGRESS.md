@@ -1846,3 +1846,7 @@ last辅助结果：
 报告prompt8_v1/batch1/reports/interim_A/REPORT_INTERIM_A.md SHA 55933fa880ef9e4f26c6c1d502f4f959d469d0a8fc7aba734403d8a589443b51，report.json＋15CSV由report_receipt及batch_records/interim_A.json绑定。详细记录training_changes §62.7–62.10及PROMPT8A_REPORT.md。人工512/111边表仍未填，完整语义/泛化/因果贡献未证明；不做B、G*、额外seed或其余五类。
 
 最终正式实验按用户安排在足够显存服务器整批重跑；当前4GiB只约束本机，服务器环境未实际验收，不混本机和服务器成绩。阶段A中间报告交付后停止；下一阶段另行授权。实施、复核与记录AI：Codex。
+
+## 2026-10-27：Prompt 8A 结果GitHub归档（Codex）
+
+用户授权推送后，补充归档1721份Prompt8/8A文本结果、预测与验收记录；详细范围与SHA见docs/github_archive_prompt8a_2026-10-27.json及同名.md。270份模型/初值.pt遵循忽略规则保留本地并记录SHA；原输入仍需单独提供。没有新增训练、改变计算文件或修改历史seal，B保持未运行。

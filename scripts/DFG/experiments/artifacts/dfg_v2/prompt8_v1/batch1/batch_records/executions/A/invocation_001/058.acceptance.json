@@ -1,0 +1,73 @@
+{
+  "job": "access_control_node/8/1/G3R",
+  "attempt": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/access_control_node/fold_8/seed_1/G3R/attempt_001",
+  "audit": {
+    "passed": true,
+    "problems": [],
+    "training_supported_canonical_count": 68,
+    "heldout_only_canonical_count": 4,
+    "supported_zero_message_gradients": [],
+    "heldout_only_canonicals": [
+      [
+        "constructor_definition",
+        "REV_READS_STATE",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "READS_STATE",
+        "constructor_definition"
+      ],
+      [
+        "new_variable",
+        "REV_WRITES_STATE",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "WRITES_STATE",
+        "new_variable"
+      ]
+    ],
+    "resources": {
+      "minimum_free_mib": 1171.0,
+      "below_300_mib_warning": false,
+      "resource_policy": "local_dev_v1",
+      "memory_tight": false,
+      "possible_memory_spill": false,
+      "epoch_timing": {
+        "version": "local-dev-first-three-epoch-median-v1",
+        "status": "evaluated",
+        "epoch_seconds": [
+          7.8854512489633635,
+          7.473087134945672,
+          7.505097728979308,
+          6.953851365018636,
+          7.002548089949414,
+          7.0968950490350835,
+          7.241535514011048,
+          6.871504215989262,
+          6.910233523987699,
+          6.803289627016056,
+          6.911738127993885,
+          6.86290673201438,
+          3.378301866003312,
+          3.7940453629707918,
+          3.82035266503226,
+          3.1677573730121367,
+          3.1012514749891125,
+          3.323098475986626,
+          3.6953872889862396
+        ],
+        "completed_epochs": 19,
+        "baseline_first_three_median_seconds": 7.505097728979308,
+        "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+        "possible_memory_spill_epochs": [],
+        "possible_memory_spill": false,
+        "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging."
+      }
+    },
+    "formal_prediction_and_env_exclusion_verification_required": true
+  },
+  "formal_receipt_verified": true
+}
