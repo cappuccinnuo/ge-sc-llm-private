@@ -1,0 +1,841 @@
+{
+  "acceptance_version": {
+    "batch_sha256": "b03543950bd08761cfce181e96bf5841946408a01073400f354b9678ce542a45",
+    "code": {
+      "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/acceptance_cache.py": "a6afa11d40334cdbe49abed55e04129246a41ba6eeca8edf344f000544eae145",
+      "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/precision_gpu.py": "5aa933bed3532137d309245e21f551a8dbda30031af944d2f137e4d8e64d0b69",
+      "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/run.py": "3670d4e6b7e953ec705e9863e5011b518a111bf74007be2a3a4e5833a3e5da2c"
+    },
+    "version": "prompt8b0-controller-ticket-v1"
+  },
+  "accepted": {
+    "attempt": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001",
+    "audit": {
+      "formal_prediction_and_env_exclusion_verification_required": true,
+      "heldout_only_canonical_count": 0,
+      "heldout_only_canonicals": [],
+      "passed": true,
+      "problems": [],
+      "resources": {
+        "below_300_mib_warning": false,
+        "epoch_timing": {
+          "baseline_first_three_median_seconds": 9.699595817015506,
+          "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging.",
+          "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+          "completed_epochs": 29,
+          "epoch_seconds": [
+            10.421986870991532,
+            9.699595817015506,
+            9.555606246984098,
+            9.00705915997969,
+            9.289022298005875,
+            8.984731952019501,
+            9.654482591024134,
+            9.614376134006307,
+            9.283681302971672,
+            9.48968578298809,
+            9.315889119985513,
+            9.116906090988778,
+            9.356366352993064,
+            9.250523224996869,
+            9.39026852499228,
+            2.192714468052145,
+            2.35224456602009,
+            2.260926505026873,
+            2.2381431680405512,
+            9.689804983965587,
+            9.215028551989235,
+            9.394053423020523,
+            2.3502259110100567,
+            2.273244420008268,
+            9.238827560038771,
+            2.231641079997644,
+            2.449867848015856,
+            2.216285180998966,
+            2.2488432449754328
+          ],
+          "possible_memory_spill": false,
+          "possible_memory_spill_epochs": [],
+          "status": "evaluated",
+          "version": "local-dev-first-three-epoch-median-v1"
+        },
+        "memory_tight": false,
+        "minimum_free_mib": 1134.0,
+        "possible_memory_spill": false,
+        "resource_policy": "local_dev_v1"
+      },
+      "supported_zero_message_gradients": [],
+      "training_supported_canonical_count": 0
+    },
+    "job": {
+      "fold": 2,
+      "layer_impl": "shared_projection",
+      "profile": "G0",
+      "seed": 1,
+      "task_id": "reentrancy_node"
+    },
+    "result": {
+      "best_epoch": 24,
+      "best_inner_val_loss": 0.03776015713810921,
+      "checkpoint_roundtrip_exact": {
+        "inner_val": {
+          "best": true,
+          "last": true
+        },
+        "outer_test": {
+          "best": true,
+          "last": true
+        }
+      },
+      "checkpoint_sha256": {
+        "best": "391a323294861296d6b2336c6ef3ffb40113f2f1cf6068d6eb092a613ea7245b",
+        "last": "46b32d03d17c125ebf59c14efd8751bb06c5d20d682d412afeb1bdb66c385798"
+      },
+      "forward_scope": "full_fixed_task_graph",
+      "gradient_audit": {
+        "backbone_update_l1": 46620.3049165213,
+        "epochs": [
+          {
+            "backbone_gradient_l1": 200.3379157366174,
+            "classifier_gradient_l1": 12.047378703951836,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 0,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 184.71323685101896,
+            "classifier_gradient_l1": 11.230028986930847,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 1,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 165.08488947098158,
+            "classifier_gradient_l1": 10.352688491344452,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 2,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 138.77271992028534,
+            "classifier_gradient_l1": 9.251794025301933,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 3,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 108.86439871302147,
+            "classifier_gradient_l1": 8.08254574239254,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 4,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 83.72443971516624,
+            "classifier_gradient_l1": 6.778560071252286,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 5,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 66.70108887572695,
+            "classifier_gradient_l1": 5.874292865395546,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 6,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 53.28016822388049,
+            "classifier_gradient_l1": 4.9373859614133835,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 7,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 46.14644130677966,
+            "classifier_gradient_l1": 3.9355026930570602,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 8,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 38.102311001504816,
+            "classifier_gradient_l1": 2.9703709445893764,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 9,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 31.43167258951885,
+            "classifier_gradient_l1": 2.4398409405257553,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 10,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 28.230895444200108,
+            "classifier_gradient_l1": 1.940053764730692,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 11,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 27.735431999270457,
+            "classifier_gradient_l1": 1.3915162179619074,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 12,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 21.92063417472692,
+            "classifier_gradient_l1": 0.7117070239037275,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 13,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 27.025753803846055,
+            "classifier_gradient_l1": 0.7774804052896798,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 14,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 27.879882054827338,
+            "classifier_gradient_l1": 0.6387538053095341,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 15,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 174.83586075532295,
+            "classifier_gradient_l1": 2.0304634869098663,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 16,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 58.11981641068841,
+            "classifier_gradient_l1": 1.442804105579853,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 17,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 54.23218962783975,
+            "classifier_gradient_l1": 1.6826044470071793,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 18,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 53.63636721606878,
+            "classifier_gradient_l1": 1.3940298222005367,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 19,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 31.592881239080615,
+            "classifier_gradient_l1": 1.2200131174176931,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 20,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 14.584458499033971,
+            "classifier_gradient_l1": 1.043940618634224,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 21,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 11.241578766047477,
+            "classifier_gradient_l1": 0.7172860065475106,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 22,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 29.48276261554573,
+            "classifier_gradient_l1": 1.0683763837441802,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 23,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 11.929328127673605,
+            "classifier_gradient_l1": 0.4238475109450519,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 24,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 8.722656417804018,
+            "classifier_gradient_l1": 0.2759250254021026,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 25,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 8.200366823496273,
+            "classifier_gradient_l1": 0.29207583889365196,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 26,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 6.979687991207879,
+            "classifier_gradient_l1": 0.29203802766278386,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 27,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          },
+          {
+            "backbone_gradient_l1": 6.280285818958615,
+            "classifier_gradient_l1": 0.3042972791008651,
+            "ddg_relations": [],
+            "ddg_training_support": 0,
+            "epoch": 28,
+            "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+            "v2_relations": [],
+            "v2_training_support": 0
+          }
+        ],
+        "updates_may_include_weight_decay": false,
+        "v2_message_update_l1": {}
+      },
+      "history_rows": 29,
+      "initial_sha256": "87282aaafdb2de8da17150e5ceba0908be6cea839488efacd6d5115b3824f461",
+      "inner_val": {
+        "best": {
+          "buggy_f1": 99.46409431939979,
+          "macro_f1": 99.39420932186205,
+          "n": 1673,
+          "positive": 933,
+          "precision": 99.46409431939979,
+          "recall": 99.46409431939979,
+          "tn_fp_fn_tp": [
+            735,
+            5,
+            5,
+            928
+          ]
+        },
+        "last": {
+          "buggy_f1": 99.51794322442422,
+          "macro_f1": 99.45471197732367,
+          "n": 1673,
+          "positive": 933,
+          "precision": 99.46466809421841,
+          "recall": 99.57127545551982,
+          "tn_fp_fn_tp": [
+            735,
+            5,
+            4,
+            929
+          ]
+        }
+      },
+      "interpretation": "nested outer test; inner validation selects best",
+      "last_epoch": 28,
+      "layer_impl": "shared_projection",
+      "memory_tight": false,
+      "no_parameters_created_during_training_or_scoring": true,
+      "outer_supervision_used_in_optimization": false,
+      "outer_test": {
+        "best": {
+          "buggy_f1": 99.83452840595697,
+          "macro_f1": 99.75920308601327,
+          "n": 1381,
+          "positive": 907,
+          "precision": 99.8896247240618,
+          "recall": 99.7794928335171,
+          "tn_fp_fn_tp": [
+            473,
+            1,
+            2,
+            905
+          ]
+        },
+        "last": {
+          "buggy_f1": 99.88974641675854,
+          "macro_f1": 99.83938797631176,
+          "n": 1381,
+          "positive": 907,
+          "precision": 99.88974641675854,
+          "recall": 99.88974641675854,
+          "tn_fp_fn_tp": [
+            473,
+            1,
+            1,
+            906
+          ]
+        }
+      },
+      "parameter_count": 4371010,
+      "possible_memory_spill": false,
+      "protocol": "dfg-v2-nested",
+      "protocol_version": "dfg-v2-nested-v1",
+      "resources": {
+        "baseline": {
+          "command": [
+            "nvidia-smi",
+            "--query-gpu=uuid,memory.total,memory.used,memory.free",
+            "--format=csv,noheader,nounits"
+          ],
+          "elapsed_seconds": 0.13888780196430162,
+          "free_mib": 3655.0,
+          "monotonic_seconds": 372422.0857794,
+          "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 321, 3655",
+          "total_mib": 4096.0,
+          "unaccounted_mib": 120.0,
+          "unix_seconds": 1793078457.0996444,
+          "used_mib": 321.0,
+          "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057"
+        },
+        "caveats": [
+          "Whole-card memory is not a per-process measurement.",
+          "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+          "Context initialization differences can include concurrent changes by other processes.",
+          "Later lazy library allocations are not necessarily included in the initial context observation.",
+          "Peak reserved and minimum free are not necessarily observed at the same instant.",
+          "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+        ],
+        "context_adjusted_formula": "non_torch_residual_estimate - observed_context_free_decrease",
+        "context_adjusted_residual_estimate_mib": 667.0,
+        "context_observation": {
+          "after_initialization": {
+            "command": [
+              "nvidia-smi",
+              "--query-gpu=uuid,memory.total,memory.used,memory.free",
+              "--format=csv,noheader,nounits"
+            ],
+            "elapsed_seconds": 0.26021410297835246,
+            "free_mib": 2362.0,
+            "monotonic_seconds": 372428.83538477,
+            "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 1614, 2362",
+            "total_mib": 4096.0,
+            "unaccounted_mib": 120.0,
+            "unix_seconds": 1793078463.8492491,
+            "used_mib": 1614.0,
+            "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057"
+          },
+          "baseline": {
+            "command": [
+              "nvidia-smi",
+              "--query-gpu=uuid,memory.total,memory.used,memory.free",
+              "--format=csv,noheader,nounits"
+            ],
+            "elapsed_seconds": 0.13888780196430162,
+            "free_mib": 3655.0,
+            "monotonic_seconds": 372422.0857794,
+            "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 321, 3655",
+            "total_mib": 4096.0,
+            "unaccounted_mib": 120.0,
+            "unix_seconds": 1793078457.0996444,
+            "used_mib": 321.0,
+            "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057"
+          },
+          "caveats": [
+            "Whole-card memory is not a per-process measurement.",
+            "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+            "Context initialization differences can include concurrent changes by other processes.",
+            "Later lazy library allocations are not necessarily included in the initial context observation.",
+            "Peak reserved and minimum free are not necessarily observed at the same instant.",
+            "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+          ],
+          "free_decrease_mib": 1293.0,
+          "torch_allocated_mib": 0.0,
+          "torch_reserved_mib": 0.0,
+          "used_increase_mib": 1293.0,
+          "warmup": "one-element Torch CUDA tensor and one-node one-edge DGL CUDA graph; no RNG draws"
+        },
+        "context_ref": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.context.json",
+          "sha256": "7386c00927acc8570088c18a3e2842e596963fefe41f39a4f4681857e0bc3330"
+        },
+        "device": "cuda",
+        "epoch_timing": {
+          "baseline_first_three_median_seconds": 9.699595817015506,
+          "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging.",
+          "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+          "completed_epochs": 29,
+          "epoch_seconds": [
+            10.421986870991532,
+            9.699595817015506,
+            9.555606246984098,
+            9.00705915997969,
+            9.289022298005875,
+            8.984731952019501,
+            9.654482591024134,
+            9.614376134006307,
+            9.283681302971672,
+            9.48968578298809,
+            9.315889119985513,
+            9.116906090988778,
+            9.356366352993064,
+            9.250523224996869,
+            9.39026852499228,
+            2.192714468052145,
+            2.35224456602009,
+            2.260926505026873,
+            2.2381431680405512,
+            9.689804983965587,
+            9.215028551989235,
+            9.394053423020523,
+            2.3502259110100567,
+            2.273244420008268,
+            9.238827560038771,
+            2.231641079997644,
+            2.449867848015856,
+            2.216285180998966,
+            2.2488432449754328
+          ],
+          "possible_memory_spill": false,
+          "possible_memory_spill_epochs": [],
+          "status": "evaluated",
+          "version": "local-dev-first-three-epoch-median-v1"
+        },
+        "memory_samples": 454,
+        "memory_tight": false,
+        "minimum_free_mib": 1134.0,
+        "non_torch_residual_estimate_mib": 1960.0,
+        "paired_sample_count": 454,
+        "peak_allocated_mib": 807.7958984375,
+        "peak_reserved_mib": 1002.0,
+        "possible_memory_spill": false,
+        "preflight": {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/preflight_001.json",
+          "sha256": "320c6c1600610ad817b4a0ae144fd932b4bc89292565979d518b1219df790aa7"
+        },
+        "raw_samples_path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.memory_samples.jsonl",
+        "raw_samples_sha256": "d50048d68bad94d51c4a8d26909432dbd7fbcdf2445ebea54a280dcb8bfe72cb",
+        "residual_attribution": "unattributed; not an identified external process",
+        "residual_formula": "total - minimum_free - peak_reserved",
+        "resource_policy": {
+          "baseline_minimum_free_mib": 3000.0,
+          "process_scope": "fresh_process_one_job",
+          "running_minimum_free_mib": 100.0,
+          "sampling_seconds": 0.5,
+          "version": "local_dev_v1"
+        },
+        "sampling_errors": [],
+        "seconds": 331.7177519329707,
+        "total_mib": 4096.0,
+        "training_pid": 2399890,
+        "whole_card_sampling_seconds": 0.5
+      },
+      "score_role": "outer_test",
+      "seconds": 325.3865444060066,
+      "selection_role": "inner_val",
+      "status": "complete"
+    }
+  },
+  "attempt": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001",
+  "attempt_inventory": [
+    {
+      "mtime_ns": 1793078810363847148,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/receipt.json",
+      "sha256": "f621ad8c4ca24bee7cd25a317cf7ee0de5d522800aca9e70b0cff5af47222661",
+      "size": 2468
+    },
+    {
+      "mtime_ns": 1793078457239837791,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.started.json",
+      "sha256": "f7a0b2ff133849836e0e92be553175974a9881c379b63a605a40069b988af2a0",
+      "size": 632
+    }
+  ],
+  "dependencies": [
+    {
+      "mtime_ns": 1793068691225112768,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.json",
+      "sha256": "07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de",
+      "size": 314221
+    },
+    {
+      "mtime_ns": 1793068691225661868,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.seal.json",
+      "sha256": "55aebf929cd578a4a9cd6df4956a4cc3816af010d1963b57a52a1559db5a59f8",
+      "size": 203
+    },
+    {
+      "mtime_ns": 1793067467799978825,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/prepared/reentrancy_node/fold_2/seed_1/G0_initial.pt",
+      "sha256": "bf7f85cc2ea1fae28e8ec3d107473013f87972229642096c2f75eea1a0d5a28f",
+      "size": 17600147
+    },
+    {
+      "mtime_ns": 1793067468056009225,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/prepared/reentrancy_node/fold_2/seed_1/task.json",
+      "sha256": "6b0860710aef510be9c77666908481a47a874820214898be4fc6529036187bfa",
+      "size": 461016
+    },
+    {
+      "mtime_ns": 1793078464110414662,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.context.json",
+      "sha256": "7386c00927acc8570088c18a3e2842e596963fefe41f39a4f4681857e0bc3330",
+      "size": 1834
+    },
+    {
+      "mtime_ns": 1793078810261669842,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.memory_samples.jsonl",
+      "sha256": "d50048d68bad94d51c4a8d26909432dbd7fbcdf2445ebea54a280dcb8bfe72cb",
+      "size": 323825
+    },
+    {
+      "mtime_ns": 1793078810268174242,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.resources.json",
+      "sha256": "0df3d474c67dfa19d01b26a8346349c6efacf2eebc73abd1ab77ff8970cfee80",
+      "size": 6206
+    },
+    {
+      "mtime_ns": 1793078457239837791,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001.started.json",
+      "sha256": "f7a0b2ff133849836e0e92be553175974a9881c379b63a605a40069b988af2a0",
+      "size": 632
+    },
+    {
+      "mtime_ns": 1793078690869517175,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/best.json",
+      "sha256": "025ca5b4acece6d3db48d5ebc92c0255edac45cf2670acc900bf74482b3fc2c2",
+      "size": 65818
+    },
+    {
+      "mtime_ns": 1793078690853665777,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/best.pt",
+      "sha256": "391a323294861296d6b2336c6ef3ffb40113f2f1cf6068d6eb092a613ea7245b",
+      "size": 70428031
+    },
+    {
+      "mtime_ns": 1793078490792748327,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/binding.json",
+      "sha256": "4014a10ef623b15377e6e61413d16c7ea213136124531414c905f79952c2f736",
+      "size": 38825
+    },
+    {
+      "mtime_ns": 1793078810270745342,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/effective_config.json",
+      "sha256": "d657d505c1282790056cf3050c28e723550c53b291c7456cd4e4595c6b94795f",
+      "size": 1316
+    },
+    {
+      "mtime_ns": 1793078708821172509,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/gradient_audit.json",
+      "sha256": "5dceb5f625ff2cdac9045078b375bd4f0d6d332c8a8f89e85a782938766336b1",
+      "size": 14984
+    },
+    {
+      "mtime_ns": 1793078701353664543,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/history.jsonl",
+      "sha256": "9b1c6b9be87d0e418cd6b0614a54fdec95d9a275d918758ff85518ed630b7b88",
+      "size": 12200
+    },
+    {
+      "mtime_ns": 1793078810273352642,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/initialization_ref.json",
+      "sha256": "06a84793d4b9d00c564008f87ec04740557c316fd9f2e920037c79f50fbf7d4d",
+      "size": 337
+    },
+    {
+      "mtime_ns": 1793078490795539927,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/inner_train_supervision.json",
+      "sha256": "a4626ec47a7f5774dd7a52f03947b590edb91f9edc54d7785cdcdb2972bcb726",
+      "size": 92363
+    },
+    {
+      "mtime_ns": 1793078759084908915,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/inner_val_predictions.json",
+      "sha256": "a48a7e0ecd2f681516757c061f048b4bfb2d5cdd2bd4d835f8512fd9fb33fe17",
+      "size": 985474
+    },
+    {
+      "mtime_ns": 1793078490796121127,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/inner_val_supervision.json",
+      "sha256": "d9b24d6674fa15ded0fce29c27bf8b72009362429bdbb9c69c42de5b57167904",
+      "size": 17500
+    },
+    {
+      "mtime_ns": 1793078708725569674,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/last.json",
+      "sha256": "1c0e2037ce9a1726ff86a5c3806989818ebb139abd36e76528fede2e086e9752",
+      "size": 65818
+    },
+    {
+      "mtime_ns": 1793078708721664973,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/last.pt",
+      "sha256": "46b32d03d17c125ebf59c14efd8751bb06c5d20d682d412afeb1bdb66c385798",
+      "size": 70428031
+    },
+    {
+      "mtime_ns": 1793078490791594627,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/model_input.json",
+      "sha256": "16059a5b05c4c6af67716d06311b6622b19196a046341f9e6bb938ad9533ffd9",
+      "size": 19913
+    },
+    {
+      "mtime_ns": 1793078490799364527,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/optimizer_schedule.json",
+      "sha256": "9b1ba2ec8ce77f983f29ad1f597362d2386b250e4ab59ae1627a465b36afb8f9",
+      "size": 1330
+    },
+    {
+      "mtime_ns": 1793078809211685071,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/outer_test_predictions.json",
+      "sha256": "ae14ba81d86a10af5a8b89c9261ea0a4449b34960e8e23b4d30974f84d3f1f73",
+      "size": 817311
+    },
+    {
+      "mtime_ns": 1793078490796643127,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/outer_test_supervision.json",
+      "sha256": "46e5f01e05c61f64f5b06ab5afe3c81c3b5bfa58693b9fa199842dbe956f5e70",
+      "size": 14264
+    },
+    {
+      "mtime_ns": 1793078810363847148,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/receipt.json",
+      "sha256": "f621ad8c4ca24bee7cd25a317cf7ee0de5d522800aca9e70b0cff5af47222661",
+      "size": 2468
+    },
+    {
+      "mtime_ns": 1793078810269988142,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/result.json",
+      "sha256": "5f2cd91f576c549e4485aede22c49fab79e3cb8480e11a266ebc8a7778a18cb6",
+      "size": 24403
+    },
+    {
+      "mtime_ns": 1793078810273163842,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/attempt_001/schema_support_audit.json",
+      "sha256": "342f40a11e20e445c6298af969cdb5451f8ef5429ef810fa3876dd97b7392760",
+      "size": 55069
+    },
+    {
+      "mtime_ns": 1793078457239157891,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_2/seed_1/G0/preflight_001.json",
+      "sha256": "320c6c1600610ad817b4a0ae144fd932b4bc89292565979d518b1219df790aa7",
+      "size": 1636
+    },
+    {
+      "mtime_ns": 1793071415483165879,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/stage_A_authorization.json",
+      "sha256": "5a80976b1ab2c48a2fca34776ed4a3697d8c5492b2095f2a880d9906e36a3021",
+      "size": 4508
+    },
+    {
+      "mtime_ns": 1791805393193742755,
+      "path": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared/E0/node.gpickle",
+      "sha256": "91c3bd89af18af073162648b95747319b644dd2555cfcff394d251f626bbf77c",
+      "size": 38783904
+    },
+    {
+      "mtime_ns": 1791805408471944432,
+      "path": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared/graph_labels.json",
+      "sha256": "2f294a72c70680695f1bb5a5aab2a81e581795e0859a5dbf705acb36c2d650b9",
+      "size": 12118
+    },
+    {
+      "mtime_ns": 1791805526112127716,
+      "path": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/splits/node_folds.json",
+      "sha256": "6c66b36db74f9905d311609117d50d41b987cf5dac82c000b6f3c620c26f015f",
+      "size": 31339
+    }
+  ],
+  "job": {
+    "fold": 2,
+    "layer_impl": "shared_projection",
+    "profile": "G0",
+    "seed": 1,
+    "task_id": "reentrancy_node"
+  },
+  "job_identity": "reentrancy_node/2/1/G0",
+  "plan_path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.json",
+  "plan_sha256": "07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de",
+  "receipt_sha256": "f621ad8c4ca24bee7cd25a317cf7ee0de5d522800aca9e70b0cff5af47222661",
+  "recorded_at": "2026-10-28T08:04:57.618512+00:00",
+  "version": "dfg-v2-acceptance-cache-v1"
+}

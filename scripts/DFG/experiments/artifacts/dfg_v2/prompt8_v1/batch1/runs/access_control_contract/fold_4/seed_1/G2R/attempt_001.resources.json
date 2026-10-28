@@ -1,0 +1,137 @@
+{
+  "seconds": 105.78803689400229,
+  "peak_allocated_mib": 1353.0751953125,
+  "peak_reserved_mib": 1538.0,
+  "minimum_free_mib": 384.0,
+  "whole_card_sampling_seconds": 0.5,
+  "memory_samples": 177,
+  "sampling_errors": [],
+  "device": "cuda",
+  "baseline": {
+    "unix_seconds": 1793186001.97487,
+    "monotonic_seconds": 21219.28531953,
+    "elapsed_seconds": 0.09322969999993802,
+    "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+    "total_mib": 4096.0,
+    "used_mib": 519.0,
+    "free_mib": 3457.0,
+    "unaccounted_mib": 120.0,
+    "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 519, 3457",
+    "command": [
+      "nvidia-smi",
+      "--query-gpu=uuid,memory.total,memory.used,memory.free",
+      "--format=csv,noheader,nounits"
+    ]
+  },
+  "context_observation": {
+    "baseline": {
+      "unix_seconds": 1793186001.97487,
+      "monotonic_seconds": 21219.28531953,
+      "elapsed_seconds": 0.09322969999993802,
+      "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+      "total_mib": 4096.0,
+      "used_mib": 519.0,
+      "free_mib": 3457.0,
+      "unaccounted_mib": 120.0,
+      "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 519, 3457",
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=uuid,memory.total,memory.used,memory.free",
+        "--format=csv,noheader,nounits"
+      ]
+    },
+    "after_initialization": {
+      "unix_seconds": 1793186008.1141553,
+      "monotonic_seconds": 21225.424605868,
+      "elapsed_seconds": 0.26738459400075953,
+      "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+      "total_mib": 4096.0,
+      "used_mib": 1812.0,
+      "free_mib": 2164.0,
+      "unaccounted_mib": 120.0,
+      "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 1812, 2164",
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=uuid,memory.total,memory.used,memory.free",
+        "--format=csv,noheader,nounits"
+      ]
+    },
+    "free_decrease_mib": 1293.0,
+    "used_increase_mib": 1293.0,
+    "torch_allocated_mib": 0.0,
+    "torch_reserved_mib": 0.0,
+    "warmup": "one-element Torch CUDA tensor and one-node one-edge DGL CUDA graph; no RNG draws",
+    "caveats": [
+      "Whole-card memory is not a per-process measurement.",
+      "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+      "Context initialization differences can include concurrent changes by other processes.",
+      "Later lazy library allocations are not necessarily included in the initial context observation.",
+      "Peak reserved and minimum free are not necessarily observed at the same instant.",
+      "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+    ]
+  },
+  "total_mib": 4096.0,
+  "non_torch_residual_estimate_mib": 2174.0,
+  "context_adjusted_residual_estimate_mib": 881.0,
+  "residual_formula": "total - minimum_free - peak_reserved",
+  "context_adjusted_formula": "non_torch_residual_estimate - observed_context_free_decrease",
+  "residual_attribution": "unattributed; not an identified external process",
+  "raw_samples_path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/access_control_contract/fold_4/seed_1/G2R/attempt_001.memory_samples.jsonl",
+  "raw_samples_sha256": "8430f5ef0fe0510c60e44c4163de58a7451133688e1d8cf6da06b1124f970adc",
+  "paired_sample_count": 177,
+  "caveats": [
+    "Whole-card memory is not a per-process measurement.",
+    "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+    "Context initialization differences can include concurrent changes by other processes.",
+    "Later lazy library allocations are not necessarily included in the initial context observation.",
+    "Peak reserved and minimum free are not necessarily observed at the same instant.",
+    "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+  ],
+  "memory_tight": false,
+  "possible_memory_spill": false,
+  "epoch_timing": {
+    "version": "local-dev-first-three-epoch-median-v1",
+    "status": "evaluated",
+    "epoch_seconds": [
+      4.7866924019981525,
+      3.9247462570019707,
+      3.791890394000802,
+      4.002939180001704,
+      3.6401514850003878,
+      3.6906676170001447,
+      3.787180275998253,
+      3.8487923620014044,
+      3.6426556639999035,
+      3.6455674419994466,
+      3.3215053149979212,
+      3.093730674001563,
+      3.2110508890000347,
+      3.1239782860029663,
+      3.2314863089995924,
+      3.3710219690001395,
+      3.047477521999099
+    ],
+    "completed_epochs": 17,
+    "baseline_first_three_median_seconds": 3.9247462570019707,
+    "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+    "possible_memory_spill_epochs": [],
+    "possible_memory_spill": false,
+    "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging."
+  },
+  "preflight": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/access_control_contract/fold_4/seed_1/G2R/preflight_001.json",
+    "sha256": "78cb871bd01873b97d42ae0157aef4daadb29adfdb8466d3064b98b1a79251b5"
+  },
+  "resource_policy": {
+    "version": "local_dev_v1",
+    "baseline_minimum_free_mib": 3000.0,
+    "running_minimum_free_mib": 100.0,
+    "sampling_seconds": 0.5,
+    "process_scope": "fresh_process_one_job"
+  },
+  "training_pid": 331748,
+  "context_ref": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/access_control_contract/fold_4/seed_1/G2R/attempt_001.context.json",
+    "sha256": "7b6036d414807c295b212e0afc11114192a70da513053b43f8b52cc2f12e21e6"
+  }
+}

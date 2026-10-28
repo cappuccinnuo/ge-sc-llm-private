@@ -1,0 +1,75 @@
+{
+  "job": "reentrancy_node/8/1/G2R",
+  "attempt": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_8/seed_1/G2R/attempt_001",
+  "audit": {
+    "formal_prediction_and_env_exclusion_verification_required": true,
+    "heldout_only_canonical_count": 4,
+    "heldout_only_canonicals": [
+      [
+        "constructor_definition",
+        "DATA_DEF_USE",
+        "if"
+      ],
+      [
+        "constructor_definition",
+        "REV_READS_STATE",
+        "new_variable"
+      ],
+      [
+        "if",
+        "REV_DATA_DEF_USE",
+        "constructor_definition"
+      ],
+      [
+        "new_variable",
+        "READS_STATE",
+        "constructor_definition"
+      ]
+    ],
+    "passed": true,
+    "problems": [],
+    "resources": {
+      "below_300_mib_warning": false,
+      "epoch_timing": {
+        "baseline_first_three_median_seconds": 3.771368446999986,
+        "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging.",
+        "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+        "completed_epochs": 21,
+        "epoch_seconds": [
+          4.73066647000087,
+          3.771368446999986,
+          3.4803114749993256,
+          3.8933388200021,
+          3.640820946999156,
+          3.4280554659999325,
+          3.493170640002063,
+          3.665560450997873,
+          3.451569273001951,
+          3.4292223199990985,
+          3.4431130699995265,
+          3.47046260299976,
+          3.3990984039992327,
+          3.378938272002415,
+          3.4869649520005623,
+          2.9092563039994275,
+          2.9392286040019826,
+          3.1212742919997254,
+          2.8339159400020435,
+          2.8755433419973997,
+          2.854268762999709
+        ],
+        "possible_memory_spill": false,
+        "possible_memory_spill_epochs": [],
+        "status": "evaluated",
+        "version": "local-dev-first-three-epoch-median-v1"
+      },
+      "memory_tight": false,
+      "minimum_free_mib": 803.0,
+      "possible_memory_spill": false,
+      "resource_policy": "local_dev_v1"
+    },
+    "supported_zero_message_gradients": [],
+    "training_supported_canonical_count": 54
+  },
+  "formal_receipt_verified": true
+}

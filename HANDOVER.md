@@ -2155,3 +2155,8 @@ Prompt 7b.4按用户批准增加启动基线与逐任务独立进程；原模型
 - B执行4.614小时，fit内部2.429小时另计口径；峰值allocated/reserved1829.03/2026MiB、最低整卡free53MiB，7项memory_tight，均无OOM/失败。最终核验/报告耗时详见command.json，不混作额外训练。
 - 报告scripts/DFG/dfg_v2/PROMPT8B_REPORT.md；完整CSV/JSON在scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/reports/final/。详细记录training_changes§64、PROGRESS已追加；本地提交，尚未push，无新seed/其他类别/服务器迁移。
 - 最终实验将按用户安排在显存充足的服务器整批运行；当前RTX3050 4GiB只约束本机。服务器尚未部署或实际验收，后续不能混合本机与服务器成绩。
+
+
+### 2026-10-28 Prompt 8B GitHub结果归档（Codex）
+
+用户要求推送GitHub。沿用阶段A方式，归档新增90个正式结果、完整150结果报告、预测/收据及8B.0与8B验收文本，原产物不变。共2811个文件（831.12 MiB）；两个超限JSON保留原文件并提供SHA一致的gzip副本；权重与输入图仍在本地。详见 docs/github_archive_prompt8b_2026-10-28.md / .json。生产代码没有改动，训练无需重跑。推送目标仅origin/dfg-v2，使用此前Windows Git＋WSL gh方式；最终推送是否成功以实时远端SHA核验为准。

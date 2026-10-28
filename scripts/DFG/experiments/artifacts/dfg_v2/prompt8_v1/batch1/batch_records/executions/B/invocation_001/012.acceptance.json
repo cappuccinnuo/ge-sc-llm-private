@@ -1,0 +1,55 @@
+{
+  "job": "reentrancy_contract/3/1/G3",
+  "attempt": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_contract/fold_3/seed_1/G3/attempt_001",
+  "audit": {
+    "formal_prediction_and_env_exclusion_verification_required": true,
+    "heldout_only_canonical_count": 1,
+    "heldout_only_canonicals": [
+      [
+        "new_variable",
+        "WRITES_STATE",
+        "new_variable"
+      ]
+    ],
+    "passed": true,
+    "problems": [],
+    "resources": {
+      "below_300_mib_warning": true,
+      "epoch_timing": {
+        "baseline_first_three_median_seconds": 3.552797737000219,
+        "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging.",
+        "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+        "completed_epochs": 16,
+        "epoch_seconds": [
+          5.013100825999572,
+          3.5088450130006095,
+          3.552797737000219,
+          3.7476215549995686,
+          3.5873392800003785,
+          3.848405986000216,
+          3.466202396000881,
+          3.5424144080006954,
+          3.5279908349984908,
+          2.901345530000981,
+          3.0205604299990227,
+          3.18818683200152,
+          2.8710069799999474,
+          2.8439272180003172,
+          3.031871326000328,
+          2.867295104999357
+        ],
+        "possible_memory_spill": false,
+        "possible_memory_spill_epochs": [],
+        "status": "evaluated",
+        "version": "local-dev-first-three-epoch-median-v1"
+      },
+      "memory_tight": false,
+      "minimum_free_mib": 264.0,
+      "possible_memory_spill": false,
+      "resource_policy": "local_dev_v1"
+    },
+    "supported_zero_message_gradients": [],
+    "training_supported_canonical_count": 33
+  },
+  "formal_receipt_verified": true
+}

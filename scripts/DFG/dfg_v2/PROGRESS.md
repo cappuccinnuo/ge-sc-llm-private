@@ -1894,3 +1894,8 @@ best BF1（百分数、等权折均值±样本SD）：
 结束测试2108v2+223旧=2331通过，0失败/跳过，8/29条既有弃用警告。150项checkpoint重载一致，无评分时建参/outer监督优化；5923条fit×canonical有训练支持且非零消息梯度、287条无训练支持保留。B控制器16611.18秒、fit内部8743.10秒；峰值1829.03/2026MiB、最低free53MiB，7项memory_tight、无OOM/失败。
 
 正式结果reports/final/REPORT.md及JSON/15CSV、selection/seal、独立A不变审计及指标重算均已完成。A的G3R−G0原始结果精确不变，新增Holm、方向消融及G*机制表按预定规则；人工512/111表未填，单seed/全固定图前向限制保留。详见training_changes§64.4–64.9及PROMPT8B_REPORT.md。最终实验将按用户安排在显存充足的服务器整批运行；当前RTX3050 4GiB只约束本机。服务器尚未部署或实际验收，后续不能混合本机与服务器成绩。 仅本地提交，未push，不自动启动批次2/3。
+
+
+### 2026-10-28 Prompt 8B结果Git归档（Codex）
+
+在22a57fc结果报告之后，按用户推送请求追加完整结果文本归档：B90个fit与A60个既有fit组成150结果，G*选择/最终15表/独立核验/测试证据一并归档。8B.0未跟踪文本也纳入；不修改生产代码、训练或已封存产物。summary.json与stage_A_final_full_verification.json使用无损gzip副本并核验解压SHA；.pt不上传。归档清单和边界见docs/github_archive_prompt8b_2026-10-28.{md,json}。

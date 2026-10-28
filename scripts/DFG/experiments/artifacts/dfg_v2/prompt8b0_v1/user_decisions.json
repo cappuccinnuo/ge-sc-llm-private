@@ -1,0 +1,11 @@
+{
+  "prompt": "8B.0",
+  "user_request_verbatim": "1.Please refer to `scripts/DFG/dfg_v2/PROMPTS.md` ,the .md document has updated,and begin with Prompt 8B.0 . The current implementation builds upon existing work. Please first read section 4.1, \"Shared Context,\" in the documentation, and then proceed to implement  and Prompt 8B.0.As you work through the implementation, please think critically; if you identify any aspects that seem unreasonable, feel free to point them out—simply list them, but please avoid nitpicking.  If you have more reasonable alternatives to the proposals in the document, please feel free to suggest them; however, you must consult with me first, and all such changes must be documented.2Please also note in the handover documentation that the experiments will eventually be run on a server, so there will certainly be sufficient VRAM for the final experiments; the current limitation is simply due to running them on this local computer.",
+  "additional_approval_verbatim": "同意增加边索引内容比较（推荐）",
+  "approval_question": "实测发现 DGL 0.6.1 的边索引视图共享内存，但不共享 PyTorch 的 _version 计数，因此只检查 data_ptr/_version 会漏掉部分边修改。是否同意在快速校验中额外把边索引与启动时保存的副本做 torch.equal 比较？这不重建图、不改变训练计算，调整会记录到三份文档。",
+  "proof_jobs": [
+    "access_control_node/0/1/G0",
+    "access_control_node/0/1/G3R"
+  ],
+  "formal_stage_B_execution_authorized": false
+}

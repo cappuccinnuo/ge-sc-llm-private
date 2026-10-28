@@ -1,0 +1,148 @@
+{
+  "seconds": 130.34344476099977,
+  "peak_allocated_mib": 1040.359375,
+  "peak_reserved_mib": 1170.0,
+  "minimum_free_mib": 859.0,
+  "whole_card_sampling_seconds": 0.5,
+  "memory_samples": 238,
+  "sampling_errors": [],
+  "device": "cuda",
+  "baseline": {
+    "unix_seconds": 1793178515.1628425,
+    "monotonic_seconds": 14623.406823947,
+    "elapsed_seconds": 0.0797584989995812,
+    "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+    "total_mib": 4096.0,
+    "used_mib": 421.0,
+    "free_mib": 3555.0,
+    "unaccounted_mib": 120.0,
+    "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 421, 3555",
+    "command": [
+      "nvidia-smi",
+      "--query-gpu=uuid,memory.total,memory.used,memory.free",
+      "--format=csv,noheader,nounits"
+    ]
+  },
+  "context_observation": {
+    "baseline": {
+      "unix_seconds": 1793178515.1628425,
+      "monotonic_seconds": 14623.406823947,
+      "elapsed_seconds": 0.0797584989995812,
+      "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+      "total_mib": 4096.0,
+      "used_mib": 421.0,
+      "free_mib": 3555.0,
+      "unaccounted_mib": 120.0,
+      "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 421, 3555",
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=uuid,memory.total,memory.used,memory.free",
+        "--format=csv,noheader,nounits"
+      ]
+    },
+    "after_initialization": {
+      "unix_seconds": 1793178520.695158,
+      "monotonic_seconds": 14628.939140121,
+      "elapsed_seconds": 0.20967339900016668,
+      "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+      "total_mib": 4096.0,
+      "used_mib": 1714.0,
+      "free_mib": 2262.0,
+      "unaccounted_mib": 120.0,
+      "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 1714, 2262",
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=uuid,memory.total,memory.used,memory.free",
+        "--format=csv,noheader,nounits"
+      ]
+    },
+    "free_decrease_mib": 1293.0,
+    "used_increase_mib": 1293.0,
+    "torch_allocated_mib": 0.0,
+    "torch_reserved_mib": 0.0,
+    "warmup": "one-element Torch CUDA tensor and one-node one-edge DGL CUDA graph; no RNG draws",
+    "caveats": [
+      "Whole-card memory is not a per-process measurement.",
+      "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+      "Context initialization differences can include concurrent changes by other processes.",
+      "Later lazy library allocations are not necessarily included in the initial context observation.",
+      "Peak reserved and minimum free are not necessarily observed at the same instant.",
+      "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+    ]
+  },
+  "total_mib": 4096.0,
+  "non_torch_residual_estimate_mib": 2067.0,
+  "context_adjusted_residual_estimate_mib": 774.0,
+  "residual_formula": "total - minimum_free - peak_reserved",
+  "context_adjusted_formula": "non_torch_residual_estimate - observed_context_free_decrease",
+  "residual_attribution": "unattributed; not an identified external process",
+  "raw_samples_path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_1/seed_1/G3/attempt_001.memory_samples.jsonl",
+  "raw_samples_sha256": "875399b0b6187074a68c06af9f8bb1d67a063592ec93194c73993bf36ac67d54",
+  "paired_sample_count": 238,
+  "caveats": [
+    "Whole-card memory is not a per-process measurement.",
+    "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+    "Context initialization differences can include concurrent changes by other processes.",
+    "Later lazy library allocations are not necessarily included in the initial context observation.",
+    "Peak reserved and minimum free are not necessarily observed at the same instant.",
+    "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+  ],
+  "memory_tight": false,
+  "possible_memory_spill": false,
+  "epoch_timing": {
+    "version": "local-dev-first-three-epoch-median-v1",
+    "status": "evaluated",
+    "epoch_seconds": [
+      4.031394642999658,
+      3.0300673579986324,
+      3.153813860999435,
+      3.006687062999845,
+      3.205058364999786,
+      3.1865453659993364,
+      3.0085242690001905,
+      3.149132369999279,
+      3.0470679710015247,
+      3.3384424699997908,
+      3.1917783709996,
+      3.308103072000449,
+      3.2717168719991605,
+      2.6703073770004266,
+      3.318799272999968,
+      2.6345748790008656,
+      2.6052713799999765,
+      2.6521058800008177,
+      2.6277700800001185,
+      2.660718181001357,
+      3.3207090769992647,
+      2.9774415800002316,
+      2.6333851819999836,
+      2.8249226810003165,
+      2.752675581999938,
+      2.8996573809999973,
+      2.657201783000346,
+      2.613307382998755
+    ],
+    "completed_epochs": 28,
+    "baseline_first_three_median_seconds": 3.153813860999435,
+    "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+    "possible_memory_spill_epochs": [],
+    "possible_memory_spill": false,
+    "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging."
+  },
+  "preflight": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_1/seed_1/G3/preflight_001.json",
+    "sha256": "1e9e2166f7fde14be149b2eeb84c35e11bbb7315752d3d80879fbcaacb018e3f"
+  },
+  "resource_policy": {
+    "version": "local_dev_v1",
+    "baseline_minimum_free_mib": 3000.0,
+    "running_minimum_free_mib": 100.0,
+    "sampling_seconds": 0.5,
+    "process_scope": "fresh_process_one_job"
+  },
+  "training_pid": 322162,
+  "context_ref": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/runs/reentrancy_node/fold_1/seed_1/G3/attempt_001.context.json",
+    "sha256": "d0d45beb71f65eb27c5f3426f076591ec4c28dd085706dec71293ffe3f902aff"
+  }
+}

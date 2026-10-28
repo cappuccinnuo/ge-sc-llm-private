@@ -6210,3 +6210,14 @@ python -B -m scripts.DFG.dfg_v2.experiment.run verify --plan "$PLAN" --amendment
 ```
 
 select/summarize已经成功且排他封存，不对原目录重复执行或覆盖。完整实际命令见command.json。最终实验将按用户安排在显存充足的服务器整批运行；当前RTX3050 4GiB只约束本机。服务器尚未部署或实际验收，后续不能混合本机与服务器成绩。 本轮在150项完整报告与文档交付处停止，没有自动继续更多训练或修改模型。
+
+
+**64.10 2026-10-28 Prompt 8B GitHub归档补记（Codex）**
+
+用户在结果完成后明确要求推送GitHub。已核对dfg-v2本地HEAD=22a57fc，已跟踪工作树无其他修改；实时远端仍为220d258。复用阶段A归档方式，范围限prompt8_v1新增文件、prompt8b0_v1和prompt8b_v1中的结果与验收文本。共2811个文件、871490009字节；新增正式result.json为90份，G1R/G2R/G3各30，A60不改不重训。逐文件原路径/大小/SHA256见docs/github_archive_prompt8b_2026-10-28.json。
+
+summary.json（306458598字节）和stage_A_final_full_verification.json（101952163字节）保留原文件，另建确定性gzip副本（mtime=0），实际解压SHA与源文件完全相等，上传副本均低于90MiB。此为归档表示调整，不改变任何实验算法、数据或结果；旧收据仍绑定原JSON。其余选中文本保持原字节，拒绝密钥/token样式文本、符号链接和意外格式，模型权重、临时锁以及既有输入二进制不提交。
+
+WSL直连失败原因为github.com DNS解析；采用项目已验证的Windows Git联网与WSL gh凭据助手，临时配置且不读出凭据、不改全局Git/DNS/代理。仅正常push origin HEAD:refs/heads/dfg-v2；远端SHA必须与本地一致才能报告完成。没有生产代码变更，因此本轮不重复2331项已通过的算法/训练测试；执行逐文件摘要、压缩回读、归档范围和Git检查。Git归档不等同完整权重/图资产云备份；人工依赖证据审阅未完成的限制继续保留。
+
+归档核验：2811个Git暂存blob的SHA256与清单及原文件逐一相同，三份文档保持旧正文前缀不变。默认git diff --check对既有CSV的CRLF、历史测试日志/XML中的行尾空白和已封存自动报告末尾空行提出格式提示；为保持封存SHA，不修剪原产物。新写说明文档的diff --check单独通过。
