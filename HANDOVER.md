@@ -2126,3 +2126,12 @@ Prompt 7b.4按用户批准增加启动基线与逐任务独立进程；原模型
 ## 2026-10-27：Prompt 8A GitHub 结果归档（修改 AI：Codex）
 
 按用户“将所有结果推送github”的要求，将Prompt8准备与Prompt8A阶段A的1721份文本结果/预测/日志/验收原样纳入Git；没有修改计算代码或原产物。270份.pt（约11.41GiB）与临时锁仍留本地，SHA及范围见docs/github_archive_prompt8a_2026-10-27.json，说明见同名.md。60项已完成，B未执行。只克隆仓库仍需另配输入图/token及模型资产才能重跑。
+
+
+## 2026-10-27：DFG v2 Prompt 8B.0 性能修订完成（修改 AI：Codex）
+
+- 仅新增/最小接入experiment编排与校验：完整验收缓存、可信父进程ticket、fit三次完整输入检查及保存/重载快速检查；原trainer/HGT/DDG/图/token/标签/folds/初值/早停/统计不改。用户批准增加DGL边索引副本内容比较，补足共享视图_version不联动的漏洞。
+- 2个AC节点fold0证明（G0/G3R）与阶段A逐位一致：全部逐轮损失差0，best/last权重与inner/outer预测完全相同；不算正式训练。2108项v2＋223项旧回归通过，0失败/跳过；最终重新完整核验A的60/60通过，B仍0。
+- 新证明进程100.26/136.50秒，旧A对应537.60/582.93秒；两者启动验收量不同，不能外推统一提速。真实缓存完整验收1.861秒→命中约2.2毫秒；新best保存均值0.443/0.549秒。旧函数计时缺失，报告明确代理与实测区别。
+- 新独立prompt8b0_v1/stage_B_amendment.json及seal已封存，execution_authorized=false；原plan/seal/A结果不改。B暂作3–6小时工程预算，另留15–30分钟验收/报告（保守预留6–8小时），仍需独立授权。未跑B、未选G*，不自动push。
+- 详见scripts/DFG/dfg_v2/PROMPT8B0_REPORT.md与training_changes §63。快速缓存有元数据局限，阶段结束仍做完整SHA；三份文档只追加。最终实验按用户安排在显存充足服务器整批运行，当前4GiB只是本机限制；服务器尚未实际验收，不混用本机成绩。

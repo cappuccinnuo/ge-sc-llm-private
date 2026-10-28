@@ -22,7 +22,7 @@ def setup(tmp_path, monkeypatch):
             "A":dict(profiles=["G0","G3R"],jobs=[batch.run.job_id(j) for j in jobs if j["profile"] in ("G0","G3R")]),
             "B":dict(profiles=["G1R","G2R","G3"],jobs=[batch.run.job_id(j) for j in jobs if j["profile"] in ("G1R","G2R","G3")])}))
     path = dump(tmp_path/"plan.json",plan)
-    monkeypatch.setattr(batch.run,"_load_plan",lambda p:plan)
+    monkeypatch.setattr(batch.run,"_load_plan",lambda p,**kwargs:plan)
     return path,plan
 
 
@@ -273,7 +273,7 @@ def test_direct_retry_requires_new_decision_and_preserved_evidence(setup,monkeyp
     job=batch.stage_jobs(p,"A")[0];identity=batch.run.job_id(job)
     old=dump(path.parent/"retained"/"attempt_001.started.json",{})
     failure=dump(old.with_name("attempt_001.failure.json"),{"failed":True})
-    monkeypatch.setattr(batch,"_attempts",lambda *args:[old])
+    monkeypatch.setattr(batch,"_attempts",lambda p,j:[old] if j==job else [])
     monkeypatch.setattr(batch.run,"_completed",lambda *args:None)
     with pytest.raises(ValueError,match="new user decision"):
         batch.authorize_job(path,p,job,a,retry=True)
@@ -325,11 +325,13 @@ def test_direct_new_fit_cannot_skip_registered_prior_job_but_success_reuse_can(s
         batch.authorize_job(path,p,last,a)
     # A validated existing result needs no new execution or reordering.
     monkeypatch.setattr(batch.run,"_completed",lambda *args:(path.parent,{"verified":True}))
+    monkeypatch.setattr(batch,"_attempts",lambda p,j:[path.parent/"synthetic.started.json"] if j==last else [])
     assert batch.authorize_job(path,p,last,a)==batch._ref(a)
 
 
 def test_direct_new_fit_allowed_after_prior_job_verified(setup,monkeypatch):
     path,p=setup;a=auth(path,p)
     first,last=batch.stage_jobs(p,"A")
-    monkeypatch.setattr(batch,"_accept",lambda *args:{"verified":True})
+    monkeypatch.setattr(batch,"_attempts",lambda p,j:[path.parent/"synthetic.started.json"] if j==first else [])
+    monkeypatch.setattr(batch.run,"_completed",lambda *args:(path.parent,{"verified":True}))
     assert batch.authorize_job(path,p,last,a)==batch._ref(a)

@@ -1850,3 +1850,18 @@ last辅助结果：
 ## 2026-10-27：Prompt 8A 结果GitHub归档（Codex）
 
 用户授权推送后，补充归档1721份Prompt8/8A文本结果、预测与验收记录；详细范围与SHA见docs/github_archive_prompt8a_2026-10-27.json及同名.md。270份模型/初值.pt遵循忽略规则保留本地并记录SHA；原输入仍需单独提供。没有新增训练、改变计算文件或修改历史seal，B保持未运行。
+
+
+## 2026-10-27 Prompt 8B.0：执行器性能修订与精确等价性（Codex）
+
+读取更新§4.1/8B.0，起点dfg-v2 @ 2d826c2，pull --ff-only已同步。新增experiment/acceptance_cache.py、input_guard.py、amendment.py、proof_performance.py；修改batch/run/checkpoint及reporting两处参数接入；新增5组测试、适配4组旧测试。计算相关17个指定文件SHA不变，全部其他旧runtime受白名单校验保护；原plan07f1dbc9…与seal55aebf92…不改。
+
+用户选择已记录：同意DGL边索引副本torch.equal核验。缓存首次完整验收后排他seal，父进程绑定可信SHA；有新失败attempt不得复用旧成功；历史PROMPTS仅作来源，实际interim依赖仍校验。guard三完整边界＋每次保存重载快速检查；targets按原调用惰性记录。统计正文不变、select的完整验收与inner_val选型分离。哈希一次仅限guard作用域，快速元数据/.data边界在报告中明确；最终SHA不省略。
+
+真实证明仅AC节点fold0 seed1 G0/G3R：20/23轮，best索引12/15、last19/22；每轮train/inner loss差0，best/last state digest、inner_val/outer_test预测完全一致，无legacy额外fit。两次新进程100.263/136.503秒，旧对应537.595/582.927秒，启动检查口径不同，不宣称固定倍数提速。新best保存均值0.443/0.549秒；各3深验、46快速检查；最低空闲1202/864MiB，无资源或数值错误。独立cache full1.861s→hit约0.0022s。
+
+最终命令为 python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests（2108通过）及 scripts/DFG/tests tests/test_graph_utils.py（223通过），0失败/错误/跳过；8/29条既有弃用警告。开发期mock/依赖范围修复及失败日志保留。合成20文件/20job覆盖、篡改/失败/最终全量验收均测试。A最终完整核验60/60，200.22秒；正式结果仍60，B=0。
+
+新产物prompt8b0_v1/：equivalence_result、performance_summary、两个proof完整产物、stage_B_amendment.json/.seal.json、最终A核验及测试证据。修订SHA d2c255fb50636f91066cd2a7503715619f5bdb422af3c884727557d261631c8f，证明SHA a220362634e3a238e04017d4b42bd880265535544c2d14e4341704a0e6462b43；execution_authorized=false。使用原150job计划，不随机重建初值，不覆盖旧产物。
+
+阶段B90项暂预算3–6小时＋15–30分钟验收/报告，保守预留6–8小时；仅据两个AC节点样本的工程估计，不保证其他任务时长。等待另行授权，未执行B/选G*/额外seed/其他五类，采样仍0.5秒。命令与文件表见PROMPT8B0_REPORT.md，详细实施/用户选择见training_changes §63。HANDOVER同步标注修改AI为Codex；最终服务器足够显存是用户后续安排，当前4GiB仅本机约束，服务器未实际验收，未来整批重跑不混成绩。仅本地提交，不自动push。

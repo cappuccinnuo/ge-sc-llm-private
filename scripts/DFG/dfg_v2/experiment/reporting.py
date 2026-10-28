@@ -400,11 +400,12 @@ def export_report(output, report):
                 receipt=_ref(output / "report_receipt.json"), artifacts=paths)
 
 
-def build_report(plan_path, stage="A", verified_results=None, output=None):
+def build_report(plan_path, stage="A", verified_results=None, output=None, amendment_path=None):
     """Verify every selected fit; recompute all outputs from frozen identities."""
     from . import run
     plan_path = Path(plan_path).resolve()
-    plan = run._load_plan(plan_path)
+    plan = (run._load_plan(plan_path) if amendment_path is None else
+            run._load_plan(plan_path, amendment_path=amendment_path))
     if stage not in ("A", "complete"):
         raise ValueError("Reporting stage must be A or complete")
     spec_ref = plan["batch_registration"]["report_spec"]

@@ -52,9 +52,15 @@ def test_cpu_end_to_end_and_success_reuse(plan,monkeypatch):
     def no_outer_reads(p):
         assert Path(p).name not in ("result.json","outer_test_predictions.json")
         return real_read(p)
-    with monkeypatch.context() as patch:
-        patch.setattr(run,"read_json",no_outer_reads)
-        selection = run.select(path)
+    # Prompt8B.0 adds a full integrity gate before selection. The decision
+    # function itself still cannot read result/outer metrics.
+    original_selection = run._selection
+    def inner_only_selection(*args):
+        with monkeypatch.context() as patch:
+            patch.setattr(run,"read_json",no_outer_reads)
+            return original_selection(*args)
+    monkeypatch.setattr(run,"_selection",inner_only_selection)
+    selection = run.select(path)
     assert selection["outer_test_used"] is False
     assert selection["additional_seed_condition_met"] is False
     assert selection["efficacy_conclusion_allowed"] is False

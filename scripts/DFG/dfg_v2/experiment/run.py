@@ -196,7 +196,7 @@ def create_plan(store, output, tasks=None, profiles=None, seeds=(1,), folds=None
     return plan
 
 
-def _load_plan(path, check_code=True):
+def _load_plan(path, check_code=True, amendment_path=None):
     path = Path(path).resolve()
     seal = read_json(path.with_name("plan.seal.json"))
     checked(path, seal["plan_sha256"])
@@ -226,8 +226,12 @@ def _load_plan(path, check_code=True):
     identities = [job_id(job) for job in plan["jobs"]]
     if not identities or len(identities) != len(set(identities)):
         raise ValueError("Missing or duplicate execution jobs")
-    if check_code and plan["runtime"] != _code_refs():
-        raise ValueError("Training computation changed since plan seal")
+    if check_code:
+        if amendment_path is not None:
+            from .amendment import validate_amendment
+            validate_amendment(amendment_path, path, plan, current_runtime=_code_refs())
+        elif plan["runtime"] != _code_refs():
+            raise ValueError("Training computation changed since plan seal")
     checked_ref(plan["store"])
     checked_ref(plan["store_seal"])
     inputs = plan["input_manifest"]
@@ -327,7 +331,7 @@ def _move_model(model, device):
     return model
 
 
-def _run_one(plan, job, attempt, plan_path, preflight=None):
+def _run_one(plan, job, attempt, plan_path, preflight=None, optimize_validation=False):
     from .checkpoint import build_binding
     from .trainer import fit
     from .resources import Resources
@@ -409,8 +413,17 @@ def _run_one(plan, job, attempt, plan_path, preflight=None):
                 support=entry["support"], initialization_record=info["initialization"])
             binding["initial_state_sha256"] = entry["initial"]["state_sha256"]
             seed_all(info["seeds"]["fit"])
-            result = fit(model, parts, task["record"]["task"], labels, config, attempt,
-                binding, model.original_graph_node_ids, entry["support"], memory_guard=guard)
+            if optimize_validation:
+                from .input_guard import FitInputGuard
+                with FitInputGuard(model, binding, parts, labels) as input_guard:
+                    result = fit(model, input_guard.wrap_parts(), task["record"]["task"],
+                        labels, config, attempt, binding, model.original_graph_node_ids,
+                        entry["support"], memory_guard=guard)
+                    input_guard.finish()
+                    write_json(attempt / "validation_performance.json", input_guard.summary())
+            else:
+                result = fit(model, parts, task["record"]["task"], labels, config, attempt,
+                    binding, model.original_graph_node_ids, entry["support"], memory_guard=guard)
         guard.check()
     finally:
         write_json(attempt.with_suffix(".resources.json"), resource_summary())
@@ -499,6 +512,17 @@ def _verify_execution_authorization(attempt, plan, job, plan_path, receipt):
     verified, unused = validate_authorization(plan_path, plan, stages[0], authorization_path)
     if verified != authorization:
         raise ValueError("Successful batch stage authorization changed")
+    if "runtime_amendment" in started or "amendment" in unused:
+        amendment_ref = started.get("runtime_amendment")
+        if stages[0] != "B" or amendment_ref != unused.get("amendment"):
+            raise ValueError("Successful fit runtime amendment is not the authorized stage B revision")
+        from .amendment import validate_amendment
+        validate_amendment(checked_ref(amendment_ref), plan_path, plan)
+        ticket = read_json(checked_ref(started.get("execution_ticket", {})))
+        if (ticket.get("plan") != _ref(plan_path) or ticket.get("job") != job_id(job)
+                or ticket.get("authorization") != authorization
+                or ticket.get("amendment") != amendment_ref):
+            raise ValueError("Successful fit controller ticket identity differs")
 
 
 def _verify_attempt(attempt, plan, job, plan_path):
@@ -595,14 +619,19 @@ def _completed(output, plan, job, plan_path):
     if len(successes) > 1:
         raise ValueError("Duplicate successful job results")
     if successes:
+        successful_index = int(successes[0].parent.name.split("_")[1])
+        started = list(folder.glob("attempt_*.started.json"))
+        if any(int(p.name.split(".")[0].split("_")[1]) > successful_index for p in started):
+            raise ValueError("Later incomplete attempt cannot be hidden by an earlier successful receipt")
         result = _verify_attempt(successes[0].parent, plan, job, plan_path)
         return successes[0].parent, result
     return None
 
 
-def execute(plan_path, only=None, retry=False, allow_cpu_test=False, execution_authorization=None):
+def execute(plan_path, only=None, retry=False, allow_cpu_test=False, execution_authorization=None,
+            amendment_path=None, execution_ticket=None, ticket_sha256=None):
     plan_path = Path(plan_path).resolve()
-    output, plan = plan_path.parent, _load_plan(plan_path)
+    output, plan = plan_path.parent, _load_plan(plan_path, amendment_path=amendment_path)
     if plan["test_mode"] and not allow_cpu_test:
         raise ValueError("Synthetic CPU execution requires explicit programmatic test allowance")
     if not plan["test_mode"] and allow_cpu_test:
@@ -612,19 +641,32 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False, execution_a
     jobs = [j for j in plan["jobs"] if only is None or job_id(j) == only]
     if not jobs:
         raise ValueError("Unknown requested job")
-    authorizations = {}
-    if "batch_registration" in plan:
-        from .batch import authorize_job
-        for job in jobs:
-            authorizations[job_id(job)] = authorize_job(
-                plan_path, plan, job, execution_authorization, retry=retry)
-    elif execution_authorization is not None:
-        raise ValueError("Execution authorization is only valid for a registered batch")
     outcomes = []
     lock = (output / ".synthetic.lock" if plan["test_mode"] else
             ROOT / "scripts/DFG/experiments/artifacts/dfg_v2/.training.lock")
     with _Lock(lock):
-        if plan.get("resource_policy", {}).get("version") == "local_dev_v1":
+        authorizations = {}
+        ticket = None
+        if amendment_path is not None:
+            from .batch import validate_execution_ticket, stage_jobs
+            if (only is None or only not in [job_id(j) for j in stage_jobs(plan, "B")]
+                    or execution_ticket is None or ticket_sha256 is None):
+                raise ValueError("Amended execution requires a bound stage B controller ticket")
+            ticket = validate_execution_ticket(execution_ticket, ticket_sha256, plan_path,
+                plan, jobs[0], execution_authorization, amendment_path)
+        elif execution_ticket is not None or ticket_sha256 is not None:
+            raise ValueError("Execution ticket requires a validated amendment")
+        if "batch_registration" in plan:
+            from .batch import authorize_job
+            for job in jobs:
+                authorizations[job_id(job)] = authorize_job(
+                    plan_path, plan, job, execution_authorization, retry=retry, execution_ticket=ticket)
+        elif execution_authorization is not None:
+            raise ValueError("Execution authorization is only valid for a registered batch")
+        if (plan.get("resource_policy", {}).get("version") == "local_dev_v1"
+                and "batch_registration" not in plan):
+            # Unregistered historical pilots retain their original failure gate.
+            # Registered batches already checked all started jobs in authorize_job.
             # A fresh process must not silently skip a prior failed job and
             # continue the batch. Explicit retry remains whole-fit only.
             for prior in plan["jobs"]:
@@ -635,8 +677,12 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False, execution_a
                         raise RuntimeError("Local batch stopped by failed/incomplete job " +
                                            job_id(prior) + "; user-confirmed explicit --retry required")
         for job in jobs:
-            _load_plan(plan_path)
-            existing = _completed(output, plan, job, plan_path)
+            _load_plan(plan_path, amendment_path=amendment_path)
+            if ticket is not None:
+                from .batch import _ticket_completed
+                existing = _ticket_completed(plan_path, plan, job, ticket)
+            else:
+                existing = _completed(output, plan, job, plan_path)
             if existing:
                 outcomes.append(dict(job=job, status="reused", attempt=str(existing[0])))
                 continue
@@ -658,9 +704,15 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False, execution_a
                 resume_epoch=False, retry_from_same_untrained_initial=True)
             if authorizations:
                 started_record["execution_authorization"] = authorizations[job_id(job)]
+            if amendment_path is not None:
+                started_record["runtime_amendment"] = _ref(amendment_path)
+                started_record["execution_ticket"] = _ref(execution_ticket)
             write_json(attempt.with_suffix(".started.json"), started_record)
             try:
-                if preflight is None:
+                if amendment_path is not None:
+                    _run_one(plan, job, attempt, plan_path, preflight=preflight,
+                             optimize_validation=True)
+                elif preflight is None:
                     _run_one(plan, job, attempt, plan_path)
                 else:
                     _run_one(plan, job, attempt, plan_path, preflight=preflight)
@@ -680,9 +732,9 @@ def execute(plan_path, only=None, retry=False, allow_cpu_test=False, execution_a
     return outcomes
 
 
-def verify(plan_path, require_complete=True):
+def verify(plan_path, require_complete=True, amendment_path=None):
     plan_path = Path(plan_path).resolve()
-    plan = _load_plan(plan_path)
+    plan = _load_plan(plan_path, amendment_path=amendment_path)
     results, missing = {}, []
     for job in plan["jobs"]:
         completed = _completed(plan_path.parent, plan, job, plan_path)
@@ -748,12 +800,15 @@ def _selection(plan, root):
         scope="synthetic test" if plan["test_mode"] else "requested matrix; fold0 alone is not efficacy evidence")
 
 
-def select(plan_path):
+def select(plan_path, amendment_path=None):
     plan_path = Path(plan_path).resolve()
-    plan = _load_plan(plan_path)
+    plan = _load_plan(plan_path, amendment_path=amendment_path)
     path = plan_path.parent / "selection.json"
     if path.exists():
         raise FileExistsError("Selection is already sealed")
+    # Integrity gate is separate from profile choice: no outer metric enters
+    # _selection, which still reads only the frozen inner-validation exports.
+    verify(plan_path, amendment_path=amendment_path)
     selection = _selection(plan, plan_path.parent)
     if "batch_registration" in plan:
         registered = plan["batch_registration"]["jobs"]
@@ -770,7 +825,7 @@ def select(plan_path):
     return selection
 
 
-def summarize(plan_path):
+def summarize(plan_path, amendment_path=None):
     plan_path = Path(plan_path).resolve()
     path = plan_path.parent / "selection.json"
     if not path.exists():
@@ -779,7 +834,7 @@ def summarize(plan_path):
     checked(path, seal["selection_sha256"])
     if seal["plan_sha256"] != sha256(plan_path):
         raise ValueError("Selection plan differs")
-    acceptance = verify(plan_path)
+    acceptance = verify(plan_path, amendment_path=amendment_path)
     selection = read_json(path)
     for ref in selection["receipts"].values():
         checked_ref(ref)
@@ -790,11 +845,11 @@ def summarize(plan_path):
     dest = plan_path.parent / "summary.json"
     if dest.exists():
         raise FileExistsError("Refusing existing summary")
-    plan = _load_plan(plan_path)
+    plan = _load_plan(plan_path, amendment_path=amendment_path)
     if "batch_registration" in plan:
         from .reporting import build_report
         report["report_artifacts"] = build_report(
-            plan_path, stage="complete",
+            plan_path, stage="complete", amendment_path=amendment_path,
             verified_results={identity: item["result"]
                               for identity, item in acceptance["results"].items()})
         report["interpretation"] = (
@@ -830,7 +885,10 @@ def main(argv=None):
     for name in ("execute", "verify", "select", "summarize"):
         command = commands.add_parser(name)
         command.add_argument("--plan", required=True)
+        command.add_argument("--amendment")
         if name == "execute":
+            command.add_argument("--execution-ticket")
+            command.add_argument("--ticket-sha256")
             command.add_argument("--only", help="task/fold/seed/profile")
             command.add_argument("--retry", action="store_true")
             command.add_argument("--execution-authorization",
@@ -868,14 +926,16 @@ def main(argv=None):
         answer = dict(plan=str(Path(args.output).resolve() / "plan.json"), jobs=len(result["jobs"]))
     elif args.command == "execute":
         answer = execute(args.plan, args.only, args.retry,
-                         execution_authorization=args.execution_authorization)
+                         execution_authorization=args.execution_authorization,
+                         amendment_path=args.amendment, execution_ticket=args.execution_ticket,
+                         ticket_sha256=args.ticket_sha256)
     elif args.command == "verify":
-        result = verify(args.plan)
+        result = verify(args.plan, amendment_path=args.amendment)
         answer = {k: v for k, v in result.items() if k != "results"}
     elif args.command == "select":
-        answer = select(args.plan)
+        answer = select(args.plan, amendment_path=args.amendment)
     else:
-        result = summarize(args.plan)
+        result = summarize(args.plan, amendment_path=args.amendment)
         answer = dict(completed_jobs=result["completed_jobs"], score_role=SCORE_ROLE)
     print(json.dumps(answer, ensure_ascii=False, sort_keys=True), flush=True)
     return answer

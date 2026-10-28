@@ -1,7 +1,9 @@
 """Nested v2 binding wrapper; generic ddg-controlled-v1 serialization unchanged."""
 from pathlib import Path
+import time
+import torch
 from scripts.DFG.experiments import checkpoint as native
-from scripts.DFG.experiments.common import digest, sha256
+from scripts.DFG.experiments.common import digest, sha256, tensor_digest
 from scripts.DFG.dfg_v2 import AUX_NODE_TYPES
 from scripts.DFG.dfg_v2.model import validate_registration
 from .protocol import PROTOCOL_NAME, PROTOCOL_VERSION, FORWARD_SCOPE, SCORE_ROLE, SELECTION_ROLE
@@ -28,7 +30,7 @@ def build_binding(model, *, task_id, fold, seed, profile, reducer, graph_ref,
         initialization=initialization_record)
 
 
-def validate_binding(model, binding, check_files=True):
+def validate_binding(model, binding, check_files=True, deep=True):
     if (binding.get("protocol") != PROTOCOL_NAME
             or binding.get("protocol_version") != PROTOCOL_VERSION
             or binding.get("score_role") != SCORE_ROLE
@@ -40,7 +42,7 @@ def validate_binding(model, binding, check_files=True):
             or binding.get("reducer") != model.dfg_reducer
             or binding.get("layer_impl", "original") != model.dfg_layer_impl):
         raise ValueError("Model/profile/reducer/layer_impl binding mismatch")
-    validate_registration(model, binding["registered_schema"])
+    validate_registration(model, binding["registered_schema"], deep=deep)
     if (binding.get("canonical") != sorted([list(c) for c in model.etypes_dict])
             or binding.get("auxiliary_node_types") != sorted(set(model.ntypes_dict) & set(AUX_NODE_TYPES))):
         raise ValueError("Canonical/auxiliary binding mismatch")
@@ -55,11 +57,26 @@ def validate_binding(model, binding, check_files=True):
 
 
 def snapshot_input(model, binding):
+    from .input_guard import active_guard
+    guard = active_guard(model)
+    if guard is not None:
+        return guard.start(binding)
     validate_binding(model, binding)
     return native.snapshot_input(model, binding)
 
 
 def save_checkpoint(path, model, expected_input, binding, epoch, monitor, optimizer, scheduler):
+    from .input_guard import active_guard
+    guard = active_guard(model)
+    if guard is not None:
+        started = time.monotonic()
+        guard.fast_check(binding, "save_before")
+        if expected_input != guard.snapshot:
+            raise ValueError("Model input changed before checkpoint save")
+        result = native.save_checkpoint(path, model, expected_input, binding, epoch, monitor, optimizer, scheduler)
+        guard.fast_check(binding, "save_after")
+        guard.record_operation("save", path, started)
+        return result
     validate_binding(model, binding)
     # This comparison also covers masks/labels/features and actual DGL endpoints.
     if native.snapshot_input(model, binding) != expected_input:
@@ -68,6 +85,30 @@ def save_checkpoint(path, model, expected_input, binding, epoch, monitor, optimi
 
 
 def restore_checkpoint(path, model, binding, expected_file_sha256):
+    from .input_guard import active_guard
+    guard = active_guard(model)
+    if guard is not None:
+        started = time.monotonic()
+        guard.before_restore(binding)
+        # Adapted from scripts/DFG/experiments/checkpoint.py::restore_checkpoint
+        # Frozen source SHA256: 7ccef05371f0324271986dce7d274f3a81a45a9af0e3fe10e08c018dcdd2fb99
+        # Native format/checksum/binding/weight checks are preserved; compare
+        # the verified process snapshot instead of rebuilding its fingerprint.
+        if sha256(path) != expected_file_sha256:
+            raise ValueError("Checkpoint file changed")
+        result = torch.load(str(path), map_location=model.device)
+        if result.get("format") != "ddg-controlled-v1":
+            raise ValueError("Unsupported checkpoint format")
+        if result["binding"] != binding or result["binding_sha256"] != digest(binding):
+            raise ValueError("Checkpoint experiment binding mismatch")
+        if result["model_input"] != guard.snapshot:
+            raise ValueError("Checkpoint input differs from the starting process snapshot")
+        if tensor_digest(result["state_dict"]) != result["state_sha256"]:
+            raise ValueError("Checkpoint weights changed")
+        model.load_state_dict(result["state_dict"])
+        guard.fast_check(binding, "restore_after")
+        guard.record_operation("restore", path, started)
+        return result
     validate_binding(model, binding)
     result = native.restore_checkpoint(path, model, binding, expected_file_sha256)
     validate_binding(model, binding)

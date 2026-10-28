@@ -396,7 +396,10 @@ def selection_summary_plan(tmp_path, monkeypatch):
     plan = {"jobs": jobs, "batch_registration": {"jobs": [run.job_id(job) for job in jobs]}}
     path = tmp_path / "plan.json"
     write_json(path, plan)
-    monkeypatch.setattr(run, "_load_plan", lambda p: plan)
+    monkeypatch.setattr(run, "_load_plan", lambda p, **kwargs: plan)
+    # This fixture tests selection/report dispatch after a successful integrity
+    # gate; real SHA verification is exercised by test_runtime_optimization.
+    monkeypatch.setattr(run, "verify", lambda p, **kwargs: {"completed_jobs": len(jobs), "results": {}})
     selection = {"complete_matrix": True, "candidate_set_complete": True,
                  "outer_test_used": False,
                  "receipts": {run.job_id(job): {} for job in jobs}}
@@ -442,7 +445,7 @@ def test_summarize_cli_dispatches_complete_report_with_raw_results(selection_sum
         "plan_sha256": sha256(path), "selection_sha256": sha256(selected)})
     result = {"status": "complete", "structural_fixture_only": True}
     identity = run.job_id(plan["jobs"][0])
-    monkeypatch.setattr(run, "verify", lambda p: {"completed_jobs": 150, "results": {
+    monkeypatch.setattr(run, "verify", lambda p, **kwargs: {"completed_jobs": 150, "results": {
         identity: {"job": plan["jobs"][0], "attempt": "synthetic", "result": result}}})
     calls = []
     def report(p, **kwargs):
@@ -451,7 +454,7 @@ def test_summarize_cli_dispatches_complete_report_with_raw_results(selection_sum
     monkeypatch.setattr(reporting, "build_report", report)
     answer = run.main(["summarize", "--plan", str(path)])
     assert answer == {"completed_jobs": 150, "score_role": "outer_test"}
-    assert calls[0][1] == {"stage": "complete", "verified_results": {identity: result}}
+    assert calls[0][1] == {"stage": "complete", "amendment_path": None, "verified_results": {identity: result}}
     summary = read_json(path.parent / "summary.json")
     assert summary["report_artifacts"]["report"]["path"] == "REPORT.md"
     with pytest.raises(FileExistsError, match="existing summary"):
@@ -468,7 +471,7 @@ def test_legacy_summary_does_not_dispatch_new_report(selection_summary_plan, mon
     write_json(selected, selection)
     write_json(path.parent / "selection.seal.json", {
         "plan_sha256": sha256(path), "selection_sha256": sha256(selected)})
-    monkeypatch.setattr(run, "verify", lambda p: {"completed_jobs": 2, "results": {}})
+    monkeypatch.setattr(run, "verify", lambda p, **kwargs: {"completed_jobs": 2, "results": {}})
     monkeypatch.setattr(reporting, "build_report",
                         lambda *a, **k: pytest.fail("Historical summary dispatched new reporting"))
     assert run.summarize(path)["completed_jobs"] == 2

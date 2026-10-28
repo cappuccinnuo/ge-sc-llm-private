@@ -217,7 +217,7 @@ def test_complete_report_requires_sealed_selection(small, tmp_path, monkeypatch)
     write_json(specpath, spec)
     plan["batch_registration"] = {"report_spec": ref(specpath)}
     write_json(path, plan)
-    monkeypatch.setattr(run, "_load_plan", lambda p: plan)
+    monkeypatch.setattr(run, "_load_plan", lambda p, **kwargs: plan)
     with pytest.raises(FileNotFoundError):
         reporting.build_report(path, stage="complete")
     assert not (tmp_path / "reports").exists()
@@ -271,7 +271,7 @@ def test_build_interim_report_from_verified_jobs(small, tmp_path, monkeypatch, v
                       checkpoint_roundtrip_exact={"best": True, "last": True},
                       gradient_audit={"epochs": [{"v2_relations": []}]})
         entries[run.job_id(bundle["job"])] = (dest, bundle)
-    monkeypatch.setattr(run, "_load_plan", lambda p: plan)
+    monkeypatch.setattr(run, "_load_plan", lambda p, **kwargs: plan)
     monkeypatch.setattr(run, "_completed", lambda root, p, j, path:
         (entries[run.job_id(j)][0], entries[run.job_id(j)][1]["result"]))
     monkeypatch.setattr(run, "_prepared", lambda p, j:
@@ -308,7 +308,7 @@ def test_missing_job_rejects_before_report_creation(small, tmp_path, monkeypatch
     plan["batch_registration"] = {"report_spec": ref(specpath)}
     planpath = tmp_path / "plan.json"
     write_json(planpath, plan)
-    monkeypatch.setattr(run, "_load_plan", lambda p: plan)
+    monkeypatch.setattr(run, "_load_plan", lambda p, **kwargs: plan)
     monkeypatch.setattr(run, "_completed", lambda *a: None)
     with pytest.raises(ValueError, match="Incomplete report matrix"):
         reporting.build_report(planpath)
