@@ -1807,20 +1807,23 @@ d) 可选，先测再决定：GPU 显存采样间隔从 0.5 秒改为 1 秒，�
 - 结论写进 PROMPT8B0_REPORT.md 与三份记录文档。
 ```
 
+
+（Prompt 8B.0 状态：2026-10-27 已完成，提交 12ec650。验收缓存、去掉重复扫描、每个 fit 三次完整校验加快速检查（DGL 边索引另做内容比较，用户批准）均已实现；access_control_node fold0 的 G0、G3R 用新代码重跑，history、best/last 权重摘要、inner_val 与 outer_test 预测与阶段 A 逐位相同（损失最大差 0.0）；阶段 A 60/60 完整重验通过。两项证明的单 job 耗时 538→100 秒、583→137 秒；best 保存 ≈0.44–0.55 秒/次，训练后评估 ≈9–12 秒。修订记录 prompt8b0_v1/stage_B_amendment.json（SHA d2c255fb…）与 seal（SHA 6d4bc329…）。未执行的可选项：显存采样间隔对照（保持 0.5 秒）。审查补充：local_dev_v1 下 trainer 每轮两次 memory_guard.check() 会同步调用 nvidia-smi（每次约 0.15–0.27 秒），约占每轮 5%–10%；不阻塞阶段 B，可在以后的批次中改为复用后台最新样本。）
+
 ### 4.10c Prompt 8B：执行阶段 B、选择 G* 与完整报告
 
 ```text
 # Prompt 8B：阶段 B（G1R、G2R、G3，90 次）、select、summarize
 
-前置：Prompt 8B.0 已完成，修订记录 stage_B_amendment.json 已获用户批准；用户的阶段 B 授权原文写入 prompt8_v1/batch1/stage_B_authorization.json（排他创建，绑定 plan 与 seal 的 SHA、修订记录的 SHA、job 数 90、资源策略 local_dev_v1）。
+前置：Prompt 8B.0 已完成（提交 12ec650），修订记录 scripts/DFG/experiments/artifacts/dfg_v2/prompt8b0_v1/stage_B_amendment.json（SHA d2c255fb50636f91066cd2a7503715619f5bdb422af3c884727557d261631c8f）已获用户批准，执行前先运行 amendment verify；用户的阶段 B 授权原文写入 prompt8_v1/batch1/stage_B_authorization.json（排他创建，绑定 plan 与 seal 的 SHA、修订记录的 SHA、job 数 90、资源策略 local_dev_v1）。
 
 ## 1. 执行
-python -u -B -m scripts.DFG.dfg_v2.experiment.batch execute --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.json --stage B --authorization-record <stage_B_authorization.json> --amendment <stage_B_amendment.json>
+python -u -B -m scripts.DFG.dfg_v2.experiment.batch execute --plan scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.json --stage B --authorization-record scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/stage_B_authorization.json --amendment scripts/DFG/experiments/artifacts/dfg_v2/prompt8b0_v1/stage_B_amendment.json
 - 每项独立子进程、按 plan 顺序串行；任何失败就停止整批，保留现场，等用户确认后才 --retry。
 - 运行中只记录进度，不打开、不汇总任何 F1。
 
 ## 2. 验收、选择与完整报告
-- batch verify --stage B，然后 run verify（150/150，完整重算全部 SHA）。
+- batch verify --stage B --amendment <同上>，然后 run verify --amendment <同上>（150/150，完整重算全部 SHA）。select 与 summarize 同样带 --amendment。
 - run select：按封存规则只读内层验证选出 G*，写并封存 selection.json。
 - run summarize：生成完整 REPORT.md 与 CSV，内容按 Prompt 8 第 5 部分：
   - 五个剖面的 best/last 折均值 ± 样本标准差（Buggy-F1、Macro-F1、Precision、Recall）；
