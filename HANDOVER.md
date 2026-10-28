@@ -2135,3 +2135,23 @@ Prompt 7b.4按用户批准增加启动基线与逐任务独立进程；原模型
 - 新证明进程100.26/136.50秒，旧A对应537.60/582.93秒；两者启动验收量不同，不能外推统一提速。真实缓存完整验收1.861秒→命中约2.2毫秒；新best保存均值0.443/0.549秒。旧函数计时缺失，报告明确代理与实测区别。
 - 新独立prompt8b0_v1/stage_B_amendment.json及seal已封存，execution_authorized=false；原plan/seal/A结果不改。B暂作3–6小时工程预算，另留15–30分钟验收/报告（保守预留6–8小时），仍需独立授权。未跑B、未选G*，不自动push。
 - 详见scripts/DFG/dfg_v2/PROMPT8B0_REPORT.md与training_changes §63。快速缓存有元数据局限，阶段结束仍做完整SHA；三份文档只追加。最终实验按用户安排在显存充足服务器整批运行，当前4GiB只是本机限制；服务器尚未实际验收，不混用本机成绩。
+
+
+## 2026-10-28：Prompt 8B 阶段B授权与启动准备（修改 AI：Codex）
+
+读取更新§4.1/8B并pull同步至220d258f284dacd52374ba95c7284f461005a23e。本轮明确授权原计划阶段B的G1R/G2R/G3共90项，独立stage_B_authorization.json绑定plan、seal、8B.0修订、中间报告receipt和用户请求原文；旧A授权与修订execution_authorized=false保持原样。准备记录prompt8b_v1/，冻结生产代码不改，先回归测试再原控制器逐任务独立进程串行；运行中只查进度/资源，不汇总F1。失败停止、不自动重试，不因分数挑折。
+
+本节只登记启动，不代表90项完成。完成后按文档全量verify→inner_val select→summarize；A的60项只读复用，G*不看outer_test，额外seed即使触发也不执行。最终正式实验按用户安排在显存充足服务器整批运行，当前RTX3050 4GiB只是本机限制；服务器尚未实际验收，不混用本机成绩。
+
+
+## 2026-10-28：DFG v2 Prompt 8B 完整结果与选型（修改 AI：Codex）
+
+- 阶段B90项全成功，复用A60项，完整150/150通过完整验收，0失败、0重试；原计算代码298文件SHA及图/标签/特征/划分/初始化/超参保持不变。
+- 预注册主对比仍为G3R−G0的best BF1，四任务差值+1.4286/+0.5068/+0.8009/−0.2037pp；重入节点该家族Holm p=.0078125，AC节点未改善。
+- 内层验证选出G*=G2R（局部DDG+状态读写及显式REV），内层相对G0+0.831863pp；满足补seed条件但没有执行授权，本轮不继续训练。
+- best主终点BF1均值（百分数，四任务顺序为重入合约/重入节点/AC合约/AC节点）：G0=92.7326/96.4276/94.6066/96.1753；G2R=94.8490/96.9420/95.4075/95.6227。重入节点10折全提升，AC节点反而下降；不能宣称全面有效。其余剖面与标准差、MF1/P/R、last、OOF、配对统计及敏感性表全部保留。
+- 本轮为dfg-v2-nested-v1：inner_train更新参数，inner_val选择best和全局G*，outer_test只作结束评分；完整固定任务图前向，节点按原HCG节点计分且排除env_source。不是旧paper_kfold的CV validation，也不是新的外部独立数据测试。G0是作者下载图在本地冻结协议下训练所得基线，非论文表格原始数字。 last在部分任务与best方向相反，不替换预定主终点；G2R未解决AC buggy_18/26主要错误。
+- 测试2331通过（2108v2+223旧，0失败/跳过）；150项best/last重载一致。独立复算及A历史结果不变性核验通过；新增Holm家族、方向消融和G*机制表属于完整报告预定内容。人工依赖边512/111条抽查仍未填，不宣称完整语义或泛化已验证。
+- B执行4.614小时，fit内部2.429小时另计口径；峰值allocated/reserved1829.03/2026MiB、最低整卡free53MiB，7项memory_tight，均无OOM/失败。最终核验/报告耗时详见command.json，不混作额外训练。
+- 报告scripts/DFG/dfg_v2/PROMPT8B_REPORT.md；完整CSV/JSON在scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/reports/final/。详细记录training_changes§64、PROGRESS已追加；本地提交，尚未push，无新seed/其他类别/服务器迁移。
+- 最终实验将按用户安排在显存充足的服务器整批运行；当前RTX3050 4GiB只约束本机。服务器尚未部署或实际验收，后续不能混合本机与服务器成绩。
