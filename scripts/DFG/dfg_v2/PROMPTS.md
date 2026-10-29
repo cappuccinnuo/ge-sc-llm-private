@@ -1835,6 +1835,82 @@ python -u -B -m scripts.DFG.dfg_v2.experiment.batch execute --plan scripts/DFG/e
 - 写入 PROGRESS 与三份记录文档后停下，把完整报告交给用户。批次 2、批次 3 与服务器迁移都需要用户另行决定。
 ```
 
+状态（2026-10-28）：已完成（22a57fc、de45808）。审查结论见 REVIEW_8B_LABELS_AND_LEAKAGE.md。管线计算复核无误；但节点级基准存在作者标签截断、SolidiFI 行号溢出、标识符泄漏和跨折重复样本，AC 节点结论需要 Prompt 8C 的诊断才能解释。
+
+
+### 4.10d Prompt 8C：标签与泄漏诊断（等待用户确认后执行；A–D、F 不训练，E 只准备不执行）
+
+```text
+# Prompt 8C：标签审计、分层/敏感性重评分、标识符去泄漏评估、关系稀释对照的准备
+
+背景：见 scripts/DFG/dfg_v2/REVIEW_8B_LABELS_AND_LEAKAGE.md 和审查脚本 scripts/DFG/dfg_v2/review/audit_8b_labels.py。
+不得修改：任何冻结图、标签、折划分、plan/seal/selection、150 项产物、阶段 A/B 报告。所有新产物写入 scripts/DFG/experiments/artifacts/dfg_v2/prompt8c_v1/，排他创建。
+外部数据：SolidiFI-benchmark（DependableSystemsLab）commit 4b0573e1b3f7031396de6f48f7f3e7380222ad3a 的 buggy_contracts/tx.origin 与 buggy_contracts/Re-entrancy 下的 BugLog_N.csv。用户已允许从 GitHub 获取；记录每个 CSV 的 SHA。
+
+## A. 独立实现标签审计（不要直接运行审查脚本充当实现）
+1. 原始文件行 → cleaned 文件行：按“去注释、去全部空白后的文本”顺序匹配；记录未映射行数。
+2. 还原作者规则并逐节点比较冻结标签：
+   - 非容器节点：行区间与 bug 行相交即为正；
+   - contract_declaration：起始行在 bug 行内即为正。
+   输出每个文件的一致率。
+3. 截断检测：标出与规则不一致的正类缺失超过 20 个的文件，并对每个文件给出：
+   - bug log 中第一个重叠条目；
+   - 最后一个被标注的原始行；
+   - 两者是否相同。
+4. 溢出标签：在规则下为正、但节点文本和所在函数都不属于注入片段的节点（状态变量、接口函数、容器），逐条列出：bug log 条目、原始行文本、节点 id。
+5. 非 SolidiFI 文件：
+   - 用源码头部的 @vulnerable_at_lines 和 `// <yes> <report>` 注释，与冻结标签比较；
+   - 单独列出 parity_wallet_bug_2（cleaned 文件只有 17 行、节点正类为 0）和 0x627fa62…（第 94 行对应的节点为 0，而 changeOwner 为 1）的证据。
+6. 与审查脚本的输出逐项对比（截断文件、规则一致率、各剖面 TP/FP/FN）；有任何差异都列出并说明原因，不得为了对齐而修改自己的实现。
+
+## B. 对 150 项已有预测做分层与敏感性重评分（不训练，不重载模型）
+标签视图：
+- orig：冻结标签，即主结果；
+- C1：只对截断文件用作者规则补全；
+- C2：在 C1 的基础上，把溢出标签、容器标签节点、parity_wallet_bug_2、0x627fa62… 从评分中排除（只排除，不翻转）。
+
+分层：
+- 全部；
+- SolidiFI（buggy_*）；
+- 非 SolidiFI。非 SolidiFI 的正类很少，只报 pooled TP/FP/FN 与 Wilson 95% 区间，不报折均值。
+
+基线：不经学习的标识符规则，即节点位于名字含 txorigin / re_ent 的函数内，或节点首行含该标识符（容器除外）。与各剖面在同样的视图和分层下比较。
+
+对每个视图，按原口径重算 best 的折均值、pooled、各剖面相对 G0 的配对差、提升/持平/下降。这些只作描述，不另做 Holm 家族，也不替换主结果。
+
+## C. 图结构核查（在 graphs_v2_r1 实际使用的图上，不用逐文件 dot 代替）
+1. AC 与 R 节点任务中：
+   - 所有 modifier 调用节点（例如函数体内文本为 `onlyOwner` 的 expression_statement）的入边和出边数；
+   - 是否存在通往对应 modifier_definition 的边或 2 跳路径；
+   - 孤立节点的数量与比例。
+2. 从五个剖面的 model_input schema，导出每个目标节点类型参与 cross_reducer='mean' 的 canonical 关系数（包括零边的已注册关系），并核对 DGL 0.6.1 的 reduce_dict_data 实现确实是对所有关系帧做 stack 后取 mean。
+
+## D. 标识符去泄漏评估（不训练，只用已有的 best checkpoint 前向）
+1. 只对 outer_test 文件的 HCG 节点，在内存中改写节点文本：
+   - 同一文件内，凡包含 txorigin 或 re_ent 的标识符，按首次出现顺序确定性地改名为 idN；
+   - 不改其他文本，不改图结构，不改标签。
+2. 用 tokens.TokenEncoder 和冻结的 recipe 重新编码受影响节点的 inside_token；其余节点和 env_source 的特征保持原样。
+3. 对 2 个节点任务 × 10 折 × 5 剖面的 best checkpoint 做一次前向，在 orig 和 C1 视图下报告 BF1/P/R，并与未改写时的预测对比（每个剖面一个改变数）。
+4. 先用一个 fold 证明：未改写特征经过同一路径前向后，与归档预测逐位一致，才能开始改写。
+
+## E. 关系稀释的安慰剂对照（只准备 plan 与授权模板，不执行）
+- 新剖面 G0P：G0 加上空关系（只注册、不加边），使每个目标节点类型的关系数与 G3R 相同。参数初始化、seed、配置、协议都与 G0 相同。
+- 范围：2 个节点任务 × 10 折 = 20 个 fit。估计本地耗时，写出 plan，证明 G0P 的前向只在 cross mean 的分母上与 G0 不同（给出数值核对）。
+- 停下等用户授权。
+
+## F. 重复与近重复样本
+- 精确重复：对去空白后的源码求 SHA。
+- 近重复：去注释、去空白后的文本 SequenceMatcher ratio ≥ 0.98。
+- 列出每个簇在四个任务中的外层折位置。
+- 给出未来服务器批次可用的分组折划分方案（只写方案，不改当前折）。
+
+## 测试与记录
+- 为 A 的行映射、规则还原和截断检测写单元测试（用小型合成文件）。
+- 原有的 v2 测试和旧测试全部通过。
+- 写 PROMPT8C_REPORT.md、PROGRESS，以及三份记录文档的追加。
+- 不推送；停在 E 的授权点。
+```
+
 
 ### 4.11 Prompt 9（可选）：新源码的端到端推理
 
