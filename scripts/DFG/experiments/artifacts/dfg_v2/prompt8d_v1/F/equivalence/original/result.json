@@ -1,0 +1,120 @@
+{
+  "status": "complete",
+  "layer_impl": "shared_projection",
+  "protocol": "dfg-v2-nested",
+  "protocol_version": "dfg-v2-nested-v1",
+  "score_role": "outer_test",
+  "selection_role": "inner_val",
+  "forward_scope": "full_fixed_task_graph",
+  "interpretation": "nested outer test; inner validation selects best",
+  "best_epoch": 0,
+  "last_epoch": 0,
+  "best_inner_val_loss": 0.6693451404571533,
+  "inner_val": {
+    "best": {
+      "n": 2480,
+      "positive": 1357,
+      "buggy_f1": 63.666300768386385,
+      "macro_f1": 59.53858370255871,
+      "precision": 63.22674418604651,
+      "recall": 64.1120117907148,
+      "tn_fp_fn_tp": [
+        617,
+        506,
+        487,
+        870
+      ]
+    },
+    "last": {
+      "n": 2480,
+      "positive": 1357,
+      "buggy_f1": 63.666300768386385,
+      "macro_f1": 59.53858370255871,
+      "precision": 63.22674418604651,
+      "recall": 64.1120117907148,
+      "tn_fp_fn_tp": [
+        617,
+        506,
+        487,
+        870
+      ]
+    }
+  },
+  "outer_test": {
+    "best": {
+      "n": 1346,
+      "positive": 855,
+      "buggy_f1": 69.94256541161454,
+      "macro_f1": 64.03794937247393,
+      "precision": 76.96629213483146,
+      "recall": 64.09356725146199,
+      "tn_fp_fn_tp": [
+        327,
+        164,
+        307,
+        548
+      ]
+    },
+    "last": {
+      "n": 1346,
+      "positive": 855,
+      "buggy_f1": 69.94256541161454,
+      "macro_f1": 64.03794937247393,
+      "precision": 76.96629213483146,
+      "recall": 64.09356725146199,
+      "tn_fp_fn_tp": [
+        327,
+        164,
+        307,
+        548
+      ]
+    }
+  },
+  "checkpoint_sha256": {
+    "best": "22315179c88d7d5788ae7df54989d60d661b2621b30f5f0b82a3c3065d1dc9ee",
+    "last": "bf95e8cf0ec5f38056e48f9192d888f6e8d66ca774421e14f3d782f68074a13b"
+  },
+  "gradient_audit": {
+    "epochs": [
+      {
+        "backbone_gradient_l1": 155.005179544564,
+        "classifier_gradient_l1": 8.33522878587246,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "epoch": 0
+      }
+    ],
+    "backbone_update_l1": 376.3033949339515,
+    "v2_message_update_l1": {},
+    "updates_may_include_weight_decay": false
+  },
+  "checkpoint_roundtrip_exact": {
+    "inner_val": {
+      "best": true,
+      "last": true
+    },
+    "outer_test": {
+      "best": true,
+      "last": true
+    }
+  },
+  "no_parameters_created_during_training_or_scoring": true,
+  "initial_sha256": "134a01b37b11a2733d71a9bb1f80a9cf2844642d5fe076041d32b94d3a06a58e",
+  "history_rows": 1,
+  "parameter_count": 4371010,
+  "resources": {
+    "seconds": 111.5537348670041,
+    "peak_allocated_mib": null,
+    "peak_reserved_mib": null,
+    "minimum_free_mib": null,
+    "whole_card_sampling_seconds": 0.5,
+    "memory_samples": 0,
+    "sampling_errors": [],
+    "device": "cpu"
+  },
+  "seconds": 111.54438396700425,
+  "outer_supervision_used_in_optimization": false
+}

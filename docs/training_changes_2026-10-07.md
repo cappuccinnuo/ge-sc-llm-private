@@ -6676,3 +6676,8 @@ Actual test commands in the existing mando environment (PYTHONDONTWRITEBYTECODE=
 
     CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
     CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+
+
+### 2026-10-29 Prompt 8D GitHub结果归档（Codex）
+
+按用户推送请求，在5f31a66代码/报告提交之后，追加1176个Prompt8D文本结果和证据文件（约431.50MiB），覆盖300推断、汇总、审计、测试、候选分组计划及idN命名风险；文件清单见docs/github_archive_prompt8d_2026-10-29.json，说明见同名.md。原文件逐字节保留，4个CPU验收checkpoint和14个特征NPZ留在本地，不修改旧seal/图/标签或重跑模型。三份文档只追加。本次WSL Git直接连接GitHub已成功，正常推送dfg-v2，最终以本地/远端SHA核验一致为完成依据。F170仍未授权，命名替代方案尚需讨论。最终实验使用显存充足服务器的安排保持，当前本机限制与服务器结果不混用。

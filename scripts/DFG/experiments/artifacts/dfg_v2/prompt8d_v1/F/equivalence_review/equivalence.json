@@ -1,0 +1,209 @@
+{
+  "version": "prompt8d-identity-feature-parity-v1",
+  "passed": true,
+  "task_id": "reentrancy_node",
+  "source_plan": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8_v1/batch1/plan.json",
+    "sha256": "07f1dbc950a8ca0098e60415f4c5564d89c1dcbde49ab486692dc6afe8ff02de"
+  },
+  "feature_manifest": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8d_v1/F/features/manifest.json",
+    "sha256": "0ab89695454cbf583d6ac600b56e40e41775bbcc39dfde2268437288d1d3d8e8"
+  },
+  "identity_view": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8d_v1/F/features/reentrancy_node/original_manifest.json",
+    "sha256": "08f285033110811ce3542ccf5dc2ba8029b64016a919b8bb5eabc63bfc80ec66"
+  },
+  "device": "cpu",
+  "epochs_per_branch": 1,
+  "acceptance_optimizer_steps": 2,
+  "formal_fits": 0,
+  "schedule_epochs": 50,
+  "effective_config": {
+    "seed": 1,
+    "schedule_epochs": 50,
+    "hidden_size": 128,
+    "layers": 2,
+    "heads": 8,
+    "use_norm": true,
+    "dropout": 0.2,
+    "feature": "inside_token",
+    "optimizer": "Adam",
+    "initial_lr": 0.0002,
+    "max_lr": 0.005,
+    "div_factor": 25,
+    "final_div_factor": 1,
+    "cycle_momentum": true,
+    "weight_decay": 0.0,
+    "loss": "unweighted_cross_entropy",
+    "patience": 7,
+    "delta": 0.001,
+    "selection": "strict minimum inner validation loss; post-update eval forward",
+    "primary_checkpoint": "best",
+    "secondary_checkpoint": "last",
+    "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+    "schema_policy": "registered_schema_allow_train_unseen",
+    "partition_policy": "fixed_graph_nested_file_supervision",
+    "device": "cpu",
+    "threads": 2,
+    "metric_unit": "HCG node",
+    "protocol": "dfg-v2-nested",
+    "protocol_version": "dfg-v2-nested-v1",
+    "forward_scope": "full_fixed_task_graph",
+    "score_role": "outer_test",
+    "mode": "feature_view_equivalence",
+    "maximum_training_epochs": 1,
+    "environment": {
+      "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+      "torch": "1.8.1+cu111",
+      "dgl": "0.6.1",
+      "sklearn": "1.0.2",
+      "numpy": "1.21.6",
+      "networkx": "2.6.3"
+    },
+    "layer_impl": "shared_projection",
+    "selection_role": "inner_val"
+  },
+  "checks": {
+    "forward_bitwise": true,
+    "epoch_loss_bitwise": true,
+    "state_digest_equal": true,
+    "model_state_equal": true,
+    "optimizer_state_equal": true,
+    "scheduler_state_equal": true,
+    "best_last_scores_equal": true
+  },
+  "history": {
+    "original": {
+      "epoch": 0,
+      "lr": 0.00019999999999999966,
+      "adam_beta1": 0.95,
+      "train_loss": 0.6978223323822021,
+      "inner_val_loss": 0.6693451404571533,
+      "inner_val": {
+        "n": 2480,
+        "positive": 1357,
+        "buggy_f1": 63.666300768386385,
+        "macro_f1": 59.53858370255871,
+        "precision": 63.22674418604651,
+        "recall": 64.1120117907148,
+        "tn_fp_fn_tp": [
+          617,
+          506,
+          487,
+          870
+        ]
+      },
+      "patience_counter": 0,
+      "saved_best": true
+    },
+    "bound_original_view": {
+      "epoch": 0,
+      "lr": 0.00019999999999999966,
+      "adam_beta1": 0.95,
+      "train_loss": 0.6978223323822021,
+      "inner_val_loss": 0.6693451404571533,
+      "inner_val": {
+        "n": 2480,
+        "positive": 1357,
+        "buggy_f1": 63.666300768386385,
+        "macro_f1": 59.53858370255871,
+        "precision": 63.22674418604651,
+        "recall": 64.1120117907148,
+        "tn_fp_fn_tp": [
+          617,
+          506,
+          487,
+          870
+        ]
+      },
+      "patience_counter": 0,
+      "saved_best": true
+    }
+  },
+  "forward_bitwise": true,
+  "epoch_loss_bitwise": true,
+  "state_digest_equal": true,
+  "model_state_equal": true,
+  "optimizer_state_equal": true,
+  "scheduler_state_equal": true,
+  "best_last_scores_equal": true,
+  "extra_optimizer_steps": 0,
+  "review_of": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8d_v1/F/equivalence/equivalence.json",
+    "sha256": "9e991e892c59e62bf8bc77598cbefeb94763d1ade1366278475c2c116f5d2202"
+  },
+  "checker_sha256": "a46b48d8a3be507187a58aa741ccd778f8ff7eff91d707e5e5e37cb2773a37d4",
+  "scheduler_comparison": "exact __func__ identity + every numeric state field; bound instance address is not numeric state",
+  "scheduler_states": {
+    "original": {
+      "total_steps": 50,
+      "_schedule_phases": [
+        {
+          "end_step": 14.0,
+          "start_lr": "initial_lr",
+          "end_lr": "max_lr",
+          "start_momentum": "max_momentum",
+          "end_momentum": "base_momentum"
+        },
+        {
+          "end_step": 49,
+          "start_lr": "max_lr",
+          "end_lr": "min_lr",
+          "start_momentum": "base_momentum",
+          "end_momentum": "max_momentum"
+        }
+      ],
+      "anneal_func": {
+        "callable": "torch.optim.lr_scheduler.OneCycleLR._annealing_cos"
+      },
+      "cycle_momentum": true,
+      "use_beta1": true,
+      "base_lrs": [
+        0.0002
+      ],
+      "last_epoch": 1,
+      "_step_count": 2,
+      "verbose": false,
+      "_get_lr_called_within_step": false,
+      "_last_lr": [
+        0.00026017301076362333
+      ]
+    },
+    "bound_original_view": {
+      "total_steps": 50,
+      "_schedule_phases": [
+        {
+          "end_step": 14.0,
+          "start_lr": "initial_lr",
+          "end_lr": "max_lr",
+          "start_momentum": "max_momentum",
+          "end_momentum": "base_momentum"
+        },
+        {
+          "end_step": 49,
+          "start_lr": "max_lr",
+          "end_lr": "min_lr",
+          "start_momentum": "base_momentum",
+          "end_momentum": "max_momentum"
+        }
+      ],
+      "anneal_func": {
+        "callable": "torch.optim.lr_scheduler.OneCycleLR._annealing_cos"
+      },
+      "cycle_momentum": true,
+      "use_beta1": true,
+      "base_lrs": [
+        0.0002
+      ],
+      "last_epoch": 1,
+      "_step_count": 2,
+      "verbose": false,
+      "_get_lr_called_within_step": false,
+      "_last_lr": [
+        0.00026017301076362333
+      ]
+    }
+  },
+  "original_failed_check_retained": true
+}
