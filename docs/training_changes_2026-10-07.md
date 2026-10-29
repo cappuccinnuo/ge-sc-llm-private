@@ -6848,3 +6848,14 @@ N-real 下重新计算“节点或函数”规则，数值与旧 E 一致，因�
 本轮仍未完成此前 512/111 项人工依赖核验，也不宣称实现完整 Solidity 语义。用户安排最终正式实验在**显存充足的服务器**完成；当前 RTX3050 4GiB 是本机开发限制。服务器配置与环境尚未实际验收，不能混合两处运行结果或把历史本机耗时当成服务器实测。
 
 详细运行命令保存在 scripts/DFG/dfg_v2/benchmark_v2/PROMPT8E_README.md；各执行 argv 和输出日志保存在 prompt8e_v1。正式训练次数 0，P3 诊断 LR 15 次，二者不得混淆。本轮未自动推送 GitHub。
+
+
+### 67.9. 2026-10-29 GitHub 代码与结果归档（Codex）
+
+用户要求“推送github”。先核验当前 dfg-v2、本地代码提交 96aa742060cb4e9aad760ab57d4bc0bb6ebd577f、远端 70a37495f800f994812714c0c811a3a3d5a9dc87，tracked 工作区干净且暂存区为空。确认目标为用户拥有的私有仓库 cappuccinnuo/ge-sc-llm-private，具备 push 权限；作者 upstream 不作写入目标。
+
+本次仅追加归档与文档，不改计算代码、不重跑实验。prompt8e_v1 共 64 个 JSON/日志，101824681 字节，逐文件 SHA256 和范围见 docs/github_archive_prompt8e_2026-10-29.json；无需压缩，文件均小于 16 MiB。包含早期开发证据、最终命名映射、160 项语义核验、P1/P2/P3、关键字规则、独立重算、acceptance_decision、测试日志和本地提交收据。历史 pushed=false 收据保留原字节，表示其生成时尚未推送。
+
+归档检查：UTF-8 解码、JSON 解析、常见凭据模式检查通过；名称 manifest、探针 summary、验收 decision 的三份 seal 对应 SHA 核验；暂存 blob 对照归档清单逐项复核。三份旧文档只追加。旧图、标签、token、权重、计划、seal 和结果未重写；无关未跟踪文件不纳入本次提交。实现阶段 2678 测试通过的记录保留，本次不把格式/SHA 检查算作新增模型测试。
+
+目标仅 origin/dfg-v2，正常非 force 推送，并以实时远端 SHA 等于本地 HEAD 验收完成。命名验收仍为 blocked_by_preregistered_leakage_gate；没有将停止决定改为训练计划，没有生成新 NPZ/权重或执行 170-fit。最终实验使用显存充足服务器的安排保持，本机资源限制不改变实验协议。

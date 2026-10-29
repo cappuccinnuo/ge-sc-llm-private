@@ -1983,3 +1983,8 @@ P3总体AUC=0.643159，高于0.60，未通过。原名/idN为0.999430/0.998474�
 状态blocked_by_preregistered_leakage_gate：保留失败映射，不调参重测；acceptance_decision/seal及授权false模板已保存。新token NPZ、视图装配恒等检查、170可运行plan/seal、N-anon未执行。HGT正式训练0，P3 CPU诊断LR15；旧8D/F通过新侧记录标superseded，旧文件不变。
 
 唯一测试2678通过=2447全v2+8新增验收+223旧，0失败/跳过，8/29条既有弃用警告。337旧绑定引用与8B.0实际运行298文件SHA一致。详见PROMPT8E_REPORT.md、benchmark_v2/PROMPT8E_README.md及training_changes§67。最终实验计划使用显存充足服务器，本机4GiB只是开发限制，服务器未实际核验。仅本地提交，未push。
+
+
+### 2026-10-29 Prompt 8E GitHub 结果归档（修改 AI：Codex）
+
+按用户推送请求，在 96aa7420 代码/报告提交之后，追加归档全部 64 个 Prompt 8E JSON/日志结果（97.11 MiB），包括名称映射、160 项语义核验、探针、验收决定和测试证据。清单与说明见 docs/github_archive_prompt8e_2026-10-29.{json,md}。原结果和 seal 字节不变；开发期失败检查及更正、推送前历史收据一并保留。当前命名门槛仍未通过，正式 HGT 训练 0 次，不自动启动新计划。使用 WSL Git 正常推送 origin/dfg-v2，最终以本地/远端 SHA 一致核验。最终服务器实验安排不变。
