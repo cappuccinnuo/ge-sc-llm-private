@@ -44,9 +44,21 @@ def span(r):
     return s
 
 
+_LEX = re.compile(r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'')
+
+
 def norm_lines(text):
-    text = re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group(0).count("\n"), text, flags=re.S)
-    return [re.sub(r"\s+", "", re.sub(r"//.*", "", l)) for l in text.split("\n")]
+    # One left-to-right lexical pass: the earliest of line comment / block comment / string wins,
+    # so "//*****" is a line comment (fixes the buggy_35 SafeMath swallow found in Prompt 8C).
+    def repl(m):
+        s = m.group(0)
+        if s.startswith("//"):
+            return ""
+        if s.startswith("/*"):
+            return "\n" * s.count("\n")
+        return s
+    text = _LEX.sub(repl, text)
+    return [re.sub(r"\s+", "", l) for l in text.split("\n")]
 
 
 def orig_to_cleaned(src_dir, b):
