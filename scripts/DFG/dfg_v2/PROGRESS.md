@@ -1963,3 +1963,23 @@ Actual test commands in the existing mando environment (PYTHONDONTWRITEBYTECODE=
 ### 2026-10-29 Prompt 8D GitHub结果归档（Codex）
 
 按用户推送请求，在5f31a66代码/报告提交之后，追加1176个Prompt8D文本结果和证据文件（约431.50MiB），覆盖300推断、汇总、审计、测试、候选分组计划及idN命名风险；文件清单见docs/github_archive_prompt8d_2026-10-29.json，说明见同名.md。原文件逐字节保留，4个CPU验收checkpoint和14个特征NPZ留在本地，不修改旧seal/图/标签或重跑模型。三份文档只追加。本次WSL Git直接连接GitHub已成功，正常推送dfg-v2，最终以本地/远端SHA核验一致为完成依据。F170仍未授权，命名替代方案尚需讨论。最终实验使用显存充足服务器的安排保持，当前本机限制与服务器结果不混用。
+
+
+## 2026-10-29 Prompt 8E：N-real 实施、事实核验完成，命名门槛失败（Codex）
+
+已阅读最新共享上下文和8E，在原实现上新增5个benchmark_v2模块、2组测试、独立README及报告；3份记录只追加。用户同意采用仅供验收的内存code副本，复用原分析器，保留原节点/边/标签/特征；没有更换方案或改门槛。
+
+80/80文件的4807个标记名完成同角色、频率加权、source SHA固定映射；7类名称池规模414/34/95/231/372/141/112。872种替换拼写的普通来源证据率100%。128原文及80改名文件无grammar错误；160项任务×文件的L1/L2/L3事实/证据/端点与归档一致。
+
+|N-real SolidiFI P2|BF1（%）|比全正基线（pp）|门槛|
+|---|---:|---:|---|
+|重入/orig|64.7050|−10.3122|通过|
+|重入/C1|67.8373|−8.6960|通过|
+|访问控制/orig|67.7445|+9.4670|未通过|
+|访问控制/C1|69.4994|+9.3613|未通过|
+
+P3总体AUC=0.643159，高于0.60，未通过。原名/idN为0.999430/0.998474。这是命名探针，不是新的GNN训练成绩；P2只用inner-train，P3按文件和冻结重复组隔离。12份P2总表、120折表、3份AUC独立重算一致。关键字基线与8D一致，AC节点仍只作描述。
+
+状态blocked_by_preregistered_leakage_gate：保留失败映射，不调参重测；acceptance_decision/seal及授权false模板已保存。新token NPZ、视图装配恒等检查、170可运行plan/seal、N-anon未执行。HGT正式训练0，P3 CPU诊断LR15；旧8D/F通过新侧记录标superseded，旧文件不变。
+
+唯一测试2678通过=2447全v2+8新增验收+223旧，0失败/跳过，8/29条既有弃用警告。337旧绑定引用与8B.0实际运行298文件SHA一致。详见PROMPT8E_REPORT.md、benchmark_v2/PROMPT8E_README.md及training_changes§67。最终实验计划使用显存充足服务器，本机4GiB只是开发限制，服务器未实际核验。仅本地提交，未push。
