@@ -2055,6 +2055,65 @@ G0P 不建议在当前（泄漏的）基准上单独执行：现在的剖面差�
 - 停在授权点。需要用户决定：标签方案（默认 L-audit）、seed 数、运行位置（本机或服务器）。
 ```
 
+状态（2026-10-29）：已完成（96aa742、41f718d）。按预先登记的门槛，结果为“未通过”。
+
+审查者从归档的 P2/P3 预测中找到了两个失败原因：
+
+1. **只改含标记的名字不够。** SolidiFI 片段模板中的参数名和局部变量名（`amount`、`to`、`receiver`、`_recipient`、`success`、`_weiToWithdraw`）不含 txorigin / re_ent，因此没有被改名。
+   - 每个注入文件都原样带着这 6 个名字。
+   - 在 AC 的 P2 中，被学成“正类名”的前 4 名正是 `amount`、`to`、`receiver`、`_recipient`，正类比例 0.71–0.86。
+2. **替换名的分布与普通声明的分布不一致。**
+   - 原因有两个：按词法出现次数加权；以及“不得与文件内已有名字相同”的约束，排除了大部分常见名字。
+   - 结果：替换名平均长度 10.28，普通名 9.19；替换名落在普通名前 50 名中的比例是 0.16，普通名是 0.35。
+   - 只看已改名的注入声明，P3 AUC 仍为 0.638。
+   - 此外，P3 把不同角色合在一起算 AUC，而事件、modifier、结构体字段从来不属于注入代码，角色构成本身就带有信息。按角色分别计算再平均，AUC 为 0.595。
+
+审查者的判断：如果继续按“看结果 → 改抽样 → 再测”的方式修 N-real，就成了反复尝试直到通过（forking paths）。因此改用按构造就不含名字通道的 N-anon 作为基准 v2 的主特征视图（Prompt 8F）。N-real 及其失败证据保留，作为“SolidiFI 存在模板命名泄漏”的佐证。
+
+
+### 4.10g Prompt 8F：以全标识符匿名化（N-anon）作为基准 v2 主视图并封存 170 次计划（不训练）
+
+```text
+# Prompt 8F：N-anon 特征视图、合法性与泄漏核验、基准 v2 封存
+
+前置：Prompt 8E（96aa742、41f718d）。8E 的 N-real 产物只读保留，不得重采样，也不得改阈值后重测。
+新产物写入 scripts/DFG/experiments/artifacts/dfg_v2/prompt8f_v1/。新代码以新增模块的形式放在 benchmark_v2/ 中。不训练。
+
+## 1. N-anon 改写规则（全部 256 个源码身份，含两类的合约任务与节点任务、SolidiFI 与非 SolidiFI，统一执行）
+1. 改名对象：文件中有用户声明的全部标识符。包括合约、接口、库、函数、modifier、事件、结构体及字段、枚举及成员、状态变量、参数、局部变量、返回值命名。注入作用域内外一视同仁，因此 `amount`、`receiver`、`success` 这类模板名也会被改。
+2. 保留不改（预先固定一张保留表，写入 manifest）：
+   - Solidity 关键字与类型名；
+   - 全局对象及其成员：msg.sender/value/data/sig、tx.origin/gasprice、block.*、now、this、super、selfdestruct/suicide、require/assert/revert、keccak256/sha3/sha256/ecrecover 等；
+   - 地址成员：transfer、send、call、delegatecall、staticcall、value、gas、balance、code；
+   - 数组成员：length、push、pop。
+   - 用户自定义的同名函数（例如 ERC20 的 `transfer`）同样保留原名，避免与内建成员混淆。保留的名字逐个列出，并统计其出现次数。
+3. 新名字：
+   - 所有角色使用同一个前缀 `v`，加上文件内唯一的编号，例如 `v3`、`v41`。不得用不同前缀区分角色，否则角色构成会成为线索。
+   - 编号是对文件内声明的一个随机排列，种子由 source SHA 确定。不得按首次出现顺序编号，否则编号会与位置相关。
+   - 同一声明的所有引用使用同一个新名字。按声明绑定改写；无法可靠解析绑定的引用，列出并整文件回退报告（不得静默跳过）。
+   - 字符串和注释不改。
+4. 合法性检查（所有文件）：
+   - 冻结 grammar 解析，ERROR=0、missing=0，AST 拓扑与改写前一致；
+   - L1/L2/L3 事实与投影端点的核验方法同 8E §3，范围从 40 个文件扩展到全部文件；
+   - 所有文件中，以下字符串的出现次数与改写前相同：tx.origin、msg.sender、.call.value(、.send(、.transfer(。
+
+## 2. 泄漏核验（定义与阈值同 8E，不放宽；只作合理性确认）
+- 在 N-anon 视图上重跑 P2 与 P3，额外报告按角色分别计算的 AUC。
+- 预期两项都接近随机。如果未通过，停止并报告原因，不调整规则。
+- 在 N-anon 视图上重算 E 的关键字基线。按构造，它应与原视图完全相同。
+
+## 3. 特征与封存
+- 对全部 HCG 节点，按 N-anon 改写 code，再用冻结的 TokenEncoder 编码。env_source 的特征不变（其文本是 msg.sender 等保留名）。
+- 证明两点：恒等视图与原 G0 逐位一致；N-anon 视图能正确装配。
+- 沿用 8D 的分组折、L-orig / L-audit 两种标签方案、5 个剖面加 G0P、170 个任务，以及 8E 预先登记的解读规则（AC 节点级只作描述）。
+- 写出 plan、seal 和 authorization 模板（execution_authorized=false），并给出本机耗时估计。
+
+## 测试与记录
+- 为保留表、绑定改写、统一前缀与随机编号、整文件回退、关键字计数不变写单元测试。全部旧测试通过。
+- 写 PROMPT8F_REPORT.md、PROGRESS，以及三份记录文档的追加。
+- 停在授权点。需要用户决定：标签方案（默认 L-audit）、seed 数、运行位置。
+```
+
 
 ### 4.11 Prompt 9（可选）：新源码的端到端推理
 
