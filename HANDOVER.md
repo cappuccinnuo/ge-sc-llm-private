@@ -2296,3 +2296,19 @@ Prompt 8H计划已封存并启动正式试点（Codex）：170份初值/30折全
 首个重入合约fold0 G0完成19轮，best第12轮、last第19轮；checkpoint/预测重载及重新执行完整verify_one均通过。正式完成1/170，第二个试点及169项未启动。控制器缓存失败并停止：旧cache读了采样仍运行时的result.json资源SHA，新执行器final_result.json与完整采样日志SHA一致；这是新增接口缺陷，非DDG/模型或OOM。最小free400MiB、allocated峰1230.84MiB、reserved1410MiB。
 
 已保留现场和cache_failure_diagnosis.json，未修改封存代码/旧seal，未自动重训。已请求批准仅做8H final_result缓存适配并新增运行版本修订，补回归后复用首个fit继续169。当前等待确认，不能称完整8H完成；PROMPT8H_REPORT已明确状态与测试缺口。最终显存充足服务器安排保持，本次停止与本机显存不足无关。
+
+
+### 2026-10-30 Prompt 8H缓存修复获批（修改 AI：Codex）
+
+用户批准仅修复缓存接入并继续剩余169次。新增8H专用acceptance_cache/runtime_amendment，读取final_result而不更改中间result或原缓存，严格保留采样原文SHA/缓存库存校验。execution仅调整缓存导入与修订元数据，数值训练不改；旧plan/seal和首个成功fit保留，独立修订封存后复用首个结果。真实35依赖SHA与目录不变证明已通过；96定向/相关测试、223旧回归通过，完整v2回归进行中。批准与实施证据在cache_fix_v1，详细见training_changes§70.11。正式恢复尚待这些检查完成，最终服务器安排不变。
+
+
+### 2026-10-30 Prompt 8H 缓存修复验收通过、获批恢复（修改 AI：Codex）
+
+用户已明确批准“修复缓存接入并继续剩余169次”。定向/相关96通过（包含在全量内），v2全量2632通过、原项目223通过，共2855项唯一测试，0失败/跳过。警告分别为4/9/29条既有依赖/弃用警告，完整日志与SHA保存在cache_fix_v1/equivalence_proof.json。真实首个fit完整verify_one、final_result依赖缓存创建及缓存命中全部通过，new_fits=0；没有重训或修改该结果。
+
+独立修订runtime_cache_fix_v1.json SHA：7a1e4ed3a280a40b881332ba0abbd01a5c9e5e3813c1c89c2b6660f4b37c0b22。原plan SHA仍为cb8daf22ed9fb9cd81fe575548d338408a5420f62e7a6da529d402c148eb8a2c，原seal、缓存及停止现场保留。修订仅允许execution.py五处接入/审计调整和两个新模块；数值循环及原模型/数据/初值未变。旧成功收据仅限清单中首个结果可没有新修订字段，后续fit必须绑定修订。
+
+接下来串行执行pilots，再all，最后reporting。首个重入合约fold0 G0复用；第二试点重入节点fold0 G3R通过后进入剩余矩阵。总目标170，恢复时已完成1，不将恢复称为完成169。新控制器日志/状态使用resume_v1名称，旧停止记录不覆盖；失败停止且不自动重试。完整验收前只记录进度，不汇总F1。运行期间冻结Python文件，不自动push。
+
+最终实验按用户安排在显存充足的服务器执行，本批仍按明确授权在本机local_dev_v1运行，不混用两个环境结果。

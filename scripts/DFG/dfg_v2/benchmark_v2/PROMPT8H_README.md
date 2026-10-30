@@ -72,3 +72,13 @@ CPU preparation uses the approved never-trained structure cache after its bitwis
 G0 is freshly constructed each fold; enhanced parameters are completely rewritten by
 the unchanged semantic initializer. Fresh-reference partial attempts are retained.
 The final plan uses prepared_attempt3; formal workers never use this cache.
+
+
+Approved cache repair (2026-10-30): a separately sealed runtime_cache_fix_v1
+binds the original plan and the final-resource acceptance adapter. Historical
+result.json and all previous caches remain intact. Only the listed successful
+first fit is reused without a new amendment field; subsequent starts bind it.
+The commands `execution pilots`, `execution all`, then `reporting` resume the
+approved matrix without retraining existing successes. See cache_fix_v1 proofs
+and orchestration_resume_v1_status.json for the new controller state; the original
+orchestration_status.json retains the historical cache failure.

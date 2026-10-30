@@ -7226,3 +7226,34 @@ CPU准备完成后，orchestration.command.json记录的串行调度进入pilots
 **资源与停止**：peak allocated 1230.83837890625MiB、reserved1410MiB、整卡最小free400MiB，memory_tight=false。GPU已释放；orchestration_status标stopped/pilots/exit1，requires_user_review_before_fit_retry=true。精确耗时/原始资源摘要在诊断和final_result中。成功fit不会因为控制器失败变成需要重训；修复后应复用。
 
 **待批准方案**：仅对8H缓存依赖收集改用采样结束后的final_result.json，保持全部收据文件/原始日志SHA校验；旧cache、旧plan/seal不改，另封存运行版本修订及批准记录。补充该实际接口回归、篡改拒绝测试后复用首个结果，继续169。用户明确要求失败后经确认才恢复，已提问，当前未修改冻结运行代码/未实施修订/未继续训练。详见PROMPT8H_REPORT.md。旧两次CPU准备、全部重要日志和成功收据均保留。
+
+
+### 70.11. 用户批准缓存接入修复与恢复169项（Codex，2026-10-30）
+
+用户明确答复：“同意修复缓存接入并继续剩余169次（推荐）”。批准原问及答复存cache_fix_v1/approval.json，绑定旧plan/seal和cache_failure_diagnosis；首个成功fit不重训。旧停止状态记录不覆盖，恢复另用独立运行状态。
+
+**最小代码调整**：新增benchmark_v2/acceptance_cache.py，复制原experiment/acceptance_cache.py并在头部记录来源SHA a6afa11d40334cdbe49abed55e04129246a41ba6eeca8edf344f000544eae145；仅新协议依赖收集读取final_result.json，并保留result.json作为receipt绑定的中间产物，原始采样日志仍严格SHA核验。旧协议依赖直接委托旧函数，旧文件完全未改；seal身份、库存、mtime/size和最终全量SHA规则不放宽。新增runtime_amendment.py只允许execution.py元数据/缓存接入变化及上述两个新增模块，所有其他运行文件必须与旧plan SHA一致。
+
+execution.py仅改五处：导入修订核验、load核验独立修订、started增加benchmark_runtime_amendment、verify_one核验启动版本、controller导入新缓存。数值函数/训练循环不改；字符串精确变换证明保存dependency_proof.json。首个旧收据列为唯一legacy_success，不修改其启动记录或receipt；新拟合必须绑定新修订。新修订用runtime_cache_fix_v1.json及独立seal，不重签旧plan/seal。before executor逐字节保存在cache_fix_v1/execution_before.py。
+
+**实证与测试**：真实首个fit重现旧缓存摘要冲突，新依赖收集35项全部SHA通过，训练目录文件前后完全一致。新增test_benchmark_cache_fix.py覆盖旧失败/新通过、旧协议完全一致、采样/中间/最终/权重/receipt篡改拒绝、缺final拒绝、修订越权/错seal/错批准/错proof/旧收据改变拒绝、新fit缺版本绑定拒绝。定向加旧缓存/执行器共96通过、4条已有DGL警告；223旧回归通过、29警告；v2全套正在运行，最终计数与封存恢复状态另追加。没有新正式拟合，没有修改训练超参/图/标签/特征/折/初值。
+
+
+### 70.12 2026-10-30 Prompt 8H 缓存修复验收通过、获批恢复（修改 AI：Codex）
+
+用户已明确批准“修复缓存接入并继续剩余169次”。定向/相关96通过（包含在全量内），v2全量2632通过、原项目223通过，共2855项唯一测试，0失败/跳过。警告分别为4/9/29条既有依赖/弃用警告，完整日志与SHA保存在cache_fix_v1/equivalence_proof.json。真实首个fit完整verify_one、final_result依赖缓存创建及缓存命中全部通过，new_fits=0；没有重训或修改该结果。
+
+独立修订runtime_cache_fix_v1.json SHA：7a1e4ed3a280a40b881332ba0abbd01a5c9e5e3813c1c89c2b6660f4b37c0b22。原plan SHA仍为cb8daf22ed9fb9cd81fe575548d338408a5420f62e7a6da529d402c148eb8a2c，原seal、缓存及停止现场保留。修订仅允许execution.py五处接入/审计调整和两个新模块；数值循环及原模型/数据/初值未变。旧成功收据仅限清单中首个结果可没有新修订字段，后续fit必须绑定修订。
+
+接下来串行执行pilots，再all，最后reporting。首个重入合约fold0 G0复用；第二试点重入节点fold0 G3R通过后进入剩余矩阵。总目标170，恢复时已完成1，不将恢复称为完成169。新控制器日志/状态使用resume_v1名称，旧停止记录不覆盖；失败停止且不自动重试。完整验收前只记录进度，不汇总F1。运行期间冻结Python文件，不自动push。
+
+最终实验按用户安排在显存充足的服务器执行，本批仍按明确授权在本机local_dev_v1运行，不混用两个环境结果。
+
+测试命令（mando；CPU；OMP/MKL=2；原TREE_SITTER_LIB_DIR）：
+
+```bash
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+```
+
+本次修复新增test_benchmark_cache_fix.py的18项，检查旧资源SHA冲突可重现、final_result正确绑定、旧协议依赖不变、篡改资源/结果/权重/收据拒绝、运行修订限制、首个成功收据限定复用等。cache_fix_v1/dependency_proof.json记录五处准确文本转换与numeric_functions_unchanged=true；real_cache_acceptance.json记录真实验收证据。各测试日志及proof已绑定修订，不清理。

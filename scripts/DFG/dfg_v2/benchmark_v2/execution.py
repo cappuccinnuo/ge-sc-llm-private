@@ -12,6 +12,7 @@ from .checkpoint import build_binding
 from .input_guard import FitInputGuard
 from .trainer import fit
 from .protocol import PROTOCOL_NAME,PROTOCOL_VERSION,PARTS,validate_parts
+from .runtime_amendment import amendment_ref,verify_start
 from .grouping import validate_splits
 from ..experiment.init import initialize_family,seeds,INITIALIZATION_VERSION
 from ..experiment.run import _Lock,_move_model,_code_refs,job_id,_job_directory
@@ -109,7 +110,7 @@ def load(path):
     if plan.get("protocol")!=PROTOCOL_NAME:raise ValueError("Not a grouped benchmark plan")
     if plan.get("version")!=VERSION or read(path.with_name("plan.seal.json"))["plan"]!=ref(path):
         raise ValueError("Execution plan/seal differs")
-    if plan["runtime"]!=_code_refs():raise ValueError("Frozen execution runtime differs")
+    amendment_ref(path,plan)
     auth=read(checked(plan["authorization"]))
     if (auth["source_plan"]!=plan["source_preparation"] or auth["formal_fit_count"]!=len(plan["jobs"])
         or auth["label_policy"]!=plan["label_policy"] or auth["seeds"]!=plan["seeds"]):
@@ -171,6 +172,9 @@ def fit_one(path,job):
     attempt=folder/"attempt_001"
     start=dict(job=job,plan=ref(path),execution_authorization=plan["authorization"],
         started_unix=time.time(),pid=os.getpid(),automatic_retry=False)
+    amendment=amendment_ref(path,plan)
+    if amendment is not None:
+        start["benchmark_runtime_amendment"]=amendment
     write(attempt.with_suffix(".started.json"),start)
     task,info,entry=prepared(plan,job);cfg=task["config"]
     try:
@@ -214,6 +218,7 @@ def verify_one(path,plan,job,attempt):
     if receipt["job"]!=job or receipt["plan"]!=ref(path) or receipt["status"]!="complete":raise ValueError("Receipt identity differs")
     start=read(checked(receipt["execution_start"]))
     if start["job"]!=job or start["plan"]!=ref(path) or start["execution_authorization"]!=plan["authorization"]:raise ValueError("Start authorization differs")
+    verify_start(path,plan,start,attempt/"receipt.json")
     required={"best.pt","last.pt","best.json","last.json","binding.json","final_result.json","history.jsonl",
         "inner_val_predictions.json","outer_test_predictions.json","inner_val_orig_all_predictions.json",
         "outer_test_orig_all_predictions.json","validation_performance.json","effective_config.json","schema_support_audit.json","initialization_ref.json"}
@@ -286,7 +291,7 @@ def execute(path,only):
         return fit_one(path,matches[0])
 
 def controller(path,pilots=False):
-    from ..experiment.acceptance_cache import create_cache,verify_cache
+    from .acceptance_cache import create_cache,verify_cache
     plan=load(path);root=Path(path).parent
     chosen=[j for j in plan["jobs"] if
         (j["task_id"],j["fold"],j["profile"]) in (("reentrancy_contract",0,"G0"),("reentrancy_node",0,"G3R"))] if pilots else plan["jobs"]
