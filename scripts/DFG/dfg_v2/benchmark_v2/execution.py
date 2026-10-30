@@ -13,6 +13,7 @@ from .input_guard import FitInputGuard
 from .trainer import fit
 from .protocol import PROTOCOL_NAME,PROTOCOL_VERSION,PARTS,validate_parts
 from .runtime_amendment import amendment_ref,verify_start
+from .retry import successful_attempt,next_attempt,validate_retry_receipt
 from .grouping import validate_splits
 from ..experiment.init import initialize_family,seeds,INITIALIZATION_VERSION
 from ..experiment.run import _Lock,_move_model,_code_refs,job_id,_job_directory
@@ -163,13 +164,12 @@ def binding_parts(plan,job,model,config=None):
 
 def fit_one(path,job):
     plan=load(path);root=Path(path).parent;folder=_job_directory(root,job)
-    existing=list(folder.glob("attempt_*/receipt.json"))
-    if existing:
-        verify_one(path,plan,job,existing[0].parent);return "reused"
-    if list(folder.glob("attempt_*.started.json")):raise RuntimeError("Previous incomplete/failed attempt: explicit user review required")
+    existing=successful_attempt(folder)
+    if existing is not None:
+        verify_one(path,plan,job,existing);return "reused"
+    attempt=next_attempt(path,job,folder)
     folder.mkdir(parents=True,exist_ok=True)
     pre=run_preflight(job,ref(path)["sha256"],folder,plan["resource_policy"])
-    attempt=folder/"attempt_001"
     start=dict(job=job,plan=ref(path),execution_authorization=plan["authorization"],
         started_unix=time.time(),pid=os.getpid(),automatic_retry=False)
     amendment=amendment_ref(path,plan)
@@ -219,6 +219,7 @@ def verify_one(path,plan,job,attempt):
     start=read(checked(receipt["execution_start"]))
     if start["job"]!=job or start["plan"]!=ref(path) or start["execution_authorization"]!=plan["authorization"]:raise ValueError("Start authorization differs")
     verify_start(path,plan,start,attempt/"receipt.json")
+    validate_retry_receipt(path,job,attempt)
     required={"best.pt","last.pt","best.json","last.json","binding.json","final_result.json","history.jsonl",
         "inner_val_predictions.json","outer_test_predictions.json","inner_val_orig_all_predictions.json",
         "outer_test_orig_all_predictions.json","validation_performance.json","effective_config.json","schema_support_audit.json","initialization_ref.json"}
@@ -302,12 +303,14 @@ def controller(path,pilots=False):
             # A retained failed/incomplete fit stops the whole batch.
             for prior in plan["jobs"]:
                 folder=_job_directory(root,prior)
-                if list(folder.glob("attempt_*.started.json")) and not list(folder.glob("attempt_*/receipt.json")):
-                    raise RuntimeError("Prior incomplete/failed fit: "+job_id(prior))
+                if list(folder.glob("attempt_*.started.json")) and successful_attempt(folder) is None:
+                    next_attempt(path,prior,folder)
             folder=_job_directory(root,j);found=list(folder.glob("attempt_*/receipt.json"))
             if len(found)>1:raise ValueError("Duplicate successful fit")
             if not found:
-                log=folder.parent/(j["profile"]+"_worker.log")
+                candidate=next_attempt(path,j,folder)
+                suffix="" if candidate.name=="attempt_001" else "_"+candidate.name
+                log=folder.parent/(j["profile"]+suffix+"_worker.log")
                 log.parent.mkdir(parents=True,exist_ok=True)
                 if log.exists():raise FileExistsError("Retained worker log without accepted fit")
                 cmd=[sys.executable,"-B","-m","scripts.DFG.dfg_v2.benchmark_v2.execution","worker","--plan",str(path),"--only",job_id(j)]
@@ -323,15 +326,15 @@ def controller(path,pilots=False):
             # Check the previous successes cheaply; no F1 is printed or selected.
             for prior_id,anchor in cache.items():
                 prior=next(x for x in chosen if job_id(x)==prior_id)
-                prior_attempt=_job_directory(root,prior)/"attempt_001"
+                prior_attempt=successful_attempt(_job_directory(root,prior))
                 verify_cache(anchor,expected_seal_sha=anchor["sha256"],plan_path=path,job=prior,attempt=prior_attempt,
                     full_verify=lambda prior=prior,prior_attempt=prior_attempt:verify_one(path,plan,prior,prior_attempt),
                     acceptance_version=VERSION)
             print("accepted {}/{} {}".format(len(cache),len(chosen),job_id(j)),flush=True)
     if pilots:
-        write(root/"acceptance/pilots.json",dict(passed=True,formal_fits=2,reused_in_full_matrix=True,receipts={job_id(j):ref(_job_directory(root,j)/"attempt_001/receipt.json") for j in chosen}))
+        write(root/"acceptance/pilots.json",dict(passed=True,formal_fits=2,reused_in_full_matrix=True,receipts={job_id(j):ref(successful_attempt(_job_directory(root,j))/"receipt.json") for j in chosen}))
     else:
-        full=[verify_one(path,plan,j,_job_directory(root,j)/"attempt_001") for j in plan["jobs"]]
+        full=[verify_one(path,plan,j,successful_attempt(_job_directory(root,j))) for j in plan["jobs"]]
         write(root/"complete.json",dict(passed=True,formal_fits=len(full),receipts=[ref(Path(x["attempt"])/"receipt.json") for x in full]))
     return True
 
@@ -343,5 +346,5 @@ def main():
     elif a.command in ("pilots","all"):controller(Path(a.plan),a.command=="pilots")
     elif a.command=="verify":
         plan=load(a.plan)
-        for j in plan["jobs"]:verify_one(a.plan,plan,j,_job_directory(Path(a.plan).parent,j)/"attempt_001")
+        for j in plan["jobs"]:verify_one(a.plan,plan,j,successful_attempt(_job_directory(Path(a.plan).parent,j)))
 if __name__=="__main__":main()

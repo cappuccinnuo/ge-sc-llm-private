@@ -11,7 +11,7 @@ ADDITIONS={
  "scripts/DFG/dfg_v2/benchmark_v2/runtime_amendment.py",
 }
 
-def amendment_ref(plan_path,plan,actual=None):
+def _cache_amendment_ref(plan_path,plan,actual=None):
     if actual is None:
         from ..experiment.run import _code_refs
         actual=_code_refs()
@@ -52,9 +52,26 @@ def amendment_ref(plan_path,plan,actual=None):
         checked(entry)
     return ref(path)
 
+def amendment_ref(plan_path,plan,actual=None):
+    if actual is None:
+        from ..experiment.run import _code_refs
+        actual=_code_refs()
+    from .retry import NAME as RESUME_NAME,verify_resume
+    if (Path(plan_path).parent/RESUME_NAME).is_file():
+        return verify_resume(plan_path,plan,actual,_cache_amendment_ref)
+    return _cache_amendment_ref(plan_path,plan,actual)
+
 def verify_start(plan_path,plan,start,receipt_path):
     current=amendment_ref(plan_path,plan)
     declared=start.get("benchmark_runtime_amendment")
+    if current is not None:
+        doc=read(checked(current))
+        from .retry import VERSION as RESUME_VERSION
+        if doc.get("version")==RESUME_VERSION and declared!=current:
+            prior=read(checked(doc["prior_successes"]))
+            if ref(receipt_path) not in prior["receipts"] or declared not in (None,doc["parent_amendment"]):
+                raise ValueError("Fit lacks approved resume binding")
+            return
     if current is None:
         if declared is not None:
             raise ValueError("Unexpected runtime amendment on original runtime")

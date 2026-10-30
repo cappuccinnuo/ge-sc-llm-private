@@ -109,13 +109,25 @@ def _dependencies(plan_path, attempt, extra_refs=()):
     # Bind the same amendment for the original successful fit, whose historical
     # start record intentionally predates the amendment and stays unchanged.
     from .runtime_amendment import NAME
-    amendment_path = plan_path.parent / NAME
-    if amendment_path.is_file():
+    from .retry import NAME as RESUME_NAME
+    for amendment_path in (plan_path.parent / NAME, plan_path.parent / RESUME_NAME):
+        if not amendment_path.is_file():
+            continue
         add(amendment_path)
         add(amendment_path.with_name(amendment_path.stem + ".seal.json"))
         amendment = _read(amendment_path)
         for name in ("approval", "proof", "before_execution"):
             add_ref(amendment[name], amendment_path.parent)
+        if "prior_successes" in amendment:
+            prior_path = add_ref(amendment["prior_successes"], amendment_path.parent)
+            for entry in _read(prior_path)["receipts"]:
+                add_ref(entry, prior_path.parent)
+            for entry in amendment["before_sources"].values():
+                add_ref(entry, amendment_path.parent)
+            approval = _read(Path(amendment["approval"]["path"]))
+            incident_path = add_ref(approval["interruption"], amendment_path.parent)
+            for entry in _read(incident_path)["files"]:
+                add_ref(entry, incident_path.parent)
     if "tasks" in plan:
         job = receipt["job"]
         task = plan["tasks"][job["task_id"]]

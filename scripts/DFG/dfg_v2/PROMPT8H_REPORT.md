@@ -81,3 +81,18 @@ cb8daf22ed9fb9cd81fe575548d338408a5420f62e7a6da529d402c148eb8a2c
 接下来串行执行pilots，再all，最后reporting。首个重入合约fold0 G0复用；第二试点重入节点fold0 G3R通过后进入剩余矩阵。总目标170，恢复时已完成1，不将恢复称为完成169。新控制器日志/状态使用resume_v1名称，旧停止记录不覆盖；失败停止且不自动重试。完整验收前只记录进度，不汇总F1。运行期间冻结Python文件，不自动push。
 
 最终实验按用户安排在显存充足的服务器执行，本批仍按明确授权在本机local_dev_v1运行，不混用两个环境结果。
+
+
+Prompt 8H正式恢复进度（Codex，2026-10-30）：独立修订和代码提交00c731e6生效；原首个成功fit完整复用，第二试点重入节点fold0 G3R通过，acceptance/pilots.json已封存。控制器已进入全部170项串行矩阵，目前2项完成；这是启动进度记录，不是最终结果。旧orchestration_status保留失败历史，新状态为orchestration_resume_v1_status.json。另清理本批cache_fix_v1/_test_tmp可重建临时树211615457字节（约201.81MiB），未跟随600个符号链接，不删除正式产物；cleanup_test_tmp.json留证。运行期无计算源码修改，尚未push。
+
+
+### 2026-10-30 Prompt 8H 外部中断后的显式恢复准备（修改 AI：Codex）
+
+用户在获知训练中断后明确要求“继续训练”。已完成71/170（重入合约25、重入节点46）全部重新完整verify_one通过；第72项重入节点fold7/G3的attempt_001停在第32轮，无成功receipt。Windows有约80分钟睡眠记录，末次采样仍有984MiB空闲；未找到OOM/Python异常/明确退出码，终止原因尚不确定，不将睡眠或显存认定为已证实根因。
+
+现有执行器硬编码attempt_001并拒绝任何未完成尝试。为落实本次明确恢复指令，新增retry.py，最小调整execution的尝试选择、reporting的唯一成功收据定位、acceptance_cache依赖和runtime_amendment的修订链。原训练数值try主体、construct/binding_parts/prepared的AST保持一致；原trainer/DDG/HGT/tokenizer/特征/标签/折和初值不改。旧attempt_001及全部路径不迁移、不覆盖；仅指定失败任务可从封存零步初值重跑为attempt_002。已有71个成功结果复用，剩余99个正式结果待生成；不是从第32轮续训，也不是新seed。
+
+resume_v2保留用户授权、71成功收据、全部中断文件SHA、4份修改前源码与精确编辑清单。将建立独立runtime_resume_v2.json与seal，引用原plan和旧cache修订，不重签旧文件。新尝试一旦再失败仍立即停止，无自动第三次尝试。80项定向测试通过，全套回归进行中；本条尚不是恢复训练已启动声明。最终显存充足服务器安排保持，本轮仍为已授权的本机批次。
+
+
+Prompt 8H显式恢复验收完成（Codex，2026-10-30）：80项定向测试已含于2653项v2全量，原回归223项，总2876唯一通过，0失败/跳过；警告分别4/9/29条既有依赖警告。原71个成功结果完整核验通过；重试初值SHA和tensor digest匹配、optimizer_steps=0、原fit_seed=1010007，真实旧结果的新修订缓存创建/命中通过。runtime_resume_v2.json独立封存，SHA f18dd07d04d4cc00e5a232818a65febe6ea4d413e4e8e81d044504ae2e1d96b4；旧plan/cache修订及其seal未改。新增21项测试确保只有被授权的002可重跑，训练数值try主体和构造/监督绑定函数AST不变。即将启动独立会话控制器，先复用71，再重跑第72项与后续任务；不是已完成99次的声明。实际进度见orchestration_resume_v2_status.json和full_matrix_resume_v2.log。

@@ -3,6 +3,7 @@ import argparse,csv,json,math,statistics
 from collections import defaultdict
 from pathlib import Path
 from .execution import load,prepared,VERSION
+from .retry import successful_attempt
 from .prepare import read,write,ref,checked
 from .acceptance import DEFAULT
 from ..experiment.run import _job_directory,job_id
@@ -46,7 +47,7 @@ def build(path):
     # G* selection reads only inner scores; outer results cannot influence it.
     inner=defaultdict(lambda:defaultdict(list));schema_counts=defaultdict(list)
     for j in plan["jobs"]:
-        d=_job_directory(root,j)/"attempt_001";receipt=read(d/"receipt.json")
+        d=successful_attempt(_job_directory(root,j));receipt=read(d/"receipt.json")
         checked(dict(path=str(d/"inner_val_predictions.json"),sha256=receipt["artifacts"]["inner_val_predictions.json"]))
         r=read(d/"inner_val_predictions.json")
         inner[j["profile"]][j["task_id"]].append(metrics([x["target"] for x in r],[x["best"] for x in r])["buggy_f1"])
@@ -59,7 +60,7 @@ def build(path):
     write(out/"selection.json",selection)
     for j in plan["jobs"]:
         tid,profile=j["task_id"],j["profile"];task=plan["tasks"][tid];kind=task["granularity"]
-        d=_job_directory(root,j)/"attempt_001";receipt=read(d/"receipt.json")
+        d=successful_attempt(_job_directory(root,j));receipt=read(d/"receipt.json")
         for name in ("final_result.json","outer_test_predictions.json","outer_test_orig_all_predictions.json","gradient_audit.json","schema_support_audit.json"):
             checked(dict(path=str(d/name),sha256=receipt["artifacts"][name]))
         result=read(d/"final_result.json");main=read(d/"outer_test_predictions.json");orig=read(d/"outer_test_orig_all_predictions.json")

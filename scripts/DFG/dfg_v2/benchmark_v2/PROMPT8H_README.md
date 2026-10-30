@@ -82,3 +82,5 @@ The commands `execution pilots`, `execution all`, then `reporting` resume the
 approved matrix without retraining existing successes. See cache_fix_v1 proofs
 and orchestration_resume_v1_status.json for the new controller state; the original
 orchestration_status.json retains the historical cache failure.
+
+Explicit interrupted-job resume: runtime_resume_v2.json binds the user request, 71 verified successes, and a single fresh retry at reentrancy_node/fold_7/seed_1/G3/attempt_002. Original attempt_001 and worker log remain at their original paths. A second interruption requires new review; automatic retry is disabled. The all/verify/reporting commands select the unique successful receipt per job, including 002. Detached orchestration is recorded in orchestration_resume_v2.command.json; live state is orchestration_resume_v2_status.json. Keep the host awake; no system power settings are changed.
