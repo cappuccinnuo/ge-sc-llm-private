@@ -6982,3 +6982,144 @@ HANDOVER.md、PROGRESS.md及本节只在旧正文后追加；不更改PROMPTS.md
 最终实验按用户安排在显存充足服务器整批运行，本机4GiB限制不改变本轮正确性结论。服务器尚未实际验收，仍不混用本机/服务器结果。
 
 归档格式补充：完整git diff --check检出早期pytest失败日志v2_tests.log中的行尾空格。这是原始诊断输出，保留原字节以保证SHA，不修剪日志；非日志文档/源码快照的差异检查单独通过。没有忽略代码或文档的空白错误。
+
+
+## 69. 2026-10-29/30：Prompt 8G 全量 N-anon-s 特征、依赖核验与170项准备计划（Codex）
+
+### 69.1. 请求、版本、范围与方案选择
+
+用户要求“实现8g”，中断后要求继续完成。读取更新后的 PROMPTS.md §4.1/§4.10h，在 dfg-v2@62b73866c2b8fa488a087cc1839255f2f232ed18 开始，git pull --ff-only origin dfg-v2确认已最新。2026-10-29开始，2026-10-30完成恢复验收。修改/复核AI：Codex。
+
+8F采用声明绑定，存在159个整文件回退及36个合成节点文本歧义；8G由用户更新的文档明确改为“同一文件内按AST identifier拼写建立双射”。这不是本轮未征求意见而替换设计，也不意味着补齐了8F Solidity绑定器。旧8F代码、322份归档、失败决定和seal全部只读保留，旧结果不会被新结果覆盖。
+
+本轮仅新增匿名化与验收/特征/计划旁路，不修改原DDG/HGT/tokenizer/训练器/冻结图/标签/历史fold及已有checkpoint。新的170项计划在独立prompt8g_v1封存，execution_authorized=false，不训练。没有自动扩展到其他五类、追加seed或服务器迁移。
+
+没有另外提出或实施改变本轮方案的替代策略，没有放宽语义/探针门槛。实际结构上的约束如“准备计划不能直接交给旧CLI”“语法identifier不等于全部语言名字”单独如实记录。
+
+### 69.2. 文件、代码逻辑与复用
+
+新增六个模块，全部位于scripts/DFG/dfg_v2/benchmark_v2/：
+
+|文件|主要职责|
+|---|---|
+|spelling_names.py|按真实AST identifier选中位置；固定保留表；source SHA随机双射；精确字节/语法/拓扑/关键词复核；失败整文件无残留回退|
+|spelling_parity.py|复用冻结构图器与8F证据规范化，比较归档/原文/改名L1/L2/L3事实、证据、端点；内存code副本检查|
+|prepare_spelling.py|全256源码/384任务文件清单与seal；逐文件结果；历史36合成节点候选核验；完整性门槛和失败停止入口|
+|spelling_probes.py|复用8E P2/P3及阈值、分组；相同OOF角色AUC、关键词基线和独立指标复算|
+|spelling_features.py|冻结TokenEncoder生成新旧NPZ；跨剖面身份/label/特征/边schema绑定；CPU零步初值装配与G0恒等前向|
+|spelling_plan.py|只重绑已验收特征；170项矩阵/配置/折/评分规则严格继承；新plan/seal、未授权模板和只读verify_plan|
+
+新增tests/test_prompt8g_{spelling,parity,gate,probes,features,plan}.py，共83项。新增PROMPT8G_REPORT.md与benchmark_v2/PROMPT8G_README.md。三份原记录只追加，不修改旧正文。
+
+特征适配文件头记录被参考的feature_view.py及SHA 390a16c62b9b2126b4301e8a347581dc034ec426abe921b555f66de2b306365b；旧接口仅针对SolidiFI，新适配明确对全部来源执行，并用恒等输入证明保持原行为。不改冻结函数globals/字节码，不复制重写完整训练器。
+
+### 69.3. 命名规则与版本依据
+
+规则版本prompt8g-spelling-bijection-v1。选中冻结grammar中类型严格等于identifier且不在8F保留表/固定类型正则中的节点；包括外部未声明成员。保留表与8F policy逐项核验，msg/sender/tx/origin/block/now/this/super/call/send/transfer等固定语义名字保留。字符串、注释、其他语法类型原字节不变，逐文件记录保留名次数。
+
+按排序后的文件内不同拼写分配vN，编号由SHA256(version:sourceSHA)确定的随机排列产生；不是按首次出现顺序，所有角色共用v前缀，并避开原文件已存在的vN。同一拼写在不同作用域/声明处共用匿名名；这是有意保留拼写相等结构，不声明恢复了符号身份。
+
+验证重新解析原文及改名文，ERROR/missing均0；类型拓扑相同；改写字节集合恰为已选中的identifier；不同拼写映射互异；字符串/注释等非选中片段不变。五类保留子串tx.origin、msg.sender、.call.value(、.send(、.transfer(数量相同。
+
+原源码带版本metadata的身份共43个：重入27、访问控制16。原metadata先核验source SHA；改名临时分析不冒用原源码编译身份，只依据未改pragma。虽然移除该metadata可能影响受限分析器，本次384项实际比较全部一致；没有为保住通过率伪造编译器版本。本轮没有solc编译验证。
+
+### 69.4. 全量数量与合成节点恢复
+
+|类别|源码身份|不同拼写映射（逐文件累计）|identifier替换次数|回退|
+|---|---:|---:|---:|---:|
+|重入|142|9134|35018|0|
+|访问控制|114|8025|31195|0|
+|合计|256|17159|66213|0|
+
+“256源码身份”以类别/文件/source SHA区分；“384”是合约/节点任务中的文件引用，不能把二者当相同分母。重入合约142、重入节点71、AC合约114、AC节点57，全部通过归档/原文/改名的L1/L2/L3数量、完整规范化证据、投影端点/关系计数比较。恢复code后原HCG所有属性、节点顺序和边fingerprint相同。
+
+8F此前36个end_if/end_loop合成节点，在同文件同拼写映射下，所有精确AST文本候选得到同一改写文本；36/36通过，候选AST ID集合与历史证据相同。没有按最近行号选择候选，没有声明来源唯一的额外结论，也没有删除原合成节点。
+
+命名目录同时保存原8F manifest和supersession新记录；旧8F阻断状态仍保留。原图仍是模型的语义结构；匿名源码只作为特征视图和分析一致性检查输入，不将改名图替换正式图。
+
+### 69.5. P2/P3门槛与关键字证据
+
+在命名/语义门槛通过后，先封存probe_plan与冻结PROTOCOL，再使用唯一固定映射执行，不调阈值或挑seed。P2使用旧inner_train规则、同组隔离折与全部原节点身份；C1仅诊断标签，不改输入图。
+
+|SolidiFI任务/标签|P2 pooled BF1（%）|全正BF1（%）|差值pp|≤5pp|
+|---|---:|---:|---:|---|
+|重入orig|22.64879357|75.01721368|−52.36842011|通过|
+|重入C1|27.46626687|76.53327287|−49.06700600|通过|
+|AC orig|23.36633663|58.27749310|−34.91115647|通过|
+|AC C1|24.28630534|60.13809200|−35.85178666|通过|
+
+P3总体AUC=0.5261014389269172，≤0.60通过；重入/AC子集AUC=0.5349815789197857/0.515403308751046。10347个名称样本、冻结5折，只拟合5次CPU逻辑回归诊断，正式HGT拟合0。
+
+角色统计使用同一pooled OOF预测的子集，不额外训练、没有新增角色门槛：
+function 3875样本/2230正例/AUC0.53023716；
+local 609/214/0.48257423；
+parameter 2916/1311/0.52364678；
+state 2176/1292/0.54144588；
+event336/0、field318/0、modifier117/0的AUC未定义，不能写成0.5或通过独立角色分类验收。
+独立复算P2每折及pooled混淆矩阵/指标、样本/源码/折身份完整性；用Mann–Whitney秩公式独立复算P3，结果一致。
+
+关键词基线原/新每个节点预测完全相同。SolidiFI orig/C1 BF1：重入85.07078507/86.36723074，AC95.62377531/97.84310593；非SolidiFI原标签分别18.12688822/14.28571429。高关键词分数仍在，P2/P3通过不等于排除了所有模板/语义线索。预登记解释不改：AC节点仅作描述；主要DFG任务为重入节点、重入合约、访问控制合约。
+
+### 69.6. TokenEncoder特征与模型装配
+
+全部原HCG节点生成原文/匿名两种独立NPZ，四任务共8个数组：
+
+|任务|总行数|匿名token实际改变|原token重编码逐位一致|
+|---|---:|---:|---:|
+|重入合约|18312|17101|18312|
+|重入节点|12036|11224|12036|
+|AC合约|13432|12766|13432|
+|AC节点|7710|7436|7710|
+|合计|51490|48527|51490|
+
+每行绑定原node_id/file/source SHA/node_type/code SHA/旧新向量SHA，四任务与五剖面图fingerprint、标签/原边/节点顺序相符；只在模型内存副本替换原节点token，env_source原特征保持。向量仍为512维float32 tokenizer IDs，不是新语言模型embedding；不下载/加载CodeT5权重。冻结编码器先完整tokenize，再取前512个ID并补零；长文本警告不代表越界送入CodeT5模型，也未改截断策略。
+
+最终model_proof_attempt2检查四任务×G0/G1R/G2R/G3R/G3=20项。G0分别执行direct、original恒等、anonymous；其他剖面anonymous一次，共28次完整CPU eval前向。加载旧存档零步初值只是接口验收，逐项检查kind=untrained_initial、optimizer_steps=0、文件SHA/tensor digest，前后state_dict摘要相同。四个G0 direct/original logits逐位一致；20个匿名视图全部输出有限，原监督节点口径不变。没有更新权重。
+
+恢复执行时发现原model_proof日志停在第3任务末尾，无summary和命令退出收据，进程已不存在；确切退出原因无法追溯。保留3份已完成任务JSON（15剖面、21次有记录前向）及原日志，另建model_proof_attempt2完整重跑，不覆盖或假称epoch续训。独立复核3份旧任务记录与新记录完全相同。28只表示最终完整收据的次数，不把所有尝试累计冒报为28；未落盘的中断工作量不猜测。interruption_20261029.json如实记录恢复状态。
+
+### 69.7. 170项新plan/seal与未授权模板
+
+新目录prompt8g_v1/plan/含plan.json、plan.seal.json、verification.json、acceptance_decision.json、authorization_template.json。plan SHA256为be66792cbd43978588761393f354f1df89f1a181104bbee5d567252aae57536a。
+
+以8D/F旧计划SHA为来源，全部jobs、fit_count、protocol、label_policies、统计/选型/初始化规则、fold/population/config/graph引用严格相同，仅将每任务特征指向已验收N-anon-s新视图。旧feature_equivalence等引用转为historical_*保留；新特征/命名/语义/探针/model proof和六个准备代码SHA均绑定，不修改旧plan或seal。
+
+拟议一个seed=1：5个剖面×两个漏洞×(5合约+10节点折)=150，G0P只用于两个节点任务另20，总170。两种标签是待选择方案，当前不是同时跑两套。selected_label_policy、selected_training_seeds、selected_execution_location都为null，所有jobs及模板execution_authorized=false。
+
+协议仍dfg-v2-grouped-nested-v1，冻结重复组和文件划分；inner_train更新、inner_val早停/选best/G*、outer_test最终评分，full_fixed_task_graph前向为transductive。不是paper_kfold的CV validation，也不是外部独立测试。best严格最低inner_val loss，last辅助，节点按原HCG节点而非去重源码行。
+
+L-orig=作者原标签；默认建议L-audit=节点C1标签+C2_include损失/指标mask，不删图节点、不把排除节点改负例，合约标签不变；总是另报全部原节点的原标签评分。L-audit仍为诊断标注策略，不声明新的可信真值。初始化仍要求各fold fresh zero-step states、语义共同参数完全相同、新关系按各剖面原Xavier范围，G0P共用G0初值和历史空关系规则。
+
+计划状态prepared_awaiting_label_seed_location_and_executor_binding。**尚非旧CLI可执行格式**，执行前还需明确匿名特征/选定标签mask/新分组折/G0P的运行绑定、生成新初值并完成接入验证；旧CLI没有新参数时不能假装已支持。该边界与8D原准备计划一致。本轮没有重写训练器或自动开始170fit。
+
+本机历史每任务/剖面中位数之和29804.8006秒=8.2791小时，控制器开销另计；匿名特征与分组折会改变早停，此为预算参考，不是实测保证。最终实验按用户安排在显存充足服务器整批运行；当前RTX3050 4GiB仅限制本机开发，服务器尚未部署/实测，不把显存充足等同固定加速比，也不混用本机/服务器成绩。
+
+### 69.8. 测试与实际命令
+
+83项新增定向测试分批全部通过，包含在最终v2全套2573项中；旧回归223项通过，合计2796个唯一测试，0失败/错误/跳过。最终v2用时197.17秒、9条警告；旧回归3.48秒、29条警告。警告为DGL distutils及NetworkX gpickle弃用，新增探针测试调用冻结gpickle使v2比之前多一条同类警告，无算法异常。
+
+实际mando环境：TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64，PYTHONDONTWRITEBYTECODE=1，OMP_NUM_THREADS=2，MKL_NUM_THREADS=2，CUDA_VISIBLE_DEVICES=''。命令argv/env/退出码/耗时见批次*.command.json；完整入口次序见benchmark_v2/PROMPT8G_README.md。
+
+    python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests --basetemp scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/_test_tmp/v2_final
+    python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py --basetemp scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/_test_tmp/legacy_final
+
+这些临时目录测试结束后已清理；重跑应新建专用父目录。之前的v2 2538通过是在补齐探针/特征/计划测试前的中间记录，不与最终2573重复计数。
+
+names、semantic、probes、features用时分别11.76、641.88、35.51、81.66秒；模型验收重跑和计划耗时见model_proof_attempt2.command.json与plan.command.json。这些是准备/诊断时间，不是HGT训练时间。
+
+### 69.9. 独立复核、清理与交付
+
+独立final_review.py重新核验语义门槛、20项装配记录/28前向、G0直接与恒等logits摘要、原初值文件、20个剖面/特征引用、6模块实现SHA、旧计划矩阵、新计划false授权、NPZ8个、全部51490行和48527改变量、各命令成功收据，结果final_review.json passed=true。三份中断任务记录与重新验收结果相同。
+
+追加文档前，694个既有受保护文件（690 Python+4文档）SHA无变化，旧8F322归档SHA一致。追加后再次按before.json字节长度检查三个旧文档前缀，PROMPTS不改；只提交新六模块、六测试、两份报告/README和三份记录追加，不包含不相关未跟踪文件。新增运行产物保留WSL批次，本轮不自动push，后续归档按用户要求进行。
+
+只删除本批专用_test_tmp：34850普通文件、1090临时链接，共354114729字节=337.71MiB；在两套测试完成后验证绝对路径属于prompt8g_v1，不跟随链接删除外部目标。cleanup.json记录范围，所有日志、正式NPZ、旧产物、中断证据、用户其他文件不动；未清理未知来源C盘文件。
+
+### 69.10. 已知限制与停止点
+
+1. 全256文件通过的是规定identifier范围，而非全部Solidity名字。冻结grammar有39个enum_value、75个yul_identifier不属于选中类型，114处中100处拼写也在普通identifier中出现；声明/引用改名可能不一致。按文档原规则保留，没有悄悄扩大AST选择范围。
+2. 未声明外部成员也改名，外部ABI可能不保留；字符串/注释不改；不声明改名源码可编译、可部署或完整语义等价。L1/L2/L3验收只能证明当前受限分析输出不变。
+3. 固定保留名、模板、结构、文件长度和匿名编号范围等仍可能有预测信息。P3 AUC通过只对应预登记探针；高关键词基线继续报告，AC节点维持描述性。
+4. 原标签正确性、此前512/111条人工依赖检查仍未因本轮自动解决；不修改争议标签。
+5. 本轮正式HGT fit=0、真实模型验收optimizer steps=0、P3 CPU诊断LR fit=5；没有N-anon-s新HGT F1或依赖增益结论。
+6. 170计划已封存但未授权。下一次执行前用户需选择标签方案（默认建议L-audit）、seed数量（默认拟议1）及位置，再完成新运行绑定/初值验收。本轮不启动新训练、其余五类、多seed或新模型模块。

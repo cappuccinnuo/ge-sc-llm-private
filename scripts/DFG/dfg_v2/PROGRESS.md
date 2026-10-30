@@ -2025,3 +2025,34 @@ P3总体AUC=0.643159，高于0.60，未通过。原名/idN为0.999430/0.998474�
 按用户“推送github”要求，在9ab9080a代码/报告提交之后追加归档322个Prompt8F JSON、日志和实现快照（18097340字节，约17.26MiB），含全量命名/投影/依赖核验、开发期失败及更正、测试、清理、最终停止决定和本地提交收据。清单与说明见docs/github_archive_prompt8f_2026-10-29.{json,md}。原结果/seal逐字节保持，其他阶段未跟踪数据不纳入；没有新权重或NPZ。历史pushed=false表示当时未推送，不改历史收据。
 
 UTF-8/JSON、常见凭据模式、来源/最终实现SHA及旧8E文件核验通过；暂存范围与blob须逐项对照清单。实施阶段2713测试通过，本次不重跑。状态仍blocked_by_binding_or_semantic_gate（87通过、159绑定回退、10投影阻断），没有启动170-fit或解除门槛。三文档仅追加，正常推送origin/dfg-v2，最后核对本地/实时远端SHA一致。最终显存充足服务器实验安排不变。
+
+
+## 2026-10-29/30 Prompt 8G：N-anon-s全量通过，特征与170项准备计划封存（Codex）
+
+按最新共享上下文和8G从dfg-v2@62b73866开始。新增benchmark_v2/{spelling_names,spelling_parity,prepare_spelling,spelling_probes,spelling_features,spelling_plan}.py，六组test_prompt8g_*共83项，以及PROMPT8G_REPORT.md、benchmark_v2/PROMPT8G_README.md。HANDOVER和training_changes§69同时只追加；没有修改旧分析器/模型/tokenizer/训练器或数据。
+
+本轮文档明确改为文件内按AST identifier拼写双射，固定保留表、source SHA随机编号、全角色v前缀，不宣称声明绑定。全256源码身份/17159映射/66213替换，0回退；384任务×文件语义证据和投影全部通过，36/36旧合成歧义消除。候选AST身份不变，原HCG不变。
+
+|P2 SolidiFI|BF1（%）|比全正差值pp|
+|---|---:|---:|
+|重入orig|22.6488|−52.3684|
+|重入C1|27.4663|−49.0670|
+|AC orig|23.3663|−34.9112|
+|AC C1|24.2863|−35.8518|
+
+四项通过原≤5pp门槛；P3总体AUC0.52610144≤.60，按角色结果保存，单类别角色为undefined。P2/3是命名探针，不是新HGT结果；实际5次CPU LR诊断，HGT正式fit=0。关键词预测逐节点与原文一致，AC SolidiFI orig/C1 BF1仍95.6238/97.8431%，不宣称去除了所有捷径。
+
+四任务51490原节点token重新编码逐位一致、匿名实际改变48527行，共8个NPZ；env_source不变。最终20剖面装配/28CPU eval通过，四G0恒等logits逐位一致，零步初值前后state摘要相同。原model_proof会话中断未生成总收据，3个完成任务/15剖面/21次有记录前向保留；新model_proof_attempt2完整重跑，三份旧任务记录复核一致，28不是两次尝试总次数。
+
+新plan/plan.json、seal、verification、acceptance、authorization_template封存；继承8D原grouped-nested折、配置、初始化、标签选项、统计/选型规则及170jobs，execution_authorized=false。计划SHA be66792cbd43978588761393f354f1df89f1a181104bbee5d567252aae57536a。旧CLI不自动支持新特征/标签mask/分组折/G0P，需用户选标签、seed、位置后建立执行绑定与新初值，先验收再训练；本轮没有170训练或新HGT F1。
+
+最终v2 2573通过（9警告），旧223通过（29警告），总2796唯一测试，0失败/错误/跳过。新增83已含于全量；命令记录在*.command.json，核心命令：
+
+    CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests --basetemp scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/_test_tmp/v2_final
+    CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py --basetemp scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/_test_tmp/legacy_final
+
+mando、原TREE_SITTER_LIB_DIR、PYTHONDONTWRITEBYTECODE=1、OMP/MKL=2；临时父目录需先建立，正式运行结束后已清理337.71MiB，未删除其他文件或正式产物。690旧Python+4文档追加前SHA一致、322份旧8F归档不变；final_review独立验证通过，三份文档前缀保留。
+
+限制：39 enum_value/75 yul_identifier不在所选grammar类型内；100处有普通identifier同拼写。字符串/注释/外部ABI/完整语言语义不保证；只证明当前L1–L3输出不变。高关键词基线和人工512/111条待审查仍保留，访问控制节点继续描述性解释。
+
+本机历史预算8.2791小时不含编排，不是新视图实测。用户安排最终在显存充足服务器整批运行，本机4GiB仅限制开发；服务器未实测，不混用两地成绩。已停在授权点，仅本地commit，不自动push。详细过程、选择与恢复证据见training_changes§69、PROMPT8G_REPORT与README。
