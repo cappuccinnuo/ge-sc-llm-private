@@ -6859,3 +6859,111 @@ N-real 下重新计算“节点或函数”规则，数值与旧 E 一致，因�
 归档检查：UTF-8 解码、JSON 解析、常见凭据模式检查通过；名称 manifest、探针 summary、验收 decision 的三份 seal 对应 SHA 核验；暂存 blob 对照归档清单逐项复核。三份旧文档只追加。旧图、标签、token、权重、计划、seal 和结果未重写；无关未跟踪文件不纳入本次提交。实现阶段 2678 测试通过的记录保留，本次不把格式/SHA 检查算作新增模型测试。
 
 目标仅 origin/dfg-v2，正常非 force 推送，并以实时远端 SHA 等于本地 HEAD 验收完成。命名验收仍为 blocked_by_preregistered_leakage_gate；没有将停止决定改为训练计划，没有生成新 NPZ/权重或执行 170-fit。最终实验使用显存充足服务器的安排保持，本机资源限制不改变实验协议。
+
+
+## 68. 2026-10-29 Prompt 8F：声明绑定 N-anon 与全语料一致性核验（Codex）
+
+### 68.1. 请求、起点和实施范围
+
+用户要求按更新后的PROMPTS.md先读§4.1，再执行§4.10g Prompt8F；替代设计须先征求用户并记录。另要求清理本轮生成的无关数据，以及注明最终实验会在显存充足的服务器运行。
+
+起始HEAD为a204ba16b3800f999ea0f096bf54eccc82db748a，分支dfg-v2；git pull --ff-only origin dfg-v2返回已最新。初始tracked工作树干净。before.json保存683个既有源码/文档SHA；原模型、训练器、图、标签、token、冻结折及历史seal不改。
+
+本轮实施绑定、改名、源图事实核验和明确停止入口；未因部分成功而生成可执行训练计划。所有新增逻辑在scripts/DFG/dfg_v2/benchmark_v2，实验证据在scripts/DFG/experiments/artifacts/dfg_v2/prompt8f_v1。
+
+### 68.2. 两项先征求用户的选择
+
+1. 真实语料有51处旧式构造函数：contract C与function C必须同名。文档的“每声明独立编号”直接用于这两者会改变语义。用户批准构造函数名称作为所属合约的绑定引用，共用合约匿名名；其他可确认声明仍独立编号，不自行扩展重载和覆盖规则。
+2. 全256个身份预检有159个整文件回退。原文保留会形成部分匿名、部分原名的混合视图。用户批准“先完成核验，回退阻止全量计划封存”，因此先保存全部来源与失败证据，阻止P2/P3、特征和170-fit新计划。不得删样本、把原名回退算作成功、或用小子集验收代替全量。
+
+这两项不是执行时自行改规则；具体选择已写入naming/policy.json及接受决定。复杂绑定扩展另行确定。本轮没有通过调匿名名、换seed或修改门槛争取通过。
+
+### 68.3. 文件与关键逻辑
+
+|新增文件（相对scripts/DFG/dfg_v2）|修改目的与逻辑|
+|---|---|
+|benchmark_v2/anon_binding.py|受限声明/作用域解析、固定保留表、唯一字节绑定、确定性匿名排列、构造函数共名和无残留整文件回退|
+|benchmark_v2/anon_parity.py|原HCG内存code副本、准确AST对应、归档/原文/改名三方L1/L2/L3数量/证据/端点比较|
+|benchmark_v2/prepare_anon.py|names/semantic/decision入口；来源与seal核验；固定256源码/384任务引用；排他输出与全量停止|
+|tests/test_prompt8f_anon_binding.py|18个绑定、遮蔽、成员、保留名、构造函数、碰撞及回退测试|
+|tests/test_prompt8f_anon_parity.py|17个投影、语义字段规范化、篡改拒绝、源码绑定与完整性门槛测试|
+|PROMPT8F_REPORT.md、benchmark_v2/PROMPT8F_README.md|结果、限制、批准记录、实际执行命令和禁止混合视图的使用说明|
+
+HANDOVER.md、PROGRESS.md及本节只在旧正文后追加；不更改PROMPTS.md。没有改原DDG/HGT/tokenizer或既有训练逻辑。
+
+匿名化以声明字节身份区分同名变量；作用域模式复用原版本证据，不将范围pragma伪装成确定编译器版本。有限支持同文件类型/成员、结构体具名字段、明确对象和using库扩展；覆盖/重载/未知receiver/super/assembly等不能证明时整文件回退。声明角色共用v前缀，source SHA派生固定随机排列，不按首次出现顺序编号，避开原文件已有vN。固定保留名含用户自定义transfer等同名项；保留清单与每文件计数可审计。
+
+替换仅作用于绑定的identifier字节区间，字符串/注释不改；回退的rewritten等于原文、edits/bindings为空。不读取标签、预测或token决定绑定。当前解析器不是完整Solidity类型系统，tree-sitter通过不等于编译通过；本轮未运行solc。
+
+### 68.4. 全量身份与绑定结果
+
+256表示类别/文件/源码身份；同一源码用于合约及节点任务，384表示task×file引用。不能将二者当成相同分母。
+
+|范围|源码身份|绑定可改写|整文件回退|依赖与投影通过|投影阻断|
+|---|---:|---:|---:|---:|---:|
+|重入|142|56|86|47|9|
+|访问控制|114|41|73|40|1|
+|合计|256|97|159|87|10|
+
+97个可改写文件有4025个声明级匿名映射（各文件内唯一），9594处绑定替换。256份原文grammar无ERROR/missing；97份改名文grammar无ERROR/missing且AST拓扑相同。其余文件不计为匿名化成功。
+
+97份成功改名的原/新关键字子串计数相同：msg.sender1172、tx.origin192、.call.value(140、.transfer(197、.send(102。这里只是字符串不变量，不是重新运行漏洞预测基线。
+
+回退原因按“含该原因的文件数”统计，可重叠：覆盖/隐藏/重载107、引用绑定不唯一45、表达式类型不明37、super调度19、assembly17、版本证据不足/冲突8、复杂调用目标7、同作用域重复/重载6、遮蔽初始化4。unresolved_import_or_assembly类实际17个均为assembly，不能误报新增导入文件。这些表示转换器支持边界，不代表源文件已被证明错误。
+
+两类各40个SolidiFI源码，均9个绑定通过、31个回退；重入这9个随后全部被合成节点投影阻断。不能据此宣称已覆盖重入注入数据，或用87个成功文件代替原256文件运行完整基准。
+
+### 68.5. 图投影和依赖事实核验
+
+|任务|task×file数|通过|绑定回退|投影阻断|
+|---|---:|---:|---:|---:|
+|重入合约|142|47|86|9|
+|重入节点|71|21|41|9|
+|访问控制合约|114|40|73|1|
+|访问控制节点|57|24|33|0|
+|合计|384|132|233|19|
+
+通过132项同时要求归档、当前原文和改名副本的L1/L2/L3事实数量、规范化完整证据、投影端点/关系计数严格一致；原HCG fingerprint相同。副本仅在内存改code，恢复code后其他所有属性/节点/边完全相同；未写出正式新图或token。
+
+原源码版本metadata先按source SHA核验；不得将其冒作改名源码的编译证据。改名临时分析只用未改的pragma，若因此支持范围或事实变化同样判失败。最终没有以放宽此条件保住通过率。
+
+19项投影阻断对应10个独立文件、36个end_if/end_loop合成节点。此类节点没有保存唯一AST ID，同一原文本在多个函数中出现，声明不同则匿名名不同。例：重入buggy_15.sol原图节点17044的if(!success){revert();}有三个精确候选（兼容AST ID464/1114/1230），匿名success分别为v48/v2/v25，不能靠最近源码行猜选哪一个。
+
+9个重入文件为buggy_15/19/2/29/3/39/49/6/7.sol；访问控制文件为0x00c8162c86a977edc10c641636bdff1c59327983.sol。projection_blockers.json保存完整类别、source SHA、节点、候选AST/行号和改写文本。这里是code副本映射失败，不是删除原CFG节点/边，也不直接证明原DDG事实错误。
+
+### 68.6. 检查器开发修正与可追踪证据
+
+旧8E的normalize_evidence可对所有字符串做逆名称替换；N-anon的v2恰好与固定analysis_path=v2冲突，导致把审计路径当匿名变量还原。新检查器借用原位置/env规范化，但inverse传空，仅在L1 symbol/definition末尾名称、L2/L3 state/statement的明确name字段恢复声明拼写。分析路径、角色、关系及其他证据不改。
+
+首轮semantic_parity为68通过/233回退/83失败；中间semantic_verified为95/233/56；补齐状态初始化声明name规范化后semantic_final为132/233/19。剩余19均投影阻断，没有残留事实差异。变化来自新验收器修复，冻结分析器、标签和图未改；不是靠删除关键断言通过。
+
+三轮目录均保留。implementation_snapshots及index.json保存早期/中间/最终实际模块内容和SHA，解决运行收据引用路径后来指向新检查器的问题；不重写旧manifest/seal。篡改端点/证据和审计路径测试确保新规范化没有掩盖这些变化。
+
+### 68.7. 测试、首次失败和最终验收
+
+最终定向35项通过。全v2最终2490项通过，8条既有警告；旧回归223项通过，29条既有DGL/NetworkX弃用警告。合计2713个唯一测试，0失败/错误/跳过，定向测试包含在全量中，不重复累计。
+
+首次全v2为1886通过/603个fixture errors，旧回归204通过/19个fixture errors：原因是指定--basetemp的父目录遗漏。补建本轮临时父目录后完整重跑；未改断言或生产实现解决这些setup errors。首批日志和命令退出码原样保留。最终v2用时148.33秒，旧回归3.30秒；这是测试用时，不是训练时间。
+
+采用既有mando、TREE_SITTER_LIB_DIR、PYTHONDONTWRITEBYTECODE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2、CUDA_VISIBLE_DEVICES=''。实际命令：
+
+    python -B -m pytest -q -p no:cacheprovider --basetemp scripts/DFG/experiments/artifacts/dfg_v2/prompt8f_v1/_test_tmp/v2_final scripts/DFG/dfg_v2/tests
+    python -B -m pytest -q -p no:cacheprovider --basetemp scripts/DFG/experiments/artifacts/dfg_v2/prompt8f_v1/_test_tmp/legacy_final scripts/DFG/tests tests/test_graph_utils.py
+
+命令argv、环境、耗时、退出码分别保存在v2_final.command.json/legacy_final.command.json；定向结果见targeted_final。临时父目录已清理，复跑应建立新专用目录。README记录names→semantic→decision的确切命令及排他输出行为，不覆盖已完成产物。
+
+### 68.8. 保护、清理、停止点和后续边界
+
+追加文档前683个起始tracked源码/文档SHA一致，旧8E归档64个文件SHA一致；三文档追加前字节长度/SHA单独保存。原计算代码、PROMPTS及历史数据未改。完成文档后再校验旧字节前缀和冻结内容，收据保存在本轮目录。
+
+按用户仅删除不重要自产数据的要求，删除本轮专用_test_tmp：20504个普通文件共214195220字节、737个临时链接；以及被正式逐文件命名清单取代的binding_development_audit.json（794648字节）。共214989868字节，约205.03MiB。先核验绝对路径位于本批目录且任务已结束，未跟随链接删除外部内容。cleanup.json保留路径、数量、原因和冗余汇总SHA。重要日志、失败证据、正式结果、旧实验、原源码及用户其他文件不动；未清理未知来源C盘文件。
+
+最终acceptance/acceptance_decision.json及seal状态blocked_by_binding_or_semantic_gate；ready_for_probes、ready_for_training、execution_authorized均false。authorization_template不能用于启动；这不是新的170-fit plan/seal。
+
+本轮没有运行P2/P3或分角色AUC、重新计算关键词预测基线、生成TokenEncoder NPZ、模型装配/恒等验收、新170-fit计划、HGT训练、编译验证。正式HGT拟合0、诊断分类器拟合0。旧170项矩阵、分组折、两种标签策略及约8.2791小时本机历史估算只读引用，不是新N-anon实测或已授权开训。
+
+下一步建议先讨论有证据的同文件接口/覆盖声明共同绑定，以及合成节点能否凭原图结构证明唯一来源；不退回字符串替换，不扩展不确定绑定，不训练混合视图。即使这些通过，随机编号仍可能保留文件规模/声明数量信息，保留名仍存在，须继续按预定P2/P3门槛核验，不能先宣称消除了命名线索。此前512/111条人工依赖审查也不因本轮通过子集而视为完成。
+
+用户计划最终实验放在显存充足服务器整批运行；当前RTX3050 4GiB只是本机开发限制。本轮停止原因是正确性，不是显存。服务器配置/环境尚未验收，不混合本机与服务器结果，不用历史本机耗时替代服务器实测。
+
+按共享上下文完成源码、报告与三份文档的本地提交；本轮不自动push。新运行产物保存在现有WSL批次，推送归档另按用户指示进行。

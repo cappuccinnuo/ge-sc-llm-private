@@ -1988,3 +1988,33 @@ P3总体AUC=0.643159，高于0.60，未通过。原名/idN为0.999430/0.998474�
 ### 2026-10-29 Prompt 8E GitHub 结果归档（修改 AI：Codex）
 
 按用户推送请求，在 96aa7420 代码/报告提交之后，追加归档全部 64 个 Prompt 8E JSON/日志结果（97.11 MiB），包括名称映射、160 项语义核验、探针、验收决定和测试证据。清单与说明见 docs/github_archive_prompt8e_2026-10-29.{json,md}。原结果和 seal 字节不变；开发期失败检查及更正、推送前历史收据一并保留。当前命名门槛仍未通过，正式 HGT 训练 0 次，不自动启动新计划。使用 WSL Git 正常推送 origin/dfg-v2，最终以本地/远端 SHA 一致核验。最终服务器实验安排不变。
+
+
+## 2026-10-29 Prompt 8F：完成全语料绑定/投影核验，停止封存（Codex）
+
+按最新§4.1/§4.10g读取文档，从dfg-v2@a204ba16开始，pull --ff-only确认已最新。新增benchmark_v2/{anon_binding,anon_parity,prepare_anon}.py、tests/test_prompt8f_{anon_binding,anon_parity}.py、benchmark_v2/PROMPT8F_README.md和PROMPT8F_REPORT.md；三份记录只追加。没有修改冻结算法/模型/训练代码。
+
+用户批准旧式构造函数共用合约匿名名（51处），并批准159个回退存在时阻止全量计划：先完成证据，不用原名填补N-anon，不删除样本、不用部分语料探针代替全量验收。固定保留表、source SHA随机排列、同角色共用v前缀、声明/作用域字节绑定和整文件无残留回退均写入policy/manifest。
+
+|范围|源码身份|绑定成功|绑定回退|最终依赖/投影通过|投影阻断|
+|---|---:|---:|---:|---:|---:|
+|重入|142|56|86|47|9|
+|访问控制|114|41|73|40|1|
+|合计|256|97|159|87|10|
+
+97个绑定成功文件包含4025个声明级匿名映射（文件内唯一），9594处字节替换；原文/改名grammar和AST拓扑通过，关键词子串计数保持。四任务384个引用中132通过、233绑定回退、19投影阻断。通过项归档/原文/改名L1/L2/L3数量、规范化证据、边端点均相同，原HCG fingerprint不变。10个独立文件的36个合成节点缺少唯一来源；同文本属于不同声明，未按行号猜映射。
+
+检查器开发修复：旧8E通用反向替换会错误还原固定analysis_path=v2；新逻辑仅还原L1 symbol/definition名称与L2/L3明确声明name字段。前两轮semantic_parity/semantic_verified及确切源码快照保留，最终以semantic_final为准，未修改冻结分析器或放宽端点/事实相等要求。
+
+最终新定向35通过，v2全套2490通过（8警告），旧回归223通过（29警告），总2713唯一测试，0失败/错误/跳过。初次全套因--basetemp父目录不存在发生setup errors，补目录后完整重跑，初次日志保留。实际命令在README与*.command.json；关键命令为：
+
+    CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider --basetemp scripts/DFG/experiments/artifacts/dfg_v2/prompt8f_v1/_test_tmp/v2_final scripts/DFG/dfg_v2/tests
+    CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider --basetemp scripts/DFG/experiments/artifacts/dfg_v2/prompt8f_v1/_test_tmp/legacy_final scripts/DFG/tests tests/test_graph_utils.py
+
+采用mando及原TREE_SITTER_LIB_DIR、PYTHONDONTWRITEBYTECODE=1、OMP/MKL=2。上述临时树运行前需建立父目录，已在测试结束后清理；复跑应使用新输出路径。
+
+停止状态blocked_by_binding_or_semantic_gate，ready_for_probes/ready_for_training/execution_authorized均false。P2/P3及分角色AUC、关键词基线、新token NPZ、模型装配、新170-fit可运行计划未做，HGT正式训练0、诊断分类器拟合0、编译验证0。旧170任务/分组折/标签与8.2791小时本机估算只作历史引用，不当作新计划或实测。
+
+683个起始tracked源码/文档在追加前SHA相同，64个旧8E归档不变。清理本轮专用测试文件/链接及冗余开发汇总214989868字节（205.03MiB），保留正式证据/重要日志/旧产物。cleanup.json明确范围，未删除其他用户文件。详记training_changes §68。
+
+最终实验使用显存充足服务器的安排已写入HANDOVER；当前4GiB只是本机开发限制，服务器未核验。本轮阻断是绑定与投影正确性，不是资源。只做本地commit，不自动push；下一步建议须先讨论可靠的覆盖声明共同绑定与合成节点来源证明，不自动开展170训练或更改标签。
