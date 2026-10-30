@@ -2056,3 +2056,12 @@ mando、原TREE_SITTER_LIB_DIR、PYTHONDONTWRITEBYTECODE=1、OMP/MKL=2；临时�
 限制：39 enum_value/75 yul_identifier不在所选grammar类型内；100处有普通identifier同拼写。字符串/注释/外部ABI/完整语言语义不保证；只证明当前L1–L3输出不变。高关键词基线和人工512/111条待审查仍保留，访问控制节点继续描述性解释。
 
 本机历史预算8.2791小时不含编排，不是新视图实测。用户安排最终在显存充足服务器整批运行，本机4GiB仅限制开发；服务器未实测，不混用两地成绩。已停在授权点，仅本地commit，不自动push。详细过程、选择与恢复证据见training_changes§69、PROMPT8G_REPORT与README。
+
+
+### 2026-10-30 Prompt 8G GitHub代码与结果归档（修改 AI：Codex）
+
+按用户“推送github”请求，在68e6ce12实现提交之后，追加归档349份Prompt8G文本产物，118831490字节（约113.33MiB），含全部命名/语义/探针/特征清单、完成与中断验收、170项false授权计划、测试/清理/独立核验记录；原文件与seal字节不变。8个NPZ（约2.84MiB）沿用之前方式保留本地，路径/SHA在docs/github_archive_prompt8g_2026-10-30.json，同名.md说明范围。
+
+归档前重新核验全部来源、计划及语义门槛、代码SHA、322份旧8F归档、UTF-8/JSON/常见凭据模式；暂存blob与清单逐项比对。本次不重跑2796测试或模型，正式HGT fit仍0，170计划尚未授权，不能将归档理解为开始训练。历史pushed=false收据保留其原始时间含义。
+
+WSL直连DNS失败，使用Windows Git＋现有Windows代理＋WSL gh凭据助手正常连接，远端62b73866为本地祖先；未改持久配置、未受分支保护拒绝，不force push，目标仅origin/dfg-v2。推送完成以实时远端SHA与本地HEAD一致核验。最终显存充足服务器实验安排不变。

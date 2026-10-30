@@ -1,0 +1,35 @@
+{
+  "version": "prompt8e-probes-v1",
+  "P2": {
+    "support_unit": "distinct HCG nodes containing spelling, counted once per node",
+    "fit_files": "frozen inner_train_files only",
+    "min_support": 3,
+    "positive_fraction": 0.5,
+    "test_rule": "node OR exact enclosing function",
+    "labels": [
+      "orig",
+      "C1"
+    ],
+    "threshold_pp": 5.0,
+    "gate_aggregation": "pooled OOF SolidiFI separately per task and label; all must pass",
+    "folds": "reuse archived grouped node 10-fold; inner_val and outer_test labels never used for fitting"
+  },
+  "P3": {
+    "samples": "unique file/role/name/injected-declaration-status, no frequency weights",
+    "vocabulary": "char 2-4 grams, case sensitive, TF-IDF fit on training files only",
+    "folds": 5,
+    "split": "GroupKFold with frozen duplicate-component IDs across all 128 identities",
+    "estimator": {
+      "C": 1.0,
+      "solver": "liblinear",
+      "class_weight": "balanced",
+      "max_iter": 1000,
+      "random_state": 1
+    },
+    "threshold_auc": 0.6,
+    "gate_aggregation": "pooled OOF over all 128 files",
+    "interpretation": "transductive real-name pool is frozen from all files as requested; no held-out-domain claim"
+  },
+  "no_tuning_after_scores": true,
+  "hgt_training_executed": 0
+}

@@ -1,0 +1,59 @@
+{
+  "naming": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/naming/manifest.json",
+    "sha256": "7e8a27d86485ab13b84301592b2335fa4f5922d5ebcab92e410a542159e1baa3"
+  },
+  "semantic": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/semantic/summary.json",
+    "sha256": "9797b54a155f547667b74f615ac9dea9f64ab1c5b4b792a7b1c64585c800326a"
+  },
+  "old8e": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8e_v1/naming/manifest.json",
+    "sha256": "c0b160c87c70f39c615aa44afcd49fb5c12b4d49c69e5ee84c903615249850ec"
+  },
+  "protocol": {
+    "version": "prompt8e-probes-v1",
+    "P2": {
+      "support_unit": "distinct HCG nodes containing spelling, counted once per node",
+      "fit_files": "frozen inner_train_files only",
+      "min_support": 3,
+      "positive_fraction": 0.5,
+      "test_rule": "node OR exact enclosing function",
+      "labels": [
+        "orig",
+        "C1"
+      ],
+      "threshold_pp": 5.0,
+      "gate_aggregation": "pooled OOF SolidiFI separately per task and label; all must pass",
+      "folds": "reuse archived grouped node 10-fold; inner_val and outer_test labels never used for fitting"
+    },
+    "P3": {
+      "samples": "unique file/role/name/injected-declaration-status, no frequency weights",
+      "vocabulary": "char 2-4 grams, case sensitive, TF-IDF fit on training files only",
+      "folds": 5,
+      "split": "GroupKFold with frozen duplicate-component IDs across all 128 identities",
+      "estimator": {
+        "C": 1.0,
+        "solver": "liblinear",
+        "class_weight": "balanced",
+        "max_iter": 1000,
+        "random_state": 1
+      },
+      "threshold_auc": 0.6,
+      "gate_aggregation": "pooled OOF over all 128 files",
+      "interpretation": "transductive real-name pool is frozen from all files as requested; no held-out-domain claim"
+    },
+    "no_tuning_after_scores": true,
+    "hgt_training_executed": 0
+  },
+  "implementation": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/spelling_probes.py",
+    "sha256": "0e6fd0ea5e60cf77ba55a70d2f3102646ce3c07888c5291fdbaf13dcf0daaae9"
+  },
+  "view": "N-anon-s",
+  "extra_role_auc": "same OOF model predictions; no additional fits",
+  "gate": "original P2 per-task/label and pooled P3 only; no role threshold added",
+  "fixed_mapping_no_retuning": true,
+  "hgt_fit_count": 0,
+  "diagnostic_lr_fits_planned": 5
+}

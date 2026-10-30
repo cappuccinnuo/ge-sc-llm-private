@@ -2254,3 +2254,12 @@ UTF-8/JSON、常见凭据模式、来源/最终实现SHA及旧8E文件核验通�
 - 39个enum_value、75个yul_identifier按预定规则不改，外部成员改名也不保证ABI；“全identifier改名”不等于全部语言名字、编译等价或完整DDG语义证明。人工512/111依赖审查仍待完成，无新HGT F1。
 - 详见scripts/DFG/dfg_v2/PROMPT8G_REPORT.md、PROGRESS.md和training_changes§69；产物prompt8g_v1/，计划SHA be66792cbd43978588761393f354f1df89f1a181104bbee5d567252aae57536a。本轮本地提交，不自动push，停在标签/seed/位置授权点。
 - **最终实验按用户安排在显存充足服务器整批运行；当前RTX3050 4GiB仅为本机开发限制。** 服务器尚未实际配置/验收，不混合本机与服务器结果；当前等待执行授权，与显存不足无关。
+
+
+### 2026-10-30 Prompt 8G GitHub代码与结果归档（修改 AI：Codex）
+
+按用户“推送github”请求，在68e6ce12实现提交之后，追加归档349份Prompt8G文本产物，118831490字节（约113.33MiB），含全部命名/语义/探针/特征清单、完成与中断验收、170项false授权计划、测试/清理/独立核验记录；原文件与seal字节不变。8个NPZ（约2.84MiB）沿用之前方式保留本地，路径/SHA在docs/github_archive_prompt8g_2026-10-30.json，同名.md说明范围。
+
+归档前重新核验全部来源、计划及语义门槛、代码SHA、322份旧8F归档、UTF-8/JSON/常见凭据模式；暂存blob与清单逐项比对。本次不重跑2796测试或模型，正式HGT fit仍0，170计划尚未授权，不能将归档理解为开始训练。历史pushed=false收据保留其原始时间含义。
+
+WSL直连DNS失败，使用Windows Git＋现有Windows代理＋WSL gh凭据助手正常连接，远端62b73866为本地祖先；未改持久配置、未受分支保护拒绝，不force push，目标仅origin/dfg-v2。推送完成以实时远端SHA与本地HEAD一致核验。最终显存充足服务器实验安排不变。
