@@ -2065,3 +2065,37 @@ mando、原TREE_SITTER_LIB_DIR、PYTHONDONTWRITEBYTECODE=1、OMP/MKL=2；临时�
 归档前重新核验全部来源、计划及语义门槛、代码SHA、322份旧8F归档、UTF-8/JSON/常见凭据模式；暂存blob与清单逐项比对。本次不重跑2796测试或模型，正式HGT fit仍0，170计划尚未授权，不能将归档理解为开始训练。历史pushed=false收据保留其原始时间含义。
 
 WSL直连DNS失败，使用Windows Git＋现有Windows代理＋WSL gh凭据助手正常连接，远端62b73866为本地祖先；未改持久配置、未受分支保护拒绝，不force push，目标仅origin/dfg-v2。推送完成以实时远端SHA与本地HEAD一致核验。最终显存充足服务器实验安排不变。
+
+
+## 2026-10-30 Prompt 8H：执行接入及门槛通过，正式批次准备中（Codex）
+
+来源39801a87；本轮用户授权L-audit、seed1、本机local_dev_v1。独立prompt8h_v1/authorization.json绑定8G plan SHA be66792cbd43978588761393f354f1df89f1a181104bbee5d567252aae57536a与seal。8G false授权历史不改。
+
+新增benchmark_v2/{protocol,audit_supervision,runtime_model,support,checkpoint,input_guard,trainer,archive,acceptance_worker,acceptance,real_acceptance,execution,reporting}.py。数值循环沿用旧fit适配副本并注明来源SHA，原文件不改；新旧协议明确分派。新图特征通过spelling_features.assemble按身份/SHA加载；标签为旁路tensor，原标签不改。G0P只增加空canonical，无env_source新节点。共同参数按原语义对齐，新增关系按各自Xavier范围，正式fit恢复对应fit seed。
+
+用户同意只读归档核验替代旧全目录runtime清单对新增文件的拒绝，150旧结果完整通过，未更改历史seal或旧执行权限。CPU原输入两路径各2轮loss/参数/optimizer逐位一致；GPU重入节点fold0 G0完整历史复验最佳轮次与全部best/last分类一致。真实mask三个分区都确认屏蔽位置的直接logit梯度为0；翻转屏蔽标签不改变loss/选择/指标；仍允许这些节点参与消息传递。G0P一轮CPU smoke空关系梯度0、参数不变，数值证明限于同输入单层均值分母，不宣称最终logits恒定倍数。
+
+29项定向测试通过；全套回归及正式初值准备进行中。本条是过程记录，不是170拟合完成声明。两正式试点验收后才能启动全矩阵，成功试点复用，任何失败保留并停止，不自动重试。未来显存充足服务器实验安排已写HANDOVER；本批按明确授权在本机进行。
+
+
+### 2026-10-30 Prompt 8H 初始化准备补充（Codex）
+
+用户批准“先证明逐位一致，再复用未训练结构”。initial_preparation.py仅用于CPU准备；每折G0新建，增强剖面复用结构但全部参数由原semantic initializer重写，正式训练不复用结构。证据以第一轮逐折新建的零步状态逐tensor对照；通过后使用prepared_attempt3封存，不覆盖prepared/、prepared_attempt2/。两次准备停止原因和partial产物保留，正式fit仍0。
+
+修正新worker使用与旧worker相同的.training.lock，新增回归通过。结构复用合成测试覆盖node/contract×四剖面、不同fold seed和全参数污染后重写，拒绝带梯度或优化步数的模型；41项定向测试通过（11项新增）。真实图逐位证明进行中。测试首轮8失败是fixture不满足共同HCG不变量，改用现有family同源fixture，关键断言保持。此前v2 2602+旧223全套通过。最终服务器安排保持，不自动改变本轮本机授权。
+
+
+Prompt 8H结构复用实证已通过（Codex）：15个真实初值、5562张量、74068122元素逐位相同；已按批准启用prepared_attempt3最终CPU准备。正式fit仍0，待计划封存及试点。
+
+
+Prompt 8H优化后回归（Codex）：2614 v2＋223旧回归＝2837通过；41定向已含其中。703旧Python SHA相同；两次本批测试临时清理合计444.72MiB，旧数据/重要日志不删。最终prepared_attempt3准备中，正式结果未汇总。
+
+
+Prompt 8H正式试点启动（Codex）：170零步初值全部生成，新plan SHA cb8daf22ed9fb9cd81fe575548d338408a5420f62e7a6da529d402c148eb8a2c。六门槛通过，串行调度进入pilots；当前第一个为reentrancy_contract/fold0/G0。全矩阵完成验收后才统计F1，失败即停、无自动重试。此记录不是170完成声明。
+
+
+### 2026-10-30 Prompt 8H试点后缓存阻断（修改 AI：Codex）
+
+首个重入合约fold0 G0完成19轮，best第12轮、last第19轮；checkpoint/预测重载及重新执行完整verify_one均通过。正式完成1/170，第二个试点及169项未启动。控制器缓存失败并停止：旧cache读了采样仍运行时的result.json资源SHA，新执行器final_result.json与完整采样日志SHA一致；这是新增接口缺陷，非DDG/模型或OOM。最小free400MiB、allocated峰1230.84MiB、reserved1410MiB。
+
+已保留现场和cache_failure_diagnosis.json，未修改封存代码/旧seal，未自动重训。已请求批准仅做8H final_result缓存适配并新增运行版本修订，补回归后复用首个fit继续169。当前等待确认，不能称完整8H完成；PROMPT8H_REPORT已明确状态与测试缺口。最终显存充足服务器安排保持，本次停止与本机显存不足无关。

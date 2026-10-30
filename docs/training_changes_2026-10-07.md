@@ -7140,3 +7140,89 @@ WSL Git直连报Could not resolve host: github.com；Windows已有代理127.0.0.
 local_commit_receipt中的pushed=false是实现提交完成时的历史事实，不为归档而改写；实时完成以push返回和远端refs/heads/dfg-v2与本地HEAD一致为准。新归档提交在实现提交之后，源码/报告/结果连续可追溯。
 
 本轮正式HGT fit仍0、P3诊断LR fit仍5，170准备计划尚未授权；后续需要标签、seed、位置选择及执行器接入验收，不因推送而自动启动。最终用户计划在显存充足服务器整批运行，本机4GiB只是开发限制，服务器未实测且两地结果不混报。
+
+
+## 70. 2026-10-30 Prompt 8H：N-anon-s + grouped-nested + L-audit执行接入（修改AI：Codex）
+
+### 70.1. 来源、用户授权与冻结范围
+
+从dfg-v2@39801a87开始，WSL实际工作树/home/zhao/SmartContract/ge-sc-llm-ddg-v11。先读取最新4.1共享上下文与4.10i Prompt8H；核对无中断后仍运行的实验。用户授权原文为“标签方案 L-audit，seed=[1]，运行位置为本机，资源策略 local_dev_v1。”新目录prompt8h_v1排他创建，authorization绑定8G plan/seal和当前PROMPTS源SHA、170项任务。旧8G plan仍execution_authorized=false，不把准备记录改造成新授权。
+
+起始before.json保存707项tracked源码及四文档摘要。原DDG/HGT/tokenizer/原训练器、图/标签/NPZ、8D分组折、8G匿名映射和全部历史产物保持不改。新增代码全部位于scripts/DFG/dfg_v2/benchmark_v2及该目录的tests旁路。最终服务器显存充足是用户规划，本轮仍明确授权在本机RTX3050 4GiB执行，不能把本机约束描述为最终模型要求，也未声称已经实测服务器。
+
+### 70.2. 经用户批准的设计调整
+
+旧experiment.run._code_refs枚举整个DFG目录，8B.0 amendment要求其运行清单逐项相同。因此“新增执行器”和“直接用当前全部文件运行旧verify”冲突。用户明确同意：只读归档核验实际的旧绑定源码SHA、旧计划/修订/输入/收据，新8H代码另行绑定；不改旧seal，不放宽旧训练入口。archive.py保留旧_verify_attempt及授权检查主体，只将历史amendment验证的current_runtime限定为其已绑定清单，同时逐文件核对当前实际字节；新增文件不假装属于旧运行版本。150项旧结果已完整通过。
+
+G0P沿用此前已批准口径：保持G0节点/特征，无env_source；空关系只匹配原目标类型的canonical数量。同输入、单层只有mean分母变化；经过多层非线性后不能声称最终logits只差恒定倍数。C2屏蔽指直接监督logit梯度为0，不是删除节点或要求消息传播中这些节点完全无影响。这两点是已有约定的明确实施，不是扩大功能。
+
+### 70.3. 文件和核心实现
+
+- protocol.py：新的dfg-v2-grouped-nested/v1标识及三分区身份；execution.execute按protocol分派，旧dfg-v2-nested直接委托旧execute，不修改旧路径。
+- audit_supervision.py：用(task、file、original_graph_node_id、type、orig标签)核对冻结label_view，C1作为target，C2_include合并文件mask；单独保留all_full_ids，原model.node_labels和nx标签不改。原标签辅助指标包括被主mask排除的节点，env_source仍不监督/计分。
+- runtime_model.py：普通剖面直接调用原model.make_model/validate_registration；G0P复制新鲜G0共同参数，新增确定的零边canonical；额外attention/message设0、priority设1。原节点/类型/输入不改，不在推断时创建关系参数。G0P注册验证另核对空schema、原端点和特征。
+- support.py：在实际materialized DGL图上按冻结文件分区统计node/canonical支持量；记录无train支持关系；复用梯度审计，额外检查空关系三组参数梯度为0。
+- trainer.py、checkpoint.py、input_guard.py：注明旧函数文件SHA的旁路适配；优化循环保持Adam、OneCycle、一次step/epoch、post-update eval、严格最低val loss best、patience7/delta.001。适配新监督及checkpoint身份，沿用每fit三次deep、tensor identity/_version、DGL端点torch.equal检查；增加label_view/feature manifest/NPZ文件绑定和audit target/include tensor保护。主预测和全部原节点orig辅助预测分别导出，best/last分开。
+- acceptance_worker.py、acceptance.py：原输入CPU/GPU回放与只读历史归档验证，不把回放/短检查当正式结果。
+- real_acceptance.py：真实重入节点三分区mask数值检查和G0P一轮CPU smoke，零正式fit。
+- execution.py：冻结170矩阵、新初值与SHA、独立plan/seal、serial worker、local_dev_v1启动门槛/资源观测、两正式试点复用、失败保留停止、8B.0验收cache、新结果完整独立校验。新初值从constructor重新构建，未借用训练/历史best/last/smoke状态。
+- reporting.py：只能在完整170收据验收后进入；先仅根据inner_val best选G*；外层主L-audit、orig全节点及last分别统计，4项vsG0 Holm，方向/安慰剂对照单列不加入该家族。nonSolidiFI只报pooled计数和P/R Wilson区间，不给F1套Wilson；关键字按同一C1/C2范围重新计分。旧8B原名结果只作描述性对照。
+
+### 70.4. 已完成的开训证明与开发期更正
+
+1. 首次CPU旧分支完成2轮，新分支因acceptance_worker漏import DfgV2Supervision在优化前失败；补显式import，旧证据保留cpu/，在cpu_attempt2/重新执行两分支。新旧loss/history数值、参数、optimizer、scheduler及预测完全一致。首次不属于正式训练，也不冒称成功。
+2. GPU完整历史重入节点fold0 G0完成，best epoch一致、inner_val/outer_test的best/last所有预测类别一致；history浮点差异逐轮保存，未放宽门槛。正式fit计数为0。
+3. real_mask.json：真实节点图三个分区，屏蔽位置直接logit梯度为0，翻转这些位置标签不改loss、best判定或主metrics。graph节点仍存在。
+4. placebo_smoke.json：G0P一轮CPU训练、各空canonical参数梯度0且值不变，checkpoint重复加载预测一致；按层数值分母证明通过。
+5. 29项新增定向测试通过，含node/contract完整短fit、aux全节点计分、排除标签改变的数值不变、错identity/label/type拒绝、6类文件SHA变化拒绝、audit tensor版本变化拒绝、G0P注册破坏检测、旧协议分派、失败批次禁止启动worker和nonSolidiFI口径。首次pytest因basetemp父目录未建出现20 setup errors，随后建立专用父目录重跑通过；没有删测试或放宽断言。
+
+### 70.5. 当前执行状态与待追加交付
+
+目前运行全套v2和原项目回归，同时准备170份零步初值；此段为过程记录，不能当完成的正式170结果。随后先执行两个正式试点：重入合约fold0 G0、重入节点fold0 G3R；通过后在全矩阵复用，不重新挑成绩训练。批次运行期间只输出进度/耗时/资源，不汇总F1。任何正式fit失败立即停止、保留attempt，必须用户确认才重试。计划封存后不改计算代码、hyperparameter、标签、fold或seed。
+
+WSL虚拟盘剩余容量与宿主E盘均已检查；宿主E盘约204GiB空闲、C盘约21GiB空闲。产物继续留WSL，不另写C盘。仅清理本批专用_test_tmp中可复建测试文件及明确无用缓存；正式weights、receipt、history、必要审计与用户其他文件不删。最终测试计数、正式任务数量、结果、清理量和提交状态另行追加。
+
+
+### 70.6. CPU零步初值准备优化、授权与验证（Codex，2026-10-30）
+
+**问题与原过程**：按每折每剖面重新装配固定图，CPU准备约12分钟仅完成3个重入合约折。第一轮prepared/保留三个完整fold manifest及partial状态；修正新执行器与旧训练器必须共享.training.lock后停止并保留源码快照prepare_attempt1_source.py、停止原因。第二轮prepared_attempt2/在用户批准优化后停止，记录prepare_attempt2_stop.json，未封存plan、未进行正式fit。不是训练失败自动重试或接着epoch训练。
+
+**用户选择**：对“仅在CPU准备阶段复用从未训练的剖面模型结构，再按原种子和语义规则重新写入全部参数；先证明与逐折新建参数逐位一致”明确答复：“同意先证明逐位一致，再复用未训练结构（推荐）”。此为本轮第二项获批调整；之前只读归档核验批准仍有效。没有把这项批准扩大为修改训练器、模型、初始化算法或学习率。
+
+**实施位置与逻辑**：新增benchmark_v2/initial_preparation.py，版本prompt8h-untrained-cpu-structure-reuse-v1。每任务内部固定graphs/config，缓存G1R/G2R/G3R/G3四个CPU模型；get仅接受四种增强剖面，要求零optimizer steps且无gradient，禁止GPU结构。每折G0仍按原constructor seed重新构造；缓存模型交给未修改的experiment/init.initialize_family，从G0语义复制共有参数、按原独立语义随机种子及自身bank Xavier重写新增参数，未知parameter仍报错。所有state tensors逐折clone封存，未训练状态不会被下一折原地修改。G0P仍按每折G0新建。正式execution.construct/fit进程不采用该cache，仍严格加载各自SHA绑定初值并恢复fit seed。
+
+**证明策略**：使用prepared/第一轮原逐折新建的重入合约fold0/1/2 G0/G1R/G2R/G3R/G3共15份真实初值，只读校验文件SHA、state digest、task/fold/profile/constructor seed/fit seed及optimizer_steps=0，逐参数torch.equal比较新生成状态；这些权重不被load进待生成模型。证明引用旧准备源码快照和初始化实现SHA。acceptance/structure_reuse.json未通过时create拒绝封存。新执行输出独立prepared_attempt3/；旧两次结果不覆盖。
+
+**测试及更正**：新11项=8种task/profile等价组合+3种拒绝条件；等价测试在第二折先将缓存所有参数填成123，再用原初始化完整重写并与新建逐位比较，确保不只是碰巧沿用旧值。首次8项失败由测试使用不同节点类型集合的small_graph独立fixture造成，改用已有test_model.hcg/augment同源fixture，未改变生产算法或放宽等价断言。重跑共41项通过、0失败/跳过、4条既有DGL distutils弃用警告，日志reuse_tests.log及reuse_tests_fixed.log均保留。新增共享GPU锁测试已单独通过，使用旧.training.lock阻止新旧协议并发；不是更改训练计算。
+
+**边界**：此阶段只减少CPU结构装配，不承诺减少GPU每轮时间或显存。真实证明及后续170正式结果另行追加；本条不声称正式训练完成。未来服务器显存充足的安排保持，本轮按授权本机local_dev_v1运行。
+
+
+### 70.7. CPU结构复用实证通过（Codex，2026-10-30）
+
+acceptance/structure_reuse.json已通过：真实重入合约fold0/1/2各G0/G1R/G2R/G3R/G3共15项；5562个state tensor、74068122个参数元素，均与原逐折新建封存参照torch.equal逐位一致，文件SHA与state digest复核通过。引用权重只作比较，没有加载到新生成模型；全部optimizer_steps=0。随后启用批准的CPU复用，并在prepared_attempt3开始最终准备；尚未启动正式fit。原训练种子、semantic算法和Xavier尺度均不变。
+
+
+### 70.8. 优化后的完整回归与清理（Codex，2026-10-30）
+
+v2完整套件最终2614 passed、9 warnings、221.04秒；旧回归223 passed、29 warnings（其源文件未变，沿用本轮已完成结果），总2837唯一测试，0失败/跳过。41项定向测试包含在2614内，不重复相加。核验起始清单实际为703个Python+4个Markdown，共707项；703个原Python SHA全部未变。final_regression_tests.json记录最终计数。
+
+两次清理仅本轮pytest basetemp：_test_tmp 224732666字节；_test_tmp2 241591053字节，总466323719字节（约444.72MiB），符号链接仅删除链接本身，不遍历外部目标；两份cleanup清单保存。正式初值、原图/NPZ、checkpoint、history、收据、失败证据及其他用户文件不删。prepared_attempt3仍在准备，未汇总F1、未将准备数量写成正式fit数量。
+
+
+### 70.9. 最终初始化与执行计划封存（Codex，2026-10-30）
+
+prepared_attempt3/四任务30折170份零步初值全部生成，stage执行plan.json/seal排他封存。plan SHA：cb8daf22ed9fb9cd81fe575548d338408a5420f62e7a6da529d402c148eb8a2c。绑定原8G plan/seal、L-audit、N-anon-s、分组nested折、seed1、local_dev_v1、所有初值/特征/标签/schema/runtime以及六个验收门槛（历史150归档、CPU两轮、完整GPU历史回放、真实mask、G0P smoke、结构复用逐位证明）。旧准备plan和旧false授权字段不改。
+
+CPU准备完成后，orchestration.command.json记录的串行调度进入pilots，先重入合约fold0 G0，再重入节点fold0 G3R；各自独立进程。任何失败会停止，不自动重试。试点通过后复用计入170并按plan顺序继续；全矩阵170/170验收后才运行reporting。此段只记录开始试点，不表示任何正式fit已经完成；源码封存后不修改计算代码，不在运行中提交Git。
+
+
+### 70.10. 首个正式fit成功、验收缓存接口阻断并停止（Codex，2026-10-30）
+
+**实际完成**：reentrancy_contract/fold0/seed1/G0完成19轮；best zero-based11（第12轮），last18（第19轮），best/last的inner_val与outer_test重载全部一致。worker收据及原始产物完整。重新在未修改代码上调用verify_one完整只读验收通过；结果cache_failure_diagnosis.json。正式完成1，未开始169；无任何fit自动重试，第二个试点未启动，没有全矩阵F1统计。
+
+**错误位置与证据**：新execution.fit_one保留trainer在资源采样器活跃期间写出的result.json，又在采样器退出后写final_result.json；旧experiment/acceptance_cache.py::_dependencies固定读取result.json，随后又加入相邻完整memory_samples.jsonl。中间记录raw SHA=b42367719a11c6dc88be383e0da78b7cd5cff6edbf0a5c35dbc0b64f4d44230a，最终记录与实际文件均=d37dcf6f805e1d4013f1dd25dde1f09d40dcc21707c6ae6f48a918e6d7c8bdd0，故触发Conflicting or changing dependency。这是本轮新增缓存接口缺陷，测试遗漏了异步资源采样关闭与旧缓存创建的组合；不是模型/标签/DDG问题，也不是数据被篡改。没有以测试全过掩盖此实运行阻断。
+
+**资源与停止**：peak allocated 1230.83837890625MiB、reserved1410MiB、整卡最小free400MiB，memory_tight=false。GPU已释放；orchestration_status标stopped/pilots/exit1，requires_user_review_before_fit_retry=true。精确耗时/原始资源摘要在诊断和final_result中。成功fit不会因为控制器失败变成需要重训；修复后应复用。
+
+**待批准方案**：仅对8H缓存依赖收集改用采样结束后的final_result.json，保持全部收据文件/原始日志SHA校验；旧cache、旧plan/seal不改，另封存运行版本修订及批准记录。补充该实际接口回归、篡改拒绝测试后复用首个结果，继续169。用户明确要求失败后经确认才恢复，已提问，当前未修改冻结运行代码/未实施修订/未继续训练。详见PROMPT8H_REPORT.md。旧两次CPU准备、全部重要日志和成功收据均保留。
