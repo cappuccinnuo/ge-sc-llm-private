@@ -1,0 +1,256 @@
+{
+  "passed": true,
+  "task": "reentrancy_node",
+  "epochs": 1,
+  "formal_fits": 0,
+  "empty_relations": 62,
+  "empty_edges": 0,
+  "empty_gradients_zero": true,
+  "empty_parameters_unchanged": true,
+  "numerical_denominator": {
+    "status": "passed",
+    "device": "cpu",
+    "fits_executed": 0,
+    "parameter_copy": "Every G0 parameter identical; added empty relation rows zero/priority1",
+    "records": [
+      {
+        "node_type": "declaration",
+        "before_denominator": 2,
+        "after_denominator": 4,
+        "message_ratio": 0.5,
+        "max_abs_message_formula_error": 0.0,
+        "max_abs_layer_output_formula_error": 0.0,
+        "max_abs_actual_output_change": 0.0531349778175354
+      },
+      {
+        "node_type": "statement",
+        "before_denominator": 2,
+        "after_denominator": 5,
+        "message_ratio": 0.4,
+        "max_abs_message_formula_error": 1.862645149230957e-09,
+        "max_abs_layer_output_formula_error": 0.0,
+        "max_abs_actual_output_change": 0.08657819032669067
+      }
+    ],
+    "limitation": "At a fixed layer input, only message mean denominator changes. With stacked layers, nonlinear hidden states and attention can then change; final logits are not a constant scalar multiple."
+  },
+  "source_plan": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/plan/plan.json",
+    "sha256": "be66792cbd43978588761393f354f1df89f1a181104bbee5d567252aae57536a"
+  },
+  "feature_view": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/reentrancy_node/anonymous_manifest.json",
+    "sha256": "d94044c90d8aa86f7a79dbab062470120fc19faf63d471cb57984430cf2d46a1"
+  },
+  "guard": {
+    "version": "prompt8h-fit-input-guard-v1",
+    "complete": true,
+    "deep_boundaries": [
+      "start",
+      "after_training",
+      "after_evaluation"
+    ],
+    "deep_checks": 3,
+    "fast_checks": 22,
+    "file_hash_rounds": 1,
+    "observed_target_tensors": 4,
+    "events": [
+      {
+        "kind": "deep",
+        "boundary": "start",
+        "seconds": 4.832265314000324,
+        "input_files_rehashed": true
+      },
+      {
+        "kind": "fast",
+        "boundary": "save_before",
+        "seconds": 0.02280829899973469
+      },
+      {
+        "kind": "fast",
+        "boundary": "save_after",
+        "seconds": 0.023123199000110617
+      },
+      {
+        "kind": "fast",
+        "boundary": "save_before",
+        "seconds": 0.023526199999651
+      },
+      {
+        "kind": "fast",
+        "boundary": "save_after",
+        "seconds": 0.023173100000349223
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_before",
+        "seconds": 0.023572600000079547
+      },
+      {
+        "kind": "fast",
+        "boundary": "after_training_precheck",
+        "seconds": 0.023150399999394722
+      },
+      {
+        "kind": "deep",
+        "boundary": "after_training",
+        "seconds": 4.711255121000249,
+        "input_files_rehashed": false
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_after",
+        "seconds": 0.02362379999976838
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_before",
+        "seconds": 0.02316179999979795
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_after",
+        "seconds": 0.024097399999845948
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_before",
+        "seconds": 0.022552299999915704
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_after",
+        "seconds": 0.023398199999974167
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_before",
+        "seconds": 0.023583299999700102
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_after",
+        "seconds": 0.022945400000025984
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_before",
+        "seconds": 0.022770300000047428
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_after",
+        "seconds": 0.02371599999969476
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_before",
+        "seconds": 0.02324769999995624
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_after",
+        "seconds": 0.023578898999403464
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_before",
+        "seconds": 0.023077599999851373
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_after",
+        "seconds": 0.024002599000596092
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_before",
+        "seconds": 0.0233103000000483
+      },
+      {
+        "kind": "fast",
+        "boundary": "restore_after",
+        "seconds": 0.023992898999495083
+      },
+      {
+        "kind": "fast",
+        "boundary": "after_evaluation_precheck",
+        "seconds": 0.023396799000693136
+      },
+      {
+        "kind": "deep",
+        "boundary": "after_evaluation",
+        "seconds": 4.907596677999209,
+        "input_files_rehashed": false
+      }
+    ],
+    "operations": [
+      {
+        "operation": "save",
+        "checkpoint": "best.pt",
+        "seconds": 0.18707569600064744
+      },
+      {
+        "operation": "save",
+        "checkpoint": "last.pt",
+        "seconds": 0.19055049700000382
+      },
+      {
+        "operation": "restore",
+        "checkpoint": "best.pt",
+        "seconds": 4.867791519000093
+      },
+      {
+        "operation": "restore",
+        "checkpoint": "best.pt",
+        "seconds": 0.155823097999928
+      },
+      {
+        "operation": "restore",
+        "checkpoint": "last.pt",
+        "seconds": 0.16319629800000257
+      },
+      {
+        "operation": "restore",
+        "checkpoint": "last.pt",
+        "seconds": 0.15569029800008138
+      },
+      {
+        "operation": "restore",
+        "checkpoint": "best.pt",
+        "seconds": 0.1555677980004475
+      },
+      {
+        "operation": "restore",
+        "checkpoint": "best.pt",
+        "seconds": 0.15677119799966022
+      },
+      {
+        "operation": "restore",
+        "checkpoint": "last.pt",
+        "seconds": 0.15392839800006186
+      },
+      {
+        "operation": "restore",
+        "checkpoint": "last.pt",
+        "seconds": 0.15621399599967845
+      }
+    ],
+    "save_calls": 2,
+    "save_seconds": 0.37762619300065126,
+    "average_save_seconds": 0.18881309650032563,
+    "restore_calls": 8,
+    "restore_seconds": 5.964982602999953,
+    "evaluation_seconds": 8.35072505900007
+  },
+  "checkpoint_roundtrip": {
+    "inner_val": {
+      "best": true,
+      "last": true
+    },
+    "outer_test": {
+      "best": true,
+      "last": true
+    }
+  }
+}

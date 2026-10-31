@@ -1,0 +1,78 @@
+{
+  "execution.py": [
+    [
+      "from .runtime_amendment import amendment_ref,verify_start",
+      "from .runtime_amendment import amendment_ref,verify_start\nfrom .retry import successful_attempt,next_attempt,validate_retry_receipt"
+    ],
+    [
+      "    existing=list(folder.glob(\"attempt_*/receipt.json\"))\n    if existing:\n        verify_one(path,plan,job,existing[0].parent);return \"reused\"\n    if list(folder.glob(\"attempt_*.started.json\")):raise RuntimeError(\"Previous incomplete/failed attempt: explicit user review required\")",
+      "    existing=successful_attempt(folder)\n    if existing is not None:\n        verify_one(path,plan,job,existing);return \"reused\"\n    attempt=next_attempt(path,job,folder)"
+    ],
+    [
+      "    attempt=folder/\"attempt_001\"\n",
+      ""
+    ],
+    [
+      "    verify_start(path,plan,start,attempt/\"receipt.json\")",
+      "    verify_start(path,plan,start,attempt/\"receipt.json\")\n    validate_retry_receipt(path,job,attempt)"
+    ],
+    [
+      "                if list(folder.glob(\"attempt_*.started.json\")) and not list(folder.glob(\"attempt_*/receipt.json\")):\n                    raise RuntimeError(\"Prior incomplete/failed fit: \"+job_id(prior))",
+      "                if list(folder.glob(\"attempt_*.started.json\")) and successful_attempt(folder) is None:\n                    next_attempt(path,prior,folder)"
+    ],
+    [
+      "                log=folder.parent/(j[\"profile\"]+\"_worker.log\")",
+      "                candidate=next_attempt(path,j,folder)\n                suffix=\"\" if candidate.name==\"attempt_001\" else \"_\"+candidate.name\n                log=folder.parent/(j[\"profile\"]+suffix+\"_worker.log\")"
+    ],
+    [
+      "                prior_attempt=_job_directory(root,prior)/\"attempt_001\"",
+      "                prior_attempt=successful_attempt(_job_directory(root,prior))"
+    ],
+    [
+      "ref(_job_directory(root,j)/\"attempt_001/receipt.json\")",
+      "ref(successful_attempt(_job_directory(root,j))/\"receipt.json\")"
+    ],
+    [
+      "verify_one(path,plan,j,_job_directory(root,j)/\"attempt_001\")",
+      "verify_one(path,plan,j,successful_attempt(_job_directory(root,j)))"
+    ],
+    [
+      "verify_one(a.plan,plan,j,_job_directory(Path(a.plan).parent,j)/\"attempt_001\")",
+      "verify_one(a.plan,plan,j,successful_attempt(_job_directory(Path(a.plan).parent,j)))"
+    ]
+  ],
+  "runtime_amendment.py": [
+    [
+      "def amendment_ref(plan_path,plan,actual=None):",
+      "def _cache_amendment_ref(plan_path,plan,actual=None):"
+    ],
+    [
+      "def verify_start(plan_path,plan,start,receipt_path):",
+      "def amendment_ref(plan_path,plan,actual=None):\n    if actual is None:\n        from ..experiment.run import _code_refs\n        actual=_code_refs()\n    from .retry import NAME as RESUME_NAME,verify_resume\n    if (Path(plan_path).parent/RESUME_NAME).is_file():\n        return verify_resume(plan_path,plan,actual,_cache_amendment_ref)\n    return _cache_amendment_ref(plan_path,plan,actual)\n\ndef verify_start(plan_path,plan,start,receipt_path):"
+    ],
+    [
+      "    declared=start.get(\"benchmark_runtime_amendment\")",
+      "    declared=start.get(\"benchmark_runtime_amendment\")\n    if current is not None:\n        doc=read(checked(current))\n        from .retry import VERSION as RESUME_VERSION\n        if doc.get(\"version\")==RESUME_VERSION and declared!=current:\n            prior=read(checked(doc[\"prior_successes\"]))\n            if ref(receipt_path) not in prior[\"receipts\"] or declared not in (None,doc[\"parent_amendment\"]):\n                raise ValueError(\"Fit lacks approved resume binding\")\n            return"
+    ]
+  ],
+  "reporting.py": [
+    [
+      "from .execution import load,prepared,VERSION",
+      "from .execution import load,prepared,VERSION\nfrom .retry import successful_attempt"
+    ],
+    [
+      "d=_job_directory(root,j)/\"attempt_001\"",
+      "d=successful_attempt(_job_directory(root,j))"
+    ]
+  ],
+  "acceptance_cache.py": [
+    [
+      "    amendment_path = plan_path.parent / NAME\n    if amendment_path.is_file():",
+      "    from .retry import NAME as RESUME_NAME\n    for amendment_path in (plan_path.parent / NAME, plan_path.parent / RESUME_NAME):\n        if not amendment_path.is_file():\n            continue"
+    ],
+    [
+      "            add_ref(amendment[name], amendment_path.parent)\n    if \"tasks\" in plan:",
+      "            add_ref(amendment[name], amendment_path.parent)\n        if \"prior_successes\" in amendment:\n            prior_path = add_ref(amendment[\"prior_successes\"], amendment_path.parent)\n            for entry in _read(prior_path)[\"receipts\"]:\n                add_ref(entry, prior_path.parent)\n            for entry in amendment[\"before_sources\"].values():\n                add_ref(entry, amendment_path.parent)\n            approval = _read(Path(amendment[\"approval\"][\"path\"]))\n            incident_path = add_ref(approval[\"interruption\"], amendment_path.parent)\n            for entry in _read(incident_path)[\"files\"]:\n                add_ref(entry, incident_path.parent)\n    if \"tasks\" in plan:"
+    ]
+  ]
+}

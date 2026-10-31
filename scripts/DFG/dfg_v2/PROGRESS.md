@@ -2130,3 +2130,35 @@ resume_v2保留用户授权、71成功收据、全部中断文件SHA、4份修�
 
 
 Prompt 8H显式恢复验收完成（Codex，2026-10-30）：80项定向测试已含于2653项v2全量，原回归223项，总2876唯一通过，0失败/跳过；警告分别4/9/29条既有依赖警告。原71个成功结果完整核验通过；重试初值SHA和tensor digest匹配、optimizer_steps=0、原fit_seed=1010007，真实旧结果的新修订缓存创建/命中通过。runtime_resume_v2.json独立封存，SHA f18dd07d04d4cc00e5a232818a65febe6ea4d413e4e8e81d044504ae2e1d96b4；旧plan/cache修订及其seal未改。新增21项测试确保只有被授权的002可重跑，训练数值try主体和构造/监督绑定函数AST不变。即将启动独立会话控制器，先复用71，再重跑第72项与后续任务；不是已完成99次的声明。实际进度见orchestration_resume_v2_status.json和full_matrix_resume_v2.log。
+
+
+Prompt 8H恢复控制器补记（Codex，2026-10-30）：本地提交02db061c后，首次恢复控制器在只读验收到16/170时退出；新fit尚未启动，attempt_002.start不存在。原因是我同时清理已结束pytest的临时树，旧_code_refs会先rglob遍历artifacts再过滤，遇到已删除目录触发FileNotFoundError。这是操作并发冲突，不是训练数值/缓存错误；已保留full_matrix_resume_v2.log及resume_v2/controller_scan_race.json，71成功receipt和全部中断文件SHA重新核对未变，运行版本核验通过。
+
+清理仅涉及resume_v2/_test_tmp共211184809字节（约201.40MiB），599符号链接仅删除链接、未跟随目标，正式证据和用户文件均保留。清理已结束，后续运行期间不再删除任何目录。原runtime_resume_v2修订、计划和计算源码完全不变；根据本次“继续训练”授权重新执行只读验收并继续尚未消耗的一次attempt_002，不自动重试任何新失败fit。独立后台进程新日志/状态为orchestration_resume_v3_status.json、full_matrix_resume_v3.log，原v2停止现场保留。此处v3仅表示控制器启动记录，训练计算版本仍为runtime_resume_v2。
+
+
+Prompt 8H已实际恢复训练（Codex，2026-10-30）：orchestration_resume_v3控制器完成71份历史结果复用验收后，已启动第72项reentrancy_node/fold7/seed1/G3，worker PID 1333914，输出attempt_002；新start绑定runtime_resume_v2，仍使用原fit_seed=1010007。原attempt_001及其32轮历史、best.pt和日志保留原路径。后台supervisor PID 1333862采用独立会话；后续99项按原矩阵顺序串行、每项独立进程，失败停止。新计算接入已提交本地02db061c，未push；训练期间不修改代码、不再清理目录。此条只确认恢复，不代表170项完成，最终统计仍须全部验收后生成。
+
+
+### 2026-10-31 Prompt 8H：170/170完成（修改 AI：Codex）
+
+Prompt 8H本批已完成170/170并生成完整报告，重入/访问控制合约各25项、节点各60项；全部成功收据与16份汇总文件SHA复核通过，当前没有训练进程。71项历史成功结果复用，99项后续完成；获准的fold7/G3 attempt_002成功，原中断尝试保留。训练计算及原封存计划未变。
+
+L-audit主口径、best等权折均值BF1：G0→G3R，重入合约93.6807→95.0159、访问控制合约91.0199→93.0075、重入节点98.0885→99.1246、访问控制节点97.7105→98.3536。节点分别10/10折提升、9升1平。预注册主终点重入节点+1.0361个百分点，Holm p=0.0078125；仅单seed，折统计有相关性。inner验证选出的G*为G3，不用outer结果改选型。访问控制关键词pooled BF1仍99.5114，高于G3R的98.3736；nonSolidiFI仍18/20正例漏报，不能宣称数据捷径或真实样本问题已解决。
+
+这是匿名特征、分组nested CV、L-audit诊断视图结果，非论文同协议数字、非独立外部测试；节点仍按HCG节点计分。best/last、原标签辅助与pooled分别保存。报告：scripts/DFG/experiments/artifacts/dfg_v2/prompt8h_v1/reports/REPORT.md；详录见training_changes§70.14。完成核验记录final_review_2026-10-31.json。未启动额外训练或push。
+
+最终实验仍计划使用显存充足的服务器；当前批次是在本机RTX3050 4GiB上运行，显存限制属于本地开发条件。恢复前2876项唯一测试通过，完成后仅文档追加和SHA核验，未重跑整套训练。
+
+
+### 2026-10-31 Prompt 8H GitHub archive (Codex)
+
+User authorized pushing the completed work. Archive all 4959 text result
+and evidence files, including 170 successful fits, together with the three
+implementation/fix commits. Two oversized reports have verified lossless
+gzip copies; 542 .pt files and one runtime lock remain local. Original
+artifacts and seals are unchanged. Scope, SHA inventory and binary
+limitations: docs/github_archive_prompt8h_2026-10-31.md and adjacent JSON.
+Use existing Windows Git/proxy plus WSL credentials for a normal push to
+origin/dfg-v2, then verify remote HEAD. No extra training, deletion or model
+changes. Final sufficient-VRAM server plans remain; this batch is local.

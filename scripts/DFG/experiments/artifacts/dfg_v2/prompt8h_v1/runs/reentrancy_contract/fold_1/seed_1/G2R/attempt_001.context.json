@@ -1,0 +1,47 @@
+{
+  "baseline": {
+    "unix_seconds": 1793344738.7338543,
+    "monotonic_seconds": 14332.350827123,
+    "elapsed_seconds": 0.06408850099978736,
+    "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+    "total_mib": 4096.0,
+    "used_mib": 396.0,
+    "free_mib": 3580.0,
+    "unaccounted_mib": 120.0,
+    "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 396, 3580",
+    "command": [
+      "nvidia-smi",
+      "--query-gpu=uuid,memory.total,memory.used,memory.free",
+      "--format=csv,noheader,nounits"
+    ]
+  },
+  "after_initialization": {
+    "unix_seconds": 1793344742.4087634,
+    "monotonic_seconds": 14336.025737482,
+    "elapsed_seconds": 0.1689566040004138,
+    "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+    "total_mib": 4096.0,
+    "used_mib": 1689.0,
+    "free_mib": 2287.0,
+    "unaccounted_mib": 120.0,
+    "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 1689, 2287",
+    "command": [
+      "nvidia-smi",
+      "--query-gpu=uuid,memory.total,memory.used,memory.free",
+      "--format=csv,noheader,nounits"
+    ]
+  },
+  "free_decrease_mib": 1293.0,
+  "used_increase_mib": 1293.0,
+  "torch_allocated_mib": 0.0,
+  "torch_reserved_mib": 0.0,
+  "warmup": "one-element Torch CUDA tensor and one-node one-edge DGL CUDA graph; no RNG draws",
+  "caveats": [
+    "Whole-card memory is not a per-process measurement.",
+    "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+    "Context initialization differences can include concurrent changes by other processes.",
+    "Later lazy library allocations are not necessarily included in the initial context observation.",
+    "Peak reserved and minimum free are not necessarily observed at the same instant.",
+    "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+  ]
+}

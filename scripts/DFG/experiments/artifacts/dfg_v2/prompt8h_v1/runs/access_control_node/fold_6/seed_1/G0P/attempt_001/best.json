@@ -1,0 +1,5134 @@
+{
+  "format": "ddg-controlled-v1",
+  "state_sha256": "27cc00d61005a201c79a68c05ddca71af9e4e7ed01e305066369aad11fd7d8f9",
+  "model_input": {
+    "manifest_version": "ddg-model-input-v1",
+    "schema": {
+      "model_class": "scripts.DFG.dfg_v2.model.DfgV2NodeClassifier",
+      "node_feature": "inside_token",
+      "input_size": 512,
+      "hidden_size": 128,
+      "output_size": 2,
+      "num_heads": 8,
+      "num_layers": 2,
+      "use_norm": [
+        true,
+        true
+      ],
+      "dropout": [
+        0.2,
+        0.2
+      ],
+      "node_types": [
+        [
+          "constructor_definition",
+          0
+        ],
+        [
+          "continue_statement",
+          1
+        ],
+        [
+          "contract_declaration",
+          2
+        ],
+        [
+          "end_if",
+          3
+        ],
+        [
+          "end_loop",
+          4
+        ],
+        [
+          "expression_statement",
+          5
+        ],
+        [
+          "for",
+          6
+        ],
+        [
+          "function_definition",
+          7
+        ],
+        [
+          "if",
+          8
+        ],
+        [
+          "interface_declaration",
+          9
+        ],
+        [
+          "library_declaration",
+          10
+        ],
+        [
+          "modifier_definition",
+          11
+        ],
+        [
+          "new_variable",
+          12
+        ],
+        [
+          "return",
+          13
+        ],
+        [
+          "struct_declaration",
+          14
+        ],
+        [
+          "while",
+          15
+        ]
+      ],
+      "edge_types": [
+        [
+          [
+            "constructor_definition",
+            "__G0P_EMPTY_000",
+            "constructor_definition"
+          ],
+          0
+        ],
+        [
+          [
+            "constructor_definition",
+            "__G0P_EMPTY_001",
+            "constructor_definition"
+          ],
+          1
+        ],
+        [
+          [
+            "constructor_definition",
+            "__G0P_EMPTY_002",
+            "constructor_definition"
+          ],
+          2
+        ],
+        [
+          [
+            "constructor_definition",
+            "external_call",
+            "function_definition"
+          ],
+          3
+        ],
+        [
+          [
+            "constructor_definition",
+            "first_next_line",
+            "end_if"
+          ],
+          4
+        ],
+        [
+          [
+            "constructor_definition",
+            "first_next_line",
+            "end_loop"
+          ],
+          5
+        ],
+        [
+          [
+            "constructor_definition",
+            "first_next_line",
+            "expression_statement"
+          ],
+          6
+        ],
+        [
+          [
+            "constructor_definition",
+            "first_next_line",
+            "function_definition"
+          ],
+          7
+        ],
+        [
+          [
+            "constructor_definition",
+            "first_next_line",
+            "modifier_definition"
+          ],
+          8
+        ],
+        [
+          [
+            "constructor_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          9
+        ],
+        [
+          [
+            "constructor_definition",
+            "next_line",
+            "contract_declaration"
+          ],
+          10
+        ],
+        [
+          [
+            "constructor_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          11
+        ],
+        [
+          [
+            "constructor_definition",
+            "next_line",
+            "new_variable"
+          ],
+          12
+        ],
+        [
+          [
+            "constructor_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          13
+        ],
+        [
+          [
+            "continue_statement",
+            "next_line",
+            "expression_statement"
+          ],
+          14
+        ],
+        [
+          [
+            "continue_statement",
+            "next_line",
+            "while"
+          ],
+          15
+        ],
+        [
+          [
+            "contract_declaration",
+            "next_line",
+            "constructor_definition"
+          ],
+          16
+        ],
+        [
+          [
+            "contract_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          17
+        ],
+        [
+          [
+            "contract_declaration",
+            "next_line",
+            "new_variable"
+          ],
+          18
+        ],
+        [
+          [
+            "contract_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          19
+        ],
+        [
+          [
+            "contract_declaration",
+            "recursive_method_call",
+            "constructor_definition"
+          ],
+          20
+        ],
+        [
+          [
+            "contract_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          21
+        ],
+        [
+          [
+            "contract_declaration",
+            "recursive_method_call",
+            "modifier_definition"
+          ],
+          22
+        ],
+        [
+          [
+            "end_if",
+            "end_if",
+            "expression_statement"
+          ],
+          23
+        ],
+        [
+          [
+            "end_if",
+            "end_if",
+            "if"
+          ],
+          24
+        ],
+        [
+          [
+            "end_if",
+            "end_if",
+            "return"
+          ],
+          25
+        ],
+        [
+          [
+            "end_if",
+            "end_if",
+            "while"
+          ],
+          26
+        ],
+        [
+          [
+            "end_if",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          27
+        ],
+        [
+          [
+            "end_if",
+            "neg_next",
+            "if"
+          ],
+          28
+        ],
+        [
+          [
+            "end_if",
+            "next_line",
+            "expression_statement"
+          ],
+          29
+        ],
+        [
+          [
+            "end_if",
+            "next_line",
+            "function_definition"
+          ],
+          30
+        ],
+        [
+          [
+            "end_if",
+            "next_line",
+            "if"
+          ],
+          31
+        ],
+        [
+          [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          32
+        ],
+        [
+          [
+            "end_if",
+            "next_line",
+            "new_variable"
+          ],
+          33
+        ],
+        [
+          [
+            "end_if",
+            "next_line",
+            "return"
+          ],
+          34
+        ],
+        [
+          [
+            "end_if",
+            "next_line",
+            "struct_declaration"
+          ],
+          35
+        ],
+        [
+          [
+            "end_if",
+            "next_line",
+            "while"
+          ],
+          36
+        ],
+        [
+          [
+            "end_loop",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          37
+        ],
+        [
+          [
+            "end_loop",
+            "neg_next",
+            "for"
+          ],
+          38
+        ],
+        [
+          [
+            "end_loop",
+            "neg_next",
+            "while"
+          ],
+          39
+        ],
+        [
+          [
+            "end_loop",
+            "next_line",
+            "expression_statement"
+          ],
+          40
+        ],
+        [
+          [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          41
+        ],
+        [
+          [
+            "end_loop",
+            "next_line",
+            "function_definition"
+          ],
+          42
+        ],
+        [
+          [
+            "end_loop",
+            "next_line",
+            "if"
+          ],
+          43
+        ],
+        [
+          [
+            "end_loop",
+            "next_line",
+            "new_variable"
+          ],
+          44
+        ],
+        [
+          [
+            "end_loop",
+            "next_line",
+            "return"
+          ],
+          45
+        ],
+        [
+          [
+            "end_loop",
+            "next_line",
+            "while"
+          ],
+          46
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_000",
+            "expression_statement"
+          ],
+          47
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_001",
+            "expression_statement"
+          ],
+          48
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_002",
+            "expression_statement"
+          ],
+          49
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_003",
+            "expression_statement"
+          ],
+          50
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_004",
+            "expression_statement"
+          ],
+          51
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_005",
+            "expression_statement"
+          ],
+          52
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_006",
+            "expression_statement"
+          ],
+          53
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_007",
+            "expression_statement"
+          ],
+          54
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_008",
+            "expression_statement"
+          ],
+          55
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_009",
+            "expression_statement"
+          ],
+          56
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_010",
+            "expression_statement"
+          ],
+          57
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_011",
+            "expression_statement"
+          ],
+          58
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_012",
+            "expression_statement"
+          ],
+          59
+        ],
+        [
+          [
+            "expression_statement",
+            "__G0P_EMPTY_013",
+            "expression_statement"
+          ],
+          60
+        ],
+        [
+          [
+            "expression_statement",
+            "end_if",
+            "end_if"
+          ],
+          61
+        ],
+        [
+          [
+            "expression_statement",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          62
+        ],
+        [
+          [
+            "expression_statement",
+            "neg_next",
+            "if"
+          ],
+          63
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "constructor_definition"
+          ],
+          64
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "continue_statement"
+          ],
+          65
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "end_if"
+          ],
+          66
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "end_loop"
+          ],
+          67
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "expression_statement"
+          ],
+          68
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "for"
+          ],
+          69
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "function_definition"
+          ],
+          70
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "if"
+          ],
+          71
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "modifier_definition"
+          ],
+          72
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "new_variable"
+          ],
+          73
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "return"
+          ],
+          74
+        ],
+        [
+          [
+            "expression_statement",
+            "next_line",
+            "while"
+          ],
+          75
+        ],
+        [
+          [
+            "expression_statement",
+            "pos_next",
+            "for"
+          ],
+          76
+        ],
+        [
+          [
+            "expression_statement",
+            "pos_next",
+            "if"
+          ],
+          77
+        ],
+        [
+          [
+            "expression_statement",
+            "pos_next",
+            "while"
+          ],
+          78
+        ],
+        [
+          [
+            "for",
+            "__G0P_EMPTY_000",
+            "for"
+          ],
+          79
+        ],
+        [
+          [
+            "for",
+            "__G0P_EMPTY_001",
+            "for"
+          ],
+          80
+        ],
+        [
+          [
+            "for",
+            "__G0P_EMPTY_002",
+            "for"
+          ],
+          81
+        ],
+        [
+          [
+            "for",
+            "__G0P_EMPTY_003",
+            "for"
+          ],
+          82
+        ],
+        [
+          [
+            "for",
+            "__G0P_EMPTY_004",
+            "for"
+          ],
+          83
+        ],
+        [
+          [
+            "for",
+            "__G0P_EMPTY_005",
+            "for"
+          ],
+          84
+        ],
+        [
+          [
+            "for",
+            "__G0P_EMPTY_006",
+            "for"
+          ],
+          85
+        ],
+        [
+          [
+            "for",
+            "neg_next",
+            "end_loop"
+          ],
+          86
+        ],
+        [
+          [
+            "for",
+            "next_line",
+            "end_loop"
+          ],
+          87
+        ],
+        [
+          [
+            "for",
+            "next_line",
+            "expression_statement"
+          ],
+          88
+        ],
+        [
+          [
+            "for",
+            "next_line",
+            "function_definition"
+          ],
+          89
+        ],
+        [
+          [
+            "for",
+            "next_line",
+            "new_variable"
+          ],
+          90
+        ],
+        [
+          [
+            "for",
+            "pos_next",
+            "expression_statement"
+          ],
+          91
+        ],
+        [
+          [
+            "for",
+            "pos_next",
+            "new_variable"
+          ],
+          92
+        ],
+        [
+          [
+            "function_definition",
+            "__G0P_EMPTY_000",
+            "function_definition"
+          ],
+          93
+        ],
+        [
+          [
+            "function_definition",
+            "__G0P_EMPTY_001",
+            "function_definition"
+          ],
+          94
+        ],
+        [
+          [
+            "function_definition",
+            "__G0P_EMPTY_002",
+            "function_definition"
+          ],
+          95
+        ],
+        [
+          [
+            "function_definition",
+            "__G0P_EMPTY_003",
+            "function_definition"
+          ],
+          96
+        ],
+        [
+          [
+            "function_definition",
+            "__G0P_EMPTY_004",
+            "function_definition"
+          ],
+          97
+        ],
+        [
+          [
+            "function_definition",
+            "__G0P_EMPTY_005",
+            "function_definition"
+          ],
+          98
+        ],
+        [
+          [
+            "function_definition",
+            "external_call",
+            "constructor_definition"
+          ],
+          99
+        ],
+        [
+          [
+            "function_definition",
+            "external_call",
+            "function_definition"
+          ],
+          100
+        ],
+        [
+          [
+            "function_definition",
+            "external_call",
+            "modifier_definition"
+          ],
+          101
+        ],
+        [
+          [
+            "function_definition",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          102
+        ],
+        [
+          [
+            "function_definition",
+            "internal_call",
+            "constructor_definition"
+          ],
+          103
+        ],
+        [
+          [
+            "function_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          104
+        ],
+        [
+          [
+            "function_definition",
+            "internal_call",
+            "modifier_definition"
+          ],
+          105
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "contract_declaration"
+          ],
+          106
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "end_if"
+          ],
+          107
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "end_loop"
+          ],
+          108
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          109
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "for"
+          ],
+          110
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "if"
+          ],
+          111
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "interface_declaration"
+          ],
+          112
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "library_declaration"
+          ],
+          113
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "new_variable"
+          ],
+          114
+        ],
+        [
+          [
+            "function_definition",
+            "next_line",
+            "return"
+          ],
+          115
+        ],
+        [
+          [
+            "function_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          116
+        ],
+        [
+          [
+            "function_definition",
+            "recursive_method_call",
+            "interface_declaration"
+          ],
+          117
+        ],
+        [
+          [
+            "function_definition",
+            "recursive_method_call",
+            "library_declaration"
+          ],
+          118
+        ],
+        [
+          [
+            "if",
+            "__G0P_EMPTY_000",
+            "if"
+          ],
+          119
+        ],
+        [
+          [
+            "if",
+            "__G0P_EMPTY_001",
+            "if"
+          ],
+          120
+        ],
+        [
+          [
+            "if",
+            "__G0P_EMPTY_002",
+            "if"
+          ],
+          121
+        ],
+        [
+          [
+            "if",
+            "__G0P_EMPTY_003",
+            "if"
+          ],
+          122
+        ],
+        [
+          [
+            "if",
+            "__G0P_EMPTY_004",
+            "if"
+          ],
+          123
+        ],
+        [
+          [
+            "if",
+            "__G0P_EMPTY_005",
+            "if"
+          ],
+          124
+        ],
+        [
+          [
+            "if",
+            "__G0P_EMPTY_006",
+            "if"
+          ],
+          125
+        ],
+        [
+          [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          126
+        ],
+        [
+          [
+            "if",
+            "neg_next",
+            "end_if"
+          ],
+          127
+        ],
+        [
+          [
+            "if",
+            "neg_next",
+            "expression_statement"
+          ],
+          128
+        ],
+        [
+          [
+            "if",
+            "neg_next",
+            "if"
+          ],
+          129
+        ],
+        [
+          [
+            "if",
+            "neg_next",
+            "new_variable"
+          ],
+          130
+        ],
+        [
+          [
+            "if",
+            "neg_next",
+            "return"
+          ],
+          131
+        ],
+        [
+          [
+            "if",
+            "next_line",
+            "end_if"
+          ],
+          132
+        ],
+        [
+          [
+            "if",
+            "next_line",
+            "end_loop"
+          ],
+          133
+        ],
+        [
+          [
+            "if",
+            "next_line",
+            "expression_statement"
+          ],
+          134
+        ],
+        [
+          [
+            "if",
+            "next_line",
+            "function_definition"
+          ],
+          135
+        ],
+        [
+          [
+            "if",
+            "next_line",
+            "modifier_definition"
+          ],
+          136
+        ],
+        [
+          [
+            "if",
+            "next_line",
+            "new_variable"
+          ],
+          137
+        ],
+        [
+          [
+            "if",
+            "pos_next",
+            "expression_statement"
+          ],
+          138
+        ],
+        [
+          [
+            "if",
+            "pos_next",
+            "if"
+          ],
+          139
+        ],
+        [
+          [
+            "if",
+            "pos_next",
+            "new_variable"
+          ],
+          140
+        ],
+        [
+          [
+            "if",
+            "pos_next",
+            "return"
+          ],
+          141
+        ],
+        [
+          [
+            "interface_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          142
+        ],
+        [
+          [
+            "interface_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          143
+        ],
+        [
+          [
+            "library_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          144
+        ],
+        [
+          [
+            "library_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          145
+        ],
+        [
+          [
+            "library_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          146
+        ],
+        [
+          [
+            "modifier_definition",
+            "external_call",
+            "function_definition"
+          ],
+          147
+        ],
+        [
+          [
+            "modifier_definition",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          148
+        ],
+        [
+          [
+            "modifier_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          149
+        ],
+        [
+          [
+            "modifier_definition",
+            "next_line",
+            "end_if"
+          ],
+          150
+        ],
+        [
+          [
+            "modifier_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          151
+        ],
+        [
+          [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ],
+          152
+        ],
+        [
+          [
+            "modifier_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          153
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_000",
+            "new_variable"
+          ],
+          154
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_001",
+            "new_variable"
+          ],
+          155
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_002",
+            "new_variable"
+          ],
+          156
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_003",
+            "new_variable"
+          ],
+          157
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_004",
+            "new_variable"
+          ],
+          158
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_005",
+            "new_variable"
+          ],
+          159
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_006",
+            "new_variable"
+          ],
+          160
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_007",
+            "new_variable"
+          ],
+          161
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_008",
+            "new_variable"
+          ],
+          162
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_009",
+            "new_variable"
+          ],
+          163
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_010",
+            "new_variable"
+          ],
+          164
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_011",
+            "new_variable"
+          ],
+          165
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_012",
+            "new_variable"
+          ],
+          166
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_013",
+            "new_variable"
+          ],
+          167
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_014",
+            "new_variable"
+          ],
+          168
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_015",
+            "new_variable"
+          ],
+          169
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_016",
+            "new_variable"
+          ],
+          170
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_017",
+            "new_variable"
+          ],
+          171
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_018",
+            "new_variable"
+          ],
+          172
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_019",
+            "new_variable"
+          ],
+          173
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_020",
+            "new_variable"
+          ],
+          174
+        ],
+        [
+          [
+            "new_variable",
+            "__G0P_EMPTY_021",
+            "new_variable"
+          ],
+          175
+        ],
+        [
+          [
+            "new_variable",
+            "neg_next",
+            "if"
+          ],
+          176
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "constructor_definition"
+          ],
+          177
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "contract_declaration"
+          ],
+          178
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "end_if"
+          ],
+          179
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "end_loop"
+          ],
+          180
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "expression_statement"
+          ],
+          181
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "for"
+          ],
+          182
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "function_definition"
+          ],
+          183
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "if"
+          ],
+          184
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "new_variable"
+          ],
+          185
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "return"
+          ],
+          186
+        ],
+        [
+          [
+            "new_variable",
+            "next_line",
+            "while"
+          ],
+          187
+        ],
+        [
+          [
+            "new_variable",
+            "pos_next",
+            "for"
+          ],
+          188
+        ],
+        [
+          [
+            "new_variable",
+            "pos_next",
+            "if"
+          ],
+          189
+        ],
+        [
+          [
+            "new_variable",
+            "pos_next",
+            "while"
+          ],
+          190
+        ],
+        [
+          [
+            "return",
+            "__G0P_EMPTY_000",
+            "return"
+          ],
+          191
+        ],
+        [
+          [
+            "return",
+            "__G0P_EMPTY_001",
+            "return"
+          ],
+          192
+        ],
+        [
+          [
+            "return",
+            "__G0P_EMPTY_002",
+            "return"
+          ],
+          193
+        ],
+        [
+          [
+            "return",
+            "__G0P_EMPTY_003",
+            "return"
+          ],
+          194
+        ],
+        [
+          [
+            "return",
+            "__G0P_EMPTY_004",
+            "return"
+          ],
+          195
+        ],
+        [
+          [
+            "return",
+            "end_if",
+            "end_if"
+          ],
+          196
+        ],
+        [
+          [
+            "return",
+            "neg_next",
+            "if"
+          ],
+          197
+        ],
+        [
+          [
+            "return",
+            "next_line",
+            "end_if"
+          ],
+          198
+        ],
+        [
+          [
+            "return",
+            "next_line",
+            "end_loop"
+          ],
+          199
+        ],
+        [
+          [
+            "return",
+            "next_line",
+            "expression_statement"
+          ],
+          200
+        ],
+        [
+          [
+            "return",
+            "next_line",
+            "function_definition"
+          ],
+          201
+        ],
+        [
+          [
+            "return",
+            "next_line",
+            "new_variable"
+          ],
+          202
+        ],
+        [
+          [
+            "return",
+            "pos_next",
+            "if"
+          ],
+          203
+        ],
+        [
+          [
+            "struct_declaration",
+            "next_line",
+            "contract_declaration"
+          ],
+          204
+        ],
+        [
+          [
+            "struct_declaration",
+            "next_line",
+            "end_if"
+          ],
+          205
+        ],
+        [
+          [
+            "struct_declaration",
+            "next_line",
+            "library_declaration"
+          ],
+          206
+        ],
+        [
+          [
+            "while",
+            "__G0P_EMPTY_000",
+            "while"
+          ],
+          207
+        ],
+        [
+          [
+            "while",
+            "__G0P_EMPTY_001",
+            "while"
+          ],
+          208
+        ],
+        [
+          [
+            "while",
+            "__G0P_EMPTY_002",
+            "while"
+          ],
+          209
+        ],
+        [
+          [
+            "while",
+            "end_if",
+            "end_if"
+          ],
+          210
+        ],
+        [
+          [
+            "while",
+            "neg_next",
+            "end_loop"
+          ],
+          211
+        ],
+        [
+          [
+            "while",
+            "next_line",
+            "continue_statement"
+          ],
+          212
+        ],
+        [
+          [
+            "while",
+            "next_line",
+            "end_if"
+          ],
+          213
+        ],
+        [
+          [
+            "while",
+            "next_line",
+            "end_loop"
+          ],
+          214
+        ],
+        [
+          [
+            "while",
+            "next_line",
+            "expression_statement"
+          ],
+          215
+        ],
+        [
+          [
+            "while",
+            "next_line",
+            "new_variable"
+          ],
+          216
+        ],
+        [
+          [
+            "while",
+            "pos_next",
+            "expression_statement"
+          ],
+          217
+        ],
+        [
+          [
+            "while",
+            "pos_next",
+            "new_variable"
+          ],
+          218
+        ],
+        [
+          [
+            "while",
+            "pos_next",
+            "while"
+          ],
+          219
+        ]
+      ]
+    },
+    "node_count": 7710,
+    "edge_count": 17680,
+    "input_sha256": "71060542f5256f9a9556ee8655f1c3166ec7ceaa8da737878930c01085e7b9ab",
+    "external_inputs_sha256": "07dcd0ab630874cfb1e9a0b20457d35b16d786f8e5188fc9db89558fbd453675"
+  },
+  "binding": {
+    "protocol": "dfg-v2-grouped-nested",
+    "protocol_version": "dfg-v2-grouped-nested-v1",
+    "score_role": "outer_test",
+    "selection_role": "inner_val",
+    "forward_scope": "full_fixed_task_graph",
+    "task_id": "access_control_node",
+    "task": "node",
+    "fold": 6,
+    "seed": 1,
+    "profile": "G0P",
+    "reducer": "mean",
+    "layer_impl": "shared_projection",
+    "registered_schema": {
+      "node_types": [
+        {
+          "name": "constructor_definition",
+          "index": 0
+        },
+        {
+          "name": "continue_statement",
+          "index": 1
+        },
+        {
+          "name": "contract_declaration",
+          "index": 2
+        },
+        {
+          "name": "end_if",
+          "index": 3
+        },
+        {
+          "name": "end_loop",
+          "index": 4
+        },
+        {
+          "name": "expression_statement",
+          "index": 5
+        },
+        {
+          "name": "for",
+          "index": 6
+        },
+        {
+          "name": "function_definition",
+          "index": 7
+        },
+        {
+          "name": "if",
+          "index": 8
+        },
+        {
+          "name": "interface_declaration",
+          "index": 9
+        },
+        {
+          "name": "library_declaration",
+          "index": 10
+        },
+        {
+          "name": "modifier_definition",
+          "index": 11
+        },
+        {
+          "name": "new_variable",
+          "index": 12
+        },
+        {
+          "name": "return",
+          "index": 13
+        },
+        {
+          "name": "struct_declaration",
+          "index": 14
+        },
+        {
+          "name": "while",
+          "index": 15
+        }
+      ],
+      "canonical_relations": [
+        {
+          "canonical": [
+            "constructor_definition",
+            "__G0P_EMPTY_000",
+            "constructor_definition"
+          ],
+          "index": 0
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "__G0P_EMPTY_001",
+            "constructor_definition"
+          ],
+          "index": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "__G0P_EMPTY_002",
+            "constructor_definition"
+          ],
+          "index": 2
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "index": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_if"
+          ],
+          "index": 4
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_loop"
+          ],
+          "index": 5
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "expression_statement"
+          ],
+          "index": 6
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "function_definition"
+          ],
+          "index": 7
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "modifier_definition"
+          ],
+          "index": 8
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "index": 9
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 10
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 11
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 12
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          "index": 13
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 14
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "next_line",
+            "while"
+          ],
+          "index": 15
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "constructor_definition"
+          ],
+          "index": 16
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 17
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 18
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "index": 19
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "constructor_definition"
+          ],
+          "index": 20
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "index": 21
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "modifier_definition"
+          ],
+          "index": 22
+        },
+        {
+          "canonical": [
+            "end_if",
+            "end_if",
+            "expression_statement"
+          ],
+          "index": 23
+        },
+        {
+          "canonical": [
+            "end_if",
+            "end_if",
+            "if"
+          ],
+          "index": 24
+        },
+        {
+          "canonical": [
+            "end_if",
+            "end_if",
+            "return"
+          ],
+          "index": 25
+        },
+        {
+          "canonical": [
+            "end_if",
+            "end_if",
+            "while"
+          ],
+          "index": 26
+        },
+        {
+          "canonical": [
+            "end_if",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 27
+        },
+        {
+          "canonical": [
+            "end_if",
+            "neg_next",
+            "if"
+          ],
+          "index": 28
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 29
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 30
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "if"
+          ],
+          "index": 31
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          "index": 32
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 33
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "return"
+          ],
+          "index": 34
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "struct_declaration"
+          ],
+          "index": 35
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "while"
+          ],
+          "index": 36
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 37
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "neg_next",
+            "for"
+          ],
+          "index": 38
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "neg_next",
+            "while"
+          ],
+          "index": 39
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 40
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          "index": 41
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 42
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "if"
+          ],
+          "index": 43
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 44
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "return"
+          ],
+          "index": 45
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "while"
+          ],
+          "index": 46
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_000",
+            "expression_statement"
+          ],
+          "index": 47
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_001",
+            "expression_statement"
+          ],
+          "index": 48
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_002",
+            "expression_statement"
+          ],
+          "index": 49
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_003",
+            "expression_statement"
+          ],
+          "index": 50
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_004",
+            "expression_statement"
+          ],
+          "index": 51
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_005",
+            "expression_statement"
+          ],
+          "index": 52
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_006",
+            "expression_statement"
+          ],
+          "index": 53
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_007",
+            "expression_statement"
+          ],
+          "index": 54
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_008",
+            "expression_statement"
+          ],
+          "index": 55
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_009",
+            "expression_statement"
+          ],
+          "index": 56
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_010",
+            "expression_statement"
+          ],
+          "index": 57
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_011",
+            "expression_statement"
+          ],
+          "index": 58
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_012",
+            "expression_statement"
+          ],
+          "index": 59
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "__G0P_EMPTY_013",
+            "expression_statement"
+          ],
+          "index": 60
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "end_if",
+            "end_if"
+          ],
+          "index": 61
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 62
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "neg_next",
+            "if"
+          ],
+          "index": 63
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "constructor_definition"
+          ],
+          "index": 64
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "continue_statement"
+          ],
+          "index": 65
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "end_if"
+          ],
+          "index": 66
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 67
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 68
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "for"
+          ],
+          "index": 69
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 70
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "if"
+          ],
+          "index": 71
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "modifier_definition"
+          ],
+          "index": 72
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 73
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "return"
+          ],
+          "index": 74
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "while"
+          ],
+          "index": 75
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "pos_next",
+            "for"
+          ],
+          "index": 76
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "pos_next",
+            "if"
+          ],
+          "index": 77
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "pos_next",
+            "while"
+          ],
+          "index": 78
+        },
+        {
+          "canonical": [
+            "for",
+            "__G0P_EMPTY_000",
+            "for"
+          ],
+          "index": 79
+        },
+        {
+          "canonical": [
+            "for",
+            "__G0P_EMPTY_001",
+            "for"
+          ],
+          "index": 80
+        },
+        {
+          "canonical": [
+            "for",
+            "__G0P_EMPTY_002",
+            "for"
+          ],
+          "index": 81
+        },
+        {
+          "canonical": [
+            "for",
+            "__G0P_EMPTY_003",
+            "for"
+          ],
+          "index": 82
+        },
+        {
+          "canonical": [
+            "for",
+            "__G0P_EMPTY_004",
+            "for"
+          ],
+          "index": 83
+        },
+        {
+          "canonical": [
+            "for",
+            "__G0P_EMPTY_005",
+            "for"
+          ],
+          "index": 84
+        },
+        {
+          "canonical": [
+            "for",
+            "__G0P_EMPTY_006",
+            "for"
+          ],
+          "index": 85
+        },
+        {
+          "canonical": [
+            "for",
+            "neg_next",
+            "end_loop"
+          ],
+          "index": 86
+        },
+        {
+          "canonical": [
+            "for",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 87
+        },
+        {
+          "canonical": [
+            "for",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 88
+        },
+        {
+          "canonical": [
+            "for",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 89
+        },
+        {
+          "canonical": [
+            "for",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 90
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "expression_statement"
+          ],
+          "index": 91
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "new_variable"
+          ],
+          "index": 92
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "__G0P_EMPTY_000",
+            "function_definition"
+          ],
+          "index": 93
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "__G0P_EMPTY_001",
+            "function_definition"
+          ],
+          "index": 94
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "__G0P_EMPTY_002",
+            "function_definition"
+          ],
+          "index": 95
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "__G0P_EMPTY_003",
+            "function_definition"
+          ],
+          "index": 96
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "__G0P_EMPTY_004",
+            "function_definition"
+          ],
+          "index": 97
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "__G0P_EMPTY_005",
+            "function_definition"
+          ],
+          "index": 98
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "external_call",
+            "constructor_definition"
+          ],
+          "index": 99
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "index": 100
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "external_call",
+            "modifier_definition"
+          ],
+          "index": 101
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 102
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "internal_call",
+            "constructor_definition"
+          ],
+          "index": 103
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "index": 104
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "internal_call",
+            "modifier_definition"
+          ],
+          "index": 105
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 106
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "end_if"
+          ],
+          "index": 107
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 108
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 109
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "for"
+          ],
+          "index": 110
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "if"
+          ],
+          "index": 111
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "interface_declaration"
+          ],
+          "index": 112
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "library_declaration"
+          ],
+          "index": 113
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 114
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "return"
+          ],
+          "index": 115
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          "index": 116
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "recursive_method_call",
+            "interface_declaration"
+          ],
+          "index": 117
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "recursive_method_call",
+            "library_declaration"
+          ],
+          "index": 118
+        },
+        {
+          "canonical": [
+            "if",
+            "__G0P_EMPTY_000",
+            "if"
+          ],
+          "index": 119
+        },
+        {
+          "canonical": [
+            "if",
+            "__G0P_EMPTY_001",
+            "if"
+          ],
+          "index": 120
+        },
+        {
+          "canonical": [
+            "if",
+            "__G0P_EMPTY_002",
+            "if"
+          ],
+          "index": 121
+        },
+        {
+          "canonical": [
+            "if",
+            "__G0P_EMPTY_003",
+            "if"
+          ],
+          "index": 122
+        },
+        {
+          "canonical": [
+            "if",
+            "__G0P_EMPTY_004",
+            "if"
+          ],
+          "index": 123
+        },
+        {
+          "canonical": [
+            "if",
+            "__G0P_EMPTY_005",
+            "if"
+          ],
+          "index": 124
+        },
+        {
+          "canonical": [
+            "if",
+            "__G0P_EMPTY_006",
+            "if"
+          ],
+          "index": 125
+        },
+        {
+          "canonical": [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          "index": 126
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "end_if"
+          ],
+          "index": 127
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "expression_statement"
+          ],
+          "index": 128
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "if"
+          ],
+          "index": 129
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "new_variable"
+          ],
+          "index": 130
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "return"
+          ],
+          "index": 131
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "end_if"
+          ],
+          "index": 132
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 133
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 134
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 135
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "modifier_definition"
+          ],
+          "index": 136
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 137
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "expression_statement"
+          ],
+          "index": 138
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "if"
+          ],
+          "index": 139
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "new_variable"
+          ],
+          "index": 140
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "return"
+          ],
+          "index": 141
+        },
+        {
+          "canonical": [
+            "interface_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 142
+        },
+        {
+          "canonical": [
+            "interface_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "index": 143
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 144
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "index": 145
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "index": 146
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "index": 147
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 148
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "index": 149
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "end_if"
+          ],
+          "index": 150
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 151
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ],
+          "index": 152
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          "index": 153
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_000",
+            "new_variable"
+          ],
+          "index": 154
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_001",
+            "new_variable"
+          ],
+          "index": 155
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_002",
+            "new_variable"
+          ],
+          "index": 156
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_003",
+            "new_variable"
+          ],
+          "index": 157
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_004",
+            "new_variable"
+          ],
+          "index": 158
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_005",
+            "new_variable"
+          ],
+          "index": 159
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_006",
+            "new_variable"
+          ],
+          "index": 160
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_007",
+            "new_variable"
+          ],
+          "index": 161
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_008",
+            "new_variable"
+          ],
+          "index": 162
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_009",
+            "new_variable"
+          ],
+          "index": 163
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_010",
+            "new_variable"
+          ],
+          "index": 164
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_011",
+            "new_variable"
+          ],
+          "index": 165
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_012",
+            "new_variable"
+          ],
+          "index": 166
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_013",
+            "new_variable"
+          ],
+          "index": 167
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_014",
+            "new_variable"
+          ],
+          "index": 168
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_015",
+            "new_variable"
+          ],
+          "index": 169
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_016",
+            "new_variable"
+          ],
+          "index": 170
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_017",
+            "new_variable"
+          ],
+          "index": 171
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_018",
+            "new_variable"
+          ],
+          "index": 172
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_019",
+            "new_variable"
+          ],
+          "index": 173
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_020",
+            "new_variable"
+          ],
+          "index": 174
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "__G0P_EMPTY_021",
+            "new_variable"
+          ],
+          "index": 175
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "neg_next",
+            "if"
+          ],
+          "index": 176
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "constructor_definition"
+          ],
+          "index": 177
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 178
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "end_if"
+          ],
+          "index": 179
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 180
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 181
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "for"
+          ],
+          "index": 182
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 183
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "if"
+          ],
+          "index": 184
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 185
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "return"
+          ],
+          "index": 186
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "while"
+          ],
+          "index": 187
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "pos_next",
+            "for"
+          ],
+          "index": 188
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "pos_next",
+            "if"
+          ],
+          "index": 189
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "pos_next",
+            "while"
+          ],
+          "index": 190
+        },
+        {
+          "canonical": [
+            "return",
+            "__G0P_EMPTY_000",
+            "return"
+          ],
+          "index": 191
+        },
+        {
+          "canonical": [
+            "return",
+            "__G0P_EMPTY_001",
+            "return"
+          ],
+          "index": 192
+        },
+        {
+          "canonical": [
+            "return",
+            "__G0P_EMPTY_002",
+            "return"
+          ],
+          "index": 193
+        },
+        {
+          "canonical": [
+            "return",
+            "__G0P_EMPTY_003",
+            "return"
+          ],
+          "index": 194
+        },
+        {
+          "canonical": [
+            "return",
+            "__G0P_EMPTY_004",
+            "return"
+          ],
+          "index": 195
+        },
+        {
+          "canonical": [
+            "return",
+            "end_if",
+            "end_if"
+          ],
+          "index": 196
+        },
+        {
+          "canonical": [
+            "return",
+            "neg_next",
+            "if"
+          ],
+          "index": 197
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "end_if"
+          ],
+          "index": 198
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 199
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 200
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 201
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 202
+        },
+        {
+          "canonical": [
+            "return",
+            "pos_next",
+            "if"
+          ],
+          "index": 203
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 204
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "next_line",
+            "end_if"
+          ],
+          "index": 205
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "next_line",
+            "library_declaration"
+          ],
+          "index": 206
+        },
+        {
+          "canonical": [
+            "while",
+            "__G0P_EMPTY_000",
+            "while"
+          ],
+          "index": 207
+        },
+        {
+          "canonical": [
+            "while",
+            "__G0P_EMPTY_001",
+            "while"
+          ],
+          "index": 208
+        },
+        {
+          "canonical": [
+            "while",
+            "__G0P_EMPTY_002",
+            "while"
+          ],
+          "index": 209
+        },
+        {
+          "canonical": [
+            "while",
+            "end_if",
+            "end_if"
+          ],
+          "index": 210
+        },
+        {
+          "canonical": [
+            "while",
+            "neg_next",
+            "end_loop"
+          ],
+          "index": 211
+        },
+        {
+          "canonical": [
+            "while",
+            "next_line",
+            "continue_statement"
+          ],
+          "index": 212
+        },
+        {
+          "canonical": [
+            "while",
+            "next_line",
+            "end_if"
+          ],
+          "index": 213
+        },
+        {
+          "canonical": [
+            "while",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 214
+        },
+        {
+          "canonical": [
+            "while",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 215
+        },
+        {
+          "canonical": [
+            "while",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 216
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "expression_statement"
+          ],
+          "index": 217
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "new_variable"
+          ],
+          "index": 218
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "while"
+          ],
+          "index": 219
+        }
+      ],
+      "sha256": "53c615fe6de7ead634c4b6ff939d043789f3a8f291bca45e0d8891d5999cf947"
+    },
+    "canonical": [
+      [
+        "constructor_definition",
+        "__G0P_EMPTY_000",
+        "constructor_definition"
+      ],
+      [
+        "constructor_definition",
+        "__G0P_EMPTY_001",
+        "constructor_definition"
+      ],
+      [
+        "constructor_definition",
+        "__G0P_EMPTY_002",
+        "constructor_definition"
+      ],
+      [
+        "constructor_definition",
+        "external_call",
+        "function_definition"
+      ],
+      [
+        "constructor_definition",
+        "first_next_line",
+        "end_if"
+      ],
+      [
+        "constructor_definition",
+        "first_next_line",
+        "end_loop"
+      ],
+      [
+        "constructor_definition",
+        "first_next_line",
+        "expression_statement"
+      ],
+      [
+        "constructor_definition",
+        "first_next_line",
+        "function_definition"
+      ],
+      [
+        "constructor_definition",
+        "first_next_line",
+        "modifier_definition"
+      ],
+      [
+        "constructor_definition",
+        "internal_call",
+        "function_definition"
+      ],
+      [
+        "constructor_definition",
+        "next_line",
+        "contract_declaration"
+      ],
+      [
+        "constructor_definition",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "constructor_definition",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "constructor_definition",
+        "recursive_method_call",
+        "contract_declaration"
+      ],
+      [
+        "continue_statement",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "continue_statement",
+        "next_line",
+        "while"
+      ],
+      [
+        "contract_declaration",
+        "next_line",
+        "constructor_definition"
+      ],
+      [
+        "contract_declaration",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "contract_declaration",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "contract_declaration",
+        "next_line",
+        "struct_declaration"
+      ],
+      [
+        "contract_declaration",
+        "recursive_method_call",
+        "constructor_definition"
+      ],
+      [
+        "contract_declaration",
+        "recursive_method_call",
+        "function_definition"
+      ],
+      [
+        "contract_declaration",
+        "recursive_method_call",
+        "modifier_definition"
+      ],
+      [
+        "end_if",
+        "end_if",
+        "expression_statement"
+      ],
+      [
+        "end_if",
+        "end_if",
+        "if"
+      ],
+      [
+        "end_if",
+        "end_if",
+        "return"
+      ],
+      [
+        "end_if",
+        "end_if",
+        "while"
+      ],
+      [
+        "end_if",
+        "first_next_line",
+        "constructor_definition"
+      ],
+      [
+        "end_if",
+        "neg_next",
+        "if"
+      ],
+      [
+        "end_if",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "end_if",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "end_if",
+        "next_line",
+        "if"
+      ],
+      [
+        "end_if",
+        "next_line",
+        "modifier_definition"
+      ],
+      [
+        "end_if",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "end_if",
+        "next_line",
+        "return"
+      ],
+      [
+        "end_if",
+        "next_line",
+        "struct_declaration"
+      ],
+      [
+        "end_if",
+        "next_line",
+        "while"
+      ],
+      [
+        "end_loop",
+        "first_next_line",
+        "constructor_definition"
+      ],
+      [
+        "end_loop",
+        "neg_next",
+        "for"
+      ],
+      [
+        "end_loop",
+        "neg_next",
+        "while"
+      ],
+      [
+        "end_loop",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "end_loop",
+        "next_line",
+        "for"
+      ],
+      [
+        "end_loop",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "end_loop",
+        "next_line",
+        "if"
+      ],
+      [
+        "end_loop",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "end_loop",
+        "next_line",
+        "return"
+      ],
+      [
+        "end_loop",
+        "next_line",
+        "while"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_000",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_001",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_002",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_003",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_004",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_005",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_006",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_007",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_008",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_009",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_010",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_011",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_012",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "__G0P_EMPTY_013",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "end_if",
+        "end_if"
+      ],
+      [
+        "expression_statement",
+        "first_next_line",
+        "constructor_definition"
+      ],
+      [
+        "expression_statement",
+        "neg_next",
+        "if"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "constructor_definition"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "continue_statement"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "end_loop"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "for"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "if"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "modifier_definition"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "return"
+      ],
+      [
+        "expression_statement",
+        "next_line",
+        "while"
+      ],
+      [
+        "expression_statement",
+        "pos_next",
+        "for"
+      ],
+      [
+        "expression_statement",
+        "pos_next",
+        "if"
+      ],
+      [
+        "expression_statement",
+        "pos_next",
+        "while"
+      ],
+      [
+        "for",
+        "__G0P_EMPTY_000",
+        "for"
+      ],
+      [
+        "for",
+        "__G0P_EMPTY_001",
+        "for"
+      ],
+      [
+        "for",
+        "__G0P_EMPTY_002",
+        "for"
+      ],
+      [
+        "for",
+        "__G0P_EMPTY_003",
+        "for"
+      ],
+      [
+        "for",
+        "__G0P_EMPTY_004",
+        "for"
+      ],
+      [
+        "for",
+        "__G0P_EMPTY_005",
+        "for"
+      ],
+      [
+        "for",
+        "__G0P_EMPTY_006",
+        "for"
+      ],
+      [
+        "for",
+        "neg_next",
+        "end_loop"
+      ],
+      [
+        "for",
+        "next_line",
+        "end_loop"
+      ],
+      [
+        "for",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "for",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "for",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "for",
+        "pos_next",
+        "expression_statement"
+      ],
+      [
+        "for",
+        "pos_next",
+        "new_variable"
+      ],
+      [
+        "function_definition",
+        "__G0P_EMPTY_000",
+        "function_definition"
+      ],
+      [
+        "function_definition",
+        "__G0P_EMPTY_001",
+        "function_definition"
+      ],
+      [
+        "function_definition",
+        "__G0P_EMPTY_002",
+        "function_definition"
+      ],
+      [
+        "function_definition",
+        "__G0P_EMPTY_003",
+        "function_definition"
+      ],
+      [
+        "function_definition",
+        "__G0P_EMPTY_004",
+        "function_definition"
+      ],
+      [
+        "function_definition",
+        "__G0P_EMPTY_005",
+        "function_definition"
+      ],
+      [
+        "function_definition",
+        "external_call",
+        "constructor_definition"
+      ],
+      [
+        "function_definition",
+        "external_call",
+        "function_definition"
+      ],
+      [
+        "function_definition",
+        "external_call",
+        "modifier_definition"
+      ],
+      [
+        "function_definition",
+        "first_next_line",
+        "constructor_definition"
+      ],
+      [
+        "function_definition",
+        "internal_call",
+        "constructor_definition"
+      ],
+      [
+        "function_definition",
+        "internal_call",
+        "function_definition"
+      ],
+      [
+        "function_definition",
+        "internal_call",
+        "modifier_definition"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "contract_declaration"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "end_loop"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "for"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "if"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "interface_declaration"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "library_declaration"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "function_definition",
+        "next_line",
+        "return"
+      ],
+      [
+        "function_definition",
+        "recursive_method_call",
+        "contract_declaration"
+      ],
+      [
+        "function_definition",
+        "recursive_method_call",
+        "interface_declaration"
+      ],
+      [
+        "function_definition",
+        "recursive_method_call",
+        "library_declaration"
+      ],
+      [
+        "if",
+        "__G0P_EMPTY_000",
+        "if"
+      ],
+      [
+        "if",
+        "__G0P_EMPTY_001",
+        "if"
+      ],
+      [
+        "if",
+        "__G0P_EMPTY_002",
+        "if"
+      ],
+      [
+        "if",
+        "__G0P_EMPTY_003",
+        "if"
+      ],
+      [
+        "if",
+        "__G0P_EMPTY_004",
+        "if"
+      ],
+      [
+        "if",
+        "__G0P_EMPTY_005",
+        "if"
+      ],
+      [
+        "if",
+        "__G0P_EMPTY_006",
+        "if"
+      ],
+      [
+        "if",
+        "end_if",
+        "end_if"
+      ],
+      [
+        "if",
+        "neg_next",
+        "end_if"
+      ],
+      [
+        "if",
+        "neg_next",
+        "expression_statement"
+      ],
+      [
+        "if",
+        "neg_next",
+        "if"
+      ],
+      [
+        "if",
+        "neg_next",
+        "new_variable"
+      ],
+      [
+        "if",
+        "neg_next",
+        "return"
+      ],
+      [
+        "if",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "if",
+        "next_line",
+        "end_loop"
+      ],
+      [
+        "if",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "if",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "if",
+        "next_line",
+        "modifier_definition"
+      ],
+      [
+        "if",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "if",
+        "pos_next",
+        "expression_statement"
+      ],
+      [
+        "if",
+        "pos_next",
+        "if"
+      ],
+      [
+        "if",
+        "pos_next",
+        "new_variable"
+      ],
+      [
+        "if",
+        "pos_next",
+        "return"
+      ],
+      [
+        "interface_declaration",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "interface_declaration",
+        "recursive_method_call",
+        "function_definition"
+      ],
+      [
+        "library_declaration",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "library_declaration",
+        "next_line",
+        "struct_declaration"
+      ],
+      [
+        "library_declaration",
+        "recursive_method_call",
+        "function_definition"
+      ],
+      [
+        "modifier_definition",
+        "external_call",
+        "function_definition"
+      ],
+      [
+        "modifier_definition",
+        "first_next_line",
+        "constructor_definition"
+      ],
+      [
+        "modifier_definition",
+        "internal_call",
+        "function_definition"
+      ],
+      [
+        "modifier_definition",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "modifier_definition",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "modifier_definition",
+        "next_line",
+        "if"
+      ],
+      [
+        "modifier_definition",
+        "recursive_method_call",
+        "contract_declaration"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_000",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_001",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_002",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_003",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_004",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_005",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_006",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_007",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_008",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_009",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_010",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_011",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_012",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_013",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_014",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_015",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_016",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_017",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_018",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_019",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_020",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "__G0P_EMPTY_021",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "neg_next",
+        "if"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "constructor_definition"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "contract_declaration"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "end_loop"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "for"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "if"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "return"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "while"
+      ],
+      [
+        "new_variable",
+        "pos_next",
+        "for"
+      ],
+      [
+        "new_variable",
+        "pos_next",
+        "if"
+      ],
+      [
+        "new_variable",
+        "pos_next",
+        "while"
+      ],
+      [
+        "return",
+        "__G0P_EMPTY_000",
+        "return"
+      ],
+      [
+        "return",
+        "__G0P_EMPTY_001",
+        "return"
+      ],
+      [
+        "return",
+        "__G0P_EMPTY_002",
+        "return"
+      ],
+      [
+        "return",
+        "__G0P_EMPTY_003",
+        "return"
+      ],
+      [
+        "return",
+        "__G0P_EMPTY_004",
+        "return"
+      ],
+      [
+        "return",
+        "end_if",
+        "end_if"
+      ],
+      [
+        "return",
+        "neg_next",
+        "if"
+      ],
+      [
+        "return",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "return",
+        "next_line",
+        "end_loop"
+      ],
+      [
+        "return",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "return",
+        "next_line",
+        "function_definition"
+      ],
+      [
+        "return",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "return",
+        "pos_next",
+        "if"
+      ],
+      [
+        "struct_declaration",
+        "next_line",
+        "contract_declaration"
+      ],
+      [
+        "struct_declaration",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "struct_declaration",
+        "next_line",
+        "library_declaration"
+      ],
+      [
+        "while",
+        "__G0P_EMPTY_000",
+        "while"
+      ],
+      [
+        "while",
+        "__G0P_EMPTY_001",
+        "while"
+      ],
+      [
+        "while",
+        "__G0P_EMPTY_002",
+        "while"
+      ],
+      [
+        "while",
+        "end_if",
+        "end_if"
+      ],
+      [
+        "while",
+        "neg_next",
+        "end_loop"
+      ],
+      [
+        "while",
+        "next_line",
+        "continue_statement"
+      ],
+      [
+        "while",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "while",
+        "next_line",
+        "end_loop"
+      ],
+      [
+        "while",
+        "next_line",
+        "expression_statement"
+      ],
+      [
+        "while",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "while",
+        "pos_next",
+        "expression_statement"
+      ],
+      [
+        "while",
+        "pos_next",
+        "new_variable"
+      ],
+      [
+        "while",
+        "pos_next",
+        "while"
+      ]
+    ],
+    "auxiliary_node_types": [],
+    "auxiliary_policy": "excluded from supervision, scoring and contract pooling",
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/access_control_author/prepared/E0/node.gpickle",
+      "sha256": "c3bdfa00bd112581fd4900ac59ab192ad32a9a26df94dc87209e1ba900208488",
+      "fingerprint": "f36690386429bd953135c06cc91d2ed3f59010a6d044935e20f063914bc2971f",
+      "computation_fingerprint": "30d299e9492d5b50d1ea7b2136658d700d23b1ed487e293c502a17936eb402a1",
+      "nodes": 7710,
+      "edges": 8840
+    },
+    "folds": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8d_v1/F/folds/access_control_node.json",
+      "sha256": "614497ddee0192d0319b29ab2810de4b48a4b0bc9c92a40a21a33dae98668a82"
+    },
+    "labels": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/access_control_author/prepared/graph_labels.json",
+      "sha256": "6002778325eca7b981f3a1f996a31c34ccfa1d83b5166d3c28ee37c974384649"
+    },
+    "initial_weights_sha256": "a4c83f90384c4a13ec34248d7a5cb1137d9ea6f25a656732e3e7b9976a2471da",
+    "effective_config_sha256": "80624c3478c85d1ad1283c1c15f62e3068d04e7db2382831a0bc024e3b518edb",
+    "split": {
+      "fold": 6,
+      "inner_seed": 4053642715,
+      "summary": {
+        "inner_train_files": {
+          "files": 42,
+          "groups": 38,
+          "positive_files": 42,
+          "negative_files": 0,
+          "source_cohorts": {
+            "nonSolidiFI": 13,
+            "SolidiFI": 29
+          },
+          "original_node_positive": 2259,
+          "original_node_negative": 3313,
+          "audit_node_positive": 2270,
+          "audit_node_negative": 3159,
+          "audit_masked_nodes": 143,
+          "group_members": {
+            "group_03e98695e0e07f3838ab0c17b9641177e39c9cb3522c0b113badd232748795f2": [
+              "a96c069a20f48d138afb0733c3c65fb8edb8445904caab2868df32fbc79f99f8"
+            ],
+            "group_1d49a4ba02d1df469e485fcce42e32180c2b147306c7a3ec4c29972e1c413f52": [
+              "257875b76eff9f84758ef18ae3291456c0fddd9d3b256f80b3599e953c01ec19"
+            ],
+            "group_2548238ec334a2922271943447fd3c7aaaff7c23ebf56fd341897b1e1cf2068f": [
+              "49c57e077a54c8cf0c1ba52de4353636a4f1b0c46a2c5ccee6a2affd57615ea5"
+            ],
+            "group_357f5b73a919bf5aca865d8359f6205470c3b2fe11d8002f83ff8e6e7e1dea1b": [
+              "5351a89f91ec9307f8043486fb874c3b13b4db0dbf5e20f98e098fe07f9ade60"
+            ],
+            "group_3cd841ca8ba66d2f6f6ce07a841489fad0e2faf8a5d80aa97e2686225a586605": [
+              "74beafff69c8b5a88686790a464b15a118b2ce54f37f56c5d390dc6fe7d27eab"
+            ],
+            "group_422fb8c3f9faaa36ea513ce2cff43cdb0167869189d31f38ef252428d0d30745": [
+              "4ea4713c1949427d1b5f74099a7b1c756002dfa14e205803038605f52fb042eb",
+              "b2b863a707ec6f05906d4a13d44a02fbf7174a9ef04f0706beb9dcd7186c23ed"
+            ],
+            "group_460c4842bfc7ebefc22ea056806f29c1d13aa8ce4cede0a2851f4ca9704cd0a6": [
+              "4cccb3cfe9406b188955ae6dcdf582640889f0c4e7e78756ed90fb5e9e5bf9bb"
+            ],
+            "group_46e063348c409a6204a524a9f507b1a8183daad1799fbb4d6831d2d307551d7c": [
+              "60227b2d004ced20ce7668f1eb79d3fd30546ffe087d6aa84308e774b28c3e54"
+            ],
+            "group_4a1b22556862ed073b8832f7f8d2b33da38cbcef58fb8ce902ecd498888d3047": [
+              "30bb5eb413a0df08287fdb360275cf335bf3c7d37f8782ebd2a30d33eb326073",
+              "4c2e287ce3c772d06b0a2b8e13c2ad9c72968ba10a12ee7faba5825554dc7ab2"
+            ],
+            "group_4adac11ad507db3d039811f69ae39114e28438be0974050f5124ef275cb59856": [
+              "bad6f5d22987b7023d69858ca2f1271e55cf8df0fb82b6779791e0a78250b394"
+            ],
+            "group_62aca8e9dcff2922e19264a79d12e0e61660a4439b16a22cdd3087fa349534cb": [
+              "91dfe0dff3920d72f9d11b9dd9842667a3532a1e7dcdd663e6b2db939f541aab"
+            ],
+            "group_730fa23cc7f6cb336c0f383c371b396474213d40960bd1f69d234a06f85b129c": [
+              "5b734561eeb02c57d9c9fc749fe405103e13c66435a16aff5782bc3d95451c44"
+            ],
+            "group_7ce485a9db8b9c3a6493c71ff0ead5c28e2c91206c7a61bb201fbc4c06f24f7e": [
+              "ecd88e3837508785f8bb39325e08b5277e17f5cef5408a74b343ae094f13f9ef"
+            ],
+            "group_87935fe4a9fc8b429069da717944064d6da521e5362ef998dca048745684fa2a": [
+              "a26e2da9a22c54a7090b529d052f16f6a07191326ea6876cabae7035ba1c2111"
+            ],
+            "group_8899c37a6010a9f932f7370d1dd9b1e99d18920dc0fdbf4f6ca2932a632c2ca1": [
+              "bacc424c386700f4d79ad30ac330c98cfde85d2df10beee66b14f6729a11632d"
+            ],
+            "group_8b5136393c8101d5fc2c1865e9ca70e28aed30ac3608556f09bef99ab6e83154": [
+              "fcd4cf448cc9a15ed1a84f99206203aa1e0538169dbe3aa309c1425a278a8a04"
+            ],
+            "group_937c98b18b9216259c39b23df0974d917fe57b2da6dd6f9d7a4c38468c98c55b": [
+              "0991097d6ca14c69c650194bca6257116eab62817b29668aa772e15c3076a783"
+            ],
+            "group_a030a22bac03ac71d348f33e3d17d77c91fedfcb0a12825ef4f6ef62ea64b140": [
+              "01f0042d8b528d7564b9c09efddd4ab1fafcf1ee9b4e513f9dcdf09f950a0941"
+            ],
+            "group_a92e49567285c89fcb1b90a112986201b7a874b500195e344e40cef12f0926ad": [
+              "438a0ccdbfdf9efea0290a352bb63160bef7105856a2993eab3be4398bc25fc1"
+            ],
+            "group_afcf4bebc9177ef2351378a2763a2c542ef9bdfc290002bde2ad9bbffe7a429e": [
+              "748488c8e2fcbd4bef74729e73e282a169bbde34a01e44a202ec1027f5c23193"
+            ],
+            "group_b543a6765c3034e6739c60c65af9db6ccc413faa0b78b6e400c419d81b2a1757": [
+              "3cc2fab852099abdaaefe057d64413623fff6e7dc1d4205565356465c6a86bf2"
+            ],
+            "group_b7376b7bac0cee853497a6e06a28736bd38cd59df2555d9382798d22b03ee4b9": [
+              "31861a8a008fa9108c4558b893e9dbb54f70acd25553823e82de4972abffe304"
+            ],
+            "group_ba34c4fb02f96c2d2891562c8ea1f6c786c7b209d6804bd2b2c95cd05240a2dd": [
+              "05611a34400a8135205d39528cdd5059249fd045cbcd5a5ec0ceb06d3365debc"
+            ],
+            "group_be38cbfae0c5e4b3d94808416b4c05673ccc1cce7fda19564ed739790f239e84": [
+              "a2928dde3fdbeaf648759cb05009763f8bc711f1b27a5f37e9aafd2b01e31bf1"
+            ],
+            "group_c15911d2fa7896f18ebc7ecae231308fc57f8e5389e254de71a47c7e3d9c3dd9": [
+              "f6441bb0b1783b5b8047d2c202261a0f90e65e6f3ed62cb12d75ccc7ec128e61"
+            ],
+            "group_c28a9744935f5c55eec1ce019fca885b301ffc57e551007b8d62eeee9cda230f": [
+              "debbcae5628bcaa31f3c151665f71059c07b24aa631521f7e1865e259d8fc15b"
+            ],
+            "group_c47b929b2e78665b09d7249dbc700df5db7af50a176432280e61441adb01b34e": [
+              "218b71a2df9a8e4014ed0c65f8247060e013f24cd5b12b58e6cb7c1eb381be3b",
+              "d779508a33959c647fd63e6670214ef82fd28a0f376c84edf9ebbfd4cb5bf50c"
+            ],
+            "group_c618cca1959cb3a6ec56937068efda7e6757ab4a9b3017f3bdb2f91324c28b43": [
+              "5cc4015c7e77dc2984b31d1b7559949f26728d586bc5b2cd3d99194237f9e5ae"
+            ],
+            "group_c670e1a04d0046e5c05bb44c624e2d6b3afb28e8001ee5d0c7644aa92965b4b6": [
+              "00f8cd17389d0dc87e92d39491dd9fd88d242ffe683cb96223b5305215f72996"
+            ],
+            "group_c97c9ec99918b5995eff31bbec03b802b2ca710365e48449670a967567ef1a65": [
+              "63410f32ebb16c1667f03e58e956ab07d9d24831d37949325bc8067957d8e30e"
+            ],
+            "group_cd4a745c5d9d970cba3802155234df88f719d295eecd867c4ff709a4393cc035": [
+              "9d8855c1a12a1bbe66eecff92b2ee6d5040bcba68ff0ffc0e1c497c2406f94f7",
+              "ded0d09ab039a84cc0ecb2fc9654363da9ab1a35436f557969a90f803130e61f"
+            ],
+            "group_d9f5e2cd68d9b33169ec111217e47f3c991ad55d25819140e653d13e7b0456dc": [
+              "9e085f8814833f406c833007128ba97d716c333eae3b870035284720bd86723a"
+            ],
+            "group_ddf70b7a49cc0b945284cd2f37f092a99dfb25fb5123926b9af444a615574898": [
+              "a511b82a7de943ca7c01bfd58215bf4ac54f6bf28231d5f0eb266016e815706f"
+            ],
+            "group_e0c99ad3c3031f9b0ef557c976d561e7779d33829e02a6b884948d159ab6cebf": [
+              "9ad301a8e7a7db59fc0eb25173e00e86389bca496f11284e3c3bd23b88ee9b06"
+            ],
+            "group_e110da2e144bffc258618ed405483de0d2742d178f77bee57e882bf3fefc42d1": [
+              "5199ece3d677002aea2d0f456dba46a8611839afc8bc3ea1c1836ee778fbce3d"
+            ],
+            "group_e7adf60d492da88c96958c662cf81e9e095e572d41b72c0b54bd03a9dc1e9968": [
+              "cf06c66dc527a22e305234f4b3a92ebfe59092d31cb189a9ce91c5b10b851731"
+            ],
+            "group_f2711b4c3d0f61feac22dda0091fa0a8cf6a2cf509aedc1c4cdd481db9f3fb2d": [
+              "bf22c5e6526c5947efbde901c526bc6b9c6360fd47d518eab5e23b73530b4595"
+            ],
+            "group_fc551f74852dd6529165e2cf9ff9471bfa6a92047ccf90173bb18c4903b01d34": [
+              "32d4da2b815c4d8351c42ed41026e184872b37b4b2f70e3d225d37fd35d7e94b"
+            ]
+          }
+        },
+        "inner_val_files": {
+          "files": 10,
+          "groups": 10,
+          "positive_files": 10,
+          "negative_files": 0,
+          "source_cohorts": {
+            "SolidiFI": 7,
+            "nonSolidiFI": 3
+          },
+          "original_node_positive": 500,
+          "original_node_negative": 971,
+          "audit_node_positive": 585,
+          "audit_node_negative": 854,
+          "audit_masked_nodes": 32,
+          "group_members": {
+            "group_02fa636c2ff592999e3f71b90cd05fef43effe91c35d052fc81316f620468776": [
+              "7c5d739ad666544107fed1423e6112847a73e5a18c8b4f15975cdad91637de90"
+            ],
+            "group_0a651cf21bf0571bb5291d1b6c6d4f6401b69bf5416595ceec805569fffca3d3": [
+              "bc936fc60962a03d8884d6cdddabb405cce04790a7681d3b5899dd18fb2d1110"
+            ],
+            "group_1ee1169466d31be92315e9cbc2057d35962989a710ad263a73b0815b7947e931": [
+              "b5c6e1b4fee740418507a502d392d6c32593d14e1dd0b581e6834b6065287c78"
+            ],
+            "group_2de70ae813f6525a530d36b3cb149125b7d0bc81f45229f8210497dd41b70946": [
+              "05ec19f88544dc17b7c94a498df0cbe12888c22a00b92ab881f8efd26c3d0e06"
+            ],
+            "group_8f50fb05957b4c30b5640cc69e7ead9ba2c9e87651ff96bb5c5a48ab3ee42156": [
+              "aa31f3f8b2345a50dee43070cfa7982c998bb2528c1ca4716893684c6be66c52"
+            ],
+            "group_b242d7020bd16b950fe274af63f93705060cec519b09522050dde0514c040ccc": [
+              "4f015e5eebd7ae53ec82609a959465cdc975c374c273501c94d298257bd2b72c"
+            ],
+            "group_c293f8ae4e2c675043326afee7f963a6dae3bdedcf214284d6d75effc64c43d2": [
+              "d91f65facb04c24a8af04931a4bd5e26039e9629457dd1e7127f21643a805091"
+            ],
+            "group_c910feeba401f3fe22322e592e2f0428e36a09fe5c7b0ef020e5c4ecba5773f1": [
+              "c10a509b48d204f4cf30676454e1a01932380b00fcd7d8448911393558de79ab"
+            ],
+            "group_dfe784ae64b6c30e23ffee53bb8321c804dc23f1a0db9decebbb9fa1ef35f3c6": [
+              "70717c8448f14dd4556ecc0cb3db60aa25e49421a8a2022c1984a02eb5c01448"
+            ],
+            "group_fc4c1c669fd04b2332637679221bd1245b53fac104ba40563d5edce8f63048ea": [
+              "cfbca1ae8373ecfdae32eff1cf3a490d3cad1b422206238741312e8b373235f6"
+            ]
+          }
+        },
+        "outer_test_files": {
+          "files": 5,
+          "groups": 4,
+          "positive_files": 5,
+          "negative_files": 0,
+          "source_cohorts": {
+            "SolidiFI": 4,
+            "nonSolidiFI": 1
+          },
+          "original_node_positive": 218,
+          "original_node_negative": 449,
+          "audit_node_positive": 218,
+          "audit_node_negative": 203,
+          "audit_masked_nodes": 246,
+          "group_members": {
+            "group_a16eff81dff8db2ed487065d8a806ba14e0c4f50b8170902618509cd590553db": [
+              "79eaaf479afce60ba0c6896e56a585e280478d3cdb7868597fc418c8d14b047a"
+            ],
+            "group_b72a747d4be9c84ff377e5bfb232c01cebc6c97cf1fec253315200823eaf50cc": [
+              "ae3c83426e36bda19762380388cbb7ea6f8236bcd004786a14c07d4f8d43a432"
+            ],
+            "group_e75b6d3856102f2603cca4aeaf8859ab135077e8005dba8f857f03da8e8ec9f8": [
+              "a077beae17ba8424bcabc7e3b5b4b6ef025767f122bd4c04cede0860ef820740"
+            ],
+            "group_fccaf7ba33e7d06bafc9adbd3159c844d15f1f338ed8b77b944d4b13bddbb953": [
+              "6a1573696cad5622d48ffa042e256db60a834794184f3fa99e195ea79c6d6570",
+              "f615f265e1719b6605f5890003335b5685926e49e12c58a3d023c63a31412a70"
+            ]
+          }
+        }
+      },
+      "inner_train_files": [
+        "FibonacciBalance.sol",
+        "arbitrary_location_write_simple.sol",
+        "buggy_14.sol",
+        "buggy_15.sol",
+        "buggy_16.sol",
+        "buggy_17.sol",
+        "buggy_20.sol",
+        "buggy_22.sol",
+        "buggy_24.sol",
+        "buggy_25.sol",
+        "buggy_26.sol",
+        "buggy_27.sol",
+        "buggy_28.sol",
+        "buggy_29.sol",
+        "buggy_3.sol",
+        "buggy_30.sol",
+        "buggy_31.sol",
+        "buggy_32.sol",
+        "buggy_33.sol",
+        "buggy_34.sol",
+        "buggy_35.sol",
+        "buggy_36.sol",
+        "buggy_38.sol",
+        "buggy_4.sol",
+        "buggy_40.sol",
+        "buggy_42.sol",
+        "buggy_43.sol",
+        "buggy_44.sol",
+        "buggy_45.sol",
+        "buggy_48.sol",
+        "buggy_6.sol",
+        "incorrect_constructor_name1.sol",
+        "incorrect_constructor_name2.sol",
+        "incorrect_constructor_name3.sol",
+        "mapping_write.sol",
+        "multiowned_vulnerable.sol",
+        "mycontract.sol",
+        "proxy.sol",
+        "simple_suicide.sol",
+        "unprotected0.sol",
+        "wallet_02_refund_nosub.sol",
+        "wallet_04_confused_sign.sol"
+      ],
+      "inner_val_files": [
+        "buggy_11.sol",
+        "buggy_18.sol",
+        "buggy_19.sol",
+        "buggy_2.sol",
+        "buggy_21.sol",
+        "buggy_47.sol",
+        "buggy_50.sol",
+        "phishable.sol",
+        "rubixi.sol",
+        "wallet_03_wrong_constructor.sol"
+      ],
+      "outer_test_files": [
+        "buggy_23.sol",
+        "buggy_39.sol",
+        "buggy_49.sol",
+        "buggy_7.sol",
+        "parity_wallet_bug_2.sol"
+      ]
+    },
+    "support_sha256": "9cda59cd8175d25e2670a720deede9209ddcfaabbb51875fb87088f399156728",
+    "initialization": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8h_v1/prepared_attempt3/access_control_node/fold_6/initialization.json",
+      "sha256": "dcffb165aa67a70e38f42917fa94e5f9545fe469bfe7aed8cdc646a308598b15"
+    },
+    "initial_state_sha256": "1b71d340d5d6c4b4422349814da1f0f5bdb5757da1b458e6a323406a21b4318e",
+    "label_policy": "L-audit",
+    "label_view": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8d_v1/F/label_views.json",
+      "sha256": "c57bc81d501b62f8492c18f17d73352f48ad4b6d042fcf303135ce2cd214f1ef"
+    },
+    "feature_view": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/access_control_node/anonymous_manifest.json",
+      "sha256": "a3b0fd9a0b605c74461a6d0761b457ac291da7591a315914a4f55ba2fae92f3f"
+    },
+    "feature_npz": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/access_control_node/anonymous.npz",
+      "sha256": "cb3f430a0ed2ea3be353655603b0f55bd80e9eb9014e23a13b953cc524b9f8f7"
+    },
+    "source_preparation": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/plan/plan.json",
+      "sha256": "be66792cbd43978588761393f354f1df89f1a181104bbee5d567252aae57536a"
+    }
+  },
+  "binding_sha256": "3be414b5bc6b0211224305fbce235a57057bec455b1557b86af45b8d59fbe8d2",
+  "epoch": 15,
+  "monitor": {
+    "best_inner_val_loss": 0.06413492560386658,
+    "counter": 3,
+    "reference": 0.06480791419744492
+  }
+}

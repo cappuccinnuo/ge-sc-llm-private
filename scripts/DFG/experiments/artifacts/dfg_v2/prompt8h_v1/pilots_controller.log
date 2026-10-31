@@ -1,0 +1,19 @@
+Using backend: pytorch
+Traceback (most recent call last):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/execution.py", line 342, in <module>
+    if __name__=="__main__":main()
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/execution.py", line 338, in main
+    elif a.command in ("pilots","all"):controller(Path(a.plan),a.command=="pilots")
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/execution.py", line 317, in controller
+    extra_refs=[task["label_view"],task["feature_view"],task["feature_npz"],plan["authorization"]])
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/acceptance_cache.py", line 204, in create_cache
+    receipt, before = _dependencies(plan_path, attempt, extra_refs)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/acceptance_cache.py", line 160, in _dependencies
+    add(sibling)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/acceptance_cache.py", line 84, in add
+    raise ValueError("Conflicting or changing dependency: " + str(path))
+ValueError: Conflicting or changing dependency: /home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8h_v1/runs/reentrancy_contract/fold_0/seed_1/G0/attempt_001.memory_samples.jsonl

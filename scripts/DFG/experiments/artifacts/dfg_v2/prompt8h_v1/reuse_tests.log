@@ -1,0 +1,516 @@
+..............................FFFFFFFF...                                [100%]
+=================================== FAILURES ===================================
+________ test_untrained_structure_reuse_exactly_matches_fresh[G1R-node] ________
+
+task = 'node', profile = 'G1R'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    @pytest.mark.parametrize("profile",["G1R","G2R","G3R","G3"])
+    def test_untrained_structure_reuse_exactly_matches_fresh(task,profile):
+        from scripts.DFG.dfg_v2.benchmark_v2.initial_preparation import UntrainedStructures
+        from scripts.DFG.dfg_v2.model import make_model
+        from scripts.DFG.dfg_v2.tests.test_experiment_protocol import small_graph
+        from scripts.DFG.dfg_v2.experiment.init import initialize_family,seeds
+        graphs={p:small_graph(p) for p in ("G0",profile)}
+        config=dict(hidden_size=16,layers=2,heads=4)
+        cache=UntrainedStructures(task,graphs,config)
+        prior=None
+        for fold in (0,1):
+            seed=seeds(task,fold)["constructor"]
+            seed_all(seed)
+            anchor=make_model(task,graphs["G0"],"G0","cpu",reducer="mean",layer_impl="shared_projection",**config)
+            seed_all(seed)
+>           fresh=make_model(task,graphs[profile],profile,"cpu",reducer="mean",layer_impl="shared_projection",**config)
+
+scripts/DFG/dfg_v2/tests/test_benchmark_execution.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/dfg_v2/model.py:168: in make_model
+    layers, heads, reducer, layer_impl).to(device)
+scripts/DFG/dfg_v2/model.py:152: in __init__
+    hidden_size, layers, heads, reducer, layer_impl)
+scripts/DFG/dfg_v2/model.py:112: in _construct
+    model.symmetrical_global_graph_data = materialize(edge_data(model.nx_graph), profile)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = {('env_source', 'ENV_FLOW', 'expression_statement'): (tensor([0, 1, 2]), tensor([0, 1, 2])), ('expression_statement', ... tensor([0])), ('function_definition', 'first_next_line', 'new_variable'): (tensor([0, 1, 2]), tensor([0, 1, 2])), ...}
+profile = 'G1R'
+
+    def materialize(data, profile):
+        """Reflect base edges unchanged, keep v2 directed, and explicitly add REV_.
+    
+        NetworkX inputs for G3 and G3R contain the same forward relations. Explicit
+        reverses exist only in this model-input dictionary, never in the source HCG.
+        Multiple base canonicals that the original reflector merges retain its exact
+        behavior; newly inserted v2 canonicals may never overwrite an existing key.
+        """
+        allowed_forward = forward_relations(profile)
+        ordinary = {}
+        forward = {}
+        for canonical, endpoints in data.items():
+            _validate_canonical(canonical, endpoints)
+            relation = canonical[1]
+            if relation.startswith("REV_"):
+                raise ValueError("Input REV_* relations are forbidden: " + relation)
+            if relation in FORWARD_RELATIONS:
+                if relation not in allowed_forward:
+>                   raise ValueError("Relation {} is not allowed by {}".format(relation, profile))
+E                   ValueError: Relation READS_STATE is not allowed by G1R
+
+scripts/DFG/dfg_v2/model_input.py:63: ValueError
+______ test_untrained_structure_reuse_exactly_matches_fresh[G1R-contract] ______
+
+task = 'contract', profile = 'G1R'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    @pytest.mark.parametrize("profile",["G1R","G2R","G3R","G3"])
+    def test_untrained_structure_reuse_exactly_matches_fresh(task,profile):
+        from scripts.DFG.dfg_v2.benchmark_v2.initial_preparation import UntrainedStructures
+        from scripts.DFG.dfg_v2.model import make_model
+        from scripts.DFG.dfg_v2.tests.test_experiment_protocol import small_graph
+        from scripts.DFG.dfg_v2.experiment.init import initialize_family,seeds
+        graphs={p:small_graph(p) for p in ("G0",profile)}
+        config=dict(hidden_size=16,layers=2,heads=4)
+        cache=UntrainedStructures(task,graphs,config)
+        prior=None
+        for fold in (0,1):
+            seed=seeds(task,fold)["constructor"]
+            seed_all(seed)
+            anchor=make_model(task,graphs["G0"],"G0","cpu",reducer="mean",layer_impl="shared_projection",**config)
+            seed_all(seed)
+>           fresh=make_model(task,graphs[profile],profile,"cpu",reducer="mean",layer_impl="shared_projection",**config)
+
+scripts/DFG/dfg_v2/tests/test_benchmark_execution.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/dfg_v2/model.py:168: in make_model
+    layers, heads, reducer, layer_impl).to(device)
+scripts/DFG/dfg_v2/model.py:159: in __init__
+    hidden_size, layers, heads, reducer, layer_impl)
+scripts/DFG/dfg_v2/model.py:112: in _construct
+    model.symmetrical_global_graph_data = materialize(edge_data(model.nx_graph), profile)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = {('env_source', 'ENV_FLOW', 'expression_statement'): (tensor([0, 1, 2]), tensor([0, 1, 2])), ('expression_statement', ... tensor([0])), ('function_definition', 'first_next_line', 'new_variable'): (tensor([0, 1, 2]), tensor([0, 1, 2])), ...}
+profile = 'G1R'
+
+    def materialize(data, profile):
+        """Reflect base edges unchanged, keep v2 directed, and explicitly add REV_.
+    
+        NetworkX inputs for G3 and G3R contain the same forward relations. Explicit
+        reverses exist only in this model-input dictionary, never in the source HCG.
+        Multiple base canonicals that the original reflector merges retain its exact
+        behavior; newly inserted v2 canonicals may never overwrite an existing key.
+        """
+        allowed_forward = forward_relations(profile)
+        ordinary = {}
+        forward = {}
+        for canonical, endpoints in data.items():
+            _validate_canonical(canonical, endpoints)
+            relation = canonical[1]
+            if relation.startswith("REV_"):
+                raise ValueError("Input REV_* relations are forbidden: " + relation)
+            if relation in FORWARD_RELATIONS:
+                if relation not in allowed_forward:
+>                   raise ValueError("Relation {} is not allowed by {}".format(relation, profile))
+E                   ValueError: Relation READS_STATE is not allowed by G1R
+
+scripts/DFG/dfg_v2/model_input.py:63: ValueError
+________ test_untrained_structure_reuse_exactly_matches_fresh[G2R-node] ________
+
+task = 'node', profile = 'G2R'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    @pytest.mark.parametrize("profile",["G1R","G2R","G3R","G3"])
+    def test_untrained_structure_reuse_exactly_matches_fresh(task,profile):
+        from scripts.DFG.dfg_v2.benchmark_v2.initial_preparation import UntrainedStructures
+        from scripts.DFG.dfg_v2.model import make_model
+        from scripts.DFG.dfg_v2.tests.test_experiment_protocol import small_graph
+        from scripts.DFG.dfg_v2.experiment.init import initialize_family,seeds
+        graphs={p:small_graph(p) for p in ("G0",profile)}
+        config=dict(hidden_size=16,layers=2,heads=4)
+        cache=UntrainedStructures(task,graphs,config)
+        prior=None
+        for fold in (0,1):
+            seed=seeds(task,fold)["constructor"]
+            seed_all(seed)
+            anchor=make_model(task,graphs["G0"],"G0","cpu",reducer="mean",layer_impl="shared_projection",**config)
+            seed_all(seed)
+>           fresh=make_model(task,graphs[profile],profile,"cpu",reducer="mean",layer_impl="shared_projection",**config)
+
+scripts/DFG/dfg_v2/tests/test_benchmark_execution.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/dfg_v2/model.py:168: in make_model
+    layers, heads, reducer, layer_impl).to(device)
+scripts/DFG/dfg_v2/model.py:152: in __init__
+    hidden_size, layers, heads, reducer, layer_impl)
+scripts/DFG/dfg_v2/model.py:112: in _construct
+    model.symmetrical_global_graph_data = materialize(edge_data(model.nx_graph), profile)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = {('env_source', 'ENV_FLOW', 'expression_statement'): (tensor([0, 1, 2]), tensor([0, 1, 2])), ('expression_statement', ... tensor([0])), ('function_definition', 'first_next_line', 'new_variable'): (tensor([0, 1, 2]), tensor([0, 1, 2])), ...}
+profile = 'G2R'
+
+    def materialize(data, profile):
+        """Reflect base edges unchanged, keep v2 directed, and explicitly add REV_.
+    
+        NetworkX inputs for G3 and G3R contain the same forward relations. Explicit
+        reverses exist only in this model-input dictionary, never in the source HCG.
+        Multiple base canonicals that the original reflector merges retain its exact
+        behavior; newly inserted v2 canonicals may never overwrite an existing key.
+        """
+        allowed_forward = forward_relations(profile)
+        ordinary = {}
+        forward = {}
+        for canonical, endpoints in data.items():
+            _validate_canonical(canonical, endpoints)
+            relation = canonical[1]
+            if relation.startswith("REV_"):
+                raise ValueError("Input REV_* relations are forbidden: " + relation)
+            if relation in FORWARD_RELATIONS:
+                if relation not in allowed_forward:
+>                   raise ValueError("Relation {} is not allowed by {}".format(relation, profile))
+E                   ValueError: Relation ENV_FLOW is not allowed by G2R
+
+scripts/DFG/dfg_v2/model_input.py:63: ValueError
+______ test_untrained_structure_reuse_exactly_matches_fresh[G2R-contract] ______
+
+task = 'contract', profile = 'G2R'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    @pytest.mark.parametrize("profile",["G1R","G2R","G3R","G3"])
+    def test_untrained_structure_reuse_exactly_matches_fresh(task,profile):
+        from scripts.DFG.dfg_v2.benchmark_v2.initial_preparation import UntrainedStructures
+        from scripts.DFG.dfg_v2.model import make_model
+        from scripts.DFG.dfg_v2.tests.test_experiment_protocol import small_graph
+        from scripts.DFG.dfg_v2.experiment.init import initialize_family,seeds
+        graphs={p:small_graph(p) for p in ("G0",profile)}
+        config=dict(hidden_size=16,layers=2,heads=4)
+        cache=UntrainedStructures(task,graphs,config)
+        prior=None
+        for fold in (0,1):
+            seed=seeds(task,fold)["constructor"]
+            seed_all(seed)
+            anchor=make_model(task,graphs["G0"],"G0","cpu",reducer="mean",layer_impl="shared_projection",**config)
+            seed_all(seed)
+>           fresh=make_model(task,graphs[profile],profile,"cpu",reducer="mean",layer_impl="shared_projection",**config)
+
+scripts/DFG/dfg_v2/tests/test_benchmark_execution.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/dfg_v2/model.py:168: in make_model
+    layers, heads, reducer, layer_impl).to(device)
+scripts/DFG/dfg_v2/model.py:159: in __init__
+    hidden_size, layers, heads, reducer, layer_impl)
+scripts/DFG/dfg_v2/model.py:112: in _construct
+    model.symmetrical_global_graph_data = materialize(edge_data(model.nx_graph), profile)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = {('env_source', 'ENV_FLOW', 'expression_statement'): (tensor([0, 1, 2]), tensor([0, 1, 2])), ('expression_statement', ... tensor([0])), ('function_definition', 'first_next_line', 'new_variable'): (tensor([0, 1, 2]), tensor([0, 1, 2])), ...}
+profile = 'G2R'
+
+    def materialize(data, profile):
+        """Reflect base edges unchanged, keep v2 directed, and explicitly add REV_.
+    
+        NetworkX inputs for G3 and G3R contain the same forward relations. Explicit
+        reverses exist only in this model-input dictionary, never in the source HCG.
+        Multiple base canonicals that the original reflector merges retain its exact
+        behavior; newly inserted v2 canonicals may never overwrite an existing key.
+        """
+        allowed_forward = forward_relations(profile)
+        ordinary = {}
+        forward = {}
+        for canonical, endpoints in data.items():
+            _validate_canonical(canonical, endpoints)
+            relation = canonical[1]
+            if relation.startswith("REV_"):
+                raise ValueError("Input REV_* relations are forbidden: " + relation)
+            if relation in FORWARD_RELATIONS:
+                if relation not in allowed_forward:
+>                   raise ValueError("Relation {} is not allowed by {}".format(relation, profile))
+E                   ValueError: Relation ENV_FLOW is not allowed by G2R
+
+scripts/DFG/dfg_v2/model_input.py:63: ValueError
+________ test_untrained_structure_reuse_exactly_matches_fresh[G3R-node] ________
+
+task = 'node', profile = 'G3R'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    @pytest.mark.parametrize("profile",["G1R","G2R","G3R","G3"])
+    def test_untrained_structure_reuse_exactly_matches_fresh(task,profile):
+        from scripts.DFG.dfg_v2.benchmark_v2.initial_preparation import UntrainedStructures
+        from scripts.DFG.dfg_v2.model import make_model
+        from scripts.DFG.dfg_v2.tests.test_experiment_protocol import small_graph
+        from scripts.DFG.dfg_v2.experiment.init import initialize_family,seeds
+        graphs={p:small_graph(p) for p in ("G0",profile)}
+        config=dict(hidden_size=16,layers=2,heads=4)
+        cache=UntrainedStructures(task,graphs,config)
+        prior=None
+        for fold in (0,1):
+            seed=seeds(task,fold)["constructor"]
+            seed_all(seed)
+            anchor=make_model(task,graphs["G0"],"G0","cpu",reducer="mean",layer_impl="shared_projection",**config)
+            seed_all(seed)
+            fresh=make_model(task,graphs[profile],profile,"cpu",reducer="mean",layer_impl="shared_projection",**config)
+>           initialize_family({"G0":anchor,profile:fresh},seed)
+
+scripts/DFG/dfg_v2/tests/test_benchmark_execution.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+models = {'G0': DfgV2NodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayerSharedProjection(
+      (k_linears): ModuleList(
+   ...ear(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)}
+anchor_seed = 10000
+
+    def initialize_family(models, anchor_seed):
+        """Initialize fresh models from a caller-constructed G0 anchor.
+    
+        G0 must have been constructed with anchor_seed. No global RNG is consumed.
+        No checkpoint is accepted here. Receivers are fully validated before any
+        weights are loaded; repeated calls are deterministic and G0 is untouched.
+        """
+        if type(anchor_seed) is not int or anchor_seed < 0:
+            raise ValueError("anchor_seed must be a nonnegative integer")
+        if "G0" not in models or len({id(m) for m in models.values()}) != len(models):
+            raise ValueError("Provide distinct profile models with a G0 anchor")
+        anchor = models["G0"]
+        for profile, model in models.items():
+            _check_fresh(model)
+            if model.dfg_profile != profile:
+                raise ValueError("Profile key differs from model profile")
+            validate_registration(model)
+            if model.dfg_task != anchor.dfg_task:
+                raise ValueError("Cannot mix classifier tasks")
+            if model.dfg_layer_impl != anchor.dfg_layer_impl:
+                raise ValueError("Cannot mix layer_impl within an initialization family")
+            if model.node_feature != anchor.node_feature:
+                raise ValueError("Cannot mix feature modes")
+            if not set(anchor.ntypes_dict).issubset(model.ntypes_dict):
+                raise ValueError("A profile removed G0 node types")
+            if set(model.ntypes_dict) - set(anchor.ntypes_dict) - set(AUX_NODE_TYPES):
+>               raise ValueError("Only registered auxiliary node types may be added")
+E               ValueError: Only registered auxiliary node types may be added
+
+scripts/DFG/dfg_v2/experiment/init.py:129: ValueError
+______ test_untrained_structure_reuse_exactly_matches_fresh[G3R-contract] ______
+
+task = 'contract', profile = 'G3R'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    @pytest.mark.parametrize("profile",["G1R","G2R","G3R","G3"])
+    def test_untrained_structure_reuse_exactly_matches_fresh(task,profile):
+        from scripts.DFG.dfg_v2.benchmark_v2.initial_preparation import UntrainedStructures
+        from scripts.DFG.dfg_v2.model import make_model
+        from scripts.DFG.dfg_v2.tests.test_experiment_protocol import small_graph
+        from scripts.DFG.dfg_v2.experiment.init import initialize_family,seeds
+        graphs={p:small_graph(p) for p in ("G0",profile)}
+        config=dict(hidden_size=16,layers=2,heads=4)
+        cache=UntrainedStructures(task,graphs,config)
+        prior=None
+        for fold in (0,1):
+            seed=seeds(task,fold)["constructor"]
+            seed_all(seed)
+            anchor=make_model(task,graphs["G0"],"G0","cpu",reducer="mean",layer_impl="shared_projection",**config)
+            seed_all(seed)
+            fresh=make_model(task,graphs[profile],profile,"cpu",reducer="mean",layer_impl="shared_projection",**config)
+>           initialize_family({"G0":anchor,profile:fresh},seed)
+
+scripts/DFG/dfg_v2/tests/test_benchmark_execution.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+models = {'G0': DfgV2GraphClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayerSharedProjection(
+      (k_linears): ModuleList(
+  ...ear(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)}
+anchor_seed = 11000
+
+    def initialize_family(models, anchor_seed):
+        """Initialize fresh models from a caller-constructed G0 anchor.
+    
+        G0 must have been constructed with anchor_seed. No global RNG is consumed.
+        No checkpoint is accepted here. Receivers are fully validated before any
+        weights are loaded; repeated calls are deterministic and G0 is untouched.
+        """
+        if type(anchor_seed) is not int or anchor_seed < 0:
+            raise ValueError("anchor_seed must be a nonnegative integer")
+        if "G0" not in models or len({id(m) for m in models.values()}) != len(models):
+            raise ValueError("Provide distinct profile models with a G0 anchor")
+        anchor = models["G0"]
+        for profile, model in models.items():
+            _check_fresh(model)
+            if model.dfg_profile != profile:
+                raise ValueError("Profile key differs from model profile")
+            validate_registration(model)
+            if model.dfg_task != anchor.dfg_task:
+                raise ValueError("Cannot mix classifier tasks")
+            if model.dfg_layer_impl != anchor.dfg_layer_impl:
+                raise ValueError("Cannot mix layer_impl within an initialization family")
+            if model.node_feature != anchor.node_feature:
+                raise ValueError("Cannot mix feature modes")
+            if not set(anchor.ntypes_dict).issubset(model.ntypes_dict):
+                raise ValueError("A profile removed G0 node types")
+            if set(model.ntypes_dict) - set(anchor.ntypes_dict) - set(AUX_NODE_TYPES):
+>               raise ValueError("Only registered auxiliary node types may be added")
+E               ValueError: Only registered auxiliary node types may be added
+
+scripts/DFG/dfg_v2/experiment/init.py:129: ValueError
+________ test_untrained_structure_reuse_exactly_matches_fresh[G3-node] _________
+
+task = 'node', profile = 'G3'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    @pytest.mark.parametrize("profile",["G1R","G2R","G3R","G3"])
+    def test_untrained_structure_reuse_exactly_matches_fresh(task,profile):
+        from scripts.DFG.dfg_v2.benchmark_v2.initial_preparation import UntrainedStructures
+        from scripts.DFG.dfg_v2.model import make_model
+        from scripts.DFG.dfg_v2.tests.test_experiment_protocol import small_graph
+        from scripts.DFG.dfg_v2.experiment.init import initialize_family,seeds
+        graphs={p:small_graph(p) for p in ("G0",profile)}
+        config=dict(hidden_size=16,layers=2,heads=4)
+        cache=UntrainedStructures(task,graphs,config)
+        prior=None
+        for fold in (0,1):
+            seed=seeds(task,fold)["constructor"]
+            seed_all(seed)
+            anchor=make_model(task,graphs["G0"],"G0","cpu",reducer="mean",layer_impl="shared_projection",**config)
+            seed_all(seed)
+            fresh=make_model(task,graphs[profile],profile,"cpu",reducer="mean",layer_impl="shared_projection",**config)
+>           initialize_family({"G0":anchor,profile:fresh},seed)
+
+scripts/DFG/dfg_v2/tests/test_benchmark_execution.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+models = {'G0': DfgV2NodeClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayerSharedProjection(
+      (k_linears): ModuleList(
+   ...ear(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)}
+anchor_seed = 10000
+
+    def initialize_family(models, anchor_seed):
+        """Initialize fresh models from a caller-constructed G0 anchor.
+    
+        G0 must have been constructed with anchor_seed. No global RNG is consumed.
+        No checkpoint is accepted here. Receivers are fully validated before any
+        weights are loaded; repeated calls are deterministic and G0 is untouched.
+        """
+        if type(anchor_seed) is not int or anchor_seed < 0:
+            raise ValueError("anchor_seed must be a nonnegative integer")
+        if "G0" not in models or len({id(m) for m in models.values()}) != len(models):
+            raise ValueError("Provide distinct profile models with a G0 anchor")
+        anchor = models["G0"]
+        for profile, model in models.items():
+            _check_fresh(model)
+            if model.dfg_profile != profile:
+                raise ValueError("Profile key differs from model profile")
+            validate_registration(model)
+            if model.dfg_task != anchor.dfg_task:
+                raise ValueError("Cannot mix classifier tasks")
+            if model.dfg_layer_impl != anchor.dfg_layer_impl:
+                raise ValueError("Cannot mix layer_impl within an initialization family")
+            if model.node_feature != anchor.node_feature:
+                raise ValueError("Cannot mix feature modes")
+            if not set(anchor.ntypes_dict).issubset(model.ntypes_dict):
+                raise ValueError("A profile removed G0 node types")
+            if set(model.ntypes_dict) - set(anchor.ntypes_dict) - set(AUX_NODE_TYPES):
+>               raise ValueError("Only registered auxiliary node types may be added")
+E               ValueError: Only registered auxiliary node types may be added
+
+scripts/DFG/dfg_v2/experiment/init.py:129: ValueError
+______ test_untrained_structure_reuse_exactly_matches_fresh[G3-contract] _______
+
+task = 'contract', profile = 'G3'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    @pytest.mark.parametrize("profile",["G1R","G2R","G3R","G3"])
+    def test_untrained_structure_reuse_exactly_matches_fresh(task,profile):
+        from scripts.DFG.dfg_v2.benchmark_v2.initial_preparation import UntrainedStructures
+        from scripts.DFG.dfg_v2.model import make_model
+        from scripts.DFG.dfg_v2.tests.test_experiment_protocol import small_graph
+        from scripts.DFG.dfg_v2.experiment.init import initialize_family,seeds
+        graphs={p:small_graph(p) for p in ("G0",profile)}
+        config=dict(hidden_size=16,layers=2,heads=4)
+        cache=UntrainedStructures(task,graphs,config)
+        prior=None
+        for fold in (0,1):
+            seed=seeds(task,fold)["constructor"]
+            seed_all(seed)
+            anchor=make_model(task,graphs["G0"],"G0","cpu",reducer="mean",layer_impl="shared_projection",**config)
+            seed_all(seed)
+            fresh=make_model(task,graphs[profile],profile,"cpu",reducer="mean",layer_impl="shared_projection",**config)
+>           initialize_family({"G0":anchor,profile:fresh},seed)
+
+scripts/DFG/dfg_v2/tests/test_benchmark_execution.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+models = {'G0': DfgV2GraphClassifier(
+  (gcs): ModuleList(
+    (0): HGTLayerSharedProjection(
+      (k_linears): ModuleList(
+  ...ear(in_features=512, out_features=16, bias=True)
+  )
+  (classify): Linear(in_features=16, out_features=2, bias=True)
+)}
+anchor_seed = 11000
+
+    def initialize_family(models, anchor_seed):
+        """Initialize fresh models from a caller-constructed G0 anchor.
+    
+        G0 must have been constructed with anchor_seed. No global RNG is consumed.
+        No checkpoint is accepted here. Receivers are fully validated before any
+        weights are loaded; repeated calls are deterministic and G0 is untouched.
+        """
+        if type(anchor_seed) is not int or anchor_seed < 0:
+            raise ValueError("anchor_seed must be a nonnegative integer")
+        if "G0" not in models or len({id(m) for m in models.values()}) != len(models):
+            raise ValueError("Provide distinct profile models with a G0 anchor")
+        anchor = models["G0"]
+        for profile, model in models.items():
+            _check_fresh(model)
+            if model.dfg_profile != profile:
+                raise ValueError("Profile key differs from model profile")
+            validate_registration(model)
+            if model.dfg_task != anchor.dfg_task:
+                raise ValueError("Cannot mix classifier tasks")
+            if model.dfg_layer_impl != anchor.dfg_layer_impl:
+                raise ValueError("Cannot mix layer_impl within an initialization family")
+            if model.node_feature != anchor.node_feature:
+                raise ValueError("Cannot mix feature modes")
+            if not set(anchor.ntypes_dict).issubset(model.ntypes_dict):
+                raise ValueError("A profile removed G0 node types")
+            if set(model.ntypes_dict) - set(anchor.ntypes_dict) - set(AUX_NODE_TYPES):
+>               raise ValueError("Only registered auxiliary node types may be added")
+E               ValueError: Only registered auxiliary node types may be added
+
+scripts/DFG/dfg_v2/experiment/init.py:129: ValueError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/DFG/dfg_v2/tests/test_benchmark_execution.py::test_untrained_structure_reuse_exactly_matches_fresh[G1R-node]
+FAILED scripts/DFG/dfg_v2/tests/test_benchmark_execution.py::test_untrained_structure_reuse_exactly_matches_fresh[G1R-contract]
+FAILED scripts/DFG/dfg_v2/tests/test_benchmark_execution.py::test_untrained_structure_reuse_exactly_matches_fresh[G2R-node]
+FAILED scripts/DFG/dfg_v2/tests/test_benchmark_execution.py::test_untrained_structure_reuse_exactly_matches_fresh[G2R-contract]
+FAILED scripts/DFG/dfg_v2/tests/test_benchmark_execution.py::test_untrained_structure_reuse_exactly_matches_fresh[G3R-node]
+FAILED scripts/DFG/dfg_v2/tests/test_benchmark_execution.py::test_untrained_structure_reuse_exactly_matches_fresh[G3R-contract]
+FAILED scripts/DFG/dfg_v2/tests/test_benchmark_execution.py::test_untrained_structure_reuse_exactly_matches_fresh[G3-node]
+FAILED scripts/DFG/dfg_v2/tests/test_benchmark_execution.py::test_untrained_structure_reuse_exactly_matches_fresh[G3-contract]
+8 failed, 33 passed, 4 warnings in 6.34s

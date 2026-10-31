@@ -1,0 +1,519 @@
+{
+  "status": "complete",
+  "layer_impl": "shared_projection",
+  "protocol": "dfg-v2-grouped-nested",
+  "protocol_version": "dfg-v2-grouped-nested-v1",
+  "score_role": "outer_test",
+  "selection_role": "inner_val",
+  "forward_scope": "full_fixed_task_graph",
+  "interpretation": "nested outer test; inner validation selects best",
+  "best_epoch": 14,
+  "last_epoch": 20,
+  "best_inner_val_loss": 0.038795217871665955,
+  "inner_val": {
+    "best": {
+      "n": 1244,
+      "positive": 547,
+      "buggy_f1": 98.90710382513662,
+      "macro_f1": 99.02189723630931,
+      "precision": 98.54809437386571,
+      "recall": 99.26873857404021,
+      "tn_fp_fn_tp": [
+        689,
+        8,
+        4,
+        543
+      ]
+    },
+    "last": {
+      "n": 1244,
+      "positive": 547,
+      "buggy_f1": 98.81710646041856,
+      "macro_f1": 98.94059066721432,
+      "precision": 98.36956521739131,
+      "recall": 99.26873857404021,
+      "tn_fp_fn_tp": [
+        688,
+        9,
+        4,
+        543
+      ]
+    }
+  },
+  "outer_test": {
+    "best": {
+      "n": 792,
+      "positive": 336,
+      "buggy_f1": 98.21958456973294,
+      "macro_f1": 98.45045162552582,
+      "precision": 97.92899408284023,
+      "recall": 98.51190476190477,
+      "tn_fp_fn_tp": [
+        449,
+        7,
+        5,
+        331
+      ]
+    },
+    "last": {
+      "n": 792,
+      "positive": 336,
+      "buggy_f1": 98.3751846381093,
+      "macro_f1": 98.58119761122664,
+      "precision": 97.65395894428153,
+      "recall": 99.10714285714286,
+      "tn_fp_fn_tp": [
+        448,
+        8,
+        3,
+        333
+      ]
+    }
+  },
+  "checkpoint_sha256": {
+    "best": "195b206c3696bc3780cf84a36656fafe7134628780a8b3679fbac06b9ba0523f",
+    "last": "1646759daba737569674188fd18307683ff2e5f600225d902daf8e1f1b8b7a71"
+  },
+  "gradient_audit": {
+    "epochs": [
+      {
+        "backbone_gradient_l1": 221.55138246523762,
+        "classifier_gradient_l1": 15.873601123690605,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 0
+      },
+      {
+        "backbone_gradient_l1": 209.61825978013684,
+        "classifier_gradient_l1": 14.801052555441856,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 1
+      },
+      {
+        "backbone_gradient_l1": 185.0251566485548,
+        "classifier_gradient_l1": 13.632123172283173,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 2
+      },
+      {
+        "backbone_gradient_l1": 156.2355435836397,
+        "classifier_gradient_l1": 11.97298577427864,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 3
+      },
+      {
+        "backbone_gradient_l1": 121.49730943715042,
+        "classifier_gradient_l1": 9.879524752497673,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 4
+      },
+      {
+        "backbone_gradient_l1": 91.53623360136204,
+        "classifier_gradient_l1": 8.186928436160088,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 5
+      },
+      {
+        "backbone_gradient_l1": 70.23981531397014,
+        "classifier_gradient_l1": 6.832588940858841,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 6
+      },
+      {
+        "backbone_gradient_l1": 51.357934998550064,
+        "classifier_gradient_l1": 5.295342929661274,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 7
+      },
+      {
+        "backbone_gradient_l1": 34.26695031253131,
+        "classifier_gradient_l1": 3.737560924142599,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 8
+      },
+      {
+        "backbone_gradient_l1": 27.149961639430067,
+        "classifier_gradient_l1": 2.7436231911415234,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 9
+      },
+      {
+        "backbone_gradient_l1": 21.907209981206062,
+        "classifier_gradient_l1": 2.0810384079813957,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 10
+      },
+      {
+        "backbone_gradient_l1": 18.551232789900055,
+        "classifier_gradient_l1": 1.019543493166566,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 11
+      },
+      {
+        "backbone_gradient_l1": 11.951822414134352,
+        "classifier_gradient_l1": 0.6766838999465108,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 12
+      },
+      {
+        "backbone_gradient_l1": 9.285097820005326,
+        "classifier_gradient_l1": 0.5439729341305792,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 13
+      },
+      {
+        "backbone_gradient_l1": 8.758748581371275,
+        "classifier_gradient_l1": 0.4913682902697474,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 14
+      },
+      {
+        "backbone_gradient_l1": 7.223510487614138,
+        "classifier_gradient_l1": 0.414493718650192,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 15
+      },
+      {
+        "backbone_gradient_l1": 7.9267893114935974,
+        "classifier_gradient_l1": 0.37971649412065744,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 16
+      },
+      {
+        "backbone_gradient_l1": 5.891855858456707,
+        "classifier_gradient_l1": 0.278298563323915,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 17
+      },
+      {
+        "backbone_gradient_l1": 6.351817048020016,
+        "classifier_gradient_l1": 0.23057309759315103,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 18
+      },
+      {
+        "backbone_gradient_l1": 10.101832352195723,
+        "classifier_gradient_l1": 0.27501532807946205,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 19
+      },
+      {
+        "backbone_gradient_l1": 5.040523638081301,
+        "classifier_gradient_l1": 0.18523630977142602,
+        "v2_relations": [],
+        "v2_training_support": 0,
+        "ddg_relations": [],
+        "ddg_training_support": 0,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 20
+      }
+    ],
+    "backbone_update_l1": 38780.59531547946,
+    "v2_message_update_l1": {},
+    "updates_may_include_weight_decay": false
+  },
+  "checkpoint_roundtrip_exact": {
+    "inner_val": {
+      "best": true,
+      "last": true
+    },
+    "outer_test": {
+      "best": true,
+      "last": true
+    }
+  },
+  "no_parameters_created_during_training_or_scoring": true,
+  "initial_sha256": "03ca8241d6b0d312e1e52d8564af9ca6080ce1ffa68bb7f756b171905395db40",
+  "history_rows": 21,
+  "parameter_count": 4428466,
+  "resources": {
+    "seconds": 90.87113287299871,
+    "peak_allocated_mib": 561.9892578125,
+    "peak_reserved_mib": 608.0,
+    "minimum_free_mib": 1419.0,
+    "whole_card_sampling_seconds": 0.5,
+    "memory_samples": 158,
+    "sampling_errors": [],
+    "device": "cuda",
+    "baseline": {
+      "unix_seconds": 1793375260.1452472,
+      "monotonic_seconds": 39614.47368349,
+      "elapsed_seconds": 0.15231809999386314,
+      "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+      "total_mib": 4096.0,
+      "used_mib": 432.0,
+      "free_mib": 3544.0,
+      "unaccounted_mib": 120.0,
+      "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 432, 3544",
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=uuid,memory.total,memory.used,memory.free",
+        "--format=csv,noheader,nounits"
+      ]
+    },
+    "context_observation": {
+      "baseline": {
+        "unix_seconds": 1793375260.1452472,
+        "monotonic_seconds": 39614.47368349,
+        "elapsed_seconds": 0.15231809999386314,
+        "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+        "total_mib": 4096.0,
+        "used_mib": 432.0,
+        "free_mib": 3544.0,
+        "unaccounted_mib": 120.0,
+        "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 432, 3544",
+        "command": [
+          "nvidia-smi",
+          "--query-gpu=uuid,memory.total,memory.used,memory.free",
+          "--format=csv,noheader,nounits"
+        ]
+      },
+      "after_initialization": {
+        "unix_seconds": 1793375265.5841062,
+        "monotonic_seconds": 39619.912542886,
+        "elapsed_seconds": 0.28104500000335975,
+        "uuid": "GPU-ee050088-0e39-e0d1-f456-1a892a024057",
+        "total_mib": 4096.0,
+        "used_mib": 1725.0,
+        "free_mib": 2251.0,
+        "unaccounted_mib": 120.0,
+        "raw": "GPU-ee050088-0e39-e0d1-f456-1a892a024057, 4096, 1725, 2251",
+        "command": [
+          "nvidia-smi",
+          "--query-gpu=uuid,memory.total,memory.used,memory.free",
+          "--format=csv,noheader,nounits"
+        ]
+      },
+      "free_decrease_mib": 1293.0,
+      "used_increase_mib": 1293.0,
+      "torch_allocated_mib": 0.0,
+      "torch_reserved_mib": 0.0,
+      "warmup": "one-element Torch CUDA tensor and one-node one-edge DGL CUDA graph; no RNG draws",
+      "caveats": [
+        "Whole-card memory is not a per-process measurement.",
+        "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+        "Context initialization differences can include concurrent changes by other processes.",
+        "Later lazy library allocations are not necessarily included in the initial context observation.",
+        "Peak reserved and minimum free are not necessarily observed at the same instant.",
+        "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+      ]
+    },
+    "total_mib": 4096.0,
+    "non_torch_residual_estimate_mib": 2069.0,
+    "context_adjusted_residual_estimate_mib": 776.0,
+    "residual_formula": "total - minimum_free - peak_reserved",
+    "context_adjusted_formula": "non_torch_residual_estimate - observed_context_free_decrease",
+    "residual_attribution": "unattributed; not an identified external process",
+    "raw_samples_path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8h_v1/runs/access_control_node/fold_7/seed_1/G0/attempt_001.memory_samples.jsonl",
+    "raw_samples_sha256": "eb5db66445f277b830be3f5ce025e069da7a9f6b9910eb764ecca49bad2b7188",
+    "paired_sample_count": 158,
+    "caveats": [
+      "Whole-card memory is not a per-process measurement.",
+      "CUDA/DGL/driver allocations outside the Torch allocator belong partly to this process.",
+      "Context initialization differences can include concurrent changes by other processes.",
+      "Later lazy library allocations are not necessarily included in the initial context observation.",
+      "Peak reserved and minimum free are not necessarily observed at the same instant.",
+      "Total, used, and free may not sum due to driver/system reservations; raw readings are retained."
+    ],
+    "memory_tight": false,
+    "possible_memory_spill": false,
+    "epoch_timing": {
+      "version": "local-dev-first-three-epoch-median-v1",
+      "status": "evaluated",
+      "epoch_seconds": [
+        3.2946184980028193,
+        2.9589339999947697,
+        2.9189923089943477,
+        2.979318621000857,
+        2.6722934179997537,
+        2.8426921069985838,
+        2.727028606001113,
+        2.8369042050035205,
+        2.7620726029999787,
+        2.711053302999062,
+        2.7857413070014445,
+        2.784112407003704,
+        2.7362586060044123,
+        2.8007828979971237,
+        2.6870653980004136,
+        2.4983640979990014,
+        2.4565235979971476,
+        2.3692128980037523,
+        2.3985561989975395,
+        2.326096898999822,
+        2.1481515990017215
+      ],
+      "completed_epochs": 21,
+      "baseline_first_three_median_seconds": 2.9589339999947697,
+      "comparison_rule": "epoch >= 3 and seconds > 2 * fixed first-three median",
+      "possible_memory_spill_epochs": [],
+      "possible_memory_spill": false,
+      "caveat": "A duration above twice the first-three-epoch median is only a possible memory-spill warning. Checkpoint I/O, initialization, CPU/system load, and other GPU activity can also explain a slowdown. Whole-card samples and allocator/context arithmetic do not prove memory paging."
+    }
+  },
+  "seconds": 79.81984968500183,
+  "outer_supervision_used_in_optimization": false,
+  "label_policy": "L-audit",
+  "orig_all_auxiliary": {
+    "inner_val": {
+      "best": {
+        "n": 1270,
+        "positive": 455,
+        "buggy_f1": 87.91423001949317,
+        "macro_f1": 89.86200272440973,
+        "precision": 78.98423817863399,
+        "recall": 99.12087912087912,
+        "tn_fp_fn_tp": [
+          695,
+          120,
+          4,
+          451
+        ]
+      },
+      "last": {
+        "n": 1270,
+        "positive": 455,
+        "buggy_f1": 87.8286270691334,
+        "macro_f1": 89.78344770508883,
+        "precision": 78.84615384615384,
+        "recall": 99.12087912087912,
+        "tn_fp_fn_tp": [
+          694,
+          121,
+          4,
+          451
+        ]
+      }
+    },
+    "outer_test": {
+      "best": {
+        "n": 810,
+        "positive": 337,
+        "buggy_f1": 96.22093023255815,
+        "macro_f1": 96.71561533087134,
+        "precision": 94.30199430199431,
+        "recall": 98.21958456973294,
+        "tn_fp_fn_tp": [
+          453,
+          20,
+          6,
+          331
+        ]
+      },
+      "last": {
+        "n": 810,
+        "positive": 337,
+        "buggy_f1": 96.39249639249638,
+        "macro_f1": 96.84781238179296,
+        "precision": 93.82022471910112,
+        "recall": 99.10979228486647,
+        "tn_fp_fn_tp": [
+          451,
+          22,
+          3,
+          334
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+accepted 1/170 reentrancy_contract/0/1/G0
+accepted 2/170 reentrancy_contract/0/1/G1R
+accepted 3/170 reentrancy_contract/0/1/G2R
+accepted 4/170 reentrancy_contract/0/1/G3R
+accepted 5/170 reentrancy_contract/0/1/G3
+accepted 6/170 reentrancy_contract/1/1/G0
+accepted 7/170 reentrancy_contract/1/1/G1R
+accepted 8/170 reentrancy_contract/1/1/G2R
+accepted 9/170 reentrancy_contract/1/1/G3R
+accepted 10/170 reentrancy_contract/1/1/G3
+accepted 11/170 reentrancy_contract/2/1/G0
+accepted 12/170 reentrancy_contract/2/1/G1R
+accepted 13/170 reentrancy_contract/2/1/G2R
+accepted 14/170 reentrancy_contract/2/1/G3R
+accepted 15/170 reentrancy_contract/2/1/G3
+accepted 16/170 reentrancy_contract/3/1/G0
+Using backend: pytorch
+Traceback (most recent call last):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/execution.py", line 350, in <module>
+    if __name__=="__main__":main()
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/execution.py", line 346, in main
+    elif a.command in ("pilots","all"):controller(Path(a.plan),a.command=="pilots")
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/execution.py", line 325, in controller
+    extra_refs=[task["label_view"],task["feature_view"],task["feature_npz"],plan["authorization"]])
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/acceptance_cache.py", line 239, in create_cache
+    value = full_verify()
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/execution.py", line 323, in <lambda>
+    full=lambda j=j,attempt=attempt:verify_one(path,plan,j,attempt)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/execution.py", line 221, in verify_one
+    verify_start(path,plan,start,attempt/"receipt.json")
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/runtime_amendment.py", line 65, in verify_start
+    current=amendment_ref(plan_path,plan)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/runtime_amendment.py", line 58, in amendment_ref
+    actual=_code_refs()
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/run.py", line 51, in _code_refs
+    paths.extend(p for p in directory.rglob("*.py")
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/run.py", line 51, in <genexpr>
+    paths.extend(p for p in directory.rglob("*.py")
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py", line 1137, in rglob
+    for p in selector.select_from(self):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py", line 578, in _select_from
+    for p in successor_select(starting_point, is_dir, exists, scandir):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py", line 525, in _select_from
+    with scandir(parent_path) as scandir_it:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8h_v1/resume_v2/_test_tmp/v2/test_exact_prepared_task_input1'
