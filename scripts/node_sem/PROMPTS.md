@@ -1,6 +1,12 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r2（2026-10-31）。作者：Claude（方案与审查），实现：Codex。
+版本：r3（2026-10-31）。作者：Claude（方案与审查），实现：Codex。
+
+**r3 相对 r2 的修改**（DFG 侧审查补充，不改变方案结构与 NS-P0）：
+- 离线 GPU 任务不得与训练并行，必须检查 GPU 锁（5.1 不变量）；
+- 主终点处于天花板附近，主比较另报逐折错误数与相对错误减少率（只作描述）；
+- 重入另附非 SolidiFI 正例与误报的逐节点表；
+- LLM 试点允许在 CPU 上运行，以便与 N-A 并行。
 分支：`node-sem`（从 `dfg-v2@ffc48d79` 切出）。全部新代码、文档与产物都在 `scripts/node_sem/` 下，不与 `scripts/DFG/` 混合。
 
 **r2 相对 r1 的主要修改：**
@@ -407,7 +413,8 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 - **交互项**（描述）：(S4−S0)\_G3R − (S4−S0)\_G0，按第 3 节第 21 条解读。
 - **N-B**：全部只作描述。
 - **N-C 的 Holm 家族**（重入节点、G3R）：S5−S4（主比较）、S6−S5、S7−S6、S5−S8。注明这是本机试点版本，正式结论以服务器复跑为准。
-- **访问控制节点与两个合约任务**：只作描述。访问控制另附 20 个非 SolidiFI 正例的逐节点概率表。
+- **访问控制节点与两个合约任务**：只作描述。访问控制另附 20 个非 SolidiFI 正例的逐节点概率表；重入另附 32 个非 SolidiFI 正例（以及全部非 SolidiFI 误报）的逐节点概率表。
+- **天花板说明**（r3 新增）：8H 中重入节点 G3R 的 S0 已达 99.12，10 折合计只有 120 个错误（每折 5–23 个）。主终点的预期效应很小，因此对主比较另报逐折错误数（FP+FN）及相对错误减少率 1 − err(S4)/err(S0)。这一项只作描述，不进入 Holm 家族，也不改变主终点。
 - **S\***：按 8H 的规则用 inner_val 选择，只作参考。
 
 **每个批次的报告必须包含：**
@@ -416,6 +423,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 - SolidiFI 与非 SolidiFI 分层（非 SolidiFI 只报 pooled 计数和 Wilson 区间）；
 - 与关键字基线和 8H 的对照；
 - 第一层注意力 head 最大权重的分布（复用 `attention_probe.py` 的方法，只做 eval 前向）；
+- 主比较的逐折错误数与相对错误减少率（见上方“天花板说明”）；
 - gated 配置下的门控权重；
 - 资源与耗时。
 
@@ -476,7 +484,7 @@ mando 环境中的代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[
 - 任何特征文本中都不出现绝对行号或文件名，只用函数内相对距离 @-k/@+k。
 - AST 事实一律经 ProjectionView + Projector 按 AST 身份投影到节点，投影不到的事实丢弃并计数，不按行号猜测。
 - 训练沿用基准 v2 协议：8D 分组折、L-audit、seed=1、local_dev_v1、8H 训练配置，outer_test 只在训练结束后评分。只在 inner_val 上做选择。
-- 使用与 8H 相同的 GPU 锁：scripts/DFG/experiments/artifacts/dfg_v2/.training.lock（experiment.run._Lock）。
+- 使用与 8H 相同的 GPU 锁：scripts/DFG/experiments/artifacts/dfg_v2/.training.lock（experiment.run._Lock）。nodesem 环境中所有使用 GPU 的离线任务（M1/M2 编码、llama.cpp、教师句向量）不得与训练并行。离线脚本启动前必须以非阻塞方式检查该锁文件：被占用就直接退出并报告；不得在训练期间抢占 GPU。CPU 模式的离线任务不受此限制。
 
 ## 接入方式（第 4.9 节）
 NodeSem 的拼接向量写进内存图副本中每个节点的 token 属性，然后用 dfg_v2.model.make_model(node_feature="inside_token") 原样构造模型，只把 model.adapt_ws 的每一项替换为 NodeSemAdapter。这样 validate_registration、checkpoint 绑定、FitInputGuard 和 benchmark_v2.trainer.fit 都可以原样使用，不需要修改任何冻结代码。
@@ -885,6 +893,7 @@ judge_v1（只用于 S7）：在 Rules 第 2 条处改为要求增加 "security_
 - 用 JSON schema 语法约束输出；温度 0，seed 0；每个 cache_key 写一个原始响应文件（含耗时、输入和输出 token 数）。
 - 解析失败时重试 1 次（在 user 末尾追加 "Return valid JSON only."），仍然失败就标记 parse_failed。
 - 先跑试点：用固定种子抽 50 个函数单元（按任务分层），输出 pilot_report.json（耗时、token 数、解析成功率、黑名单命中率、忠实性分布、3 个完整样例）。停下等用户确认，再全量运行 describe_v1 和 judge_v1。
+- 试点允许使用 llama.cpp 的 CPU 模式（n_gpu_layers=0）运行，这样可以与 N-A 训练并行，尽早发现 3B 模型质量不足的风险。CPU 与 GPU 的输出不保证逐位相同；正式全量运行固定一种模式，并写进 manifest。
 
 ## 4. 后处理（mando，llm_post.py）
 - 校验 line 在列表内；同一行取第一条；role 规范化；
