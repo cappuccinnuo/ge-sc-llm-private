@@ -2,7 +2,7 @@
 
 版本：r4（2026-11-01）。作者：Claude（方案与审查），实现：Codex。
 
-**r4 相对 r3 的修改**（NS-P0 审查后；NS-P0 验收通过，见第 7 节）：
+**r4 相对 r3 的修改**（NS-P0 审查后；NS-P0 验收通过，见第 5A 节）：
 - 采纳 NS-P0 提出的三个设计问题，并给出决定（第 4.2、4.5、4.6 节，NS-P3）：
   - NS-Q1：`label` 是生成器的结构性 DOT 标签（代码文本 + AST 锚点），不是漏洞标签。只允许冻结 Projector 用它做 AST 身份对齐，禁止进入任何特征文本；
   - NS-Q2：变量名只从已封存的 F3 L1 证据（Symbol.name、Symbol.kind）和 L2 边的 state_vars 读取，再经 8G 双射映射；禁止使用 Symbol.id、跨度、文件路径；
@@ -1029,7 +1029,7 @@ S5（S4 + STUDENT，按折）、S6（S4 + TEACHER）、S7（S4 + TEACHER_JUDGE�
 
 ---
 
-## 7. NS-P0 审查记录（2026-11-01，Claude）
+## 5A. NS-P0 审查记录（2026-11-01，Claude）
 
 NS-P0 验收通过。独立核对了 GitHub 上可以复算的部分：
 - 8H plan 与 seal 的 SHA；60 个 G0/G3R 成功收据逐个重算 SHA，全部一致，每个（任务、折、剖面）恰好一个，没有重复 attempt；
