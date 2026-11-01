@@ -1,6 +1,19 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r3（2026-10-31）。作者：Claude（方案与审查），实现：Codex。
+版本：r4（2026-11-01）。作者：Claude（方案与审查），实现：Codex。
+
+**r4 相对 r3 的修改**（NS-P0 审查后；NS-P0 验收通过，见第 7 节）：
+- 采纳 NS-P0 提出的三个设计问题，并给出决定（第 4.2、4.5、4.6 节，NS-P3）：
+  - NS-Q1：`label` 是生成器的结构性 DOT 标签（代码文本 + AST 锚点），不是漏洞标签。只允许冻结 Projector 用它做 AST 身份对齐，禁止进入任何特征文本；
+  - NS-Q2：变量名只从已封存的 F3 L1 证据（Symbol.name、Symbol.kind）和 L2 边的 state_vars 读取，再经 8G 双射映射；禁止使用 Symbol.id、跨度、文件路径；
+  - NS-Q3：守卫改为 AST 词法规则（require/assert 前置、if 分支包含、提前退出的 if、modifier 前缀），带极性；不再用 if/while 条件支配推断守卫。CFG 只用于顺序与可达性，不支持的函数记为 unknown。
+- 修正方案自身的三处错误：
+  - S1 的嵌入改为全模型共享的一个 `EmbeddingBag(V, 64, mode="mean")`。r3 的“每种节点类型一个 Embedding(V,128)”有 17×410 万 ≈ 7000 万参数，掩码平均还要展开 N×512×128 的中间张量，本机放不下；
+  - 层数回退必须写成 `cfg.layers if spec.layers is None else spec.layers`（r3 中的 `spec.layers or cfg.layers` 会把 0 层变成 2 层）；
+  - 8H 运行版本核对改为通过 `benchmark_v2.execution.load` 的生效修订链（runtime_resume_v2），而不是与原 plan 的 runtime 字面相等。
+- 去掉 HCG 自身 CFG 边作后备（它有跨函数的边：88/1/147/67）。
+- NS-P1 开头补做 60 个初值的 tensor digest 独立重算（NS-P0 因审批限制没做）；需要用户在 Codex 中明确批准对 SHA 已核对的本地文件使用 torch.load。
+- NS-P4 增加一次 GPU 显存探针（需授权），因为 8H 中重入合约 G3R 的整卡最小空闲只有 44 MiB。
 
 **r3 相对 r2 的修改**（DFG 侧审查补充，不改变方案结构与 NS-P0）：
 - 离线 GPU 任务不得与训练并行，必须检查 GPU 锁（5.1 不变量）；
@@ -158,7 +171,7 @@ F3 图（DFG v2）+ 源码 AST（主视图 N-anon-s；次要视图原文）
  ├─ M0 token ID（8G 匿名特征，512）──→ 可学习嵌入 + 掩码平均池化（S1）
  ├─ M1 节点代码文本 → 冻结代码编码器 → e_code（256）
  ├─ M2 DFG 上下文（结构化字段）→ 同一编码器 → e_ctx（256）
- ├─ M3a 静态行为画像（AST 后端，以后可加 IR 后端）→ b_static（约 75）
+ ├─ M3a 静态行为画像（AST 后端，以后可加 IR 后端）→ b_static（约 80）
  └─ M3b 函数级 LLM 描述 → 句向量 t_sem（384，教师，只在训练期使用）
        M3c 按折训练的学生 MLP([e_ctx; b_static]) → s_sem（384）
  → 拼接为载体向量 x_v = [存在位 | 各模态]，写进内存图副本的 token 属性
@@ -168,10 +181,15 @@ F3 图（DFG v2）+ 源码 AST（主视图 N-anon-s；次要视图原文）
 ### 4.2 通用规则
 
 - **允许读取的节点属性**：`code`、`node_type`、`source_file`、`node_source_code_lines`（只用于对齐，不作为特征），以及图的边和边属性。
-  - 禁止读取 `label`、`type_label`、`node_info_vulnerabilities`、`method`、任何标签或预测文件。
+  - `label` 是作者生成器的结构性 DOT 标签（节点代码文本 + `-{AST id}-{类型}-{首行}-{末行}` 锚点），不是漏洞标签（漏洞标签是 `node_info_vulnerabilities`）。**只允许冻结的 `Projector`/`node_code_view` 读取它做 AST 身份对齐**；NodeSem 自己的代码不得读取它，它的任何部分（包括锚点中的绝对行号）都不得进入特征。
+  - 禁止读取 `type_label`、`node_info_vulnerabilities`、`method`、任何标签或预测文件。
+  - **扰动验收**（每个产生特征的模块都要有）：(a) 修改 `node_info_vulnerabilities`、`type_label`、`method` → 输出逐位不变；(b) 只替换 `label` 中锚点之前的文本 → 输出逐位不变；(c) 破坏 `label` 锚点 → 明确报错，不得静默产出。
   - 用白名单实现，并写扰动测试：修改这些禁止属性后，特征必须逐位不变。
 - **主视图文本**：节点文本来自 8G 的 `node_code_view`，源码来自 8G 的改名结果。
-  - **DFG 边上的拼写属性**（例如 `spellings`）是原名。主视图中必须用该文件的 8G 双射（原拼写 → vN）映射后才能使用。
+  - **变量名的来源（NS-Q2 决定）**：`DATA_DEF_USE` 边本身不带变量名，只有 `ddg_fact_indices`，它指向已封存的 F3 存储中 `audit.layers.L1.evidence`；每条证据的 `symbol` 是一个 Symbol（`name`、`kind`、`type_name`、`function`、`declaration` 跨度、`id`）。L2 边带 `state_vars`（原名）。L3 边的 `spellings` 是保留的环境表达式。
+    - 只允许使用 Symbol 的 `name` 和 `kind`，以及由 `type_name` 归类得到的形状类别（mapping、array、address、uint/int、bool、bytes/string、struct/contract、other）；**禁止使用 `id`、`function`、`declaration`、任何跨度、文件路径或原始 `type_name` 文本**。
+    - 名字在主视图中按该文件的 8G 双射（`prepare_spelling.load_result(row)["mapping"]`）逐个标识符映射（成员链 `a.b` 按点拆开，保留名不变）。遇到既不是保留名、也不在双射中的标识符，直接报错，不得原样输出。
+    - 证据文件按 store 中的引用核对 SHA，并写进每个模态的 manifest。
   - **全文本泄漏测试**：主视图的每一段特征文本和每一个 LLM 提示中，凡是 identifier token，都必须是保留名，或者属于该文件的匿名名集合。出现原名就失败。
 - **任何特征文本中都不出现绝对行号或文件名**，只用函数内的相对距离 `@-k`、`@+k`。
 - **AST 事实**一律经 `ProjectionView` + `Projector` 按 AST 身份投影到节点。不按行号或“最近节点”猜测；投影不到的事实丢弃并计数。
@@ -184,7 +202,11 @@ F3 图（DFG v2）+ 源码 AST（主视图 N-anon-s；次要视图原文）
 ### 4.3 M0 / S1：可学习的 token 嵌入
 
 - 输入是 8G 匿名视图的 512 个 token ID。浮点值不是精确非负整数，或超出词表，就报错。
-- `nn.Embedding(V, 128, padding_idx=0)`，按非零位置做掩码平均。V 从冻结 tokenizer 资产的词表大小读取并核对，不写死。
+- **全模型共享一个** `nn.EmbeddingBag(V, 64, mode="mean")`，注册在模型上（`model.nodesem_shared["token_bag"]`），只占约 205 万参数；每种节点类型的适配器只持有它的未注册引用，再接自己的 `Linear(64, 128)`。
+  - 不得为每种节点类型各建一个 `Embedding(V,128)`（约 7000 万参数），也不得先展开 N×512×d 的张量再做掩码平均（重入合约约 1.8 万节点时，这一中间张量就超过 1 GB）。
+  - 前向：从 `inp` 的 token 列取出每行的非零 ID（ID 0 是填充，右侧连续），拼成一维 `input` 加 `offsets` 交给 EmbeddingBag。空行得到零向量。每次前向都从 `inp` 现算，使 FitInputGuard 对 `inp` 的保护也覆盖这一路输入。
+  - CUDA 上 EmbeddingBag 的反向使用原子加，不保证逐位确定，这一点与 8H 的散射累加相同，写进 manifest。
+- V 从冻结 tokenizer 资产的词表大小读取并核对，不写死。
 - 全为填充的行输出 0，并把该模态的存在位置 0。
 
 ### 4.4 M1：节点代码编码
@@ -201,7 +223,7 @@ F3 图（DFG v2）+ 源码 AST（主视图 N-anon-s；次要视图原文）
 | `end_if`、`end_loop` | `<END_IF>`、`<END_LOOP>` |
 | `env_source` | 环境键，如 `msg.sender` |
 
-- 截取通过 AST 身份完成。失败时回退为完整文本，并按类型计数。
+- 截取通过 AST 身份完成，文本取自对应视图 ProjectionView 的 compat 文本（作者预处理后的版本，没有注释）；不得从带注释的原始源码切片。失败时回退为完整文本，并按类型计数。
 - 统一做空白规范化：连续空白合并为一个空格。只在特征文本上做，不改源码。
 - **编码器**：
   - 主编码器：`Salesforce/codet5p-110m-embedding`（256 维）；
@@ -231,13 +253,13 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 |---|---|---|
 | `STMT` | M1 的截取文本 | 节点 |
 | `FUNC` | 所在函数的签名（M1 规则） | AST 函数归属 |
-| `DEF`、`USE` | 变量及类别（state、local、param、env）；局部变量和参数带上其来源语句的相对距离 | `DATA_DEF_USE` 边与拼写属性（主视图需映射）+ AST 参数表 + L2/L3 边 |
+| `DEF`、`USE` | 变量及类别（state、local、param、env）；局部变量和参数带上其来源语句的相对距离 | `DATA_DEF_USE` 边 → `ddg_fact_indices` → 封存的 L1 证据（Symbol.name/kind，主视图经 8G 双射映射）+ L2 边 `state_vars` + L3 环境键 |
 | `FROM` | 来源语句，最多 2 条（相对距离 + STMT 文本） | `DATA_DEF_USE` 入边 |
 | `TO` | 去向，最多 2 条，汇点类型取 `call_arg`、`call_value`、`guard`、`state_write`、`return`、`other` | `DATA_DEF_USE` 出边 + 目标节点的 AST 角色 |
 | `STATE_R`、`STATE_W` | 读写的状态变量 | `READS_STATE`、`WRITES_STATE` |
 | `ENV` | 环境键 | `ENV_FLOW` |
-| `PRE_EXT_CALL` | 同函数内、控制流上能到达本语句的最近外部调用（不含自身） | 函数内 CFG 反向 BFS |
-| `GUARD` | 支配本语句的最近守卫：类型（require、assert、if、while、modifier）、操作数类别组合、相对距离 | 函数内 CFG 支配树 |
+| `PRE_EXT_CALL` | 同函数内、控制流上能到达本语句的最近外部调用（不含自身）；函数 CFG 不受支持时写 `unknown` | 函数内语义 CFG 反向 BFS |
+| `GUARD` | 作用于本语句的最近守卫：类型（require、assert、if_branch、early_exit_if、loop_cond、modifier、unknown）、极性、有效比较组合、相对距离 | AST 词法守卫规则（第 4.6 节 D 组说明） |
 
 **截断顺序**（按编码器 tokenizer 计数，上限 256）：
 1. `TO` 只留 1 条；
@@ -252,7 +274,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 辅助节点、合约/库/接口声明节点、`end_if`、`end_loop`：只有 `STMT`。
 
-### 4.6 M3a：静态行为画像（约 75 维）
+### 4.6 M3a：静态行为画像（约 80 维，精确维度以 behavior_schema.json 为准）
 
 字段表固定在 `behavior_schema.json`，并提供 `explain(vec) → 字段名列表`。
 
@@ -261,10 +283,10 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 | A 外部交互 | 低层 call、delegatecall、staticcall、send、transfer、成员调用（目标未知）、附带 value | 多热 | 7 |
 | A' 转账 | call 带 value、send、transfer | 1 位 | 1 |
 | B 状态访问 | 写（0/1/多）、写 mapping/数组元素、写标量、读（0/1/多）、读 mapping/数组元素 | 独热 + 多热 | 9 |
-| C 顺序 | 可从同函数外部调用到达；被外部调用支配；本语句写状态且之后有外部调用；本语句是外部调用且之后有写状态 | 多热 | 4 |
-| D 守卫方式 | 无、require/assert、if 条件、所在函数应用了 modifier、modifier 体内有基于 msg.sender/tx.origin 的守卫 | 多热 | 5 |
-| D' 守卫操作数 | msg.sender、tx.origin、状态变量、参数、局部变量、字面量、时间戳/区块号、调用结果 | 多热 | 8 |
-| D'' 比较组合 | env 对状态变量、env 对参数、env 对字面量、状态变量对参数 | 多热 | 4 |
+| C 顺序 | 可从同函数外部调用到达；被外部调用支配；本语句写状态且之后有外部调用；本语句是外部调用且之后有写状态；顺序未知（函数 CFG 不受支持） | 多热 | 5 |
+| D 守卫方式 | 无守卫、require/assert 前置、处于 if 分支内、提前退出的 if、循环条件、modifier 守卫、守卫未知（modifier 未解析等） | 多热 | 7 |
+| D' 守卫操作数（所有适用守卫的并集） | msg.sender、tx.origin、状态变量、参数、局部变量、字面量、时间戳/区块号、调用结果 | 多热 | 8 |
+| D'' 有效相等比较组合（按极性换算后的 ==，所有适用守卫的并集） | env 对状态变量、env 对参数、env 对字面量、状态变量对参数 | 多热 | 4 |
 | E 环境量 | msg.sender、msg.value、tx.origin、时间戳、区块号、其他（L3 的 14 个键归入这 6 组） | 多热 | 6 |
 | F 调用返回值 | 不适用、被检查、被赋值未检查、被忽略 | 独热 | 4 |
 | G 算术 | + − × ÷/% **；是否作用于状态变量 | 多热 | 6 |
@@ -273,6 +295,15 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 | J 语法袋 | `=`、`+=`、`-=`、其他复合赋值、delete、emit、selfdestruct/suicide、成员访问深度 ≥2、下标访问、字面量、new、三元 | 多热 | 12 |
 
 - **辅助节点**只置 E 组，独热组分别置为“无 / 不适用 / 不在循环内”；可见性组全为 0。
+- **守卫规则（NS-Q3 决定；纯 AST 词法，不依赖 CFG 覆盖）**。对语句节点 S（其 AST 语句为 s，所在函数为 f），适用守卫是以下各项的集合：
+  1. **require/assert 前置**：表达式语句 R 是对内置 `require`/`assert` 的调用（同一文件中没有声明名为 require/assert 的函数，且不是成员调用），并且 R 是 s 的某个外围块（从 s 所在块一直到 f 的函数体）中位于 s 之前的语句。极性为 +。
+  2. **处于 if 分支内**：s 位于某个 if C 的 consequence 内（极性 +）或 alternative 内（极性 −），C 在 f 内。
+  3. **提前退出的 if**：if C 没有 else，consequence 是单条 `throw`/`revert(...)`/`return ...`，或者是以这三者之一结尾的块；并且 C 是 s 的某个外围块中位于 s 之前的语句。极性为 −（s 只在条件为假时执行）。
+  4. **循环条件**：s 位于 while/for 的 body 内，极性 +，类型 loop_cond（只计入 D 组，不计入 D'/D''）。
+  5. **modifier 守卫**：f 应用的 modifier 能解析到定义（同文件，经 ClosedScopeJ 处理继承），并且在其函数体中第一个 `_;` 之前，存在满足规则 1 或 3 的守卫。极性按规则换算。modifier 不能解析，或者体内找不到 `_;` 时，记为“守卫未知”，不得记为无守卫。
+  - **有效比较**：守卫条件中的 `==`/`!=`（包括 `!(a == b)`）按极性换算成有效的相等或不等，D'' 只记录有效相等的类别组合。例如 `if (msg.sender != owner) throw;` 在规则 3 下得到有效 `msg.sender == owner`，组合为 env 对状态变量。
+  - **最近守卫**（M2 的 GUARD 字段）：按 AST 距离取最近的一个（最内层分支、最近的前置语句），modifier 最后；D'/D'' 取所有适用守卫的并集。
+  - 不使用 if/while 条件的 CFG 支配关系推断守卫：if 结束之后的语句同样被条件节点支配，但并不受它保护。
 - **合约/库/接口声明节点、end_if、end_loop**：只置独热组的默认值。
 - **两个视图必须逐位相同**：M3a 不依赖任何保留名以外的具体名字。函数名等于合约名、modifier 解析这两项依赖名字相等关系，而 N-anon-s 是文件内双射，所以也必须相同。
 - **后端接口**：`FactBackend.extract(file_ctx) → {node_id: StatementFacts}`，现在只实现 `AstBackend`。
@@ -281,7 +312,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 - **单位**：每个函数（含 modifier、构造函数、fallback）调用一次。
 - **输入**：
-  - 主视图的改名源码，在 AST 上去掉 comment 节点；
+  - 主视图的改名源码；在 AST 上把 comment 节点的字节范围替换成等长空白（NS-P0 已验证这样做 ERROR/MISSING 仍为 0、执行 token 不变），渲染提示时再去掉只含空白的行，行号映射以替换后的源码为准；
   - 函数内按首次出现顺序把非保留标识符重新编号为 `a1, a2, …`；
   - 加上同一合约的状态变量声明（使用同一套编号）；
   - 每行加函数内相对行号 `L1|`、`L2|`、……
@@ -329,14 +360,16 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 1. 读取 8H 中该（任务、剖面）所用的图引用（G0 = F0 原图，G3R = F3）。
 2. 主视图：调用 `benchmark_v2.spelling_features.assemble(graph, 8G anonymous view)`，得到带匿名 token ID 的内存副本（S0/S1 需要；env_source 的 token 保持不变）。次要视图用 8G 的 original view。
 3. `node_sem.carrier.carry(graph, spec, view, task)`：再做一次深拷贝，每个节点的 `token` ← 载体向量 `x_v` = [存在位 (M) | 模态 1 | …]（float32，有限值）。行由各模态 manifest 按 node id 查找；辅助节点按 `env:<文件>:<键>` 查找。核对每行的 code SHA。原图指纹前后一致。
-4. `dfg_v2.model.make_model(task, carried, profile, "cpu", node_feature="inside_token", hidden_size=128, layers=spec.layers or cfg.layers, heads=8, reducer, layer_impl)`：原样构造，`adapt_ws[i] = Linear(D, 128)`，注册校验通过。
-5. S0：不做替换（就是 8H 的模型）。其他配置：`model.adapt_ws = nn.ModuleList([NodeSemAdapter(spec, ntype) for ntype in 按 ntypes_dict 顺序])`，长度不变。
+4. `dfg_v2.model.make_model(task, carried, profile, "cpu", node_feature="inside_token", hidden_size=128, layers=(cfg.layers if spec.layers is None else spec.layers), heads=8, reducer, layer_impl)`：原样构造，`adapt_ws[i] = Linear(D, 128)`，注册校验通过。
+5. S0：不做替换（就是 8H 的模型）。其他配置：
+   - 如果 spec 含 TOKEN_IDS（embed_pool），先注册 `model.nodesem_shared = nn.ModuleDict({"token_bag": nn.EmbeddingBag(V, 64, mode="mean")})`；
+   - `model.adapt_ws = nn.ModuleList([NodeSemAdapter(spec, ntype, shared=model.nodesem_shared) for ntype in 按 ntypes_dict 顺序])`，长度不变。适配器用 `object.__setattr__` 保存对共享模块的引用，使其参数只在 `nodesem_shared.*` 下注册一次。
 6. 加载 NodeSem 零步初值（见下），核对 tensor_digest。
 7. `node_sem.model.validate(model, spec)`：适配器的类型、数量和布局正确，D 与 manifest 一致；然后调用 `dfg_v2.model.validate_registration(model)`。
 
 **NodeSemAdapter**（`node_sem/adapter.py`）：
 - 按 spec 的布局切分 `inp`：前 M 列是存在位，之后依次是各模态。
-- token 模态（S1）：Embedding 加掩码平均池化。连续模态：LayerNorm 后接 `Linear(d_m, 128)`。`b_static`：直接 `Linear(75, 128)`。
+- token 模态（S1）：共享的 EmbeddingBag（第 4.3 节）后接本类型的 `Linear(64, 128)`。连续模态：LayerNorm 后接 `Linear(d_m, 128)`。`b_static`：直接 `Linear(d_static, 128)`。
 - 融合方式：
   - `concat`（默认）：`Σ_m p_m · z_m + b`；
   - `gated`：`g = softmax(mask(W_g [p_1 z_1; …]))`，存在位为 0 的模态 logit 置为 −inf；全部缺失时输出 `b`，不得出现 NaN；`h = Σ g_m z_m + b`。`last_gates` 只读保存。
@@ -344,8 +377,8 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 - 模态 dropout（只在 `self.training` 时生效）：每个节点每个模态以 p=0.1 的概率把存在位置 0。随机数来自一个按（fit 种子、"modality_dropout"）派生的 CPU generator，掩码再移到设备上，不消耗全局随机数。
 
 **初值**（`node_sem/init.py`）：
-- 从 8H 同一（任务、折、剖面）的零步初值文件（SHA 封存）复制所有非 `adapt_ws.*` 的键（`gcs.*`、`classify.*`）。形状必须一致，否则报错。
-- `adapt_ws.*` 的新参数：Linear 用 Xavier uniform，Embedding 用 N(0, 0.02)（padding 行置 0），LayerNorm 用 1/0。随机数一律来自 `torch.Generator().manual_seed(parameter_seed(constructor 种子, 参数名, [task_id, fold, profile, spec_digest]))`。
+- 从 8H 同一（任务、折、剖面）的零步初值文件（SHA 封存）复制 `gcs.*` 与 `classify.*` 的全部键。形状必须一致，否则报错。其余键（`adapt_ws.*`、`nodesem_shared.*`）都是新参数。
+- 新参数：Linear 用 Xavier uniform，EmbeddingBag 用 N(0, 0.02)（第 0 行置 0），LayerNorm 用 1/0。随机数一律来自 `torch.Generator().manual_seed(parameter_seed(constructor 种子, 参数名, [task_id, fold, profile, spec_digest]))`。
 - 记录 state SHA。S0 时必须与 8H 初值逐位相同。
 
 **S4-noG**：G0 图，`layers=0`。作者 forward 在 0 层时直接把 `h` 送进 classify，合约任务照常池化；`gradient_audit` 在 G0 上没有 v2 关系，可以通过。NS-P0 和 NS-P4 要实际验证这一点。
@@ -435,7 +468,9 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 4. **访问控制已经饱和**：结论只能来自重入；访问控制只看 20 个真实正例的定性表。
 5. **单 seed、传导式设定、SolidiFI 占主导**：与 DFG 相同，论文结论需要服务器上的多 seed 复跑。
 6. **M3a 可能被质疑“针对标签设计”**：字段都是通用的语句行为，不读取标签；两个视图逐位一致的校验，以及 S4−S3 的消融，都写进论文。
-7. **`get_node_token` 很慢**：控制 D（S4 约 590 维，S5 约 975 维），在 NS-P4 中实测构造时间。
+7. **`get_node_token` 很慢**：控制 D（S4 约 595 维，S5 约 980 维），在 NS-P4 中实测构造时间。NS-P0 实测：真实重入节点 G3R 从 512 维到 600 维，构造时间 8.46→9.49 秒。
+8. **显存余量**：8H 中 reentrancy_contract G3R 的整卡最小空闲只有 44 MiB。S1 必须用共享 EmbeddingBag（第 4.3 节）；NS-P4 第 4b 节做 GPU 探针。
+9. **CFG 覆盖不完整**：legacy→V2 语义 CFG 支持的含体函数为 3135/3404、1964/2045、2797/3148、1859/1958（NS-P0）。不受支持的函数，顺序事实记为 unknown；守卫采用 AST 词法规则，不受此影响。
 
 ---
 
@@ -479,7 +514,9 @@ mando 环境中的代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[
 
 ## 不变量
 - 原图的节点、节点顺序、属性和边完全不变。特征只在内存深拷贝上装配，装配前后原图指纹（benchmark_v2.feature_view.graph_fingerprint）相同。
-- 特征提取只允许读取节点的 code、node_type、source_file、node_source_code_lines（只用于对齐）以及图的边与边属性。禁止读取 label、type_label、node_info_vulnerabilities、method、任何标签或预测文件。有扰动测试保证这一点。
+- 特征提取只允许读取节点的 code、node_type、source_file、node_source_code_lines（只用于对齐）以及图的边与边属性。label 是结构性 DOT 标签（代码文本 + AST 锚点），只允许冻结的 Projector/node_code_view 读取它做 AST 身份对齐，NodeSem 代码不得读取，它的任何部分都不得进入特征。禁止读取 type_label、node_info_vulnerabilities、method、任何标签或预测文件。扰动验收按 PROMPTS.md 第 4.2 节 (a)(b)(c) 三项。
+- 变量名只能来自已封存 F3 存储中 L1 证据的 Symbol.name/Symbol.kind（经 ddg_fact_indices 定位）、L2 边的 state_vars、L3 边的保留环境表达式；主视图中逐个标识符经 8G 双射映射，映射不到的非保留标识符直接报错。禁止使用 Symbol.id、function、declaration、跨度、文件路径和原始 type_name 文本。
+- 配置中的层数回退必须写成 `cfg.layers if spec.layers is None else spec.layers`，不能写 `spec.layers or cfg.layers`。
 - 主视图（anonymous）的文本来自 8G 的改名结果；DFG 边上的拼写属性必须先经该文件的 8G 双射映射。主视图的任何特征文本或 LLM 提示中，identifier 只能是保留名或该文件的匿名名，有测试保证这一点。
 - 任何特征文本中都不出现绝对行号或文件名，只用函数内相对距离 @-k/@+k。
 - AST 事实一律经 ProjectionView + Projector 按 AST 身份投影到节点，投影不到的事实丢弃并计数，不按行号猜测。
@@ -506,7 +543,7 @@ NodeSem 的拼接向量写进内存图副本中每个节点的 token 属性，�
   CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests
   CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
   CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
-  另外核对：git status 中，除 scripts/node_sem/ 与三份记录文档外，没有已跟踪文件的改动；experiment.run._code_refs() 仍等于 8H plan 中的 runtime，且 benchmark_v2.execution.load(8H plan) 只读通过。
+  另外核对：git status 中，除 scripts/node_sem/ 与三份记录文档外，没有已跟踪文件的改动；benchmark_v2.execution.load(8H plan) 只读通过（它按已批准的生效修订 runtime_resume_v2.json，SHA f18dd07d…，核对运行版本；不要求与原 plan 的 runtime 字面相等），且 experiment.run._code_refs() 与该生效修订记录的运行版本相同。
   全部通过后 git commit，提交信息以 NS-Pn 开头。
 - 除了明确写着“训练”的步骤，不启动任何 HGT 训练。正式批次必须先有用户的授权记录。
 - 失败就停，保留现场，不自动重试，不自行换方案。
@@ -564,6 +601,11 @@ RECON.md 与 recon.json 完整；第 2 节三个实验的结论明确。如果�
 ```text
 # NS-P1：骨架、FeatureSpec、载体装配、NodeSemAdapter（embed_pool）、初值、执行器与 S0 等价证明
 
+## 0. 开工前（先做，结果写进 PROGRESS）
+1. 记录 r4 对 NS-Q1/Q2/Q3 的决定（PROMPTS.md 第 4.2、4.6 节），作为后续实现依据。
+2. **torch.load 的使用边界（需要用户在本会话中明确批准后才能执行）**：只允许对“紧接着加载前已核对 SHA256 与封存引用一致”的本地文件调用 torch.load，范围限于 prompt8h_v1/prepared_attempt3 的零步初值、prompt8h_v1/runs 下的 checkpoint，以及 NodeSem 自己生成并封存的文件。torch 1.8 没有 weights_only，这与 8H 执行器现有做法相同。未获批准就停下等待，不要绕过。
+3. 获批后，补做 NS-P0 缺的一项：对 60 个 G0/G3R 零步初值逐个加载，独立重算 tensor_digest，与 prepared、initialization_ref、binding 中的 state_sha256 比较。结果写入 artifacts/ns_p1_initial_digests/digests.json。任何不一致就停下报告。
+
 ## 1. 骨架
 scripts/node_sem/__init__.py：VERSION = "nodesem-v1"；模态名常量 TOKEN_IDS、CODE、CTX、STATIC、STUDENT、TEACHER、TEACHER_JUDGE；视图名 ANON = "anonymous"、ORIG = "original"。
 
@@ -591,7 +633,10 @@ scripts/node_sem/__init__.py：VERSION = "nodesem-v1"；模态名常量 TOKEN_ID
 
 ## 4. NodeSemAdapter（adapter.py）
 - S0（token_mode=raw_linear）不替换 adapt_ws，保留 make_model 创建的 nn.Linear(512,128)；NodeSemAdapter 不实现 raw_linear。carry() 对 S0 直接返回 spelling_features.assemble 的结果（D=512，没有存在位）。
-- embed_pool：nn.Embedding(V,128,padding_idx=0)。输入列转成 long 前，检查是否为精确非负整数且 < V。按非零位置掩码平均；全为填充的行输出 0。V 用 TokenEncoder 的 tokenizer 词表大小，并核对 8G 特征的最大 ID < V。
+- embed_pool：使用模型级共享的 nn.EmbeddingBag(V, 64, mode="mean")（第 4.3、4.9 节），每个适配器只加自己的 Linear(64,128)。
+  - 前向：token 列转成 long 前，检查是否为精确非负整数且 < V；检查非零 ID 构成右侧填充的连续前缀（中间出现 0 就报错）；拼成一维 input 与 offsets 调用 EmbeddingBag；空行得到零向量。
+  - V 用 TokenEncoder 的 tokenizer 词表大小，并核对 8G 特征的最大 ID < V。
+  - 禁止为每种节点类型各建一个 Embedding，禁止展开 N×512×d 的中间张量。
 - concat、gated、模态 dropout 的接口先保留（抛 NotImplementedError），在 NS-P4 中实现。
 - forward(inp) 只返回线性输出，gelu 由作者 forward 负责。
 
@@ -605,8 +650,9 @@ validate(model, spec)：
 ## 6. 初值（init.py）
 initial_state(model, spec, task_id, fold, profile, h8_initial_ref)：
 - 读取 8H 零步初值（核对文件 SHA、state_sha256、kind=untrained_initial、optimizer_steps=0、task/fold/profile 一致）；
-- 复制全部非 adapt_ws.* 的键；
-- adapt_ws.* 的新参数按第 4.9 节的规则初始化，随机数来自 parameter_seed(constructor 种子, 参数全名, [task_id, fold, profile, spec.digest()])；
+- 加载前核对文件 SHA（见第 0 节的 torch.load 边界），加载后独立重算 tensor_digest 并与 state_sha256 比较；
+- 复制 gcs.* 与 classify.* 的全部键（形状必须一致）；
+- 其余键（adapt_ws.*、nodesem_shared.*）都是新参数，按第 4.9 节的规则初始化，随机数来自 parameter_seed(constructor 种子, 参数全名, [task_id, fold, profile, spec.digest()])；
 - 返回 state_dict 与 tensor_digest。
 S0：返回值必须与 8H 初值逐位相同。
 
@@ -622,15 +668,17 @@ S0：返回值必须与 8H 初值逐位相同。
 
 ## 8. S0 等价证明（必须全部通过；CPU；不计入正式结果）
 任选 8H 的两个 job：reentrancy_node fold0 G3R、access_control_contract fold0 G0。
-- 构造：分别用 benchmark_v2.execution.construct（8H plan）与 node_sem.execution.construct（S0 spec）构造模型，比较 state_dict、每种节点类型的 inp、etypes_dict、binding 中与特征无关的字段，要求逐位相同。
+- 构造：分别用 benchmark_v2.execution.construct（8H plan）与 node_sem.execution.construct（S0 spec）构造模型。node_sem 侧在调用 make_model 之前同样执行 seed_all(constructor 种子)，在 fit 之前同样执行 seed_all(fit 种子)。比较 state_dict、每种节点类型的 inp、etypes_dict、binding 中与特征无关的字段，要求逐位相同。
 - 训练：两边都用 benchmark_v2.trainer.fit 在临时目录跑 2 个 epoch（config 只把 maximum_training_epochs 改为 2，并写明这是等价检查配置）。比较每轮 loss、最终参数、Adam 状态、scheduler 状态，以及 inner_val/outer_test 预测，要求逐位相同。
 - 结果写入 scripts/node_sem/artifacts/ns_p1_equivalence/equivalence.json。
 
 ## 9. 测试（CPU，使用 dfg_v2/tests 中已有的小 fixture 或同源 fixture）
 - FeatureSpec：to_json/from_json 往返；digest 稳定；S0 的约束；layout 的列区间。
 - carrier：行顺序、行身份、code SHA、图指纹、NPZ 数组名、维度、dtype、非有限值，任一项被篡改都会被拒绝；禁止属性扰动后载体不变；原图未被修改。
-- adapter：embed_pool 的掩码平均（含全填充行）；非整数或越界 ID 报错；S0 不替换 adapt_ws。
-- init：S0 与 8H 初值逐位相同；S1 中非 adapt_ws 的键与 8H 相同；同样的输入两次生成逐位一致。
+- adapter：EmbeddingBag 平均与逐行手算的平均一致（误差 ≤1e-6，含全填充行）；非整数、越界 ID、填充不连续都报错；17 个适配器共享同一个 EmbeddingBag（named_parameters 中只出现一次）；S0 不替换 adapt_ws；S1 的总参数增量与按公式计算的一致。
+- init：S0 与 8H 初值逐位相同；S1 中 gcs.* 与 classify.* 与 8H 相同；同样的输入两次生成逐位一致。
+- layers 回退：spec.layers=0 时实际构造 0 层，spec.layers=None 时用 cfg.layers。
+- 扰动验收：第 4.2 节 (a)(b)(c) 三项。
 - model：替换 adapt_ws 后 validate 与 validate_registration 都通过；适配器数量错误被拒绝。
 
 ## 验收
@@ -692,24 +740,26 @@ StatementFacts（每个节点一个，可 JSON 序列化）：
 - defs、uses（[{var, kind: state|local|param|env, from_offset}]）；
 - from_nodes（[{node, offset}]）、to_nodes（[{node, offset, sink}]）；
 - reachable_from_ext_call、dominated_by_ext_call、write_then_later_call、call_then_later_write（bool）；
-- guard：{kind: none|require|assert|if|while|modifier, operand_classes: 集合, pairs: 集合, offset} 或 None；
+- guards：全部适用守卫的列表 [{kind: require|assert|if_branch|early_exit_if|loop_cond|modifier, polarity: +|-, operand_classes: 集合, effective_eq_pairs: 集合, offset}]；guard_status：none|present|unknown；nearest：最近守卫的下标；order_status：supported|unknown（函数 CFG 是否受支持）；
 - func：{visibility, payable, view_pure, is_constructor, modifiers: [{name, resolved: bool, has_sender_guard: bool}]}；
 - env_keys、return_handling（na|checked|assigned_unchecked|ignored）、arith（集合）、arith_on_state（bool）、loop_bound（none|const|state|param_local）、syntax_bag（集合）；
 - unresolved（{原因: 计数}）。
 FactBackend 接口：extract(task_id, file, view) -> {row_key: StatementFacts}。只实现 AstBackend：
-- 函数内 CFG：按 NS-P0 的结论选择 semantic_cfg/l1_cfg（经投影映射），或用 HCG CFG 边作后备；只保留两端在同一函数内的边。入口是函数定义节点。
+- 函数内 CFG：只用 NS-P0 核实过的 legacy→V2 语义 CFG（V2CFGBuilder，保留无事件的中间块，只投影精确的事件锚点）。不使用 HCG 自身的 CFG 边作后备（其中有跨函数的边）。函数 CFG 不受支持时，C 组的顺序事实全部记为 unknown（order_status=unknown），不得记为 false。
 - 外部调用判定：
   - is_external_call(ast_node, ctx) -> (bool, kinds)：.call(、.call.value(、.call{、.delegatecall(、.staticcall(、.send(、.transfer( 都按 AST 形状判断；
   - 成员调用 x.f(...)：x 不是 this、super、msg、block、tx、abi，也不是本文件中声明的库名时，记为 member_call；
   - value_attached：.value(...) 或 {value: ...}。
 - PRE_EXT_CALL：在函数内 CFG 上从本节点做反向 BFS，第一个外部调用节点（层数最小，同层取相对距离最小）；本节点自身不算。reachable_from_ext_call 由同一次搜索得到。
-- 支配：networkx.immediate_dominators(函数子图, 入口)。dominated_by_ext_call、guard 都沿支配链向上取最近的一个：
-  - require/assert 来自支配链上的 expression_statement；
-  - if/while 来自支配链上的条件节点；
-  - 都没有时，如果函数应用了 modifier，guard.kind = modifier。
-  - operand_classes 由守卫条件的 AST 标识符分类得到：msg.sender、tx.origin 来自 env.py 的键；状态变量来自 L2 边或合约体声明；参数来自 AST 参数表；其余为局部变量、字面量、时间戳/区块号、调用结果。pairs 只记录比较运算两侧的类别组合。
+- dominated_by_ext_call：在函数 CFG 上用 networkx.immediate_dominators(函数子图, 入口) 判断，只用于这一项。
+- 守卫：严格按 PROMPTS.md 第 4.6 节“守卫规则”的五条 AST 词法规则实现，不使用 CFG 支配：
+  - 内置 require/assert 的判定：调用名是 require/assert、不是成员调用，且同一文件没有声明同名函数；
+  - 提前退出 if 的判定：没有 else，consequence 为单条 throw/revert(...)/return，或以三者之一结尾的块；
+  - modifier：经 ClosedScopeJ 解析定义，只检查函数体中第一个 `_;` 之前的语句；解析不到或没有 `_;` 时记为 unknown；
+  - operand_classes 由守卫条件的 AST 标识符分类得到：msg.sender、tx.origin 来自 env.py 的键；状态变量来自 L2 证据或合约体声明；参数来自 AST 参数表；其余为局部变量、字面量、时间戳/区块号、调用结果；
+  - effective_eq_pairs：对 ==、!=、!(a==b) 按极性换算，只记录有效相等两侧的类别组合。
 - write_then_later_call / call_then_later_write：在函数内 CFG 上做正向可达性判断。
-- DEF/USE/FROM/TO：来自 F3 图的 DATA_DEF_USE 边（拼写属性在主视图中经 8G 双射映射）；变量类别来自 L2 边（state）、L3 边（env）、AST 参数表（param），其余为 local。TO 的汇点类型由目标节点的 AST 角色判断：调用参数、value、守卫条件、对状态变量的赋值、return。
+- DEF/USE/FROM/TO：边来自 F3 图的 DATA_DEF_USE；变量名与类别经 ddg_fact_indices 从已封存的 L1 证据读取（Symbol.name、Symbol.kind，type_name 只归类为形状），主视图中逐个标识符经 8G 双射映射；L2 边的 state_vars 同样映射；L3 用保留的环境键。读取证据前核对 store 中引用的 SHA，并把它写进 manifest。TO 的汇点类型由目标节点的 AST 角色判断：调用参数、value、守卫条件、对状态变量的赋值、return。
 - STATE_R/W：READS_STATE/WRITES_STATE 边；shape 由声明类型判断（mapping、数组、其他）。
 - ENV：ENV_FLOW 边。
 - modifier 解析：在同一文件 AST 上，按拼写把函数头中的 modifier 调用解析到 modifier_definition；继承用 ClosedScopeJ。解析不到时 resolved=false，不猜测。has_sender_guard：modifier 体内存在操作数含 msg.sender 或 tx.origin 的 require/if。
@@ -740,7 +790,12 @@ g) modifier onlyOwner { require(msg.sender == owner); _; } 应用到 function ki
 h) pragma 0.4.x，contract Wallet { function Wallet() public {...} } → is_constructor；函数名与合约名不同时为 false；
 i) for (uint i = 0; i < users.length; i++) users[i].transfer(1); → transfer，循环边界为状态变量或数组长度；
 j) 状态变量先写、后发生外部调用 → write_then_later_call；
-k) if (now > deadline) {...} 内的语句 → guard 操作数含时间戳。
+k) if (now > deadline) {...} 内的语句 → if_branch、极性 +、操作数含时间戳；
+l) if (msg.sender != owner) throw; owner = x; → 第二句 early_exit_if、极性 −、有效相等组合为 env 对状态变量；
+m) if (c) { a = 1; } b = 2; → b = 2 不受该 if 保护（guard_status=none），a = 1 是 if_branch；
+n) 同一文件声明了 function require(bool) 时，require(...) 不视为守卫；
+o) modifier 无法解析（调用基类构造或未知名字）→ guard_status=unknown，而不是 none；
+p) 函数 CFG 不受支持的函数 → order_status=unknown，C 组为 unknown 位，不是 false。
 另加：
 - 视图一致性：四个任务中，主视图与次要视图的 StatementFacts（名字按双射还原后）和 M3a 向量逐节点相同。不一致必须逐条列出原因，不得放宽；
 - M2 字段的泄漏测试：主视图中只出现保留名或匿名名；没有绝对行号；
@@ -748,7 +803,7 @@ k) if (now > deadline) {...} 内的语句 → guard 操作数含时间戳。
 - 独热组每个节点恰好一个 1。
 
 ## 5. 真实数据统计（不训练）
-按任务统计：各字段的非空率；unresolved 的原因分布；CFG 后备使用比例；modifier 解析的成功、失败、继承比例；guard 各类型比例；截断级别分布；M3a 每一维的取 1 比例（只做描述，不按标签分组，不用于调参）。
+按任务统计：各字段的非空率；unresolved 的原因分布；order_status=unknown 与 guard_status=unknown 的比例；守卫规则 1–5 各自的命中数；modifier 解析的成功、失败、继承比例；guard 各类型比例；截断级别分布；M3a 每一维的取 1 比例（只做描述，不按标签分组，不用于调参）。
 
 ## 验收
 测试与统计通过；PROGRESS.md 记录；提交 NS-P3。
@@ -760,7 +815,7 @@ k) if (now > deadline) {...} 内的语句 → guard 操作数含时间戳。
 # NS-P4：concat/gated 融合、模态 dropout、layers=0、S2–S4-noG 配置与 CPU 冒烟
 
 ## 1. 融合（adapter.py）
-- concat：对每个连续模态 m（CODE、CTX、STUDENT、TEACHER*）做 LayerNorm(d_m) → Linear(d_m,128)；STATIC 不做 LayerNorm，直接 Linear(75,128)；TOKEN_IDS（如果存在）走 embed_pool。输出 h = Σ_m p_m · z_m + b（共享偏置 b，各 Linear 不带偏置）。
+- concat：对每个连续模态 m（CODE、CTX、STUDENT、TEACHER*）做 LayerNorm(d_m) → Linear(d_m,128)；STATIC 不做 LayerNorm，直接 Linear(d_static,128)；TOKEN_IDS（如果存在）走共享 EmbeddingBag 加本类型的 Linear(64,128)。输出 h = Σ_m p_m · z_m + b（共享偏置 b，各 Linear 不带偏置）。
 - gated：z_m 的计算同上；logits = W_g [p_1 z_1; …; p_M z_M]（Linear(M·128, M)）；p_m=0 的 logit 置为 −inf；全部缺失时 h=b；否则 g = softmax(logits)，h = Σ g_m z_m + b。last_gates 保存为 detach 后的 CPU 张量。
 - 模态 dropout：只在 self.training 时生效。每次 forward 用一个 CPU torch.Generator 生成伯努利掩码（种子 = parameter_seed(fit 种子, "modality_dropout", [task_id, fold, profile, spec_digest]) 加上当前 forward 计数），再移到设备上。掩码作用在存在位上。全局随机数不受影响。
 - 参数初始化按第 4.9 节；参数名稳定（例如 adapt_ws.3.proj.CODE.weight），写进测试。
@@ -769,7 +824,7 @@ k) if (now > deadline) {...} 内的语句 → guard 操作数含时间戳。
 spec.layers=0 时，make_nodesem_model 传 layers=0 给 make_model。按 NS-P0 实验 C 的结论确认：作者 forward 可以直接使用；只在 G0 上使用；节点任务与合约任务都能前向和反向。
 
 ## 3. 配置登记
-configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（主视图，CODE 与 CTX 用主编码器）。记录每个配置的 carrier_dim（预期 S4 约 590）。
+configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（主视图，CODE 与 CTX 用主编码器）。记录每个配置的 carrier_dim（预期 S4 约 595；以 behavior_schema.json 的实际维度为准）。
 
 ## 4. CPU 证明与冒烟（不是正式训练）
 在 reentrancy_node fold0 上（G3R；S4-noG 用 G0）：
@@ -777,6 +832,9 @@ configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（主视图，CODE 
 - gated：每个节点的门控权重之和为 1（误差 ≤1e-6）；全部缺失时输出等于偏置，没有 NaN。
 - 模态 dropout：p=1 时所有存在位为 0，输出等于偏置；p=0 时与关闭 dropout 逐位相同；同一 fit 种子两次运行逐位一致。
 - 构造耗时：如果 S4 的构造时间超过 8H 构造时间的 3 倍，在 PROGRESS 中报告；不要自行修改 get_node_token。
+
+## 4b. GPU 显存探针（需要用户授权；1 个 epoch；不计入正式结果）
+8H 中 reentrancy_contract G3R 的整卡最小空闲只有 44 MiB。授权后，在 local_dev_v1 下、持有同一把 .training.lock，对 reentrancy_contract fold0 G3R 的 S1 与 S4 各跑 1 个 epoch，记录 peak allocated/reserved 与整卡最小空闲。任何一项 OOM 或最小空闲低于 100 MiB，就停下报告，不要自行降配。
 
 ## 5. 测试
 - concat 的线性等价：把各模态拼接后做一次 Linear，结果与 Σ p_m z_m 逐位相同（不做 LayerNorm 的情形）；
@@ -970,6 +1028,18 @@ S5（S4 + STUDENT，按折）、S6（S4 + TEACHER）、S7（S4 + TEACHER_JUDGE�
 ```
 
 ---
+
+## 7. NS-P0 审查记录（2026-11-01，Claude）
+
+NS-P0 验收通过。独立核对了 GitHub 上可以复算的部分：
+- 8H plan 与 seal 的 SHA；60 个 G0/G3R 成功收据逐个重算 SHA，全部一致，每个（任务、折、剖面）恰好一个，没有重复 attempt；
+- resources.csv 的 22 组平均耗时、峰值显存、最小空闲，以及 N-A/B/C/D 的 4.814/2.473/3.475/1.738 小时外推，逐项一致；
+- 四个任务的原节点数 18312/12036/13432/7710，以及“普通 Projector 节点 + end_if/end_loop 合成节点”的拆分（1232/1059/363/215），与 DFG RECON 中的节点类型计数逐项吻合；
+- L2 边数（WRITES 3108/2254/1609/767，READS 4314/3070/2208/1091）、环境节点 298 与 ENV_FLOW 3857，与 DFG PROGRESS 一致；DATA_DEF_USE 5710（重入合约）高于 Prompt 5 时的 5659，是 6b 重建所致，6d.2 也确认了访问控制合约的 5773。
+
+无法在仓库里复算的部分（图存储与初值权重没有上传）：600 维载体探针、0 层探针、文本与 CFG 覆盖率、初值文件 SHA。这些以 Codex 的记录为准；初值的 tensor digest 在 NS-P1 第 0 节补做。
+
+Codex 提出的三个设计问题都成立，决定见第 4.2、4.6 节与 r4 说明。本次审查另外发现并修正了方案自身的三处错误（S1 嵌入的规模、层数回退、8H 运行版本核对的写法）。
 
 ## 6. 里程碑
 
