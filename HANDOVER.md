@@ -2359,3 +2359,14 @@ limitations: docs/github_archive_prompt8h_2026-10-31.md and adjacent JSON.
 Use existing Windows Git/proxy plus WSL credentials for a normal push to
 origin/dfg-v2, then verify remote HEAD. No extra training, deletion or model
 changes. Final sufficient-VRAM server plans remain; this batch is local.
+
+
+### 2026-11-01 NodeSem NS-P0完成（修改 AI：Codex）
+
+在node-sem分支完成只读侦察，已读更新后的设计介绍和5.1共享上下文。新增scripts/node_sem/RECON.md、recon.json及5份recon脚本，追加PROGRESS与训练变化§71；原DFG/HGT/tokenizer和所有冻结输入/结果未修改。
+
+60份G0/G3R收据、2137个不同文件SHA通过；600维token载体、17个适配Linear替换后的注册/binding、G0零层节点和合约前向反向均通过。四任务原节点匿名文本全覆盖。已有回归2653+223=2876通过，0失败/跳过；按用户批准用探针断言完成NS-P0自检，专用测试目录留NS-P1。
+
+下一阶段先澄清：结构性label只作身份的边界、M2标量变量名来自已封存L1 sidecar、普通条件支配不能等同守卫通过。仅提出建议，未自行替换方案。8H原plan/seal保留，实际运行版本按此前获批runtime_resume_v2核对，execution.load通过。自动审批拒绝torch.load后改用SHA/静态ZIP头核验，未重载历史模型或独立重算tensor digest。
+
+最终实验按用户安排使用显存充足的服务器；当前RTX3050 4GiB限制只是本机开发条件。本轮没有新的真实训练、下载或安装；停止于NS-P0，本地提交但不自动push。详见RECON与training_changes§71。

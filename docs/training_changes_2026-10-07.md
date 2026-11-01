@@ -7333,3 +7333,59 @@ limitations: docs/github_archive_prompt8h_2026-10-31.md and adjacent JSON.
 Use existing Windows Git/proxy plus WSL credentials for a normal push to
 origin/dfg-v2, then verify remote HEAD. No extra training, deletion or model
 changes. Final sufficient-VRAM server plans remain; this batch is local.
+
+
+## 71. 2026-11-01 NodeSem NS-P0：输入侦察与载体接入核实（修改 AI：Codex）
+
+### 71.1 任务、依据与范围
+
+用户要求开始scripts/node_sem/PROMPTS.md的NS-P0，并先读第一Prompt之前的全部介绍、设计与5.1共享上下文。起始分支node-sem、HEAD 489cebe29181bddbd9fa6170fc4498f082fc9ac7；按文档执行pull --ff-only origin node-sem，Already up to date。PROMPTS原文SHA、每份源码和输入SHA在recon.json中绑定。本轮仅做只读侦察和接口断言，不实施特征、Adapter、执行器或新训练。
+
+仅新增scripts/node_sem/RECON.md、recon.json、recon/inputs.py、carrier_probe.py、text_ast.py、cfg.py、run.py、PROGRESS.md；已有HANDOVER与本文件仅追加。原scripts/DFG目录没有新增或修改，原HGT/tokenizer、图节点/边/标签/512维特征、折、初值、历史结果、plan/seal不变。产物留WSL项目目录，没有写入C盘新的运行日志。
+
+### 71.2 实施方式和重要选择
+
+inputs.py沿8H plan/seal→8G source preparation与命名清单→图store/seal→F0/F3及特征manifest/NPZ读取，按引用SHA核验，不猜文件名。完整核验60份G0/G3R成功收据，覆盖四任务30折，每份声明产物SHA、effective_config、prepared初值、binding一致；共2137个唯一文件SHA。四任务文件/分组为142/124、71/57、114/107、57/52，合约5折、节点10折；具体配置逐项原样写入RECON，未把节点学习率0.0002/0.005与合约0.0005/0.01混用。
+
+初值安全核验：先前只读探查包含torch.load，被自动审批以pickle可执行反序列化风险拒绝，命令未执行。随后改为文件SHA、ZIP/pickletools非执行原始头核验，确认untrained_initial、optimizer_steps=0及task/fold/seed/profile/constructor_seed/fit_seed；state_sha256在prepared、initialization_ref和binding间一致。没有绕过拒绝、没有重载历史模型、没有本轮独立重算tensor digest；此限制在报告和机器记录中明确。NS-P0要求的路径/身份可确认，不能扩大表述成全面checkpoint重新验收。
+
+carrier_probe.py构造小fixture与真实重入节点G3R；后者经原assemble得到匿名512维特征，深拷贝后为所有节点（含env_source）赋固定随机float32[600]。冻结make_model与validate_registration原样调用；B仅将17个adapt_ws替换成Linear(600,128)，通过runtime注册和build_binding/validate_binding。临时合成JSON/NPZ放WSL /tmp且退出即删；对临时manifest故意改变一个字节时校验正确拒绝。临时引用是接口证明，不是新的正式特征或checkpoint。
+
+C用G0小fixture、600维、layers=0，节点与合约分别前向、交叉熵反向、gradient_audit；另独立重算gelu(adapter)→分类/文件池化，结果逐位一致。参数值未改变，无optimizer.step或trainer.fit，原图指纹保持。A/B没有真实600维HGT前向，未来NodeSemAdapter/融合、FitInputGuard和实际GPU预算仍须后续阶段验证。配置传值须区分None与0，不能用layers or default吞掉0层。
+
+text_ast.py使用原node_code_view和匿名ProjectionView+Projector，按类型记录抽样、pydot引号、原整子树对比、条件/循环头/签名/合约头。end节点用现有synthetic_owner、else-if记录return_if_root，输出END哨兵而非猜最近行。注释按AST字节范围空白化以保留分隔与换行，复解析并比对执行token；无源码写回。函数首次出现编号的词法去重单列含体/无体与modifier等，不作为最终LLM缓存等价类。
+
+cfg.py复用legacy及V2CFGBuilder，统计后继/入口、角色投影、modifier绑定与受限prefix执行。只观察CFG构造，不执行新支配算法，不把构建成功视为完整RD分析。全部图加载在SHA确认后使用现有restricted safe_graph，不使用普通pickle.load。独立审查另补图store/seal链、资源CSV对报告收据预期SHA及170个唯一任务矩阵的严格核验。run.py组织四部分，只输出JSON并在前后核对冻结运行版本和CUDA未初始化；无新功能。
+
+### 71.3 实测与数据结论
+
+真实重入节点G3R共12223节点（12036原节点+187env）、23703边。512维构造8.462秒、5111012参数；600维9.494秒、5302500参数；差191488=17×88×128，注册和替换通过。单次CPU计时非稳定性能承诺。零层节点/合约反向骨干梯度L1为649.073739/694.396043，分类头18.313421/20.411260，有限且非零；无DDG支持是预期，不要求不存在的关系梯度。
+
+四任务原节点匿名文本全覆盖18312/12036/13432/7710；普通Projector节点17080/10977/13069/7495，其余主要合成end身份。所需AST子范围提取通过；while分别7/7/9/9，不足10如实记录。注释4299/2249/2848/1210；处理前后ERROR/MISSING均0，执行token不变。函数总数4035/2283/3761/2206（含modifier与无体声明），含体3569/2101/3306/2019，词法归一化去重1273/604/1138/593。仅解析核验，没有新增编译验证。
+
+CFG支持按不含modifier定义的含体函数统计：3135/3404、1964/2045、2797/3148、1859/1958，入口可投影3081/1928/2760/1835；全部事件锚点可投影1947/1067/2315/1657。缺失主要原图无emit/revert/fallback节点，不删分析中间块。HCG CFG端点精确属于不同函数的边88/1/147/67，故不能直接把整图当函数内支配图。modifier调用AST609/193/613/218，绑定549/178/528/195，其中继承266/88/283/86；受限prefix执行仅285/537、107/171、261/549、111/197。绑定和可执行覆盖不是同一指标，调用语法还可能包含基类构造。
+
+F3四类正向边按重入合约/节点、访问控制合约/节点：DATA_DEF_USE 5710/3469/5773/3923；READS_STATE 4314/3070/2208/1091；WRITES_STATE 3108/2254/1609/767；ENV_FLOW 3857/3200/2536/1948。环境节点298/187/261/182。F3保存正向，G3R运行时加显式反向，不可重复反射。边实例、方向、属性、每文件环境数量和全部引用在recon.json。
+
+### 71.4 用户批准、原文差异与待确认设计
+
+用户明确批准：NS-P0只允许侦察脚本，而共享上下文要求运行不存在的NodeSem测试目录；本轮用侦察断言与两套已有回归，专用tests目录留到NS-P1，未提前扩展范围。
+
+旧plan.runtime与当前_code_refs字面不相等，是8H已批准cache/resume修订造成；当前与runtime_resume_v2完全相等，原execution.load只读通过，原plan/seal不改。此处使用已有有效批准链，不新签seal或放宽入口。
+
+下列建议仅登记为待后续用户确认，本轮不修改方案：
+1. 原Projector为AST身份读取结构性label，与未来特征白名单的全面禁止有接口冲突；需明确身份对齐边界，目标标签仍不得进入特征并需扰动验收。
+2. DATA_DEF_USE所有边不直接带变量拼写，只有ddg_fact_indices；变量名在已封存F3 audit.layers.L1.evidence。M2需明确sidecar SHA依赖，原名经8G文件内映射；不可泄漏symbol身份中的文件路径/绝对行号。
+3. if/while条件支配语句不等于守卫通过，当前语义CFG后继无分支极性、require/assert无显式异常出口。NS-P3具体守卫字段需先定义支持规则，回退/缺失保持未知，不能当成无守卫。
+
+### 71.5 验收、资源、未执行事项与停止
+
+mando CPU命令（PYTHONDONTWRITEBYTECODE=1，CUDA_VISIBLE_DEVICES为空，OMP/MKL线程2，原TREE_SITTER_LIB_DIR）：
+- python -B -m scripts.node_sem.recon.run：全量169.64秒，断言通过。
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests：2653通过、9警告、171.91秒。
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py：223通过、29警告、4.16秒。
+总2876项唯一测试，0失败/跳过；5新脚本Python3.7 AST语法通过。警告为既有DGL/distutils与NetworkX gpickle弃用；回归内部合成fixture训练不计作新增真实训练。
+
+历史170项资源CSV已绑定报告SHA和唯一矩阵；N-A180/N-B90/N-C120/N-D60的fit计算参照约4.814/2.473/3.475/1.738小时，未含构造校验、编码器/LLM、教师/蒸馏、新适配器及早停变化；N-B零层以G0两层耗时占位。这不是总工期承诺，NS-P4应实测。
+
+最终实验按用户安排在显存充足的服务器执行；当前RTX3050 4GiB限制仅属本机开发条件。本轮没有新GPU训练、下载、安装、特征算法、完整Adapter或正式计划，没有修改原运行产物，也没有自动push。完成NS-P0本地提交后停止，不推进NS-P1。完整结论和引用见scripts/node_sem/RECON.md及recon.json。
