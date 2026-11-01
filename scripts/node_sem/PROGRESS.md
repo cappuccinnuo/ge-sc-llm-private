@@ -30,3 +30,28 @@
 资源外推N-A/B/C/D仅历史fit计算约4.814/2.473/3.475/1.738小时，不包括特征编码/LLM/蒸馏、构造验收和新适配器；不是运行时承诺。最终实验按用户安排在显存充足服务器执行，当前RTX3050 4GiB仅是本机开发限制。
 
 本轮结束于NS-P0验收与本地NS-P0提交；不自动推进NS-P1、正式训练或GitHub推送。
+
+
+## 2026-11-01 NS-P1：载体与执行骨架完成（修改 AI：Codex）
+
+起始HEAD 27ea6617fd9fc81d9d60cf068122b8d8c996d930，node-sem，pull --ff-only已是最新。完整读取r4介绍与共享上下文后实施。新增FeatureSpec、S0/S1配置、严格载体、单份共享EmbeddingBag适配器、模型组合、确定性初值、SHA受限加载、独立执行器与CPU等价入口/修订入口，以及tests。原DFG、HGT、tokenizer、输入图/匿名特征/标签/划分和8H产物未改。
+
+r4决策：NS-Q1结构label只由冻结Projector用于AST身份；NS-Q2未来名字从封存L1证据/状态与环境属性经8G映射；NS-Q3未来guard采用AST词法规则。后两项本轮未提前实现。S0仍原512维Linear；S1载体513维，只注册一份V×64 EmbeddingBag，各类型Linear(64,128)，保留显式layers=None/0。
+
+用户批准：
+1. 仅对批准的8H初值/checkpoint和NodeSem封存文件，在紧邻加载前核对SHA后使用torch.load；60/60初值独立tensor_digest补验通过（7.25秒）。PyTorch1.8 pickle风险已明确，没有扩大范围。
+2. 扰动验收分离输入完整性与特征不变性：原manifest拒绝改图，仅测试manifest重绑定图指纹；特征/行/source不变，损坏AST锚点仍拒绝。
+3. scheduler.anneal_func是绑定方法，两个实例直接比较不同；批准核验同一OneCycleLR类与函数实现，其余字段继续逐位比较。原失败/seal/38个重入CPU产物保留，独立acceptance_revision1复验后继续，不重训重入。
+
+真实验收：
+- 16组载体（四任务×G0/G3R×S0/S1）通过。真实重入G3R S1词表32100、17节点类型、6190564参数、唯一嵌入2054400参数，CPU有限前向通过，无S1正式训练。
+- 60/60历史S0收据完整只读验收通过（76.90秒），不重新训练。
+- 重入节点fold0/G3R与访问控制合约fold0/G0，两侧各2轮，共4次CPU短检查；初值/输入/字典/非特征绑定、逐轮loss、最终及best/last参数、Adam、scheduler数值、inner/outer预测逐位一致。scheduler方法按已批准身份规则核验。
+- 原/新构造秒：重入15.969/30.813；访问控制15.040/31.461。仅maximum_training_epochs改2，schedule_epochs仍50；实际设备CPU，无正式fit。
+- NodeSem最终184通过；DFG v2 2653通过；原回归223通过，共3060唯一测试，0失败/跳过。命令与警告详见NS_P1_REPORT和tests_revision1.json。最终NodeSem4警告，旧套件9/29警告，均已有弃用信息。
+
+工程问题如实保留：准备阶段漏建specs目录，在0封存计划/0fit时失败；修复后补回归。审查另发现fit父目录需显式创建，已在开训前修复。没有放宽数值断言或删除失败证据。新生产Python仍全部在NodeSem，原8H runtime_resume_v2只读核验通过。
+
+产物：artifacts/ns_p1_initial_digests、ns_p1_acceptance、ns_p1_equivalence。最终equivalence.json引用acceptance_revision1/batch/plan.json；最初batch/seal只作归档。详细实施/选择见training_changes§72，概览见NS_P1_REPORT.md。三份文档仅追加。
+
+范围限制：M1/M2、教师/学生、多模态融合、GPU验证和正式K折尚未开展；未来F3特征用于G0时须明确profile行集合。S0等价不是S1效果提升证明。最终实验按用户安排上显存充足服务器，本机RTX3050 4GiB只是开发限制。本轮产物留WSL；提交NS-P1后停止，不自动push或推进NS-P2。

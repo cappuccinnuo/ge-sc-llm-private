@@ -7389,3 +7389,78 @@ mando CPU命令（PYTHONDONTWRITEBYTECODE=1，CUDA_VISIBLE_DEVICES为空，OMP/M
 历史170项资源CSV已绑定报告SHA和唯一矩阵；N-A180/N-B90/N-C120/N-D60的fit计算参照约4.814/2.473/3.475/1.738小时，未含构造校验、编码器/LLM、教师/蒸馏、新适配器及早停变化；N-B零层以G0两层耗时占位。这不是总工期承诺，NS-P4应实测。
 
 最终实验按用户安排在显存充足的服务器执行；当前RTX3050 4GiB限制仅属本机开发条件。本轮没有新GPU训练、下载、安装、特征算法、完整Adapter或正式计划，没有修改原运行产物，也没有自动push。完成NS-P0本地提交后停止，不推进NS-P1。完整结论和引用见scripts/node_sem/RECON.md及recon.json。
+
+
+## 72. 2026-11-01 NodeSem NS-P1：载体、共享嵌入、执行器与 S0 等价验收（修改 AI：Codex）
+
+### 72.1 输入、范围与 r4 决策
+
+本轮从 node-sem 分支 HEAD 27ea6617fd9fc81d9d60cf068122b8d8c996d930 开始，pull --ff-only origin node-sem 返回 Already up to date。先完整阅读更新后的 PROMPTS.md 开头、第1—4节设计、5.1共享上下文，再实施5.3 NS-P1。PROMPTS 原文未修改；原始SHA、三份记录追加前的长度/摘要和批准详情保存于 scripts/node_sem/artifacts/ns_p1_acceptance/decisions.json。
+
+r4 已正式纳入上轮 NS-Q1/Q2/Q3：结构性 DOT label 只由冻结 Projector/node_code_view 读取用于 AST 身份，不作为漏洞目标或特征文本；未来 M2 的标量名字来自封存 L1 evidence 中的 Symbol.name/kind，经 ddg_fact_indices 对齐并经过8G文件内映射，不从符号id、路径、跨度或原始type_name取特征；未来守卫采用文档列出的AST词法规则与分支极性/未知状态，不把HCG支配关系当成守卫成立。本轮只记录后两项依据，没有提前实现 M2/guard。S1 采用一份模型级共享 EmbeddingBag(V,64)，每类型仅加 Linear(64,128)，不建17份表，也不展开 N×512×64 张量。
+
+全部新增核心代码、配置、测试和产物在 scripts/node_sem；只有 HANDOVER、本文件和 NodeSem PROGRESS 追加既有文档。scripts/DFG、作者模型、HGT、tokenizer、图、匿名NPZ、标签、折、旧初值与8H计划/seal/收据保持不变。没有下载、安装、GPU任务或正式训练。
+
+### 72.2 用户批准的反序列化边界与60份初值补验
+
+NS-P0 曾因 PyTorch pickle 风险被自动审批拒绝，因此没有独立重算初值张量摘要。本轮按照新文档第0节重新征询，用户明确回复“批准，仅按上述范围和SHA核验边界执行”。范围限定：8H prepared_attempt3 零步初值、8H runs checkpoint，以及 NodeSem 自己生成并封存的文件；每次 torch.load 紧接着核对文件SHA。承认 torch1.8 没有 weights_only，SHA证明身份，不能把 pickle 描述为安全反序列化。
+
+新增 checkpoint_io.load_checked：解析真实路径、限制批准目录、检查封存path/SHA格式，在同一个打开的文件句柄上流式SHA、seek回起点后加载；有state_dict时再独立重算 tensor_digest，同时核对payload与引用的state_sha256。越界路径/符号链接、篡改文件和张量摘要有负例测试。冻结入口本身已有紧邻SHA的加载沿用；不 monkeypatch 冻结模块。
+
+60/60 G0/G3R 零步初值全部加载并独立摘要通过，耗时7.25秒；每项同时核对prepared、initialization_ref、binding及收据，kind=untrained_initial、optimizer_steps=0、task/fold/seed/profile和constructor/fit种子一致。记录在 artifacts/ns_p1_initial_digests/digests.json 与 authorization.json。旧NS-P0“不曾重算”原文保留，本节补充本轮完成的验证，不改写历史。
+
+### 72.3 实现文件与关键逻辑
+
+新增 __init__.py、feature_spec.py、carrier.py、adapter.py、model.py、init.py、execution.py、checkpoint_io.py、equivalence.py、equivalence_resume.py、configs/S0.json、configs/S1.json，以及专用tests。两个配置模板的manifest为空，正式装配前必须填入带SHA的真实引用，不能把模板直接当有效输入。
+
+FeatureSpec兼容Python3.7：有序模态、严格字段、规范JSON摘要、存在位与列区间、carrier_dim，以及显式None/0层数语义。S0只能是单一TOKEN_IDS/raw_linear/512维且无存在位；S1为存在位+512个ID，即513维。尚未实现的多模态融合、gated、dropout明确拒绝；S1的单模态线性路径沿用concat配置标识，不宣称已完成多模态concat。
+
+carrier逐项验证manifest/NPZ/source SHA、版本/视图/任务、原节点ID或env:<file>:<key>行身份与顺序、code SHA、维度/dtype/有限值、逐行向量摘要及存在位。token模态必须来自冻结 spelling_features.assemble；env节点原token保持。只写内存深拷贝，逐行生成载体记录；恢复副本token后与输入整图指纹比对，并再次确认输入原图指纹未变。write_carrier排他创建NPZ和manifest。结构锚点由冻结ProjectionView+Projector检查，不按最近行猜测。
+
+S1在模型级注册唯一 nodesem_shared.token_bag；适配器用非注册引用访问它，每种节点类型独立Linear。ID转long前验证float32、精确非负整数、词表上界、连续右填充、存在位一致。只把非零ID打平成EmbeddingBag输入，空bag为零；线性输出交给原作者forward的gelu，空输入经过线性层可以得到类型bias。词表来自本地已核验TokenEncoder，真实V=32100。
+
+make_nodesem_model复用冻结make_model，仅S1替换adapt_ws，S0保留原Linear；构造顺序与原种子一致，spec.layers=None才回退config.layers，0不会被吞掉。validate核对载体、适配器数量/类型/布局、共享表唯一性与实际层数，再调用冻结validate_registration。S1新增参数确定性初始化：按constructor种子、参数全名、task/fold/profile/spec摘要派生独立生成器；Linear权重Xavier、bias零，EmbeddingBag N(0,0.02)且第0行零，LayerNorm 1/0。gcs/classify精确复制同折同剖面的8H零步初值；S0全部参数精确复制。执行器再次核对S1共享骨干与封存8H初值，而非只信新payload自己的摘要。
+
+execution文件头记录原执行器路径/SHA；有独立VERSION、plan/seal/authorization，runtime为原_code_refs与NodeSem生产Python的并集。任务绑定spec、载体、图、标签、划分、schema/support、初值与实际配置；旧训练器、监督、FitInputGuard、checkpoint、资源策略与共用GPU锁原样import。S0只读verify历史收据；S1未有formal授权时拒绝训练。控制器按任务独立进程串行，成功核验后复用，失败保留并要求明确的独立重试授权。没有放宽旧8H入口或旧seal。
+
+### 72.4 两项验收口径调整、问题处理与保留证据
+
+用户批准把“输入完整性”与“特征不变性”拆开验证：冻结assemble会检查包含标签属性的整图指纹，因此原manifest应拒绝被扰动图。仅测试用临时manifest重绑定扰动图指纹，NPZ、行身份、code与source引用不变，验证type_label/node_info_vulnerabilities/method或结构label前缀改变后载体逐位不变；破坏AST锚点仍由冻结Projector拒绝。正式manifest、旧代码和数据完全不改。调整记录在decisions.json及扰动测试。
+
+准备阶段的两个目录接入问题均已修复并补回归：代码审查发现冻结trainer只做dest.mkdir，不会创建上级目录；实际准备又发现冻结prepare.write也不创建specs目录。后者发生在任何计划封存或fit之前，生成文件为0；只在核验路径和确认为空后移除本轮空目录，失败摘要留在preparation_failure_001.json，没有删除历史结果。
+
+首组重入两个CPU fit均完成2轮，初值、inp、字典、非特征binding、每轮损失、最终参数和预测比较已通过，随后在scheduler.anneal_func对象比较处停止。实证该字段是PyTorch1.8 OneCycleLR绑定方法，所属实例不同导致直接==为false；函数实现和数值状态相同。用户明确批准改为核验同一OneCycleLR类和同一_annealing_cos函数实现，其余scheduler字段、Adam、参数、预测仍零容差。负例拒绝换函数、换所属类和微小数值差异。
+
+原计划/seal、failure.json、38个重入CPU产物、修复前equivalence.py均原样保留。另建acceptance_revision1计划，runtime仅允许equivalence.py验收比较变化及新增equivalence_resume.py；execution.load的旧保护不改。旧重入不重训：重新构造零步模型核对checkpoint输入/binding，再读取原best/last、optimizer/scheduler/history/predictions复验。明确初始内存快照原来没有持久化，此次是重新构造验证；最终状态对应冻结训练器评分结束恢复的last。只补尚未执行的访问控制两个CPU fit。本次不是新seed重复或epoch续训。
+
+### 72.5 实测、测试与CPU等价结果
+
+四任务×G0/G3R×S0/S1共16次真实载体检查通过，原图指纹和节点身份保持。原图/增强图节点：重入合约18312/18610、重入节点12036/12223、访问控制合约13432/13693、访问控制节点7710/7892。全部token为词表内整数和右侧填充；最大ID重入31899、访问控制合约31922、访问控制节点31899。真实重入节点G3R S1共17节点类型，唯一嵌入表2054400参数，总参数6190564，相对S0的5111012增加1079552；CPU有限值前向通过，未做S1正式优化或GPU显存试验。carrier_probe.json如实注明探针运行及后补防御断言的时间顺序。
+
+60/60历史S0结果通过新执行器完整只读验收，包括120份best/last权重SHA/张量摘要、收据、配置、标签、schema、资源和既有预测指标独立重算，耗时76.90秒；不是新增60次训练。NodeSem验收计划引用这60项，不修改其历史结果。
+
+CPU等价只选择重入节点fold0/G3R、访问控制合约fold0/G0。两侧均复用benchmark_v2.trainer.fit，每侧2轮，配置只把maximum_training_epochs改为2，schedule_epochs仍50；原配置device字段保留用于比较，实际构造设备明确为CPU，CUDA不可见。constructor与fit种子分别恢复。核对初始参数、各类型inp、canonical字典、原节点ID、非特征binding、每轮loss/学习率、最终参数、best/last、Adam、scheduler数值状态和inner/outer预测；仅运行耗时不比较，scheduler方法按上述已批准的实现身份比较。完整结果见 artifacts/ns_p1_equivalence/equivalence.json，以下追加最终实测摘要。
+
+
+最终验收：两任务均通过。初始参数/输入/canonical字典/原节点ID/非特征binding、两轮train与inner-val loss、best/last参数、Adam全部状态、scheduler全部数值字段、inner_val/outer_test及orig-all辅助预测均逐位一致；scheduler绑定方法按批准核验同类同实现。
+
+| CPU检查任务 | 原入口构造/秒 | NodeSem构造/秒 | 原入口fit/秒 | NodeSem fit/秒 |
+|---|---:|---:|---:|---:|
+| 重入节点 fold0 G3R | 15.969 | 30.813 | 35.177 | 35.032 |
+| 访问控制合约 fold0 G0 | 15.040 | 31.461 | 31.393 | 31.885 |
+
+构造计时包含NodeSem新增SHA、载体与AST身份检查，单次测量不作为稳定性能结论。两个任务每轮(train loss, inner-val loss)：重入(0.7502492666244507,0.721899688243866)→(0.717499315738678,0.6863310933113098)；访问控制(0.7030845880508423,0.680452287197113)→(0.648896336555481,0.6425345540046692)。这些是短检查证据，不能用其F1评估S1效果。共4次真实CPU验收fit，每次2轮，无重复重入fit、无正式fit。60份历史复用完整核验另有historical_reuses.json；修订完成时复查其收据身份并引用之前完整验收，不声称又重新载入了全部历史权重。
+
+实际命令（mando、CPU、CUDA_VISIBLE_DEVICES为空、PYTHONDONTWRITEBYTECODE=1、OMP/MKL线程2、既有TREE_SITTER_LIB_DIR）：
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests：2653通过，9警告，155.24秒。
+- python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests scripts/DFG/tests tests/test_graph_utils.py：修订前386通过，其中NodeSem163、原回归223，29警告，5.58秒。
+- 批准scheduler修订后 python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests：184通过，4警告，5.21秒；新增21项修订验收测试。
+- python -B -m scripts.node_sem.equivalence prepare；python -B -m scripts.node_sem.equivalence run：原准备和首组检查，停在方法对象比较处。
+- 经明确批准后 python -B -m scripts.node_sem.equivalence_resume prepare；python -B -m scripts.node_sem.equivalence_resume run：独立修订通过，旧产物保留。
+最终唯一测试184+2653+223=3060，0失败/跳过，不把重复定向测试计入总数。警告为既有DGL/distutils及NetworkX gpickle弃用。冻结源码未变，修订后只重跑受影响NodeSem套件。当前生效验收计划在ns_p1_equivalence/acceptance_revision1/batch/plan.json；最初batch/plan.json只作为归档来源，不能拿它冒充修订后的运行计划。
+
+### 72.6 遗留范围与停止
+
+本轮完成NS-P1骨架与验收，不等于完成NodeSem整套创新。尚未实现NS-P2的M1编码、M2上下文/守卫/行为画像、LLM教师与学生蒸馏、多模态融合、GPU显存预检或正式K折。现有通用载体严格要求行集合与当前图一致；未来若从F3为G0产生上下文特征，必须明确该profile的行视图，不能默默丢弃辅助节点。暂不自行更换方案。
+
+最终实验仍按用户安排在显存充足服务器运行；本机RTX3050 4GiB限制仅属开发条件。本轮全部产物保存在WSL项目中，没有新增C盘运行日志、安装或联网下载；服务器尚未部署实测。三份历史文档只追加；完成本地NS-P1提交后停止，未自动push或推进NS-P2。

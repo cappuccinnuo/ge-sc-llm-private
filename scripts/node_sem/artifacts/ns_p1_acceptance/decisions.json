@@ -1,0 +1,50 @@
+{
+  "prompt": "NS-P1",
+  "input_head": "27ea6617fd9fc81d9d60cf068122b8d8c996d930",
+  "branch": "node-sem",
+  "approved_changes": [
+    {
+      "id": "torch_load_scope",
+      "user_answer": "批准，仅按上述范围和SHA核验边界执行",
+      "decision": "Only sealed local 8H prepared_attempt3 zero-step states, 8H runs checkpoints, NodeSem generated sealed files; immediate SHA before load. PyTorch 1.8 pickle risk explicitly acknowledged."
+    },
+    {
+      "id": "feature_perturb_integrity",
+      "user_answer": "同意分开验证输入完整性和特征不变性（推荐）",
+      "decision": "Keep frozen full graph integrity checking. In disposable perturb tests only rebind graph fingerprint while feature NPZ, rows and source refs unchanged; prove old manifest rejects mutation and features are invariant, delegate broken anchor rejection to frozen Projector."
+    },
+    {
+      "id": "scheduler_callable_equivalence",
+      "user_answer": "同意核验函数实现并保留其余严格比较（推荐）",
+      "decision": "Only scheduler anneal_func checks same OneCycleLR class and same function implementation; all numerical fields/Adam/parameters/predictions exact",
+      "record": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p1_equivalence/acceptance_revision1/approval.json",
+        "sha256": "e1882b28c060434f80ff34a3f516dcd8934fb1c330b434ebbb4dd3882c15417c"
+      }
+    }
+  ],
+  "r4_decisions": {
+    "NS_Q1": "Structural DOT label is an AST identity anchor read only by frozen Projector/node_code_view; no target labels or forbidden metadata in NodeSem feature text.",
+    "NS_Q2": "Future M2 scalar names from sealed L1 evidence plus filewise 8G mapping; no variable names assumed on edges, no implementation in NS-P1.",
+    "NS_Q3": "Future M2 guards use specified AST lexical rules with polarity/unknown states, not HCG dominators; no implementation in NS-P1.",
+    "S1": "One model-level EmbeddingBag Vx64; per-type 64x128 Linear; no per-type embeddings or Nx512x64 materialization."
+  },
+  "formal_training": false,
+  "final_server_intent": "Final experiments will run on a sufficient-VRAM server. The RTX3050 4GiB limitation is local development only; no server deployed or benchmarked in NS-P1.",
+  "prompt_sha256": "0193c03b55fdd559e2d7d2fccbdd01dc49be940097a0e342ad3f746ded4b626d",
+  "documentation_pre_append": {
+    "HANDOVER.md": {
+      "bytes": 232178,
+      "sha256": "67ac581369f404ce8db48199fb13ee0914e419cd0e3e5d4329a911be9fbcdd92"
+    },
+    "docs/training_changes_2026-10-07.md": {
+      "bytes": 763478,
+      "sha256": "fc36a677f2bb6b62c50f83e5335e7205a7b442c472a8909640a0a4a3a06bad30"
+    },
+    "scripts/node_sem/PROGRESS.md": {
+      "bytes": 3605,
+      "sha256": "60eba639deff18bdcb55a80bce9aeb5c3ac2eff84556345fa1b58c11a1cee57e"
+    }
+  },
+  "encoding_note": "Approval strings restored from the verbatim conversation replies before final archival sealing; Windows stdin transport required ASCII Unicode escapes."
+}

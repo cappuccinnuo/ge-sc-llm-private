@@ -2370,3 +2370,16 @@ changes. Final sufficient-VRAM server plans remain; this batch is local.
 下一阶段先澄清：结构性label只作身份的边界、M2标量变量名来自已封存L1 sidecar、普通条件支配不能等同守卫通过。仅提出建议，未自行替换方案。8H原plan/seal保留，实际运行版本按此前获批runtime_resume_v2核对，execution.load通过。自动审批拒绝torch.load后改用SHA/静态ZIP头核验，未重载历史模型或独立重算tensor digest。
 
 最终实验按用户安排使用显存充足的服务器；当前RTX3050 4GiB限制只是本机开发条件。本轮没有新的真实训练、下载或安装；停止于NS-P0，本地提交但不自动push。详见RECON与training_changes§71。
+
+
+### 2026-11-01 NodeSem NS-P1 完成（修改 AI：Codex）
+
+在node-sem、27ea6617输入上完成r4的NS-P1。新增逻辑均在scripts/node_sem：FeatureSpec、S0/S1配置、严格载体、模型共享EmbeddingBag、适配器、初值、SHA限制加载、独立执行器及CPU等价验收。原DFG/HGT/tokenizer、图/特征/标签/划分、8H计划和结果均未改。S0保留原512维Linear；S1仅一张V=32100、64维共享表，逐类型Linear，不提前实现M1/M2、LLM或多模态融合。
+
+用户批准SHA边界内torch.load后，60/60历史零步初值独立张量摘要通过；60/60历史S0收据完整只读验收通过。真实四任务16组载体通过。两个指定任务（重入节点fold0/G3R、访问控制合约fold0/G0）各旧/新入口2轮，共4次CPU检查：初值、输入、每轮损失、最终/best/last参数、Adam、scheduler数值和预测一致；不是新增正式成绩。
+
+批准的验收调整均有记录：扰动测试仅在临时manifest重绑图指纹，生产校验保持；scheduler的绑定方法核验同类同实现，其余零容差。首组比较曾因Python方法对象身份停止；旧seal/failure/重入产物保留，独立acceptance_revision1复核后只补访问控制，没有重训重入。另修复两个父目录创建接入问题并补回归。详细选择、证据与命令见training_changes§72及scripts/node_sem/NS_P1_REPORT.md。
+
+最终184 NodeSem＋2653 DFG v2＋223原回归＝3060项唯一通过，0失败/跳过。原/新CPU构造秒：重入15.969/30.813、访问控制15.040/31.461。机器证据见artifacts/ns_p1_equivalence/equivalence.json；现行验收计划在acceptance_revision1/batch，旧batch仅归档。二进制载体/短检查权重保留本地，源码与文本验收记录随本轮本地提交；未自动push。
+
+最终实验按用户安排在显存充足服务器执行；目前RTX3050 4GiB仅是本机开发限制，服务器尚未部署实测。尚无S1正式效果或GPU显存结论。停止在NS-P1，不自动推进NS-P2。
