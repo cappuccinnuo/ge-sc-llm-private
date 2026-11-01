@@ -1,6 +1,13 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r4（2026-11-01）。作者：Claude（方案与审查），实现：Codex。
+版本：r5（2026-11-01）。作者：Claude（方案与审查），实现：Codex。
+
+**r5 相对 r4 的修改**（NS-P1 审查后，见第 5B 节）：
+- NS-P1 的 S0 等价、60 个初值摘要和 3 项用户批准的处理方式经复核成立；新增纠正性 Prompt **NS-P1b**（第 5.3b 节），必须在 NS-P2 之前完成：
+  1. **运行版本绑定拆分**：`execution.load` 现在要求 `scripts/node_sem` 下全部 .py 与封存时逐字相同，只要 NS-P2 新增一个文件，NS-P1 的验收计划就无法再只读核验；以后 N-B 引用 N-A 结果、汇总报告时也会失败（8H 正是因此需要两次运行修订）。改为“启动新 fit 要求运行版本完全相同；只读核验已完成的 fit 不比较当前代码，改为核对封存时记录的运行版本与每个 fit 启动记录一致”，并把 NodeSem 运行版本限定为训练路径上的模块清单。
+  2. **S1 初始尺度**：r2–r4 规定 EmbeddingBag 用 N(0, 0.02)，这是方案的错误。均值池化后每个节点向量的标准差约为 0.02/√L（L 为该节点 token 数），再经 Xavier 的 Linear(64,128) 后约为 10⁻³ 量级；而训练是全图训练，每个 epoch 只有 1 次 Adam 更新，50 轮里学习率从 0.0002 起步。S1 会在前若干轮几乎没有输入信号，在早停（patience 7）下对 S1−S0 比较不公平。改为 EmbeddingBag 默认初始化 N(0,1)（第 0 行置 0），池化后接一个共享的 LayerNorm(64)。这一决定在任何 S1 训练之前做出，不依赖任何结果。
+- 特征扰动验收的重点移到特征生产者（NS-P2/P3/P7）：载体只复制预先算好的向量，载体上的扰动测试证明力有限（第 4.2 节）。
+- G0 与 G3R 共用同一份特征 manifest（以 F3 节点为全集，G0 只取原节点），在 NS-P2 中实现（第 4.2 节）。
 
 **r4 相对 r3 的修改**（NS-P0 审查后；NS-P0 验收通过，见第 5A 节）：
 - 采纳 NS-P0 提出的三个设计问题，并给出决定（第 4.2、4.5、4.6 节，NS-P3）：
@@ -184,6 +191,8 @@ F3 图（DFG v2）+ 源码 AST（主视图 N-anon-s；次要视图原文）
   - `label` 是作者生成器的结构性 DOT 标签（节点代码文本 + `-{AST id}-{类型}-{首行}-{末行}` 锚点），不是漏洞标签（漏洞标签是 `node_info_vulnerabilities`）。**只允许冻结的 `Projector`/`node_code_view` 读取它做 AST 身份对齐**；NodeSem 自己的代码不得读取它，它的任何部分（包括锚点中的绝对行号）都不得进入特征。
   - 禁止读取 `type_label`、`node_info_vulnerabilities`、`method`、任何标签或预测文件。
   - **扰动验收**（每个产生特征的模块都要有）：(a) 修改 `node_info_vulnerabilities`、`type_label`、`method` → 输出逐位不变；(b) 只替换 `label` 中锚点之前的文本 → 输出逐位不变；(c) 破坏 `label` 锚点 → 明确报错，不得静默产出。
+  - **扰动验收要落在特征生产者上**（r5）：载体与 8G `assemble` 用整图指纹做完整性校验，扰动后会直接拒绝，这是正确的生产行为；NS-P1 在载体上用“临时重绑指纹”的测试只能证明载体不读这些属性。真正可能泄漏的是生产者（NS-P2 的 text_view、NS-P3 的 facts/ctx_fields/static_profile、NS-P7 的 llm_inputs）。它们的扰动测试必须是：对图的深拷贝施加 (a)(b) 扰动，直接调用生产函数（不经过载体），比较输出的行内容与数组逐位相同；manifest 中记录的输入图指纹允许不同。
+- **行集合**（r5）：特征生产者以 F3 图的节点为全集输出 manifest（原节点 + env_source），manifest 的 `profiles` 同时登记 F0（G0）与 F3（G0 之外的剖面）的图指纹。载体用于 G0 时只取原节点行，并核对被略去的行恰好是辅助节点；用于 G3R 时取全部行。DFG 不变量保证原节点在 F0 与 F3 中属性相同，NS-P2 要用测试确认这一点。
   - 用白名单实现，并写扰动测试：修改这些禁止属性后，特征必须逐位不变。
 - **主视图文本**：节点文本来自 8G 的 `node_code_view`，源码来自 8G 的改名结果。
   - **变量名的来源（NS-Q2 决定）**：`DATA_DEF_USE` 边本身不带变量名，只有 `ddg_fact_indices`，它指向已封存的 F3 存储中 `audit.layers.L1.evidence`；每条证据的 `symbol` 是一个 Symbol（`name`、`kind`、`type_name`、`function`、`declaration` 跨度、`id`）。L2 边带 `state_vars`（原名）。L3 边的 `spellings` 是保留的环境表达式。
@@ -202,7 +211,8 @@ F3 图（DFG v2）+ 源码 AST（主视图 N-anon-s；次要视图原文）
 ### 4.3 M0 / S1：可学习的 token 嵌入
 
 - 输入是 8G 匿名视图的 512 个 token ID。浮点值不是精确非负整数，或超出词表，就报错。
-- **全模型共享一个** `nn.EmbeddingBag(V, 64, mode="mean")`，注册在模型上（`model.nodesem_shared["token_bag"]`），只占约 205 万参数；每种节点类型的适配器只持有它的未注册引用，再接自己的 `Linear(64, 128)`。
+- **全模型共享一个** `nn.EmbeddingBag(V, 64, mode="mean")`，注册在模型上（`model.nodesem_shared["token_bag"]`），只占约 205 万参数；池化后接一个同样共享的 `nn.LayerNorm(64)`（`model.nodesem_shared["token_norm"]`，只作用于非空行，空行保持 0）；每种节点类型的适配器只持有它们的未注册引用，再接自己的 `Linear(64, 128)`。
+  - 初始化（r5）：EmbeddingBag 用 N(0, 1)（PyTorch 默认，第 0 行置 0），LayerNorm 用 1/0。r2–r4 的 N(0, 0.02) 会使输入信号在训练初期接近 0（见 r5 说明）。
   - 不得为每种节点类型各建一个 `Embedding(V,128)`（约 7000 万参数），也不得先展开 N×512×d 的张量再做掩码平均（重入合约约 1.8 万节点时，这一中间张量就超过 1 GB）。
   - 前向：从 `inp` 的 token 列取出每行的非零 ID（ID 0 是填充，右侧连续），拼成一维 `input` 加 `offsets` 交给 EmbeddingBag。空行得到零向量。每次前向都从 `inp` 现算，使 FitInputGuard 对 `inp` 的保护也覆盖这一路输入。
   - CUDA 上 EmbeddingBag 的反向使用原子加，不保证逐位确定，这一点与 8H 的散射累加相同，写进 manifest。
@@ -362,14 +372,14 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 3. `node_sem.carrier.carry(graph, spec, view, task)`：再做一次深拷贝，每个节点的 `token` ← 载体向量 `x_v` = [存在位 (M) | 模态 1 | …]（float32，有限值）。行由各模态 manifest 按 node id 查找；辅助节点按 `env:<文件>:<键>` 查找。核对每行的 code SHA。原图指纹前后一致。
 4. `dfg_v2.model.make_model(task, carried, profile, "cpu", node_feature="inside_token", hidden_size=128, layers=(cfg.layers if spec.layers is None else spec.layers), heads=8, reducer, layer_impl)`：原样构造，`adapt_ws[i] = Linear(D, 128)`，注册校验通过。
 5. S0：不做替换（就是 8H 的模型）。其他配置：
-   - 如果 spec 含 TOKEN_IDS（embed_pool），先注册 `model.nodesem_shared = nn.ModuleDict({"token_bag": nn.EmbeddingBag(V, 64, mode="mean")})`；
+   - 如果 spec 含 TOKEN_IDS（embed_pool），先注册 `model.nodesem_shared = nn.ModuleDict({"token_bag": nn.EmbeddingBag(V, 64, mode="mean"), "token_norm": nn.LayerNorm(64)})`（r5 加入 token_norm）；
    - `model.adapt_ws = nn.ModuleList([NodeSemAdapter(spec, ntype, shared=model.nodesem_shared) for ntype in 按 ntypes_dict 顺序])`，长度不变。适配器用 `object.__setattr__` 保存对共享模块的引用，使其参数只在 `nodesem_shared.*` 下注册一次。
 6. 加载 NodeSem 零步初值（见下），核对 tensor_digest。
 7. `node_sem.model.validate(model, spec)`：适配器的类型、数量和布局正确，D 与 manifest 一致；然后调用 `dfg_v2.model.validate_registration(model)`。
 
 **NodeSemAdapter**（`node_sem/adapter.py`）：
 - 按 spec 的布局切分 `inp`：前 M 列是存在位，之后依次是各模态。
-- token 模态（S1）：共享的 EmbeddingBag（第 4.3 节）后接本类型的 `Linear(64, 128)`。连续模态：LayerNorm 后接 `Linear(d_m, 128)`。`b_static`：直接 `Linear(d_static, 128)`。
+- token 模态（S1）：共享的 EmbeddingBag 与共享的 LayerNorm(64)（第 4.3 节，LayerNorm 只作用于非空行）后接本类型的 `Linear(64, 128)`。连续模态：LayerNorm 后接 `Linear(d_m, 128)`。`b_static`：直接 `Linear(d_static, 128)`。
 - 融合方式：
   - `concat`（默认）：`Σ_m p_m · z_m + b`；
   - `gated`：`g = softmax(mask(W_g [p_1 z_1; …]))`，存在位为 0 的模态 logit 置为 −inf；全部缺失时输出 `b`，不得出现 NaN；`h = Σ g_m z_m + b`。`last_gates` 只读保存。
@@ -378,7 +388,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 **初值**（`node_sem/init.py`）：
 - 从 8H 同一（任务、折、剖面）的零步初值文件（SHA 封存）复制 `gcs.*` 与 `classify.*` 的全部键。形状必须一致，否则报错。其余键（`adapt_ws.*`、`nodesem_shared.*`）都是新参数。
-- 新参数：Linear 用 Xavier uniform，EmbeddingBag 用 N(0, 0.02)（第 0 行置 0），LayerNorm 用 1/0。随机数一律来自 `torch.Generator().manual_seed(parameter_seed(constructor 种子, 参数名, [task_id, fold, profile, spec_digest]))`。
+- 新参数：Linear 用 Xavier uniform（偏置 0），EmbeddingBag 用 N(0, 1)（第 0 行置 0），LayerNorm 用 1/0。随机数一律来自 `torch.Generator().manual_seed(parameter_seed(constructor 种子, 参数名, [task_id, fold, profile, spec_digest]))`。
 - 记录 state SHA。S0 时必须与 8H 初值逐位相同。
 
 **S4-noG**：G0 图，`layers=0`。作者 forward 在 0 层时直接把 `h` 送进 classify，合约任务照常池化；`gradient_audit` 在 G0 上没有 v2 关系，可以通过。NS-P0 和 NS-P4 要实际验证这一点。
@@ -476,7 +486,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 ## 5. Codex Prompts
 
-使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P2 → P3 → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P3 → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ### 5.1 共享上下文（每个会话先贴这一段）
 
@@ -685,6 +695,53 @@ S0：返回值必须与 8H 初值逐位相同。
 测试与第 8 节的证明通过；PROGRESS.md 记录（含构造耗时）；提交 NS-P1。不跑正式训练。
 ```
 
+### 5.3b Prompt NS-P1b：运行版本绑定拆分与 S1 初始尺度修正（NS-P2 之前必须完成）
+
+```text
+# NS-P1b：运行版本绑定拆分（执行/只读核验）与 S1 初始尺度修正
+
+前置：NS-P1（792ebeed）。NS-P1 的产物（ns_p1_initial_digests、ns_p1_acceptance、ns_p1_equivalence，包括 acceptance_revision1）全部只读保留，不覆盖、不重签。新产物写入 artifacts/ns_p1b/。不跑正式训练，不使用 GPU。
+
+## 背景（审查结论，写进 PROGRESS）
+1. execution.load 要求 plan["runtime"] == runtime_refs()，而 runtime_refs() 包含 scripts/node_sem 下除 tests/artifacts 外的全部 .py（连 recon/ 也在内）。NS-P2 一旦新增 text_view.py，NS-P1 报告中给出的只读核验命令就会失败；以后 N-B/N-C 引用 N-A 的结果、汇总报告时同样会失败。这与 8H 需要 runtime_cache_fix_v1、runtime_resume_v2 两次修订的原因相同。
+2. S1 的 EmbeddingBag 按 r4 用 N(0,0.02) 初始化。均值池化后向量标准差约 0.02/√L，经 Linear(64,128) 后约 10⁻³ 量级；全图训练每个 epoch 只有 1 次 Adam 更新，50 轮、学习率从 0.0002 起步，S1 在训练初期几乎没有输入信号。这是方案（不是实现）的错误。
+
+## 1. 运行版本绑定拆分（execution.py）
+- 在 scripts/node_sem/__init__.py 中定义 RUNTIME_MODULES：训练路径上的 NodeSem 模块清单（现在是 __init__.py、feature_spec.py、carrier.py、adapter.py、model.py、init.py、checkpoint_io.py、execution.py）。以后新增的训练路径模块（例如 NS-P4 的融合模块）必须显式加入；特征生产者（text_view、facts、offline/ 等）不进入运行版本，它们的实现 SHA 通过各模态 manifest 的 implementation 字段绑定到特征上。
+- runtime_refs() = experiment.run._code_refs() ∪ {RUNTIME_MODULES 中每个文件的 SHA}。清单中的文件缺失就报错。
+- load(path, mode)：
+  - mode="execute"（worker、all、execute 默认）：与现在相同，要求 plan["runtime"] == runtime_refs()；
+  - mode="verify"（verify 命令、报告、跨批次引用）：不比较当前代码。改为核对 plan/seal/authorization 的绑定、每个已完成 fit 的 started.json 中的 runtime 与 plan["runtime"] 相同、receipt 与全部产物 SHA，并在结果中写明 "current_code_equality": "not_required"。
+- VERSION 升为 "nodesem-execution-v2"。新计划用 v2；v1 计划（NS-P1 的 batch 与 acceptance_revision1）只允许以 verify 模式读取，且按 v1 当时的 runtime 定义核对 started.json。
+- controller(path) 的 "all" 用 execute 模式；"verify" 子命令用 verify 模式。
+- S0 复用核验继续调用 8H 自己的 load（只依赖 scripts/DFG 与 sco_models），不变。
+
+## 2. S1 初始尺度（adapter.py、model.py、init.py）
+- model.nodesem_shared 增加 "token_norm": nn.LayerNorm(64)（elementwise_affine=True）。NodeSemAdapter.forward：pooled = token_bag(...)；只对非空行做 token_norm，空行保持 0；再接本类型的 Linear(64,128)。适配器同样只持有未注册引用；validate 检查 state_dict 中 token_bag 与 token_norm 各只出现一次。
+- init.py：EmbeddingBag 权重用 N(0,1)（第 0 行置 0），LayerNorm 权重 1、偏置 0；Linear 仍为 Xavier uniform、偏置 0。随机数来源不变（parameter_seed）。
+- 不改 S0 路径：S0 仍不注册 nodesem_shared，仍用原 Linear(512,128)。
+
+## 3. 初始尺度的诊断（只做 CPU 前向，不训练，不读取任何标签或指标）
+在 reentrancy_node fold0 G3R 上，分别构造 S0、S1（r4 初始化，N(0,0.02)，无 LayerNorm）、S1（r5），加载各自零步初值后做一次 eval 前向，记录：
+- 每种节点类型 h0 = gelu(adapt_ws(inp)) 的均值、标准差、绝对值的 99 分位；
+- 第一层 HGT 输出（经 LayerNorm 前、后）的标准差；
+- 第一层注意力 head 最大权重 ≥0.99 的比例（方法同 dfg_v2/attention_probe.py）。
+写入 artifacts/ns_p1b/init_scale.json。这一步只是记录，r5 的决定不依赖这些数字；如果 r5 的 h0 标准差不在 [0.05, 5] 区间内，停下报告。
+
+## 4. 回归与等价
+- 对 reentrancy_node fold0 G3R 重做一次 S0 的 CPU 等价检查（新旧入口各 2 个 epoch，比较方式与 NS-P1 第 8 节及已批准的 scheduler 规则相同），证明 execution.py 的改动没有影响 S0 路径。结果写入 artifacts/ns_p1b/s0_equivalence.json。
+- 用新代码以 verify 模式只读核验 NS-P1 的 acceptance_revision1 计划，应当通过。
+- 用 S1（r5）在 reentrancy_node fold0 G3R 上调用 benchmark_v2.trainer.fit 跑 1 个 epoch（CPU，maximum_training_epochs=1，写明是冒烟配置）：loss 有限；token_bag、token_norm、各 Linear 都有非零梯度；gcs/classify 初值与 8H 相同。不计入任何结果。
+
+## 5. 测试
+- runtime：新增一个与训练无关的 node_sem 文件后，verify 模式仍然通过，execute 模式也通过（该文件不在 RUNTIME_MODULES）；修改 RUNTIME_MODULES 中的任一文件后，execute 模式拒绝、verify 模式对已完成的 fit 仍然通过；篡改任一 receipt、产物或 started.json 中的 runtime，verify 模式拒绝；RUNTIME_MODULES 中的文件缺失时报错。
+- S1：token_norm 只作用于非空行（空行输出为偏置）；共享模块在 named_parameters 与 state_dict 中各只出现一次；初值确定性（两次生成逐位一致）；r5 初值的 EmbeddingBag 第 0 行为 0、其余行的经验标准差在 1±0.05。
+- 全部 node_sem 测试、dfg_v2 测试与原回归。
+
+## 验收
+以上全部通过；PROGRESS.md、HANDOVER.md、docs/training_changes_2026-10-07.md 追加记录；提交 NS-P1b。不推进 NS-P2。
+```
+
 ### 5.4 Prompt NS-P2：节点文本视图与 M1 编码
 
 ```text
@@ -707,11 +764,12 @@ build_text_view(task_id, view) -> rows：
 输出 artifacts/text_v1/<view>/<task_id>/text.jsonl 与 manifest.json（行顺序与 8G 特征行顺序一致，辅助节点按 (file, key) 排序附在后面）。
 
 ## 2. 泄漏与一致性测试（mando）
+- 行集合：以 F3 图节点为全集（含 env_source），manifest 的 profiles 登记 F0 与 F3 的图指纹；先用测试确认原节点在 F0 与 F3 中的 9 个属性逐项相同。同时扩展 carrier._aligned：manifest 行集合可以是图节点的超集，但被略去的行必须全部是辅助节点，且顺序按图节点顺序取出（加正反测试）。
+- 生产者扰动测试：对图的深拷贝施加第 4.2 节 (a)(b) 扰动后直接调用 build_text_view，text.jsonl 的行内容逐位相同；(c) 报错。不得用载体上的测试代替。
 - 两个视图的 cut_mode 逐行相同；
 - 用 8G 的双射把主视图文本还原后，与次要视图的文本逐字相同（保留名不变）；
 - 主视图文本中的 identifier 只能是保留名或该文件的匿名名；
 - 文本中没有绝对行号或文件名；
-- 禁止属性扰动后输出不变；
 - 用手写 fixture 检查每种节点类型的截取结果（精确字符串）：带 modifier 和 returns 的函数签名、else-if 链、for 头部、合约继承头部、struct。
 
 ## 3. M1 编码（nodesem，offline/encode.py）
@@ -799,7 +857,7 @@ p) 函数 CFG 不受支持的函数 → order_status=unknown，C 组为 unknown 
 另加：
 - 视图一致性：四个任务中，主视图与次要视图的 StatementFacts（名字按双射还原后）和 M3a 向量逐节点相同。不一致必须逐条列出原因，不得放宽；
 - M2 字段的泄漏测试：主视图中只出现保留名或匿名名；没有绝对行号；
-- 禁止属性扰动后输出不变；
+- 生产者扰动测试（第 4.2 节）：对图的深拷贝施加 (a)(b) 扰动后直接调用 extract、ctx_fields、static_profile.encode，输出逐位相同；(c) 报错；
 - 独热组每个节点恰好一个 1。
 
 ## 5. 真实数据统计（不训练）
@@ -927,7 +985,7 @@ plan 与 seal 封存，PROGRESS.md 记录耗时估计；提交 NS-P5。不训练
 - 超过 120 行的函数按 60 行分段，每段附签名；
 - cache_key = sha256(模板版本 + 模型 SHA + 提示全文)；按 cache_key 去重。
 输出 artifacts/llm_v1/inputs/<task_id>.jsonl 与 manifest（函数数、去重数、行数分布）。
-测试：重新编号是双射，还原后与原函数逐字一致；去注释后 ERROR=0；行号到节点的映射与 AST 一致；提示中的 identifier 只能是保留名或 a_k；提示中没有原名和绝对行号。
+测试：生产者扰动测试（第 4.2 节，直接调用 llm_inputs，提示文本逐字相同）；重新编号是双射，还原后与原函数逐字一致；去注释后 ERROR=0；行号到节点的映射与 AST 一致；提示中的 identifier 只能是保留名或 a_k；提示中没有原名和绝对行号。
 
 ## 2. 提示模板（写成模块常量，模板版本 describe_v1）
 SYSTEM:
@@ -1040,6 +1098,27 @@ NS-P0 验收通过。独立核对了 GitHub 上可以复算的部分：
 无法在仓库里复算的部分（图存储与初值权重没有上传）：600 维载体探针、0 层探针、文本与 CFG 覆盖率、初值文件 SHA。这些以 Codex 的记录为准；初值的 tensor digest 在 NS-P1 第 0 节补做。
 
 Codex 提出的三个设计问题都成立，决定见第 4.2、4.6 节与 r4 说明。本次审查另外发现并修正了方案自身的三处错误（S1 嵌入的规模、层数回退、8H 运行版本核对的写法）。
+
+## 5B. NS-P1 审查记录（2026-11-01，Claude）
+
+**独立核对（在 GitHub 提交的产物上复算）：**
+- S0 等价：两组 CPU 短检查（reentrancy_node fold0 G3R、access_control_contract fold0 G0）的 historical 与 nodesem 输出逐文件比较。inner_val/outer_test 预测、原标签辅助预测、梯度审计、三个分区的监督清单、优化器配置逐字节相同；history、best、last、result、validation_performance 中所有数值字段（每轮 loss、学习率、beta1、F1、混淆矩阵）都相同，差异只出现在耗时、checkpoint SHA、binding（feature_view、feature_npz、feature_spec、nodesem_version）和由 binding 派生的 input_sha256 上。
+- 60 个初值的独立 tensor digest 与 NS-P0 从另一组文件记录的 state_sha256 逐个相同（60/60）。
+- S1 参数：V=32100 时共享嵌入 2054400，比 S0 多 1079552，总数 6190564，与 NS-P0 的 512 维基数 5111012 一致。
+
+**三项用户批准的处理：**
+1. torch.load 边界：checkpoint_io.load_checked 对同一个打开的文件先算 SHA、再 seek(0) 加载，避免检查与加载之间被替换；限定三个根目录；加载后再核对 tensor digest。处理正确。剩余风险是 PyTorch 1.8 的 pickle 本身，已如实记录。
+2. 扰动验收：生产中保留整图指纹门禁是对的（标签变化必须使旧特征失效），测试中只在一次性 fixture 上重绑指纹，并单独证明锚点损坏仍被拒绝。处理正确，但证明力有限：载体只复制预先算好的向量，本来就不读这些属性。真正需要扰动验收的是特征生产者，已写进第 4.2 节和 NS-P2/P3/P7。
+3. scheduler 的 anneal_func：OneCycleLR 状态里保存的是实例绑定方法，两个实例必然不同；改为核对类与函数实现、其余字段严格比较，与 8D 的同类处理一致。处理正确；我复算的数值比较也支持这一点。
+
+**另外发现的问题：**
+1. **运行版本绑定过宽（必须修）**：见 NS-P1b 第 1 节。
+2. **S1 初始尺度（方案错误，必须修）**：见 NS-P1b 第 2、3 节。
+3. **G0 与 G3R 的行集合**：Codex 已指出，NS-P2 按第 4.2 节实现。
+4. **构造耗时翻倍**（15→31 秒）：来自载体中的 Projector 锚点门禁、8G assemble、4 次整图指纹和 2 次深拷贝。N-A 的 180 个 fit 约多 45 分钟 CPU 时间，可以接受，暂不优化；NS-P4 实测 S4 的构造耗时后再定。
+5. **CUDA 上 EmbeddingBag 反向不保证逐位确定**：与 8H 的散射累加同性质，在 N-A 的 manifest 中注明即可。
+
+结论：NS-P1 的实现与验收成立，但在进入 NS-P2 之前，需要先完成 NS-P1b。
 
 ## 6. 里程碑
 
