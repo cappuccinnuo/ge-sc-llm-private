@@ -1340,6 +1340,13 @@ NodeSem 的代码按通用设计实现（第 4.6 节原则 1），但它的输�
 3. **NodeSem**：在新类别上重跑 NS-P2（text_view 对未识别的节点类型回退为完整文本并计数，扩展时检查回退数）、NS-P3a/P3b（事实与特征），再按 NS-P5 的方式封存计划。
 这些工作应另立 Prompt，并写进 DFG 与 NodeSem 两边的计划；本轮的冒烟（NS-P3a 第 3 节）只验证事实抽取能在这些类别的源码上运行。
 
+**DFG 侧审查补充（2026-11-02）。** 详见 dfg-v2 分支 `scripts/DFG/dfg_v2/PROMPTS.md` 第 4.10j 节。其中与 NodeSem 直接相关的两点：
+- **SolidiFI 注入片段的语义与类别名不完全吻合。**
+  - denial_of_service 的注入标记是 `_unchk`，片段为 `if (!addr.send(10 ether) || 1==1) {revert();}`；
+  - unchecked_low_level_calls 的注入标记是 `bug_unchk_send`，片段为 `msg.sender.transfer(1 ether);`，transfer 失败时会回滚，这并不是“未检查的低层调用”。
+  - 扩展时，这两类的 SolidiFI 层与非 SolidiFI 层必须分开报告与解读。M3a 的字段设计不得为了拟合这些片段而调整。
+- **算术类会因匿名化丢失 SafeMath 的名字。** N-anon-s 会把 SafeMath 及其 add/sub/mul 改成 vN。M3a/M2 需要用结构表达“经过检查的库运算”：例如在 L 组（函数汇总）中对被调用的同文件库函数或内部函数做一层汇总，记录其函数体内是否对运算结果设置了 require/assert/if 守卫。否则算术类的主视图会系统性地丢失这一合法语义。这一项应在 NS-P3a 实现事实之前决定，不依赖任何结果。
+
 ## 6. 里程碑
 
 | 里程碑 | 包含 | 产出 | 需要用户决定的点 |
