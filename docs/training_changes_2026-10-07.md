@@ -7839,3 +7839,58 @@ mando，CUDA_VISIBLE_DEVICES=''、PYTHONDONTWRITEBYTECODE=1、OMP_NUM_THREADS=2�
 未做 NS-P3b 的 M2/CTX、M3a/STATIC、向量编码、模型融合、LLM、蒸馏、HGT训练或F1比较；未下载/安装新模型或solc。不能把通用事实接口通过等同于完整Solidity语义系统或模型效果提升。
 
 最终实验按用户安排使用显存充足服务器，本机RTX3050 4GiB只是开发限制；服务器尚未部署实测。本轮CPU，产物在WSL，未新增C盘大型运行日志。完成本地NS-P3a提交后停止，不自动推送、不推进下一阶段。
+
+## 78. 2026-11-02 NodeSem NS-P3a2：精确未知、完整汇总与析取守卫（修改 AI：Codex）
+
+### 78.1 输入、范围与定位
+
+node-sem@a2792968，PROMPTS r10，前置实现bed6223f。按用户明确指示沿用EXPERIMENT_POLICY original；模板中早期匿名主视图段落不能覆盖该指示。本轮不调用匿名产物，不重训、不运行GPU、不下载模型、不推进NS-P3b。
+
+根因：原_bind_layers将所有L2 unresolved/fallback扩散给函数全部state语句；state_name_missing既包含真实无法绑定值，也包含require/assert/keccak256/now。原_summaries只看图上节点，缺失emit/revert可污染整个函数/合约完整性。旧“所有析取均不计入有效相等”规则还漏掉常见的发送者允许集合。
+
+### 78.2 用户决定与具体实施
+
+1. 同意unknown_fields方案：旧K/L/M只有整组status；新字段列明真正未知位，status保留概览，其他事实继续可用，后续向量编码必须按字段处理。schema版本为nodesem-statement-facts-v1.1，strict validator拒绝非法字段/重复字段/supported带未知字段。
+2. 同意允许差异增加order.status及诊断：正文要求修改写不确定和顺序传播，但比较清单未列。变量/形状/读写数量严格相同，auth允许随新守卫回填。旧每行state_*诊断计数仍逐项相同，不能把统计改善伪装成删除诊断。
+3. 同意NodeSem内部受限布尔适配：实测grammar把第二个msg.sender的member后缀挂到前一个二元表达式，直接加OR分支无法通过ii/jj。新facts_boolean依据原AST token、括号与布尔优先级复原分组，再使用原声明身份。没有修改原语法/源码/图；混合非发送者项、非相等或无法证明者不认定。负极性处理De Morgan，守卫记录新增disjunctive。
+4. 原名口径延续既有批准；仅fixture用确定性nN双射，原拼写逆映射只供I组大小写差异位。变量名字载体也通过逆映射还原比较，provenance源码SHA单列变化，不把来源摘要等同语义事实。
+
+### 78.3 实现文件与算法
+
+新增facts_state.py按AST角色/位置分类，区分裸callee与成员接收者值，处理类型/全局/别名/assembly；位置缺失只读调用冻结StateBinder与StateAccessExtractor，不可恢复时保守未知。语句只消费自己regions中的问题；未知写对拥有函数的C顺序和相关汇总掩码生效。原行diagnostic广播数作为历史诊断保留，不再直接决定状态。
+
+新增facts_summary.py。K通过全部封存L2证据按声明/函数身份去重，未投影写仍有计数并明确掩码；未受保护写必须有已知守卫状态。L与M使用完整函数/合约AST，包括缺失图节点的emit、fallback。没有call/write组合时顺序false可由结构确立；有组合而CFG/写覆盖不足时只将顺序字段未知。没有把后续读写改造成新的数据流边。
+
+新增facts_revision_audit.py逐行身份/顺序比较；K shape/public/constant/initializer、M kind、原调用/env/arith/syntax/DFG和读写var/shape/population严格不变。新增facts_boolean.py如上。修改facts.py接入支持分类与summary，facts_guards.py接入有效OR，facts_ast.py仅增加测试用原名字映射，facts_schema.py增加字段与验证。旧DFG、HGT与所有训练入口未改。
+
+新增test_facts_precision/test_facts_names和6个手写Oracle；expected.json先写期望后实现。旧测试对缺失投影写的K计数zero改为one，另加强unknown_fields断言；guard fixture补新schema字段，未削弱其他核心断言。初始3个旧预期/fixture失败以及2个新测试导入错误均记录，修复后全部通过。
+
+### 78.4 结果与逐行对照
+
+| 任务/图行数 | state未知：旧→新/分母 | K未知：旧→新/分母 | L未知：旧→新/分母 | M未知：旧→新/分母 |
+| --- | --- | --- | --- | --- |
+| 重入合约/18610 | 6627 -> 78 / 10067 | 2299 -> 410 / 2369 | 2951 -> 68 / 3981 | 503 -> 13 / 543 |
+| 重入节点/12223 | 4350 -> 32 / 6635 | 1767 -> 299 / 1788 | 1764 -> 29 / 2247 | 204 -> 8 / 214 |
+| 访问控制合约/13693 | 5947 -> 75 / 7858 | 851 -> 139 / 922 | 2981 -> 65 / 3723 | 437 -> 15 / 474 |
+| 访问控制节点/7892 | 3774 -> 29 / 4664 | 401 -> 86 / 403 | 1857 -> 26 / 2182 | 172 -> 8 / 177 |
+
+
+变化行43216/52418包含schema新增字段，不能视为43216处语义修复。非允许差异0；DFG未知数及guard未知数不变，原state_*逐行诊断计数不变。析取记录14/14/23/16、新授权K节点2/2/4/4（顺序同上）；记录可在多个目标节点复现，跨任务存在源码重叠，不当作独立条件/样本相加。
+
+K/L/M具体计数、unknown_fields分布、未解问题原因、旧新字段值与row_key见accepted_attempt3/{revision_comparison,precision_summary}.json。未知状态恢复并不等于检测收益；本轮没有F1。重入reentrancy_bonus.sol的8行前后证据单列，含源码SHA。
+
+五类固定冒烟：arithmetic412函数/1475行、denial_of_service406/1568、front_running506/2133、time_manipulation401/1614、unchecked_low_level_calls373/1226；50文件、2098函数、8016行，0异常/解析失败。无图模式DFG/CFG支持依然未知，不宣称完成五类实验。
+
+### 78.5 测试、旧结果保护与命令
+
+最终node_sem587通过/4警告，dfg_v22653通过/9警告，legacy223通过/29警告；合计3463通过、0失败、0跳过、42既有警告。44个Oracle的AST双射与6个图证据双射通过。夹具未编译，不把tree-sitter通过当成solc通过。
+
+CPU/mando命令与环境同§77.6。pytest三组命令不变；运行facts_acceptance tasks/smoke --out scripts/node_sem/artifacts/facts_v1/accepted_attempt3，随后facts_revision_audit --old .../accepted_attempt2 --new .../accepted_attempt3 --out .../accepted_attempt3/revision_comparison.json及facts_verify --out .../accepted_attempt3。完整命令、耗时、返回码、日志在artifacts/ns_p3a2。抽取201.235秒、smoke17.813秒、compare10.450秒、verify39.26秒。
+
+facts_verify校验52418行与原名text_v1身份/顺序/源码SHA、封存图和证据、代码依赖；22813冻结文件字节未变，8H execution.load与生效runtime_resume_v2一致。旧attempt2全36文件额外核对SHA不变。新产物封存后才更新CURRENT，旧attempt2及更早根original仍保留superseded；不修改任何旧seal。新报告NS_P3A2_REPORT，三份记录只追加、保留旧前缀并做doc_check --expect-cjk。
+
+### 78.6 停止与限制
+
+不扩展完整Solidity别名/跨函数/类型系统，unknown_fields不是新模型功能；NS-P3b必须落实字段掩码。保守残留含声明歧义、真实未知值、storage别名、缺失投影、assembly。源代码完整汇总与已有图节点证据覆盖不同，这一差异显式报告。
+
+原名生产政策不变，后续需匹配的original S0基线；匿名8H得分不能直接当本轮配对对照。无模型训练/编码/新seed/七类训练，本地提交NS-P3a2后停止，不自动push。最终实验按用户安排使用显存充足服务器，本机RTX3050 4GiB仅为当前开发限制；服务器尚未部署实测。产物保存在WSL项目目录，未新增C盘大型日志。

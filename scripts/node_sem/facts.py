@@ -238,97 +238,6 @@ def _bind_layers(rows, nodes, graph, audit, file, sem, cfg, offsets, diagnostics
     diagnostics["symbol_exact_lookups"] = lookup_count
 
 
-def _summaries(rows, nodes, sem, guards, graph=None):
-    auth = {key(c): guards.auth_declarations(c) for c in sem.contracts}
-    # A shared declaration node represents confirmed uses across this file.
-    # Statement, function and contract summaries retain their scoped identities.
-    declaration_auth = set().union(*auth.values()) if auth else set()
-    declaration_scopes = defaultdict(set)
-    for contract in sem.contracts:
-        for declarations in sem.members(contract).values():
-            for declaration in declarations:
-                declaration_scopes[key(declaration)].add(key(contract))
-    by_function = defaultdict(list)
-    for nid, node in nodes.items():
-        fn = sem.owner(node)
-        if fn is not None and rows[nid]["node_kind"] in ("statement", "condition"):
-            by_function[key(fn)].append(nid)
-        if rows[nid]["state"]:
-            members = sem.members(node)
-            for field in ("reads", "writes"):
-                for item in rows[nid]["state"][field]:
-                    declarations = members.get(item["var"], [])
-                    if len(declarations) == 1:
-                        item["auth"] = key(declarations[0]) in auth.get(key(sem.contract(node)), set())
-    for nid, node in nodes.items():
-        record = rows[nid]
-        if record["state_decl"]:
-            decl = node.parent if node.type == "variable_declaration" else node
-            info = record["state_decl"]
-            info["auth"] = key(decl) in declaration_auth
-            readers, writers, unguarded = set(), set(), set()
-            if graph is not None:
-                related = [(src, dst, d) for src, dst, d in graph.edges(data=True)
-                           if (src == nid and d.get("edge_type") == "READS_STATE") or
-                              (dst == nid and d.get("edge_type") == "WRITES_STATE")]
-                for src, dst, attrs in related:
-                    writing = attrs["edge_type"] == "WRITES_STATE"
-                    other = src if writing else dst
-                    if other not in nodes:
-                        continue
-                    fn = sem.owner(nodes[other])
-                    if fn is None:
-                        continue
-                    (writers if writing else readers).add(key(fn))
-                    if writing and rows[other]["guard_status"] != "unknown" and not any(g["is_sender_guard"] for g in rows[other]["guards"]):
-                        unguarded.add(key(fn))
-                    if not writing and rows[other]["node_kind"] == "condition":
-                        info["read_in_guard"] = True
-                    if not writing and rows[other]["external"]:
-                        for call in sem.calls(nodes[other]):
-                            if not call["invoked"]:
-                                continue
-                            for expression in (call["target"], call["value"]):
-                                if expression is not None and any(key(sem.resolve_identifier(x).get("declaration")) == key(decl) for x in sem.identifiers(expression)):
-                                    info["used_as_call_value_or_target"] = True
-                info.update(read_functions=_count(len(readers)), write_functions=_count(len(writers)),
-                            unguarded_writer=bool(unguarded), unguarded_write_functions=len(unguarded))
-                callable_by_key = {key(fn): fn for fn in sem.functions}
-                info["only_constructor_writes"] = bool(writers) and all(
-                    sem.function_context(callable_by_key[x])["is_constructor"] for x in writers)
-                # Source-level missing projections/bindings cannot establish absence.
-                scopes = declaration_scopes[key(decl)] | {key(sem.contract(node))}
-                siblings = [r for other, r in rows.items() if r["state"] and key(sem.contract(nodes[other])) in scopes]
-                incomplete_projection = any(r["unresolved"].get("projection_missing") for other, r in rows.items()
-                    if key(sem.contract(nodes[other])) in scopes)
-                info["status"] = "unknown" if incomplete_projection or any(r["state"]["status"] == "unknown" or r["guard_status"] == "unknown" or r["unresolved"].get("projection_missing") for r in siblings) else "supported"
-        if record["fn_summary"]:
-            children = [rows[x] for x in by_function[key(node)]]
-            info = record["fn_summary"]
-            info.update(external_call=any(r["external"]["kinds"] for r in children),
-                state_write=any(r["state"]["writes"] for r in children),
-                sender_guard=any(g["is_sender_guard"] for r in children for g in r["guards"]) or any(set(rows[x]["self_condition"].get("eq_pairs", [])) & {"env_state", "env_param", "env_literal"} for x in by_function[key(node)] if nodes[x].type not in LOOPS),
-                auth_write=any(x["auth"] for r in children for x in r["state"]["writes"]),
-                selfdestruct=any("selfdestruct" in r["external"]["kinds"] for r in children),
-                delegatecall=any("delegatecall" in r["external"]["kinds"] for r in children),
-                loop=any(x.type in LOOPS for x in walk(node)),
-                ext_call_in_loop=any(r["order"]["ext_call_in_loop"] for r in children),
-                timestamp=any("block.timestamp" in r["env"]["keys"] for r in children),
-                tx_origin=any("tx.origin" in r["env"]["keys"] for r in children),
-                write_then_call=any(r["order"]["write_then_call"] for r in children),
-                call_then_write=any(r["order"]["call_then_write"] for r in children),
-                status="unknown" if not children or any(r["state"]["status"] == "unknown" or
-                    r["order"]["status"] == "unknown" or r["guard_status"] == "unknown" or r["unresolved"].get("projection_missing") for r in children) else "supported")
-    for nid, node in nodes.items():
-        info = rows[nid]["contract_summary"]
-        if not info:
-            continue
-        children = [r for other, r in rows.items() if r["fn_summary"] and key(sem.contract(nodes[other])) == key(node)]
-        info.update(explicit_constructor=any(r["function_ctx"]["is_constructor"] for r in children),
-            payable_fallback=any(r["function_ctx"]["is_fallback"] and r["function_ctx"]["payable"] for r in children),
-            selfdestruct=any(r["fn_summary"]["selfdestruct"] for r in children),
-            auth_state=bool(auth.get(key(node))), auth_state_count=len(auth.get(key(node), ())),
-            status="unknown" if any(r["fn_summary"]["status"] == "unknown" for r in children) else "supported")
 
 
 class FactBackend:
@@ -341,12 +250,12 @@ class AstBackend(FactBackend):
         return extract_source(**file_ctx)[0]
 
 
-def extract_source(source, file="fixture.sol", graph=None, evidence=None, metadata=None, references=None):
+def extract_source(source, file="fixture.sol", graph=None, evidence=None, metadata=None, references=None, original_names=None):
     """Return facts plus audit. Source-only mode deliberately has no DFG/CFG facts."""
     references = references or []
     before = graph_fingerprint(graph) if graph is not None else None
     projection = ProjectionView(source, file)
-    sem, rows = AstSemantics(projection), {}
+    sem, rows = AstSemantics(projection, original_names=original_names), {}
     guards = GuardAnalyzer(sem)
     diagnostics = dict(view="original", projection_missing=0, cfg={}, symbol_exact_lookups=0)
     if graph is None:
@@ -359,6 +268,9 @@ def extract_source(source, file="fixture.sol", graph=None, evidence=None, metada
         all_semantic = {key(n) for n in sem.nodes if n.type in STATEMENTS | FUNCTIONS | CONTRACTS | {"state_variable_declaration"}}
         diagnostics["projection_missing"] = len(all_semantic - {key(n) for n in nodes.values()})
     rows, offsets = _base_rows(projection, nodes, sem, guards, references)
+    from .facts_state import StateSupport
+    from .facts_summary import summarize
+    support = None
     if evidence is not None:
         if evidence.get("source_hashes", {}).get(file) != projection.sha256:
             raise ValueError("Source/evidence hash differs")
@@ -367,6 +279,9 @@ def extract_source(source, file="fixture.sol", graph=None, evidence=None, metada
                 raise ValueError("Layer/source hash differs")
         cfg = FileCFG(source, file, metadata)
         _bind_layers(rows, nodes, graph, evidence, file, sem, cfg, offsets, diagnostics)
+        support = StateSupport(sem, file, evidence["layers"], nodes, graph, metadata, projector)
+        support.apply(rows, nodes)
+        diagnostics["state_precision"] = support.audit()
         for fn in sem.functions:
             owned = {nid: n for nid, n in nodes.items() if key(sem.owner(n)) == key(fn)}
             if fn.child_by_field_name("body") is None:
@@ -375,17 +290,7 @@ def extract_source(source, file="fixture.sol", graph=None, evidence=None, metada
             # A valid CFG does not make incomplete state-write evidence complete.
             # Name-only read diagnostics (e.g. an unresolved builtin name) do not
             # trigger this write-order guard.
-            write_evidence_missing = any(rows[n]["unresolved"].get(reason)
-                for n in owned for reason in ("state_alias_unresolved", "state_write_projection_missing"))
-            for ast in walk(fn):
-                if ast.type in ("assignment_expression", "augmented_assignment_expression"):
-                    target = ast.child_by_field_name("left")
-                elif ast.type == "update_expression" or operator(ast) == "delete":
-                    target = ast.child_by_field_name("argument")
-                else:
-                    continue
-                if sem.root_binding(target)["kind"] == "unknown":
-                    write_evidence_missing = True
+            write_evidence_missing = bool(support.function_issues(fn, writing=True))
             if write_evidence_missing:
                 for nid in owned:
                     if rows[nid]["order"]:
@@ -430,7 +335,9 @@ def extract_source(source, file="fixture.sol", graph=None, evidence=None, metada
             if rows[nid]["order"] and fn_key in missing_effects:
                 rows[nid]["order"]["status"] = "unknown"
                 rows[nid]["unresolved"]["unprojected_effect_order"] = 1
-    _summaries(rows, nodes, sem, guards, graph)
+    if support is None:
+        support = StateSupport(sem, file, None, nodes, graph, metadata, projector)
+    summarize(rows, nodes, sem, guards, support, kind_of)
     if graph is not None:
         for nid, attrs in graph.nodes(data=True):
             if attrs["node_type"] in ("end_if", "end_loop"):
@@ -509,7 +416,7 @@ def statistics(records):
              "unresolved":dict(sum((Counter(r["unresolved"]) for r in records.values()),Counter())),
              "uninvoked_call_value":sum(r["external"].get("uninvoked_call_value",False) for r in records.values()),
              "unknown":{}, "nonempty":{}, "positive":{}, "field_applicable":{}}
-    for group in ("dfg", "order", "state", "checked_call"):
+    for group in ("dfg", "order", "state", "checked_call", "state_decl", "fn_summary", "contract_summary"):
         applicable = [r[group] for r in records.values() if r[group]]
         stats["unknown"][group] = dict(count=sum(x["status"]=="unknown" for x in applicable), applicable=len(applicable))
     stats["unknown"]["guards"] = dict(count=sum(r["guard_status"]=="unknown" for r in records.values()), applicable=len(records))
@@ -535,7 +442,9 @@ def implementation_refs():
     paths += [ROOT / p for p in ("scripts/DFG/frontend.py", "scripts/DFG/projection.py",
         "scripts/DFG/symbol_table.py", "scripts/DFG/semantic_cfg.py", "scripts/DFG/dfg_v2/projection_view.py",
         "scripts/DFG/dfg_v2/l1_cfg.py", "scripts/DFG/dfg_v2/l1_symbols.py", "scripts/DFG/dfg_v2/env.py",
-        "scripts/DFG/state/stage_j/binding.py", "scripts/DFG/state/stage_k/profile.py")]
+        "scripts/DFG/state/stage_j/binding.py", "scripts/DFG/state/stage_k/profile.py",
+        "scripts/DFG/dfg_v2/state_binding.py", "scripts/DFG/dfg_v2/state_access.py",
+        "scripts/DFG/dfg_v2/units.py", "scripts/DFG/dfg_v2/l2.py")]
     return {str(p.relative_to(ROOT)):ref(p) for p in sorted(paths)}
 
 

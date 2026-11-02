@@ -7,7 +7,7 @@ part of the feature contract. Provenance remains outside the feature groups.
 import copy
 import re
 
-VERSION = "nodesem-statement-facts-v1"
+VERSION = "nodesem-statement-facts-v1.1"
 NODE_KINDS = ("statement", "condition", "state_decl", "function", "modifier", "contract", "env", "end", "other")
 EXTERNAL_KINDS = ("call", "delegatecall", "staticcall", "send", "transfer", "member", "new", "selfdestruct")
 TARGET_CLASSES = ("msg.sender", "tx.origin", "param", "state", "local", "literal", "this", "other")
@@ -39,9 +39,9 @@ _DEFAULTS = {
     "arith": {"ops": [], "on_state": False, "small_int": False, "from_param": False, "from_env": False, "sinks": [], "in_unchecked": False},
     "loop": {"bound": "none"},
     "function_ctx": {"visibility": "default", "payable": False, "read_only": False, "is_constructor": False, "is_fallback": False, "has_modifier": False, "name_case_only_differs_from_contract": False},
-    "state_decl": {"shape": "other", "public": False, "constant_immutable": False, "has_initializer": False, "auth": False, "write_functions": "zero", "read_functions": "zero", "unguarded_write_functions": 0, "status": "unknown", "only_constructor_writes": False, "unguarded_writer": False, "read_in_guard": False, "used_as_call_value_or_target": False},
-    "fn_summary": {"status": "unknown", "external_call": False, "state_write": False, "sender_guard": False, "auth_write": False, "selfdestruct": False, "delegatecall": False, "loop": False, "ext_call_in_loop": False, "timestamp": False, "tx_origin": False, "write_then_call": False, "call_then_write": False},
-    "contract_summary": {"status": "unknown", "kind": "contract", "auth_state_count": 0, "explicit_constructor": False, "payable_fallback": False, "selfdestruct": False, "auth_state": False},
+    "state_decl": {"unknown_fields": [], "shape": "other", "public": False, "constant_immutable": False, "has_initializer": False, "auth": False, "write_functions": "zero", "read_functions": "zero", "unguarded_write_functions": 0, "status": "unknown", "only_constructor_writes": False, "unguarded_writer": False, "read_in_guard": False, "used_as_call_value_or_target": False},
+    "fn_summary": {"unknown_fields": [], "status": "unknown", "external_call": False, "state_write": False, "sender_guard": False, "auth_write": False, "selfdestruct": False, "delegatecall": False, "loop": False, "ext_call_in_loop": False, "timestamp": False, "tx_origin": False, "write_then_call": False, "call_then_write": False},
+    "contract_summary": {"unknown_fields": [], "status": "unknown", "kind": "contract", "auth_state_count": 0, "explicit_constructor": False, "payable_fallback": False, "selfdestruct": False, "auth_state": False},
 }
 APPLICABILITY = {
     "external": STATEMENT_KINDS, "state": STATEMENT_KINDS,
@@ -130,6 +130,10 @@ def validate(facts):
                 _fail(group, "inapplicable group must be empty")
             continue
         _keys(obj, default, group)
+        if "unknown_fields" in default:
+            _set(obj["unknown_fields"], set(default) - {"status", "unknown_fields"}, group + ".unknown_fields")
+            if obj["status"] == "supported" and obj["unknown_fields"]:
+                _fail(group, "supported group cannot contain unknown fields")
         for key, val in default.items():
             if type(val) is bool:
                 _bool(obj[key], group + "." + key)
@@ -208,7 +212,7 @@ def validate(facts):
             _enum(obj["status"], STATUSES, "contract_summary.status")
     _list(facts["guards"], "guards")
     for g in facts["guards"]:
-        _keys(g, ("rule", "kind", "polarity", "operand_classes", "eq_pairs", "is_sender_guard", "offset"), "guard")
+        _keys(g, ("rule", "kind", "polarity", "operand_classes", "eq_pairs", "is_sender_guard", "disjunctive", "offset"), "guard")
         _enum(g["rule"], ("1", "2", "3", "4", "5", "5p", "6"), "guard.rule")
         _enum(g["kind"], GUARD_KINDS, "guard.kind")
         _int(g["polarity"], "guard.polarity")
@@ -217,6 +221,9 @@ def validate(facts):
         _set(g["operand_classes"], OPERAND_CLASSES, "guard.operand_classes")
         _set(g["eq_pairs"], EQ_PAIRS, "guard.eq_pairs")
         _bool(g["is_sender_guard"], "guard.is_sender_guard")
+        _bool(g["disjunctive"], "guard.disjunctive")
+        if g["disjunctive"] and not g["is_sender_guard"]:
+            _fail("guard", "disjunctive requires confirmed sender restriction")
         if g["offset"] is not None:
             _int(g["offset"], "guard.offset")
     _enum(facts["guard_status"], ("none", "present", "unknown"), "guard_status")

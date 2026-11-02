@@ -59,8 +59,9 @@ def shape(type_name):
 
 
 class AstSemantics:
-    def __init__(self, view):
+    def __init__(self, view, original_names=None):
         self.view = view
+        self.original_names = original_names or {}
         self.nodes = list(walk(view.tree.root_node))
         self.functions = [x for x in self.nodes if x.type in FUNCTIONS]
         self.contracts = [x for x in self.nodes if x.type in CONTRACTS]
@@ -433,7 +434,7 @@ class AstSemantics:
         words={self.text(x) for x in fn.children if x.type in ("visibility","state_mutability","payable")}
         legacy_constant = any(x.type=="modifier_invocation" and self.text(x)=="constant" and not self.members(fn).get("constant") for x in fn.named_children)
         if legacy_constant: words.add("constant")
-        return {"visibility":next((x for x in ("public","external","internal","private") if x in words),"default"),"payable":"payable" in words,"read_only":bool(words & {"view","pure","constant"}),"is_constructor":fn.type=="constructor_definition" or bool(fn_name and fn_name==contract_name),"is_fallback":fn.type=="fallback_receive_definition" or (fn.type=="function_definition" and not fn_name),"has_modifier":any(x.type=="modifier_invocation" and not (legacy_constant and self.text(x)=="constant") for x in fn.named_children),"name_case_only_differs_from_contract":bool(fn_name and contract_name and fn_name != contract_name and fn_name.lower()==contract_name.lower())}
+        return {"visibility":next((x for x in ("public","external","internal","private") if x in words),"default"),"payable":"payable" in words,"read_only":bool(words & {"view","pure","constant"}),"is_constructor":fn.type=="constructor_definition" or bool(fn_name and fn_name==contract_name),"is_fallback":fn.type=="fallback_receive_definition" or (fn.type=="function_definition" and not fn_name),"has_modifier":any(x.type=="modifier_invocation" and not (legacy_constant and self.text(x)=="constant") for x in fn.named_children),"name_case_only_differs_from_contract":bool(fn_name and contract_name and self.original_names.get(fn_name,fn_name) != self.original_names.get(contract_name,contract_name) and self.original_names.get(fn_name,fn_name).lower()==self.original_names.get(contract_name,contract_name).lower())}
 
     def loop_bound(self,node):
         cursor=node

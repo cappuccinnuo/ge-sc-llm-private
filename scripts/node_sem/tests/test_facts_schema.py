@@ -83,7 +83,7 @@ def test_inapplicable_group_must_be_empty(kind, group):
 def _guard():
     return {"rule": "1", "kind": "require", "polarity": 1,
             "operand_classes": ["msg.sender", "state"], "eq_pairs": ["env_state"],
-            "is_sender_guard": True, "offset": -1}
+            "is_sender_guard": True, "disjunctive": False, "offset": -1}
 
 
 def test_valid_guard_preserves_polarity_and_index():

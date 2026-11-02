@@ -267,3 +267,21 @@ modules and the complete frozen `_code_refs` dependency snapshot. It supplements
 individual manifests' direct implementation references without changing any
 already-sealed manifest or historical input. Final byte-level snapshot checks
 must verify frozen code did not change during extraction.
+
+## NS-P3a2 correction (2026-11-02)
+
+State support now follows each statement's own AST access roles; historical
+unresolved counts remain diagnostics, not a blanket function-level status.
+K/L/M use unknown_fields: mask only listed fields when encoding, retaining
+the other known facts. K consumes all sealed L2 access identities, even without
+HCG projection. L/M inspect the full AST, including unprojected emit/fallback.
+
+All effective OR alternatives must restrict msg.sender/tx.origin for a
+disjunctive sender guard. Negative conjunctions use De Morgan. Original AST
+token grouping is adapted only inside NodeSem; unresolved expressions do not
+prove a guard. This is not general boolean theorem proving.
+
+44 hand-written Oracle sources pass deterministic spelling-bijection checks,
+with 6 additional sealed-layer checks. These are parser-only fixtures, not
+compiled Solidity or a new anonymous experiment. Production remains original.
+Remaining uncertainties and exact before/after counts are in NS_P3A2_REPORT.md.

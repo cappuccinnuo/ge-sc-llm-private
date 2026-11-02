@@ -1,0 +1,37 @@
+{
+  "scope": "NS-P3a2; original only; CPU; no training/GPU/NS-P3b",
+  "baseline_head": "a2792968a8857f73d8dfe208c598832e6f1aad9b",
+  "approved_adjustments": [
+    {
+      "choice": "unknown_fields",
+      "reason": "K/L/M had only whole-group status; preserve available fields and enumerate uncertain fields",
+      "approved": true
+    },
+    {
+      "choice": "comparison permits order.status and diagnostic changes",
+      "reason": "requested precision fix includes order propagation but original allowed-diff list omitted it",
+      "approved": true
+    },
+    {
+      "choice": "bounded boolean AST-token grouping adapter",
+      "reason": "frozen grammar attaches second sender member across boolean operator; original token spans/declarations retained",
+      "approved": true
+    }
+  ],
+  "preserved_policies": [
+    "original spelling in production",
+    "old accepted_attempt2 is immutable",
+    "fixture rename only; no corpus anonymous view",
+    "no change to frozen DFG/model/tokenizer/labels/folds"
+  ],
+  "fixture_validity": "parser-only; no Solidity compilation executed",
+  "known_test_adjustments": [
+    "Old K write_functions=zero assertion changed to one because the sealed write survives missing HCG projection; unknown_fields still marks write incompleteness.",
+    "Guard schema fixtures add required disjunctive=false; no existing polarity/identity assertions weakened."
+  ],
+  "initial_test_failures": [
+    "3 failures: old projected-only K count expectation plus 2 guard fixture schema omissions; 210 passed",
+    "2 collection errors in new tests: tests directory is namespace package; replaced relative imports with absolute imports"
+  ],
+  "server_note": "Final experiments are intended for a server with sufficient VRAM; local RTX3050 4GiB is only the current development constraint, server not deployed here."
+}

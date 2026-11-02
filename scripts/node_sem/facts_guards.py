@@ -6,6 +6,7 @@ inputs, never part of serialized StatementFacts. No control-flow dominance is
 used to infer lexical guards.
 """
 from collections import Counter
+from .facts_boolean import sender_condition
 
 from scripts.DFG.frontend import walk
 from scripts.DFG.models import Unsupported
@@ -152,6 +153,9 @@ class GuardAnalyzer:
         return result
 
     def _equalities(self, condition, polarity, bindings):
+        adapted = sender_condition(self, condition, polarity, bindings) if condition is not None else None
+        if adapted is not None:
+            return adapted[:3]
         condition = unwrap(condition)
         if condition is None:
             return set(), set(), False
@@ -234,11 +238,14 @@ class GuardAnalyzer:
         pairs, auth, sender = self._equalities(condition, polarity, bindings)
         # Loop conditions deliberately contribute no D1/D2 features.
         operands = self._classes(condition, bindings)
+        adapted = sender_condition(self, condition, polarity, bindings)
+        disjunctive = bool(adapted and adapted[3] and sender)
         if rule == "4":
             operands, pairs, auth, sender = set(), set(), set(), False
+            disjunctive = False
         return {"rule": str(rule), "kind": kind, "polarity": polarity,
                 "operand_classes": sorted(operands), "eq_pairs": sorted(pairs),
-                "is_sender_guard": sender, "offset": 0,
+                "is_sender_guard": sender, "disjunctive": disjunctive, "offset": 0,
                 "_anchor": anchor, "_auth_declarations": auth}
 
     def _bindings(self, declaration, call, extension=None):

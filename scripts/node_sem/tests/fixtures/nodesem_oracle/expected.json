@@ -922,6 +922,154 @@
       "note": "A guard unrelated to the computed result is not a result-condition check.",
       "source": "negative_unrelated_guard.sol",
       "validation": "parser_only_not_compiled"
+    },
+    {
+      "id": "ii",
+      "source": "ii_precision.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "x = 1;",
+          "contains": {
+            "guards.eq_pairs": [
+              "env_state"
+            ],
+            "guards.disjunctive": [
+              true
+            ],
+            "guards.is_sender_guard": [
+              true
+            ]
+          }
+        },
+        {
+          "text": "address owner;",
+          "equals": {
+            "state_decl.auth": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "jj",
+      "source": "jj_precision.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "y = 1;",
+          "contains": {
+            "guards.rule": [
+              "3"
+            ],
+            "guards.disjunctive": [
+              true
+            ],
+            "guards.is_sender_guard": [
+              true
+            ],
+            "guards.eq_pairs": [
+              "env_state"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "kk",
+      "source": "kk_precision.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "x = 1;",
+          "equals": {
+            "guards.is_sender_guard": [
+              false
+            ],
+            "guards.eq_pairs": [],
+            "guards.disjunctive": [
+              false
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ll",
+      "source": "ll_precision.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "require(msg.sender == owner);",
+          "equals": {
+            "state.status": "supported"
+          }
+        },
+        {
+          "text": "rewards[a] = 0;",
+          "equals": {
+            "state.status": "supported"
+          }
+        },
+        {
+          "text": "uint c = a * b;",
+          "equals": {
+            "state.status": "supported"
+          }
+        },
+        {
+          "text": "assert(c / a == b);",
+          "equals": {
+            "state.status": "supported"
+          }
+        },
+        {
+          "text": "return c;",
+          "equals": {
+            "state.status": "supported"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mm",
+      "source": "mm_precision.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "inheritedVar = 1;",
+          "equals": {
+            "state.status": "unknown"
+          }
+        },
+        {
+          "text": "known = 2;",
+          "equals": {
+            "state.status": "supported"
+          }
+        }
+      ]
+    },
+    {
+      "id": "nn",
+      "source": "nn_precision.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "function f()",
+          "node_kind": "function",
+          "equals": {
+            "fn_summary.timestamp": true,
+            "fn_summary.status": "supported"
+          }
+        },
+        {
+          "text": "contract Subject",
+          "node_kind": "contract",
+          "equals": {
+            "contract_summary.status": "supported"
+          }
+        }
+      ]
     }
   ],
   "default_validation": "parser_only_not_compiled",

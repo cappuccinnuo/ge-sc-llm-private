@@ -324,7 +324,9 @@ contract Unrelated {
     shared=row(graph,records,"uint internal count;")["state_decl"]
     unrelated=row(graph,records,"uint public count;")["state_decl"]
     assert shared["status"]=="unknown"
-    assert shared["write_functions"]=="zero"
+    # NS-P3a2 counts the sealed, exact-identity write even without projection.
+    assert shared["write_functions"]=="one"
+    assert "write_functions" in shared["unknown_fields"]
     assert unrelated["status"]=="supported"
     assert unrelated["write_functions"]=="one"
 

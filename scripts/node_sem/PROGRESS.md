@@ -192,3 +192,15 @@ NS-P2 实际完成 text_view.py、p2_acceptance.py、offline 资产/编码器、
 最终测试496 NodeSem＋2653 DFG v2＋223原回归＝3372通过，0失败/跳过，42条既有弃用警告。命令见accepted_attempt2/final_tests.json；8H有效runtime只读核验通过，22813冻结文件字节不变。runtime_closure/final_validation/verification.seal绑定输入、完整代码依赖与四份产物。详细覆盖、统计分母、剩余边界见NS_P3A_REPORT。
 
 本轮无GPU、训练、编码、solc编译、CTX/STATIC，不推进NS-P3b。最终实验按用户计划使用显存充足服务器，本机RTX3050 4GiB仅为开发限制；尚未部署服务器。本地提交，不自动推送；三份文档仅追加并做UTF-8/CJK校验。
+
+## 2026-11-02 NS-P3a2 完成：状态支持精确化与析取守卫（修改 AI：Codex）
+
+原实现把 L2 的 require/assert/now 等非状态名字诊断传播为整个函数 state unknown，并把未投影 emit 等缺口传播到整组 K/L/M。本轮按原 AST 角色/位置限定未知作用范围，完整 AST 计算非状态汇总，K 使用全部封存 L2 访问（含未投影）。原图与读写/DFG事实不变。
+
+新增 facts_state、facts_summary、facts_boolean、facts_revision_audit，修改 facts/schema/ast/guards，增加 ii–nn Oracle 和 precision/names 测试。schema 升至 v1.1，K/L/M unknown_fields 必须由后续编码逐字段消费。用户批准逐字段掩码、补齐 order.status/诊断允许差异、受限布尔 token 分组适配；具体选择与理由见 training_changes§78、NS_P3A2_REPORT 与 decisions.json。
+
+四任务52,418行 accepted_attempt3 已通过逐行比较，非允许变化0；旧attempt2全部36文件SHA不变。state unknown（重入合约/重入节点/访问控制合约/访问控制节点）从6627/4350/5947/3774降至78/32/75/29，分母仍10067/6635/7858/4664。析取守卫记录14/14/23/16，新授权声明图节点2/2/4/4；跨任务有重叠，不能相加当独立源码样本。旧逐行state诊断计数保留，精确原因另存。
+
+最终587+2653+223=3463测试通过，0失败/跳过，42条既有警告；44 Oracle名字双射及6份封存层对照通过。另五类50源码、2098函数、8016行冒烟0异常。facts_verify核验22813冻结文件及8H生效运行版本通过。CURRENT指向attempt3，旧产物只读保留；详细表、执行命令与限制见报告。
+
+生产仅original，不读取匿名特征/评分，不做真实语料改名；没有GPU、训练、编译、M2/STATIC编码或NS-P3b，无新的F1结论。最终实验计划使用显存充足服务器，本机RTX3050 4GiB仅为开发限制，服务器未在本轮部署。三文档只追加、UTF-8/CJK校验；本地提交，不自动推送。
