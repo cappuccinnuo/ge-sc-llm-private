@@ -5,7 +5,7 @@ This directory runs in **nodesem (Python 3.10)**. The graph pipeline remains in
 text JSONL, float32 NPZ, and SHA-bound manifests are the interface.
 
 The current user explicitly authorized creating nodesem and downloading its
-dependencies, overriding PROMPTS ?5.4's original user-preparation requirement.
+dependencies, overriding PROMPTS section 5.4's original user-preparation requirement.
 The environment is on the E-backed WSL disk. Do not install these packages in
 mando. User-site packages must be disabled; the encoder refuses otherwise.
 

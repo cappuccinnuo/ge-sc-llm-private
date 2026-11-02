@@ -74,17 +74,104 @@ r4决策：NS-Q1结构label只由冻结Projector用于AST身份；NS-Q2未来名
 最终实验按用户安排使用显存充足服务器，目前RTX3050 4GiB只是本地开发限制，服务器尚未部署实测。只本地提交NS-P1b，不自动push，不推进NS-P2；未评估S1正式检测收益。
 
 
-## 2026-11-01 NS-P2????????????????? AI?Codex?
+## 2026-11-01 NS-P2 完成（2026-11-02 NS-P2b 校正，修改 AI：Codex）
 
-??node-sem@c3657236?r6???????????5.1/5.4???text_view.py?p2_acceptance.py?offline/asset_registry.py/encode.py/assets.json/seal/README/requirements-nodesem-lock.txt?configs/S2.json?3??????NS_P2_REPORT???carrier._aligned???????DFG/????????????????
+本节替换原先字面问号的损坏内容；原字节已归档，前后内容均逐字保留。以下数字是 NS-P2 的历史验收，不冒充 NS-P2b 重跑。
 
-- ??????compat AST??????????????????????/??????cut_mode??????identifier??????8?0???
-- ???/F3?????12036/12223???????7710/7892?????18312/18610???????13432/13693??????/??????24???????????????/??/??/??/????214/7614/2247/1089/1059?177/5074/2182/244/215?543/11587/3981/1267/1232?474/8730/3723/403/363?
-- ????52418?????104836?float32?256?CodeT5????????fp16 GPU????8/8?????max??0????????0fit???????2846/2567/5636/4762???76.716/67.473/69.715/65.223%???7223/5115/12014/9484???40.906/35.188/35.443/30.738%????????4????3??????????218.937??peak allocated??419.496MiB?
-- ??manifest????F0/F3?carrier?????????????????8????16??????S0/S1????????S2???CODE/concat?????????
-- ?????Codex??????????????? nodesem ????????????Python3.10.21/torch2.6.0+cu118/transformers4.46.3????revision?SHA???????????????????????WSL????????????pip??user-site???3???????????????python -s/PYTHONNOUSERSITE???encoder????????????????????training_changes?74??????????????
-- ?????8????????/????161907029????????????????????????E?WSL?
+新增 text_view.py、p2_acceptance.py、offline/asset_registry.py、offline/encode.py、offline/assets.json/seal、依赖锁和 README、configs/S2.json，以及 test_text_view.py、test_p2_acceptance.py、offline_checks.py；修改 carrier._aligned 与对应配置测试。模型权重与 NPZ 保留本地，不纳入 Git。
 
-???mando????python -B -m pytest -q -p no:cacheprovider???scripts/node_sem/tests?216??scripts/DFG/dfg_v2/tests?2653??scripts/DFG/tests tests/test_graph_utils.py?223??nodesem python -s -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests/offline_checks.py?18???3110???0??/?????4/9/29/0??????????p2_acceptance texts/verify?8?encode???offline/README?encoding_plan?8H load???runtime_resume_v2????????????????????
+文本使用冻结 ProjectionView/Projector/node_code_view 的兼容 AST 身份截取。if/while 为条件、for 为头部；函数/构造器/modifier 为签名，合约/库/接口为头部，语句和 struct 为对应完整片段。end 节点使用占位符，env_source 使用环境键。空白规范化；锚点损坏直接拒绝，不猜行号。原/匿名两视图切片模式一致，逆改名后原文相同。
 
-???artifacts/text_v1/<view>/<task>?artifacts/ns_p2/encoded/<view>/<task>???text_acceptance/acceptance/validation.json?encoding_summary.csv????NS-P2????????push?M2/????????LLM/??????????????????????????4GiB??????????????????
+carrier._aligned 允许以 F3 为全集的 manifest 供 F0/F3 共用：F0 只省略经身份核验的辅助行，其余严格按原图顺序。原 TOKEN_IDS/S0/S1 保持。CODE manifest 含 dtype/shape、row_key、file、source/code/vector SHA、presence、F0/F3 图指纹、生产者和资产引用；产物与源码摘要不符则拒绝。S2 只注册 CODE/256/concat，真正 concat 训练仍留 NS-P4。
+
+离线编码使用冻结 CodeT5、eval/inference_mode、GPU fp16、输出 float32、max_length=128、batch_size=32，模型自身输出归一化的 256 维向量；按模型摘要＋长度＋pooling＋文本去重，再按长度排序分批。GPU 使用既有 .training.lock，不与训练并行。没有修改 DFG/HGT/tokenizer、图、标签、折或训练计算。
+
+用户明确批准 Codex 创建独立 nodesem 并安装依赖，覆盖模板原先要求用户自行准备环境的限制；模型下载也已授权。实际 Python 3.10.21，torch 2.6.0+cu118，CUDA runtime 11.8，transformers 4.46.3，sentence-transformers 3.3.1。来源为本地官方快照及逐文件 SHA 校验，安装/下载记录在 artifacts/ns_p2/environment/，大文件位于 E 盘承载的 WSL；mando 不改。
+
+安装初期 pip 看到了 Python 3.10 user-site，移除了 filelock 3.32.6, tqdm 4.70.1, typing_extensions 4.16.0；已按原版本与校验 wheel 恢复。后续统一 python -s/PYTHONNOUSERSITE=1；nodesem 激活禁用 user-site，encoder 拒绝在 user-site 启用时运行。此副作用不得写成“从未触及用户环境”，详细见 installation_scope.json 与 restore_user_site2.log。WSL 网络不稳定时经既有 Windows 代理获取下载文件，截断或摘要错误不能算完成。
+
+清理记录仅删除 8 个自己产生的重复安装/临时文件，共 161907029 字节；模型/特征删除数为 0。没有删除用户其他资料。
+
+| model | revision |
+| --- | --- |
+| BAAI/bge-small-en-v1.5 | 5c38ec7c405ec4b44b94cc5a9bb96e735b38267a |
+| Salesforce/codet5p-110m-embedding | d9f3a534af4252f04b10cd9f78e05037542d10f6 |
+| microsoft/unixcoder-base | 5604afdc964f6c53782a6813140ade5216b99006 |
+
+加载 local_files_only=True，CodeT5 自定义代码文件也核验 SHA，权重使用 weights_only=True。只有 CodeT5 完成全量编码，UniXcoder 的 masked mean 有单测但未做全量对照，BGE 留到后续教师阶段。
+
+| task | F0 | env | F3 | header | full | signature | condition | placeholder | fallback |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| reentrancy_node | 12036 | 187 | 12223 | 214 | 7614 | 2247 | 1089 | 1059 | 0 |
+| access_control_node | 7710 | 182 | 7892 | 177 | 5074 | 2182 | 244 | 215 | 0 |
+| reentrancy_contract | 18312 | 298 | 18610 | 543 | 11587 | 3981 | 1267 | 1232 | 0 |
+| access_control_contract | 13432 | 261 | 13693 | 474 | 8730 | 3723 | 403 | 363 | 0 |
+
+| task | view | rows | unique | dedup % | truncated | seconds | peak MiB | bitwise | max error |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| reentrancy_node | original | 12223 | 2846 | 76.716 | 4 | 23.938 | 419.496 | True | 0.0 |
+| reentrancy_node | anonymous | 12223 | 7223 | 40.906 | 3 | 28.778 | 392.980 | True | 0.0 |
+| access_control_node | original | 7892 | 2567 | 67.473 | 4 | 16.761 | 380.050 | True | 0.0 |
+| access_control_node | anonymous | 7892 | 5115 | 35.188 | 3 | 23.355 | 408.177 | True | 0.0 |
+| reentrancy_contract | original | 18610 | 5636 | 69.715 | 4 | 28.952 | 418.792 | True | 0.0 |
+| reentrancy_contract | anonymous | 18610 | 12014 | 35.443 | 3 | 40.036 | 372.825 | True | 0.0 |
+| access_control_contract | original | 13693 | 4762 | 65.223 | 4 | 23.729 | 404.237 | True | 0.0 |
+| access_control_contract | anonymous | 13693 | 9484 | 30.738 | 3 | 33.388 | 367.049 | True | 0.0 |
+
+8 组均进行了两次独立完整编码，repeat_bitwise=true，最大误差为 0；没有优化器更新。原名视图每任务 4/4/4/4 行超过 max_length，匿名每任务 3/3/3/3 行；截断属于已记录输入限制。总墙钟 218.936 秒，包含编码流程，不是纯 kernel 时间；PyTorch peak allocated 为 367.049–419.496 MiB，仅对应离线编码，不等同于 HGT 显存。
+
+历史测试合计 3110 通过、0 失败/跳过；完整命令与告警见 validation.json。NS-P2 原载体验收为 8 个模态加载、16 个 F0/F3 选择对齐通过；8H execution.load 与 _code_refs 对批准的 runtime_resume_v2 运行版本一致。原测试命令、时间、警告和日志引用见 artifacts/ns_p2/validation.json；这些是历史结果。本轮新的测试和只读复验另记 NS-P2B 报告，不修改旧 JSON。
+
+未运行 HGT 训练，无 F1 或收益结论；M2、concat、LLM 和蒸馏未实现。代码节点文本是按既有 AST 与 8G 文件级拼写双射产生，不能声称完成 Solidity 语义绑定/编译验证，或跨文件编号不变性。
+
+最终实验按用户计划在显存充足服务器执行；当前 RTX3050 4 GiB 仅为本地开发限制，服务器尚未部署实测。复现命令见 offline/README.md；所有旧输入只读，新跑必须使用新目录，修改生产者后必须新生成特征，不能更改旧 manifest 来绕过校验。
+
+
+## 2026-11-02 NS-P2 文档编码复核与可读更正（修改 AI：Codex）
+
+上节 2026-11-01 的 NS-P2 中文已被写成 ASCII 问号。保留该历史段落，本节和 NS_P2_REPORT.md 的可读修订替代它的文字说明，不将损坏原句当作证据。根因路径已复现：PowerShell $OutputEncoding=us-ascii，“中文”经管道进入 WSL 成为 3f3f0d0a；f049d18e 的 Git blob 也受影响。此前只验字节一致，漏验了可读性。
+
+NS-P2 实际完成 text_view.py、p2_acceptance.py、offline 资产/编码器、S2 配置及相应测试；carrier._aligned 支持 F3 全集供 F0/F3 取行。四任务×原名/匿名共 8 份文本和 float32/256 向量，单视图 52,418 行、合计 104,836 行；0 截取回退、24 项生产者扰动验收、8 组两遍编码逐位一致；编码墙钟合计 218.937 秒，PyTorch peak allocated 最大 419.496 MiB。具体截取分布、去重率和逐组耗时见修订报告和 encoding_summary.csv。
+
+用户曾批准创建独立 nodesem；版本、三个模型 revision、下载 SHA 和 user-site 三包恢复记录均保留，mando 不变。历史测试为 216＋2653＋223＋18＝3110 通过、0 失败/跳过，42 警告；8 模态/16 对齐、8H 运行版本核验通过。上述为旧验收数字，本轮没有重新运行训练或全套测试。
+
+本轮检查 75 个 JSON/JSONL 可解析，33 个封存引用 SHA 一致，104,836 行身份/text SHA 一致，8 个向量文件 SHA 一致。匿名编号按文件 SHA 固定：跨文件同文本可能不同；同源码同文本冲突为 0，跨任务重复节点身份 19,746 组冲突为 0。这个边界可能影响编号敏感性与精确去重率，不是已证明的模型退化；没有擅自改匿名化方案。
+
+修改仅涉及可读报告、offline README 的 section 5.4 字符、三份文档追加和独立 artifacts/ns_p2_review_20261102 审计。保留旧产物/计划/seal/代码；原始损坏报告可从 f049d18e 读取。写入采用 ASCII 转义载荷＋显式 UTF-8，并核验回读中文与未改文件；详见 audit.json、correction_validation.json。NS-P2 没有 HGT fit 或 F1，S2 concat 留 NS-P4。最终实验计划迁到显存充足服务器，本机 4 GiB 仅为当前开发限制；本次不部署、不推进下一阶段、不自动推送。
+
+
+## 2026-11-02 NS-P2b 完成（修改 AI：Codex）
+
+已确认 f049d18e 中报告为 2,058 个字面 U+003F 问号、0 个中文字符；三份历史记录的 NS-P2 节也损坏。写入通道为 Windows PowerShell 字符串脚本经 stdin 到 WSL Python，调用形态是 `$s=@'…Python script…'@; $s | wsl.exe -d Ubuntu-22.04 -- python3 -`。项目未保存当时完整脚本文本，因此不能逐字复原原始命令。当前 $OutputEncoding=us-ascii；把 U+4E2D/U+6587 组成字符串经同一路径传给 od，得到 3f3f0d0a，复现了替换机制。此前核验只检查本地/Git 字节一致，没有检查中文可读性，这是 Codex 的验收遗漏。
+
+本轮只用 ASCII 的 JSON Unicode 转义或 Base64 载荷通过该通道，在 Python 里解码并以 UTF-8 写文件。所有修订中文必须再经 doc_check --expect-cjk，不能以可解码或哈希一致代替内容检查。
+
+用户已批准两项最小调整并予以记录：(1) 实际损坏节后已有上一轮可读更正，归档后只替换损坏节，前缀与后缀均逐字保留；(2) “标题原本应有中文”不能由纯英文内容推断，用 --expect-cjk 显式声明，本轮四份中文文档强制启用。没有改变匿名化、模型或特征设计。
+
+新增 doc_check.py、tests/test_doc_check.py、NS_P2B_REPORT.md 及 artifacts/ns_p2b/ 诊断/归档/验收记录；生产代码和特征保持冻结。doc_check 不进入 RUNTIME_MODULES，21 项定向测试通过；对四份中文文档及新写段落强制 --expect-cjk。
+
+| task | split/shared | pairs | within mean | median | p05 | control mean | median | p05 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| reentrancy_node | 735/841 | 75457 | 0.903835 | 0.912406 | 0.804697 | 0.601283 | 0.594306 | 0.381917 |
+| access_control_node | 561/669 | 36939 | 0.922279 | 0.927494 | 0.848926 | 0.624942 | 0.635369 | 0.388834 |
+| reentrancy_contract | 1155/1269 | 99042 | 0.902175 | 0.912087 | 0.799734 | 0.615706 | 0.612720 | 0.386796 |
+| access_control_contract | 893/1005 | 60230 | 0.912641 | 0.921694 | 0.813855 | 0.637461 | 0.643771 | 0.405901 |
+
+不同文件的 vN 编号使向量不再相同，但同原句变体的平均相似度仍高于同类型不同原文对照。结果量化了编号敏感性，没有证明检测 F1 会提升或下降，也不构成改变 r7 冻结编号决定的依据。原名上限全部通过：同一原文的向量逐位相同，cosine 为 1（容许浮点舍入）。不把大量语句对当作独立实验做显著性宣称。
+
+对冻结完整匿名源码 AST 按原切片身份统计，四任务均为 0 个非 vN 且不在保留表中的代码名称，re_ent/txorigin 原文标记匹配均为 0。字符串字面量中的普通词单列，它们不是变量名，不隐去也不误计为匿名化失败。
+
+文档列举的 data、number、min、max、sig、interfaceId、encodePacked 在实际 grammar 中确实出现为 identifier，且 reserved(name)=true；它们未改名的原因是保留表，而非“不是 identifier”。例如 data 在 parameter、call_argument、member_expression 等上下文保留，说明保留规则是拼写级而非只保留内建绑定。此为冻结 8G 的范围限制，本轮只记录，不修改；不同任务具体次数与 grammar_type/parent_type 见 residual_names.json。
+
+| suite | passed | failed | skipped | warnings | seconds |
+| --- | --- | --- | --- | --- | --- |
+| node_sem | 237 | 0 | 0 | 4 | 6.313 |
+| dfg_v2 | 2653 | 0 | 0 | 9 | 152.547 |
+| legacy | 223 | 0 | 0 | 29 | 3.650 |
+
+8 份 CODE manifest 均经 carrier.load_modality 重新通过源文件、实现、资产和逐行向量校验；8H 计划 load 与生效 runtime_resume_v2 相等。未重新编码，不使用 GPU、不读取评分或预测文件。最终完整性检查与 doc_check 日志见 artifacts/ns_p2b/final_validation.json、doc_check.log；原文归档与替换字节边界见 corrupted_docs/index.json、document_rewrite.json。
+
+本轮不训练、不使用 GPU、不推进 NS-P3。最终实验拟使用显存充足服务器；当前 4 GiB 仅为本机开发限制。实际命令见 NS_P2B_REPORT.md。
+
+
+提交前补充：通用 `git diff --cached --check` 对原始 `preexisting_document_edits.patch` 的空白上下文行报尾空格。这是原始 diff 语法的一部分；为保留归档字节，仅该历史归档免于尾空格格式检查，其 SHA 与暂存字节仍严格核验。其余新增代码、可读文档和 JSON 的暂存格式检查通过。原失败与限定复核记录保存于 artifacts/ns_p2b/commit_validation.json；未改算法或实验产物。
