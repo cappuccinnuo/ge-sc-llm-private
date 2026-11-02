@@ -63,6 +63,8 @@ def new_facts(node_kind):
     out = {"node_kind": node_kind}
     for group, default in _DEFAULTS.items():
         out[group] = copy.deepcopy(default) if node_kind in APPLICABILITY[group] else {}
+        if out[group] and "unknown_fields" in default:
+            out[group]["unknown_fields"] = sorted(set(default) - {"status", "unknown_fields"})
     out.update({"guards": [], "guard_status": "none", "nearest": None,
                 "syntax": [], "names": [], "unresolved": {},
                 "provenance": {"source_sha256": "", "store_refs": [], "view": "original"}})
@@ -132,8 +134,8 @@ def validate(facts):
         _keys(obj, default, group)
         if "unknown_fields" in default:
             _set(obj["unknown_fields"], set(default) - {"status", "unknown_fields"}, group + ".unknown_fields")
-            if obj["status"] == "supported" and obj["unknown_fields"]:
-                _fail(group, "supported group cannot contain unknown fields")
+            if (obj["status"] == "unknown") != bool(obj["unknown_fields"]):
+                _fail(group, "unknown status must exactly match nonempty unknown_fields")
         for key, val in default.items():
             if type(val) is bool:
                 _bool(obj[key], group + "." + key)

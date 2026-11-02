@@ -204,3 +204,17 @@ NS-P2 实际完成 text_view.py、p2_acceptance.py、offline 资产/编码器、
 最终587+2653+223=3463测试通过，0失败/跳过，42条既有警告；44 Oracle名字双射及6份封存层对照通过。另五类50源码、2098函数、8016行冒烟0异常。facts_verify核验22813冻结文件及8H生效运行版本通过。CURRENT指向attempt3，旧产物只读保留；详细表、执行命令与限制见报告。
 
 生产仅original，不读取匿名特征/评分，不做真实语料改名；没有GPU、训练、编译、M2/STATIC编码或NS-P3b，无新的F1结论。最终实验计划使用显存充足服务器，本机RTX3050 4GiB仅为开发限制，服务器未在本轮部署。三文档只追加、UTF-8/CJK校验；本地提交，不自动推送。
+
+## 2026-11-02 NS-P3a3 完成：合取、throw、三值汇总和未知目标（修改 AI：Codex）
+
+输入node-sem@9c78d0e8、PROMPTS r11。审查确认：正向&&未进入适配；throw混入state_name_missing；确定true/many仍被掩码；未解析名字/alias/assembly对整合约过度传播；支配树遍历假定包含根条目。本轮冻结原图、DFG/HGT/tokenizer/标签/折/8H，original原名，CPU运行。
+
+修改facts_boolean/guards/state/summary/cfg/schema、facts.py诊断接入、facts_revision_audit严格阶段差异；新增facts_consistency、test_facts_corrections及oo–vv八份Oracle；共52份Oracle。用户批准保留state_param/time_state_param等原有有效相等组合，修复文档内部冲突；批准数组base跨越布尔运算的误解析判据。最初判据下buggy_21每任务1项差异留档，补充后正确条件差异0。mapping下标中的msg.sender不会被新增为直接发送者比较。
+
+新accepted_attempt4四任务依次18610/12223/13693/7892行。实际差异538/413/278/171，非允许差异0；state unknown从78/32/75/29降为68/22/43/21，K从410/299/139/86降为105/85/33/15，L从68/29/65/26降为52/18/52/18，M整组数量不变但部分已知位解除掩码。分母、字段级影响及源码身份在NS_P3A3_REPORT和precision_summary。buggy_2/3 changeOwner 被正确识别为受发送者保护；owner的未保护写入函数计数2→1，仍有另一个未保护函数。没有标签修正或F1结论。
+
+650 NodeSem＋2653 DFG v2＋223原回归＝3526通过，0失败/跳过；4+9+29条既有弃用警告。原定三套CPU pytest命令不变。初轮26项定向测试20失败、6通过的证据保留；改后三值规则更新了3条旧预期，并加强确定写入和仍未知字段断言。纯源码K未知与封存L2检查分开，没有靠源码模式假造证据。五类50文件、2098函数、8016行冒烟0异常。
+
+facts_verify核对52,418行身份、源码/文本/SHA/实现/schema、8H生效runtime及22,813冻结文件通过。旧attempt3的23文件全部SHA不变，CURRENT验收后原子切换；首次create-only写拒绝已有CURRENT的记录保留。三文档仅追加并做UTF-8/CJK校验，详细实施见training_changes§79，命令/失败与成功收据在artifacts/ns_p3a3。
+
+本轮没有GPU、训练、编码或solc验证，不推进NS-P3b；仍是受限静态事实系统。最终实验将使用用户安排的显存充足服务器，本机RTX3050 4GiB仅为开发限制，服务器未在本轮部署。本地提交、不自动推送。

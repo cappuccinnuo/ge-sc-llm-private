@@ -337,7 +337,7 @@ def extract_source(source, file="fixture.sol", graph=None, evidence=None, metada
                 rows[nid]["unresolved"]["unprojected_effect_order"] = 1
     if support is None:
         support = StateSupport(sem, file, None, nodes, graph, metadata, projector)
-    summarize(rows, nodes, sem, guards, support, kind_of)
+    diagnostics["summary_precision"] = summarize(rows, nodes, sem, guards, support, kind_of)
     if graph is not None:
         for nid, attrs in graph.nodes(data=True):
             if attrs["node_type"] in ("end_if", "end_loop"):

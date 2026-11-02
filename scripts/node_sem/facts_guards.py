@@ -156,6 +156,10 @@ class GuardAnalyzer:
         adapted = sender_condition(self, condition, polarity, bindings) if condition is not None else None
         if adapted is not None:
             return adapted[:3]
+        return self._ast_equalities(condition, polarity, bindings)
+
+    def _ast_equalities(self, condition, polarity, bindings):
+        """Original atomic/AST equality categories; boolean grouping is separate."""
         condition = unwrap(condition)
         if condition is None:
             return set(), set(), False

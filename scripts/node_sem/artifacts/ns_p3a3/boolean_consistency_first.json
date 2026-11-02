@@ -1,0 +1,416 @@
+{
+  "reference": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3a3/reference/sha.json",
+    "sha256": "ddbf32e77dcc74a8bfe7bf4bca551e005919257a7bf04dc34c08a5b2ad7f1bf3"
+  },
+  "groups": {
+    "oracle": {
+      "files": 52,
+      "counts": {
+        "well_grouped": 28,
+        "misparsed": 8,
+        "misparsed_differences": 3
+      },
+      "differences": [
+        {
+          "file": "oo_correction.sol",
+          "source_sha256": "695aa93f6e9bdeb6c59d50230f5f348b39480469a0fdd6dc1e272f97986cecbc",
+          "condition": [
+            104,
+            149,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender == owner && msg.sender != newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        },
+        {
+          "file": "pp_correction.sol",
+          "source_sha256": "450e866c339e44163521dc8ac461d5ef308dfcc68b40b2b4c3d7c3f93e1a5e69",
+          "condition": [
+            112,
+            149,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "now > deadline && msg.sender == owner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        },
+        {
+          "file": "qq_correction.sol",
+          "source_sha256": "6a446c890687e3c2a7bd73cc710343bd8eea74fb9cc70077ad6b58ff9d0da1a2",
+          "condition": [
+            110,
+            138,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "paused && tx.origin == owner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        }
+      ]
+    },
+    "reentrancy_contract": {
+      "files": 142,
+      "counts": {
+        "well_grouped": 4244,
+        "misparsed": 35,
+        "well_grouped_differences": 2,
+        "misparsed_differences": 2
+      },
+      "differences": [
+        {
+          "file": "0x416768387836bd8715d127ef9065975325cfad14.sol",
+          "source_sha256": "99291a80faf561e0d3909a77fad1c894c34cf55ff1e17db8e2f05f938d056a80",
+          "condition": [
+            852,
+            917,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "referrals[msg.sender] == 0 && referrals[msg.sender] != msg.sender",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_literal"
+            ],
+            true
+          ],
+          "misparsed": false
+        },
+        {
+          "file": "buggy_2.sol",
+          "source_sha256": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f",
+          "condition": [
+            8684,
+            8725,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender==owner && msg.sender!=newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        },
+        {
+          "file": "buggy_21.sol",
+          "source_sha256": "7a25559a3b3670044bb18db38c2450a7ad4a2df3b88436a436922d79f4591355",
+          "condition": [
+            8179,
+            8247,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender == feeAddress && tokendetails[tokenAddress].status==false",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": false
+        },
+        {
+          "file": "buggy_3.sol",
+          "source_sha256": "9eaa874f037cc6ee0f642d250d199a4722d3f8265e1654d9a33565a1237ca21a",
+          "condition": [
+            9130,
+            9171,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender==owner && msg.sender!=newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        }
+      ]
+    },
+    "reentrancy_node": {
+      "files": 71,
+      "counts": {
+        "well_grouped": 3224,
+        "misparsed": 28,
+        "misparsed_differences": 2,
+        "well_grouped_differences": 1
+      },
+      "differences": [
+        {
+          "file": "buggy_2.sol",
+          "source_sha256": "b6401bf3a4be6e2ce35cb53091fc04a306a57983e8b7e24488d619be13c27f9f",
+          "condition": [
+            8684,
+            8725,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender==owner && msg.sender!=newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        },
+        {
+          "file": "buggy_21.sol",
+          "source_sha256": "7a25559a3b3670044bb18db38c2450a7ad4a2df3b88436a436922d79f4591355",
+          "condition": [
+            8179,
+            8247,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender == feeAddress && tokendetails[tokenAddress].status==false",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": false
+        },
+        {
+          "file": "buggy_3.sol",
+          "source_sha256": "9eaa874f037cc6ee0f642d250d199a4722d3f8265e1654d9a33565a1237ca21a",
+          "condition": [
+            9130,
+            9171,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender==owner && msg.sender!=newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        }
+      ]
+    },
+    "access_control_contract": {
+      "files": 114,
+      "counts": {
+        "well_grouped": 2957,
+        "misparsed": 30,
+        "misparsed_differences": 2,
+        "well_grouped_differences": 1
+      },
+      "differences": [
+        {
+          "file": "buggy_2.sol",
+          "source_sha256": "2e1677e0a51e74bc0bcbc21bd83dfb29625521c56d2c8e1568cbbf10ed1f2bc3",
+          "condition": [
+            6257,
+            6298,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender==owner && msg.sender!=newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        },
+        {
+          "file": "buggy_21.sol",
+          "source_sha256": "a56027eab5cd86b394c4af105aa36f7fc91f24aefa636eaa2b640eb164a0402f",
+          "condition": [
+            5618,
+            5686,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender == feeAddress && tokendetails[tokenAddress].status==false",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": false
+        },
+        {
+          "file": "buggy_3.sol",
+          "source_sha256": "b5b60378a837403ab39cdfd51c276a4312225acf42f73cbda52f5f4d06449f3a",
+          "condition": [
+            6560,
+            6601,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender==owner && msg.sender!=newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        }
+      ]
+    },
+    "access_control_node": {
+      "files": 57,
+      "counts": {
+        "well_grouped": 1985,
+        "misparsed": 21,
+        "misparsed_differences": 2,
+        "well_grouped_differences": 1
+      },
+      "differences": [
+        {
+          "file": "buggy_2.sol",
+          "source_sha256": "2e1677e0a51e74bc0bcbc21bd83dfb29625521c56d2c8e1568cbbf10ed1f2bc3",
+          "condition": [
+            6257,
+            6298,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender==owner && msg.sender!=newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        },
+        {
+          "file": "buggy_21.sol",
+          "source_sha256": "a56027eab5cd86b394c4af105aa36f7fc91f24aefa636eaa2b640eb164a0402f",
+          "condition": [
+            5618,
+            5686,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender == feeAddress && tokendetails[tokenAddress].status==false",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": false
+        },
+        {
+          "file": "buggy_3.sol",
+          "source_sha256": "b5b60378a837403ab39cdfd51c276a4312225acf42f73cbda52f5f4d06449f3a",
+          "condition": [
+            6560,
+            6601,
+            "binary_expression"
+          ],
+          "polarity": 1,
+          "text": "msg.sender==owner && msg.sender!=newOwner",
+          "old": [
+            [],
+            false
+          ],
+          "new": [
+            [
+              "env_state"
+            ],
+            true
+          ],
+          "misparsed": true
+        }
+      ]
+    }
+  },
+  "scope": "All require/assert and if/loop conditions; negative polarity for else/early-exit; original sources",
+  "passed": false
+}

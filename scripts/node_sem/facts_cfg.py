@@ -94,6 +94,7 @@ def apply_order(records, mapped_nodes, cfg, function, projection, projector, off
     reached = {ir.entry} | nx.descendants(graph, ir.entry)
     active = graph.subgraph(reached)
     dominators = nx.immediate_dominators(active, ir.entry)
+    dominators.setdefault(ir.entry, ir.entry)
     node_blocks, missing = {}, 0
     for block in ir.blocks.values():
         for event in block.events:

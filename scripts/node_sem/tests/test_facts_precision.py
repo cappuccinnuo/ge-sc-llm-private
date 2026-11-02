@@ -28,7 +28,8 @@ def test_new_oracles_on_sealed_layers(case):
             assert_subset(values_at(record,path.split(".")),expected)
     if case["id"]=="mm":
         fn=next(r["fn_summary"] for r in rows.values() if r["node_kind"]=="function")
-        assert "state_write" in fn["unknown_fields"]
+        assert fn["state_write"] and "state_write" not in fn["unknown_fields"]
+        assert "auth_write" in fn["unknown_fields"]
         assert "timestamp" not in fn["unknown_fields"]
         assert not fn["timestamp"]
     if case["id"]=="ll":
@@ -95,7 +96,7 @@ def test_unmapped_sealed_write_count_and_unaffected_fields():
     assert decl["write_functions"]=="one" and "write_functions" in decl["unknown_fields"]
     f=next(r["fn_summary"] for r in rs.values() if r["node_kind"]=="function")
     assert f["external_call"] and f["state_write"]
-    assert set(f["unknown_fields"])=={"state_write","auth_write","write_then_call","call_then_write"}
+    assert set(f["unknown_fields"])=={"auth_write","write_then_call","call_then_write"}
     assert row(g,rs,"dst.transfer(1);")["state"]["status"]=="supported"
 
 
@@ -141,7 +142,8 @@ def test_unlocated_file_fallback_does_not_claim_complete_function_writes():
         dict(kind="projection_fallback",reason="unverified"))
     rs,_=extract_source(s,FILE,graph=g,evidence=e)
     fn=next(r["fn_summary"] for r in rs.values() if r["node_kind"]=="function")
-    assert "state_write" in fn["unknown_fields"]
+    assert fn["state_write"] and "state_write" not in fn["unknown_fields"]
+    assert "auth_write" in fn["unknown_fields"]
     assert row(g,rs,"x=1;")["state"]["status"]=="unknown"
 
 

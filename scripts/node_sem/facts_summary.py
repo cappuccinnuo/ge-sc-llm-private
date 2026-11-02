@@ -9,8 +9,18 @@ STATEMENTS = frozenset(("expression_statement","variable_declaration_statement",
     "if_statement","for_statement","while_statement","do_while_statement","assembly_statement"))
 
 
+EXISTENTIAL = frozenset(("read_in_guard", "used_as_call_value_or_target",
+    "unguarded_writer", "state_write", "auth_write", "sender_guard",
+    "write_then_call", "call_then_write", "auth_state"))
+
+
 def mark(info, unknown):
-    info["unknown_fields"] = sorted(set(unknown))
+    # Exists(true, unknown) is true. Saturated cardinalities cannot increase.
+    unknown = set(unknown)
+    unknown.difference_update(k for k in EXISTENTIAL if info.get(k) is True)
+    unknown.difference_update(k for k in ("read_functions", "write_functions")
+                              if info.get(k) == "many")
+    info["unknown_fields"] = sorted(unknown)
     info["status"] = "unknown" if unknown else "supported"
 
 
@@ -19,6 +29,7 @@ def count(n):
 
 
 def summarize(rows, nodes, sem, guards, support, kind_of):
+    precision = {}
     auth = {key(c): guards.auth_declarations(c) for c in sem.contracts}
     declaration_auth = set().union(*auth.values()) if auth else set()
     declaration_scopes = defaultdict(set)
@@ -31,7 +42,7 @@ def summarize(rows, nodes, sem, guards, support, kind_of):
                 ds = sem.members(node).get(item["var"],[])
                 if len(ds)==1: item["auth"] = key(ds[0]) in auth.get(key(sem.contract(node)),set())
 
-    full, fn_summaries = {}, {}
+    full, fn_summaries, fn_precision = {}, {}, {}
     for fn in sem.functions:
         children = [n for n in walk(fn) if n.type in STATEMENTS]
         records = []
@@ -83,13 +94,17 @@ def summarize(rows, nodes, sem, guards, support, kind_of):
         if potential_write and info["external_call"]:
             if not projected or any(r["order"]["status"]=="unknown" for r in projected):
                 unknown.update(("write_then_call","call_then_write"))
+        before_mask = set(unknown)
         mark(info,unknown)
+        fn_precision[key(fn)] = sorted(before_mask - set(info["unknown_fields"]))
         fn_summaries[key(fn)] = info
 
     for nid,node in nodes.items():
         record = rows[nid]
         if record["fn_summary"]:
             record["fn_summary"] = dict(fn_summaries[key(node)])
+            if fn_precision[key(node)]:
+                precision[nid] = dict(group="fn_summary", three_value=fn_precision[key(node)], target_scope=[])
         if not record["state_decl"]: continue
         decl = node.parent if node.type=="variable_declaration" else node
         info = record["state_decl"]
@@ -121,13 +136,35 @@ def summarize(rows, nodes, sem, guards, support, kind_of):
         if not support.available:
             unknown.update(write_fields|{"read_functions","read_in_guard","used_as_call_value_or_target"})
         scopes = declaration_scopes[key(decl)] | {key(sem.contract(decl))}
+        broad_unknown = set(unknown)
         for issue in support.issues:
-            if issue["targets"] is not None and key(decl) not in issue["targets"]: continue
-            if key(sem.contract(issue["node"])) not in scopes: continue
+            # Diagnostic counterfactual only: old broad scope, same current
+            # certain events/guards. This does not affect exported facts.
+            old_applies = key(sem.contract(issue["node"])) in scopes
+            if issue["reason"] == "unprojected_state_effect":
+                old_applies = old_applies and key(decl) in issue["targets"]
+            if old_applies:
+                if issue["writing"]: broad_unknown.update(write_fields)
+                elif issue["reason"] != "unprojected_state_effect":
+                    broad_unknown.update(("read_functions", "read_in_guard", "used_as_call_value_or_target"))
+            if issue["targets"] is not None:
+                if key(decl) not in issue["targets"]: continue
+            elif key(sem.contract(issue["node"])) not in scopes:
+                continue
             if issue["writing"]: unknown.update(write_fields)
             elif issue["reason"] != "unprojected_state_effect":
                 unknown.update(("read_functions","read_in_guard","used_as_call_value_or_target"))
+        before_mask = set(unknown)
+        if any(not sem.function_context(functions[k])["is_constructor"] for k in writers):
+            unknown.discard("only_constructor_writes")
+            broad_unknown.discard("only_constructor_writes")
+        broad_info = dict(info)
+        mark(broad_info, broad_unknown)
         mark(info,unknown)
+        three_value = sorted(before_mask - set(info["unknown_fields"]))
+        target_scope = sorted(set(broad_info["unknown_fields"]) - set(info["unknown_fields"]))
+        if three_value or target_scope:
+            precision[nid] = dict(group="state_decl", three_value=three_value, target_scope=target_scope)
 
     for nid,node in nodes.items():
         info = rows[nid]["contract_summary"]
@@ -142,4 +179,9 @@ def summarize(rows, nodes, sem, guards, support, kind_of):
         unknown=set()
         if any("sender_guard" in r["unknown_fields"] for r in infos):
             unknown.update(("auth_state","auth_state_count"))
+        before_mask = set(unknown)
         mark(info,unknown)
+        removed = sorted(before_mask - set(info["unknown_fields"]))
+        if removed:
+            precision[nid] = dict(group="contract_summary", three_value=removed, target_scope=[])
+    return precision

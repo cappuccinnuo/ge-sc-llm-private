@@ -21,7 +21,14 @@ def differences(a,b,path=()):
         yield path,a,b
 
 
-def allowed(path):
+def allowed(path, revision="ns-p3a2"):
+    if revision == "ns-p3a3" and path[0] in ("state_decl", "fn_summary", "contract_summary"):
+        permitted = {
+            "state_decl": {"status", "unknown_fields", "auth", "unguarded_writer", "unguarded_write_functions"},
+            "fn_summary": {"status", "unknown_fields", "sender_guard", "auth_write"},
+            "contract_summary": {"status", "unknown_fields", "auth_state", "auth_state_count"},
+        }
+        return "precision_summary" if len(path) > 1 and path[1] in permitted[path[0]] else None
     if path in (("state","status"),("order","status")): return "precise_state_or_order_support"
     if path[0]=="unresolved":return "diagnostic_scope"
     if path[0] in ("state_decl","fn_summary","contract_summary"):
@@ -35,7 +42,7 @@ def allowed(path):
     return None
 
 
-def comparison(old,new,out):
+def comparison(old,new,out,revision="ns-p3a2"):
     result={}
     for dest in sorted((Path(new)/"original").iterdir()):
         if not dest.is_dir():continue
@@ -49,7 +56,7 @@ def comparison(old,new,out):
             if type(x["row_key"])!=type(y["row_key"]) or x["row_key"]!=y["row_key"]:
                 raise ValueError("Changed identity/order")
             for path,before,after in differences(x["facts"],y["facts"]):
-                why=allowed(path)
+                why=allowed(path,revision)
                 entry=dict(row_key=x["row_key"],path=list(path),before=before,after=after,reason=why)
                 (changes if why else unexpected).append(entry)
                 counts[".".join(path[:2])]+=1
@@ -77,9 +84,10 @@ def comparison(old,new,out):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--old",required=True);p.add_argument("--new",required=True);p.add_argument("--out",required=True)
+    p.add_argument("--revision",choices=("ns-p3a2","ns-p3a3"),default="ns-p3a2")
     a=p.parse_args()
     if Path(a.out).exists():raise FileExistsError(a.out)
-    result=comparison(a.old,a.new,a.out)
+    result=comparison(a.old,a.new,a.out,a.revision)
     for task,r in result.items():print(task,r["rows"],"rows;",r["changed_rows"],"changed; unexpected",len(r["unexpected"]))
 
 if __name__=="__main__":main()

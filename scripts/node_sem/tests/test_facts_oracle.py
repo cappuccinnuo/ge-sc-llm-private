@@ -36,7 +36,7 @@ def sealed_evidence_required(path, expected):
         return True
     if path in ("state_decl.write_functions", "state_decl.read_functions",
                 "state_decl.unguarded_writer", "state_decl.unguarded_write_functions",
-                "fn_summary.state_write"):
+                "fn_summary.state_write", "state_decl.status", "state_decl.unknown_fields"):
         return True
     return path == "arith.sinks" and "guard" in expected
 

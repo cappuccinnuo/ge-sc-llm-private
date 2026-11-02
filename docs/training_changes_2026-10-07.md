@@ -7894,3 +7894,97 @@ facts_verify校验52418行与原名text_v1身份/顺序/源码SHA、封存图和
 不扩展完整Solidity别名/跨函数/类型系统，unknown_fields不是新模型功能；NS-P3b必须落实字段掩码。保守残留含声明歧义、真实未知值、storage别名、缺失投影、assembly。源代码完整汇总与已有图节点证据覆盖不同，这一差异显式报告。
 
 原名生产政策不变，后续需匹配的original S0基线；匿名8H得分不能直接当本轮配对对照。无模型训练/编码/新seed/七类训练，本地提交NS-P3a2后停止，不自动push。最终实验按用户安排使用显存充足服务器，本机RTX3050 4GiB仅为当前开发限制；服务器尚未部署实测。产物保存在WSL项目目录，未新增C盘大型日志。
+
+## 79. 2026-11-02 NodeSem NS-P3a3：合取守卫与状态汇总精度修正（修改 AI：Codex）
+
+### 79.1 前置、目标与边界
+
+输入为node-sem@9c78d0e8，PROMPTS.md r11已先读取§5.1及NS-P3a3；前置实现e2d7e195。git pull --ff-only origin node-sem核对已最新。只在scripts/node_sem实现和测试；不修改scripts/DFG、作者模型/tokenizer、图节点/边/标签、源码、冻结折/特征/初值/checkpoint/计划/seal，不训练、不使用GPU、不推进NS-P3b。EXPERIMENT_POLICY的original原名口径继续生效，旧匿名产物不作为新输入或配对成绩。
+
+根因有五项：facts_boolean启动条件遗漏正极性&&；旧grammar把throw解析为identifier而非状态语义导致误报；K/L/M对确定true/many仍加unknown；未知标识符、storage alias和assembly的targets过宽；facts_cfg支配树遍历依赖根条目存在。本轮分开修复分析正确性与支持范围，未扩展DFG或模型能力。
+
+### 79.2 用户选择与文档冲突
+
+1. 实证反例：(x==p)&&ready与!(x!=p)原有state_param，(now==deadline)&&ready原有time_state_param。模板“合取只保留发送者相等组合”会删除它们，与“非误解析条件新旧一致”矛盾。向用户说明后批准保留能够证明的原有组合；发送者位仍只由直接发送者比较决定，析取规则不放宽。facts_guards拆出_ast_equalities供原有原子比较类别使用，facts_boolean负责布尔分组，不创建虚假AST身份。
+
+2. 首次真实一致性检查找到buggy_21的数组后缀跨越&&：msg.sender==feeAddress && tokendetails[tokenAddress].status==false。模板仅检查member.object为binary，没有识别object中的array_access.base为binary这一形状。用户批准补充数组base跨逻辑运算的判据；保存原判据每任务1处差异、源码SHA、条件跨度、完整AST和旧新值。最终正确分组条件差异0，不能声称原判据本身原样通过。
+
+3. 适配原子比较时发现refs[msg.sender]==0中的下标环境量不能代表被比较结果是sender。加入禁止例，非直接sender原子只保留非env相等组合，不生成授权声明。第一次候选比较产生的该错误及修复过程保存在boolean_consistency_first.json，最终输出不含该错误。
+
+4. 新schema的unknown iff unknown_fields非空要求与旧默认unknown+[]不兼容。new_facts对未分析K/L/M先掩码全部适用字段，实际summarize替换为精确掩码；不把未分析默认值改成supported。无需改字段集合或重建旧产物，仍为v1.1结构，具体运行版本由实现SHA和attempt绑定。
+
+5. 三条旧测试要求“已有封存确定写入的函数state_write仍unknown”，与新三值规则直接冲突。按本轮要求改成state_write=true且不在掩码；保留auth_write、相关顺序或语句本身未知的断言，未删除测试。纯源码Oracle不能证明K的L2计数/完整性，state_decl.status/unknown_fields与原计数检查一起留给封存图证据测试。
+
+6. uu使用嵌套同名Rec storage别名触发冻结绑定器实际不支持路径；没有通过修改绑定器或伪造无歧义源码来制造未知。全部8个新增Solidity样例明确为parser_only_not_compiled，未执行编译验证。
+
+用户确认详见artifacts/ns_p3a3/decisions.json。其他选择属于满足新接口的不扩大范围实现，并非新增模型方案。
+
+### 79.3 文件、核心逻辑及审计方式
+
+- facts_boolean.py：去外括号后，只要顶层&&/||或前缀!即进入原token布尔分组；分支按极性和De Morgan判断。非相等项不否定合取中的确定sender证据；析取仍需要每个分支限制sender。原子名称和状态声明仍取冻结的声明身份，不按字符串相同跨作用域连边。
+- facts_guards.py：保留原有效类别计算；_equalities先选布尔适配，否则旧AST路径。既有D1操作数、规则编号、极性、距离不变。
+- facts_state.py：throw加入非状态关键字集合。每个问题记录显式targets；同名标识符只涉及同作用域同名状态声明；未知alias只涉及潜在引用类型。mapping、数组、string、动态bytes及潜在struct保守保留，整数/address/bool/fixed bytes和确认的contract/enum值类型不受此alias污染；未知自定义类型不以“找不到”当作值类型。scoped_states沿同文件继承候选收集声明身份，不选择重载/override；外部未知基类不创造节点。file_fallback/unlocated保留全潜在作用域。assembly按yul_evm_builtin的指定存储操作区分read/write；不含这些操作则无state问题，原CFG未知仍可保留。throw_supported_rows只记已确认恢复的直接语句行。
+- facts_summary.py：mark实现存在性true和many饱和计数的三值规则。已知普通函数写使only_constructor_writes已知false；精确unguarded_write_functions/auth_state_count仍在可能增加时未知。相关不确定只影响对应字段。summary_precision是诊断，不进入StatementFacts：记录精确目标下的三值消除字段，以及同一确定事实和三值规则下宽目标与窄目标的掩码差异。
+- facts_cfg.py：immediate_dominators后setdefault(entry,entry)，不更换语义CFG、网络库或模型边。测试模拟返回缺根字典，与原结果完全相同；未在NetworkX3.x环境另行安装/实测。
+- facts_schema.py：严格校验unknown状态与非空掩码等价。facts.py仅增加summary_precision接入。
+- facts_revision_audit.py：增加--revision ns-p3a3，禁止K读写函数数/constructor-only值、L调用字段、M构造字段等未授权变化；旧ns-p3a2默认仍保留。
+- 新facts_consistency.py：SHA验证后加载独立旧GuardAnalyzer及旧boolean参考，旧模块内部引用旧依赖；不monkeypatch生产/冻结模块，不用FunctionType重绑定字节码。检查全部Oracle和四任务条件的eq_pairs/sender，报告原/新判据。引用代码和sha.json仅供CPU验收。
+- 新test_facts_corrections.py、oo–vv夹具与先写的expected.json；更新test_facts_oracle和precision中上述精确断言。其余框架/模型测试保持原样。
+
+### 79.4 四任务验收与影响范围
+
+| 任务/行数 | state未知：旧→新/分母 | K未知：旧→新/分母 | L未知：旧→新/分母 | M未知：旧→新/分母 |
+| --- | --- | --- | --- | --- |
+| 重入合约/18610 | 78→68/10067 | 410→105/2369 | 68→52/3981 | 13→13/543 |
+| 重入节点/12223 | 32→22/6635 | 299→85/1788 | 29→18/2247 | 8→8/214 |
+| 访问控制合约/13693 | 75→43/7858 | 139→33/922 | 65→52/3723 | 15→15/474 |
+| 访问控制节点/7892 | 29→21/4664 | 86→15/403 | 26→18/2182 | 8→8/177 |
+
+合计52418行；538/413/278/171个任务内行发生允许变化，合计1400；非允许差异0。调用、env、算术、语法、DFG、读写变量/形状/数量严格不变；原图指纹、标签、样本身份和顺序不变。M整组unknown计数不变不代表字段没有改善：确定auth_state已解除掩码，auth_state_count仍可能未知。
+
+| task | 守卫及授权实际变化行 | throw直接恢复语句 | 三值解除掩码行 | targets收紧解除掩码行 |
+| --- | ---: | ---: | ---: | ---: |
+| reentrancy_contract | 21 | 10 | 97 | 210 |
+| reentrancy_node | 21 | 10 | 85 | 133 |
+| access_control_contract | 21 | 32 | 26 | 43 |
+| access_control_node | 21 | 8 | 13 | 36 |
+
+上述影响不互斥：守卫列为旧新事实变化；throw不计间接K改善；三值是在当前精确问题作用域下计算；targets对照保留当前确定事实和三值规则。不得相加当独立修复总数或推断F1。各字段与row_key清单在precision_summary及audit。
+
+buggy_2/3的changeOwner在四任务全部恢复sender保护；断言后的owner=newOwner由false/[]变为true/[env_state]/disjunctive=false。owner原有auth=true；unguarded_write_functions从2→1，unguarded_writer仍true，因为另有未保护写入。重入写入row_key为5134/3515、声明5042/3415；访问控制写入3277/2336、声明3212/2267。同名源码按cohort/source SHA区分，完整SHA和代码前后表见NS_P3A3_REPORT。未改变漏洞标注或节点数。
+
+条件一致性：Oracle正确分组27条件、重入合约4203/节点3195、访问控制合约2926/节点1963，最终差异全部0。原判据漏识别的buggy_21各任务1项单列；Oracle亦保留原/新分母，未隐去误解析。枚举require/assert、if/循环条件及else/early-exit负极性，不当作独立统计样本。
+
+另外五类各固定10原名源码，合计50文件、2098函数单元、8016行；0异常/解析失败。纯源码冒烟不等于五类真实图、编译或模型训练验收。
+
+### 79.5 测试、失败证据与执行命令
+
+mando，沿用TREE_SITTER_LIB_DIR、PYTHONDONTWRITEBYTECODE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2、CUDA_VISIBLE_DEVICES=''。没有环境/依赖升级。
+
+- node_sem：650通过，0失败/跳过，4警告，10.942秒（XML）。
+- dfg_v2：2653通过，0失败/跳过，9警告，166.812秒。
+- scripts/DFG/tests＋tests/test_graph_utils.py：223通过，0失败/跳过，29警告，3.699秒。
+- 合计3526通过，42条既有DGL distutils/NetworkX gpickle弃用警告。
+
+首轮定向26测试20失败、6通过，修复后全过；后续新增禁止例、作用域和真值表也通过。保存before_tests.xml、corrections_first.xml、related_first.xml、boolean_consistency_first.json等失败/中间收据；没有删除关键断言。最终三套XML及test_summary.json绑定SHA。NodeSem中间639通过后补11项真值/回退验证，最终650通过，以final为准。
+
+实际入口：
+1. python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests
+2. python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+3. python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+4. python -B -m scripts.node_sem.facts_consistency --out scripts/node_sem/artifacts/ns_p3a3/boolean_consistency.json
+5. python -B -m scripts.node_sem.facts_acceptance tasks --out scripts/node_sem/artifacts/facts_v1/accepted_attempt4
+6. 同入口smoke --out同目录。
+7. facts_revision_audit --revision ns-p3a3 --old .../accepted_attempt3 --new .../accepted_attempt4 --out .../accepted_attempt4/revision_comparison.json。
+8. python -B -m scripts.node_sem.artifacts.ns_p3a3.reporting，生成precision_summary。
+9. python -B -m scripts.node_sem.facts_verify --out scripts/node_sem/artifacts/facts_v1/accepted_attempt4。
+
+本轮实际命令用绝对mando python路径与等效的PYTHONDONTWRITEBYTECODE=1；以上-B形式可复现。封存目录拒绝覆盖，复现请指定新的目录，并调整报告脚本的输出引用。
+
+### 79.6 完整性、文档与停止
+
+facts_verify通过四任务52418行与原名文本身份、顺序、源码SHA、图/证据/实现摘要；8H只读load与生效runtime_resume_v2一致，22813冻结文件保持原字节。accepted_attempt3全23文件单独SHA复核通过。CURRENT仅在验收完成后切换，旧attempt3/2和更早结果保留。首次用冻结create-only write更新已有CURRENT被拒绝，没有覆盖；改用仅针对允许更新的CURRENT的原子替换，记录在current_switch.json，不修改旧seal。
+
+NS_P3A3_REPORT、HANDOVER、PROGRESS与本节采用Python UTF-8、纯ASCII转义传输；后三份只追加，前缀长度及SHA来自before.json。运行doc_check --expect-cjk检查新增范围，避免历史问号问题。验收产物约85.6MiB，保存在WSL项目目录；没有向C盘下载新模型或堆积训练日志，也没有删除用户文件或历史证据。
+
+仍是受限的静态事实方案，不是完整Solidity别名/类型/跨函数系统；无GPU、训练、向量编码、solc验证、F1或新类别实验。下一阶段NS-P3b必须按字段使用unknown_fields，且遵循original及匹配原名S0基线。最终实验计划使用显存充足服务器，本机RTX3050 4GiB只是当前开发限制，服务器未在本轮部署实测。完成本地NS-P3a3提交后停止，不自动推送、不自动进入NS-P3b。

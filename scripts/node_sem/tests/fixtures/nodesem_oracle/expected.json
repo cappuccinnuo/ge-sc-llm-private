@@ -1070,6 +1070,188 @@
           }
         }
       ]
+    },
+    {
+      "id": "oo",
+      "source": "oo_correction.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "owner = newOwner;",
+          "equals": {
+            "guards.rule": [
+              "1"
+            ],
+            "guards.is_sender_guard": [
+              true
+            ],
+            "guards.eq_pairs": [
+              "env_state"
+            ],
+            "guards.disjunctive": [
+              false
+            ]
+          }
+        },
+        {
+          "text": "address owner;",
+          "equals": {
+            "state_decl.auth": true,
+            "state_decl.unguarded_write_functions": 0,
+            "state_decl.unguarded_writer": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "pp",
+      "source": "pp_correction.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "x = 1;",
+          "equals": {
+            "guards.is_sender_guard": [
+              true
+            ],
+            "guards.eq_pairs": [
+              "env_state"
+            ],
+            "guards.disjunctive": [
+              false
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "qq",
+      "source": "qq_correction.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "x = 1;",
+          "equals": {
+            "guards.is_sender_guard": [
+              true
+            ],
+            "guards.eq_pairs": [
+              "env_state"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "rr",
+      "source": "rr_correction.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "y = 1;",
+          "equals": {
+            "guards.rule": [
+              "2"
+            ],
+            "guards.polarity": [
+              1
+            ],
+            "guards.is_sender_guard": [
+              false
+            ],
+            "guards.eq_pairs": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "ss",
+      "source": "ss_correction.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "balances[msg.sender] = 0;",
+          "equals": {
+            "state.status": "supported"
+          }
+        },
+        {
+          "text": "mapping(address=>uint) balances;",
+          "equals": {
+            "state_decl.unknown_fields": [],
+            "state_decl.status": "supported"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tt",
+      "source": "tt_correction.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "inherited = 1;",
+          "equals": {
+            "state.status": "unknown"
+          }
+        },
+        {
+          "text": "uint a;",
+          "equals": {
+            "state_decl.unknown_fields": [],
+            "state_decl.status": "supported"
+          }
+        },
+        {
+          "text": "mapping(address=>uint) m;",
+          "equals": {
+            "state_decl.unknown_fields": [],
+            "state_decl.status": "supported"
+          }
+        }
+      ]
+    },
+    {
+      "id": "uu",
+      "source": "uu_correction.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "uint a;",
+          "equals": {
+            "state_decl.unknown_fields": [],
+            "state_decl.status": "supported"
+          }
+        },
+        {
+          "text": "Rec[] recs;",
+          "contains": {
+            "state_decl.unknown_fields": [
+              "write_functions"
+            ]
+          }
+        },
+        {
+          "text": "r.v = 1;",
+          "equals": {
+            "state.status": "unknown"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vv",
+      "source": "vv_correction.sol",
+      "validation": "parser_only_not_compiled",
+      "checks": [
+        {
+          "text": "uint a;",
+          "equals": {
+            "state_decl.unknown_fields": [],
+            "state_decl.status": "supported"
+          }
+        }
+      ]
     }
   ],
   "default_validation": "parser_only_not_compiled",

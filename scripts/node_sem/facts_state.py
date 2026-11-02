@@ -12,7 +12,7 @@ from scripts.DFG.dfg_v2.state_access import StateAccessExtractor
 from scripts.DFG.dfg_v2.units import iter_statement_regions
 from scripts.DFG.dfg_v2.l2 import context
 
-GLOBALS = frozenset(("require assert revert keccak256 sha3 sha256 ripemd160 ecrecover "
+GLOBALS = frozenset(("require assert revert throw keccak256 sha3 sha256 ripemd160 ecrecover "
     "addmod mulmod selfdestruct suicide now blockhash gasleft type abi msg tx block this super _").split())
 PRIMITIVE = re.compile(r"address|payable|bool|string|byte|bytes[0-9]*|u?int[0-9]*|u?fixed([0-9]+x[0-9]+)?$")
 
@@ -85,6 +85,7 @@ class StateSupport:
         self.issues = []
         self.classifications = []
         self.recovered_positions = 0
+        self.throw_rows = []
         self.mapped = {key(n) for n in nodes.values()} if graph is not None else set()
         self._recovery = None
         diagnostics = self.rec.get("diagnostics", [])
@@ -120,7 +121,13 @@ class StateSupport:
                 self._issue(stmt, writing, "unprojected_state_effect", {key(decl)})
         # Assembly is not guaranteed to appear in frozen L2's region inventory.
         for node in sem.nodes:
-            if node.type == "assembly_statement": self._issue(node, True, "assembly_effect")
+            if node.type != "assembly_statement": continue
+            ops = {sem.text(n) for n in walk(node) if n.type == "yul_evm_builtin"}
+            targets = {key(n) for n in self.scoped_states(node)}
+            if ops & {"sstore", "delegatecall", "callcode"}:
+                self._issue(node, True, "assembly_effect", targets)
+            if "sload" in ops:
+                self._issue(node, False, "assembly_effect", targets)
 
     def _identity(self, record):
         k = (record["start"], record["end"], record["role"])
@@ -156,7 +163,50 @@ class StateSupport:
         self.recovered_positions += len(nodes)
         return nodes
 
+    def scoped_states(self, node):
+        """Potential same-source declarations, NOT a new binding resolver.
+
+        Keep a union on ambiguous inheritance; never choose an override.
+        A missing external base adds no invented declaration identity.
+        """
+        contract = self.sem.contract(node)
+        by_name = defaultdict(list)
+        for c in self.sem.contracts:
+            by_name[self.sem.text(c.child_by_field_name("name"))].append(c)
+        pending, seen, result = [contract], set(), {}
+        while pending:
+            c = pending.pop()
+            if c is None or key(c) in seen: continue
+            seen.add(key(c))
+            body = c.child_by_field_name("body")
+            for d in (body.named_children if body is not None else []):
+                if d.type == "state_variable_declaration": result[key(d)] = d
+            for base in c.named_children:
+                if base.type != "inheritance_specifier": continue
+                ancestor = base.child_by_field_name("ancestor")
+                name = self.sem.text(ancestor)
+                if re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*", name):
+                    pending.extend(by_name.get(name, []))
+        return list(result.values())
+
+    def _reference_state(self, declaration):
+        text = self.sem.text(declaration.child_by_field_name("type")).strip()
+        if text.startswith("mapping") or "[" in text or text in ("string", "bytes"):
+            return True
+        if PRIMITIVE.fullmatch(text): return False
+        # Confirmed contracts/enums are values. Unknown user types remain
+        # potential references; do not turn lack of a type binding into safety.
+        known_values = {self.sem.text(n.child_by_field_name("name"))
+                        for n in self.sem.nodes
+                        if n.type in ("contract_declaration", "interface_declaration",
+                                      "library_declaration", "enum_declaration")}
+        possible_structs = {self.sem.text(n.child_by_field_name("name"))
+                            for n in self.sem.nodes if n.type == "struct_declaration"}
+        return text in possible_structs or text not in known_values
+
     def _issue(self, node, writing, reason, targets=None):
+        if targets is None:
+            targets = {key(d) for d in self.scoped_states(node)}
         self.issues.append(dict(node=node, function=self.sem.owner(node),
             writing=bool(writing), reason=reason, targets=targets))
 
@@ -179,13 +229,18 @@ class StateSupport:
                            and non_value_role(self.sem, n) not in ("member_property", "direct_callee", "type_role")]
             if not occurrences: occurrences = [node]
             for n in occurrences:
-                self._issue(n, write_position(self.sem, n), "unresolved_alias_use")
+                targets = {key(d) for d in self.scoped_states(n) if self._reference_state(d)}
+                self._issue(n, write_position(self.sem, n), "unresolved_alias_use", targets)
             return "unresolved_alias_use"
         role = non_value_role(self.sem, node)
         if role: return role
         # An unsupported compound receiver can consist entirely of known
         # non-state values; do not guess that its result aliases storage.
-        self._issue(node, write_position(self.sem, node), d.get("reason", "unresolved_access"))
+        targets = None
+        if node.type == "identifier":
+            targets = {key(n) for n in self.scoped_states(node)
+                       if self.sem.text(n.child_by_field_name("name")) == self.sem.text(node)}
+        self._issue(node, write_position(self.sem, node), d.get("reason", "unresolved_access"), targets)
         return "uncertain_state_value"
 
     def own_issues(self, node):
@@ -204,9 +259,15 @@ class StateSupport:
             ident = self.file+":"+str(fn.start_byte) if fn is not None else None
             supported = ident in self.rec.get("callables", {}) and not self.own_issues(node)
             rows[nid]["state"]["status"] = "supported" if supported else "unknown"
+            if supported:
+                thrown = [self.by_key.get(tuple(c.get("location", ()))) for c in self.classifications
+                          if c["decision"] == "builtin_or_global" and c["diagnostic"].get("name") == "throw"]
+                if any(t is not None and any(contains(r,t) for r in self.sem.regions(node)) for t in thrown):
+                    self.throw_rows.append(nid)
 
     def audit(self):
         return dict(classifications=self.classifications, recovered_positions=self.recovered_positions,
+                    throw_supported_rows=self.throw_rows,
                     issues=[dict(location=list(key(i["node"])), function=list(key(i["function"])) if i["function"] is not None else None,
                                  writing=i["writing"],reason=i["reason"],
                                  targets=[list(k) for k in sorted(i["targets"])] if i["targets"] is not None else None)

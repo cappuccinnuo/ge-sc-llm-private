@@ -42,8 +42,10 @@ def sender_condition(analyzer, condition, polarity, bindings):
     """Return pairs, declarations, sender, disjunctive; None if out of scope."""
     sem = analyzer.sem
     original = tokens(sem, condition)
-    if not any(t[0] == "||" for t in original) and not (
-            (polarity < 0 or any(t[0] == "!" for t in original)) and any(t[0] == "&&" for t in original)):
+    ts = strip(original)
+    top = outer(ts)
+    if not ts or top is None or not (ts[0][0] == "!" or
+            any(ts[i][0] in ("&&", "||") for i in top)):
         return None
 
     def exact(ts):
@@ -90,7 +92,15 @@ def sender_condition(analyzer, condition, polarity, bindings):
         left, right = ts[:i], ts[i+1:]
         if sender(left): operand = exact(right)
         elif sender(right): operand = exact(left)
-        else: return empty
+        else:
+            # Preserve valid non-sender equality categories in conjunctions
+            # and negations (NS-P3a3 user-approved compatibility correction).
+            atom = exact(ts)
+            if atom is None: return empty
+            pairs, _, _ = analyzer._ast_equalities(atom, sign, bindings)
+            # A sender used as a mapping index is not the compared value.
+            pairs.difference_update(("env_state", "env_param", "env_literal"))
+            return pairs, set(), False, False
         if operand is None: return empty
         classes = analyzer._classes(operand, bindings)
         pairs, auth = set(), set()
