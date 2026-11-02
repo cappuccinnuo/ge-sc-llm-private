@@ -11,7 +11,7 @@ from scripts.DFG.dfg_v2.experiment.init import parameter_seed, seeds
 from scripts.DFG.experiments.common import tensor_digest
 from .checkpoint_io import load_checked
 
-VERSION = "nodesem-semantic-initialization-v1"
+VERSION = "nodesem-semantic-initialization-v2"
 
 
 def checked_initial(reference, task_id, fold, profile, seed=1, spec_digest=None):
@@ -80,7 +80,7 @@ def initial_state(model, spec, task_id, fold, profile, h8_initial_ref):
         generator = torch.Generator(device="cpu")
         generator.manual_seed(parameter_seed(payload["constructor_seed"], name, identity))
         if isinstance(module, nn.EmbeddingBag) and field == "weight":
-            value.normal_(0.0, 0.02, generator=generator)
+            value.normal_(0.0, 1.0, generator=generator)
             value[0].zero_()
         elif isinstance(module, nn.Linear):
             if field == "weight":

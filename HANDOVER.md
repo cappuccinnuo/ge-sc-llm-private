@@ -2383,3 +2383,14 @@ changes. Final sufficient-VRAM server plans remain; this batch is local.
 最终184 NodeSem＋2653 DFG v2＋223原回归＝3060项唯一通过，0失败/跳过。原/新CPU构造秒：重入15.969/30.813、访问控制15.040/31.461。机器证据见artifacts/ns_p1_equivalence/equivalence.json；现行验收计划在acceptance_revision1/batch，旧batch仅归档。二进制载体/短检查权重保留本地，源码与文本验收记录随本轮本地提交；未自动push。
 
 最终实验按用户安排在显存充足服务器执行；目前RTX3050 4GiB仅是本机开发限制，服务器尚未部署实测。尚无S1正式效果或GPU显存结论。停止在NS-P1，不自动推进NS-P2。
+
+
+### 2026-11-01 NodeSem NS-P1b完成（修改 AI：Codex）
+
+按r5修正两点：显式8模块训练runtime，execute严格核当前代码、verify核历史启动/收据/产物；新计划v2，旧v1只读保留，S0仍核8H有效运行版本。S1改为N(0,1)共享EmbeddingBag＋仅作用非空行的共享LayerNorm(64)，仅增加128参数；S0原路径不变。代码与新产物全部在scripts/node_sem，旧DFG/作者代码/图/标签/折/8H及NS-P1产物未改。
+
+3074项测试通过。重入节点fold0/G3R的r5 h0逐类型std 0.433–0.540，通过尺度门槛；S0旧/新各两轮CPU严格等价，S1单轮CPU的37个输入参数张量梯度有限且非零、checkpoint重载通过。合计3次CPU fit/5轮，非正式结果。60个旧S0结果只读核验通过，原118个产物SHA未改。
+
+用户批准保留冻结装配中的标签完整性读取，诊断统计与门槛不使用标签/评分，详见diagnostic_scope_approval.json。r4输入小但第一层归一化后std也接近1，本轮不据此断言其无法学习或宣称S1提升。完整实施/选择见training_changes§73、PROGRESS及NS_P1B_REPORT.md。新空行单测的矩阵形状舍入问题已修，未放宽逐位断言。
+
+最终实验按用户安排使用显存充足服务器，本机RTX3050 4GiB仅为当前开发限制，未部署实测服务器。本轮仅本地NS-P1b提交，不自动push或推进NS-P2；权重和NPZ留本地WSL，代码与文本证据提交。

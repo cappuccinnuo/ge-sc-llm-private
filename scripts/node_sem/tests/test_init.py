@@ -28,7 +28,8 @@ def model(name):
     if name == "S0":
         value.adapt_ws = nn.ModuleList([nn.Linear(512, 128) for _ in range(2)])
     else:
-        value.nodesem_shared = nn.ModuleDict(dict(token_bag=nn.EmbeddingBag(32, 64, mode="mean")))
+        value.nodesem_shared = nn.ModuleDict(dict(token_bag=nn.EmbeddingBag(32, 64, mode="mean"),
+                                               token_norm=nn.LayerNorm(64)))
         value.adapt_ws = nn.ModuleList([NodeSemAdapter(specification(name), str(i),
             value.nodesem_shared) for i in range(2)])
     return value
@@ -73,7 +74,12 @@ def test_s1_shared_copy_new_parameters_deterministic_global_rng_unchanged(tmp_pa
         if key.startswith(("gcs.", "classify.")):
             assert torch.equal(first[key], payload["state_dict"][key])
     assert torch.count_nonzero(first["nodesem_shared.token_bag.weight"][0]) == 0
-    assert [k for k in first if k.startswith("nodesem_shared.")] == ["nodesem_shared.token_bag.weight"]
+    assert [k for k in first if k.startswith("nodesem_shared.")] == [
+        "nodesem_shared.token_bag.weight", "nodesem_shared.token_norm.weight",
+        "nodesem_shared.token_norm.bias"]
+    assert 0.95 <= float(first["nodesem_shared.token_bag.weight"][1:].std()) <= 1.05
+    assert torch.equal(first["nodesem_shared.token_norm.weight"], torch.ones(64))
+    assert torch.equal(first["nodesem_shared.token_norm.bias"], torch.zeros(64))
     torch.random.set_rng_state(rng)
     initial_state(receiver, specification("S1"), "fixture_node", 0, "G0", reference)
     assert torch.equal(rng, torch.random.get_rng_state())

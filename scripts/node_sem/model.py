@@ -86,7 +86,9 @@ def make_nodesem_model(task, graph_ref, profile, spec, config, device="cpu", tas
         bag = nn.EmbeddingBag(vocabulary, 64, mode="mean")
         with torch.no_grad():
             bag.weight[0].zero_()
-        model.nodesem_shared = nn.ModuleDict({"token_bag": bag})
+        model.nodesem_shared = nn.ModuleDict({
+            "token_bag": bag, "token_norm": nn.LayerNorm(64),
+        })
         model.adapt_ws = nn.ModuleList([
             NodeSemAdapter(spec, node_type, shared=model.nodesem_shared,
                            hidden_size=config["hidden_size"])
@@ -132,7 +134,7 @@ def validate(model, spec):
                 raise ValueError("S0 must preserve the original Linear adapters")
     else:
         shared = getattr(model, "nodesem_shared", None)
-        if not isinstance(shared, nn.ModuleDict) or set(shared) != {"token_bag"}:
+        if not isinstance(shared, nn.ModuleDict) or set(shared) != {"token_bag", "token_norm"}:
             raise ValueError("Missing unique model-level token embedding")
         bag = shared["token_bag"]
         if (type(bag) is not nn.EmbeddingBag or bag.embedding_dim != 64
@@ -140,21 +142,27 @@ def validate(model, spec):
                 or bag.include_last_offset or bag.max_norm is not None
                 or bag.scale_grad_by_freq or bag.sparse):
             raise ValueError("Shared token embedding configuration differs")
+        norm = shared["token_norm"]
+        if (type(norm) is not nn.LayerNorm or norm.normalized_shape != (64,)
+                or not norm.elementwise_affine or norm.eps != 1e-5):
+            raise ValueError("Shared token normalization configuration differs")
         for ntype, index in model.ntypes_dict.items():
             adapter = model.adapt_ws[index]
             if (type(adapter) is not NodeSemAdapter or adapter.spec_digest != spec.digest()
                     or adapter.spec.digest() != spec.digest()
                     or adapter.ntype != ntype or adapter.hidden_size != model.hidden_size
-                    or adapter.token_bag is not bag):
+                    or adapter.token_bag is not bag or adapter.token_norm is not norm):
                 raise ValueError("NodeSem adapter semantic registration differs")
             projection = adapter.token_projection
             if (type(projection) is not nn.Linear or projection.in_features != 64
                     or projection.out_features != model.hidden_size):
                 raise ValueError("NodeSem token projection differs")
-        state_embedding_keys = [key for key in model.state_dict()
-                                if "token_bag" in key]
-        if state_embedding_keys != ["nodesem_shared.token_bag.weight"]:
-            raise ValueError("Shared embedding parameters registered more than once")
+        expected = {"nodesem_shared.token_bag.weight",
+                    "nodesem_shared.token_norm.weight", "nodesem_shared.token_norm.bias"}
+        for values in (model.state_dict(), dict(model.named_parameters())):
+            keys = [key for key in values if "token_bag" in key or "token_norm" in key]
+            if len(keys) != 3 or set(keys) != expected:
+                raise ValueError("Shared embedding/normalization registered more than once")
     if model.num_layers == 0 and model.dfg_profile != "G0":
         raise ValueError("Zero HGT layers require G0")
     return validate_registration(model)

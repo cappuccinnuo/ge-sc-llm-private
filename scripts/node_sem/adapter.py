@@ -29,13 +29,17 @@ class NodeSemAdapter(nn.Module):
         if (isinstance(hidden_size, bool) or not isinstance(hidden_size, int)
                 or hidden_size <= 0):
             raise ValueError("hidden_size must be a positive integer")
-        if not isinstance(shared, nn.ModuleDict) or "token_bag" not in shared:
+        if not isinstance(shared, nn.ModuleDict) or set(shared) != {"token_bag", "token_norm"}:
             raise ValueError("shared must register token_bag on the owning model")
         bag = shared["token_bag"]
         if (type(bag) is not nn.EmbeddingBag or bag.embedding_dim != 64
                 or bag.mode != "mean" or bag.num_embeddings < 1
                 or bag.include_last_offset):
             raise ValueError("token_bag requires EmbeddingBag(V,64,mode='mean')")
+        norm = shared["token_norm"]
+        if (type(norm) is not nn.LayerNorm or norm.normalized_shape != (64,)
+                or not norm.elementwise_affine or norm.eps != 1e-5):
+            raise ValueError("token_norm requires affine LayerNorm(64)")
         # Bypass nn.Module.__setattr__: the owning model alone registers it.
         object.__setattr__(self, "_shared", shared)
         self.spec = spec
@@ -47,6 +51,10 @@ class NodeSemAdapter(nn.Module):
     @property
     def token_bag(self):
         return self._shared["token_bag"]
+
+    @property
+    def token_norm(self):
+        return self._shared["token_norm"]
 
     def pooled_tokens(self, inp):
         """Pool each nonzero prefix without materializing N x 512 x 64."""
@@ -81,4 +89,10 @@ class NodeSemAdapter(nn.Module):
     def forward(self, inp):
         # A missing token modality has a zero pooled vector. Its output is the
         # type-specific bias; GELU is deliberately left to the frozen HGT.
-        return self.token_projection(self.pooled_tokens(inp))
+        pooled = self.pooled_tokens(inp)
+        active = inp[:, self.spec.layout()[TOKEN_IDS]["presence"]] == 1
+        normalized = torch.zeros_like(pooled)
+        # Empty bags must not acquire the shared LayerNorm bias.
+        if bool(active.any()):
+            normalized[active] = self.token_norm(pooled[active])
+        return self.token_projection(normalized)

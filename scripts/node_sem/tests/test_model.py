@@ -54,7 +54,7 @@ def test_s1_shared_embedding_parameter_count_forward_backward_and_registration(t
     assert model.in_size == 513
     assert all(a.token_bag is model.nodesem_shared["token_bag"] for a in model.adapt_ws)
     assert [k for k in model.state_dict() if "token_bag" in k] == ["nodesem_shared.token_bag.weight"]
-    expected_delta = 32 * 64 + len(model.adapt_ws) * (64 - 512) * 128
+    expected_delta = 32 * 64 + 128 + len(model.adapt_ws) * (64 - 512) * 128
     assert sum(p.numel() for p in model.parameters()) - sum(p.numel() for p in baseline.parameters()) == expected_delta
     output = model() if task == "node" else model(["train.sol", "val.sol"])[0]
     output.square().mean().backward()

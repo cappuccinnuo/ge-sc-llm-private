@@ -55,3 +55,20 @@ r4决策：NS-Q1结构label只由冻结Projector用于AST身份；NS-Q2未来名
 产物：artifacts/ns_p1_initial_digests、ns_p1_acceptance、ns_p1_equivalence。最终equivalence.json引用acceptance_revision1/batch/plan.json；最初batch/seal只作归档。详细实施/选择见training_changes§72，概览见NS_P1_REPORT.md。三份文档仅追加。
 
 范围限制：M1/M2、教师/学生、多模态融合、GPU验证和正式K折尚未开展；未来F3特征用于G0时须明确profile行集合。S0等价不是S1效果提升证明。最终实验按用户安排上显存充足服务器，本机RTX3050 4GiB只是开发限制。本轮产物留WSL；提交NS-P1后停止，不自动push或推进NS-P2。
+
+
+## 2026-11-01 NS-P1b：运行版本拆分与S1初始尺度修正完成（修改 AI：Codex）
+
+已读取r5共享上下文与审查，node-sem输入0b1152b，快进同步无新变更。新增p1b_acceptance.py、test_runtime.py、test_p1b_acceptance.py及NS_P1B_REPORT；修改__init__/execution/adapter/model/init及对应测试。旧DFG/HGT/tokenizer、输入和NS-P1/8H产物保持不变；详细见training_changes§73。
+
+- RUNTIME_MODULES只含8个训练模块。新计划nodesem-execution-v2：execute默认严格比较当前代码；verify核验封存绑定、started完整runtime、receipt与产物SHA，不要求当前NodeSem代码相同。v1只能verify；S0继续走8H自身核验。v2独立receipt seal补全收据完整性。
+- S1增加一份共享LayerNorm(64)，只作用非空池化行，空行仍为零；嵌入N(0,1)、pad0、norm1/0、Linear仍Xavier/0，语义随机源不变；初始化v2。S0原512维Linear完全不变。
+- 用户批准保留冻结装配中的标签核验；诊断统计/注意力/r5门槛不使用标签或评分。JSON的labels_read=false仅指诊断计算，非整个装配调用链。批准已在scale前封存。
+- 真实重入节点fold0/G3R：h0全局std为S0 673.8923、r4 0.002196、r5 0.459034；r5逐类型0.433297–0.540383，通过[0.05,5]。多邻居注意力集中比例88.8918%/0%/0%。r4第一层归一化后std也接近1，不能仅据此断言无法学习。r5非pad嵌入std0.999573，参数6190692（比r4+128）。
+- S0原/新各2轮CPU全部逐位等价（scheduler方法按已批准同类同实现比较）；S1一轮CPU loss有限，共享bag/norm和17种Linear共37个参数张量均有非零有限梯度，gcs/classify初值复制与best/last重载通过。合计3fit/5epoch，0正式训练、0GPU。
+- 旧acceptance_revision1的60项S0完整只读验收通过；旧118个产物SHA未改。等待批准的progress_pending记录保留，最终看completed.json。
+- 测试198 NodeSem+2653 DFG v2+223原回归=3074通过，0失败/跳过，警告4/9/29均为既有弃用信息。新空行测试曾因批量/单行Linear舍入差异失败，改为相同形状仍逐位断言，失败记录保留。
+
+命令：python -B -m pytest -q -p no:cacheprovider 后接三套目录；python -B -m scripts.node_sem.p1b_acceptance prepare/archive/scale/s0/smoke（分别执行，均已完成，拒绝覆盖）。完整命令和证据见NS_P1B_REPORT.md及artifacts/ns_p1b。
+
+最终实验按用户安排使用显存充足服务器，目前RTX3050 4GiB只是本地开发限制，服务器尚未部署实测。只本地提交NS-P1b，不自动push，不推进NS-P2；未评估S1正式检测收益。

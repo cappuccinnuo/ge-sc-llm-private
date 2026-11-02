@@ -31,13 +31,14 @@ from scripts.DFG.dfg_v2.experiment.run import _Lock, _move_model, _code_refs
 from scripts.DFG.dfg_v2.experiment.preflight import LOCAL_DEV_POLICY, run_preflight, initialize_context, make_observed_resources
 from scripts.DFG.dfg_v2.tasks import read_labels
 from scripts.DFG.experiments.common import seed_all, tensor_digest, digest, metrics
-from . import VERSION as NODESEM_VERSION
+from . import VERSION as NODESEM_VERSION, RUNTIME_MODULES
 from .feature_spec import FeatureSpec
 from .init import checked_initial
 from .checkpoint_io import load_checked
 from .model import make_nodesem_model, validate
 
-VERSION = "nodesem-execution-v1"
+VERSION = "nodesem-execution-v2"
+LEGACY_VERSION = "nodesem-execution-v1"
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_ROOT = ROOT / "scripts/node_sem/artifacts"
 GPU_LOCK = ROOT / "scripts/DFG/experiments/artifacts/dfg_v2/.training.lock"
@@ -45,9 +46,11 @@ GPU_LOCK = ROOT / "scripts/DFG/experiments/artifacts/dfg_v2/.training.lock"
 
 def runtime_refs():
     result = dict(_code_refs())
-    for path in sorted((ROOT / "scripts/node_sem").rglob("*.py")):
-        if "tests" not in path.parts and "artifacts" not in path.parts:
-            result[str(path.relative_to(ROOT))] = ref(path)["sha256"]
+    for module in RUNTIME_MODULES:
+        path = ROOT / "scripts/node_sem" / module
+        if not path.is_file():
+            raise FileNotFoundError("Missing training runtime module: " + str(path))
+        result[str(path.relative_to(ROOT))] = ref(path)["sha256"]
     return result
 
 
@@ -171,19 +174,32 @@ def create(batch_dir, matrix, authorization_template):
     return plan
 
 
-def load(path):
+def load(path, mode="execute"):
+    """Execute requires current code equality; verify authenticates history only."""
+    if mode not in ("execute", "verify"):
+        raise ValueError("Unknown NodeSem load mode")
     path = Path(path)
     plan = read(path)
     seal = read(path.with_name("plan.seal.json"))
-    if (plan.get("version") != VERSION or plan.get("nodesem_version") != NODESEM_VERSION
+    version = plan.get("version")
+    if (version not in (VERSION, LEGACY_VERSION) or plan.get("nodesem_version") != NODESEM_VERSION
             or plan.get("protocol") != PROTOCOL_NAME
             or plan.get("protocol_version") != PROTOCOL_VERSION
-            or seal.get("version") != VERSION or seal.get("plan") != ref(path)
+            or seal.get("version") != version or seal.get("plan") != ref(path)
             or seal.get("jobs") != len(plan["jobs"])
             or seal.get("matrix_sha256") != digest(plan["jobs"])):
         raise ValueError("NodeSem plan/seal mismatch")
-    if plan["runtime"] != runtime_refs():
-        raise ValueError("NodeSem runtime changed after sealing")
+    if mode == "execute":
+        if version != VERSION:
+            raise ValueError("Legacy NodeSem plans are verify-only; never execute v1")
+        if plan["runtime"] != runtime_refs():
+            raise ValueError("NodeSem runtime changed after sealing")
+    runtime = plan.get("runtime")
+    if (not isinstance(runtime, dict) or not runtime
+            or any(not isinstance(k, str) or not isinstance(v, str)
+                   or re.fullmatch(r"[0-9a-f]{64}", v) is None
+                   for k, v in runtime.items())):
+        raise ValueError("Invalid sealed runtime dictionary")
     if (plan.get("label_policy") != "L-audit" or plan.get("reducer") != "mean"
             or plan.get("layer_impl") != "shared_projection" or plan.get("seeds") != [1]
             or plan.get("resource_policy") != LOCAL_DEV_POLICY):
@@ -194,7 +210,7 @@ def load(path):
             or (authorization["scope"] == "cpu_equivalence" and authorization["execution_authorized"])
             or (authorization["execution_authorized"] and not authorization.get("user_request"))):
         raise ValueError("Explicit execution authorization is invalid")
-    if (authorization.get("version") != VERSION
+    if (authorization.get("version") != version
             or authorization.get("source_h8_plan") != plan["source_h8_plan"]
             or authorization.get("jobs") != [job_id(j) for j in plan["jobs"]]
             or authorization.get("matrix_sha256") != digest(plan["jobs"])):
@@ -203,6 +219,10 @@ def load(path):
         raise ValueError("Duplicate NodeSem job")
     for job in plan["jobs"]:
         _validate_job(job, plan)
+        if mode == "verify" and not job["reuse_8h"]:
+            attempt = _successful(job_directory(path.parent, job))
+            if attempt is not None:
+                _verify_execution_records(path, plan, job, attempt)
     return plan
 
 
@@ -401,6 +421,10 @@ def fit_one(path, job):
             execution_start=ref(attempt.with_suffix(".started.json")), binding_sha256=digest(binding),
             artifacts={str(p.relative_to(attempt)): ref(p)["sha256"]
                        for p in sorted(attempt.rglob("*")) if p.is_file()}))
+        # Seal the receipt separately so irrelevant receipt field edits
+        # cannot silently pass read-only verification.
+        write(attempt / "receipt.seal.json", dict(
+            version=VERSION, receipt=ref(attempt / "receipt.json"), plan=ref(path)))
     except Exception as error:
         write(attempt.with_suffix(".failure.json"), dict(job=job, error=repr(error),
             traceback=traceback.format_exc(), automatic_retry=False, stop_batch=True))
@@ -420,6 +444,34 @@ def _result_inputs(plan, job, historical):
     return task, info, entry
 
 
+def _verify_execution_records(path, plan, job, attempt):
+    """Authenticate a completed NodeSem fit without consulting today's code."""
+    attempt = Path(attempt)
+    receipt_path = attempt / "receipt.json"
+    receipt = read(receipt_path)
+    if plan["version"] == VERSION:
+        anchor = read(attempt / "receipt.seal.json")
+        if (anchor.get("version") != VERSION or anchor.get("plan") != ref(path)
+                or anchor.get("receipt") != ref(receipt_path)):
+            raise ValueError("NodeSem receipt seal differs")
+    if (receipt.get("version") != plan["version"] or receipt.get("job") != job
+            or receipt.get("plan") != ref(path) or receipt.get("status") != "complete"):
+        raise ValueError("Receipt identity/version differs")
+    start = read(checked(receipt["execution_start"]))
+    if (start.get("job") != job or start.get("plan") != ref(path)
+            or start.get("execution_authorization") != plan["authorization"]
+            or start.get("runtime") != plan["runtime"]):
+        raise ValueError("NodeSem started runtime/authorization differs")
+    # v1's entire recorded runtime (including diagnostics/recon) is compared
+    # above, never reduced to the newer RUNTIME_MODULES subset.
+    for name, sha in receipt["artifacts"].items():
+        target = (attempt / name).resolve()
+        if attempt.resolve() not in target.parents:
+            raise ValueError("Receipt path escapes fit")
+        checked(dict(path=str(target), sha256=sha))
+    return dict(current_code_equality="not_required", started_runtime_matches_plan=True)
+
+
 def _verify_result(path, plan, job, attempt, historical=False):
     """Read-only adaptation of 8H verify_one; every deserialization is SHA guarded."""
     attempt = Path(attempt)
@@ -434,8 +486,8 @@ def _verify_result(path, plan, job, attempt, historical=False):
     if historical:
         h8.verify_start(path, plan, start, attempt / "receipt.json")
         h8.validate_retry_receipt(path, job, attempt)
-    elif receipt.get("version") != VERSION or start.get("runtime") != plan["runtime"]:
-        raise ValueError("NodeSem execution version differs")
+    else:
+        _verify_execution_records(path, plan, job, attempt)
     required = {"best.pt", "last.pt", "best.json", "last.json", "binding.json",
         "final_result.json", "history.jsonl", "inner_val_predictions.json",
         "outer_test_predictions.json", "inner_val_orig_all_predictions.json",
@@ -527,7 +579,10 @@ def _verify_result(path, plan, job, attempt, historical=False):
                 expected = result["orig_all_auxiliary"][role][ck] if aux else result[role][ck]
                 if observed != expected:
                     raise ValueError("Independent metric recalculation differs")
-    return dict(job=job, attempt=str(attempt.resolve()), audit=dict(passed=True), result=result)
+    return dict(job=job, attempt=str(attempt.resolve()),
+                audit=dict(passed=True, current_code_equality=(
+                    "8H_effective_runtime_required" if historical else "not_required")),
+                current_code_equality="not_required", result=result)
 
 
 def verify_one(path, plan, job, attempt=None):
@@ -604,9 +659,11 @@ def main():
     elif args.command == "all":
         controller(args.plan)
     else:
-        plan = load(args.plan)
+        plan = load(args.plan, mode="verify")
         for job in plan["jobs"]:
             verify_one(args.plan, plan, job)
+        print(json.dumps(dict(passed=True, jobs=len(plan["jobs"]),
+                              current_code_equality="not_required")))
 
 
 if __name__ == "__main__":

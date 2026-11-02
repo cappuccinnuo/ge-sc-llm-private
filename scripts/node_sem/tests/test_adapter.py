@@ -18,7 +18,7 @@ def spec(**changes):
 
 
 def shared(vocab=13):
-    result = nn.ModuleDict({"token_bag": nn.EmbeddingBag(vocab, 64, mode="mean")})
+    result = nn.ModuleDict({"token_bag": nn.EmbeddingBag(vocab, 64, mode="mean"), "token_norm": nn.LayerNorm(64)})
     with torch.no_grad():
         result["token_bag"].weight.copy_(
             torch.arange(vocab * 64, dtype=torch.float32).reshape(vocab, 64) / 16)
@@ -47,7 +47,10 @@ def test_pooling_matches_hand_calculated_mean_and_empty_rows():
     assert torch.equal(adapter.pooled_tokens(carrier([[], []])), torch.zeros(2, 64))
     assert adapter.pooled_tokens(carrier([])).shape == (0, 64)
     # Only the owning frozen forward applies GELU; adapter returns Linear.
-    assert torch.equal(adapter(inp), adapter.token_projection(expected))
+    normalized = torch.zeros_like(expected)
+    active = inp[:, 0] == 1
+    normalized[active] = table["token_norm"](expected[active])
+    assert torch.equal(adapter(inp), adapter.token_projection(normalized))
     assert torch.equal(adapter(inp)[0], adapter.token_projection.bias)
 
 
@@ -124,11 +127,15 @@ def test_seventeen_adapters_register_one_table_and_exact_parameter_count():
     assert [key for key in owner.state_dict() if "token_bag" in key] == weights
     assert all(adapter.token_bag is owner.nodesem_shared["token_bag"]
                for adapter in owner.adapt_ws)
-    expected = vocab * 64 + types * (64 * hidden + hidden)
+    expected = vocab * 64 + 128 + types * (64 * hidden + hidden)
     actual = sum(parameter.numel() for parameter in owner.parameters())
     assert actual == expected
     baseline_adapters = types * (512 * hidden + hidden)
-    assert actual - baseline_adapters == vocab * 64 - types * (512 - 64) * hidden
+    assert actual - baseline_adapters == vocab * 64 + 128 - types * (512 - 64) * hidden
+    norm_keys = ["nodesem_shared.token_norm.weight", "nodesem_shared.token_norm.bias"]
+    assert [k for k in owner.state_dict() if "token_norm" in k] == norm_keys
+    assert [k for k, _ in owner.named_parameters() if "token_norm" in k] == norm_keys
+    assert all(a.token_norm is owner.nodesem_shared["token_norm"] for a in owner.adapt_ws)
     loss = sum(adapter(carrier([[1, 2], []])).sum() for adapter in owner.adapt_ws)
     loss.backward()
     grad = owner.nodesem_shared["token_bag"].weight.grad
@@ -160,3 +167,26 @@ def test_adapter_rejects_raw_and_reserves_unimplemented_fusion():
 def test_invalid_shared_embedding_rejected(table):
     with pytest.raises(ValueError):
         NodeSemAdapter(spec(), "return", table)
+
+
+def test_norm_excludes_empty_rows_even_with_nonzero_affine_bias():
+    table = shared()
+    adapter = NodeSemAdapter(spec(), "return", table)
+    with torch.no_grad():
+        table["token_norm"].bias.fill_(3)
+    seen = []
+    hook = table["token_norm"].register_forward_pre_hook(
+        lambda module, args: seen.append(args[0].detach().clone()))
+    inp = carrier([[], [1, 2], []])
+    actual = adapter(inp)
+    hook.remove()
+    assert len(seen) == 1 and seen[0].shape == (1, 64)
+    assert torch.equal(actual[0], adapter.token_projection.bias)
+    assert torch.equal(actual[2], adapter.token_projection.bias)
+    # Match the batch shape: matrix-vector and matrix-matrix kernels need
+    # not round identically even when the mathematical row is the same.
+    expected = torch.zeros(3, 64)
+    expected[1:2] = table["token_norm"](adapter.pooled_tokens(inp)[1:2])
+    assert torch.equal(actual, adapter.token_projection(expected))
+    adapter(carrier([[], []])).sum().backward()
+    assert table["token_norm"].bias.grad is None

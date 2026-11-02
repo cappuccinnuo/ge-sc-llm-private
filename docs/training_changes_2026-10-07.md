@@ -7464,3 +7464,68 @@ CPU等价只选择重入节点fold0/G3R、访问控制合约fold0/G0。两侧均
 本轮完成NS-P1骨架与验收，不等于完成NodeSem整套创新。尚未实现NS-P2的M1编码、M2上下文/守卫/行为画像、LLM教师与学生蒸馏、多模态融合、GPU显存预检或正式K折。现有通用载体严格要求行集合与当前图一致；未来若从F3为G0产生上下文特征，必须明确该profile的行视图，不能默默丢弃辅助节点。暂不自行更换方案。
 
 最终实验仍按用户安排在显存充足服务器运行；本机RTX3050 4GiB限制仅属开发条件。本轮全部产物保存在WSL项目中，没有新增C盘运行日志、安装或联网下载；服务器尚未部署实测。三份历史文档只追加；完成本地NS-P1提交后停止，未自动push或推进NS-P2。
+
+
+## 73. 2026-11-01 NodeSem NS-P1b：运行版本核验拆分与共享归一化（修改 AI：Codex）
+
+### 73.1 范围、依据与保留边界
+
+输入为 node-sem@0b1152b3083f068d94308f6244c47807a5f01c50，已通过 git pull --ff-only 同步，阅读 r5 的介绍、5.1共享上下文、5.3b NS-P1b和5B审查记录。r5指出的两项问题与源码吻合：NodeSem旧runtime遍历所有非tests/artifacts Python（包括recon和验收脚本），会阻断后续新增生产者之后的历史只读核验；r4 S1按文档使用N(0,0.02)，池化后的适配输入尺度很小。这是本轮明确批准的方案修正，不是根据S1分数反向挑参数。
+
+新增和修改均在scripts/node_sem，原scripts/DFG/**、作者模型/特征/训练代码、图、标签、折、8G/8H与NS-P1历史产物不变。开始前对ns_p1_initial_digests、ns_p1_acceptance、ns_p1_equivalence（含acceptance_revision1）共118个文件记录SHA；不覆盖、不重签旧plan/seal。新产物仅artifacts/ns_p1b。延续已批准的本地torch.load来源边界，每次用同一打开文件立即核对SHA；没有下载、安装、GPU或正式训练。
+
+### 73.2 文件与接口
+
+修改__init__.py、execution.py、adapter.py、model.py、init.py；更新原adapter/model/init测试，新增test_runtime.py、test_p1b_acceptance.py；新增p1b_acceptance.py和NS_P1B_REPORT.md。FeatureSpec、carrier、tokenizer、任务监督和HGT算子均未改。三份已有记录文档只追加。
+
+RUNTIME_MODULES显式列出8个训练模块：__init__.py、feature_spec.py、carrier.py、adapter.py、model.py、init.py、checkpoint_io.py、execution.py。runtime_refs仍含冻结experiment.run._code_refs，NodeSem部分仅取上述文件，缺文件即报错。未来训练模块必须显式加入；text_view/facts/offline等生产者不纳入训练runtime，其实现SHA由模态manifest绑定；该生产者实现工作属于后续Prompt，不在本轮假装完成。
+
+执行版本nodesem-execution-v2。load(path, mode="execute")为默认，执行启动、worker和all要求当前runtime与封存一致；v1一律拒绝执行。mode="verify"不比较当前NodeSem源码，而校验plan/seal/authorization/输入绑定，并检查已有成功fit的started runtime与plan完整字典一致及收据/产物SHA。v1历史字典仍包括当时的recon/验收脚本，不删键适配新清单。verify_one继续检查完整结果、best/last、监督身份、资源和独立指标重算；返回current_code_equality="not_required"。这不是取消8H自身核验：S0复用仍加载8H有效修订runtime_resume_v2并验证历史收据。
+
+新v2成功收据增加独立receipt.seal.json，绑定receipt SHA与plan，避免只改未参与数值计算的收据字段仍被接受；创建失败纳入原失败处理。旧v1收据原样保留。失败/重试/独立进程/GPU锁等规则不改，本轮未调用正式worker。
+
+### 73.3 S1 r5 架构和初值
+
+全模型仅注册一份nodesem_shared.token_bag和一份token_norm。前者为EmbeddingBag(V,64,mean)，后者为affine LayerNorm(64)。各NodeSemAdapter仅保留未注册引用及本类型Linear(64,128)。先校验精确整数ID、词表范围、右侧连续padding和存在位，池化非零ID，再只对非空行做共享LayerNorm。空行保持零向量，即使norm.bias非零也不影响空行，其适配输出仍为Linear.bias。GELU仍由原forward施加。
+
+嵌入按原parameter_seed来源生成N(0,1)，第0行置0；norm.weight=1、norm.bias=0；Linear保持Xavier uniform、bias=0。初始化版本单独升为nodesem-semantic-initialization-v2，不改变8H共同参数复制或随机种子来源。S0保持原Linear(512,128)，不注册nodesem_shared；layers=None/0回退逻辑不变。
+
+真实V=32100、17节点类型：S1 r5共6190692参数，r4为6190564，多出的128为共享LayerNorm；没有为17种类型各加嵌入或归一化。真实零步嵌入非padding权重经验std=0.9995733499526978，第0行非零数0，norm初值核验通过。S1初值重复生成逐位相同、共享参数单次注册及全局RNG不变的测试继续成立。
+
+### 73.4 CPU尺度诊断与用户批准的范围解释
+
+独立p1b_acceptance入口使用新plan/seal，单独封存验收脚本SHA；旧NS-P1的acceptance_revision1保持原样。S0来源为原8H零步初值；S1 r5新建零步初值。r4仅诊断复现：无token_norm，按同参数名/语义种子normal_(0,0.02)，保留原gcs/classify；不注册为正式可选模型。r4实现来源提交792ebeed及源码SHA写在文件头，所有初值保存SHA与tensor digest。
+
+发现文档“完全不读取标签”与冻结模型装配不符：model._node_labels和validate_registration原本就读取图内标签作装配/完整性检查。用户原答：“同意保留冻结装配，诊断统计不使用标签（推荐）”。选择保留冻结模型，不另造诊断模型；尺度、注意力统计及r5门槛不使用标签，也不读取预测评分。diagnostic_scope_approval.json及seal在scale启动前记录。init_scale里的labels_read/metrics_read、probe的score_or_label_access=false仅指诊断计算，不能解释为冻结装配完全未读取标签。这是本轮唯一额外征询的方案边界；审批等待记录progress_pending.json保留，最终状态以completed.json为准。
+
+在reentrancy_node fold0 G3R，每个零步模型一次eval前向，使用第一层hook与原attention_probe._relation/_attention_summary方法；记录各类型h0=gelu(adapt_ws(inp))的均值、总体std、abs p99及第一层LayerNorm前后std；参数摘要前后相同，无optimizer。h0所有类型/元素总体std：S0 673.8922729492188，r4 0.002195640467107296，r5 0.4590340852737427。各类型范围：
+
+| 量 | S0 | r4 | r5 |
+|---|---:|---:|---:|
+| h0标准差 | 161.273–1981.992 | 0.001617–0.004121 | 0.433297–0.540383 |
+| 第一层归一化前std | 43.373–533.391 | 0.034600–0.040775 | 0.122679–0.149280 |
+| 第一层归一化后std | 1–1 | 0.995850–0.997006 | 0.999657–0.999774 |
+
+r5所有17类型满足[0.05,5]预定门槛，才进入后续短训练。head最大权重≥0.99按canonical目标节点/head统计：多入邻居30680项，S0为88.8918%，r4/r5均0%；含单邻居291984项，分别98.8328%/89.4926%/89.4926%。单邻居必然权重1，不能拿全体比例直接证明饱和程度。完整逐canonical数据在init_scale.json。
+
+对模板解释保持边界：0.02/√L只是独立token近似，实际重复token、HGT偏置与归一化都影响传播；r4经过第一层后std已接近1。本轮确认初始适配尺度很小，但不证明它无法学习、必然早停或检测不公平；没有r4/r5训练效果比较。r5方案决定在任何S1拟合前固定，不由上述数值或评分选型。
+
+### 73.5 等价、冒烟及历史核验
+
+S0旧/新入口均重做2轮CPU，直接复用原trainer.fit及已批准的scheduler方法身份核验。只改maximum_training_epochs=2，schedule_epochs仍50；构造设备CPU，配置其余字段保留。初值/输入/字典/原节点ID/非特征binding、每轮loss/lr、最终/best/last参数、Adam、scheduler数值及inner/outer/orig-all预测逐位一致。初始tensor SHA c9c0f88acd64377a409c9513d05f89d81bd85b2d21e1f82af7ecfc7f70c5f294，最终9896a96832f33edabbd39ded1213933b7252ebcd81e349d151b9941eaebc9068，与NS-P1对应检查也相同。两轮(train,val)分别(0.7502492666244507,0.721899688243866)、(0.717499315738678,0.6863310933113098)。原/新构造16.693/30.823秒，fit37.330/34.629秒，仅单次诊断计时。
+
+S1 r5原冻结trainer单轮CPU冒烟：maximum_training_epochs=1，其余配置不变。gcs/classify初值逐位等于8H。train loss=0.8548415899276733，inner-val loss=0.8260999917984009，有限。共享bag.weight梯度L1=3.562380075454712，norm.weight/bias为0.41773587465286255/0.4902971088886261；17个Linear的weight/bias也均非零有限，共37个参数张量通过。该折17种类型均有训练节点。best/last在inner_val/outer_test的checkpoint重载全部一致。没有用这些短检查F1报告S1改进。
+
+旧NS-P1 acceptance_revision1以新verify模式完整核验60/60历史S0结果：权重、产物SHA、监督身份、资源与评分核验继续成立，不重新训练历史模型。所有旧产物保持SHA不变。本轮仅3次CPU fit、共5个epoch，无GPU/正式训练，没有追加seed或推进NS-P2。
+
+### 73.6 回归、证据和停止
+
+实际mando命令，CUDA_VISIBLE_DEVICES为空、禁写pyc、OMP/MKL=2、既有TREE_SITTER_LIB_DIR：
+- python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests：198通过，4警告，8.41秒。
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests：2653通过，9警告，165.42秒。
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py：223通过，29警告，5.48秒。
+唯一总计3074通过、0失败、0跳过；警告为既有DGL/distutils、NetworkX gpickle弃用。初次新增空行测试把批量Linear与单向量Linear做逐位比较，因运算形状的舍入差异失败（195通过/1失败）；修复测试为同一批量形状，仍严格torch.equal且空行精确等于bias，不放宽容差、不改变生产算法，保留unit_failure_001.json。
+
+已执行python -B -m scripts.node_sem.p1b_acceptance prepare、archive、scale、s0、smoke；每阶段有独立started，已有阶段拒绝覆盖/自动重试。prepare与archive先执行；scale在标签边界获批后启动，随后S0和S1依次通过。只读复验命令：python -B -m scripts.node_sem.execution verify --plan scripts/node_sem/artifacts/ns_p1_equivalence/acceptance_revision1/batch/plan.json。
+
+新文本证据及代码本地提交，初值/NPZ/短检查checkpoint保留本地WSL，不自动push。最终实验按用户计划使用显存充足服务器，当前RTX3050 4GiB只是本机开发限制；未部署或实测服务器。M1/M2生产者、融合、LLM、GPU和正式效果评估留后续；尤其生产者泄漏扰动验收不能被本轮载体复制测试替代。
