@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r5（2026-11-01）。作者：Claude（方案与审查），实现：Codex。
+版本：r6（2026-11-01）。作者：Claude（方案与审查），实现：Codex。
+
+**r6 相对 r5 的修改**（NS-P1b 审查后，见第 5C 节）：NS-P1b 验收通过，可以进入 NS-P2。更正 r5 中对 r4 初始尺度的表述（不能断言 r4 “无法学习”）；NS-P2 补充模态 manifest 必须满足的载体契约，以及“生产者代码改动后必须重新生成特征”的规则。
 
 **r5 相对 r4 的修改**（NS-P1 审查后，见第 5B 节）：
 - NS-P1 的 S0 等价、60 个初值摘要和 3 项用户批准的处理方式经复核成立；新增纠正性 Prompt **NS-P1b**（第 5.3b 节），必须在 NS-P2 之前完成：
@@ -772,6 +774,13 @@ build_text_view(task_id, view) -> rows：
 - 文本中没有绝对行号或文件名；
 - 用手写 fixture 检查每种节点类型的截取结果（精确字符串）：带 modifier 和 returns 的函数签名、else-if 链、for 头部、合约继承头部、struct。
 
+## 2b. 模态 manifest 契约（offline/encode.py 输出必须满足 carrier._load，先读该函数再写）
+- version = carrier.MODALITY_VERSION（"nodesem-modality-v1"）；modality = CODE（M1）或 CTX（M2）；view；task_id；feature_dtype = "float32"；feature_shape = [行数, 维度]；data = NPZ 引用（数组名只能是 features）；
+- rows：每行 row_key、file、node_type、source_sha256、code_sha256、vector_sha256、present（布尔；present=false 的行必须全为 0）；行集合按第 4.2 节（F3 全集）；
+- profiles：登记 F0 与 F3 的 graph_fingerprint；sources：源码引用；input_text：text.jsonl 引用；
+- implementation：生产者源码引用（至少 text_view.py 与 offline/encode.py）；assets：模型文件引用（来自 offline/assets.json）。
+- 载体在装配时会逐个核对 implementation 与 assets 的 SHA。因此生产者代码（text_view.py、encode.py 等）一旦修改，旧特征就不能再用于启动新的 fit，必须重新生成特征、写新 manifest、封存新计划；不得在批次进行中修改生产者。只读核验已完成的 fit 不受影响（NS-P1b 的 verify 模式）。
+
 ## 3. M1 编码（nodesem，offline/encode.py）
 python offline/encode.py --texts <text.jsonl> --model <assets.json 中的名称> --max-length 128 --pooling model_default|mean --out <dir>
 - 去重：key = sha256(模型 SHA + max_length + pooling + text)；按长度排序分批；fp16 推理，输出 float32；
@@ -1119,6 +1128,20 @@ Codex 提出的三个设计问题都成立，决定见第 4.2、4.6 节与 r4 �
 5. **CUDA 上 EmbeddingBag 反向不保证逐位确定**：与 8H 的散射累加同性质，在 N-A 的 manifest 中注明即可。
 
 结论：NS-P1 的实现与验收成立，但在进入 NS-P2 之前，需要先完成 NS-P1b。
+
+## 5C. NS-P1b 审查记录（2026-11-01，Claude）
+
+**独立核对：**
+- 运行版本拆分：runtime_refs 只含 RUNTIME_MODULES 中的 8 个训练模块与冻结 DFG/作者代码；execute 模式要求当前代码相同且只接受 v2 计划；verify 模式不比较当前代码，改为核对 plan/seal/authorization、每个已完成 fit 的 started.json 中的 runtime、receipt（v2 另有 receipt.seal.json）以及全部产物 SHA。已确认 verify 路径不会用当前代码重建模型，只在 SHA 校验后读取 checkpoint 并重算指标，所以确实不依赖当前模型代码。v1 计划只能 verify，并按其当时完整的 runtime 核对，没有被裁剪成新清单。实现与 r5 要求一致。
+- S0 回归：s0_cpu 的 historical 与 nodesem 输出逐文件比较，预测、梯度审计、监督清单、优化器配置逐字节相同，其余文件只在耗时、SHA 与 binding 字段上不同，数值字段全部相同。
+- S1（r5）：共享 LayerNorm 只作用于非空行；state_dict 与 named_parameters 中 token_bag/token_norm 各只出现一次；参数 6190692 = 6190564 + 128（LayerNorm 的 64+64）；1 轮 CPU 冒烟 loss 有限（train 0.8548，inner-val 0.8261），37 个新参数张量（bag 1 + norm 2 + 17×2 Linear）都有非零梯度。
+
+**对 r5 表述的更正（Codex 的意见成立）：** r5 写的是 S1（r4 初始化）“训练初期几乎没有输入信号、对比较不公平”。init_scale.json 显示，经过冻结 HGT 的偏置、残差与 LayerNorm 后，r4 第一层输出的标准差仍接近 1，所以不能断言 r4 无法学习。更准确的说法是：r4 中 h0 的标准差约 0.002，而第一层 LayerNorm 之前的信号约 0.037，节点输入只占约 6%，其余来自与节点无关的偏置和残差项；r5 中 h0（约 0.46）大于 LayerNorm 前的信号（约 0.13）。这些都是跨节点、跨维度合并的统计，不能证明学习能力，只说明 r5 让节点输入在初始化时占主导。r5 的决定在任何训练之前做出，不依赖结果，因此保留。
+另一个值得写进论文的观察：S0 在多邻居目标上有 88.9% 的注意力 head 最大权重 ≥0.99，S1（r4、r5）都是 0%，与 DFG Prompt 5 的饱和诊断一致。
+
+**用户批准的诊断边界**（冻结的 make_model/validate_registration 在装配时读取图内标签，诊断统计本身不读标签与评分）：处理正确，与 NS-P1 的完整性门禁一致。
+
+结论：NS-P1b 验收通过，没有遗留问题，进入 NS-P2。
 
 ## 6. 里程碑
 
