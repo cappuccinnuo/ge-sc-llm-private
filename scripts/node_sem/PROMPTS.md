@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r10（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+版本：r11（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+
+**r11 相对 r10 的修改**（NS-P3a2 审查后，见第 5G 节）：新增小范围纠正 Prompt **NS-P3a3**（第 5.5a3 节，NS-P3b 之前完成）：修正冻结语法误解析导致的合取型发送者守卫漏判、`throw` 被当成未解析状态名、汇总字段未知的三值逻辑与 K 组未知的作用目标，以及一处依赖 networkx 版本的写法。NS-P3b 按当前 EXPERIMENT_POLICY（原名视图）与 facts v1.1 的逐字段 unknown_fields 改写，并增加不含变量名的 CTX 对照。
 
 **r10 相对 r9 的修改**（NS-P3a 审查后，见第 5F 节）：新增纠正性 Prompt **NS-P3a2**（第 5.5a2 节，NS-P3b 之前完成）：修正状态事实“未知”被整函数扩散的错误、修正守卫对“全部为发送者比较的析取”的处理，并补充名字无关性测试。NS-P3a 期间写入的 EXPERIMENT_POLICY.md（改为只用原名视图）与本文件的主终点设计冲突，见第 5F 节，等待用户确认。
 
@@ -537,7 +539,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 ## 5. Codex Prompts
 
-使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3b → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3a3 → P3b → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ### 5.1 共享上下文（每个会话先贴这一段）
 
@@ -1045,36 +1047,98 @@ hh) 状态变量声明 mapping(address=>uint) public balances; 被两个函数�
 全部 node_sem 测试、dfg_v2 测试与原回归通过；facts_verify 对 accepted_attempt3 通过；CURRENT.json 指向 accepted_attempt3（旧版本记为 superseded）；PROGRESS、HANDOVER、training_changes 追加记录（doc_check --expect-cjk 通过）；提交 NS-P3a2。不推进 NS-P3b。
 ```
 
+### 5.5a3 Prompt NS-P3a3：合取守卫、throw、三值汇总与 K 组未知目标（NS-P3b 之前必须完成）
+
+```text
+# NS-P3a3：facts 的四处精度修正，重新生成 accepted_attempt4
+
+前置：NS-P3a2（e2d7e195）。accepted_attempt3 只读保留；新结果写入 artifacts/facts_v1/accepted_attempt4/，通过后再更新 CURRENT.json。视图：original（EXPERIMENT_POLICY）。不改冻结 DFG/L1/L2/L3 代码、语法、图与证据；不训练；不用 GPU。
+
+## 背景（审查结论，写进 PROGRESS）
+1. 冻结语法把成员后缀挂到左边整个二元表达式上：`a && msg.sender == owner` 被解析为 `(a && msg).sender == owner`，`msg.sender==owner && msg.sender!=newOwner` 被解析为 `((msg.sender==owner) && msg).sender != newOwner`。facts_boolean 只在条件含 `||`、或含 `&&` 且为负极性/含 `!` 时启用，正极性的合取仍走旧的 AST 路径，于是两者都不是发送者守卫。真实数据：buggy_2.sol、buggy_3.sol 的 changeOwner 中 `assert(msg.sender==owner && msg.sender!=newOwner)`（7 类的 SolidiFI 底稿中都有），其后的 `owner=newOwner` 被记成对授权变量的未受保护写入，K 组 unguarded_write_functions 多计 1。
+2. `throw`（0.4.x 的语句关键字）在冻结语法中被解析为 expression_statement 中的 identifier，L2 报 state_name_missing；GLOBALS 未包含它，于是被分类为 uncertain_state_value：四个任务各 10/10/32/8 次（例如 etherbank.sol 的 `{ throw; }`、reentrancy_simple.sol 的 `throw;`、多处 `if(intitalized)throw;`），所在语句 state=unknown，并使所在合约全部状态声明的 K 读字段成为未知。
+3. 汇总的未知没有使用三值逻辑：已经由确定证据得出的值仍被列入 unknown_fields。例如某声明已有确定的守卫内读取（read_in_guard=true）或确定的未受保护写入（unguarded_writer=true），只因同合约存在一个不确定访问就被标成未知。reentrancy_contract 中 410 个未知 K 行里，至少 300 余行的部分未知字段已经有确定值。
+4. K 组未知的作用目标过宽：targets=None 的问题（未解析名字、名字歧义、别名使用、assembly）会使同一合约（含继承）的所有状态声明的相关字段未知。但一个未解析或歧义的名字只可能指向同名的声明；存储别名只可能指向引用类型（mapping、数组、struct、string、bytes）的声明；不含 sload/sstore/delegatecall/callcode 的 assembly 不读写本合约存储。
+5. facts_cfg.apply_order 依赖 networkx 2.6.3 中 immediate_dominators 含有起点的行为；networkx ≥3.5 不再包含起点，dominates() 会 KeyError（我在 networkx 3.7 下复现）。服务器环境若不同会出错。
+
+## 1. 合取与析取的统一处理（facts_boolean.py、facts_guards.py）
+- 只要条件的顶层（去掉外层括号后）含有 `&&`、`||` 或前缀 `!`，就使用基于原 AST token 的布尔分组（现有 sender_condition 的 parse），与极性无关；否则沿用原路径。
+- 合取（正极性的 &&，或负极性的 ||）：任一项是发送者相等比较即为发送者守卫，eq_pairs 取各发送者相等项的并集，disjunctive=false（除非某一项本身是析取型发送者守卫）；非相等项（!=、>、普通布尔量）不贡献组合，也不否定守卫。
+- 析取规则保持 NS-P3a2 的定义不变。
+- 一致性检查：对全部 Oracle 与四个任务中所有不含误解析的条件（AST 中不存在 object 为 binary_expression 的 member_expression），新旧两条路径的 (eq_pairs, is_sender_guard) 必须相同；报告不同的个数（应为 0）。
+- 新 Oracle（先写期望）：
+  oo) assert(msg.sender == owner && msg.sender != newOwner); owner = newOwner; → 规则 1，发送者守卫，eq_pairs=[env_state]，disjunctive=false；owner 是授权变量；该写入不计入 unguarded；
+  pp) require(now > deadline && msg.sender == owner); x = 1; → 发送者守卫，eq_pairs=[env_state]；
+  qq) require(paused && tx.origin == owner); x = 1; → 发送者守卫（tx.origin），eq_pairs=[env_state]；
+  rr) if (b > 0 && msg.sender != p) { y = 1; } → 规则 2 正极性，不是发送者守卫（!= 不构成相等组合）。
+
+## 2. throw（facts_state.py）
+- 把 `throw` 加入不构成状态不确定的语言关键字/内置名集合（与 require、revert 同类）。
+- 新 Oracle ss）：0.4.x 函数中 `if (!ok) throw; balances[msg.sender] = 0;`（balances 为本文件状态变量）与 `{ throw; }` → 所有语句 state=supported，同合约状态声明 K 组无未知字段。
+
+## 3. 三值汇总（facts_summary.py）
+按 Kleene 三值逻辑决定 unknown_fields：只有当不确定的贡献可能改变字段的值时，字段才是未知。
+- 布尔“存在”型字段（K：read_in_guard、used_as_call_value_or_target、unguarded_writer；L：state_write、auth_write、sender_guard、write_then_call、call_then_write；M：auth_state）：已由确定证据得出 true 时为已知 true；确定证据为 false 且存在相关不确定性时才未知。
+- 计数型字段：read_functions/write_functions 已为 "many" 时已知；unguarded_write_functions、auth_state_count 在有相关不确定性时仍为未知（数值可能增加）。
+- only_constructor_writes：已有确定的非构造函数写入时为已知 false；否则按现规则。
+- L 组 sender_guard：本函数已有确定的发送者守卫（自身 require/early-exit 或语句守卫）时为已知 true，即使其他语句的守卫未知。
+- schema 校验增加：status=="unknown" 当且仅当 unknown_fields 非空。
+
+## 4. K 组未知的目标（facts_state.py、facts_summary.py）
+每个问题记录 targets（声明身份集合），K 组只对 targets 中的声明生效：
+- 未解析名字/名字歧义/uncertain_state_value（来自 identifier）：targets = 该问题所在合约作用域内（含继承的本文件基类）与该标识符同拼写的状态声明；为空集时不影响任何 K 行（该名字指向文件外的声明）；
+- unresolved_alias_use：targets = 作用域内引用类型（mapping、数组、struct、string、bytes）的状态声明；
+- assembly_effect：只有块内出现 yul_evm_builtin 为 sstore、delegatecall 或 callcode 时视为写；出现 sload 时视为读；两者都没有时不产生状态问题；targets = 作用域内全部状态声明；
+- file_fallback、unlocated_diagnostic：保持全作用域（保守）；
+- 语句级 state.status 的判定不变（仍按语句自身的问题）。
+- 新 Oracle tt）：合约有 `uint a; mapping(address=>uint) m;`，函数中有一个文件外基类成员 `inherited = 1;` → a 与 m 的 K 组无未知字段；uu）同一合约中 `Rec storage r = recs[i]; r.v = 1;` 且别名无法解析 → 只有引用类型声明（recs）的写字段未知，`uint a` 不受影响；vv）只含 `extcodesize` 的 assembly → 不产生状态问题。
+
+## 5. 版本稳健性（facts_cfg.py）
+apply_order 中求得 dominators 后执行 dominators.setdefault(ir.entry, ir.entry)，并加一个测试：对 networkx 返回不含起点的字典时结果不变（可用 monkeypatch 构造）。
+
+## 6. 重新生成与比较
+- 四个任务重新抽取到 accepted_attempt4/original/，与 accepted_attempt3 逐行比较。允许的变化：guards 的 eq_pairs/is_sender_guard/disjunctive、self_condition.eq_pairs、state.status、order.status、unresolved 中的诊断范围项、K/L/M 的 status、unknown_fields 以及因守卫与授权变化而改变的位（auth、unguarded_*、sender_guard、auth_write、auth_state*）、state 读写条目的 auth 位。读写变量/形状/数量、调用、环境、算术、语法、DFG 事实严格不变。
+- 报告：每项修正分别影响的行数（守卫、throw、三值、目标）；四个任务修正前后 state/K/L/M 未知比例（分母同前）；buggy_2/buggy_3 changeOwner 的前后对照（源码 SHA、row_key）；一致性检查的不同个数。
+- 重跑 5 类冒烟（原名，无图）：0 异常。
+
+## 7. 测试与验收
+全部 node_sem、dfg_v2 与原回归测试通过；facts_verify 对 accepted_attempt4 通过；CURRENT.json 指向 accepted_attempt4；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；提交 NS-P3a3。不推进 NS-P3b。
+```
+
 ### 5.5b Prompt NS-P3b：M2 字段与编码、M3a 向量、CTX/STATIC 模态
 
 ```text
 # NS-P3b：由 facts 生成 M2 上下文字段并编码（CTX）、生成 M3a 多热向量（STATIC），写成符合载体契约的模态
 
-前置：NS-P3a 通过审查。输入：artifacts/facts_v1/<view>/<task_id>/facts.jsonl（核对 SHA）与 text_v1。不训练；编码使用 GPU 时必须先非阻塞检查 .training.lock。
+前置：NS-P3a3 通过审查。输入：CURRENT.json 指向的 artifacts/facts_v1/accepted_attempt4/original/<task_id>/facts.jsonl（facts v1.1，核对 SHA 与封存）与 text_v1 的原名视图。视图口径按 EXPERIMENT_POLICY.md：只生成 original，<view> 一律为 original，不读取匿名产物。不训练；编码使用 GPU 时必须先非阻塞检查 .training.lock。
+
+**逐字段未知（v1.1）**：K/L/M 组的 unknown_fields 必须逐字段消费：字段在 unknown_fields 中时，M2 中该字段写 "unknown"，M3a 中该字段的取值位全为 0，并把该字段的未知位置 1；不在其中的字段照常编码，不得因为组 status=unknown 而清空整组。state/order/dfg/守卫的 status 仍按第 4.6 节的 N 组 5 个未知位处理。
 
 ## 1. M2 字段（scripts/node_sem/ctx_fields.py）
-ctx_fields(facts_row, text_row) -> dict：按第 4.5 节的字段、顺序与适用节点生成；缺失写 "-"，不能判断写 "unknown"；相对距离写 @±k；FROM/TO 最多各 2 条，按 |offset| 排序。字段文本只用 facts 中的枚举值与 names，不得出现文件名、绝对行号或类别名。
-输出 artifacts/ctx_v1/<view>/<task_id>/ctx_fields.jsonl 与 manifest（行集合 = F3 全集，行顺序同 text_v1）。
+ctx_fields(facts_row, text_row, names="original") -> dict：按第 4.5 节的字段、顺序与适用节点生成；缺失写 "-"，不能判断写 "unknown"；相对距离写 @±k；FROM/TO 最多各 2 条，按 |offset| 排序。字段文本只用 facts 中的枚举值与 names，不得出现文件名、绝对行号或类别名。
+- names="original"：变量名为原拼写（主输出）。
+- names="masked"（名字泄漏对照，必须同时生成）：每个节点的字段文本中，变量名按“在本节点字段中首次出现的顺序”与声明角色替换为 STATE1、PARAM1、LOCAL1、ENV 等占位名（同一节点内同名同占位，不跨节点保持一致）；其余字段与 original 逐字相同。理由：原名下 SolidiFI 注入名（owner_txoriginN、_re_ent、_intou、_TOD、_tmstmp、bug_unchk_send 等）几乎直接给出标签，CTX 中的名字是否起作用需要这个对照来判断。是否在训练中使用由 NS-P5 计划决定。
+输出 artifacts/ctx_v1/original/<task_id>/{ctx_fields.jsonl, ctx_fields_masked.jsonl} 与 manifest（行集合 = F3 全集，行顺序同 text_v1）。
 
 ## 2. 编码（nodesem，offline/encode.py 新增 --ctx 模式）
 - 读取 ctx_fields.jsonl，拼成第 4.5 节的文本格式，用主编码器的 tokenizer 按第 4.5 节的截断顺序逐级截断到 256 token，再编码（与 M1 相同的模型、池化与精度）。
-- 输出 artifacts/ns_p3/encoded/<view>/<task_id>/emb_ctx_<model>.npz 与 CTX 模态 manifest：满足 carrier._load 契约（第 5.4 节 2b）；input_text 指向 ctx_fields.jsonl；implementation 至少含 facts.py、facts_schema.py、ctx_fields.py、encode.py、text_view.py；manifest 另记每级截断的节点数。
+- 两种 names 各编码一份。输出 artifacts/ns_p3/encoded/original/<task_id>/emb_ctx_<model>.npz、emb_ctx_masked_<model>.npz 与对应的 CTX 模态 manifest：满足 carrier._load 契约（第 5.4 节 2b）；input_text 指向 ctx_fields.jsonl；implementation 至少含 facts.py、facts_schema.py、ctx_fields.py、encode.py、text_view.py；manifest 另记每级截断的节点数。
 - 同一输入重复编码一次，逐位一致或最大误差 ≤1e-6（写明是哪一种）。
 
 ## 3. M3a（scripts/node_sem/static_profile.py 与 behavior_schema.json）
-- behavior_schema.json：每个字段的组、名称、编码方式（独热/多热）、列区间、适用节点种类、“不适用”默认值；总维度由 schema 决定，不写死在代码中。
+- behavior_schema.json：每个字段的组、名称、编码方式（独热/多热）、列区间、适用节点种类、“不适用”默认值；总维度由 schema 决定，不写死在代码中。N 组在第 4.6 节的 5 个未知位之后，为 K/L/M 中可能出现在 unknown_fields 的每个字段各加 1 个未知位（字段清单从 facts_schema 读取，不手写）。
 - encode(facts_row) -> uint8 向量；explain(vec) -> 字段名列表，保证往返一致；每个独热组恰好一个 1。
 - 输出 artifacts/ns_p3/static/<view>/<task_id>/static.npz（float32 0/1）与 STATIC 模态 manifest（满足载体契约；present 对全部行为 true；input_text 指向 facts.jsonl；implementation 含 facts.py、facts_schema.py、static_profile.py、behavior_schema.json）。
-- 两个视图的 static.npz 必须逐位相同（断言）。
+- 名字无关性：对 Oracle 源码做标识符双射改名后重新抽取 facts 并编码，static 向量逐位相同（I 组“仅大小写不同”位按还原映射计算）；ctx_fields_masked 逐字相同。
 
 ## 4. 测试
-- schema：列区间不重叠且覆盖全部维度；每个组的适用节点种类与第 4.6 节一致；独热组恰好一个 1；encode/explain 往返；N 组未知位在对应 status=unknown 时为 1 且对应事实位为 0。
-- M2：每种节点种类的字段集合与第 4.5 节一致；截断各级都可触发且字段标签保留（构造超长样例）；主视图文本中只有保留名与匿名名；没有文件名与绝对行号。
+- schema：列区间不重叠且覆盖全部维度；每个组的适用节点种类与第 4.6 节一致；独热组恰好一个 1；encode/explain 往返；N 组未知位在对应 status=unknown（或字段在 unknown_fields 中）时为 1 且对应事实位为 0；字段不在 unknown_fields 中时，即使组 status=unknown 也照常编码（构造用例断言）。
+- M2：每种节点种类的字段集合与第 4.5 节一致；截断各级都可触发且字段标签保留（构造超长样例）；没有文件名与绝对行号；masked 文本中除保留名与占位名外没有其他 identifier（全文本扫描）；unknown_fields 中的字段写 "unknown"。
 - 生产者扰动：对 facts 生成器的输入图施加 (a)(b) 扰动后，ctx_fields 与 static 输出逐位相同。
 - 载体：carrier.load_modality 对全部 CTX 与 STATIC manifest 通过；carrier.carry 对 S3（TOKEN 之外的 CODE+CTX）与 S4（CODE+CTX+STATIC）在 G0 与 G3R 上能装配，维度等于 FeatureSpec.carrier_dim()（只装配，不建模、不训练；FeatureSpec 配置文件在 NS-P4 登记，此处用临时 spec）。
 
 ## 5. 统计
-按任务、视图：每个 M3a 维度的取 1 比例（不按标签分组）；M2 各字段非空率；截断级别分布；编码去重率与耗时。写入 artifacts/ns_p3/stats.json。
+按任务：每个 M3a 维度的取 1 比例（不按标签分组）；M2 各字段非空率与 "unknown" 比例；截断级别分布（original 与 masked 分别）；编码去重率与耗时。写入 artifacts/ns_p3/stats.json。
 
 ## 验收
 测试与统计通过；PROGRESS、HANDOVER、training_changes 追加记录（doc_check --expect-cjk 通过）；提交 NS-P3b。
@@ -1423,6 +1487,30 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 可选方案：(A) 恢复匿名为主、原名为次（原计划）；(B) 原名为主，但预先登记必须报告的对照：原名 S0 基线、非 SolidiFI 层、按类别的标识符规则基线，以及匿名视图上的 S0/S4 作为泄漏对照；(C) 两个视图都作为主终点，共同做 Holm 校正，并预先规定结论只在两者一致时成立。facts 与 M3a 在三种方案下都可直接使用（只有 names 字段与视图有关）。
 
 结论：NS-P3a 的大部分实现正确，DFG 接口正确；先完成 NS-P3a2，并由用户确认视图口径，再进入 NS-P3b。
+
+## 5G. NS-P3a2 审查记录（2026-11-02，Claude）
+
+**复核方式**：在独立环境中用仓库内的 tree-sitter-solidity 源码重新编译语法库，运行全部 facts 测试（350 通过）；逐行检查 revision_comparison.json 中各字段的变化方向；用审计中的问题位置回到原始源码核对剩余未知；对守卫逻辑构造对照用例。
+
+**已核实正确：**
+- 冻结的 DFG、HGT、tokenizer、标签与图代码没有改动（git diff 为空）；accepted_attempt2 保留。
+- state 未知从 6627/4350/5947/3774 降到 78/32/75/29；剩余的来源是名字歧义（例如 ERC20 中 mapping 与同名函数 balanceOf/allowance/totalSupply）、无法解析的别名、未投影的状态效应、assembly，以及下面的 throw。
+- 内置名、裸被调函数、事件名、类型名的分类正确；emit/revert 的参数被 call_argument 包裹，不会被误当成事件名。
+- 所有守卫变化都是 false→true（析取型发送者守卫），没有守卫丢失；读写条目只有 auth 位变化。
+- payable_fallback 在 31/20/51/34 个合约行由 false 变为 true：旧实现只看有 HCG 节点的函数，漏掉了 `function () external payable`（逐个核对 buggy_18/19/25 等源码）；这是 NS-P3a 的遗留错误，本轮的全 AST 汇总修正了它。
+- 用户批准的三项调整合理：逐字段 unknown_fields 比整组 status 更准确；比较清单补入 order.status 是我写 NS-P3a2 时的遗漏；受限布尔适配是必要的（冻结语法确实误解析，见下）。
+
+**需要修正（NS-P3a3）：**
+1. 冻结语法把 `a && msg.sender == owner` 解析成 `(a && msg).sender == owner`。布尔适配只在含 `||` 或负极性时启用，正极性合取仍漏判：buggy_2/buggy_3 的 `assert(msg.sender==owner && msg.sender!=newOwner)` 不是发送者守卫，`owner=newOwner` 被计为未受保护写入。
+2. `throw` 被当成未解析的状态值（10/10/32/8 次），包括 etherbank.sol 与 reentrancy_simple.sol。
+3. 汇总字段的未知没有用三值逻辑：已有确定 true 或 "many" 的字段仍被标为未知。
+4. K 组未知的作用目标过宽（targets=None 作用于整个合约的全部声明）。
+5. dominators 的写法依赖 networkx 2.6.3 的行为。
+第 3、4 项不影响已知值的正确性，只影响有多少信息被掩码；第 1、2 项是事实错误，但涉及的行数少。
+
+**视图口径**：用户没有选择第 5F 节的 A/B/C，并继续按 EXPERIMENT_POLICY（原名）执行；本文件从 NS-P3b 起按原名改写。我仍然认为名字泄漏需要对照，因此 NS-P3b 同时生成不含变量名的 CTX（ctx_masked）；原名 S0 基线与非 SolidiFI 分层在 NS-P5 计划中登记。
+
+结论：NS-P3a2 的主体正确，先完成 NS-P3a3，再进入 NS-P3b；NS-P4（融合与冒烟）在 NS-P3b 之后。
 
 ## 6. 里程碑
 
