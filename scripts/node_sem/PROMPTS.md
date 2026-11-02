@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r6（2026-11-01）。作者：Claude（方案与审查），实现：Codex。
+版本：r7（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+
+**r7 相对 r6 的修改**（NS-P2 审查后，见第 5D 节）：NS-P2 的数据与代码经复核成立；但 NS-P2 写入的四处文档（NS_P2_REPORT.md、PROGRESS.md 的 NS-P2 节、HANDOVER.md 的 NS-P2 节、training_changes §74）中所有中文都被写成了字面的 `?`，内容无法恢复。新增纠正性 Prompt **NS-P2b**（第 5.4b 节，NS-P3 之前完成）：重写这四处文档、加文档写入校验，并做一项编号影响的只读诊断。共享上下文增加文档编码不变量。M2 的匿名文本沿用 8G 的逐文件编号（第 4.5 节）。
 
 **r6 相对 r5 的修改**（NS-P1b 审查后，见第 5C 节）：NS-P1b 验收通过，可以进入 NS-P2。更正 r5 中对 r4 初始尺度的表述（不能断言 r4 “无法学习”）；NS-P2 补充模态 manifest 必须满足的载体契约，以及“生产者代码改动后必须重新生成特征”的规则。
 
@@ -273,6 +275,8 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 | `PRE_EXT_CALL` | 同函数内、控制流上能到达本语句的最近外部调用（不含自身）；函数 CFG 不受支持时写 `unknown` | 函数内语义 CFG 反向 BFS |
 | `GUARD` | 作用于本语句的最近守卫：类型（require、assert、if_branch、early_exit_if、loop_cond、modifier、unknown）、极性、有效比较组合、相对距离 | AST 词法守卫规则（第 4.6 节 D 组说明） |
 
+**匿名编号**（r7 决定）：主视图沿用 8G 的逐文件随机编号（vN），不在节点或上下文文本内部重新编号。理由：S0/S1 与全部 DFG 结果都用这套编号，改用局部规范编号会把“编号方式”与“预训练知识”混在 S2−S0 的比较里；局部规范编号还会让不同文件中相同的 SolidiFI 注入语句变成完全相同的字符串，增加模板记忆。代价是：同一条语句在不同文件中会有不同的编号（见第 5D 节的计数），NS-P2b 量化这一点对编码向量的影响，只记录，不改变本决定。LLM 输入（NS-P7）按函数内首次出现重新编号是为了缓存与提示稳定，属于另一场景，不受影响。
+
 **截断顺序**（按编码器 tokenizer 计数，上限 256）：
 1. `TO` 只留 1 条；
 2. `FROM` 只留 1 条；
@@ -488,7 +492,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 ## 5. Codex Prompts
 
-使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P3 → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3 → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ### 5.1 共享上下文（每个会话先贴这一段）
 
@@ -533,7 +537,8 @@ mando 环境中的代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[
 - 任何特征文本中都不出现绝对行号或文件名，只用函数内相对距离 @-k/@+k。
 - AST 事实一律经 ProjectionView + Projector 按 AST 身份投影到节点，投影不到的事实丢弃并计数，不按行号猜测。
 - 训练沿用基准 v2 协议：8D 分组折、L-audit、seed=1、local_dev_v1、8H 训练配置，outer_test 只在训练结束后评分。只在 inner_val 上做选择。
-- 使用与 8H 相同的 GPU 锁：scripts/DFG/experiments/artifacts/dfg_v2/.training.lock（experiment.run._Lock）。nodesem 环境中所有使用 GPU 的离线任务（M1/M2 编码、llama.cpp、教师句向量）不得与训练并行。离线脚本启动前必须以非阻塞方式检查该锁文件：被占用就直接退出并报告；不得在训练期间抢占 GPU。CPU 模式的离线任务不受此限制。
+- 使用与 8H 相同的 GPU 锁：scripts/DFG/experiments/artifacts/dfg_v2/.training.lock（experiment.run._Lock）。
+- 文档编码（r7）：所有 .md/.json/.jsonl 一律以 UTF-8 写入，不得经 Windows 标准输入管道传递中文（NS-P2 因此把全部中文写成了 `?`）。用 Python 脚本写文件（中文可用 \u 转义写在脚本里），写完运行 `python -B -m scripts.node_sem.doc_check <文件...>`：文件必须能按 UTF-8 解码，本轮新写入的段落中不得出现连续 3 个及以上的 `?`，中文段落必须确实含有中文字符。不通过就不得提交。nodesem 环境中所有使用 GPU 的离线任务（M1/M2 编码、llama.cpp、教师句向量）不得与训练并行。离线脚本启动前必须以非阻塞方式检查该锁文件：被占用就直接退出并报告；不得在训练期间抢占 GPU。CPU 模式的离线任务不受此限制。
 
 ## 接入方式（第 4.9 节）
 NodeSem 的拼接向量写进内存图副本中每个节点的 token 属性，然后用 dfg_v2.model.make_model(node_feature="inside_token") 原样构造模型，只把 model.adapt_ws 的每一项替换为 NodeSemAdapter。这样 validate_registration、checkpoint 绑定、FitInputGuard 和 benchmark_v2.trainer.fit 都可以原样使用，不需要修改任何冻结代码。
@@ -793,6 +798,52 @@ python offline/encode.py --texts <text.jsonl> --model <assets.json 中的名称>
 
 ## 验收
 两个视图、四个任务的 text.jsonl 与主编码器的向量齐全，测试通过；PROGRESS.md 记录截取方式分布、回退数、去重比例、耗时；提交 NS-P2。
+```
+
+### 5.4b Prompt NS-P2b：文档重写、写入校验与编号影响诊断（NS-P3 之前必须完成）
+
+```text
+# NS-P2b：重写 NS-P2 的四处文档、加入文档写入校验、编号影响诊断（只读）
+
+前置：NS-P2（f049d18e）。NS-P2 的代码、文本视图、编码产物与环境记录全部只读保留。新产物写入 artifacts/ns_p2b/。不训练，不使用 GPU，不改任何特征或代码（doc_check.py 除外）。
+
+## 背景（审查结论，写进 PROGRESS）
+NS-P2 写入的四处文档中，所有中文都以字面 `?`（0x3F）落盘，不是显示问题，内容无法从文件恢复：
+- scripts/node_sem/NS_P2_REPORT.md（全文）；
+- scripts/node_sem/PROGRESS.md 中 “## 2026-11-01 NS-P2…” 一节；
+- HANDOVER.md 中 “### 2026-11-01 NodeSem NS-P2…” 一节；
+- docs/training_changes_2026-10-07.md 中 “## 74. …” 一节。
+NS-P1 已记录过 “Windows stdin 传输需要 ASCII Unicode 转义”，NS-P2 中这一做法没有保持。JSON 证据（environment/*.json、encoding_summary.csv、各 manifest 等）是 ASCII，未受影响。
+
+## 1. 原因与保护
+- 在 PROGRESS 中写清楚这四处文档当时是怎样写入的（哪条命令、经由什么通道），以及为什么中文变成了 `?`。
+- 新增 scripts/node_sem/doc_check.py（不进入 RUNTIME_MODULES）：
+  - check(path, since_bytes=None)：文件必须能按 UTF-8 严格解码；若给出 since_bytes（追加前的文件长度），只检查新增部分；新增部分不得含有连续 3 个及以上的 `?`；若新增部分声明为中文段落（含 “## ” 或 “### ” 标题且标题中原本应有中文），必须至少含有一个 CJK 字符。
+  - 命令行：python -B -m scripts.node_sem.doc_check <path>[:since_bytes] ...，失败时返回非零。
+  - 测试：正常 UTF-8 中文通过；字面 “????” 不通过；非法 UTF-8 不通过；since_bytes 之前的旧内容不参与检查。
+
+## 2. 重写四处文档
+- 先把四处损坏内容的原始字节保存到 artifacts/ns_p2b/corrupted_docs/（每处一个文件，记录 SHA256、所在文件、起止字节位置），作为记录。
+- NS_P2_REPORT.md：整份重写（UTF-8）。
+- PROGRESS.md、HANDOVER.md、training_changes：只替换各自的 NS-P2 那一节（就地替换，因为原节只剩 `?`，不含可保留的信息）。替换前后，该节之前的全部字节必须逐字节相同（记录前缀 SHA），该节之后没有其他内容。
+- 内容依据：NS-P2 的 JSON/CSV/manifest 证据、提交 f049d18e 的代码与 Codex 本地记录。重写的内容必须与证据一致，至少包括：做了什么、文件清单、nodesem 环境（版本、来源、user-site 副作用与恢复、PYTHONNOUSERSITE）、四个任务的文本行数与 cut_mode 分布、八次编码的去重率/截断数/耗时/峰值显存/重复确定性、测试数、载体超集改动、遗留问题。所有数字从证据文件重新读取，不凭记忆。
+- 四处文件都通过 doc_check 后才能提交。
+
+## 3. 编号影响诊断（只读，CPU，numpy 即可）
+审查发现：在 reentrancy_node 中，12036 个原节点里有 8770 个的原文代码也出现在其他文件中；这 841 条跨文件共享的原文语句里，有 735 条在匿名视图中因 8G 的逐文件编号而变成不同字符串（四个任务分别为 735/841、561/669、1155/1269、893/1005）。
+对每个任务、每个匿名视图的 CODE 向量（NS-P2 的 NPZ），计算：
+- 组内相似度：对每条“跨文件共享、且匿名文本不止一种”的原文语句，取其各个匿名变体向量的两两余弦，报告均值、中位数、5% 分位；
+- 对照一：同一节点类型内随机抽取的、原文不同的语句对的余弦（固定种子，抽样数与组内对数相同）；
+- 对照二：原名视图中这些语句（同一原文的向量本应完全相同）作为上限 1.0 的检查。
+写入 artifacts/ns_p2b/numbering_effect.json。只记录，不改变任何特征或决定（第 4.5 节）。
+
+## 4. 未改名的剩余名字
+用 tree-sitter 统计主视图节点文本中，既不是 vN、也不在保留表中、却以单词形式出现的名字（审查时看到 data、number、min、max、sig、interfaceId 等十余个，均因不是 identifier 语法节点而被 8G 保留）。按任务给出名字、出现次数、语法节点类型，写入 artifacts/ns_p2b/residual_names.json，并确认其中没有 SolidiFI 标记名（例如含 re_ent、txorigin 的名字）。只记录。
+
+## 5. 测试与提交
+- doc_check 的测试、全部 node_sem 测试、dfg_v2 测试与原回归。
+- 只读核验：carrier.load_modality 对 8 份编码 manifest 仍然通过；8H 计划 load 仍然通过。
+- PROGRESS、HANDOVER、training_changes 追加 NS-P2b 记录（同样通过 doc_check）；提交 NS-P2b。不推进 NS-P3。
 ```
 
 ### 5.5 Prompt NS-P3：事实、M2 字段与 M3a
@@ -1142,6 +1193,25 @@ Codex 提出的三个设计问题都成立，决定见第 4.2、4.6 节与 r4 �
 **用户批准的诊断边界**（冻结的 make_model/validate_registration 在装配时读取图内标签，诊断统计本身不读标签与评分）：处理正确，与 NS-P1 的完整性门禁一致。
 
 结论：NS-P1b 验收通过，没有遗留问题，进入 NS-P2。
+
+## 5D. NS-P2 审查记录（2026-11-02，Claude）
+
+**独立核对（在提交的 text.jsonl 与 manifest 上复算）：**
+- 行数：F3 全集 12223/7892/18610/13693，其中 env_source 187/182/298/261，与 DFG 记录一致。
+- cut_mode 分布由 DFG 节点类型计数逐项推出，全部吻合，例如重入合约：头部 412+86+45=543，签名 3651+165+165=3981，条件 1232+28+7=1267，END 占位 1197+35=1232，完整文本 11289 + env 298 = 11587；回退 0；全部行的 text_sha256 与文本一致；两个视图的行身份与 cut_mode 逐行相同。
+- 抽样检查各类截取文本（条件、for 头部、签名含 modifier/returns、合约继承头部、struct、END 占位、环境键）均正确。
+- 匿名视图中没有文件名；没有 SolidiFI 标记名。仍以原名出现的只有十余个（data、number、min、max、sig、interfaceId 以及 abi.encodePacked 等内置成员），它们在该语法中不是 identifier 节点，是 8G 视图本身的性质，NS-P2b 记录。
+- 8 份编码 manifest：版本、模态、F0/F3 指纹、行集合、present、implementation、assets、input_text 都符合载体契约；encoding_summary 中 8 次编码重复运行逐位一致。
+- carrier._aligned 的超集改动正确：原节点顺序严格一致，只允许省略辅助节点，辅助行按身份查找。
+- 生产者扰动测试（两个视图，(a)(b)(c) 三项）存在于 test_text_view.py。
+- nodesem 环境：Python 3.10.21、torch 2.6.0+cu118、transformers 4.46.3；pip 首次安装时动到了 Python 3.10 的 user-site（filelock、tqdm、typing_extensions），已按原版本与 wheel SHA 恢复，此后统一 PYTHONNOUSERSITE=1，编码器拒绝启用 user-site；mando 未改动。记录完整。
+
+**问题：**
+1. **四处文档的中文全部写成了 `?`（必须修）**：见 NS-P2b。
+2. **逐文件编号的影响（需量化，不改决定）**：同一条语句在不同文件中被编成不同的 vN，导致匿名视图的唯一文本数是原名视图的 2–3 倍（重入节点 7223 对 2846）；跨文件共享的原文语句中约 87% 因此分裂。决定沿用 8G 编号（第 4.5 节），NS-P2b 测量其对向量的影响。
+3. **implementation 绑定包含 carrier.py**：text_view 导入了载体中的函数，所以绑定是对的；但之后若修改 carrier.py，全部编码特征都要重新生成（约 4 分钟 GPU，代价不大）。
+
+结论：NS-P2 的实现与数据成立；完成 NS-P2b 后进入 NS-P3。
 
 ## 6. 里程碑
 
