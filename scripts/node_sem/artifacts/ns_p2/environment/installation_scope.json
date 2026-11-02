@@ -1,0 +1,16 @@
+{
+  "authorization": "User explicitly approved creation and dependency installation of nodesem; model downloads already authorized.",
+  "conda_environment": "/home/zhao/miniconda3/envs/nodesem",
+  "user_site_disabled": true,
+  "observed_side_effect": {
+    "reason": "Initial pip install detected existing Python 3.10 user-site packages",
+    "restored_exact_versions": {
+      "filelock": "3.32.6",
+      "tqdm": "4.70.1",
+      "typing_extensions": "4.16.0"
+    },
+    "restore_scope": "Only these removed packages, official wheel SHAs checked; no other user-site packages changed"
+  },
+  "mitigation": "All subsequent installations and inference use python -s; nodesem activation sets PYTHONNOUSERSITE=1; encoder rejects enabled user site.",
+  "mando_modified": false
+}

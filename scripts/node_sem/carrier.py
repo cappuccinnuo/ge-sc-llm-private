@@ -144,13 +144,40 @@ def _aligned(view, graph, task_id, spec_view, dim, original_only=False):
         raise ValueError("Modality dimension mismatch")
     nodes = [(n, a) for n, a in graph.nodes(data=True)
              if not original_only or a["node_type"] not in AUX_NODE_TYPES]
-    if [row_key(n, a) for n, a in nodes] != _rows(view):
-        raise ValueError("Modality row identity/order differs from graph")
-    for (_, attrs), row in zip(nodes, view["rows"]):
+    graph_keys = [row_key(n, a) for n, a in nodes]
+    keys = _rows(view)
+    if view["version"] == SPELLING_VERSION:
+        if graph_keys != keys:
+            raise ValueError("Modality row identity/order differs from graph")
+        selected = view["rows"]
+    else:
+        # F3 features also serve F0. Original-node order stays strict.
+        # Auxiliary rows are looked up by identity, never by matrix position.
+        indexed = dict(zip(keys, view["rows"]))
+        graph_set = set(graph_keys)
+        if not graph_set.issubset(indexed):
+            raise ValueError("Modality is missing graph node identities")
+        original_keys = [row_key(n, a) for n, a in nodes
+                         if a["node_type"] not in AUX_NODE_TYPES]
+        if original_keys != [k for k, row in zip(keys, view["rows"])
+                             if row["node_type"] not in AUX_NODE_TYPES]:
+            raise ValueError("Modality original row identity/order differs from graph")
+        for key, row in zip(keys, view["rows"]):
+            if row["node_type"] in AUX_NODE_TYPES:
+                prefix = "env:{}:".format(row["file"])
+                env = key[len(prefix):] if isinstance(key, str) and key.startswith(prefix) else None
+                if (row["node_type"] != "env_source" or env not in ENV_KEYS
+                        or row["code_sha256"] != _sha_text(env)):
+                    raise ValueError("Invalid auxiliary modality row identity")
+            elif key not in graph_set:
+                raise ValueError("Only auxiliary rows may be omitted")
+        selected = [indexed[key] for key in graph_keys]
+    for (_, attrs), row in zip(nodes, selected):
         if (attrs["source_file"] != row["file"]
                 or attrs["node_type"] != row["node_type"]
                 or _sha_text(attrs["code"]) != row["code_sha256"]):
             raise ValueError("Modality row code/source/type differs")
+    return selected
 
 
 def _anchor_gate(graph, sources):

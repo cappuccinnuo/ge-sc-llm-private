@@ -24,7 +24,7 @@ def s1(**changes):
 def test_templates_roundtrip_and_stable_canonical_digest():
     assert VERSION == "nodesem-v1"
     root = Path(__file__).resolve().parents[1]
-    for name in ("S0", "S1"):
+    for name in ("S0", "S1", "S2"):
         data = json.loads((root / "configs" / (name + ".json")).read_text())
         spec = FeatureSpec.from_json(data)
         assert spec.to_json() == data

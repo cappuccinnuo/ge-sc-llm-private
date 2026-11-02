@@ -1,0 +1,61 @@
+{
+  "suites": {
+    "node_sem": {
+      "command": "CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests",
+      "passed": 216,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 4,
+      "seconds": 6.61,
+      "evidence": "tool output; complete suite after final mando-code changes"
+    },
+    "dfg_v2": {
+      "command": "CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests",
+      "passed": 2653,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 9,
+      "seconds": 167.19,
+      "log": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p2/test_dfg_v2.log",
+        "sha256": "359fae92930ac29073c99ad78c5126b1ea9f9b7a7c1686de41e63e6015921e28"
+      }
+    },
+    "legacy": {
+      "command": "CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py",
+      "passed": 223,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 29,
+      "seconds": 3.58,
+      "log": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p2/test_legacy.log",
+        "sha256": "b1491e380c70c2c679f6b2601b1063f45d7045f66762aceb4c56aaa33ed767ca"
+      }
+    },
+    "offline": {
+      "command": "PYTHONNOUSERSITE=1 python -s -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests/offline_checks.py",
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 0,
+      "seconds": 1.9,
+      "log": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p2/nodesem_check_1.log",
+        "sha256": "6968cbe1e1c15e70e0b39720ce091ff3ff87356c7e7a1d509c380996473f4f93"
+      }
+    }
+  },
+  "unique_passed": 3110,
+  "formal_fits": 0,
+  "failed": 0,
+  "skipped": 0,
+  "acceptance": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p2/acceptance.json",
+    "sha256": "48e257764c28cf10ba9162ebf1041c2309ee7cd3aabfdd591aa8465f1c44ef20"
+  },
+  "text_acceptance": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p2/text_acceptance.json",
+    "sha256": "e5d9260d33210692eb19eb6e49a01673dd1369a20c0506f62be4ee794a9309b7"
+  }
+}
