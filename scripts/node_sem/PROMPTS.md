@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r9（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+版本：r10（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+
+**r10 相对 r9 的修改**（NS-P3a 审查后，见第 5F 节）：新增纠正性 Prompt **NS-P3a2**（第 5.5a2 节，NS-P3b 之前完成）：修正状态事实“未知”被整函数扩散的错误、修正守卫对“全部为发送者比较的析取”的处理，并补充名字无关性测试。NS-P3a 期间写入的 EXPERIMENT_POLICY.md（改为只用原名视图）与本文件的主终点设计冲突，见第 5F 节，等待用户确认。
 
 **r9 相对 r8 的修改**（NS-P3 交付前的设计复查）：用 7 类漏洞的真实源码核对 M2/M3a 设计后发现，原设计主要围绕重入与访问控制，其余 5 类的核心模式无法表达。重写第 4.5、4.6 节与 NS-P3：
 - M3a 改为通用设计（约 200 维）：新增调用目标/金额/数据类别、未被调用的 `.call.value(x)`、返回值在 require 与 if 中检查的区分、循环内外部调用、数组长度变化、哈希与 ecrecover、环境量的用途（算术、哈希、守卫、状态写、调用）、算术操作数的类型宽度与来源及 `unchecked` 块、授权变量（与名字无关）、状态变量声明节点（K 组）、函数汇总（L 组）、合约汇总（M 组）、自身条件（D3 组）、统一的未知位（N 组）；
@@ -535,7 +537,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 ## 5. Codex Prompts
 
-使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3b → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3b → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ### 5.1 共享上下文（每个会话先贴这一段）
 
@@ -991,6 +993,58 @@ hh) 状态变量声明 mapping(address=>uint) public balances; 被两个函数�
 测试与统计通过；PROGRESS、HANDOVER、training_changes 追加记录（doc_check --expect-cjk 通过）；提交 NS-P3a。不推进 NS-P3b。
 ```
 
+### 5.5a2 Prompt NS-P3a2：状态“未知”的精确化、析取型发送者守卫、名字无关性测试（NS-P3b 之前必须完成）
+
+```text
+# NS-P3a2：修正状态事实的未知扩散与析取守卫，重新生成并验收 facts
+
+前置：NS-P3a（bed6223f）。facts_v1/accepted_attempt2 只读保留；新结果写入 artifacts/facts_v1/accepted_attempt3/，通过后再更新 CURRENT.json。不改冻结的 DFG/L1/L2/L3 代码与证据，不新增 DDG 边，不训练，不用 GPU。视图口径按当前 EXPERIMENT_POLICY.md（original），除非用户另有指示。
+
+## 背景（审查结论，写进 PROGRESS）
+1. facts.py::_bind_layers 对每条 kind 含 "unresolved" 的 L2 诊断，把所属函数内全部语句的 state.status 置为 unknown。L2 的 state_name_missing 表示“该标识符既不是局部变量，也不是文件内作用域的成员”，内置函数与全局名（require、assert、keccak256、now 等）都会触发它。结果：reentrancy_node 有 2123 行仅因 state_name_missing 被置为 unknown，例如 reentrancy_bonus.sol 中 `rewardsForA[recipient] = 0;`（写已知状态变量）以及 SafeMath 中 `if ( a == 0 )`、`return c;`（不涉及状态）。四个任务 state unknown 比例为 66%/66%/76%/81%。
+2. 同一机制下，函数内任何一个事件没有 HCG 节点（如 emit、revert），就使函数汇总（L 组）与合约汇总（M 组）成为 unknown，即使缺失的事件对汇总没有影响。
+3. 守卫：`require(msg.sender == owner || msg.sender == address(this))` 被判为“不是发送者守卫”。这是方案第 4.6 节规则（|| 不计入）的错误：当析取的每一项都是对发送者（msg.sender 或 tx.origin）的相等比较时，条件必然把发送者限制在一个集合内，属于发送者守卫。
+
+## 1. 状态未知的精确化（facts.py，必要时新增 facts_state.py）
+1. **诊断分类**：对每条 L2 unresolved 诊断，按其记录的 AST 位置取出标识符及其语法角色（诊断中没有位置时，只读地重跑冻结的 L2 绑定器取回位置，不改冻结代码）。以下情形不构成状态不确定，不得置 unknown：
+   - Solidity 内置函数与全局名：require、assert、revert、keccak256、sha3、sha256、ripemd160、ecrecover、addmod、mulmod、selfdestruct、suicide、now、blockhash、gasleft、type、abi，以及 msg/tx/block/this/super；
+   - 用作类型或类型转换的名字：address、payable、bool、string、byte、bytes、bytesN、intN、uintN、fixed/ufixed 系列，以及 `new T(...)`、变量声明中的类型名；
+   - 只出现在调用位置的被调函数名（call_expression 的 function 部分）、emit 后的事件名、函数头中的 modifier 调用名。
+   其余（在读或写的取值位置上、无法解析的标识符，典型是来自文件外基类的成员）才是状态不确定。
+2. **作用范围**：
+   - 语句自身的 state.status：只有当该语句自身的 AST 中含有上述“状态不确定”标识符、或使用了未解析别名的局部变量、或自身有未投影的状态效应时，才置 unknown；
+   - 函数级的不确定（函数内任一语句含写位置上的状态不确定标识符、未解析别名、未投影的状态写）只影响该函数的 L 组中与写状态相关的位、该函数参与的 K 组写入计数与“未受保护写入”，以及 C 组顺序（沿用现有 missing_effects 规则）；
+   - L 组与 M 组的其余位直接从函数/合约的完整 AST 计算（包括没有 HCG 节点的 emit、revert 等），投影缺失不得使它们成为 unknown；K 组写入函数数使用全部 L2 证据（含未投影证据中的语句与函数信息）。
+3. 保留每行的 unresolved 计数（诊断信息），只改变 status 的判定。
+
+## 2. 析取型发送者守卫（facts_guards.py）
+- 有效比较中：若一个析取（||）的每一项都是“发送者类 env（msg.sender 或 tx.origin）与某操作数的有效相等”，则该条件是发送者守卫，eq_pairs 取各项类别组合的并集，并在守卫记录中加 disjunctive=true；只要有一项不是发送者相等比较，就仍按现规则不计入相等组合。
+- 极性为负时按 De Morgan 换算：`if (msg.sender != a && msg.sender != b) revert;`（规则 3）等价于有效的 `msg.sender == a || msg.sender == b`，同样是析取型发送者守卫。
+- 授权变量与 K/L/M 组随之重新计算。
+- 新增 Oracle 用例（先写期望再运行）：
+  ii) require(msg.sender == owner || msg.sender == address(this)); x = 1; → 发送者守卫，eq_pairs 含 env 对状态，disjunctive；owner 是授权变量；
+  jj) if (msg.sender != a && msg.sender != b) revert(); y = 1; → 规则 3，发送者守卫，eq_pairs 含两项（a、b 为状态变量时为 env 对状态），disjunctive；
+  kk) require(msg.sender == owner || paused == false); → 不是发送者守卫（有非发送者项）；
+  ll) 函数 f 中 `require(msg.sender == owner); rewards[a] = 0;` 与 `uint c = a * b; assert(c / a == b); return c;` → 两个函数中所有语句的 state.status 都是 supported（内置名不造成未知）；
+  mm) 合约继承了文件外的基类，函数中读写 `inheritedVar = 1;`（该名字在文件内无声明）→ 这条语句 state.status=unknown，同函数中只写本文件状态变量的另一条语句仍为 supported；
+  nn) 函数含 `emit Log(now);`（emit 没有 HCG 节点）→ 该函数 L 组“使用时间戳”为 1，L/M 组 status 为 supported。
+- 已有用例 ff（`a || msg.sender == owner`）保持“无相等组合、非发送者守卫”。
+
+## 3. 名字无关性测试
+- Fixture 级（必须）：对全部 Oracle 源码，用一个确定的双射把所有非保留标识符改名（例如 n1、n2…），重新抽取事实：除 names 字段（按双射还原后相同）与 I 组“仅大小写不同”一位（该位按改名前的拼写计算，测试中显式传入还原映射）外，所有事实逐项相同。
+- 真实数据级：只在用户确认视图口径后执行（见第 5F 节）；本步不读取匿名产物。
+
+## 4. 重新生成与比较
+- 四个任务重新抽取到 accepted_attempt3/original/；与 accepted_attempt2 逐行比较：
+  - 预期变化只有：state.status、L/M/K 组的 status 与受影响的位、守卫的 is_sender_guard/eq_pairs/disjunctive、授权变量及其回填位；
+  - 每行的 reads/writes 列表、调用、环境、算术、语法、DFG 事实必须不变；出现其他变化逐条列出原因，不得放宽。
+- 报告修正前后各组 unknown 比例（分母与 NS-P3a 相同）与按原因的分布；报告析取型发送者守卫的个数与新增授权变量个数。
+- 重跑跨类别冒烟（另外 5 类，原名，无图）：0 异常。
+
+## 5. 测试与验收
+全部 node_sem 测试、dfg_v2 测试与原回归通过；facts_verify 对 accepted_attempt3 通过；CURRENT.json 指向 accepted_attempt3（旧版本记为 superseded）；PROGRESS、HANDOVER、training_changes 追加记录（doc_check --expect-cjk 通过）；提交 NS-P3a2。不推进 NS-P3b。
+```
+
 ### 5.5b Prompt NS-P3b：M2 字段与编码、M3a 向量、CTX/STATIC 模态
 
 ```text
@@ -1346,6 +1400,29 @@ NodeSem 的代码按通用设计实现（第 4.6 节原则 1），但它的输�
   - unchecked_low_level_calls 的注入标记是 `bug_unchk_send`，片段为 `msg.sender.transfer(1 ether);`，transfer 失败时会回滚，这并不是“未检查的低层调用”。
   - 扩展时，这两类的 SolidiFI 层与非 SolidiFI 层必须分开报告与解读。M3a 的字段设计不得为了拟合这些片段而调整。
 - **算术类会因匿名化丢失 SafeMath 的名字。** N-anon-s 会把 SafeMath 及其 add/sub/mul 改成 vN。M3a/M2 需要用结构表达“经过检查的库运算”：例如在 L 组（函数汇总）中对被调用的同文件库函数或内部函数做一层汇总，记录其函数体内是否对运算结果设置了 require/assert/if 守卫。否则算术类的主视图会系统性地丢失这一合法语义。这一项应在 NS-P3a 实现事实之前决定，不依赖任何结果。
+
+## 5F. NS-P3a 审查记录（2026-11-02，Claude）
+
+**已核实正确的部分：**
+- DFG 接口：facts_io.check_layer_edge 逐项复现 dfg_v2/pipeline._evidence 的检查（索引范围与唯一性、端点一致、L1 非自事实、L2/L3 必须已投影、关系与环境键一致）；L1 符号按封存的 route 重建冻结的 SymbolTable/ExtendedSymbolTable，按完整 ID 精确查找，不一致即报错；24681 次查找通过。图、证据、源码都先核对 SHA。
+- 行数与身份：四个任务 18610/12223/13693/7892 行，与 text_v1 的 F3 全集一致。
+- 守卫的关键区分在真实数据上成立：phishable.sol 与 mycontract.sol 的 `require(tx.origin == owner)` 的自身条件是 env 对状态；SolidiFI 模板 `require(tx.origin == owner_txoriginN)` 是 env 对参数；其后的转账语句带有规则 1 守卫。
+- `.call.value(x)` 未被调用的语义（访问控制两个任务各 334 处）、一层同文件库/内部函数的运算检查（不依赖 SafeMath 名字，回应了 DFG 侧关于匿名化丢失 SafeMath 的意见）、using-for 库调用不计为外部调用、未解析 modifier 记为未知，这些处理都正确。
+- 用户批准的五项细节（必然成立的极性、唯一一层运算检查、封存符号身份、金额与混合返回值 unknown、共享基类声明的授权汇总）合理。
+
+**必须修正的问题（NS-P3a2）：**
+1. **状态未知被整函数扩散（实现错误）**：见 NS-P3a2 背景第 1、2 条。state unknown 66%–81% 中，绝大部分由内置名触发的 state_name_missing 造成，而不是真正的状态不确定。
+2. **析取型发送者守卫（方案错误）**：第 4.6 节“|| 不计入”的规则对 `msg.sender == owner || msg.sender == admin` 这类常见写法是错的，NS-P3a2 修正。
+3. **名字无关性没有被检验**：原名单视图下，原计划中“两个视图逐位相同”的检验不再执行。M3a 的设计依赖于“与名字无关”，至少需要 fixture 级的改名测试。
+
+**与方案冲突、需要用户决定的事项：EXPERIMENT_POLICY.md（只用原名视图）。**
+NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只用原名、facts 拒绝匿名视图。这推翻了 2026-10-31 与用户确定的“匿名视图为唯一主终点、原名视图为次要终点”。若保持原名为主，需要清楚以下后果，并在 NS-P4 之前改写后续 Prompt：
+- **名字泄漏**：8B–8D 已证明，原名下 SolidiFI 注入代码的名字（如 `owner_txorigin12`、`userBalance_re_ent19`）几乎直接给出标签：在访问控制节点任务上，不经学习的标识符规则（8B）达到 98.97，高于所有 GNN；8D 中只把注入标记换成 idN 的视图上，无学习规则在 SolidiFI C2 子集上也达到 99.98。其余 5 类的注入名同样带标记（`_intou`、`_TOD`、`_tmstmp`、`_unchk`、`bug_unchk_send`）。预训练代码编码器（M1/M2）与 LLM（M3b）会直接读到这些名字，原名下的 S2–S7 增益无法与“认出注入标记”区分开。M3a 按设计与名字无关（一处例外），受影响较小。
+- **基线**：8H 的 S0 是匿名特征，不能作为原名实验的配对基线；需要在原名、分组折、L-audit 下重跑 S0 × {G0, G3R} 共 60 个 fit。
+- **可比性**：DFG 的主结果（8H）是匿名视图，NodeSem 改为原名后，两个创新点的结果不在同一视图上。
+可选方案：(A) 恢复匿名为主、原名为次（原计划）；(B) 原名为主，但预先登记必须报告的对照：原名 S0 基线、非 SolidiFI 层、按类别的标识符规则基线，以及匿名视图上的 S0/S4 作为泄漏对照；(C) 两个视图都作为主终点，共同做 Holm 校正，并预先规定结论只在两者一致时成立。facts 与 M3a 在三种方案下都可直接使用（只有 names 字段与视图有关）。
+
+结论：NS-P3a 的大部分实现正确，DFG 接口正确；先完成 NS-P3a2，并由用户确认视图口径，再进入 NS-P3b。
 
 ## 6. 里程碑
 
