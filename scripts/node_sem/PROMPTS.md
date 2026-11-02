@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r11（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+版本：r12（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+
+**r12 相对 r11 的修改**：NS-P3a3 审查通过（第 5H 节），下一步为 NS-P3b；视图口径的建议见第 5H 节，待用户决定。
 
 **r11 相对 r10 的修改**（NS-P3a2 审查后，见第 5G 节）：新增小范围纠正 Prompt **NS-P3a3**（第 5.5a3 节，NS-P3b 之前完成）：修正冻结语法误解析导致的合取型发送者守卫漏判、`throw` 被当成未解析状态名、汇总字段未知的三值逻辑与 K 组未知的作用目标，以及一处依赖 networkx 版本的写法。NS-P3b 按当前 EXPERIMENT_POLICY（原名视图）与 facts v1.1 的逐字段 unknown_fields 改写，并增加不含变量名的 CTX 对照。
 
@@ -1511,6 +1513,21 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 **视图口径**：用户没有选择第 5F 节的 A/B/C，并继续按 EXPERIMENT_POLICY（原名）执行；本文件从 NS-P3b 起按原名改写。我仍然认为名字泄漏需要对照，因此 NS-P3b 同时生成不含变量名的 CTX（ctx_masked）；原名 S0 基线与非 SolidiFI 分层在 NS-P5 计划中登记。
 
 结论：NS-P3a2 的主体正确，先完成 NS-P3a3，再进入 NS-P3b；NS-P4（融合与冒烟）在 NS-P3b 之后。
+
+## 5H. NS-P3a3 审查记录（2026-11-02，Claude）
+
+**结论：通过。** 下一步是 NS-P3b（M2/CTX 与 M3a/STATIC），NS-P4 在其后。
+
+**复核：**
+- 独立环境（重新编译的语法库）中全部 facts 测试 413 通过；在 networkx 3.7 下去掉我自己的兼容补丁后同样通过，dominators 修正有效。
+- 守卫：对 15 个构造条件逐一检查（正/负极性的合取、析取、De Morgan、mapping 下标中的 msg.sender、三元表达式、混合项），结果全部符合定义；buggy_2/buggy_3 的 changeOwner 写入现在受发送者守卫保护，unguarded_write_functions 2→1。
+- Codex 提出的两项调整是对的：我在 NS-P3a3 中写的“合取只保留发送者相等组合”会丢掉原有的 state_param 等组合，属于我的表述错误；误解析判据补充数组 base 跨越布尔运算（buggy_21）也是必要的。
+- 逐行比较 attempt3→attempt4：调用、环境、算术、语法、DFG、读写变量与形状在四个任务中零变化；没有任何字段由已知变为未知；已知值的变化只有守卫带来的 sender_guard false→true（每任务 3）与 unguarded 计数减少。被解除掩码但取值不是 true/many 的字段，抽查后都来自目标收窄：例如 balanceOf 的歧义只再作用于 balanceOf；只含 mload/extcodesize/mstore 的 assembly（buggy_30/31/43/44、spank_chain_payment 等）不再使函数的 state_write 未知。
+- 未知比例：state 68/22/43/21，K 105/85/33/15（约 4%），L 52/18/52/18，M 13/8/15/8。
+
+**已知限制（不阻塞，保守方向）：** 别名目标判断中 `address payable` 不能被 PRIMITIVE 完整匹配，被当成可能的引用类型，SolidiFI 文件中的 `address payable lastPlayer_*` 因此被列入别名问题的目标，使少数 K 字段多被掩码。不修改，记录在案。
+
+**视图口径（我的建议）：** 匿名视图（N-anon-s）作为主终点，原名作为次要终点。理由：(1) 四个任务中 SolidiFI 文件占 40/142、40/71、40/114、40/57，节点任务中占多数；8B–8D 已证明原名下这些文件的标签可以由名字直接读出，而且只替换注入标记的视图同样泄漏（99.98），所以部分改名不能代替全文件双射；(2) DFG 的主结果（8H）在匿名视图上，NodeSem 的增益应在同一视图、同一 S0 基线上衡量，可直接复用 8H 的 S0，不必新跑 60 个 fit；(3) M3a/STATIC 与名字无关，两种视图下相同，受影响的只是 TOKEN/CODE/CTX/LLM。原名视图的价值（预训练编码器与 LLM 能利用有意义的名字，更接近真实使用）通过次要终点与非 SolidiFI 分层来体现。若用户仍选原名为主，则必须预先登记：原名 S0 基线、非 SolidiFI 分层、ctx_masked 对照，以及关键配置在匿名视图上的复核。用户决定后，再据此调整 EXPERIMENT_POLICY.md 与 NS-P3b。
 
 ## 6. 里程碑
 
