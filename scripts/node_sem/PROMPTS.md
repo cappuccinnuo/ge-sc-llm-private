@@ -1329,6 +1329,17 @@ Codex 提出的三个设计问题都成立，决定见第 4.2、4.6 节与 r4 �
 
 结论：NS-P2b 验收通过，没有遗留问题，进入 NS-P3。
 
+## 6b. 扩展到其余 5 类的前提（r9 记录，现在不执行）
+
+NodeSem 的代码按通用设计实现（第 4.6 节原则 1），但它的输入依赖基准 v2，而基准 v2 目前只为重入与访问控制建立。扩展到 arithmetic、denial_of_service、front_running、time_manipulation、unchecked_low_level_calls 之前，需要按顺序完成：
+1. **DFG 图**：按 scripts/DFG/dfg_v2/EXTENDING.md 登记类别、封存输入、构建并核验 F1–F3 图存储。
+2. **基准 v2 的三项输入**（EXTENDING.md 写于 8D 之前，没有覆盖这些）：
+   - 8D 式的分组折（精确与近重复源码分在同一组）；
+   - 8G 式的 N-anon-s 改名视图与泄漏探针（P2/P3、关键字基线）。这些类别的 SolidiFI 标记名（例如 `_intou`、`_TOD`、`_tmstmp`、`_unchk`）同样会被全标识符改名去掉，但探针必须重新通过；
+   - L-audit 标签视图：8B/8C 的标签审计是按重入与访问控制的 SolidiFI bug log 做的，其余类别要重新做截断、溢出标签与 C1/C2 的审计。
+3. **NodeSem**：在新类别上重跑 NS-P2（text_view 对未识别的节点类型回退为完整文本并计数，扩展时检查回退数）、NS-P3a/P3b（事实与特征），再按 NS-P5 的方式封存计划。
+这些工作应另立 Prompt，并写进 DFG 与 NodeSem 两边的计划；本轮的冒烟（NS-P3a 第 3 节）只验证事实抽取能在这些类别的源码上运行。
+
 ## 6. 里程碑
 
 | 里程碑 | 包含 | 产出 | 需要用户决定的点 |
