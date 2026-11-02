@@ -1,0 +1,931 @@
+{
+  "authorship": "Manual expected values from Solidity statement meaning, written before extraction tests. Never generated from production extractor.",
+  "cases": [
+    {
+      "checks": [
+        {
+          "contains": {
+            "external.kinds": [
+              "call"
+            ],
+            "external.target_classes": [
+              "msg.sender"
+            ]
+          },
+          "equals": {
+            "external.return_handling": "ignored",
+            "external.value_attached": true,
+            "external.value_class": "param"
+          },
+          "text": "msg.sender.call.value(_am)();"
+        }
+      ],
+      "id": "a",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "a.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "external.kinds": [
+              "send"
+            ]
+          },
+          "equals": {
+            "external.return_handling": "checked_in_if"
+          },
+          "node_kind": "condition",
+          "text": "if (!msg.sender.send(x)) throw;"
+        }
+      ],
+      "id": "b",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "b.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "external.kinds": [
+              "call"
+            ]
+          },
+          "equals": {
+            "external.return_handling": "assigned_unchecked"
+          },
+          "text": "(bool ok, ) = a.call(data);"
+        }
+      ],
+      "id": "c",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "c.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "order.call_then_write": true
+          },
+          "text": "msg.sender.call.value(amount)();"
+        },
+        {
+          "contains": {
+            "arith.ops": [
+              "-"
+            ],
+            "state.writes": [
+              {
+                "auth": false,
+                "shape": "mapping",
+                "var": "balances"
+              }
+            ]
+          },
+          "equals": {
+            "arith.on_state": true,
+            "order.reachable_from_ext_call": true
+          },
+          "text": "balances[msg.sender] -= amount;"
+        }
+      ],
+      "id": "d",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "d.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "guards.eq_pairs": [
+              "env_state"
+            ],
+            "guards.rule": [
+              "1"
+            ],
+            "state.writes": [
+              {
+                "auth": true,
+                "shape": "address",
+                "var": "owner"
+              }
+            ]
+          },
+          "equals": {
+            "guard_status": "present"
+          },
+          "text": "owner = x;"
+        }
+      ],
+      "id": "e",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "e.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "self_condition.eq_pairs": [
+              "env_state"
+            ]
+          },
+          "text": "require(tx.origin == ownerState);"
+        },
+        {
+          "contains": {
+            "self_condition.eq_pairs": [
+              "env_param"
+            ]
+          },
+          "text": "require(tx.origin == _param);"
+        }
+      ],
+      "id": "f",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "f.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "external.kinds": [
+              "selfdestruct"
+            ],
+            "external.target_classes": [
+              "state"
+            ],
+            "guards.rule": [
+              "5"
+            ]
+          },
+          "text": "selfdestruct(owner);"
+        }
+      ],
+      "id": "g",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "g.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "function_ctx.is_constructor": true
+          },
+          "function": "Wallet",
+          "node_kind": "function",
+          "text": "function Wallet()"
+        }
+      ],
+      "id": "h",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "h.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "external.kinds": [
+              "transfer"
+            ]
+          },
+          "equals": {
+            "loop.bound": "state",
+            "order.ext_call_in_loop": true
+          },
+          "text": "users[i].transfer(1);"
+        }
+      ],
+      "id": "i",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "i.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "order.write_then_call": true
+          },
+          "text": "state = 1;"
+        }
+      ],
+      "id": "j",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "j.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "guards.operand_classes": [
+              "timestamp"
+            ],
+            "guards.polarity": [
+              1
+            ],
+            "guards.rule": [
+              "2"
+            ]
+          },
+          "text": "state = 1;"
+        }
+      ],
+      "id": "k",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "k.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "guards.eq_pairs": [
+              "env_state"
+            ],
+            "guards.polarity": [
+              -1
+            ],
+            "guards.rule": [
+              "3"
+            ]
+          },
+          "text": "owner = x;"
+        }
+      ],
+      "id": "l",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "l.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "guard_status": "none",
+            "guards": []
+          },
+          "text": "b = 2;"
+        }
+      ],
+      "id": "m",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "m.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "guard_status": "none",
+            "guards": []
+          },
+          "text": "owner = x;"
+        }
+      ],
+      "id": "n",
+      "note": "Parser-only shadowing probe: declaration follows call. Solidity legality not asserted.",
+      "source": "n.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "guard_status": "unknown"
+          },
+          "text": "x = 1;"
+        }
+      ],
+      "id": "o",
+      "note": "Parser-only unresolved modifier; deliberately not valid compilation input.",
+      "source": "o.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "order.status": "unknown"
+          },
+          "text": "state = 1;"
+        }
+      ],
+      "id": "p",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "p.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "arith.ops": [
+              "+"
+            ],
+            "arith.sinks": [
+              "local"
+            ]
+          },
+          "equals": {
+            "arith.from_param": true,
+            "arith.small_int": true
+          },
+          "text": "v = v + p;"
+        }
+      ],
+      "id": "q",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "q.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "arith.ops": [
+              "*"
+            ],
+            "arith.sinks": [
+              "guard"
+            ],
+            "dfg.to.sink": [
+              "guard"
+            ]
+          },
+          "equals": {
+            "arith.from_param": true
+          },
+          "text": "uint256 amount = uint256(cnt) * _value;"
+        }
+      ],
+      "id": "r",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "r.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "arith.ops": [
+              "-"
+            ]
+          },
+          "equals": {
+            "arith.in_unchecked": true
+          },
+          "text": "x -= y;"
+        }
+      ],
+      "id": "s",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "s.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "order.ext_call_in_loop": true
+          },
+          "text": "addrs[i].send(1);"
+        },
+        {
+          "contains": {
+            "external.kinds": [
+              "send"
+            ]
+          },
+          "equals": {
+            "external.return_handling": "checked_in_require"
+          },
+          "text": "require(bidder.send(bid));"
+        }
+      ],
+      "id": "t",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "t.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "loop.bound": "param_local",
+            "state.array_size_change": true
+          },
+          "text": "list.push(msg.sender);"
+        },
+        {
+          "equals": {
+            "state.array_size_change": true
+          },
+          "text": "list.length = 0;"
+        }
+      ],
+      "id": "u",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "u.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "syntax": [
+              "hash"
+            ]
+          },
+          "text": "require(hash == sha3(solution));"
+        },
+        {
+          "contains": {
+            "external.target_classes": [
+              "msg.sender"
+            ],
+            "guards.eq_pairs": [
+              "hash_state_literal"
+            ],
+            "guards.operand_classes": [
+              "hash",
+              "state"
+            ]
+          },
+          "equals": {
+            "external.value_class": "literal"
+          },
+          "text": "msg.sender.transfer(1000 ether);"
+        }
+      ],
+      "id": "v",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "v.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "external.value_class": "state",
+            "order.call_then_write": true
+          },
+          "text": "owner.transfer(reward);"
+        },
+        {
+          "contains": {
+            "env.keys": [
+              "msg.value"
+            ],
+            "env.uses": [
+              "state"
+            ]
+          },
+          "text": "reward = msg.value;"
+        }
+      ],
+      "id": "w",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "w.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "arith.ops": [
+              "%"
+            ],
+            "env.keys": [
+              "block.timestamp"
+            ],
+            "env.uses": [
+              "arith",
+              "guard"
+            ]
+          },
+          "node_kind": "condition",
+          "text": "if (now % 15 == 0) { msg.sender.transfer(this.balance); }"
+        },
+        {
+          "equals": {
+            "external.value_class": "this.balance"
+          },
+          "text": "msg.sender.transfer(this.balance);"
+        }
+      ],
+      "id": "x",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "x.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "arith.ops": [
+              "%"
+            ],
+            "env.keys": [
+              "block.timestamp"
+            ],
+            "env.uses": [
+              "hash"
+            ],
+            "syntax": [
+              "hash",
+              "abi_encode"
+            ]
+          },
+          "text": "uint r = uint(keccak256(abi.encodePacked(block.timestamp))) % 2;"
+        }
+      ],
+      "id": "y",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "y.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "external.kinds": [],
+            "external.return_handling": "not_applicable",
+            "external.uninvoked_call_value": true
+          },
+          "text": "c.call.value(1 ether);"
+        },
+        {
+          "contains": {
+            "external.kinds": [
+              "send"
+            ]
+          },
+          "equals": {
+            "external.return_handling": "ignored"
+          },
+          "text": "c.send(1);"
+        }
+      ],
+      "id": "z",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "z.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "external.kinds": [
+              "delegatecall"
+            ],
+            "external.target_classes": [
+              "state"
+            ]
+          },
+          "equals": {
+            "external.data_class": "msg.data",
+            "function_ctx.is_fallback": true
+          },
+          "text": "target.delegatecall(msg.data);"
+        }
+      ],
+      "id": "aa",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "aa.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "guards.is_sender_guard": [
+              true
+            ],
+            "guards.polarity": [
+              1
+            ],
+            "guards.rule": [
+              "5p"
+            ]
+          },
+          "text": "x = 1;"
+        }
+      ],
+      "id": "bb",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "bb.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "guards.kind": [
+              "internal_check"
+            ],
+            "guards.rule": [
+              "6"
+            ]
+          },
+          "text": "x = 1;"
+        }
+      ],
+      "id": "cc",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "cc.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "state_decl.auth": true,
+            "state_decl.unguarded_writer": true
+          },
+          "node_kind": "state_decl",
+          "text": "address owner;"
+        },
+        {
+          "contains": {
+            "state.writes": [
+              {
+                "auth": true,
+                "shape": "address",
+                "var": "owner"
+              }
+            ]
+          },
+          "equals": {
+            "guard_status": "none"
+          },
+          "text": "owner = o;"
+        }
+      ],
+      "id": "dd",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "dd.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "function_ctx.is_constructor": false,
+            "function_ctx.name_case_only_differs_from_contract": true
+          },
+          "function": "wallet",
+          "node_kind": "function",
+          "text": "function wallet()"
+        }
+      ],
+      "id": "ee",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "ee.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "absent": {
+            "guards.eq_pairs": [
+              "env_state"
+            ],
+            "guards.is_sender_guard": [
+              true
+            ]
+          },
+          "contains": {
+            "guards.rule": [
+              "2"
+            ]
+          },
+          "equals": {
+            "guard_status": "present"
+          },
+          "text": "x = 1;"
+        }
+      ],
+      "id": "ff",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "ff.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "env.keys": [
+              "block.timestamp"
+            ]
+          },
+          "text": "uint t = now;"
+        },
+        {
+          "contains": {
+            "syntax": [
+              "hash"
+            ]
+          },
+          "text": "bytes32 h = sha3(b);"
+        },
+        {
+          "contains": {
+            "external.kinds": [
+              "call"
+            ]
+          },
+          "equals": {
+            "external.value_attached": true,
+            "external.value_class": "literal"
+          },
+          "text": "a.call.value(1)();"
+        },
+        {
+          "contains": {
+            "external.kinds": [
+              "selfdestruct"
+            ]
+          },
+          "text": "suicide(a);"
+        },
+        {
+          "contains": {
+            "syntax": [
+              "exit"
+            ]
+          },
+          "text": "throw;"
+        }
+      ],
+      "id": "gg",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "gg.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "contains": {
+            "env.keys": [
+              "block.timestamp"
+            ]
+          },
+          "text": "uint t = block.timestamp;"
+        },
+        {
+          "contains": {
+            "syntax": [
+              "hash"
+            ]
+          },
+          "text": "bytes32 h = keccak256(b);"
+        },
+        {
+          "contains": {
+            "external.kinds": [
+              "call"
+            ]
+          },
+          "equals": {
+            "external.value_attached": true,
+            "external.value_class": "literal"
+          },
+          "text": "a.call{value: 1}(\"\");"
+        },
+        {
+          "contains": {
+            "external.kinds": [
+              "selfdestruct"
+            ]
+          },
+          "text": "selfdestruct(a);"
+        },
+        {
+          "contains": {
+            "syntax": [
+              "exit"
+            ]
+          },
+          "text": "revert();"
+        }
+      ],
+      "id": "gg_modern",
+      "note": "Modern call-options syntax uses pragma 0.6; the template 0.5 pairing would not compile. No compilation claimed.",
+      "source": "gg_modern.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "state_decl.public": true,
+            "state_decl.shape": "mapping",
+            "state_decl.write_functions": "many"
+          },
+          "node_kind": "state_decl",
+          "text": "mapping(address=>uint) public balances;"
+        },
+        {
+          "equals": {
+            "fn_summary.state_write": true
+          },
+          "function": "f",
+          "node_kind": "function",
+          "text": "function f("
+        },
+        {
+          "contains": {
+            "state.reads": [
+              {
+                "auth": false,
+                "shape": "mapping",
+                "var": "balances"
+              }
+            ]
+          },
+          "text": "return balances[msg.sender];"
+        },
+        {
+          "equals": {
+            "contract_summary.kind": "contract"
+          },
+          "node_kind": "contract",
+          "text": "contract A"
+        }
+      ],
+      "id": "hh",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "hh.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "absent": {
+            "guards.eq_pairs": [
+              "env_state"
+            ]
+          },
+          "contains": {
+            "guards.eq_pairs": [
+              "env_param"
+            ]
+          },
+          "text": "uint x = 1;"
+        },
+        {
+          "equals": {
+            "state_decl.auth": false
+          },
+          "node_kind": "state_decl",
+          "text": "address owner;"
+        }
+      ],
+      "id": "negative_local_shadow",
+      "note": "Hand-authored expected facts; parser robustness only; no solc execution.",
+      "source": "negative_local_shadow.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "external.return_handling": "assigned_unchecked"
+          },
+          "text": "(bool ok, ) = a.call(data);"
+        }
+      ],
+      "id": "negative_result_overwrite",
+      "note": "Overwriting the call result before a condition must not count as checking that result.",
+      "source": "negative_result_overwrite.sol",
+      "validation": "parser_only_not_compiled"
+    },
+    {
+      "checks": [
+        {
+          "equals": {
+            "checked_call.result_condition_check": false
+          },
+          "text": "uint v = helper(x,y);"
+        }
+      ],
+      "id": "negative_unrelated_guard",
+      "note": "A guard unrelated to the computed result is not a result-condition check.",
+      "source": "negative_unrelated_guard.sol",
+      "validation": "parser_only_not_compiled"
+    }
+  ],
+  "default_validation": "parser_only_not_compiled",
+  "path_semantics": "Dotted paths map through lists by flattening; equals is exact, contains is subset, absent prohibits any listed value. A selector matches the stated AST owner; function and node_kind disambiguate declarations.",
+  "schema": "nodesem-handwritten-oracle-v1",
+  "selector_revision": "After first extractor run, b/x selectors use whole if-statement AST owner rather than its condition child. All semantic expected values unchanged."
+}

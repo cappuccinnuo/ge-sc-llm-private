@@ -1,0 +1,1 @@
+pragma solidity ^0.4.24; contract A { function helper(uint a, uint b) internal returns(uint) { uint r = a + b; require(a > 0); return r; } function f(uint x, uint y) public { uint v = helper(x,y); } }

@@ -2430,3 +2430,12 @@ CPU 编号诊断：四任务同语句匿名变体余弦均值依次 0.903835/0.9
 
 
 提交前补充：通用 `git diff --cached --check` 对原始 `preexisting_document_edits.patch` 的空白上下文行报尾空格。这是原始 diff 语法的一部分；为保留归档字节，仅该历史归档免于尾空格格式检查，其 SHA 与暂存字节仍严格核验。其余新增代码、可读文档和 JSON 的暂存格式检查通过。原失败与限定复核记录保存于 artifacts/ns_p2b/commit_validation.json；未改算法或实验产物。
+
+
+### 2026-11-02 NodeSem NS-P3a 完成（修改 AI：Codex）
+
+完成原名 StatementFacts：AST声明/作用域、通用行为、词法守卫、一层运算检查、冻结L1/L2/L3精确证据、语义CFG顺序和声明/函数/合约汇总。新代码和测试仅在scripts/node_sem；原DFG/HGT/tokenizer、图、标签、折、8H计划/结果不变。用户明确后续用original，旧匿名结果仅留历史；后续需原名S0配对基线。详情及批准选择见training_changes§77、EXPERIMENT_POLICY.md。
+
+最终事实路径为scripts/node_sem/artifacts/facts_v1/accepted_attempt2/，由CURRENT.json指向；根original/首次产物已被替代但保留。四任务52418行与原名text_v1身份/顺序/SHA一致；另外五类50源码、2098函数冒烟0异常。全套3372测试通过，42条既有警告；22813冻结文件与8H生效runtime核验通过。报告：NS_P3A_REPORT.md。
+
+修复了共享继承授权与完整性、未知modifier、库调用分类、缺失状态写和别名导致的顺序误判。未知仍明确保留，不能声称完整Solidity分析；未执行编译验证、向量编码或训练，无F1结论，不推进NS-P3b。最终实验按用户安排在显存充足服务器执行，本机RTX3050 4GiB仅是开发限制；服务器尚未部署实测。本轮CPU、本地提交、不自动推送。

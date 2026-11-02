@@ -1,0 +1,1 @@
+pragma solidity ^0.4.24; contract A { mapping(address=>uint) balances; function f(uint8 cnt, uint _value) public { uint256 amount = uint256(cnt) * _value; require(_value > 0 && balances[msg.sender] >= amount); } }

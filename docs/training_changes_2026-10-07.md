@@ -7760,3 +7760,82 @@ python -B -m scripts.node_sem.doc_check --expect-cjk scripts/node_sem/NS_P2_REPO
 
 
 提交前补充：通用 `git diff --cached --check` 对原始 `preexisting_document_edits.patch` 的空白上下文行报尾空格。这是原始 diff 语法的一部分；为保留归档字节，仅该历史归档免于尾空格格式检查，其 SHA 与暂存字节仍严格核验。其余新增代码、可读文档和 JSON 的暂存格式检查通过。原失败与限定复核记录保存于 artifacts/ns_p2b/commit_validation.json；未改算法或实验产物。
+
+
+## 77. 2026-11-02 NodeSem NS-P3a：原名语句事实、声明绑定与投影验收（修改 AI：Codex）
+
+### 77.1 输入、范围与用户口径
+
+输入 node-sem@e62d56e536e0c2d07a43a050a0916aaa0198daa8，PROMPTS.md r9；开始按共享上下文快进同步，已是最新。已读取设计介绍、共享上下文 §5.1 与 NS-P3a。实施只在 scripts/node_sem/，不修改 scripts/DFG、作者代码、模型、tokenizer、标签、图或任何历史训练产物。
+
+用户本轮明确要求不再开展匿名化，后续使用原名。因此新 facts.extract 只接受 original，anonymous 直接拒绝；没有运行文档旧版的双视图比较或匿名名字白名单。旧 8H 仅作为固定原图、原始源码和已封存 L1/L2/L3 语义证据的来源，不读取匿名源码/向量/历史分数。新 EXPERIMENT_POLICY.md 记录该覆盖关系。旧执行器配置没有在本轮改写，后续 NS-P4/P5 必须显式绑定 original 并建立原名 S0，不能直接以匿名 8H 得分作为配对基线。
+
+### 77.2 具体新增文件与接口
+
+- facts_schema.py：StatementFacts、枚举与分组适用性、validate；缺失、未知、不适用分开。状态声明 K、函数 L、合约 M 均有完整性状态。
+- facts_ast.py：按 AST 声明/作用域绑定标识符；调用目标、金额、参数、是否真正调用、返回值处理、算术/类型/汇点、数组变化、环境表达式、语法袋、函数上下文。版本归一化依据现有解析结构，未新增 solc 依赖。
+- facts_guards.py：词法 guard 规则 1–6、分支极性、提前退出、modifier 解析与继承、同文件唯一内部检查、一层运算结果检查摘要。未知条件不伪装为授权证明。
+- facts_cfg.py：优先冻结 legacy CFGBuilder，再既有 V2CFGBuilder/SupportedSourceView；IR 仅用于分析。保留 eventless 和未投影块，不使用模型中的反射 CFG 边算顺序。按完整 AST 身份映射 CFG 事件，计算 reachability/dominance、最近前序调用；无映射保留 unknown，不能猜最近行。
+- facts_io.py：从固定 plan/store 取得原始来源，先核对 seal、图 SHA、源码 SHA、layer 标签排除声明。边证据索引/端点/关系/状态变量身份均严格核验。
+- facts.py：extract_source、extract、AstBackend/FactBackend、K/L/M 汇总、原始行序与 env 辅助行、统计、facts/audit/manifest/seal 独占写入。产物含 row_key/provenance 供身份校验，绝对位置和文件名不进入特征分组。
+- facts_acceptance.py：四任务抽取与另外五类固定源码抽样。类别名仅位于验收编排，语义生成器不按漏洞类别分支。
+- facts_verify.py：独立逐行核验 text_v1/original 的实际 manifest/input_text，SHA/行身份/顺序/来源、8H 有效运行版本与开始快照；写 runtime_closure、final_validation 与 verification seal。
+- tests/test_facts_{ast,guards,integration,oracle,policy,schema,verify}.py；38 个手写 Solidity fixture、手写 expected.json 与 README；behavior_coverage.md 逐字段说明与七类相关性；EXPERIMENT_POLICY、NS_P3A_REPORT。
+- 代码通过 import 复用冻结模块，没有重写 HGT/训练器或新增 DDG 边。
+
+### 77.3 已征求并接受的选择
+
+1. guard 极性：例如 if(sender!=owner && ready)return 不能推断继续执行时 sender==owner。用户同意只记录可证明的相等原子，存在守卫与证明授权分开；正极性拆分 conjunction，负极性按 ! 与比较反转，不能证明的组合不生成授权相等。
+2. 一层结构摘要：用户同意同文件、唯一绑定、非递归的内部/库函数运算检查；必须校验运算结果的声明身份进入条件，而非同时存在算术和 require 就认定 checked。重载或无法可靠绑定记未知，不依赖 SafeMath 名字。
+3. L1 实际接口：sealed symbol 是身份字符串，并无 Symbol 对象。用户同意按 analysis_path 复建原 SymbolTable/ExtendedSymbolTable，完整 ID 精确查找，输出 name/kind/类型类别；不拆字符串、不重新计算 DDG。真实数据 24,681 次查找全通过。
+4. 金额与返回处理：用户同意无法解析函数返回金额、同句多个调用处理不同则记录 unknown 与原因，不能写成无金额或任取第一个调用。
+5. 继承共享声明：用户同意基类声明节点按同文件中确认的声明身份汇总派生授权用途；B/L/M 和语句保留作用域，无关同名 owner 不混淆。首次事实保留，重新生成并验收。
+
+decisions.json 独立保存这些选择。本轮的原名覆盖来自用户直接指令，不是 Codex 擅自换方案。
+
+### 77.4 审查修复与失败边界
+
+独立复核暴露并修复：已确认 using-for 库方法误归外部调用；未知 modifier 误计无保护；缺少唯一状态写投影时 K 汇总误报零写入完整；继承声明的完整性未传播派生投影缺失；遗漏 ++/--/delete 的顺序失效传播；以及 CFG 支持但 L2 storage alias 写入证据缺失仍报告 call_then_write=false 的问题。现在缺失写入证据明确 order unknown，不重新分析别名、不加边。require 内建名称的只读诊断单独不会使完整写入顺序失效。
+
+新增正/反例检查原图指纹，真实语义 CFG 不受 HCG 人工反向边影响；未知 modifier 不等于确定无保护；相同变量拼写不等于相同声明；删唯一写节点和未知 alias 不等于无写入。若 status unknown，布尔 false 不能解读为安全或不存在。保留已确认的部分事实，但不会宣称完整支持。
+
+Oracle 均使用真实 tree-sitter。38 个 fixture 覆盖模板 a–hh 与边界；完整 DFG/顺序依赖由图集成测试验证。现代 {value:} 用现代语法版本 fixture，旧 throw/sha3/suicide/now/.value 归一化有对应测试；没有执行 solc，样例均不声称编译合法性已验证。
+
+statistics 同时给出 nonempty、positive、field_applicable，默认字符串占位不会被当成语义正例；guard unknown 的统计分母为全部行，DFG/order/state 按适用组行数。源代码依赖完整摘要由独立 runtime closure 补充，不改变历史 seal。
+
+### 77.5 验收产物、恢复量与统计
+
+首次 artifacts/facts_v1/original、smoke_probe 及首轮日志保持不变，supersession.json 说明替代原因；最终版本为 artifacts/facts_v1/accepted_attempt2，CURRENT.json 指向该目录，NS-P3b 必须读取该指针而非旧根 original。
+
+| task | 文件 | 原节点+env=行数 | DFG unknown | order unknown | state unknown | L1 精确查找 |
+| --- | ---: | --- | --- | --- | --- | ---: |
+| reentrancy_contract | 142 | 18312+298=18610 | 1073/10067 | 941/10067 | 6627/10067 | 7445 |
+| reentrancy_node | 71 | 12036+187=12223 | 439/6635 | 475/6635 | 4350/6635 | 4200 |
+| access_control_contract | 114 | 13432+261=13693 | 1417/7858 | 1254/7858 | 5947/7858 | 7868 |
+| access_control_node | 57 | 7710+182=7892 | 534/4664 | 548/4664 | 3774/4664 | 5168 |
+
+全量 52,418 行原名事实，183.048 秒，0 GPU/fit。文件数按任务，不作为跨任务独立样本数。原名 text_v1 对齐、schema、证据索引/SHA、全部来源与图摘要通过。guard unknown 18/18610、12/12223、59/13693、12/7892；授权 K 正例90/35/87/45。state unknown 高来自冻结 L2 绑定/别名限制和函数级保守传播，并不表示确认的全部状态事实为空。访问控制两任务各334个 uninvoked_call_value 不被当成实际外部调用；不据此读取/调整标签。
+
+重新生成与首次版本逐行比对：1183 行变化，仅 state_decl.auth/status、order.status 与 unresolved 原因。1 个授权声明标记、34 个声明完整性、604 个顺序状态改变；真实依赖、名字、节点身份、调用/环境事实不变。逐行证据保存在 revision_comparison.json，没有覆盖首次事实。
+
+另五类各固定10个文件（文件名排序，buggy_与其他各5）：arithmetic 412函数/1475行、denial_of_service406/1568、front_running506/2133、time_manipulation401/1614、unchecked_low_level_calls373/1226；总50文件、2098函数单元、8016行、0异常/解析失败，16.296秒。纯源码模式所有图/DFG/CFG依赖按unknown；未读取图或标签，不冒充这五类完整特征验收。
+
+### 77.6 测试、封存与实际命令
+
+mando，CUDA_VISIBLE_DEVICES=''、PYTHONDONTWRITEBYTECODE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2，沿用 TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64。最终：
+- python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests：496通过，4警告。
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests：2653通过，9警告。
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py：223通过，29警告。
+- 合计3372通过、0失败、0跳过；42条既有依赖弃用警告。原库未升级。
+
+抽取：python -B -m scripts.node_sem.facts_acceptance tasks --out scripts/node_sem/artifacts/facts_v1/accepted_attempt2；冒烟同入口 mode=smoke；核验 python -B -m scripts.node_sem.facts_verify --out 同目录。上述目录已封存，不应再次向其写入；复现用新目录。完整参数/时间与日志在 final_tests.json、tasks_execution、smoke_execution、verify_execution。
+
+8H execution.load 与 runtime_resume_v2 一致；开始快照23168已跟踪文件中，22813冻结文件字节未变。独立核验不反序列化图/checkpoint、不解析标签/评分；生产者的冻结 Projector 可读取结构label做身份对齐，特征不消费label文本，按已批准的扰动/完整性分开验收。新 runtime closure 独立绑定完整依赖与四份manifest；不改旧计划来通过验证。
+
+文档写入仍使用纯 ASCII JSON转义经管道、Python UTF-8；新增及追加区间必须 doc_check --expect-cjk，保留三份历史文档前缀字节并记录SHA/偏移。
+
+### 77.7 剩余范围与停止
+
+未做 NS-P3b 的 M2/CTX、M3a/STATIC、向量编码、模型融合、LLM、蒸馏、HGT训练或F1比较；未下载/安装新模型或solc。不能把通用事实接口通过等同于完整Solidity语义系统或模型效果提升。
+
+最终实验按用户安排使用显存充足服务器，本机RTX3050 4GiB只是开发限制；服务器尚未部署实测。本轮CPU，产物在WSL，未新增C盘大型运行日志。完成本地NS-P3a提交后停止，不自动推送、不推进下一阶段。

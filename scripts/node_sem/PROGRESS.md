@@ -175,3 +175,20 @@ NS-P2 实际完成 text_view.py、p2_acceptance.py、offline 资产/编码器、
 
 
 提交前补充：通用 `git diff --cached --check` 对原始 `preexisting_document_edits.patch` 的空白上下文行报尾空格。这是原始 diff 语法的一部分；为保留归档字节，仅该历史归档免于尾空格格式检查，其 SHA 与暂存字节仍严格核验。其余新增代码、可读文档和 JSON 的暂存格式检查通过。原失败与限定复核记录保存于 artifacts/ns_p2b/commit_validation.json；未改算法或实验产物。
+
+
+## 2026-11-02 NS-P3a 完成：原名事实与语义验收（修改 AI：Codex）
+
+输入 node-sem@e62d56e5、PROMPTS r9。按用户后续指令只使用 original，新 extract 拒绝 anonymous；旧8H仅定位固定原图/源码/证据，匿名产物只读保留。后续正式训练要明确原名配置和原名S0基线，不得直接复用匿名8H得分。当前政策见 EXPERIMENT_POLICY.md，旧训练入口本轮未改。
+
+新增 facts_schema/ast/guards/cfg/io/facts/acceptance/verify，7组测试、38个手写Solidity fixture与期望、behavior_coverage.md、NS_P3A_REPORT。实现声明身份绑定、通用调用/算术/状态/环境/守卫/函数上下文、精确投影、封存证据连接、语义CFG顺序与K/L/M汇总；没有新增图节点/边、改标签/特征或HGT。绝对位置仅用于内部身份，不能进入特征。
+
+用户已批准：严格布尔极性；唯一同文件一层运算检查；从封存完整symbol ID精确重建声明表；金额/混合返回处理unknown；共享基类声明按确认身份汇总授权而函数/合约保持作用域。选择详情与实际接口见 training_changes§77、decisions.json。审查修复已确认库调用误归外部、未知modifier误计无保护、未投影状态写/继承完整性、++/delete及未知storage alias的顺序unknown传播；未扩展冻结分析器。
+
+最终输入目录是 artifacts/facts_v1/accepted_attempt2/original，CURRENT.json指向它；旧根original/与首次smoke保留superseded。四任务事实依次18610/12223/13693/7892，共52418行，与原名text_v1身份/顺序/源码SHA一致；24681次L1完整身份查找通过。CPU全量183.048秒。原稿对比1183行仅授权/完整性/unknown原因变化，无节点/真实依赖变化。
+
+另外五类固定50源码、2098函数、8016行，0解析失败/异常，16.296秒；纯源码DFG/CFG事实unknown。不是五类完整图特征或编译验证。state未知率较高，仍受冻结L2绑定/别名和保守函数传播限制，不能把unknown解释为无漏洞、无读写或无保护。
+
+最终测试496 NodeSem＋2653 DFG v2＋223原回归＝3372通过，0失败/跳过，42条既有弃用警告。命令见accepted_attempt2/final_tests.json；8H有效runtime只读核验通过，22813冻结文件字节不变。runtime_closure/final_validation/verification.seal绑定输入、完整代码依赖与四份产物。详细覆盖、统计分母、剩余边界见NS_P3A_REPORT。
+
+本轮无GPU、训练、编码、solc编译、CTX/STATIC，不推进NS-P3b。最终实验按用户计划使用显存充足服务器，本机RTX3050 4GiB仅为开发限制；尚未部署服务器。本地提交，不自动推送；三份文档仅追加并做UTF-8/CJK校验。

@@ -1,0 +1,1 @@
+pragma solidity ^0.4.24; contract A { mapping(address=>uint) public balances; function f(uint v) public { balances[msg.sender] = v; } function g(uint v) public { balances[msg.sender] += v; } function h() public view returns(uint) { return balances[msg.sender]; } }
