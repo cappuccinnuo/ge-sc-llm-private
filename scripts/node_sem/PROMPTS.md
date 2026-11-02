@@ -1,6 +1,13 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r8（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+版本：r9（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+
+**r9 相对 r8 的修改**（NS-P3 交付前的设计复查）：用 7 类漏洞的真实源码核对 M2/M3a 设计后发现，原设计主要围绕重入与访问控制，其余 5 类的核心模式无法表达。重写第 4.5、4.6 节与 NS-P3：
+- M3a 改为通用设计（约 200 维）：新增调用目标/金额/数据类别、未被调用的 `.call.value(x)`、返回值在 require 与 if 中检查的区分、循环内外部调用、数组长度变化、哈希与 ecrecover、环境量的用途（算术、哈希、守卫、状态写、调用）、算术操作数的类型宽度与来源及 `unchecked` 块、授权变量（与名字无关）、状态变量声明节点（K 组）、函数汇总（L 组）、合约汇总（M 组）、自身条件（D3 组）、统一的未知位（N 组）；
+- 守卫规则补充 5′（`if (msg.sender == owner) _;` 形式的 modifier）与 6（一层内部检查函数）；`||` 不计入有效相等组合；
+- 明确原则：代码不得出现漏洞类别名；不加入编译器版本特征（与数据来源相关，是捷径），版本特有写法统一成同一事实；未知与否定分开；唯一的名字例外是“函数名与合约名仅大小写不同”；
+- M2 新增 CALL、LOOP、COND、STATE_DECL、FN_SUMMARY、CONTRACT 字段与更多 TO 汇点类型；
+- NS-P3 拆成 NS-P3a（事实与测试，含其余 5 类源码的冒烟）与 NS-P3b（M2 编码、M3a 向量、模态文件），中间交审查。
 
 **r8 相对 r7 的修改**（NS-P2b 审查后，见第 5E 节）：NS-P2b 验收通过，进入 NS-P3。更正第 5D 节中关于残留名字原因的错误说法；共享上下文中的文档校验命令写成 doc_check 的实际用法（`--expect-cjk` 与 `路径:追加前字节数`）。
 
@@ -184,7 +191,7 @@ F3 图（DFG v2）+ 源码 AST（主视图 N-anon-s；次要视图原文）
  ├─ M0 token ID（8G 匿名特征，512）──→ 可学习嵌入 + 掩码平均池化（S1）
  ├─ M1 节点代码文本 → 冻结代码编码器 → e_code（256）
  ├─ M2 DFG 上下文（结构化字段）→ 同一编码器 → e_ctx（256）
- ├─ M3a 静态行为画像（AST 后端，以后可加 IR 后端）→ b_static（约 80）
+ ├─ M3a 静态行为画像（AST 后端，以后可加 IR 后端）→ b_static（约 200）
  └─ M3b 函数级 LLM 描述 → 句向量 t_sem（384，教师，只在训练期使用）
        M3c 按折训练的学生 MLP([e_ctx; b_static]) → s_sem（384）
  → 拼接为载体向量 x_v = [存在位 | 各模态]，写进内存图副本的 token 属性
@@ -249,82 +256,116 @@ F3 图（DFG v2）+ 源码 AST（主视图 N-anon-s；次要视图原文）
 
 ### 4.5 M2：DFG 上下文（结构化字段，在 nodesem 中按优先级截断）
 
-mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"`），nodesem 侧再拼成文本，并用编码器自己的 tokenizer 按优先级截断。例：
+mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"`，无法判断写 `"unknown"`），nodesem 侧再拼成文本，并用编码器自己的 tokenizer 按优先级截断。字段内容全部来自 StatementFacts（NS-P3），不读取标签。例（语句节点）：
 
 ```
 [STMT] v12 . v3 -= v9 ;
-[FUNC] function v4 ( uint v9 ) public payable
+[FUNC] function v4 ( uint v9 ) public payable | guards:modifier
 [DEF] v12.v3:state
 [USE] v12:local@-1 | v9:param
 [FROM] @-1: var v12 = v2 [ msg.sender ] ;
 [TO] -
 [STATE_R] -
-[STATE_W] v3
+[STATE_W] v3:mapping
 [ENV] -
+[CALL] -
+[LOOP] -
 [PRE_EXT_CALL] @-2: msg.sender.call.value ( v9 ) ( )
-[GUARD] require; env==state; @-3
+[GUARD] require + sender==state @-3 (+1)
 ```
 
-| 字段 | 内容 | 来源 |
-|---|---|---|
-| `STMT` | M1 的截取文本 | 节点 |
-| `FUNC` | 所在函数的签名（M1 规则） | AST 函数归属 |
-| `DEF`、`USE` | 变量及类别（state、local、param、env）；局部变量和参数带上其来源语句的相对距离 | `DATA_DEF_USE` 边 → `ddg_fact_indices` → 封存的 L1 证据（Symbol.name/kind，主视图经 8G 双射映射）+ L2 边 `state_vars` + L3 环境键 |
-| `FROM` | 来源语句，最多 2 条（相对距离 + STMT 文本） | `DATA_DEF_USE` 入边 |
-| `TO` | 去向，最多 2 条，汇点类型取 `call_arg`、`call_value`、`guard`、`state_write`、`return`、`other` | `DATA_DEF_USE` 出边 + 目标节点的 AST 角色 |
-| `STATE_R`、`STATE_W` | 读写的状态变量 | `READS_STATE`、`WRITES_STATE` |
-| `ENV` | 环境键 | `ENV_FLOW` |
-| `PRE_EXT_CALL` | 同函数内、控制流上能到达本语句的最近外部调用（不含自身）；函数 CFG 不受支持时写 `unknown` | 函数内语义 CFG 反向 BFS |
-| `GUARD` | 作用于本语句的最近守卫：类型（require、assert、if_branch、early_exit_if、loop_cond、modifier、unknown）、极性、有效比较组合、相对距离 | AST 词法守卫规则（第 4.6 节 D 组说明） |
+**相对距离** `@±k`：同一函数（或 modifier）内，按 AST 先序排列的 HCG 语句节点（含条件节点，不含 END 占位与函数节点本身）中相隔的个数。不写绝对行号。
 
-**匿名编号**（r7 决定）：主视图沿用 8G 的逐文件随机编号（vN），不在节点或上下文文本内部重新编号。理由：S0/S1 与全部 DFG 结果都用这套编号，改用局部规范编号会把“编号方式”与“预训练知识”混在 S2−S0 的比较里；局部规范编号还会让不同文件中相同的 SolidiFI 注入语句变成完全相同的字符串，增加模板记忆。代价是：同一条语句在不同文件中会有不同的编号（见第 5D 节的计数），NS-P2b 量化这一点对编码向量的影响，只记录，不改变本决定。LLM 输入（NS-P7）按函数内首次出现重新编号是为了缓存与提示稳定，属于另一场景，不受影响。
+| 字段 | 适用节点 | 内容 | 来源 |
+|---|---|---|---|
+| `STMT` | 全部 | M1 的截取文本 | 节点 |
+| `FUNC` | 函数内节点 | 所在函数签名（M1 规则）+ 该函数的守卫方式摘要 | AST 函数归属 + 守卫规则 |
+| `DEF`、`USE` | 语句 | 变量及类别（state、local、param、env）；局部变量和参数带上其来源语句的相对距离；函数不受 L1 支持时写 `unknown` | `DATA_DEF_USE` → `ddg_fact_indices` → 封存的 L1 证据（Symbol.name/kind，主视图经 8G 双射映射）+ L2 `state_vars` + L3 环境键 |
+| `FROM` | 语句 | 来源语句，最多 2 条（相对距离 + STMT 文本） | `DATA_DEF_USE` 入边 |
+| `TO` | 语句 | 去向，最多 2 条，按汇点类型标注：`call_target`、`call_value`、`call_arg`、`guard`、`state_write`、`arith`、`hash_input`、`array_index`、`loop_bound`、`return`、`other` | `DATA_DEF_USE` 出边 + 目标节点中该变量所处的 AST 角色 |
+| `STATE_R`、`STATE_W` | 语句 | 读写的状态变量及形状（mapping、array、scalar）；写的是“授权变量”时加 `:auth` | `READS_STATE`、`WRITES_STATE` + 合约级授权变量集合（第 4.6 节 B 组） |
+| `ENV` | 语句 | 环境键及用途（arith、hash、guard、state_write、call） | `ENV_FLOW` + AST 角色 |
+| `CALL` | 含外部调用的语句 | 调用类型；目标类别；金额类别；数据类别；返回值处理 | 第 4.6 节 A、F 组 |
+| `LOOP` | 循环内语句 | 循环边界类别；是否在循环体内发生外部调用 | 第 4.6 节 H 组 |
+| `PRE_EXT_CALL` | 语句 | 同函数内、控制流上能到达本语句的最近外部调用（不含自身）；函数 CFG 不受支持时写 `unknown` | 函数内语义 CFG 反向 BFS |
+| `GUARD` | 语句 | 最近守卫：类型、极性、有效比较组合、相对距离；另外的适用守卫只给个数 | 守卫规则（第 4.6 节） |
+| `COND` | require/assert/if/while/for 节点 | 本节点自身条件的操作数类别与有效比较组合；是否为提前退出的 if | 同上（对自身条件求值） |
+| `STATE_DECL` | 状态变量声明节点 | 形状、可见性、是否常量、是否有初值、是否授权变量、读取它的函数数、写入它的函数数（0/1/多）、是否只在构造函数中写、未受发送者守卫保护的写入函数数 | L2 证据 + 守卫规则 |
+| `FN_SUMMARY` | 函数/构造函数/modifier/fallback 节点 | 第 4.6 节 L 组的摘要（外部调用、写状态、发送者守卫方式、写授权变量、selfdestruct、delegatecall、循环、循环内外部调用、使用时间戳、使用 tx.origin） | 函数内事实的汇总 |
+| `CONTRACT` | 合约/库/接口声明节点 | 种类、有无显式构造函数、有无 payable fallback/receive、授权变量个数 | 合约内事实的汇总 |
 
-**截断顺序**（按编码器 tokenizer 计数，上限 256）：
-1. `TO` 只留 1 条；
-2. `FROM` 只留 1 条；
-3. `GUARD` 只留类型和组合；
-4. `PRE_EXT_CALL` 只留相对距离；
+辅助节点（env_source）与 `end_if`、`end_loop`：只有 `STMT`。
+
+**匿名编号**（r7 决定）：主视图沿用 8G 的逐文件随机编号（vN），不在节点或上下文文本内部重新编号。理由：S0/S1 与全部 DFG 结果都用这套编号，改用局部规范编号会把“编号方式”与“预训练知识”混在 S2−S0 的比较里；局部规范编号还会让不同文件中相同的 SolidiFI 注入语句变成完全相同的字符串，增加模板记忆。NS-P2b 已量化其影响（同一原句变体的平均余弦 0.90–0.92，不同原句约 0.60–0.64），不改变本决定。LLM 输入（NS-P7）按函数内首次出现重新编号是为了缓存与提示稳定，属于另一场景。
+
+**截断顺序**（按编码器 tokenizer 计数，上限 256；逐级执行，每级后重新计数）：
+1. `TO`、`FROM` 各只留 1 条；
+2. `FN_SUMMARY`、`CONTRACT`、`STATE_DECL` 只留前 4 项；
+3. `GUARD` 只留类型与比较组合，`COND` 只留比较组合；
+4. `PRE_EXT_CALL` 只留相对距离；`CALL` 只留类型与目标类别；
 5. 每类变量最多 3 个；
-6. `FUNC` 只留可见性和 modifier 个数；
+6. `FUNC` 只留可见性与守卫摘要；
 7. 最后才截断 `STMT`。
 
 `STMT`、`DEF`、`USE` 的字段标签永远保留。记录每个节点的截断级别。
 
-辅助节点、合约/库/接口声明节点、`end_if`、`end_loop`：只有 `STMT`。
+### 4.6 M3a：静态行为画像（约 200 维，精确维度以 behavior_schema.json 为准）
 
-### 4.6 M3a：静态行为画像（约 80 维，精确维度以 behavior_schema.json 为准）
+**设计原则（r9，对全部 7 类漏洞通用）：**
+1. **通用语义，不按类别设计**：每个字段都是 Solidity 语句或声明的一般性质（调用、状态、守卫、环境量、算术、循环、函数与合约结构），代码与 schema 中不得出现任何漏洞类别名，也不得按类别分支。字段与 7 类漏洞的对应关系只写在 `behavior_coverage.md`（供论文与审查，代码不读取）。
+2. **与名字无关**：除一个明确列出的例外（I 组的“函数名与合约名仅大小写不同”），字段不依赖任何拼写；两个视图的 M3a 必须逐位相同。
+3. **与版本无关**：不加入 pragma 版本、编译器区间等文件级特征（它们与 SolidiFI/非 SolidiFI 来源高度相关，是捷径）。版本特有的写法统一成同一事实：`throw`/`revert()`/`require(false)` → 退出语句；`sha3`/`keccak256` → 哈希；`suicide`/`selfdestruct` → 自毁；`now`/`block.timestamp`、`address(this).balance`/`this.balance` → 同一环境键（沿用 L3 的合并规则）；`.value(x)`/`{value: x}` → 附带金额；`callcode`/`delegatecall` → 委托调用；`constant` 函数/`view`/`pure` → 只读函数。
+4. **未知与否定分开**：凡依赖 L1 支持、CFG 支持、modifier 解析或投影的事实，不能确定时置 N 组对应的“未知”位，不得写成 0。
+5. **按节点种类适用**：语句类节点（expression_statement、函数内 new_variable、return、continue_statement、if/while/for 条件节点）使用 A–J 组；状态变量声明节点使用 K 组（以及 E、J 中适用的位）；函数/构造函数/modifier/fallback 节点使用 I、L 组；合约/库/接口声明节点使用 M 组；env_source 只置 E 组；end_if/end_loop 只置各独热组的默认值。不适用的组全为 0，独热组置“不适用”位。
 
-字段表固定在 `behavior_schema.json`，并提供 `explain(vec) → 字段名列表`。
+| 组 | 字段（编码） | 约维度 |
+|---|---|---|
+| A 外部交互 | 低层 call；delegatecall/callcode；staticcall；send；transfer；成员调用（目标为外部合约，类型未知）；`new` 创建合约；selfdestruct/suicide；`.call.value(x)` 形成但未被调用（多热） | 9 |
+| A1 附带金额 | 是/否 | 1 |
+| A2 调用目标类别 | msg.sender；tx.origin；参数；状态变量；局部变量；字面量/常量地址；this；其他表达式（多热，只对外部调用） | 8 |
+| A3 金额类别 | 无；字面量；参数；状态变量；msg.value；this.balance；局部变量；算术表达式（独热，取主来源） | 8 |
+| A4 调用数据类别 | 无；msg.data；参数；其他（独热） | 4 |
+| B 状态访问 | 写（0/1/多，独热）；写 mapping/数组元素；写标量；读（0/1/多，独热）；读 mapping/数组元素；写授权变量；读授权变量；数组长度变化（push/pop/length 赋值/delete 整个数组） | 12 |
+| C 顺序 | 可从同函数外部调用到达；被外部调用支配；本语句写状态且之后可到达外部调用；本语句是外部调用且之后可到达写状态；外部调用位于循环体内 | 5 |
+| D 守卫方式（全部适用守卫） | 无守卫；require/assert 前置；处于 if 分支内；提前退出的 if；循环条件；modifier 守卫；内部检查函数（规则 6）；其中至少一个是发送者守卫（操作数含 msg.sender 或 tx.origin 的有效相等比较） | 8 |
+| D1 守卫操作数（并集） | msg.sender；tx.origin；状态变量；参数；局部变量；字面量；时间戳/区块号；区块哈希/难度等其他区块量；msg.value；余额（this.balance 或 x.balance）；外部调用结果；哈希结果 | 12 |
+| D2 有效相等比较组合（并集，按极性换算） | 发送者类 env 对状态变量；发送者类 env 对参数；发送者类 env 对字面量；状态变量对参数；哈希结果对状态变量/字面量；时间戳类 env 对状态变量/参数 | 6 |
+| D3 自身条件（只对 require/assert/if/while/for 节点） | 是守卫节点；自身操作数类别（同 D1 的 12 类）；自身有效相等组合（同 D2 的 6 类）；是提前退出的 if | 20 |
+| E 环境量 | msg.sender；msg.value；msg.data/msg.sig；tx.origin；tx.gasprice；block.timestamp；block.number；block.difficulty/coinbase/gaslimit；blockhash；gasleft；this.balance（按 L3 的 14 个键合并） | 11 |
+| E1 环境量用途 | 用于算术；用于哈希输入；用于守卫条件；流向状态写；流向调用目标或金额 | 5 |
+| F 调用返回值（独热，只对外部调用；其余为“不适用”） | 不适用；在 require/assert 中检查；在 if 条件中检查；赋值后在后续条件中检查；赋值但未检查；被忽略 | 6 |
+| G 算术 | +；−；×；÷；%；**；作用于状态变量；操作数含小于 256 位的整数类型；操作数来自参数；操作数含环境量；结果流向状态写/守卫/调用金额；位于 `unchecked {}` 块内 | 12 |
+| H 循环 | 不在循环内；常量边界；状态变量或数组长度边界；参数或局部变量边界（独热） | 4 |
+| I 函数上下文（语句与函数节点） | 可见性 public/external/internal/private（独热）；payable；只读函数；是构造函数（constructor 关键字或与合约名完全相同的旧式名）；是 fallback/receive；应用了 modifier；函数名与所在合约名仅大小写不同（例外项，见下） | 10 |
+| J 语法袋 | `=`；`+=`；`-=`；其他复合赋值；delete；emit；三元；下标访问；成员访问深度 ≥2；字面量；哈希内建（keccak256/sha3/sha256/ripemd160）；ecrecover；abi.encode 系列；退出语句（throw/revert/require(false)）；return；内联 assembly | 16 |
+| K 状态变量声明 | 形状（mapping、数组、address、整数、bool、bytes/string、struct/合约类型、其他，独热）；public；constant/immutable；有初值；是授权变量；写入函数数（0/1/多，独热）；只在构造函数中写；存在未受发送者守卫保护的写入函数；在守卫条件中被读；被用作调用金额或目标 | 19 |
+| L 函数汇总（函数/构造函数/modifier/fallback 节点） | 含外部调用；写状态；有发送者守卫（任一规则）；写授权变量；含 selfdestruct；含 delegatecall；含循环；循环内有外部调用；使用时间戳；使用 tx.origin；写状态后可到达外部调用；外部调用后可到达写状态 | 12 |
+| M 合约声明 | 种类 contract/library/interface（独热）；有显式构造函数；有 payable fallback/receive；含 selfdestruct；有授权变量 | 7 |
+| N 未知位 | 定义—使用未知（函数不受 L1 支持）；顺序未知（函数 CFG 不受支持）；守卫未知（modifier 无法解析或没有 `_;`）；状态绑定未知（L2 未解析）；投影缺失 | 5 |
 
-| 组 | 字段 | 编码 | 约维度 |
-|---|---|---|---|
-| A 外部交互 | 低层 call、delegatecall、staticcall、send、transfer、成员调用（目标未知）、附带 value | 多热 | 7 |
-| A' 转账 | call 带 value、send、transfer | 1 位 | 1 |
-| B 状态访问 | 写（0/1/多）、写 mapping/数组元素、写标量、读（0/1/多）、读 mapping/数组元素 | 独热 + 多热 | 9 |
-| C 顺序 | 可从同函数外部调用到达；被外部调用支配；本语句写状态且之后有外部调用；本语句是外部调用且之后有写状态；顺序未知（函数 CFG 不受支持） | 多热 | 5 |
-| D 守卫方式 | 无守卫、require/assert 前置、处于 if 分支内、提前退出的 if、循环条件、modifier 守卫、守卫未知（modifier 未解析等） | 多热 | 7 |
-| D' 守卫操作数（所有适用守卫的并集） | msg.sender、tx.origin、状态变量、参数、局部变量、字面量、时间戳/区块号、调用结果 | 多热 | 8 |
-| D'' 有效相等比较组合（按极性换算后的 ==，所有适用守卫的并集） | env 对状态变量、env 对参数、env 对字面量、状态变量对参数 | 多热 | 4 |
-| E 环境量 | msg.sender、msg.value、tx.origin、时间戳、区块号、其他（L3 的 14 个键归入这 6 组） | 多热 | 6 |
-| F 调用返回值 | 不适用、被检查、被赋值未检查、被忽略 | 独热 | 4 |
-| G 算术 | + − × ÷/% **；是否作用于状态变量 | 多热 | 6 |
-| H 循环 | 不在循环内、常量边界、状态变量或数组长度边界、参数或局部变量边界 | 独热 | 4 |
-| I 函数上下文 | public、external、internal、private；payable；view/pure；是构造函数（constructor 关键字，或函数名等于所在合约名）；应用了 modifier | 独热 + 多热 | 8 |
-| J 语法袋 | `=`、`+=`、`-=`、其他复合赋值、delete、emit、selfdestruct/suicide、成员访问深度 ≥2、下标访问、字面量、new、三元 | 多热 | 12 |
+**定义：**
+- **授权变量**（与名字无关）：在同一合约及其同文件基类中，出现在任一发送者守卫（规则 1、3、5、6 中，与 msg.sender 或 tx.origin 做有效相等比较）里的状态变量。先算完所有守卫，再算授权变量，再回填 B、K、L、M 组。
+- **外部调用**：只计入真正被调用的表达式。`x.call.value(v)` 后面没有调用括号时不发生调用，记为 A 组最后一位，不计入其他外部调用位、C 组与 F 组。
+- **成员调用**：`x.f(...)` 中，x 不是 this、super、msg、block、tx、abi，也不能解析为本文件中声明的库或本合约（及其同文件基类）的成员时，记为对外部合约的调用。能解析为本文件库函数的调用不算外部调用。
+- **金额主来源**（A3）：`value` 参数或 `send/transfer` 参数表达式中，按 字面量 < 参数 < 局部 < 状态 < msg.value < this.balance 的顺序取最后出现的类别；是算术表达式时记“算术表达式”。
 
-- **辅助节点**只置 E 组，独热组分别置为“无 / 不适用 / 不在循环内”；可见性组全为 0。
-- **守卫规则（NS-Q3 决定；纯 AST 词法，不依赖 CFG 覆盖）**。对语句节点 S（其 AST 语句为 s，所在函数为 f），适用守卫是以下各项的集合：
-  1. **require/assert 前置**：表达式语句 R 是对内置 `require`/`assert` 的调用（同一文件中没有声明名为 require/assert 的函数，且不是成员调用），并且 R 是 s 的某个外围块（从 s 所在块一直到 f 的函数体）中位于 s 之前的语句。极性为 +。
-  2. **处于 if 分支内**：s 位于某个 if C 的 consequence 内（极性 +）或 alternative 内（极性 −），C 在 f 内。
-  3. **提前退出的 if**：if C 没有 else，consequence 是单条 `throw`/`revert(...)`/`return ...`，或者是以这三者之一结尾的块；并且 C 是 s 的某个外围块中位于 s 之前的语句。极性为 −（s 只在条件为假时执行）。
-  4. **循环条件**：s 位于 while/for 的 body 内，极性 +，类型 loop_cond（只计入 D 组，不计入 D'/D''）。
-  5. **modifier 守卫**：f 应用的 modifier 能解析到定义（同文件，经 ClosedScopeJ 处理继承），并且在其函数体中第一个 `_;` 之前，存在满足规则 1 或 3 的守卫。极性按规则换算。modifier 不能解析，或者体内找不到 `_;` 时，记为“守卫未知”，不得记为无守卫。
-  - **有效比较**：守卫条件中的 `==`/`!=`（包括 `!(a == b)`）按极性换算成有效的相等或不等，D'' 只记录有效相等的类别组合。例如 `if (msg.sender != owner) throw;` 在规则 3 下得到有效 `msg.sender == owner`，组合为 env 对状态变量。
-  - **最近守卫**（M2 的 GUARD 字段）：按 AST 距离取最近的一个（最内层分支、最近的前置语句），modifier 最后；D'/D'' 取所有适用守卫的并集。
-  - 不使用 if/while 条件的 CFG 支配关系推断守卫：if 结束之后的语句同样被条件节点支配，但并不受它保护。
-- **合约/库/接口声明节点、end_if、end_loop**：只置独热组的默认值。
-- **两个视图必须逐位相同**：M3a 不依赖任何保留名以外的具体名字。函数名等于合约名、modifier 解析这两项依赖名字相等关系，而 N-anon-s 是文件内双射，所以也必须相同。
-- **后端接口**：`FactBackend.extract(file_ctx) → {node_id: StatementFacts}`，现在只实现 `AstBackend`。
+**守卫规则**（NS-Q3 决定，r9 补充规则 5′ 与规则 6；纯 AST 词法，不依赖 CFG 覆盖）。对语句节点 S（其 AST 语句为 s，所在函数为 f），适用守卫是以下各项的集合：
+1. **require/assert 前置**：表达式语句 R 是对内置 `require`/`assert` 的调用（同一文件中没有声明同名函数，且不是成员调用），并且 R 是 s 的某个外围块（从 s 所在块一直到 f 的函数体）中位于 s 之前的语句。极性 +。
+2. **处于 if 分支内**：s 位于某个 if C 的 consequence 内（极性 +）或 alternative 内（极性 −），C 在 f 内。
+3. **提前退出的 if**：if C 没有 else，consequence 是单条退出语句（throw、revert(...)、return、require(false)），或以其中之一结尾的块；并且 C 是 s 的某个外围块中位于 s 之前的语句。极性 −。
+4. **循环条件**：s 位于 while/for 的 body 内，极性 +，类型 loop_cond（只计入 D 组，不计入 D1/D2）。
+5. **modifier 前缀守卫**：f 应用的 modifier 能解析到定义（同文件，经 ClosedScopeJ 处理继承），并且在其函数体中第一个 `_;` 之前，存在满足规则 1 或 3 的守卫。极性按规则换算。
+5′. **modifier 条件占位**：在 modifier 体内，`_;` 位于某个 if C 的 consequence 内（如 `if (msg.sender == owner) _;`），C 对 f 的函数体是守卫，极性 +；位于 alternative 内则极性 −。
+6. **内部检查函数**（只追一层）：s 的某个外围块中、位于 s 之前，有一条表达式语句只调用一个能按拼写解析到同文件（含基类）内部或私有函数 g 的调用，并且 g 的函数体在顶层（不进入分支）含有满足规则 1 或 3 的守卫；g 中的这些守卫对 s 适用，类型 internal_check。不追第二层，不追外部合约。
+- 规则 5、5′ 中 modifier 不能解析，或者体内找不到 `_;` 时，记 N 组“守卫未知”，不得记为无守卫。规则 6 中调用名不能解析时不记守卫，也不记未知（否则任何未解析调用都会使守卫变成未知）。
+- **有效比较**：守卫条件中的 `==`/`!=`（包括 `!(a == b)`、`a != b` 嵌在 `!` 中）按极性换算成有效的相等或不等，D2/D3 只记录有效相等两侧的类别组合。例如 `if (msg.sender != owner) throw;` 在规则 3 下得到有效 `msg.sender == owner`，组合为发送者类 env 对状态变量。`&&` 连接的各子条件分别求值；`||` 连接的子条件不计入有效相等组合（任一成立即可通过）。
+- **最近守卫**（M2 的 GUARD 字段）：按 AST 距离取最近的一个（最内层分支、最近的前置语句），modifier 与内部检查最后；D、D1、D2 取所有适用守卫的并集。
+- 不使用 if/while 条件的 CFG 支配关系推断守卫：if 结束之后的语句同样被条件节点支配，但并不受它保护。
+
+**名字相关的唯一例外**：I 组“函数名与所在合约名仅大小写不同”（例如合约 `Wallet` 中的函数 `wallet`，这是错误构造函数名漏洞的本质特征）。该位在两个视图中都用原始拼写计算（主视图经 8G 双射还原），只输出一个布尔值。8G 的改名是按拼写的双射，`Wallet` 与 `wallet` 会得到不同的 vN，主视图中无法从匿名名得出这一关系，所以必须用原拼写；它不携带名字内容，也不是 SolidiFI 的注入标记。behavior_coverage.md 与报告中要明确写出这一例外。
+
+- **两个视图必须逐位相同**：除上述例外外，M3a 不依赖任何保留名以外的具体名字；名字相等关系（modifier 解析、内部函数解析、旧式构造函数）在文件内双射下保持。
+- **后端接口**：`FactBackend.extract(file_ctx) → {row_key: StatementFacts}`，现在只实现 `AstBackend`；以后的 IR 后端输出同一 schema。
 
 ### 4.7 M3b：LLM 行为描述（只描述，不下判断）
 
@@ -486,7 +527,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 4. **访问控制已经饱和**：结论只能来自重入；访问控制只看 20 个真实正例的定性表。
 5. **单 seed、传导式设定、SolidiFI 占主导**：与 DFG 相同，论文结论需要服务器上的多 seed 复跑。
 6. **M3a 可能被质疑“针对标签设计”**：字段都是通用的语句行为，不读取标签；两个视图逐位一致的校验，以及 S4−S3 的消融，都写进论文。
-7. **`get_node_token` 很慢**：控制 D（S4 约 595 维，S5 约 980 维），在 NS-P4 中实测构造时间。NS-P0 实测：真实重入节点 G3R 从 512 维到 600 维，构造时间 8.46→9.49 秒。
+7. **`get_node_token` 很慢**：控制 D（r9 后 S4 约 715 维，S5 约 1100 维），在 NS-P4 中实测构造时间。NS-P0 实测：真实重入节点 G3R 从 512 维到 600 维，构造时间 8.46→9.49 秒。
 8. **显存余量**：8H 中 reentrancy_contract G3R 的整卡最小空闲只有 44 MiB。S1 必须用共享 EmbeddingBag（第 4.3 节）；NS-P4 第 4b 节做 GPU 探针。
 9. **CFG 覆盖不完整**：legacy→V2 语义 CFG 支持的含体函数为 3135/3404、1964/2045、2797/3148、1859/1958（NS-P0）。不受支持的函数，顺序事实记为 unknown；守卫采用 AST 词法规则，不受此影响。
 
@@ -494,7 +535,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 ## 5. Codex Prompts
 
-使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3 → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3b → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ### 5.1 共享上下文（每个会话先贴这一段）
 
@@ -848,85 +889,141 @@ NS-P1 已记录过 “Windows stdin 传输需要 ASCII Unicode 转义”，NS-P2
 - PROGRESS、HANDOVER、training_changes 追加 NS-P2b 记录（同样通过 doc_check）；提交 NS-P2b。不推进 NS-P3。
 ```
 
-### 5.5 Prompt NS-P3：事实、M2 字段与 M3a
+### 5.5 Prompt NS-P3a：StatementFacts（AST 后端）、守卫与授权变量、通用性冒烟
 
 ```text
-# NS-P3：StatementFacts（AST 后端）、M2 上下文字段、M3a 多热向量
+# NS-P3a：StatementFacts（AST 后端）——事实抽取、Oracle 测试与通用性验收（不生成特征向量）
 
-## 1. 事实 schema 与后端（facts.py）
-StatementFacts（每个节点一个，可 JSON 序列化）：
-- external_kinds（集合：call、delegatecall、staticcall、send、transfer、member_call）、value_attached（bool）、is_external_call（bool）；
-- state_reads、state_writes（[{var, shape: mapping|array|scalar}]）；
-- defs、uses（[{var, kind: state|local|param|env, from_offset}]）；
-- from_nodes（[{node, offset}]）、to_nodes（[{node, offset, sink}]）；
-- reachable_from_ext_call、dominated_by_ext_call、write_then_later_call、call_then_later_write（bool）；
-- guards：全部适用守卫的列表 [{kind: require|assert|if_branch|early_exit_if|loop_cond|modifier, polarity: +|-, operand_classes: 集合, effective_eq_pairs: 集合, offset}]；guard_status：none|present|unknown；nearest：最近守卫的下标；order_status：supported|unknown（函数 CFG 是否受支持）；
-- func：{visibility, payable, view_pure, is_constructor, modifiers: [{name, resolved: bool, has_sender_guard: bool}]}；
-- env_keys、return_handling（na|checked|assigned_unchecked|ignored）、arith（集合）、arith_on_state（bool）、loop_bound（none|const|state|param_local）、syntax_bag（集合）；
-- unresolved（{原因: 计数}）。
-FactBackend 接口：extract(task_id, file, view) -> {row_key: StatementFacts}。只实现 AstBackend：
-- 函数内 CFG：只用 NS-P0 核实过的 legacy→V2 语义 CFG（V2CFGBuilder，保留无事件的中间块，只投影精确的事件锚点）。不使用 HCG 自身的 CFG 边作后备（其中有跨函数的边）。函数 CFG 不受支持时，C 组的顺序事实全部记为 unknown（order_status=unknown），不得记为 false。
-- 外部调用判定：
-  - is_external_call(ast_node, ctx) -> (bool, kinds)：.call(、.call.value(、.call{、.delegatecall(、.staticcall(、.send(、.transfer( 都按 AST 形状判断；
-  - 成员调用 x.f(...)：x 不是 this、super、msg、block、tx、abi，也不是本文件中声明的库名时，记为 member_call；
-  - value_attached：.value(...) 或 {value: ...}。
-- PRE_EXT_CALL：在函数内 CFG 上从本节点做反向 BFS，第一个外部调用节点（层数最小，同层取相对距离最小）；本节点自身不算。reachable_from_ext_call 由同一次搜索得到。
-- dominated_by_ext_call：在函数 CFG 上用 networkx.immediate_dominators(函数子图, 入口) 判断，只用于这一项。
-- 守卫：严格按 PROMPTS.md 第 4.6 节“守卫规则”的五条 AST 词法规则实现，不使用 CFG 支配：
-  - 内置 require/assert 的判定：调用名是 require/assert、不是成员调用，且同一文件没有声明同名函数；
-  - 提前退出 if 的判定：没有 else，consequence 为单条 throw/revert(...)/return，或以三者之一结尾的块；
-  - modifier：经 ClosedScopeJ 解析定义，只检查函数体中第一个 `_;` 之前的语句；解析不到或没有 `_;` 时记为 unknown；
-  - operand_classes 由守卫条件的 AST 标识符分类得到：msg.sender、tx.origin 来自 env.py 的键；状态变量来自 L2 证据或合约体声明；参数来自 AST 参数表；其余为局部变量、字面量、时间戳/区块号、调用结果；
-  - effective_eq_pairs：对 ==、!=、!(a==b) 按极性换算，只记录有效相等两侧的类别组合。
-- write_then_later_call / call_then_later_write：在函数内 CFG 上做正向可达性判断。
-- DEF/USE/FROM/TO：边来自 F3 图的 DATA_DEF_USE；变量名与类别经 ddg_fact_indices 从已封存的 L1 证据读取（Symbol.name、Symbol.kind，type_name 只归类为形状），主视图中逐个标识符经 8G 双射映射；L2 边的 state_vars 同样映射；L3 用保留的环境键。读取证据前核对 store 中引用的 SHA，并把它写进 manifest。TO 的汇点类型由目标节点的 AST 角色判断：调用参数、value、守卫条件、对状态变量的赋值、return。
-- STATE_R/W：READS_STATE/WRITES_STATE 边；shape 由声明类型判断（mapping、数组、其他）。
-- ENV：ENV_FLOW 边。
-- modifier 解析：在同一文件 AST 上，按拼写把函数头中的 modifier 调用解析到 modifier_definition；继承用 ClosedScopeJ。解析不到时 resolved=false，不猜测。has_sender_guard：modifier 体内存在操作数含 msg.sender 或 tx.origin 的 require/if。
-- is_constructor：constructor 关键字，或者函数名与所在合约名的拼写相同。
-- 所有 AST 结论都经投影映射到节点；投影不到的记入 unresolved。
+前置：NS-P2b（6943c931）通过。设计依据：PROMPTS.md 第 4.2 节（读取边界、名字来源、行集合、扰动验收）、第 4.6 节（M3a 各组、定义、守卫规则 1–6、名字例外、版本归一化）与 第 4.5 节（M2 需要的事实）。本步只产出事实（facts.jsonl）与测试，不生成 M2 文本、不生成 M3a 向量、不编码、不训练、不用 GPU。
 
-## 2. M2 字段（ctx_fields.py）
-ctx_fields(facts, text_view) -> 每个节点一个 JSON 对象：
-{STMT, FUNC, DEF, USE, FROM, TO, STATE_R, STATE_W, ENV, PRE_EXT_CALL, GUARD}，字段顺序与格式按第 4.5 节，缺失写 "-"；相对距离写成 @-k/@+k；FROM/TO 最多各 2 条，按 |offset| 排序。
-输出 artifacts/ctx_v1/<view>/<task_id>/ctx_fields.jsonl 与 manifest。
-nodesem 侧 offline/encode.py 新增 --ctx 模式：读取字段，用编码器 tokenizer 按第 4.5 节的顺序逐级截断到 256 个 token，再编码。manifest 记录每级截断的数量；输出 emb_ctx_<model>.npz。
+## 0. 先读、后写（结论写进 PROGRESS）
+逐个阅读并记录将要复用的接口与它们的实际行为：
+- scripts/node_sem/text_view.py 的上下文加载（8H plan → 8G 改名结果 → F0/F3 图），以及它如何得到每个文件两个视图的源码与 ProjectionView/Projector；
+- scripts/DFG/dfg_v2/l1_cfg.py（V2CFGBuilder）与 NS-P0 recon/cfg.py 中“legacy→V2”的选择方式；
+- F3 存储中 audit.layers.L1.evidence（ddg_fact_indices 的含义、Symbol 字段）、L2 证据（state、statement、via_alias、status）、L3 证据（env_key、spellings）的读取方式与 SHA 引用（dfg_v2/pipeline.py::_evidence、store.py）；
+- scripts/DFG/state/stage_j/binding.py::ClosedScopeJ（同文件继承链、成员解析）；
+- scripts/DFG/dfg_v2/env.py（14 个环境键与写法合并）；
+- benchmark_v2/prepare_spelling.load_result 中的文件内双射（原拼写 ↔ vN），用于名字映射与 I 组例外项。
+如有与本 Prompt 描述不符的接口事实，以代码为准，在 PROGRESS 中记录并说明处理；若影响设计（例如某个事实无法按 AST 身份投影），停下报告。
 
-## 3. M3a（static_profile.py）
-- behavior_schema.json：字段名、组、编码方式（独热或多热）、列区间。总维度写进 schema，不写死在代码里。
-- encode(facts) -> uint8 向量；输出时转成 float32 写入 static.npz。
-- explain(vec) -> 字段名列表，并保证 encode/explain 往返一致。
-- 辅助节点与非语句节点的默认值按第 4.6 节。
+## 1. 事实 schema（scripts/node_sem/facts_schema.py）
+定义 StatementFacts（普通类或 dict 加校验函数，兼容 Python 3.7），字段与第 4.6 节各组一一对应，取值用固定字符串枚举（不得出现漏洞类别名）：
+- node_kind：statement | condition | state_decl | function | modifier | contract | env | end | other；
+- external：{kinds: 集合, value_attached, uninvoked_call_value, target_classes: 集合, value_class, data_class, return_handling}；
+- state：{writes: [{var, shape, auth}], reads: [...], array_size_change: bool, status: supported|unknown}；
+- dfg：{defs: [{var, kind, from_offset}], uses: [...], from: [{node, offset}], to: [{node, offset, sink}], status: supported|unknown}；
+- order：{reachable_from_ext_call, dominated_by_ext_call, write_then_call, call_then_write, ext_call_in_loop, status: supported|unknown}；
+- guards：[{rule: 1|2|3|4|5|5p|6, kind, polarity, operand_classes, eq_pairs, is_sender_guard, offset}]、guard_status（none|present|unknown）、nearest；
+- self_condition（只对 require/assert/if/while/for）：{operand_classes, eq_pairs, early_exit_if}；
+- env：{keys: 集合, uses: 集合}；arith：{ops, on_state, small_int, from_param, from_env, sinks, in_unchecked}；loop：{bound}；syntax：集合；
+- function_ctx：{visibility, payable, read_only, is_constructor, is_fallback, has_modifier, name_case_only_differs_from_contract}；
+- state_decl（只对状态变量声明）：第 4.6 节 K 组各项；fn_summary（只对函数类节点）：L 组；contract_summary（只对合约类节点）：M 组；
+- names：用于 M2 的变量名（主视图为匿名名，原名视图为原名），与其余事实分开存放；
+- unresolved：{原因: 计数}；provenance：{source_sha256, store_refs, view}。
+validate(facts) 检查枚举、类型与“不适用组为空”的约束。
 
-## 4. 测试（必须使用真实 tree-sitter 解析，fixture 放在 tests/fixtures/nodesem_oracle/，先写期望 JSON 再运行）
-至少覆盖以下用例：
-a) msg.sender.call.value(_am)() 独立语句 → call、value_attached、转账、返回值 ignored；
-b) if (!msg.sender.send(x)) throw; → send、返回值 checked；
+## 2. AST 后端（scripts/node_sem/facts.py）
+extract(task_id, view) -> {row_key: StatementFacts}，按文件处理，步骤固定：
+1. 取该视图的源码与 ProjectionView、Projector（与 text_view 相同的加载路径）；label 只经 Projector 读取。
+2. 枚举函数单元（function、constructor、modifier、fallback/receive，含无函数体的声明）；为每个函数单元建立语句节点的 AST 先序表，用于相对距离 @±k（第 4.5 节定义）。
+3. 函数 CFG：按 NS-P0 的“legacy→V2”方式构造语义 CFG，经精确事件锚点投影到 HCG 节点；不受支持的函数 order.status=unknown。不得使用 HCG 自身的 CFG 边。
+4. L1/L2/L3：从 F3 存储的封存证据读取（先核对 SHA）。DATA_DEF_USE 只来自 L1 支持的函数，不支持时 dfg.status=unknown。名字只取 Symbol.name/kind 与 L2 state_vars，主视图逐个标识符经 8G 双射映射，映射不到的非保留标识符直接报错。type_name 只归类为形状。
+5. 外部调用、金额、目标、数据、返回值（A、F 组）：按 AST 形状判断，规则见第 4.6 节“定义”。`.call.value(x)` 未被调用时只记 uninvoked_call_value。
+6. 守卫：按第 4.6 节规则 1、2、3、4、5、5′、6 计算，记录规则编号与极性；有效比较按极性换算；`&&` 拆分、`||` 不计入相等组合。
+7. 授权变量：在每个合约（含同文件基类）中，收集所有发送者守卫里与 msg.sender/tx.origin 做有效相等比较的状态变量；然后回填 state.writes/reads 的 auth 标记、K/L/M 组。
+8. 其余各组（E、E1、G、H、I、J、K、L、M、N）按第 4.6 节计算。版本写法按第 4.6 节原则 3 归一化。I 组名字例外：用原拼写判断“与合约名仅大小写不同”（主视图经双射还原），只输出布尔值。
+9. 投影：所有 AST 结论经 Projector 映射到 HCG 节点；投影不到的记 unresolved，不得按行号猜测。env_source 行只填 env 与 node_kind。
+输出 artifacts/facts_v1/<view>/<task_id>/facts.jsonl（行集合为 F3 全集，行顺序同 text_v1）与 manifest.json（版本、视图、任务、行数、F0/F3 指纹、源码引用、F3 存储与证据引用、实现文件 SHA、unresolved 汇总），并封存。
+
+## 3. 通用性要求
+- 代码、schema 与枚举中不得出现任何漏洞类别名（reentrancy、access_control、arithmetic、denial_of_service、front_running、time_manipulation、unchecked 等）；加一条测试扫描 facts.py、facts_schema.py。
+- 新建 scripts/node_sem/behavior_coverage.md：逐字段写出它描述的通用 Solidity 语义，以及它与 7 类漏洞中哪些相关（只作说明，代码不读取）。写明 I 组的名字例外。
+- **跨类别冒烟**（只读、只用原名视图、不用图、不读标签）：从 experiments/ge-sc-data/source_code/ 的另外 5 个类别（arithmetic、denial_of_service、front_running、time_manipulation、unchecked_low_level_calls）中，每类按文件名排序后固定取 10 个 .sol（SolidiFI 的 buggy_N 与非 SolidiFI 各 5 个），对每个函数单元直接在 AST 上计算不依赖 DFG 边的事实（A、A1–A4、D、D1–D3、E、E1 中的 AST 部分、F、G、H、I、J、K、L、M），依赖 DFG/CFG 的部分记 unknown。要求：0 个异常；报告每类的函数数、各组非零率、unknown 率、解析失败数。写入 artifacts/facts_v1/cross_category_smoke.json。这些类别还没有 F3 图，冒烟只验证事实抽取在各类别源码上能运行，不代表完整特征。
+
+## 4. Oracle 测试（真实 tree-sitter 解析；fixture 放在 scripts/node_sem/tests/fixtures/nodesem_oracle/，先写期望 JSON 再运行）
+已有用例（保留）：
+a) msg.sender.call.value(_am)() 独立语句 → call、附带金额、目标 msg.sender、金额 参数、返回值 ignored；
+b) if (!msg.sender.send(x)) throw; → send、返回值 checked_in_if；
 c) (bool ok, ) = a.call(data); 之后不在条件中使用 ok → assigned_unchecked；
-d) 在 call 之后执行 balances[msg.sender] -= amount; → 写 mapping、减法、作用于状态变量、reachable_from_ext_call、msg.sender；
-e) require(msg.sender == owner); owner = x; → 第二句 guard=require，operand 含 msg.sender 与状态变量，pairs 含 env 对状态变量；
-f) require(tx.origin == owner_state) 与 require(tx.origin == _param) → pairs 分别为 env 对状态变量、env 对参数（phishable 与 SolidiFI 模板的区别）；
-g) modifier onlyOwner { require(msg.sender == owner); _; } 应用到 function kill() onlyOwner { selfdestruct(owner); } → modifier 解析成功、has_sender_guard、guard.kind=modifier、语法袋含 selfdestruct；
-h) pragma 0.4.x，contract Wallet { function Wallet() public {...} } → is_constructor；函数名与合约名不同时为 false；
-i) for (uint i = 0; i < users.length; i++) users[i].transfer(1); → transfer，循环边界为状态变量或数组长度；
-j) 状态变量先写、后发生外部调用 → write_then_later_call；
-k) if (now > deadline) {...} 内的语句 → if_branch、极性 +、操作数含时间戳；
-l) if (msg.sender != owner) throw; owner = x; → 第二句 early_exit_if、极性 −、有效相等组合为 env 对状态变量；
-m) if (c) { a = 1; } b = 2; → b = 2 不受该 if 保护（guard_status=none），a = 1 是 if_branch；
+d) 在 call 之后执行 balances[msg.sender] -= amount; → 写 mapping、减法、作用于状态、reachable_from_ext_call、call_then_write（在调用语句上）；
+e) require(msg.sender == owner); owner = x; → 第二句规则 1、发送者守卫、组合 env 对状态；owner 是授权变量，第二句写授权变量；
+f) require(tx.origin == ownerState) 与 require(tx.origin == _param) → 组合分别为 env 对状态、env 对参数；
+g) modifier onlyOwner { require(msg.sender == owner); _; } 应用到 function kill() onlyOwner { selfdestruct(owner); } → 规则 5、selfdestruct、目标 状态变量；
+h) pragma 0.4.x，contract Wallet { function Wallet() public {...} } → is_constructor；
+i) for (uint i = 0; i < users.length; i++) users[i].transfer(1); → transfer、循环边界 状态/数组长度、ext_call_in_loop；
+j) 状态变量先写、后发生外部调用 → write_then_call；
+k) if (now > deadline) {...} 内的语句 → 规则 2、极性 +、操作数含时间戳；
+l) if (msg.sender != owner) throw; owner = x; → 第二句规则 3、极性 −、有效相等 env 对状态；
+m) if (c) { a = 1; } b = 2; → b = 2 没有守卫；
 n) 同一文件声明了 function require(bool) 时，require(...) 不视为守卫；
-o) modifier 无法解析（调用基类构造或未知名字）→ guard_status=unknown，而不是 none；
-p) 函数 CFG 不受支持的函数 → order_status=unknown，C 组为 unknown 位，不是 false。
-另加：
-- 视图一致性：四个任务中，主视图与次要视图的 StatementFacts（名字按双射还原后）和 M3a 向量逐节点相同。不一致必须逐条列出原因，不得放宽；
-- M2 字段的泄漏测试：主视图中只出现保留名或匿名名；没有绝对行号；
-- 生产者扰动测试（第 4.2 节）：对图的深拷贝施加 (a)(b) 扰动后直接调用 extract、ctx_fields、static_profile.encode，输出逐位相同；(c) 报错；
-- 独热组每个节点恰好一个 1。
+o) modifier 无法解析 → guard_status=unknown；
+p) 函数 CFG 不受支持 → order.status=unknown，不是 false。
+新增用例（覆盖其余类别中的通用模式）：
+q) uint8 v = 0; v = v + p;（p 为参数）→ 加法、small_int、from_param、结果写局部；
+r) uint256 amount = uint256(cnt) * _value; require(_value > 0 && balances[msg.sender] >= amount); → 乘法、操作数来自参数、结果流向 guard（TO 汇点 guard）；
+s) pragma 0.8，unchecked { x -= y; } → in_unchecked；
+t) for (...) { addrs[i].send(1); } 与 require(bidder.send(bid)); → ext_call_in_loop；返回值 checked_in_require；
+u) for (...) { list.push(msg.sender); } 与 list.length = 0; → array_size_change、循环内写状态；
+v) require(hash == sha3(solution)); msg.sender.transfer(1000 ether); → 第二句守卫操作数含哈希结果与状态，组合 哈希对状态；转账目标 msg.sender、金额 字面量；语法袋含哈希；
+w) owner.transfer(reward); reward = msg.value; → 金额 状态变量；msg.value 流向状态写；call_then_write；
+x) if (now % 15 == 0) { msg.sender.transfer(this.balance); } → 时间戳用于算术与守卫；金额 this.balance；
+y) uint r = uint(keccak256(abi.encodePacked(block.timestamp))) % 2; → 时间戳用于哈希输入；取模；
+z) pragma 0.5，function f(address payable c) public { c.call.value(1 ether); } → uninvoked_call_value=true，不计为外部调用，F 组为“不适用”；同文件中 c.send(1); 单独成句 → send、ignored；
+aa) target.delegatecall(msg.data) 在 fallback 中 → delegatecall、数据 msg.data、目标 状态变量、is_fallback；
+bb) modifier onlyOwner { if (msg.sender == owner) _; } → 被修饰函数中的语句为规则 5′、极性 +、发送者守卫；
+cc) function _check() internal { require(msg.sender == owner); } function f() public { _check(); x = 1; } → x = 1 为规则 6（internal_check）；
+dd) 同一合约中 owner 在 modifier 里与 msg.sender 比较，另有 function setOwner(address o) public { owner = o; } 无守卫 → owner 的 K 组“存在未受发送者守卫保护的写入函数”=true，setOwner 中的语句写授权变量且无守卫；
+ee) contract Wallet { function wallet() public { owner = msg.sender; } } → name_case_only_differs_from_contract=true、is_constructor=false；两个视图结果相同；
+ff) `if (a || msg.sender == owner) {...}` 内的语句 → 守卫存在，但有效相等组合为空（|| 不计入）；
+gg) 0.4 写法 throw、sha3、suicide、now、.value() 与 0.5 写法 revert()、keccak256、selfdestruct、block.timestamp、{value:} 的对应语句 → 事实逐项相同（版本归一化）；
+hh) 状态变量声明 mapping(address=>uint) public balances; 被两个函数写、一个函数读 → K 组形状 mapping、public、写入函数数“多”、读取；合约节点 M 组与函数节点 L 组的汇总正确。
 
-## 5. 真实数据统计（不训练）
-按任务统计：各字段的非空率；unresolved 的原因分布；order_status=unknown 与 guard_status=unknown 的比例；守卫规则 1–5 各自的命中数；modifier 解析的成功、失败、继承比例；guard 各类型比例；截断级别分布；M3a 每一维的取 1 比例（只做描述，不按标签分组，不用于调参）。
+## 5. 其他测试
+- 视图一致性：四个任务中，两个视图的事实（names 字段除外；names 按双射还原后相同）逐节点相同。不一致必须逐条列出原因，不得放宽。
+- 名字泄漏：主视图 names 中的标识符只能是保留名或该文件的匿名名；provenance 之外没有文件名与绝对行号。
+- 生产者扰动（第 4.2 节）：对图的深拷贝施加 (a)(b) 扰动后直接调用 extract，facts.jsonl 逐位相同；(c) 报错。
+- validate() 对全部输出通过；category 名字扫描测试通过。
+
+## 6. 真实数据统计（不训练、不按标签分组）
+按任务、视图统计：各节点种类的行数；每个事实字段的非空率；dfg.status、order.status、guard_status 为 unknown 的比例；守卫规则 1–6 各自的命中数；modifier 解析成功/失败/继承数；授权变量个数分布；uninvoked_call_value 个数；unresolved 原因分布。写入 artifacts/facts_v1/stats.json。
 
 ## 验收
-测试与统计通过；PROGRESS.md 记录；提交 NS-P3。
+测试与统计通过；PROGRESS、HANDOVER、training_changes 追加记录（doc_check --expect-cjk 通过）；提交 NS-P3a。不推进 NS-P3b。
+```
+
+### 5.5b Prompt NS-P3b：M2 字段与编码、M3a 向量、CTX/STATIC 模态
+
+```text
+# NS-P3b：由 facts 生成 M2 上下文字段并编码（CTX）、生成 M3a 多热向量（STATIC），写成符合载体契约的模态
+
+前置：NS-P3a 通过审查。输入：artifacts/facts_v1/<view>/<task_id>/facts.jsonl（核对 SHA）与 text_v1。不训练；编码使用 GPU 时必须先非阻塞检查 .training.lock。
+
+## 1. M2 字段（scripts/node_sem/ctx_fields.py）
+ctx_fields(facts_row, text_row) -> dict：按第 4.5 节的字段、顺序与适用节点生成；缺失写 "-"，不能判断写 "unknown"；相对距离写 @±k；FROM/TO 最多各 2 条，按 |offset| 排序。字段文本只用 facts 中的枚举值与 names，不得出现文件名、绝对行号或类别名。
+输出 artifacts/ctx_v1/<view>/<task_id>/ctx_fields.jsonl 与 manifest（行集合 = F3 全集，行顺序同 text_v1）。
+
+## 2. 编码（nodesem，offline/encode.py 新增 --ctx 模式）
+- 读取 ctx_fields.jsonl，拼成第 4.5 节的文本格式，用主编码器的 tokenizer 按第 4.5 节的截断顺序逐级截断到 256 token，再编码（与 M1 相同的模型、池化与精度）。
+- 输出 artifacts/ns_p3/encoded/<view>/<task_id>/emb_ctx_<model>.npz 与 CTX 模态 manifest：满足 carrier._load 契约（第 5.4 节 2b）；input_text 指向 ctx_fields.jsonl；implementation 至少含 facts.py、facts_schema.py、ctx_fields.py、encode.py、text_view.py；manifest 另记每级截断的节点数。
+- 同一输入重复编码一次，逐位一致或最大误差 ≤1e-6（写明是哪一种）。
+
+## 3. M3a（scripts/node_sem/static_profile.py 与 behavior_schema.json）
+- behavior_schema.json：每个字段的组、名称、编码方式（独热/多热）、列区间、适用节点种类、“不适用”默认值；总维度由 schema 决定，不写死在代码中。
+- encode(facts_row) -> uint8 向量；explain(vec) -> 字段名列表，保证往返一致；每个独热组恰好一个 1。
+- 输出 artifacts/ns_p3/static/<view>/<task_id>/static.npz（float32 0/1）与 STATIC 模态 manifest（满足载体契约；present 对全部行为 true；input_text 指向 facts.jsonl；implementation 含 facts.py、facts_schema.py、static_profile.py、behavior_schema.json）。
+- 两个视图的 static.npz 必须逐位相同（断言）。
+
+## 4. 测试
+- schema：列区间不重叠且覆盖全部维度；每个组的适用节点种类与第 4.6 节一致；独热组恰好一个 1；encode/explain 往返；N 组未知位在对应 status=unknown 时为 1 且对应事实位为 0。
+- M2：每种节点种类的字段集合与第 4.5 节一致；截断各级都可触发且字段标签保留（构造超长样例）；主视图文本中只有保留名与匿名名；没有文件名与绝对行号。
+- 生产者扰动：对 facts 生成器的输入图施加 (a)(b) 扰动后，ctx_fields 与 static 输出逐位相同。
+- 载体：carrier.load_modality 对全部 CTX 与 STATIC manifest 通过；carrier.carry 对 S3（TOKEN 之外的 CODE+CTX）与 S4（CODE+CTX+STATIC）在 G0 与 G3R 上能装配，维度等于 FeatureSpec.carrier_dim()（只装配，不建模、不训练；FeatureSpec 配置文件在 NS-P4 登记，此处用临时 spec）。
+
+## 5. 统计
+按任务、视图：每个 M3a 维度的取 1 比例（不按标签分组）；M2 各字段非空率；截断级别分布；编码去重率与耗时。写入 artifacts/ns_p3/stats.json。
+
+## 验收
+测试与统计通过；PROGRESS、HANDOVER、training_changes 追加记录（doc_check --expect-cjk 通过）；提交 NS-P3b。
 ```
 
 ### 5.6 Prompt NS-P4：融合、无图对照与 CPU 冒烟
@@ -944,7 +1041,7 @@ p) 函数 CFG 不受支持的函数 → order_status=unknown，C 组为 unknown 
 spec.layers=0 时，make_nodesem_model 传 layers=0 给 make_model。按 NS-P0 实验 C 的结论确认：作者 forward 可以直接使用；只在 G0 上使用；节点任务与合约任务都能前向和反向。
 
 ## 3. 配置登记
-configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（主视图，CODE 与 CTX 用主编码器）。记录每个配置的 carrier_dim（预期 S4 约 595；以 behavior_schema.json 的实际维度为准）。
+configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（主视图，CODE 与 CTX 用主编码器）。记录每个配置的 carrier_dim（预期 S4 约 715；以 behavior_schema.json 的实际维度为准）。
 
 ## 4. CPU 证明与冒烟（不是正式训练）
 在 reentrancy_node fold0 上（G3R；S4-noG 用 G0）：
