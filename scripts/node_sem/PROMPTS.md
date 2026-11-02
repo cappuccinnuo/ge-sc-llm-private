@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r7（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+版本：r8（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+
+**r8 相对 r7 的修改**（NS-P2b 审查后，见第 5E 节）：NS-P2b 验收通过，进入 NS-P3。更正第 5D 节中关于残留名字原因的错误说法；共享上下文中的文档校验命令写成 doc_check 的实际用法（`--expect-cjk` 与 `路径:追加前字节数`）。
 
 **r7 相对 r6 的修改**（NS-P2 审查后，见第 5D 节）：NS-P2 的数据与代码经复核成立；但 NS-P2 写入的四处文档（NS_P2_REPORT.md、PROGRESS.md 的 NS-P2 节、HANDOVER.md 的 NS-P2 节、training_changes §74）中所有中文都被写成了字面的 `?`，内容无法恢复。新增纠正性 Prompt **NS-P2b**（第 5.4b 节，NS-P3 之前完成）：重写这四处文档、加文档写入校验，并做一项编号影响的只读诊断。共享上下文增加文档编码不变量。M2 的匿名文本沿用 8G 的逐文件编号（第 4.5 节）。
 
@@ -538,7 +540,7 @@ mando 环境中的代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[
 - AST 事实一律经 ProjectionView + Projector 按 AST 身份投影到节点，投影不到的事实丢弃并计数，不按行号猜测。
 - 训练沿用基准 v2 协议：8D 分组折、L-audit、seed=1、local_dev_v1、8H 训练配置，outer_test 只在训练结束后评分。只在 inner_val 上做选择。
 - 使用与 8H 相同的 GPU 锁：scripts/DFG/experiments/artifacts/dfg_v2/.training.lock（experiment.run._Lock）。
-- 文档编码（r7）：所有 .md/.json/.jsonl 一律以 UTF-8 写入，不得经 Windows 标准输入管道传递中文（NS-P2 因此把全部中文写成了 `?`）。用 Python 脚本写文件（中文可用 \u 转义写在脚本里），写完运行 `python -B -m scripts.node_sem.doc_check <文件...>`：文件必须能按 UTF-8 解码，本轮新写入的段落中不得出现连续 3 个及以上的 `?`，中文段落必须确实含有中文字符。不通过就不得提交。nodesem 环境中所有使用 GPU 的离线任务（M1/M2 编码、llama.cpp、教师句向量）不得与训练并行。离线脚本启动前必须以非阻塞方式检查该锁文件：被占用就直接退出并报告；不得在训练期间抢占 GPU。CPU 模式的离线任务不受此限制。
+- 文档编码（r7）：所有 .md/.json/.jsonl 一律以 UTF-8 写入，不得经 Windows 标准输入管道传递中文（NS-P2 因此把全部中文写成了 `?`）。用 Python 脚本写文件（中文可用 \u 转义写在脚本里），写完运行 `python -B -m scripts.node_sem.doc_check --expect-cjk <文件>:<追加前字节数> ...`（新建的文件不带字节数）：文件必须能按 UTF-8 严格解码，新写入部分不得出现连续 3 个及以上的 `?` 或 U+FFFD，并且必须含有中文字符。不通过就不得提交。nodesem 环境中所有使用 GPU 的离线任务（M1/M2 编码、llama.cpp、教师句向量）不得与训练并行。离线脚本启动前必须以非阻塞方式检查该锁文件：被占用就直接退出并报告；不得在训练期间抢占 GPU。CPU 模式的离线任务不受此限制。
 
 ## 接入方式（第 4.9 节）
 NodeSem 的拼接向量写进内存图副本中每个节点的 token 属性，然后用 dfg_v2.model.make_model(node_feature="inside_token") 原样构造模型，只把 model.adapt_ws 的每一项替换为 NodeSemAdapter。这样 validate_registration、checkpoint 绑定、FitInputGuard 和 benchmark_v2.trainer.fit 都可以原样使用，不需要修改任何冻结代码。
@@ -1200,7 +1202,7 @@ Codex 提出的三个设计问题都成立，决定见第 4.2、4.6 节与 r4 �
 - 行数：F3 全集 12223/7892/18610/13693，其中 env_source 187/182/298/261，与 DFG 记录一致。
 - cut_mode 分布由 DFG 节点类型计数逐项推出，全部吻合，例如重入合约：头部 412+86+45=543，签名 3651+165+165=3981，条件 1232+28+7=1267，END 占位 1197+35=1232，完整文本 11289 + env 298 = 11587；回退 0；全部行的 text_sha256 与文本一致；两个视图的行身份与 cut_mode 逐行相同。
 - 抽样检查各类截取文本（条件、for 头部、签名含 modifier/returns、合约继承头部、struct、END 占位、环境键）均正确。
-- 匿名视图中没有文件名；没有 SolidiFI 标记名。仍以原名出现的只有十余个（data、number、min、max、sig、interfaceId 以及 abi.encodePacked 等内置成员），它们在该语法中不是 identifier 节点，是 8G 视图本身的性质，NS-P2b 记录。
+- 匿名视图中没有文件名；没有 SolidiFI 标记名。仍以原名出现的只有十余个（data、number、min、max、sig、interfaceId 以及 abi.encodePacked 等内置成员）。【r8 更正】它们是 identifier 节点，但在 8G 的保留表中（EXCLUDED_NAMES 由一段字符串加一个拼接列表组成，审查时只解析了字符串部分，漏掉了列表）；保留是按拼写进行的，所以用户自己命名为 data 的变量也会保留原名。这是 8G 视图本身的性质，NS-P2b 已按 AST 统计。
 - 8 份编码 manifest：版本、模态、F0/F3 指纹、行集合、present、implementation、assets、input_text 都符合载体契约；encoding_summary 中 8 次编码重复运行逐位一致。
 - carrier._aligned 的超集改动正确：原节点顺序严格一致，只允许省略辅助节点，辅助行按身份查找。
 - 生产者扰动测试（两个视图，(a)(b)(c) 三项）存在于 test_text_view.py。
@@ -1212,6 +1214,23 @@ Codex 提出的三个设计问题都成立，决定见第 4.2、4.6 节与 r4 �
 3. **implementation 绑定包含 carrier.py**：text_view 导入了载体中的函数，所以绑定是对的；但之后若修改 carrier.py，全部编码特征都要重新生成（约 4 分钟 GPU，代价不大）。
 
 结论：NS-P2 的实现与数据成立；完成 NS-P2b 后进入 NS-P3。
+
+## 5E. NS-P2b 审查记录（2026-11-02，Claude）
+
+**独立核对：**
+- 文档修复：四份文档各自只有一个连续区域被改动；该区域在 e5aab8d2 中全部是 ASCII（0 个非 ASCII 字节，问号 377/2203/645/2058 个），区域之前的全部字节与之后的结尾字节逐字节相同。新内容是 UTF-8 中文（中文字符 993/4697/2169/1038 个），没有连续问号。offline/README.md 中被写成问号的一个章节符号也已修复。现在这六份文件全文都能按 UTF-8 严格解码，没有任何连续 3 个问号或替换字符。
+- 重写后的 NS-P2 报告中的行数、去重数、去重率、峰值显存、环境版本与证据文件一致；总耗时 218.936 秒与各任务耗时之和 218.937 的差异只是舍入。
+- 编号影响：分组数、分裂组数、各组匿名变体数与两两配对数，我从提交的 text.jsonl 重新计算，全部相同（例如重入节点 841/735 组、75457 对）。余弦本身需要本地 NPZ，无法在仓库中复算，以 Codex 的结果为准。
+- doc_check：严格 UTF-8 解码、按追加前字节数只检查新内容、拒绝连续问号与替换字符、`--expect-cjk` 要求中文；不在 RUNTIME_MODULES 中。实现正确。
+- 用户在两轮之间另做的核查（training_changes §75 与 artifacts/ns_p2_review_20261102/）与本审查的结论一致。
+
+**编号影响的结论：** 同一原文语句的不同匿名变体，向量平均余弦为 0.90–0.92（5% 分位约 0.80），同类型不同原文的随机对照为 0.60–0.64。编号会使向量有可见的变化，但变体之间仍远比不同语句接近。按第 4.5 节的决定保留 8G 编号。若以后要量化这部分噪声对检测的影响，可在 N-B 中加一个只作描述的对照（节点文本内规范编号的 S2），现在不加。
+
+**更正：** 第 5D 节中“这些名字不是 identifier 节点”的说法是我的错误，Codex 的核查正确，已在 5D 中更正。
+
+**过程问题（已妥善处理）：** `git diff --check` 对原样归档的 diff 文件报尾随空格，Codex 只对这一份归档豁免格式检查，并严格核对其 SHA。处理合理。
+
+结论：NS-P2b 验收通过，没有遗留问题，进入 NS-P3。
 
 ## 6. 里程碑
 
