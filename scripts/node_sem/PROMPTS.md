@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r13（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+版本：r14（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+
+**r14 相对 r13 的修改**：NS-P3b2 审查通过（第 5J 节），下一步为 NS-P4；NS-P4 第 3 节补充原名视图的 S0o/S1o 配置登记与核对（原名为主时的配对基线所需）。
 
 **r13 相对 r12 的修改**：NS-P3b 审查（第 5I 节）。新增小范围纠正 Prompt **NS-P3b2**（第 5.5b2 节，NS-P4 之前完成）：把已批准但未编码的“一层检查运算”写入 STATIC，组级未知时保留已由确定证据得出的 true 位，CTX 中参数来源不再写成 unknown。NS-P4 的配置维度改为以载体为准，并登记 masked CTX 的对照配置。
 
@@ -1193,7 +1195,8 @@ ctx_fields(facts_row, text_row, names="original") -> dict：按第 4.5 节的字
 spec.layers=0 时，make_nodesem_model 传 layers=0 给 make_model。按 NS-P0 实验 C 的结论确认：作者 forward 可以直接使用；只在 G0 上使用；节点任务与合约任务都能前向和反向。
 
 ## 3. 配置登记
-configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（视图按 EXPERIMENT_POLICY：original；CODE 与 CTX 用主编码器），以及名字对照 S3m.json、S4m.json（CTX 用 ctx_masked，其余相同）。记录每个配置的 carrier_dim，以 FeatureSpec.carrier_dim() 与 NS-P3b2 后的 behavior_schema.json 为准（NS-P3b 时 S4 为 758）。
+configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（视图按 EXPERIMENT_POLICY：original；CODE 与 CTX 用主编码器），以及名字对照 S3m.json、S4m.json（CTX 用 ctx_masked，其余相同）。记录每个配置的 carrier_dim，以 FeatureSpec.carrier_dim() 与 NS-P3b2 后的 behavior_schema.json 为准（NS-P3b2 后 S3=514、S4=760）。
+- 原名基线配置（EXPERIMENT_POLICY 为原名时，配对基线必须与特征视图一致）：登记 configs/S0o.json、S1o.json，TOKEN_IDS 取原名视图的 token ID（图上原有的、未经 8G 改名的 token 属性；必须核对其来源与 SHA，不从匿名特征反推）。CPU 核对：S0o 的载体与原图 token 属性逐位相同；S0o 构造出的模型除输入特征外与 8H 的 S0 初值逐位相同。找不到可核验的原名 token 来源时停下报告，不自行生成。正式是否运行 S0o/S1o 由 NS-P5 计划决定。
 
 ## 4. CPU 证明与冒烟（不是正式训练）
 在 reentrancy_node fold0 上（G3R；S4-noG 用 G0）：
@@ -1572,6 +1575,20 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 **需要修正（NS-P3b2）：** 一层检查运算进入 STATIC；B/C/D 组未知时保留已证实的 true 位；参数来源写 "entry" 而不是 "unknown"。见第 5.5b2 节。
 
 **名字泄漏的实测规模：** 原名 CTX 中含 SolidiFI 标记子串的行：reentrancy_node 5961/12223（48.8%），reentrancy_contract 5961/18610，access_control_node 3054/7892（38.7%），access_control_contract 3054/13693；masked 中为 0。这为第 5H 节的视图建议提供了直接的数据。用户在 NS-P3b 中继续使用原名为主，因此 NS-P4 同时登记 S3m/S4m（masked CTX）对照；CODE（M1）仍是原名，masked CTX 不能消除 CODE 中的名字，这一点在 NS-P5 计划中必须处理（原名 S0 基线、非 SolidiFI 分层，或在匿名视图上复核关键配置）。
+
+## 5J. NS-P3b2 审查记录（2026-11-03，Claude）
+
+**结论：通过。** 下一步是 NS-P4。
+
+**复核：**
+- STATIC：用 static_profile（v2，245 维）对 accepted_attempt4 全部行重算，与 attempt_b2 的 stats 逐列相同（最大差 0）；checked_by_helper=1 的行 271/105/214/103 与 NS-P3b 记录的未消费计数一致；没有任何行同时有 checked_by_helper=1 与 unknown.checked_call=1；没有任何行在守卫未知时置 D 组 none 位；顺序未知但保留了已证实 C 位的行 39/35/35/35（含 ext_call_in_loop）。
+- CTX：我独立比较新旧 8 份字段文件：变化行 3671/1942/4602/3118（原名与 masked 相同），把新文本中的 entry 换回 unknown 后与旧文本逐字相同，没有其他差异。剩余的 FROM unknown 只有 L1 不支持的行与循环更新表达式（++i、i++ 等，facts 中没有定义相对距离），参数来源已全部为 entry。
+- 新测试 96 项在独立环境通过；载体维度 S3=514、S4=760。
+- Codex 对测试夹具问题的处理（constructor/fallback 使用 facts 中实际的 function 类别；modifier 夹具因 L1 不支持而断言 unknown）是正确的，没有放宽生产断言。
+
+**记录的限制（不阻塞）：**
+- checked_call 的状态在语句中任一调用无法唯一解析时就是 unknown（每任务 35–115 行），其中已证实存在经检查运算的只有 7/4/6/4 行；按我在 NS-P3b2 中的规定，这些行的 checked_by_helper 为 0。严格按三值逻辑应保留为 1，但影响太小，不单独返工；以后修改 STATIC 时一并处理。
+- 循环更新表达式的来源距离仍写 unknown（每任务约 30 行），原因是冻结 facts 没有为它们定义相对距离。
 
 ## 6. 里程碑
 
