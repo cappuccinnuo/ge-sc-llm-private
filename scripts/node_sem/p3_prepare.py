@@ -57,9 +57,11 @@ def field_stats(rows):
         count=len(values)
         result[key]=dict(applicable=count,total=len(rows),
             nonempty=sum(value!=["-"] for value in values),
-            unknown=sum(any("unknown" in item for item in value) for value in values))
+            unknown=sum(any("unknown" in item for item in value) for value in values),
+            entry=sum(any(item.startswith("entry:") or ":entry" in item for item in value) for value in values))
         result[key]["nonempty_rate"]=result[key]["nonempty"]/count
         result[key]["unknown_rate"]=result[key]["unknown"]/count
+        result[key]["entry_rate"]=result[key]["entry"]/count
     return result
 
 

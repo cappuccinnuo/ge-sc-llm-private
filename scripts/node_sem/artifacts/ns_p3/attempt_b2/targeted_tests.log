@@ -1,0 +1,93 @@
+....F.F.....F.F......................................................... [ 76%]
+......................                                                   [100%]
+=================================== FAILURES ===================================
+__________ test_checked_helper_status_and_applicability[constructor] ___________
+
+kind = 'constructor'
+
+    @pytest.mark.parametrize("kind",["statement","condition","function","constructor","modifier","fallback"])
+    def test_checked_helper_status_and_applicability(kind):
+>       f=new_facts(kind)
+
+scripts/node_sem/tests/test_p3b2.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+node_kind = 'constructor'
+
+    def new_facts(node_kind):
+        """Return independent defaults. Applicable but unanalysed support is unknown."""
+        if node_kind not in NODE_KINDS:
+>           raise ValueError("unknown node kind: %r" % (node_kind,))
+E           ValueError: unknown node kind: 'constructor'
+
+scripts/node_sem/facts_schema.py:62: ValueError
+____________ test_checked_helper_status_and_applicability[fallback] ____________
+
+kind = 'fallback'
+
+    @pytest.mark.parametrize("kind",["statement","condition","function","constructor","modifier","fallback"])
+    def test_checked_helper_status_and_applicability(kind):
+>       f=new_facts(kind)
+
+scripts/node_sem/tests/test_p3b2.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+node_kind = 'fallback'
+
+    def new_facts(node_kind):
+        """Return independent defaults. Applicable but unanalysed support is unknown."""
+        if node_kind not in NODE_KINDS:
+>           raise ValueError("unknown node kind: %r" % (node_kind,))
+E           ValueError: unknown node kind: 'fallback'
+
+scripts/node_sem/facts_schema.py:62: ValueError
+___ test_entry_recognition_uses_identity_not_function_spelling[constructor] ____
+
+kind = 'constructor'
+
+    @pytest.mark.parametrize("kind",["function","constructor","modifier","fallback"])
+    def test_entry_recognition_uses_identity_not_function_spelling(kind):
+        item={"node":"f","offset":None}
+        piece={"node_kind":kind,"text":"not inspected",
+               "identifiers":[{"name":"p","role":"PARAM"}]}
+        side={"neighbors":{"f":piece}}
+>       assert source_distance(item,side)=="entry"
+E       AssertionError: assert 'unknown' == 'entry'
+E         - entry
+E         + unknown
+
+scripts/node_sem/tests/test_p3b2.py:98: AssertionError
+_____ test_entry_recognition_uses_identity_not_function_spelling[fallback] _____
+
+kind = 'fallback'
+
+    @pytest.mark.parametrize("kind",["function","constructor","modifier","fallback"])
+    def test_entry_recognition_uses_identity_not_function_spelling(kind):
+        item={"node":"f","offset":None}
+        piece={"node_kind":kind,"text":"not inspected",
+               "identifiers":[{"name":"p","role":"PARAM"}]}
+        side={"neighbors":{"f":piece}}
+>       assert source_distance(item,side)=="entry"
+E       AssertionError: assert 'unknown' == 'entry'
+E         - entry
+E         + unknown
+
+scripts/node_sem/tests/test_p3b2.py:98: AssertionError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/node_sem/tests/test_p3b2.py::test_checked_helper_status_and_applicability[constructor]
+FAILED scripts/node_sem/tests/test_p3b2.py::test_checked_helper_status_and_applicability[fallback]
+FAILED scripts/node_sem/tests/test_p3b2.py::test_entry_recognition_uses_identity_not_function_spelling[constructor]
+FAILED scripts/node_sem/tests/test_p3b2.py::test_entry_recognition_uses_identity_not_function_spelling[fallback]
+4 failed, 90 passed, 4 warnings in 7.04s

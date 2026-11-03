@@ -88,6 +88,9 @@ def enrich(graph,sources,text_rows,fact_rows):
             if graph.nodes[nid]["node_type"] in PLACEHOLDERS:
                 pieces[nid]=dict(text=texts[nid]["text"],identifiers=[])
             elif nid not in pieces: raise ValueError("CTX original node lacks exact projection")
+    # Evidence metadata only: entry recognition never guesses from text prefixes.
+    for nid,piece in pieces.items():
+        piece["node_kind"]=facts[nid]["node_kind"]
     summaries=defaultdict(set)
     unknown=set()
     for nid,owner in owners.items():

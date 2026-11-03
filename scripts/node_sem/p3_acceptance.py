@@ -37,7 +37,7 @@ def _vocabulary():
     for kind in fs.NODE_KINDS: visit(fs.new_facts(kind))
     for field in load_schema()["fields"]:
         visit(field["name"]); visit(field["values"])
-    words.update(("state local param parameter return env unknown none true false visibility guards "
+    words.update(("state local param parameter return env unknown entry none true false visibility guards "
                   "kinds target value data bound external_call kind polarity eq additional operands "
                   "early_exit shape scalar public constant_immutable has_initializer auth read_functions "
                   "write_functions only_constructor_writes unguarded_write_functions END_IF END_LOOP").split())
@@ -72,7 +72,7 @@ def verify_static(facts, values, schema):
             bits = values[i, field["start"]:field["stop"]]
             if field["encoding"] == "one_hot" and bits.sum() != (0 if missing else 1):
                 raise ValueError("STATIC one-hot / unknown rule violated")
-            if (missing or not applicable) and field["encoding"] != "one_hot" and bits.any():
+            if (not applicable or (missing and field["unknown_policy"]=="zero")) and field["encoding"] != "one_hot" and bits.any():
                 raise ValueError("STATIC unknown / inapplicable value leaked")
 
 
@@ -94,7 +94,7 @@ def _encoding_stats(meta):
     return result
 
 
-def verify(output, encoding_index):
+def verify(output, encoding_index, prepared_root=None, snapshot_path=None, mutable_paths=()):
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     index_path = Path(encoding_index).resolve()
@@ -102,6 +102,8 @@ def verify(output, encoding_index):
         raise ValueError("Encoding index seal differs")
     index = read(index_path)["tasks"]
     schema = load_schema()
+    ctx_root = (Path(prepared_root)/"fields/original" if prepared_root else ARTIFACTS/"ctx_v1/original")
+    static_root = (Path(prepared_root)/"static/original" if prepared_root else ARTIFACTS/"ns_p3/static/original")
     tasks = sorted(read(CURRENT)["tasks"])
     if set(index) != set(tasks) or any(set(x) != {"original", "masked"} for x in index.values()):
         raise ValueError("Incomplete CTX encoding index")
@@ -112,7 +114,7 @@ def verify(output, encoding_index):
         code_path = ARTIFACTS / "ns_p2/encoded/original" / task / "manifest.json"
         code = sealed_manifest(code_path)
         load_modality(ref(code_path))
-        static_path = ARTIFACTS / "ns_p3/static/original" / task / "manifest.json"
+        static_path = static_root / task / "manifest.json"
         static = sealed_manifest(static_path)
         static_vectors = load_modality(ref(static_path))
         keys = [row["row_key"] for row in texts]
@@ -122,12 +124,12 @@ def verify(output, encoding_index):
         verify_static(facts, values, schema)
         task_stats = dict(rows=len(keys), static_dimension=schema["dimension"],
             static_one_rates=dict(zip(column_names(schema), values.mean(axis=0, dtype=np.float64).tolist())),
-            preparation=read(ARTIFACTS / "ctx_v1/original" / task / "preparation.json"),
+            preparation=read(ctx_root / task / "preparation.json"),
             names={})
         references[task] = dict(accepted=accepted, code=ref(code_path), static=ref(static_path), ctx={})
         for mode in ("original", "masked"):
             suffix = "" if mode == "original" else "_masked"
-            fields_path = ARTIFACTS / "ctx_v1/original" / task / ("ctx_fields"+suffix+".manifest.json")
+            fields_path = ctx_root / task / ("ctx_fields"+suffix+".manifest.json")
             fields_manifest = sealed_fields(fields_path)
             fields = read_jsonl(checked(fields_manifest["input_text"]))
             ctx_path = checked(index[task][mode])
@@ -191,9 +193,10 @@ def verify(output, encoding_index):
     load(PLAN)
     if _code_refs() != read(PLAN.with_name("runtime_resume_v2.json"))["runtime"]:
         raise ValueError("Historical effective runtime changed")
-    snapshot = read(ARTIFACTS/"ns_p3/started.json")["tracked_sha256"]
+    snapshot = read(snapshot_path or ARTIFACTS/"ns_p3/started.json")["tracked_sha256"]
     mutable_docs = {"HANDOVER.md", "docs/training_changes_2026-10-07.md",
                     "scripts/node_sem/PROGRESS.md", "scripts/node_sem/EXPERIMENT_POLICY.md"}
+    mutable_docs.update(mutable_paths)
     changed = [p for p, digest in snapshot.items() if p not in mutable_docs
                and ref(ROOT/p)["sha256"] != digest]
     if changed: raise ValueError("Frozen tracked content changed: "+repr(changed))

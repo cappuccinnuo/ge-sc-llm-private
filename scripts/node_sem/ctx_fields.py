@@ -20,6 +20,25 @@ def distance(offset):
     return "unknown" if offset is None else "@{:+d}".format(offset)
 
 
+def source_distance(item, side):
+    """Entry is a projected function identity, not a spelling or missing offset."""
+    piece=side["neighbors"].get(item["node"], {})
+    if item["offset"] is None and piece.get("node_kind") in FUNCTION_KINDS:
+        return "entry"
+    return distance(item["offset"])
+
+
+def variable_distance(item, dfg, side):
+    if item["kind"] in ("parameter", "param") and item["from_offset"] is None:
+        for source in dfg["from"]:
+            piece=side["neighbors"].get(source["node"], {})
+            if source_distance(source,side)=="entry" and any(
+                token["name"]==item["var"] and token["role"]=="PARAM"
+                for token in piece.get("identifiers",[])):
+                return "entry"
+    return distance(item["from_offset"])
+
+
 def _nearest(items):
     # Stable evidence order resolves equal distances; no spelling/label sorting.
     return sorted(enumerate(items),key=lambda pair:(
@@ -103,7 +122,7 @@ def ctx_fields(facts_row,text_row,names="original"):
                 for item in dfg[source]:
                     name=policy.var(item["var"],ROLE[item["kind"]])
                     role="param" if item["kind"]=="parameter" else item["kind"]
-                    offset=(":"+distance(item["from_offset"])) if role in ("local","param","return") else ""
+                    offset=(":"+variable_distance(item,dfg,side)) if role in ("local","param","return") else ""
                     values.append(name+":"+role+offset)
                 # L2/L3 accesses are available separately; do not turn uncertain
                 # local def-use support into known support.
@@ -119,7 +138,7 @@ def ctx_fields(facts_row,text_row,names="original"):
                 for _,item in _nearest(dfg[source])[:2]:
                     piece=side["neighbors"].get(item["node"])
                     if piece is None:raise ValueError("CTX missing DFG endpoint text")
-                    label=distance(item["offset"])+":"
+                    label=(source_distance(item,side) if source=="from" else distance(item["offset"]))+":"
                     if source=="to":label+=item["sink"]+":"
                     values.append(label+" "+policy.piece(piece))
             out[field]=values or ["-"]

@@ -8072,3 +8072,69 @@ mando：PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 TREE_SITTE
 - 最终实验按用户安排使用显存充足服务器，当前RTX3050 4GiB只是本机开发限制；本轮没有部署或实测服务器。产物在WSL工作树，不额外向C盘写模型或训练日志。
 
 完成本地NS-P3b提交后停止，不自动推送、不开始下一阶段。
+
+
+## 81. 2026-11-02 NodeSem NS-P3b2：STATIC补项/三值与CTX入口来源（Codex）
+
+### 81.1 输入、范围与实施选择
+
+输入 node-sem@e06b983d、PROMPTS r13（文档日期2026-11-03），已按共享§5.1快进同步；实施与记录：Codex。本轮仅NS-P3b2，不训练、不推进NS-P4。original为主、局部masked CTX为对照；不切换匿名主视图。
+
+- static_profile.py / behavior_schema.json：schema版本nodesem-static-v2，243→245维；G新增arith.checked_by_helper，N新增unknown.checked_call。严格要求supported且result_condition_check=true；歧义unknown时值为0、N为1，适用范围复用checked_call。
+- B多热、C、D/D1/D2由字段unknown_policy=keep_true控制；未知时保留确定true、同时N=1。D的none用unknown_exclude排除；B读写数量独热与其他zero策略保持不变。没有按字段名硬编码未知保留分支。
+- ctx_alignment.py只在已有精确投影sidecar加入node_kind；ctx_fields.py依据函数入口身份与参数声明角色生成entry，非入口或无法确定来源仍unknown，局部相对距离不变。constructor/fallback沿用事实function类别，modifier沿用modifier。
+- p3_prepare.py分开统计entry与unknown，原始facts、代码文本、DFG、图、标签、折不改。新目录attempt_b2排他创建，旧ns_p3产物和seal保留，旧CURRENT先复制归档。
+- p3_acceptance.py增加显式新目录/快照参数并保留默认入口；新增p3b2_acceptance.py，以旧schema列名重对齐、逐列审查STATIC、逐字符审查CTX，核验旧实现SHA与aa81bcde Git blob。旧产物不能用当前变更后的producer冒充同一运行版本；归档核验不改旧seal，新载体验收仍使用当前实现严格SHA。
+- tests/test_p3b2.py新增检查函数/歧义、三值、入口身份/反例、独立差异拒绝测试；test_ctx_static按新245列契约更新维度及策略断言，保留原Oracle、扰动、身份与未知检测。
+
+### 81.2 数据变化与编码
+
+| 任务 | 行数 | 检查运算=1 | 检查运算未知 | CTX变化行（每套） | FROM unknown旧→新 | FROM entry |
+|---|---:|---:|---:|---:|---:|---:|
+| access_control_contract | 13693 | 214 | 80 | 4602 | 6010→1452 | 4569 |
+| access_control_node | 7892 | 103 | 35 | 3118 | 3647→566 | 3091 |
+| reentrancy_contract | 18610 | 271 | 115 | 3671 | 4706→1102 | 3615 |
+| reentrancy_node | 12223 | 105 | 35 | 1942 | 2353→468 | 1896 |
+
+| 任务 | 名字 | 去重文本 | 截断级别变化行 | 秒数 |
+|---|---|---:|---:|---:|
+| access_control_contract | original | 6267 | 0 | 170.648 |
+| access_control_contract | masked | 4876 | 0 | 143.807 |
+| access_control_node | original | 3199 | 0 | 94.271 |
+| access_control_node | masked | 2601 | 0 | 85.489 |
+| reentrancy_contract | original | 7129 | 0 | 198.484 |
+| reentrancy_contract | masked | 5380 | 0 | 162.607 |
+| reentrancy_node | original | 3536 | 0 | 103.969 |
+| reentrancy_node | masked | 2805 | 0 | 86.849 |
+
+每列映射与计数见attempt_b2/comparison/summary.json；逐行文本差异仅unknown→entry，所有非许可差异为0。成功编码1046.126秒，peak allocated最大677.321MiB，不代表全图训练显存。
+
+### 81.3 测试、身份核验与失败现场
+
+实际恢复的行数（B多热/C全部五位/D-D2，按任务内去重）：{'access_control_contract': {'state.': 11, 'order.': 35, 'guards.': 7}, 'access_control_node': {'state.': 5, 'order.': 35, 'guards.': 2}, 'reentrancy_contract': {'state.': 8, 'order.': 39, 'guards.': 2}, 'reentrancy_node': {'state.': 5, 'order.': 35, 'guards.': 2}}。C若只数前四位为31/31/35/31，与背景计数一致；包含文档明确要求的ext_call_in_loop后每任务增加4行。状态存在读写条目也不一定对应多热位，例如标量读取的数量独热仍因unknown保持0，不把原始条目数当恢复行数。
+
+CodeT5p110m revision d9f3a534af4252f04b10cd9f78e05037542d10f6；资产SHA 2e4c548e3ebeb2f8a1c05cbe0197f8381c9f3249682e14dccb827c1827f55140；pooling=model_default，precision=torch.float16，max_length=256。沿用原资产和离线环境，未下载/安装或修改tokenizer。
+
+746 NodeSem + 2653 DFG v2 + 223 原DDG/graph_utils + 6离线预算测试，共3628通过；最终0失败、0跳过，4+9+29=42条既有DGL distutils/NetworkX gpickle弃用警告。52 Oracle改名重抽、STATIC与masked不变、标签/元数据/DOT前缀扰动和坏锚点拒绝继续通过。新增唯一helper与同名歧义均有AST实证；样例未在本轮执行Solidity编译。
+8份CTX每份两遍逐位相同、误差0、隐式尾截断0；模型、revision、资产SHA、池化、fp16、256token与两遍规则不变，原encode_ctx.py及ctx_budget.py没有改动。8CTX+4STATIC+4旧CODE全载体验收、32次真实装配通过；S3=514，S4=760，G0/G3R均等于FeatureSpec.carrier_dim()。
+8H execution.load及runtime_resume_v2核验通过；22813冻结历史文件不变，本轮开始快照中除授权文件与三份追加文档外无变化。事实CURRENT仍accepted_attempt4；不读取训练分数或以标签分组。
+
+开发期失败记录未删除：首轮4失败/90通过，测试误用不存在的constructor/fallback事实枚举；改为实际function统一类别后，另发现modifier夹具的既有L1不支持，不能期待entry，改为明确断言unknown且保留支持构造函数测试。随后94项通过。全套首次1失败/744通过，新差异测试夹具缺少file元数据；补齐身份及额外STATIC篡改拒绝测试后746通过。生产算法与验收关键断言未因这些夹具问题放宽；正式准备/编码无失败或重试。
+
+### 81.4 命令、归档与未完成边界
+
+    python -B -m scripts.node_sem.p3_prepare --task <task> --ctx-out <新目录>/fields/original/<task> --static-out <新目录>/static/original/<task>
+    /home/zhao/miniconda3/envs/nodesem/bin/python -s -B scripts/node_sem/offline/encode_ctx.py --fields <字段jsonl> --out <新编码目录>
+    CUDA_VISIBLE_DEVICES='' python -B -m scripts.node_sem.p3b2_acceptance --base scripts/node_sem/artifacts/ns_p3/attempt_b2
+    CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests
+    CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+    CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+    /home/zhao/miniconda3/envs/nodesem/bin/python -s -B -m unittest discover -s scripts/node_sem/offline -p test_ctx_budget.py
+
+- 背景段提到checked_call未进入STATIC和CTX；本轮具体§1只要求STATIC补列，§2/§3只允许CTX unknown→entry。因此检查摘要已进入STATIC，未另加CTX字段；没有擅自扩展文本方案。
+- 重入节点FROM含unknown仍468/6635（7.05%）：439行L1不支持，29行循环更新表达式被既有facts归为other且offset=None。来源节点存在，但冻结的相对距离没有定义；不是参数入口，不能全改entry，更未改facts来追求低unknown率。11行同时有entry和unknown，两个计数不可当互斥分类相减。
+- 局部masked不等于8G全文件匿名，也不能去掉原名CODE中的名字捷径。沿用原名主视图和历史匿名接口，后续比较需匹配原名S0，不借用8H匿名成绩作配对基线。
+- 仍是受限AST事实后端，没有完整Solidity绑定/别名系统；新增位描述经检查的算术，不是安全性证明，没有新增F1结论。
+- 最终实验按用户安排在显存充足服务器执行；当前RTX3050 4GiB仅是本机开发限制，服务器未在本轮部署或实测。模型/产物在WSL工作树，不额外向C盘复制。
+
+无新的方案偏离或未确认替代；按用户本轮授权实施r13三项修正。旧producer SHA从aa81bcde核验、新版本单独绑定；不改旧seal、不把旧243维与新245维混用。验收后CURRENT切到attempt_b2，旧CURRENT已保存；三文档只追加，详见NS_P3B2_REPORT.md、decisions.json。只本地提交，不推送、不启动NS-P4。

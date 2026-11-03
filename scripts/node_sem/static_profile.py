@@ -5,20 +5,22 @@ import numpy as np
 from . import facts_schema as fs
 
 SCHEMA_PATH = Path(__file__).with_name("behavior_schema.json")
-VERSION = "nodesem-static-v1"
+VERSION = "nodesem-static-v2"
 STMT, FUNC = list(fs.STATEMENT_KINDS), list(fs.FUNCTION_KINDS)
 
 
 def schema_definition():
     """Persisted JSON is the column contract; unknown K/L/M lists derive from facts."""
     fields = []
-    def add(group, name, kinds, values=None, encoding="multi_hot", unknown=None):
+    def add(group, name, kinds, values=None, encoding="multi_hot", unknown=None,
+            unknown_policy="zero", unknown_exclude=()):
         options = list(values) if values is not None else ["true"]
         if encoding == "one_hot": options = ["not_applicable"] + options
         start = sum(len(x["values"]) for x in fields)
         fields.append(dict(group=group, name=name, encoding=encoding, values=options,
             start=start, stop=start+len(options), applicable=kinds,
-            inapplicable="not_applicable" if encoding=="one_hot" else "zero", unknown=unknown))
+            inapplicable="not_applicable" if encoding=="one_hot" else "zero", unknown=unknown,
+            unknown_policy=unknown_policy, unknown_exclude=list(unknown_exclude)))
     add("A", "external.kinds", STMT, fs.EXTERNAL_KINDS)
     add("A", "external.uninvoked_call_value", STMT)
     add("A1", "external.value_attached", STMT)
@@ -28,12 +30,12 @@ def schema_definition():
     for name in ("write_count", "read_count"):
         add("B", "state."+name, STMT, ("zero","one","many"), "one_hot", "state")
     for name in ("write_indexed","write_scalar","read_indexed","write_auth","read_auth","array_size_change"):
-        add("B", "state."+name, STMT, unknown="state")
+        add("B", "state."+name, STMT, unknown="state", unknown_policy="keep_true")
     for name in ("reachable_from_ext_call","dominated_by_ext_call","write_then_call","call_then_write","ext_call_in_loop"):
-        add("C", "order."+name, STMT, unknown="order")
-    add("D", "guards.kinds", STMT, ("none",)+fs.GUARD_KINDS+("sender",), unknown="guard")
-    add("D1", "guards.operands", STMT, fs.OPERAND_CLASSES, unknown="guard")
-    add("D2", "guards.pairs", STMT, fs.EQ_PAIRS, unknown="guard")
+        add("C", "order."+name, STMT, unknown="order", unknown_policy="keep_true")
+    add("D", "guards.kinds", STMT, ("none",)+fs.GUARD_KINDS+("sender",), unknown="guard", unknown_policy="keep_true", unknown_exclude=("none",))
+    add("D1", "guards.operands", STMT, fs.OPERAND_CLASSES, unknown="guard", unknown_policy="keep_true")
+    add("D2", "guards.pairs", STMT, fs.EQ_PAIRS, unknown="guard", unknown_policy="keep_true")
     add("D3", "condition.present", ["condition"])
     add("D3", "self_condition.operand_classes", ["condition"], fs.OPERAND_CLASSES)
     add("D3", "self_condition.eq_pairs", ["condition"], fs.EQ_PAIRS)
@@ -46,6 +48,7 @@ def schema_definition():
     add("G", "arith.ops", STMT, fs.ARITH_OPS)
     for name in ("on_state","small_int","from_param","from_env","result_to_sensitive","in_unchecked"):
         add("G", "arith."+name, STMT)
+    add("G", "arith.checked_by_helper", list(fs.APPLICABILITY["checked_call"]), unknown="checked_call")
     add("H", "loop.bound", STMT, ("none","constant","state","param_local","unknown"), "one_hot")
     add("I", "function_ctx.visibility", STMT+FUNC, ("default","public","external","internal","private"), "one_hot")
     for name in ("payable","read_only","is_constructor","is_fallback","has_modifier","name_case_only_differs_from_contract"):
@@ -64,6 +67,7 @@ def schema_definition():
         add("M", "contract_summary."+name, ["contract"], unknown="contract_summary."+name)
     for name in ("dfg","order","guard","state","projection"):
         add("N", "unknown."+name, list(fs.NODE_KINDS))
+    add("N", "unknown.checked_call", list(fs.APPLICABILITY["checked_call"]))
     for group,kind in (("state_decl","state_decl"),("fn_summary","function"),("contract_summary","contract")):
         for name in sorted(set(fs.new_facts(kind)[group])-{"status","unknown_fields"}):
             add("N", "unknown."+group+"."+name, list(fs.APPLICABILITY[group]))
@@ -94,6 +98,8 @@ def _count(items):
 
 def _value(f,name):
     if name.startswith("unknown."): return unknown(f,name[len("unknown."):])
+    if name=="arith.checked_by_helper":
+        return f["checked_call"]["status"]=="supported" and f["checked_call"]["result_condition_check"]
     if name=="condition.present": return True
     if name.startswith("guards."):
         guards=f["guards"]
@@ -127,10 +133,12 @@ def encode(facts_row,schema=None):
     for field in schema["fields"]:
         if f["node_kind"] not in field["applicable"]:
             values=["not_applicable"] if field["encoding"]=="one_hot" else []
-        elif field["unknown"] and unknown(f,field["unknown"]): values=[]
+        elif field["unknown"] and unknown(f,field["unknown"]) and field["unknown_policy"]=="zero": values=[]
         else:
             value=_value(f,field["name"])
             values=(["true"] if value else []) if type(value) is bool else ([value] if isinstance(value,str) else value)
+        if field["unknown"] and unknown(f,field["unknown"]):
+            values=[value for value in values if value not in field["unknown_exclude"]]
         for value in set(values):
             if value not in field["values"]: raise ValueError("Invalid behavior value for "+field["name"])
             out[field["start"]+field["values"].index(value)]=1

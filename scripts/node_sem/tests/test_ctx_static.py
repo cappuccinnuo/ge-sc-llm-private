@@ -45,7 +45,7 @@ def features(source,graph,evidence,inverse=None):
 
 def test_schema_complete_nonoverlapping_and_derived_unknown_fields():
     schema=sp.load_schema()
-    assert schema["dimension"]==243
+    assert schema["dimension"]==245
     assert [i for f in schema["fields"] for i in range(f["start"],f["stop"])]==list(range(schema["dimension"]))
     assert len(sp.column_names())==len(set(sp.column_names()))
     for group,kind in (("state_decl","state_decl"),("fn_summary","function"),("contract_summary","contract")):
@@ -64,7 +64,7 @@ def test_applicability_one_hot_and_lossless_explanation(kind):
         applicable=kind in field["applicable"]
         unknown=applicable and field["unknown"] and sp.unknown(f,field["unknown"])
         if field["encoding"]=="one_hot": assert bits.sum()==(0 if unknown else 1)
-        elif not applicable or unknown: assert not bits.any()
+        elif not applicable or (unknown and field["unknown_policy"]=="zero"): assert not bits.any()
 
 
 @pytest.mark.parametrize("kind,group", [("state_decl","state_decl"),("function","fn_summary"),("contract","contract_summary")])

@@ -2466,3 +2466,12 @@ accepted_attempt4 四任务52,418行验收通过，1,400个任务内行实例有
 8套两遍编码逐位一致、max error=0；全量masked标识符残留0。S3/S4=514/758维，G0/G3R两种CTX共32次真实装配通过；3609测试通过，42条既有警告。旧CODE、8H及22,813冻结文件核验通过。报告NS_P3B_REPORT，产物CURRENT连接明确的复用/新编码索引。
 
 仍以original为主，保留匿名接口供以后比较，masked仅局部CTX对照。checked_call摘要未在本轮字段表中、尚未消费；没有HGT训练/F1/NS-P4。最终实验按用户安排使用显存充足服务器，4GiB只是本机开发限制；本轮未部署服务器。本地提交、不自动推送。
+
+
+### 2026-11-02 NodeSem NS-P3b2完成（修改 AI：Codex）
+
+按r13完成STATIC检查运算两列与B/C/D三值修正，243→245维；CTX函数入口及参数来源unknown→entry。原名与局部masked各52418行重编码，8份均两遍逐位一致；旧facts/图/标签/DFG/HGT/tokenizer/8H不改。4任务helper=214/103/271/105，所有非授权列/文本差异为0。
+
+3628测试通过，42条既有警告；32组合真实载体验收，S3/S4=514/760，旧CODE与8H有效runtime、22813冻结文件核验通过。新CURRENT指向ns_p3/attempt_b2，旧产物保留，详细选择、命令和失败夹具记录见training_changes§81及NS_P3B2_REPORT。重入FROM剩余468未知中439为L1回退、29为循环更新无相对距离，未伪造entry。
+
+仍以original为主，masked仅CTX名字对照；本轮无HGT训练/新F1，不推进NS-P4，仅本地提交、不自动推送。最终实验将在用户安排的显存充足服务器执行，RTX3050 4GiB仅当前本机限制，服务器未实测。
