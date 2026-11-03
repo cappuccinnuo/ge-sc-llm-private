@@ -145,17 +145,17 @@ def test_seventeen_adapters_register_one_table_and_exact_parameter_count():
     assert all(adapter.token_projection.weight.grad is not None for adapter in owner.adapt_ws)
 
 
-def test_adapter_rejects_raw_and_reserves_unimplemented_fusion():
+def test_adapter_rejects_raw_and_supports_new_fusion():
     with pytest.raises(ValueError, match="original"):
         NodeSemAdapter(spec(name="S0", token_mode="raw_linear", fusion="raw_linear"),
                        "return", shared())
-    for future in (
+    for current in (
             spec(fusion="gated"), spec(modality_dropout=0.1),
             spec(modalities=[
                 dict(name=TOKEN_IDS, dim=512, manifest=None, normalize=False),
                 dict(name=CODE, dim=256, manifest=None, normalize=True)])):
-        with pytest.raises(NotImplementedError, match="NS-P4"):
-            NodeSemAdapter(future, "return", shared())
+        adapter = NodeSemAdapter(current, "return", shared())
+        assert adapter.spec_digest == current.digest()
 
 
 @pytest.mark.parametrize("table", [

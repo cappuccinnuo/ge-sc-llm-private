@@ -16,7 +16,7 @@ from scripts.DFG.dfg_v2.model import make_model, validate_registration
 from scripts.DFG.dfg_v2.benchmark_v2.prepare import checked, read
 from scripts.DFG.dfg_v2.tokens import TokenEncoder
 
-from . import TOKEN_IDS
+from . import TOKEN_IDS, STATIC
 from .adapter import NodeSemAdapter
 from .carrier import carry, vector_sha
 from .feature_spec import FeatureSpec
@@ -44,10 +44,10 @@ def _vocabulary(record):
     return vocabulary, encoder.provenance
 
 
-def _validate_token_rows(graph, vocabulary):
+def _validate_token_rows(graph, vocabulary, spec):
     for _, attrs in graph.nodes(data=True):
-        # One presence bit precedes the only supported S1 modality.
-        tokens = attrs["token"][1:]
+        part = spec.layout()[TOKEN_IDS]
+        tokens = attrs["token"][part["start"]:part["stop"]]
         if (not np.isfinite(tokens).all() or np.any(tokens < 0)
                 or np.any(tokens != np.floor(tokens)) or np.any(tokens >= vocabulary)):
             raise ValueError("Token IDs are not exact vocabulary indices")
@@ -79,23 +79,24 @@ def make_nodesem_model(task, graph_ref, profile, spec, config, device="cpu", tas
                        reducer=config.get("reducer", "mean"),
                        layer_impl=config["layer_impl"])
     if spec.token_mode != "raw_linear":
-        if spec.token_mode != "embed_pool" or len(spec.modalities) != 1:
-            raise NotImplementedError("Continuous/multimodal fusion is reserved for NS-P4")
-        vocabulary, provenance = _vocabulary(record)
-        _validate_token_rows(carried, vocabulary)
-        bag = nn.EmbeddingBag(vocabulary, 64, mode="mean")
-        with torch.no_grad():
-            bag.weight[0].zero_()
-        model.nodesem_shared = nn.ModuleDict({
-            "token_bag": bag, "token_norm": nn.LayerNorm(64),
-        })
+        shared = None
+        if spec.token_mode == "embed_pool":
+            vocabulary, provenance = _vocabulary(record)
+            _validate_token_rows(carried, vocabulary, spec)
+            bag = nn.EmbeddingBag(vocabulary, 64, mode="mean")
+            with torch.no_grad():
+                bag.weight[0].zero_()
+            model.nodesem_shared = nn.ModuleDict({
+                "token_bag": bag, "token_norm": nn.LayerNorm(64),
+            })
+            shared = model.nodesem_shared
+            model.nodesem_tokenizer = provenance
+            model.nodesem_vocabulary = vocabulary
         model.adapt_ws = nn.ModuleList([
-            NodeSemAdapter(spec, node_type, shared=model.nodesem_shared,
+            NodeSemAdapter(spec, node_type, shared=shared,
                            hidden_size=config["hidden_size"])
             for node_type, index in sorted(model.ntypes_dict.items(), key=lambda item: item[1])
         ])
-        model.nodesem_tokenizer = provenance
-        model.nodesem_vocabulary = vocabulary
         model.to(device)
     model.nodesem_spec = spec.to_json()
     model.nodesem_spec_sha256 = spec.digest()
@@ -134,35 +135,68 @@ def validate(model, spec):
                 raise ValueError("S0 must preserve the original Linear adapters")
     else:
         shared = getattr(model, "nodesem_shared", None)
-        if not isinstance(shared, nn.ModuleDict) or set(shared) != {"token_bag", "token_norm"}:
-            raise ValueError("Missing unique model-level token embedding")
-        bag = shared["token_bag"]
-        if (type(bag) is not nn.EmbeddingBag or bag.embedding_dim != 64
-                or bag.num_embeddings != model.nodesem_vocabulary or bag.mode != "mean"
-                or bag.include_last_offset or bag.max_norm is not None
-                or bag.scale_grad_by_freq or bag.sparse):
-            raise ValueError("Shared token embedding configuration differs")
-        norm = shared["token_norm"]
-        if (type(norm) is not nn.LayerNorm or norm.normalized_shape != (64,)
-                or not norm.elementwise_affine or norm.eps != 1e-5):
-            raise ValueError("Shared token normalization configuration differs")
+        if spec.token_mode == "embed_pool":
+            if not isinstance(shared, nn.ModuleDict) or set(shared) != {"token_bag", "token_norm"}:
+                raise ValueError("Missing unique model-level token embedding")
+            bag, token_norm = shared["token_bag"], shared["token_norm"]
+            if (type(bag) is not nn.EmbeddingBag or bag.embedding_dim != 64
+                    or bag.num_embeddings != model.nodesem_vocabulary or bag.mode != "mean"
+                    or bag.include_last_offset or bag.max_norm is not None
+                    or bag.scale_grad_by_freq or bag.sparse):
+                raise ValueError("Shared token embedding configuration differs")
+            if (type(token_norm) is not nn.LayerNorm or token_norm.normalized_shape != (64,)
+                    or not token_norm.elementwise_affine or token_norm.eps != 1e-5):
+                raise ValueError("Shared token normalization configuration differs")
+            expected = {"nodesem_shared.token_bag.weight", "nodesem_shared.token_norm.weight",
+                        "nodesem_shared.token_norm.bias"}
+            for values in (model.state_dict(), dict(model.named_parameters())):
+                keys = [key for key in values if "token_bag" in key or "token_norm" in key]
+                if len(keys) != 3 or set(keys) != expected:
+                    raise ValueError("Shared embedding/normalization registered more than once")
+        elif shared is not None:
+            raise ValueError("Non-token model must not register token shared modules")
         for ntype, index in model.ntypes_dict.items():
             adapter = model.adapt_ws[index]
             if (type(adapter) is not NodeSemAdapter or adapter.spec_digest != spec.digest()
-                    or adapter.spec.digest() != spec.digest()
-                    or adapter.ntype != ntype or adapter.hidden_size != model.hidden_size
-                    or adapter.token_bag is not bag or adapter.token_norm is not norm):
+                    or adapter.spec.digest() != spec.digest() or adapter.ntype != ntype
+                    or adapter.hidden_size != model.hidden_size
+                    or adapter.names != tuple(m["name"] for m in spec.modalities)):
                 raise ValueError("NodeSem adapter semantic registration differs")
-            projection = adapter.token_projection
-            if (type(projection) is not nn.Linear or projection.in_features != 64
-                    or projection.out_features != model.hidden_size):
-                raise ValueError("NodeSem token projection differs")
-        expected = {"nodesem_shared.token_bag.weight",
-                    "nodesem_shared.token_norm.weight", "nodesem_shared.token_norm.bias"}
-        for values in (model.state_dict(), dict(model.named_parameters())):
-            keys = [key for key in values if "token_bag" in key or "token_norm" in key]
-            if len(keys) != 3 or set(keys) != expected:
-                raise ValueError("Shared embedding/normalization registered more than once")
+            if spec.token_mode == "embed_pool" and (adapter.token_bag is not bag or adapter.token_norm is not token_norm):
+                raise ValueError("NodeSem shared token reference differs")
+            legacy = adapter.names == (TOKEN_IDS,) and spec.fusion == "concat"
+            if adapter.legacy_token != legacy:
+                raise ValueError("NodeSem token compatibility path differs")
+            if legacy:
+                projection = adapter.token_projection
+                if (type(projection) is not nn.Linear or projection.in_features != 64
+                        or projection.out_features != model.hidden_size or projection.bias is None):
+                    raise ValueError("NodeSem token projection differs")
+                continue
+            expected_norm = {m["name"] for m in spec.modalities
+                             if m["name"] not in (TOKEN_IDS, STATIC) and m["normalize"]}
+            if set(adapter.norm) != expected_norm or set(adapter.proj) != set(adapter.names):
+                raise ValueError("NodeSem projection/normalization layout differs")
+            if adapter.bias.shape != (model.hidden_size,):
+                raise ValueError("NodeSem fusion bias differs")
+            for m in spec.modalities:
+                projection = adapter.proj[m["name"]]
+                if (type(projection) is not nn.Linear or projection.bias is not None
+                        or projection.in_features != (64 if m["name"] == TOKEN_IDS else m["dim"])
+                        or projection.out_features != model.hidden_size):
+                    raise ValueError("NodeSem modality projection differs")
+                if m["name"] in expected_norm:
+                    norm = adapter.norm[m["name"]]
+                    if (type(norm) is not nn.LayerNorm or norm.normalized_shape != (m["dim"],)
+                            or not norm.elementwise_affine or norm.eps != 1e-5):
+                        raise ValueError("NodeSem modality normalization differs")
+            if spec.fusion == "gated":
+                gate = adapter.gate
+                if (type(gate) is not nn.Linear or gate.in_features != len(adapter.names)*model.hidden_size
+                        or gate.out_features != len(adapter.names) or gate.bias is None):
+                    raise ValueError("NodeSem gate differs")
+            elif hasattr(adapter, "gate"):
+                raise ValueError("Concat must not register a gate")
     if model.num_layers == 0 and model.dfg_profile != "G0":
         raise ValueError("Zero HGT layers require G0")
     return validate_registration(model)

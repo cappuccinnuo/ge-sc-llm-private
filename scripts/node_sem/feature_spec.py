@@ -70,8 +70,8 @@ class FeatureSpec:
         if (isinstance(modality_dropout, bool)
                 or not isinstance(modality_dropout, (int, float))
                 or not math.isfinite(modality_dropout)
-                or not 0.0 <= modality_dropout < 1.0):
-            raise ValueError("modality_dropout must be finite and in [0,1)")
+                or not 0.0 <= modality_dropout <= 1.0):
+            raise ValueError("modality_dropout must be finite and in [0,1]")
         if layers is not None and (
                 isinstance(layers, bool) or not isinstance(layers, int) or layers < 0):
             raise ValueError("layers must be None or a nonnegative integer")

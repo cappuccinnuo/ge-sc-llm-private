@@ -244,3 +244,23 @@ checked_call摘要未纳入本轮表，尚未消费；局部masked不消除原�
 仍以original为主，masked仅CTX名字对照；本轮无HGT训练/新F1，不推进NS-P4，仅本地提交、不自动推送。最终实验将在用户安排的显存充足服务器执行，RTX3050 4GiB仅当前本机限制，服务器未实测。
 
 文件：static_profile、behavior_schema、ctx_alignment、ctx_fields、p3_prepare、p3_acceptance；新增p3b2_acceptance及test_p3b2，更新旧维度/未知策略断言。schema属性驱动keep_true/zero与none排除；入口来自精确投影元数据。源码来源、版本SHA、字段/编码/STATIC、列对照、截断变化与旧producer归档核验在attempt_b2中。没有新的设计替代需批准，checked_call本轮只进STATIC，CTX严格只做entry替换。
+
+
+## 2026-11-03 NS-P4 融合与单轮验收（修改 AI：Codex）
+
+完成原名融合配置S2/S3/S4/S4g/S4-noG、局部masked CTX对照S3m/S4m，以及原名S0o/S1o登记。concat/gated、缺失掩码、局部RNG模态dropout与layers=0已接入；旧S0/S1参数和前向路径保留。STATIC沿用NS-P3b2的245维，S3/S4载体为514/760维。
+
+用户批准浮点数学等价与同实现逐位确定性分开验收，并授权CPU通过后的两次GPU单轮探针。四任务G0/G3R共8次原token逐位核验通过；重入节点S0o全部初值与8H S0逐位相同。7个真实重入节点fold0配置的CPU单轮检查均通过，loss有限、各模态有非零投影梯度、共同初值和best/last重载预测一致。正式拟合0次。
+
+本轮GPU验收未通过：S1o已完成1轮训练/inner_val计算并保存best，但在随后资源检查处因最低空闲88MiB停止；last、最终评分及重载一致性验收尚未完成。PyTorch峰值allocated=1852.972MiB、reserved=2074MiB，启动前空闲3456MiB；未发生已记录的OOM。S4按规则未启动，未重试。完整现场和111次采样保留，gpu_stop_audit.json只证明停止规则正确，不代表GPU模型验收通过。
+
+因此当前结论是“代码和CPU验收完成，GPU资源验收受阻”，不能称NS-P4全部验收通过；后续在合适资源环境中经明确安排补验，本轮不解除阈值或自动重跑。
+
+
+GPU resource probes accepted 0/2. S1o: min_free=88.0 MiB; stopped: MemoryGateError('Whole-card free memory below 100 MiB: 88.0 MiB'); S4: min_free=not run MiB;
+
+最终784+2653+223=3660测试通过，0失败/跳过，42条既有警告。夹具list+tuple错误与prepare缺少目录的失败记录保留；准备错误发生于fit之前，修复后新建attempt2。详细文件、批准选择、耗时/内存/梯度/收据和命令见NS_P4_REPORT及training_changes第82节。
+
+原DFG/HGT/tokenizer、图、标签、划分及既有特征不改。本轮为实现验收，不据一轮结果判断提升。S4-noG仅无HGT消息传递，CTX/STATIC仍含语义信息；S3m/S4m只对CTX局部masked，CODE仍原名。正式原名计划和基线接入留给NS-P5，旧匿名8H成绩不能充当原名配对基线，不自动推进下一阶段。
+
+最终实验将在用户安排的显存充足服务器执行；RTX3050 4GiB仅是当前本机开发限制，服务器本轮未部署或实测。产物在WSL工作树，不额外复制到C盘。三份记录仅追加，UTF-8/CJK和旧前缀SHA核验；本地提交，不自动推送。

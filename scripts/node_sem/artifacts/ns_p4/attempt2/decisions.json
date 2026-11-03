@@ -1,0 +1,22 @@
+{
+  "version": "nodesem-p4-decisions-v1",
+  "linear_equivalence": {
+    "user_approved": true,
+    "method": "float64 reference plus float32 absolute/relative tolerance; repeated same-path bitwise equality",
+    "probe": "linear_probe.json"
+  },
+  "gpu_probe": {
+    "user_approved": true,
+    "tasks": [
+      "reentrancy_contract/fold0/G3R/S1o",
+      "reentrancy_contract/fold0/G3R/S4"
+    ],
+    "epochs": 1,
+    "nonformal": true,
+    "minimum_free_mib": 100,
+    "after_cpu_acceptance": true,
+    "automatic_retry": false
+  },
+  "main_view": "original",
+  "final_server_intent": "Final experiments on a server with sufficient VRAM; local RTX3050 4GiB is a development limitation, not a final model constraint."
+}

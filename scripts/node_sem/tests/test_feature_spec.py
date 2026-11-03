@@ -93,7 +93,7 @@ def test_manifest_identity_part_of_digest_and_copies_do_not_mutate_spec():
     {"modality_dropout": float("nan")},
     {"modality_dropout": True},
     {"modality_dropout": -0.1},
-    {"modality_dropout": 1.0},
+    {"modality_dropout": 1.01},
     {"layers": -1},
     {"layers": False},
     {"layers": 1.5},

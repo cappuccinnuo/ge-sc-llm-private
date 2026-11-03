@@ -10,6 +10,7 @@ from torch import nn
 from scripts.DFG.dfg_v2.experiment.init import parameter_seed, seeds
 from scripts.DFG.experiments.common import tensor_digest
 from .checkpoint_io import load_checked
+from .adapter import NodeSemAdapter
 
 VERSION = "nodesem-semantic-initialization-v2"
 
@@ -46,7 +47,7 @@ def initial_state(model, spec, task_id, fold, profile, h8_initial_ref):
         raise ValueError("Receiving model must be untrained without gradients")
     old = payload["state_dict"]
     current = model.state_dict()
-    if spec.name == "S0":
+    if spec.token_mode == "raw_linear":
         if set(current) != set(old):
             raise ValueError("S0 parameter dictionary differs")
         for name in current:
@@ -82,6 +83,8 @@ def initial_state(model, spec, task_id, fold, profile, h8_initial_ref):
         if isinstance(module, nn.EmbeddingBag) and field == "weight":
             value.normal_(0.0, 1.0, generator=generator)
             value[0].zero_()
+        elif type(module) is NodeSemAdapter and field == "bias":
+            value.zero_()
         elif isinstance(module, nn.Linear):
             if field == "weight":
                 bound = math.sqrt(6.0 / float(module.in_features + module.out_features))
