@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r12（2026-11-02）。作者：Claude（方案与审查），实现：Codex。
+版本：r13（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+
+**r13 相对 r12 的修改**：NS-P3b 审查（第 5I 节）。新增小范围纠正 Prompt **NS-P3b2**（第 5.5b2 节，NS-P4 之前完成）：把已批准但未编码的“一层检查运算”写入 STATIC，组级未知时保留已由确定证据得出的 true 位，CTX 中参数来源不再写成 unknown。NS-P4 的配置维度改为以载体为准，并登记 masked CTX 的对照配置。
 
 **r12 相对 r11 的修改**：NS-P3a3 审查通过（第 5H 节），下一步为 NS-P3b；视图口径的建议见第 5H 节，待用户决定。
 
@@ -541,7 +543,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 ## 5. Codex Prompts
 
-使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3a3 → P3b → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3a3 → P3b → P3b2 → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ### 5.1 共享上下文（每个会话先贴这一段）
 
@@ -1146,6 +1148,36 @@ ctx_fields(facts_row, text_row, names="original") -> dict：按第 4.5 节的字
 测试与统计通过；PROGRESS、HANDOVER、training_changes 追加记录（doc_check --expect-cjk 通过）；提交 NS-P3b。
 ```
 
+### 5.5b2 Prompt NS-P3b2：STATIC 补项与三值编码、CTX 参数来源标签（NS-P4 之前必须完成）
+
+```text
+# NS-P3b2：在 NS-P3b 产物基础上做三处修正，重新生成 STATIC 与 CTX 并重新编码
+
+前置：NS-P3b（aa81bcde）。facts 不变（CURRENT 仍为 accepted_attempt4）。旧 ns_p3 产物只读保留；新结果写入新目录（例如 artifacts/ns_p3/attempt_b2/），全部验收通过后再更新 artifacts/ns_p3/CURRENT.json。视图按 EXPERIMENT_POLICY（original + masked 对照）。不训练；CTX 编码使用 GPU 时先非阻塞检查 .training.lock。
+
+## 背景（审查结论，写进 PROGRESS）
+1. NS-P3a 已批准并抽取的“一层检查运算”（checked_call：语句调用同文件唯一的内部/库函数，该函数做运算并检查结果）没有进入 STATIC 与 CTX。原因是我在第 4.5/4.6 节的表中漏列了它，不是实现错误。四个任务中 supported 且 result_condition_check=true 的行有 214/103/271/105（AC 合约/节点、重入合约/节点）。它是 STATIC 中唯一与名字无关地表达“经过检查的算术”（SafeMath 一类）的位，扩展到算术等其余类别时必需。
+2. STATIC 对 B（状态访问）、C（顺序）、D/D1/D2（守卫）组在组 status 为 unknown 时把全部取值位清零。但这些组里的多热位是“存在”型事实：已由确定证据得出的 true（例如 CFG 支持下已证实的 call_then_write、已解析的发送者守卫、已投影的状态写）在不确定性下仍然为真。按 NS-P3a3 对 K/L/M 采用的同一三值规则，它们应保留为 1，同时置 N 组未知位。真实数据：order 未知且已有 true 顺序位的语句行 35/31/31/31（重入合约/重入节点/AC 合约/AC 节点）；守卫未知但已有确定守卫的行 2/2/7/2；状态未知但已有确定读写条目的行 10/7/13/7。
+3. CTX 中参数的来源是函数入口，facts 中其相对距离为 None，被渲染成 "unknown"（例如 `USE recipient:param:unknown`、`FROM unknown: function withdrawReward(...)`）。这与“无法判断”的 unknown 混用；stats 中 FROM 的 unknown 率因此显示为 35%，其中真正因 L1 不支持而未知的只有 439/6635（reentrancy_node）。
+
+## 1. STATIC（static_profile.py、behavior_schema.json）
+- G 组新增 `arith.checked_by_helper`（多热单值）：checked_call.status=supported 且 result_condition_check=true 时为 1；适用节点同 checked_call 的适用种类（语句与函数）。
+- N 组新增 `unknown.checked_call`：checked_call.status=unknown 时为 1，此时 checked_by_helper 为 0。
+- 三值编码：B 组的多热位（write_indexed、write_scalar、read_indexed、write_auth、read_auth、array_size_change）、C 组全部位、D/D1/D2 组的多热位，在组 status 为 unknown 时仍按已有确定条目取值（true 保留为 1），同时置对应 N 位；D 组的 "none" 位在守卫未知时不得置 1；B 组的 write_count/read_count 独热组在状态未知时仍全为 0。schema 中把这一规则写成字段属性（例如 unknown_policy: "keep_true" / "zero"），encode 按属性执行，不在代码中按字段名分支。
+- 维度由 schema 决定（预计 243 → 245）；记录新旧列名对照。
+- 测试：新增用例覆盖 checked_by_helper（SafeMath 式 `c = a + b; require(c >= a); return c;` 的一层调用 → 1；同一函数被两个同名定义歧义 → 不计入）；顺序未知但 call_then_write 已证实 → C 位为 1 且 N.order 为 1；守卫未知且另有已解析的 require 发送者守卫 → D sender 位为 1、none 位为 0、N.guard 为 1。
+
+## 2. CTX（ctx_fields.py）
+- 来源语句是函数/构造函数/modifier/fallback 节点（参数的定义处）时，距离标签写 "entry"，不写 "unknown"；DEF/USE 中参数的来源同样写 ":entry"。只有来源节点确实缺失或无法定位时才写 "unknown"。
+- stats 中把 "entry" 与 "unknown" 分开计数。
+- original 与 masked 两套文本都重新生成并重新编码（与 NS-P3b 相同的模型、资产、池化、精度与截断规则；两遍逐位一致）。
+
+## 3. 重新生成与验收
+- 新 STATIC 与新 CTX 写入新目录；与旧产物逐行比较：STATIC 只允许新增两列与第 1 节三值规则涉及的列变化，报告每列变化行数；CTX 文本只允许 "unknown"→"entry" 的替换（逐行 diff 验证，其余字符完全相同），列出截断级别因此改变的行数。
+- carrier 对新 STATIC/CTX 全部通过；S3/S4 在 G0 与 G3R 上装配维度等于 FeatureSpec.carrier_dim()。
+- 全部 node_sem、dfg_v2 与原回归测试通过；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；提交 NS-P3b2。不推进 NS-P4。
+```
+
 ### 5.6 Prompt NS-P4：融合、无图对照与 CPU 冒烟
 
 ```text
@@ -1161,7 +1193,7 @@ ctx_fields(facts_row, text_row, names="original") -> dict：按第 4.5 节的字
 spec.layers=0 时，make_nodesem_model 传 layers=0 给 make_model。按 NS-P0 实验 C 的结论确认：作者 forward 可以直接使用；只在 G0 上使用；节点任务与合约任务都能前向和反向。
 
 ## 3. 配置登记
-configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（主视图，CODE 与 CTX 用主编码器）。记录每个配置的 carrier_dim（预期 S4 约 715；以 behavior_schema.json 的实际维度为准）。
+configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（视图按 EXPERIMENT_POLICY：original；CODE 与 CTX 用主编码器），以及名字对照 S3m.json、S4m.json（CTX 用 ctx_masked，其余相同）。记录每个配置的 carrier_dim，以 FeatureSpec.carrier_dim() 与 NS-P3b2 后的 behavior_schema.json 为准（NS-P3b 时 S4 为 758）。
 
 ## 4. CPU 证明与冒烟（不是正式训练）
 在 reentrancy_node fold0 上（G3R；S4-noG 用 G0）：
@@ -1528,6 +1560,18 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 **已知限制（不阻塞，保守方向）：** 别名目标判断中 `address payable` 不能被 PRIMITIVE 完整匹配，被当成可能的引用类型，SolidiFI 文件中的 `address payable lastPlayer_*` 因此被列入别名问题的目标，使少数 K 字段多被掩码。不修改，记录在案。
 
 **视图口径（我的建议）：** 匿名视图（N-anon-s）作为主终点，原名作为次要终点。理由：(1) 四个任务中 SolidiFI 文件占 40/142、40/71、40/114、40/57，节点任务中占多数；8B–8D 已证明原名下这些文件的标签可以由名字直接读出，而且只替换注入标记的视图同样泄漏（99.98），所以部分改名不能代替全文件双射；(2) DFG 的主结果（8H）在匿名视图上，NodeSem 的增益应在同一视图、同一 S0 基线上衡量，可直接复用 8H 的 S0，不必新跑 60 个 fit；(3) M3a/STATIC 与名字无关，两种视图下相同，受影响的只是 TOKEN/CODE/CTX/LLM。原名视图的价值（预训练编码器与 LLM 能利用有意义的名字，更接近真实使用）通过次要终点与非 SolidiFI 分层来体现。若用户仍选原名为主，则必须预先登记：原名 S0 基线、非 SolidiFI 分层、ctx_masked 对照，以及关键配置在匿名视图上的复核。用户决定后，再据此调整 EXPERIMENT_POLICY.md 与 NS-P3b。
+
+## 5I. NS-P3b 审查记录（2026-11-03，Claude）
+
+**已核实正确：**
+- 在独立环境中运行 test_ctx_static 与 test_p3_acceptance（77 通过）；用 static_profile.encode 对 accepted_attempt4 全部行重算 STATIC，取 1 比例与 stats.json 逐列相同（最大差 0），独热组没有多于一位的行。
+- masked CTX：对 8 份 encoded_text 全量扫描，SolidiFI 标记（re_ent、txorigin、intou、tmstmp、TOD、unchk、bug_）在 masked 文本中为 0 行；除占位名外剩下的词都是关键字、类型、内建名与字段枚举。文件名只出现在元数据中，不进入编码文本。
+- 用户批准的四项调整合理：独立的 encode_ctx.py（保护 M1 清单的 SHA 绑定）、只读 AST 辅助信息、第 8 级截断（只发生在 buggy_35 的 masked 文本）、中断后复用首份成功结果（每份编码两遍逐位相同，清单绑定 SHA）。
+- “一层检查运算”未编码：Codex 如实报告并留下 unconsumed_facts.json，没有自行扩维，这是正确的做法；遗漏在我的第 4.5/4.6 节表中。
+
+**需要修正（NS-P3b2）：** 一层检查运算进入 STATIC；B/C/D 组未知时保留已证实的 true 位；参数来源写 "entry" 而不是 "unknown"。见第 5.5b2 节。
+
+**名字泄漏的实测规模：** 原名 CTX 中含 SolidiFI 标记子串的行：reentrancy_node 5961/12223（48.8%），reentrancy_contract 5961/18610，access_control_node 3054/7892（38.7%），access_control_contract 3054/13693；masked 中为 0。这为第 5H 节的视图建议提供了直接的数据。用户在 NS-P3b 中继续使用原名为主，因此 NS-P4 同时登记 S3m/S4m（masked CTX）对照；CODE（M1）仍是原名，masked CTX 不能消除 CODE 中的名字，这一点在 NS-P5 计划中必须处理（原名 S0 基线、非 SolidiFI 分层，或在匿名视图上复核关键配置）。
 
 ## 6. 里程碑
 
