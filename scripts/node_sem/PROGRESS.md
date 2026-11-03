@@ -264,3 +264,25 @@ GPU resource probes accepted 0/2. S1o: min_free=88.0 MiB; stopped: MemoryGateErr
 原DFG/HGT/tokenizer、图、标签、划分及既有特征不改。本轮为实现验收，不据一轮结果判断提升。S4-noG仅无HGT消息传递，CTX/STATIC仍含语义信息；S3m/S4m只对CTX局部masked，CODE仍原名。正式原名计划和基线接入留给NS-P5，旧匿名8H成绩不能充当原名配对基线，不自动推进下一阶段。
 
 最终实验将在用户安排的显存充足服务器执行；RTX3050 4GiB仅是当前本机开发限制，服务器本轮未部署或实测。产物在WSL工作树，不额外复制到C盘。三份记录仅追加，UTF-8/CJK和旧前缀SHA核验；本地提交，不自动推送。
+
+
+## 2026-11-03 NS-P4b dropout修正及GPU验收（修改 AI：Codex）
+
+按PROMPTS r15执行，输入48d83d1b。dropout种子加入ntype，保留同类型可复现/eval计数/全局RNG不变。原attempt2全部274文件保持SHA不变；新入口复用冻结fit和零步初值，不改DFG/HGT/tokenizer/原图/标签/特征/划分。旧100MiB停止门槛仅在新计划取消，改为local_dev提醒；启动仍≥3000MiB，reserved超过对应8H的1.25倍只提示，错误仍停止。
+
+用户批准logits张量尺度相对差公式并另报逐元素差；首次S3因阶段日志create-only接入失败，训练前0步。修复JSONL追加并经明确批准在attempt3/resume2恢复，原计划/失败/初值不覆盖。6项CPU和6项节点GPU单轮全部验收通过，共同初值、模态梯度、best/last和两评分分区重载一致；S4/S4g在GPU临时关闭TF32的eval中通过两项1e-4门槛，last_gates在CPU且有效行归一化。
+
+Contract GPU passed: 2; OOM: 0. Tests: 805+2653+223=3681 passed; 0 failed/skipped; 42 existing warnings.
+
+完整资源差值、参数量、耗时、原始记录和命令见NS_P4B_REPORT.md、attempt3/resume2及training_changes§83。历史资源CSV与原收据SHA一致，8H生效354源码及load只读通过；启动显存并不证明无其他进程，历史资源差值也不是纯特征因果比较。仅非正式1epoch功能验收，不选择模型、不推进NS-P5。
+
+主视图仍original，局部masked仅CTX对照，旧匿名8H成绩不是原名配对基线。最终实验按用户安排在显存充足服务器运行，RTX3050 4GiB只是本机开发限制；本轮未部署/实测服务器。三文档仅追加；WSL产物不另复制到C盘。本地提交，不自动推送。
+
+
+## TF32 诊断与第二次明确恢复
+
+恢复1的S1o/S2 GPU已成功；S4在零步默认精度前向验收失败，最大绝对差0.00106704235、张量尺度相对差0.000577034082，尚未执行训练，后五项未启动。用户授权独立诊断：1次CPU和3次GPU eval，无优化器。默认GPU重复结果逐位一致；关闭TF32后绝对差8.34465027e-7、相对差4.51261152e-7，参数digest不变，原TF32设置已恢复。这支持本例差异主要来自精度设置，不能据此宣称所有CUDA运算逐位等价。
+
+用户先误选“停止”，随后明确更正“刚才点错了，按照你推荐的方式进行”。依据更正授权，新resume2计划保留旧失败、plan/seal及精确旧driver源码，复用6CPU和2GPU成功收据，只继续6项剩余GPU。1e-4的绝对/张量相对门槛仍保持，但验收前提改为同初值CPU与临时关闭TF32的GPU eval。默认TF32下的差异单列，不能称默认GPU也通过该门槛。训练前用finally恢复matmul/cudnn的原TF32设置（均true），完整fit后再次核验；训练计算、参数、随机种子、模型及数据保持原样，未把训练改成禁用TF32。
+
+独立诊断入口p4b_parity_diagnostic.py未调用训练器。参数、原计划和证据保留；零步诊断与单轮fit分别计数，不作为新的seed实验。若诊断或fit出错仍停止，未自动放宽容差。

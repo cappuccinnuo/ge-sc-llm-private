@@ -1,0 +1,11 @@
+{
+  "error": "FileExistsError(17, 'File exists')",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py\", line 325, in main\n    result=prepare() if job is None else run_job(plan,job)\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py\", line 223, in run_job\n    return p4.run_fit(plan,job,output_root=OUT,run_directory=folder,phase=phase)\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4_acceptance.py\", line 240, in run_fit\n    phase(\"frozen_fit_train_validation_checkpoint_reload\")\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py\", line 189, in record\n    write(OUT/(identity(job)+'.phase.json'),dict(phase=value,unix_seconds=time.time()))\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/prepare.py\", line 48, in write\n    with Path(path).open(\"x\", encoding=\"utf8\") as stream:\n  File \"/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py\", line 1208, in open\n    opener=self._opener)\n  File \"/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py\", line 1063, in _opener\n    return self._accessor.open(self, flags, mode)\nFileExistsError: [Errno 17] File exists: '/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p4/attempt3/cpu_reentrancy_node_S3.phase.json'\n",
+  "cuda_oom": false,
+  "phase": {
+    "phase": "construct_and_validate_initial",
+    "unix_seconds": 1793688073.5924196
+  },
+  "memory": {},
+  "automatic_retry": false
+}

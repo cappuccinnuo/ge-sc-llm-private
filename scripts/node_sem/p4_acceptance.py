@@ -199,7 +199,10 @@ class ProbeGuard:
     def summary(self): return self.inner.summary()
 
 
-def run_fit(plan,job,resources=None):
+def run_fit(plan,job,resources=None,*,output_root=None,run_directory=None,device_setup=None,phase=None):
+    output_root=Path(output_root) if output_root is not None else OUT
+    phase=phase if phase is not None else lambda value: None
+    phase("construct_and_validate_initial")
     cfg=copy.deepcopy(job["config"]);cfg["maximum_training_epochs"]=1
     spec=FeatureSpec.from_json(read(checked(job["spec"])))
     seed_all(job["seeds"]["constructor"]);started=time.monotonic()
@@ -215,7 +218,10 @@ def run_fit(plan,job,resources=None):
     if model.nodesem_carrier_record!={k:v for k,v in read(checked(job["feature_view"])).items() if k!="data"}:
         raise ValueError("Carrier manifest differs")
     if model_support(model,job["split"])!=job["support"]: raise ValueError("Support differs")
-    if job["actual_device"]=="gpu": model=_move_model(model,cfg["device"])
+    if device_setup is not None:
+        model=device_setup(model,cfg)
+    elif job["actual_device"]=="gpu":
+        model=_move_model(model,cfg["device"])
     if resources: resources.check()
     binding,parts=binding_parts(plan,job,model,cfg)
     labels=read_labels(job["labels"])
@@ -228,9 +234,10 @@ def run_fit(plan,job,resources=None):
         if name.startswith(("adapt_ws.","nodesem_shared.")): handles.append(p.register_hook(capture(name)))
     seed_all(job["seeds"]["fit"])
     dropout=reset_modality_dropout(model,job["seeds"]["fit"],job["task_id"],0,job["profile"])
-    folder=OUT/"runs"/job["actual_device"]/job["name"]
+    folder=Path(run_directory) if run_directory is not None else output_root/"runs"/job["actual_device"]/job["name"]
     folder.parent.mkdir(parents=True,exist_ok=True)
     start=time.monotonic()
+    phase("frozen_fit_train_validation_checkpoint_reload")
     try:
         with FitInputGuard(model,binding,parts,labels) as guard:
             result=fit(model,guard.wrap_parts(),job["granularity"],labels,cfg,folder,binding,
@@ -265,7 +272,8 @@ def run_fit(plan,job,resources=None):
         checkpoint_roundtrip_exact=result["checkpoint_roundtrip_exact"],checkpoint_sha256=result["checkpoint_sha256"])
     write(folder/"acceptance.json",report)
     write(folder/"effective_config.json",cfg)
-    write(folder/"acceptance.seal.json",dict(acceptance=ref(folder/"acceptance.json"),plan=ref(OUT/"plan.json")))
+    write(folder/"acceptance.seal.json",dict(acceptance=ref(folder/"acceptance.json"),plan=ref(output_root/"plan.json")))
+    phase("accepted")
     print("PASS "+job["actual_device"]+" "+job["name"],flush=True)
     return report
 

@@ -1,0 +1,23 @@
+Using backend: pytorch
+Traceback (most recent call last):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py", line 346, in <module>
+    if __name__=='__main__': main()
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py", line 325, in main
+    result=prepare() if job is None else run_job(plan,job)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py", line 223, in run_job
+    return p4.run_fit(plan,job,output_root=OUT,run_directory=folder,phase=phase)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4_acceptance.py", line 240, in run_fit
+    phase("frozen_fit_train_validation_checkpoint_reload")
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py", line 189, in record
+    write(OUT/(identity(job)+'.phase.json'),dict(phase=value,unix_seconds=time.time()))
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/prepare.py", line 48, in write
+    with Path(path).open("x", encoding="utf8") as stream:
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py", line 1208, in open
+    opener=self._opener)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py", line 1063, in _opener
+    return self._accessor.open(self, flags, mode)
+FileExistsError: [Errno 17] File exists: '/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p4/attempt3/cpu_reentrancy_node_S3.phase.json'

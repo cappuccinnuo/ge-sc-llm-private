@@ -1,0 +1,11 @@
+{
+  "version": "ns-p4b-decisions-v1",
+  "gpu_eight_probes_authorized": true,
+  "authorization_source": "User request to implement NS-P4b; PROMPTS r15 section 5.6b explicitly authorizes 6 node plus 2 contract one-epoch probes",
+  "tensor_relative_approved": true,
+  "relative_formula": "max|GPU-CPU| / max(max|CPU|, max|GPU|); also max absolute <= 1e-4; record elementwise relative",
+  "relative_approval": "User approved tensor-scale acceptance and reporting of elementwise differences",
+  "runtime_resource_policy": "local_dev_v1; <100 MiB advisory only; startup >=3000 MiB; OOM/CUDA and input/numerical errors stop; no automatic retry",
+  "historical_scope": "attempt2 preserved; only sealed zero-step initials reused; no trained or smoke weights",
+  "final_server": "Final experiments will run on a server with sufficient VRAM; current limitations are local development hardware only"
+}

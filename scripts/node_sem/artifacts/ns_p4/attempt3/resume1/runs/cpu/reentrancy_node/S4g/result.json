@@ -1,0 +1,4081 @@
+{
+  "status": "complete",
+  "layer_impl": "shared_projection",
+  "protocol": "dfg-v2-grouped-nested",
+  "protocol_version": "dfg-v2-grouped-nested-v1",
+  "score_role": "outer_test",
+  "selection_role": "inner_val",
+  "forward_scope": "full_fixed_task_graph",
+  "interpretation": "nested outer test; inner validation selects best",
+  "best_epoch": 0,
+  "last_epoch": 0,
+  "best_inner_val_loss": 0.7535799145698547,
+  "inner_val": {
+    "best": {
+      "n": 2164,
+      "positive": 1154,
+      "buggy_f1": 62.4286258089075,
+      "macro_f1": 52.2019672254414,
+      "precision": 55.66870332654447,
+      "recall": 71.05719237435008,
+      "tn_fp_fn_tp": [
+        357,
+        653,
+        334,
+        820
+      ]
+    },
+    "last": {
+      "n": 2164,
+      "positive": 1154,
+      "buggy_f1": 62.4286258089075,
+      "macro_f1": 52.2019672254414,
+      "precision": 55.66870332654447,
+      "recall": 71.05719237435008,
+      "tn_fp_fn_tp": [
+        357,
+        653,
+        334,
+        820
+      ]
+    }
+  },
+  "outer_test": {
+    "best": {
+      "n": 1124,
+      "positive": 668,
+      "buggy_f1": 65.55090655509066,
+      "macro_f1": 52.43147293356498,
+      "precision": 61.35770234986945,
+      "recall": 70.35928143712576,
+      "tn_fp_fn_tp": [
+        160,
+        296,
+        198,
+        470
+      ]
+    },
+    "last": {
+      "n": 1124,
+      "positive": 668,
+      "buggy_f1": 65.55090655509066,
+      "macro_f1": 52.43147293356498,
+      "precision": 61.35770234986945,
+      "recall": 70.35928143712576,
+      "tn_fp_fn_tp": [
+        160,
+        296,
+        198,
+        470
+      ]
+    }
+  },
+  "checkpoint_sha256": {
+    "best": "5a315061eae252d670789b50eb96a9f54531a43d73fcee824b574f660077a3bd",
+    "last": "e1292b4139eb1f5be248be1f3615e5ad09b277a9e6a504cdfd572908ee048c43"
+  },
+  "gradient_audit": {
+    "epochs": [
+      {
+        "backbone_gradient_l1": 345.9392798774344,
+        "classifier_gradient_l1": 19.41147157549858,
+        "v2_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 34,
+            "inner_val_edges": 7,
+            "outer_test_edges": 6,
+            "message_gradient_l1": 0.0157458889298141,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.01105593517422676,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.004689953755587339,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0014289030223153532,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0008217633585445583,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0006071396637707949,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 3,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.00039813033072277904,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.00015374948270618916,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0002443808480165899,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "env_source",
+              "ENV_FLOW",
+              "expression_statement"
+            ],
+            "inner_train_edges": 1610,
+            "inner_val_edges": 393,
+            "outer_test_edges": 213,
+            "message_gradient_l1": 0.0376327708363533,
+            "attention_gradient_l1": 1.9371721919014817e-05,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.01934189349412918,
+                "attention_gradient_l1": 3.0512651392200496e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.01829087734222412,
+                "attention_gradient_l1": 1.6320456779794767e-05,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "env_source",
+              "ENV_FLOW",
+              "if"
+            ],
+            "inner_train_edges": 336,
+            "inner_val_edges": 71,
+            "outer_test_edges": 51,
+            "message_gradient_l1": 0.1190766990184784,
+            "attention_gradient_l1": 1.2439126440000337e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.05531207472085953,
+                "attention_gradient_l1": 7.076800478955647e-09,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.06376462429761887,
+                "attention_gradient_l1": 1.1731446392104772e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "env_source",
+              "ENV_FLOW",
+              "new_variable"
+            ],
+            "inner_train_edges": 365,
+            "inner_val_edges": 91,
+            "outer_test_edges": 59,
+            "message_gradient_l1": 0.09400392696261406,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.03716907650232315,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.05683485046029091,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "env_source",
+              "ENV_FLOW",
+              "return"
+            ],
+            "inner_train_edges": 6,
+            "inner_val_edges": 3,
+            "outer_test_edges": 2,
+            "message_gradient_l1": 0.003783639403991401,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.001551619847305119,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.002232019556686282,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 180,
+            "inner_val_edges": 118,
+            "outer_test_edges": 5,
+            "message_gradient_l1": 0.027592914178967476,
+            "attention_gradient_l1": 3.115776962658856e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.013653231784701347,
+                "attention_gradient_l1": 6.367408786900342e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.013939682394266129,
+                "attention_gradient_l1": 2.479036083968822e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 19,
+            "inner_val_edges": 3,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0075952825136482716,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.004309513606131077,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0032857689075171947,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "inner_train_edges": 6,
+            "inner_val_edges": 2,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0014435212360695004,
+            "attention_gradient_l1": 6.456052714653993e-08,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0006809759652242064,
+                "attention_gradient_l1": 5.027288363379512e-09,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.000762545270845294,
+                "attention_gradient_l1": 5.9533238783160414e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 21,
+            "inner_val_edges": 17,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0023090641479939222,
+            "attention_gradient_l1": 3.019231584744375e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0011162325972691178,
+                "attention_gradient_l1": 5.676695735701287e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0011928315507248044,
+                "attention_gradient_l1": 2.4515620111742464e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 4,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0014437044155783951,
+            "attention_gradient_l1": 4.91103991251407e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005241950275376439,
+                "attention_gradient_l1": 1.7356585502170674e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0009195093880407512,
+                "attention_gradient_l1": 4.7374740574923635e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "while"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.001646225806325674,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005123191513121128,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0011339066550135612,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "constructor_definition"
+            ],
+            "inner_train_edges": 34,
+            "inner_val_edges": 7,
+            "outer_test_edges": 6,
+            "message_gradient_l1": 0.003975031082518399,
+            "attention_gradient_l1": 2.987504842622002e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0016818513395264745,
+                "attention_gradient_l1": 6.712071467518399e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0022931797429919243,
+                "attention_gradient_l1": 2.316297695870162e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 180,
+            "inner_val_edges": 118,
+            "outer_test_edges": 5,
+            "message_gradient_l1": 0.024312595836818218,
+            "attention_gradient_l1": 4.0924343807091645e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.01184855867177248,
+                "attention_gradient_l1": 5.100466182739183e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.012464037165045738,
+                "attention_gradient_l1": 3.5823877624352463e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 30,
+            "inner_val_edges": 6,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.006612340221181512,
+            "attention_gradient_l1": 2.18882033209411e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0035057433415204287,
+                "attention_gradient_l1": 3.055949093777599e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0031065968796610832,
+                "attention_gradient_l1": 1.8832254227163503e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 995,
+            "inner_val_edges": 295,
+            "outer_test_edges": 124,
+            "message_gradient_l1": 0.11049604788422585,
+            "attention_gradient_l1": 1.6320648455803166e-05,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.06071799248456955,
+                "attention_gradient_l1": 2.0514041807473404e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.049778055399656296,
+                "attention_gradient_l1": 1.4269244275055826e-05,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 405,
+            "inner_val_edges": 126,
+            "outer_test_edges": 41,
+            "message_gradient_l1": 0.03734497167170048,
+            "attention_gradient_l1": 1.6756526690642204e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.016485754400491714,
+                "attention_gradient_l1": 2.3237370783135702e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.020859217271208763,
+                "attention_gradient_l1": 1.4432789612328634e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_ENV_FLOW",
+              "env_source"
+            ],
+            "inner_train_edges": 1610,
+            "inner_val_edges": 393,
+            "outer_test_edges": 213,
+            "message_gradient_l1": 0.00042164887418039143,
+            "attention_gradient_l1": 4.1698129393807903e-08,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.00042164887418039143,
+                "attention_gradient_l1": 4.1698129393807903e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 1286,
+            "inner_val_edges": 356,
+            "outer_test_edges": 175,
+            "message_gradient_l1": 0.10768992081284523,
+            "attention_gradient_l1": 3.030301263606816e-05,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.051845818758010864,
+                "attention_gradient_l1": 3.7349152535171015e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.055844102054834366,
+                "attention_gradient_l1": 2.656809738255106e-05,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "WRITES_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 1616,
+            "inner_val_edges": 416,
+            "outer_test_edges": 220,
+            "message_gradient_l1": 0.22049377858638763,
+            "attention_gradient_l1": 3.7965285173413577e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.10822759568691254,
+                "attention_gradient_l1": 5.595627499133116e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.1122661828994751,
+                "attention_gradient_l1": 3.236965767428046e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 30,
+            "inner_val_edges": 6,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0065835327841341496,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0031353612430393696,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00344817154109478,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 11,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.001405646267812699,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0007631253101862967,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0006425209576264024,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 19,
+            "inner_val_edges": 3,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.003457409795373678,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0016093117883428931,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.001848098007030785,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 9,
+            "inner_val_edges": 2,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0032670102082192898,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0015570330433547497,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00170997716486454,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 2,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.00018396259838482365,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 8.69039649842307e-05,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 9.705863340059295e-05,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 8,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0006398725672625005,
+            "attention_gradient_l1": 8.73204943907524e-08,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0002498539979569614,
+                "attention_gradient_l1": 6.1794414030202915e-09,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00039001856930553913,
+                "attention_gradient_l1": 8.114105298773211e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 995,
+            "inner_val_edges": 295,
+            "outer_test_edges": 124,
+            "message_gradient_l1": 0.15698102116584778,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0679512694478035,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.08902975171804428,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 9,
+            "inner_val_edges": 2,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0029109809547662735,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0013335727853700519,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0015774081693962216,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "inner_train_edges": 109,
+            "inner_val_edges": 28,
+            "outer_test_edges": 12,
+            "message_gradient_l1": 0.018374620005488396,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.007378093898296356,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.01099652610719204,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 158,
+            "inner_val_edges": 48,
+            "outer_test_edges": 10,
+            "message_gradient_l1": 0.011475749779492617,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.004572922829538584,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.006902826949954033,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "inner_train_edges": 78,
+            "inner_val_edges": 17,
+            "outer_test_edges": 6,
+            "message_gradient_l1": 0.03451752383261919,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.013340671546757221,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.02117685228586197,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_DATA_DEF_USE",
+              "constructor_definition"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0008790511346887797,
+            "attention_gradient_l1": 1.4371364187582003e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.000493023544549942,
+                "attention_gradient_l1": 3.190326935964549e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0003860275901388377,
+                "attention_gradient_l1": 1.1181037251617454e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 6,
+            "inner_val_edges": 2,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.002129801898263395,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0012563727796077728,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.000873429118655622,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 109,
+            "inner_val_edges": 28,
+            "outer_test_edges": 12,
+            "message_gradient_l1": 0.028601406142115593,
+            "attention_gradient_l1": 3.292468022664252e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.01956266537308693,
+                "attention_gradient_l1": 4.790018692801823e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.009038740769028664,
+                "attention_gradient_l1": 2.81346615338407e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 246,
+            "inner_val_edges": 65,
+            "outer_test_edges": 31,
+            "message_gradient_l1": 0.07370012439787388,
+            "attention_gradient_l1": 6.685721416488377e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.04250674322247505,
+                "attention_gradient_l1": 1.4937720038687985e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.031193381175398827,
+                "attention_gradient_l1": 5.191949412619579e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_ENV_FLOW",
+              "env_source"
+            ],
+            "inner_train_edges": 336,
+            "inner_val_edges": 71,
+            "outer_test_edges": 51,
+            "message_gradient_l1": 0.0005419182707555592,
+            "attention_gradient_l1": 1.130594213805125e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005419182707555592,
+                "attention_gradient_l1": 1.130594213805125e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 371,
+            "inner_val_edges": 100,
+            "outer_test_edges": 55,
+            "message_gradient_l1": 0.0669502504169941,
+            "attention_gradient_l1": 5.639719802275067e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.031451307237148285,
+                "attention_gradient_l1": 1.5116475537979568e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.03549894317984581,
+                "attention_gradient_l1": 4.1280722484771104e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 405,
+            "inner_val_edges": 126,
+            "outer_test_edges": 41,
+            "message_gradient_l1": 0.05515067093074322,
+            "attention_gradient_l1": 3.6622810171138553e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.036320604383945465,
+                "attention_gradient_l1": 4.87529007386911e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.018830066546797752,
+                "attention_gradient_l1": 3.1747520097269444e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 2,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.001568347041029483,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0010250426130369306,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0005433044279925525,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "inner_train_edges": 246,
+            "inner_val_edges": 65,
+            "outer_test_edges": 31,
+            "message_gradient_l1": 0.06391298398375511,
+            "attention_gradient_l1": 1.354307727297055e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.03227393329143524,
+                "attention_gradient_l1": 3.2452871323584986e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.03163905069231987,
+                "attention_gradient_l1": 1.029779014061205e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 57,
+            "inner_val_edges": 17,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.006496495101600885,
+            "attention_gradient_l1": 7.0792509632156e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0035201902501285076,
+                "attention_gradient_l1": 1.582393451826647e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0029763048514723778,
+                "attention_gradient_l1": 5.496857511388953e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "inner_train_edges": 75,
+            "inner_val_edges": 24,
+            "outer_test_edges": 4,
+            "message_gradient_l1": 0.043332334607839584,
+            "attention_gradient_l1": 4.375519679911122e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.021298905834555626,
+                "attention_gradient_l1": 9.864093186706668e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.02203342877328396,
+                "attention_gradient_l1": 3.389110361240455e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "while"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.002223459421657026,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.001231279456987977,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0009921799646690488,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "constructor_definition"
+            ],
+            "inner_train_edges": 3,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0007850955589674413,
+            "attention_gradient_l1": 6.404157346651118e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005247588851489127,
+                "attention_gradient_l1": 9.874882778149185e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00026033667381852865,
+                "attention_gradient_l1": 5.4166690688362e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 1286,
+            "inner_val_edges": 356,
+            "outer_test_edges": 175,
+            "message_gradient_l1": 0.1139087937772274,
+            "attention_gradient_l1": 6.830187885498162e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0776827335357666,
+                "attention_gradient_l1": 9.800542102311738e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0362260602414608,
+                "attention_gradient_l1": 5.8501336752669886e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "for"
+            ],
+            "inner_train_edges": 8,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0038580078398808837,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0025566827971488237,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00130132504273206,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "if"
+            ],
+            "inner_train_edges": 371,
+            "inner_val_edges": 100,
+            "outer_test_edges": 55,
+            "message_gradient_l1": 0.0569916907697916,
+            "attention_gradient_l1": 1.8163160575568327e-05,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.03088909201323986,
+                "attention_gradient_l1": 3.2023965559346834e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.026102598756551743,
+                "attention_gradient_l1": 1.4960764019633643e-05,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 405,
+            "inner_val_edges": 105,
+            "outer_test_edges": 55,
+            "message_gradient_l1": 0.07490116357803345,
+            "attention_gradient_l1": 5.698789550478978e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.027217209339141846,
+                "attention_gradient_l1": 8.869113798937178e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0476839542388916,
+                "attention_gradient_l1": 4.81187817058526e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "return"
+            ],
+            "inner_train_edges": 113,
+            "inner_val_edges": 27,
+            "outer_test_edges": 11,
+            "message_gradient_l1": 0.05884333699941635,
+            "attention_gradient_l1": 3.2696250400476856e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.02946530655026436,
+                "attention_gradient_l1": 7.029063908703392e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.029378030449151993,
+                "attention_gradient_l1": 2.5667186491773464e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 21,
+            "inner_val_edges": 17,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.006154468283057213,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0036349971778690815,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0025194711051881313,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 11,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.003904792363755405,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0023136830423027277,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0015911093214526772,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 158,
+            "inner_val_edges": 48,
+            "outer_test_edges": 10,
+            "message_gradient_l1": 0.0468793660402298,
+            "attention_gradient_l1": 1.9033692808534397e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.031134258955717087,
+                "attention_gradient_l1": 2.833187693340733e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.01574510708451271,
+                "attention_gradient_l1": 1.6200505115193664e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 57,
+            "inner_val_edges": 17,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.006912787910550833,
+            "attention_gradient_l1": 8.73449636173973e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0038405228406190872,
+                "attention_gradient_l1": 2.054849517207913e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0030722650699317455,
+                "attention_gradient_l1": 6.679646844531817e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_ENV_FLOW",
+              "env_source"
+            ],
+            "inner_train_edges": 365,
+            "inner_val_edges": 91,
+            "outer_test_edges": 59,
+            "message_gradient_l1": 0.0006126754451543093,
+            "attention_gradient_l1": 6.847767508588731e-08,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0006126754451543093,
+                "attention_gradient_l1": 6.847767508588731e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 405,
+            "inner_val_edges": 105,
+            "outer_test_edges": 55,
+            "message_gradient_l1": 0.09229744970798492,
+            "attention_gradient_l1": 1.1558397972066814e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.051260806620121,
+                "attention_gradient_l1": 2.0863585348251945e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.04103664308786392,
+                "attention_gradient_l1": 9.472039437241619e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_WRITES_STATE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 1616,
+            "inner_val_edges": 416,
+            "outer_test_edges": 220,
+            "message_gradient_l1": 0.14765674620866776,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.10002531856298447,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.04763142764568329,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_WRITES_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 2,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.00035813824797514826,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.00015332178736571223,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00020481646060943604,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "WRITES_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 2,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.00024110030790325254,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.000132016371935606,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00010908393596764654,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 4,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.001956861524377018,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0012127773370593786,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0007440841873176396,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 78,
+            "inner_val_edges": 17,
+            "outer_test_edges": 6,
+            "message_gradient_l1": 0.031793588772416115,
+            "attention_gradient_l1": 1.8808890800414702e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.020208729431033134,
+                "attention_gradient_l1": 5.257685486981245e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.01158485934138298,
+                "attention_gradient_l1": 1.3551205313433456e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 75,
+            "inner_val_edges": 24,
+            "outer_test_edges": 4,
+            "message_gradient_l1": 0.013345936313271523,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.007227133959531784,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0061188023537397385,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_ENV_FLOW",
+              "env_source"
+            ],
+            "inner_train_edges": 6,
+            "inner_val_edges": 3,
+            "outer_test_edges": 2,
+            "message_gradient_l1": 6.469400250352919e-05,
+            "attention_gradient_l1": 2.747682303905208e-09,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 6.469400250352919e-05,
+                "attention_gradient_l1": 2.747682303905208e-09,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 113,
+            "inner_val_edges": 27,
+            "outer_test_edges": 11,
+            "message_gradient_l1": 0.012082546018064022,
+            "attention_gradient_l1": 1.1331911196066358e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.006286565214395523,
+                "attention_gradient_l1": 1.0453157983647543e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.005795980803668499,
+                "attention_gradient_l1": 1.0286595397701603e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "while",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.002501026669051498,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0017476327484473586,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0007533939206041396,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "while",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0010980850202031434,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005513789365068078,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0005467060836963356,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "v2_training_support": 17144,
+        "ddg_relations": [
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 34,
+            "inner_val_edges": 7,
+            "outer_test_edges": 6,
+            "message_gradient_l1": 0.0157458889298141,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.01105593517422676,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.004689953755587339,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0014289030223153532,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0008217633585445583,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0006071396637707949,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "constructor_definition",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 3,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.00039813033072277904,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.00015374948270618916,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0002443808480165899,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "env_source",
+              "ENV_FLOW",
+              "expression_statement"
+            ],
+            "inner_train_edges": 1610,
+            "inner_val_edges": 393,
+            "outer_test_edges": 213,
+            "message_gradient_l1": 0.0376327708363533,
+            "attention_gradient_l1": 1.9371721919014817e-05,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.01934189349412918,
+                "attention_gradient_l1": 3.0512651392200496e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.01829087734222412,
+                "attention_gradient_l1": 1.6320456779794767e-05,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "env_source",
+              "ENV_FLOW",
+              "if"
+            ],
+            "inner_train_edges": 336,
+            "inner_val_edges": 71,
+            "outer_test_edges": 51,
+            "message_gradient_l1": 0.1190766990184784,
+            "attention_gradient_l1": 1.2439126440000337e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.05531207472085953,
+                "attention_gradient_l1": 7.076800478955647e-09,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.06376462429761887,
+                "attention_gradient_l1": 1.1731446392104772e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "env_source",
+              "ENV_FLOW",
+              "new_variable"
+            ],
+            "inner_train_edges": 365,
+            "inner_val_edges": 91,
+            "outer_test_edges": 59,
+            "message_gradient_l1": 0.09400392696261406,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.03716907650232315,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.05683485046029091,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "env_source",
+              "ENV_FLOW",
+              "return"
+            ],
+            "inner_train_edges": 6,
+            "inner_val_edges": 3,
+            "outer_test_edges": 2,
+            "message_gradient_l1": 0.003783639403991401,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.001551619847305119,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.002232019556686282,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 180,
+            "inner_val_edges": 118,
+            "outer_test_edges": 5,
+            "message_gradient_l1": 0.027592914178967476,
+            "attention_gradient_l1": 3.115776962658856e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.013653231784701347,
+                "attention_gradient_l1": 6.367408786900342e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.013939682394266129,
+                "attention_gradient_l1": 2.479036083968822e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 19,
+            "inner_val_edges": 3,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0075952825136482716,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.004309513606131077,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0032857689075171947,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "inner_train_edges": 6,
+            "inner_val_edges": 2,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0014435212360695004,
+            "attention_gradient_l1": 6.456052714653993e-08,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0006809759652242064,
+                "attention_gradient_l1": 5.027288363379512e-09,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.000762545270845294,
+                "attention_gradient_l1": 5.9533238783160414e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 21,
+            "inner_val_edges": 17,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0023090641479939222,
+            "attention_gradient_l1": 3.019231584744375e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0011162325972691178,
+                "attention_gradient_l1": 5.676695735701287e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0011928315507248044,
+                "attention_gradient_l1": 2.4515620111742464e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 4,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0014437044155783951,
+            "attention_gradient_l1": 4.91103991251407e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005241950275376439,
+                "attention_gradient_l1": 1.7356585502170674e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0009195093880407512,
+                "attention_gradient_l1": 4.7374740574923635e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "DATA_DEF_USE",
+              "while"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.001646225806325674,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005123191513121128,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0011339066550135612,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "constructor_definition"
+            ],
+            "inner_train_edges": 34,
+            "inner_val_edges": 7,
+            "outer_test_edges": 6,
+            "message_gradient_l1": 0.003975031082518399,
+            "attention_gradient_l1": 2.987504842622002e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0016818513395264745,
+                "attention_gradient_l1": 6.712071467518399e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0022931797429919243,
+                "attention_gradient_l1": 2.316297695870162e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 180,
+            "inner_val_edges": 118,
+            "outer_test_edges": 5,
+            "message_gradient_l1": 0.024312595836818218,
+            "attention_gradient_l1": 4.0924343807091645e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.01184855867177248,
+                "attention_gradient_l1": 5.100466182739183e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.012464037165045738,
+                "attention_gradient_l1": 3.5823877624352463e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 30,
+            "inner_val_edges": 6,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.006612340221181512,
+            "attention_gradient_l1": 2.18882033209411e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0035057433415204287,
+                "attention_gradient_l1": 3.055949093777599e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0031065968796610832,
+                "attention_gradient_l1": 1.8832254227163503e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 995,
+            "inner_val_edges": 295,
+            "outer_test_edges": 124,
+            "message_gradient_l1": 0.11049604788422585,
+            "attention_gradient_l1": 1.6320648455803166e-05,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.06071799248456955,
+                "attention_gradient_l1": 2.0514041807473404e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.049778055399656296,
+                "attention_gradient_l1": 1.4269244275055826e-05,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 405,
+            "inner_val_edges": 126,
+            "outer_test_edges": 41,
+            "message_gradient_l1": 0.03734497167170048,
+            "attention_gradient_l1": 1.6756526690642204e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.016485754400491714,
+                "attention_gradient_l1": 2.3237370783135702e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.020859217271208763,
+                "attention_gradient_l1": 1.4432789612328634e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_ENV_FLOW",
+              "env_source"
+            ],
+            "inner_train_edges": 1610,
+            "inner_val_edges": 393,
+            "outer_test_edges": 213,
+            "message_gradient_l1": 0.00042164887418039143,
+            "attention_gradient_l1": 4.1698129393807903e-08,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.00042164887418039143,
+                "attention_gradient_l1": 4.1698129393807903e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 1286,
+            "inner_val_edges": 356,
+            "outer_test_edges": 175,
+            "message_gradient_l1": 0.10768992081284523,
+            "attention_gradient_l1": 3.030301263606816e-05,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.051845818758010864,
+                "attention_gradient_l1": 3.7349152535171015e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.055844102054834366,
+                "attention_gradient_l1": 2.656809738255106e-05,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "expression_statement",
+              "WRITES_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 1616,
+            "inner_val_edges": 416,
+            "outer_test_edges": 220,
+            "message_gradient_l1": 0.22049377858638763,
+            "attention_gradient_l1": 3.7965285173413577e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.10822759568691254,
+                "attention_gradient_l1": 5.595627499133116e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.1122661828994751,
+                "attention_gradient_l1": 3.236965767428046e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 30,
+            "inner_val_edges": 6,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0065835327841341496,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0031353612430393696,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00344817154109478,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 11,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.001405646267812699,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0007631253101862967,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0006425209576264024,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 19,
+            "inner_val_edges": 3,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.003457409795373678,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0016093117883428931,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.001848098007030785,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 9,
+            "inner_val_edges": 2,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0032670102082192898,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0015570330433547497,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00170997716486454,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 2,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.00018396259838482365,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 8.69039649842307e-05,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 9.705863340059295e-05,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "for",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 8,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0006398725672625005,
+            "attention_gradient_l1": 8.73204943907524e-08,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0002498539979569614,
+                "attention_gradient_l1": 6.1794414030202915e-09,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00039001856930553913,
+                "attention_gradient_l1": 8.114105298773211e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 995,
+            "inner_val_edges": 295,
+            "outer_test_edges": 124,
+            "message_gradient_l1": 0.15698102116584778,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0679512694478035,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.08902975171804428,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 9,
+            "inner_val_edges": 2,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0029109809547662735,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0013335727853700519,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0015774081693962216,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "inner_train_edges": 109,
+            "inner_val_edges": 28,
+            "outer_test_edges": 12,
+            "message_gradient_l1": 0.018374620005488396,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.007378093898296356,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.01099652610719204,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 158,
+            "inner_val_edges": 48,
+            "outer_test_edges": 10,
+            "message_gradient_l1": 0.011475749779492617,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.004572922829538584,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.006902826949954033,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "function_definition",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "inner_train_edges": 78,
+            "inner_val_edges": 17,
+            "outer_test_edges": 6,
+            "message_gradient_l1": 0.03451752383261919,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.013340671546757221,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.02117685228586197,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_DATA_DEF_USE",
+              "constructor_definition"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0008790511346887797,
+            "attention_gradient_l1": 1.4371364187582003e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.000493023544549942,
+                "attention_gradient_l1": 3.190326935964549e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0003860275901388377,
+                "attention_gradient_l1": 1.1181037251617454e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 6,
+            "inner_val_edges": 2,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.002129801898263395,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0012563727796077728,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.000873429118655622,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 109,
+            "inner_val_edges": 28,
+            "outer_test_edges": 12,
+            "message_gradient_l1": 0.028601406142115593,
+            "attention_gradient_l1": 3.292468022664252e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.01956266537308693,
+                "attention_gradient_l1": 4.790018692801823e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.009038740769028664,
+                "attention_gradient_l1": 2.81346615338407e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 246,
+            "inner_val_edges": 65,
+            "outer_test_edges": 31,
+            "message_gradient_l1": 0.07370012439787388,
+            "attention_gradient_l1": 6.685721416488377e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.04250674322247505,
+                "attention_gradient_l1": 1.4937720038687985e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.031193381175398827,
+                "attention_gradient_l1": 5.191949412619579e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_ENV_FLOW",
+              "env_source"
+            ],
+            "inner_train_edges": 336,
+            "inner_val_edges": 71,
+            "outer_test_edges": 51,
+            "message_gradient_l1": 0.0005419182707555592,
+            "attention_gradient_l1": 1.130594213805125e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005419182707555592,
+                "attention_gradient_l1": 1.130594213805125e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "if",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 371,
+            "inner_val_edges": 100,
+            "outer_test_edges": 55,
+            "message_gradient_l1": 0.0669502504169941,
+            "attention_gradient_l1": 5.639719802275067e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.031451307237148285,
+                "attention_gradient_l1": 1.5116475537979568e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.03549894317984581,
+                "attention_gradient_l1": 4.1280722484771104e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 405,
+            "inner_val_edges": 126,
+            "outer_test_edges": 41,
+            "message_gradient_l1": 0.05515067093074322,
+            "attention_gradient_l1": 3.6622810171138553e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.036320604383945465,
+                "attention_gradient_l1": 4.87529007386911e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.018830066546797752,
+                "attention_gradient_l1": 3.1747520097269444e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 2,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.001568347041029483,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0010250426130369306,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0005433044279925525,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "if"
+            ],
+            "inner_train_edges": 246,
+            "inner_val_edges": 65,
+            "outer_test_edges": 31,
+            "message_gradient_l1": 0.06391298398375511,
+            "attention_gradient_l1": 1.354307727297055e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.03227393329143524,
+                "attention_gradient_l1": 3.2452871323584986e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.03163905069231987,
+                "attention_gradient_l1": 1.029779014061205e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 57,
+            "inner_val_edges": 17,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.006496495101600885,
+            "attention_gradient_l1": 7.0792509632156e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0035201902501285076,
+                "attention_gradient_l1": 1.582393451826647e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0029763048514723778,
+                "attention_gradient_l1": 5.496857511388953e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "return"
+            ],
+            "inner_train_edges": 75,
+            "inner_val_edges": 24,
+            "outer_test_edges": 4,
+            "message_gradient_l1": 0.043332334607839584,
+            "attention_gradient_l1": 4.375519679911122e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.021298905834555626,
+                "attention_gradient_l1": 9.864093186706668e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.02203342877328396,
+                "attention_gradient_l1": 3.389110361240455e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "DATA_DEF_USE",
+              "while"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.002223459421657026,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.001231279456987977,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0009921799646690488,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "constructor_definition"
+            ],
+            "inner_train_edges": 3,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0007850955589674413,
+            "attention_gradient_l1": 6.404157346651118e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005247588851489127,
+                "attention_gradient_l1": 9.874882778149185e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00026033667381852865,
+                "attention_gradient_l1": 5.4166690688362e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 1286,
+            "inner_val_edges": 356,
+            "outer_test_edges": 175,
+            "message_gradient_l1": 0.1139087937772274,
+            "attention_gradient_l1": 6.830187885498162e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0776827335357666,
+                "attention_gradient_l1": 9.800542102311738e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0362260602414608,
+                "attention_gradient_l1": 5.8501336752669886e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "for"
+            ],
+            "inner_train_edges": 8,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0038580078398808837,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0025566827971488237,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00130132504273206,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "if"
+            ],
+            "inner_train_edges": 371,
+            "inner_val_edges": 100,
+            "outer_test_edges": 55,
+            "message_gradient_l1": 0.0569916907697916,
+            "attention_gradient_l1": 1.8163160575568327e-05,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.03088909201323986,
+                "attention_gradient_l1": 3.2023965559346834e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.026102598756551743,
+                "attention_gradient_l1": 1.4960764019633643e-05,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 405,
+            "inner_val_edges": 105,
+            "outer_test_edges": 55,
+            "message_gradient_l1": 0.07490116357803345,
+            "attention_gradient_l1": 5.698789550478978e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.027217209339141846,
+                "attention_gradient_l1": 8.869113798937178e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0476839542388916,
+                "attention_gradient_l1": 4.81187817058526e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "READS_STATE",
+              "return"
+            ],
+            "inner_train_edges": 113,
+            "inner_val_edges": 27,
+            "outer_test_edges": 11,
+            "message_gradient_l1": 0.05884333699941635,
+            "attention_gradient_l1": 3.2696250400476856e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.02946530655026436,
+                "attention_gradient_l1": 7.029063908703392e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.029378030449151993,
+                "attention_gradient_l1": 2.5667186491773464e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 21,
+            "inner_val_edges": 17,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.006154468283057213,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0036349971778690815,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0025194711051881313,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_DATA_DEF_USE",
+              "for"
+            ],
+            "inner_train_edges": 11,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.003904792363755405,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0023136830423027277,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0015911093214526772,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 158,
+            "inner_val_edges": 48,
+            "outer_test_edges": 10,
+            "message_gradient_l1": 0.0468793660402298,
+            "attention_gradient_l1": 1.9033692808534397e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.031134258955717087,
+                "attention_gradient_l1": 2.833187693340733e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.01574510708451271,
+                "attention_gradient_l1": 1.6200505115193664e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 57,
+            "inner_val_edges": 17,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.006912787910550833,
+            "attention_gradient_l1": 8.73449636173973e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0038405228406190872,
+                "attention_gradient_l1": 2.054849517207913e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0030722650699317455,
+                "attention_gradient_l1": 6.679646844531817e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_ENV_FLOW",
+              "env_source"
+            ],
+            "inner_train_edges": 365,
+            "inner_val_edges": 91,
+            "outer_test_edges": 59,
+            "message_gradient_l1": 0.0006126754451543093,
+            "attention_gradient_l1": 6.847767508588731e-08,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0006126754451543093,
+                "attention_gradient_l1": 6.847767508588731e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 405,
+            "inner_val_edges": 105,
+            "outer_test_edges": 55,
+            "message_gradient_l1": 0.09229744970798492,
+            "attention_gradient_l1": 1.1558397972066814e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.051260806620121,
+                "attention_gradient_l1": 2.0863585348251945e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.04103664308786392,
+                "attention_gradient_l1": 9.472039437241619e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_WRITES_STATE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 1616,
+            "inner_val_edges": 416,
+            "outer_test_edges": 220,
+            "message_gradient_l1": 0.14765674620866776,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.10002531856298447,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.04763142764568329,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "REV_WRITES_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 2,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.00035813824797514826,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.00015332178736571223,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00020481646060943604,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "new_variable",
+              "WRITES_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 2,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.00024110030790325254,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.000132016371935606,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.00010908393596764654,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 4,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.001956861524377018,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0012127773370593786,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0007440841873176396,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_DATA_DEF_USE",
+              "function_definition"
+            ],
+            "inner_train_edges": 78,
+            "inner_val_edges": 17,
+            "outer_test_edges": 6,
+            "message_gradient_l1": 0.031793588772416115,
+            "attention_gradient_l1": 1.8808890800414702e-07,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.020208729431033134,
+                "attention_gradient_l1": 5.257685486981245e-08,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.01158485934138298,
+                "attention_gradient_l1": 1.3551205313433456e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 75,
+            "inner_val_edges": 24,
+            "outer_test_edges": 4,
+            "message_gradient_l1": 0.013345936313271523,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.007227133959531784,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0061188023537397385,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_ENV_FLOW",
+              "env_source"
+            ],
+            "inner_train_edges": 6,
+            "inner_val_edges": 3,
+            "outer_test_edges": 2,
+            "message_gradient_l1": 6.469400250352919e-05,
+            "attention_gradient_l1": 2.747682303905208e-09,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 6.469400250352919e-05,
+                "attention_gradient_l1": 2.747682303905208e-09,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "return",
+              "REV_READS_STATE",
+              "new_variable"
+            ],
+            "inner_train_edges": 113,
+            "inner_val_edges": 27,
+            "outer_test_edges": 11,
+            "message_gradient_l1": 0.012082546018064022,
+            "attention_gradient_l1": 1.1331911196066358e-06,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.006286565214395523,
+                "attention_gradient_l1": 1.0453157983647543e-07,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.005795980803668499,
+                "attention_gradient_l1": 1.0286595397701603e-06,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "while",
+              "REV_DATA_DEF_USE",
+              "expression_statement"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.002501026669051498,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0017476327484473586,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0007533939206041396,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          },
+          {
+            "canonical": [
+              "while",
+              "REV_DATA_DEF_USE",
+              "new_variable"
+            ],
+            "inner_train_edges": 4,
+            "inner_val_edges": 0,
+            "outer_test_edges": 0,
+            "message_gradient_l1": 0.0010980850202031434,
+            "attention_gradient_l1": 0.0,
+            "per_layer": [
+              {
+                "layer": 0,
+                "message_gradient_l1": 0.0005513789365068078,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              },
+              {
+                "layer": 1,
+                "message_gradient_l1": 0.0005467060836963356,
+                "attention_gradient_l1": 0.0,
+                "message_bank_connected": true,
+                "attention_bank_connected": true
+              }
+            ],
+            "status": "training_support_nonzero_gradient"
+          }
+        ],
+        "ddg_training_support": 17144,
+        "note": "Supervised gradients before optimizer/weight decay. Heldout-only registered relations remain present; zero is expected. A supported zero message gradient is explicitly recorded; single-edge attention softmax can legitimately have zero gradient.",
+        "placebo_empty_relations": [],
+        "epoch": 0
+      }
+    ],
+    "backbone_update_l1": 574.9412459958676,
+    "v2_message_update_l1": {
+      "constructor_definition|DATA_DEF_USE|expression_statement": 0.8007451891899109,
+      "constructor_definition|DATA_DEF_USE|if": 0.7336424887180328,
+      "constructor_definition|REV_READS_STATE|new_variable": 0.6219659745693207,
+      "env_source|ENV_FLOW|expression_statement": 0.8123074173927307,
+      "env_source|ENV_FLOW|if": 0.8153981268405914,
+      "env_source|ENV_FLOW|new_variable": 0.8142988383769989,
+      "env_source|ENV_FLOW|return": 0.7827448546886444,
+      "expression_statement|DATA_DEF_USE|expression_statement": 0.8094043433666229,
+      "expression_statement|DATA_DEF_USE|for": 0.7939713597297668,
+      "expression_statement|DATA_DEF_USE|if": 0.7322179675102234,
+      "expression_statement|DATA_DEF_USE|new_variable": 0.7639430463314056,
+      "expression_statement|DATA_DEF_USE|return": 0.7364711463451385,
+      "expression_statement|DATA_DEF_USE|while": 0.7368545532226562,
+      "expression_statement|REV_DATA_DEF_USE|constructor_definition": 0.7769030928611755,
+      "expression_statement|REV_DATA_DEF_USE|expression_statement": 0.809328019618988,
+      "expression_statement|REV_DATA_DEF_USE|for": 0.789443701505661,
+      "expression_statement|REV_DATA_DEF_USE|function_definition": 0.8162330090999603,
+      "expression_statement|REV_DATA_DEF_USE|new_variable": 0.8116227090358734,
+      "expression_statement|REV_ENV_FLOW|env_source": 0.3492819368839264,
+      "expression_statement|REV_READS_STATE|new_variable": 0.8149968087673187,
+      "expression_statement|WRITES_STATE|new_variable": 0.817367434501648,
+      "for|DATA_DEF_USE|expression_statement": 0.7939743399620056,
+      "for|DATA_DEF_USE|new_variable": 0.7384684979915619,
+      "for|REV_DATA_DEF_USE|expression_statement": 0.7784557640552521,
+      "for|REV_DATA_DEF_USE|function_definition": 0.7765257954597473,
+      "for|REV_DATA_DEF_USE|new_variable": 0.5525301992893219,
+      "for|REV_READS_STATE|new_variable": 0.6831320822238922,
+      "function_definition|DATA_DEF_USE|expression_statement": 0.8167055249214172,
+      "function_definition|DATA_DEF_USE|for": 0.7720276117324829,
+      "function_definition|DATA_DEF_USE|if": 0.8060894906520844,
+      "function_definition|DATA_DEF_USE|new_variable": 0.7996388375759125,
+      "function_definition|DATA_DEF_USE|return": 0.8098195195198059,
+      "if|REV_DATA_DEF_USE|constructor_definition": 0.6853637397289276,
+      "if|REV_DATA_DEF_USE|expression_statement": 0.7550905346870422,
+      "if|REV_DATA_DEF_USE|function_definition": 0.8093327283859253,
+      "if|REV_DATA_DEF_USE|new_variable": 0.8144363760948181,
+      "if|REV_ENV_FLOW|env_source": 0.3530135750770569,
+      "if|REV_READS_STATE|new_variable": 0.8149539232254028,
+      "new_variable|DATA_DEF_USE|expression_statement": 0.8136935532093048,
+      "new_variable|DATA_DEF_USE|for": 0.7142788767814636,
+      "new_variable|DATA_DEF_USE|if": 0.8149962723255157,
+      "new_variable|DATA_DEF_USE|new_variable": 0.7941532135009766,
+      "new_variable|DATA_DEF_USE|return": 0.8135088682174683,
+      "new_variable|DATA_DEF_USE|while": 0.7589204609394073,
+      "new_variable|READS_STATE|constructor_definition": 0.6649489998817444,
+      "new_variable|READS_STATE|expression_statement": 0.8162212073802948,
+      "new_variable|READS_STATE|for": 0.7729742527008057,
+      "new_variable|READS_STATE|if": 0.8138088285923004,
+      "new_variable|READS_STATE|new_variable": 0.8150952756404877,
+      "new_variable|READS_STATE|return": 0.8138827681541443,
+      "new_variable|REV_DATA_DEF_USE|expression_statement": 0.789530485868454,
+      "new_variable|REV_DATA_DEF_USE|for": 0.7787898182868958,
+      "new_variable|REV_DATA_DEF_USE|function_definition": 0.8128013014793396,
+      "new_variable|REV_DATA_DEF_USE|new_variable": 0.7946922481060028,
+      "new_variable|REV_ENV_FLOW|env_source": 0.35541045665740967,
+      "new_variable|REV_READS_STATE|new_variable": 0.8148543834686279,
+      "new_variable|REV_WRITES_STATE|expression_statement": 0.8166877627372742,
+      "new_variable|REV_WRITES_STATE|new_variable": 0.6047942936420441,
+      "new_variable|WRITES_STATE|new_variable": 0.5828892290592194,
+      "return|REV_DATA_DEF_USE|expression_statement": 0.7477414309978485,
+      "return|REV_DATA_DEF_USE|function_definition": 0.8113715946674347,
+      "return|REV_DATA_DEF_USE|new_variable": 0.7992860376834869,
+      "return|REV_ENV_FLOW|env_source": 0.23659776151180267,
+      "return|REV_READS_STATE|new_variable": 0.800185889005661,
+      "while|REV_DATA_DEF_USE|expression_statement": 0.7575265467166901,
+      "while|REV_DATA_DEF_USE|new_variable": 0.7186815142631531
+    },
+    "updates_may_include_weight_decay": false
+  },
+  "checkpoint_roundtrip_exact": {
+    "inner_val": {
+      "best": true,
+      "last": true
+    },
+    "outer_test": {
+      "best": true,
+      "last": true
+    }
+  },
+  "no_parameters_created_during_training_or_scoring": true,
+  "initial_sha256": "c5c95253255ead792a0a2a8bd56e05b21d86585e493a26dde20fd27d114f4557",
+  "history_rows": 1,
+  "parameter_count": 5681175,
+  "resources": {
+    "seconds": 31.386885477986652,
+    "peak_allocated_mib": null,
+    "peak_reserved_mib": null,
+    "minimum_free_mib": null,
+    "whole_card_sampling_seconds": 0.5,
+    "memory_samples": 0,
+    "sampling_errors": [],
+    "device": "cpu"
+  },
+  "seconds": 31.375013278971892,
+  "outer_supervision_used_in_optimization": false,
+  "label_policy": "L-audit",
+  "orig_all_auxiliary": {
+    "inner_val": {
+      "best": {
+        "n": 2198,
+        "positive": 1154,
+        "buggy_f1": 61.77024482109228,
+        "macro_f1": 51.735208567926946,
+        "precision": 54.63024650233178,
+        "recall": 71.05719237435008,
+        "tn_fp_fn_tp": [
+          363,
+          681,
+          334,
+          820
+        ]
+      },
+      "last": {
+        "n": 2198,
+        "positive": 1154,
+        "buggy_f1": 61.77024482109228,
+        "macro_f1": 51.735208567926946,
+        "precision": 54.63024650233178,
+        "recall": 71.05719237435008,
+        "tn_fp_fn_tp": [
+          363,
+          681,
+          334,
+          820
+        ]
+      }
+    },
+    "outer_test": {
+      "best": {
+        "n": 1151,
+        "positive": 668,
+        "buggy_f1": 64.64924346629988,
+        "macro_f1": 52.018017959565036,
+        "precision": 59.796437659033074,
+        "recall": 70.35928143712576,
+        "tn_fp_fn_tp": [
+          167,
+          316,
+          198,
+          470
+        ]
+      },
+      "last": {
+        "n": 1151,
+        "positive": 668,
+        "buggy_f1": 64.64924346629988,
+        "macro_f1": 52.018017959565036,
+        "precision": 59.796437659033074,
+        "recall": 70.35928143712576,
+        "tn_fp_fn_tp": [
+          167,
+          316,
+          198,
+          470
+        ]
+      }
+    }
+  }
+}

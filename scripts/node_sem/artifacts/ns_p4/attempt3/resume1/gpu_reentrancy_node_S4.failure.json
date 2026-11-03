@@ -1,0 +1,16 @@
+{
+  "error": "ValueError('CPU/GPU logits parity failed')",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py\", line 358, in main\n    result=(prepare_resume() if a.stage=='resume-prepare' else prepare()) if job is None else run_job(plan,job)\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py\", line 267, in run_job\n    device_setup=device_setup(job,phase,resources_dir/'cpu_gpu_parity.json'))\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4_acceptance.py\", line 222, in run_fit\n    model=device_setup(model,cfg)\n  File \"/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/p4b_acceptance.py\", line 237, in setup\n    if not result['passed']: raise ValueError('CPU/GPU logits parity failed')\nValueError: CPU/GPU logits parity failed\n",
+  "cuda_oom": false,
+  "phase": {
+    "phase": "zero_step_gpu_eval",
+    "unix_seconds": 1793689085.7177777
+  },
+  "memory": {
+    "allocated_mib": 61.63427734375,
+    "reserved_mib": 516.0,
+    "peak_allocated_mib": 500.3251953125,
+    "peak_reserved_mib": 516.0
+  },
+  "automatic_retry": false
+}

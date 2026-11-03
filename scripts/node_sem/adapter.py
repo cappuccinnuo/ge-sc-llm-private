@@ -73,7 +73,7 @@ class NodeSemAdapter(nn.Module):
                 or profile not in ("G0", "G3R")):
             raise ValueError("Invalid dropout fit identity")
         self.dropout_seed = parameter_seed(fit_seed, "modality_dropout",
-            [task_id, fold, profile, self.spec_digest])
+            [task_id, fold, profile, self.spec_digest, self.ntype])
         self.forward_count = 0
         return self.dropout_seed
 
