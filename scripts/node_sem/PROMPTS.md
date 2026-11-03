@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r15（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+版本：r16（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+
+**r16 相对 r15 的修改**：NS-P4b 审查通过（第 5L 节）。按 EXPERIMENT_POLICY（原名为主）改写第 4.12 节的批次与预先登记、NS-P5、NS-P5A、NS-P6：S0 不再复用匿名 8H，改为新跑原名 S0o；N-A 为 {S0o,S1o,S2,S4}×{G0,G3R}=240 次；N-B 加入 S4m 名字对照；所有比较要求同一设备类型与相同 TF32 设置；SolidiFI/非 SolidiFI 分层为预先登记的描述项。
 
 **r15 相对 r14 的修改**：NS-P4 审查（第 5K 节）。新增 **NS-P4b**（第 5.6b 节，NS-P5 之前完成）：修正我在 NS-P4 中设定的绝对 100 MiB 显存门槛（8H 的 S0 本身在同一任务上最低空闲只有 44–74 MiB），改为相对 8H 的门槛并补完 GPU 功能验收；模态 dropout 的种子加入节点类型。
 
@@ -506,15 +508,18 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 | 批次 | 内容 | fit 数 |
 |---|---|---:|
-| N-A | {S1, S2, S4} × {G0, G3R}（S0 复用 8H） | 180 |
-| N-B | S3 × G3R、S4g × G3R、S4-noG | 90 |
+| N-A | {S0o, S1o, S2, S4} × {G0, G3R}（原名视图，r16；S0o 新跑，不复用匿名 8H） | 240 |
+| N-B | S3 × G3R、S4g × G3R、S4-noG（G0）、S4m × G3R（名字对照） | 120 |
 | N-C | {S5, S6, S7, S8} × G3R（本机 LLM 试点版） | 120 |
-| N-D | 原名视图 {S0, S4} × G3R | 60 |
+| N-D | 匿名视图复核 {S0（复用 8H）, S4-anon} × G3R：需先接通匿名 CTX（8G 双射映射 names），目前未实现，由用户决定是否执行 | 30 |
 
 **预先登记（写进 plan，以后不改）：**
-- **主终点**：重入节点、G3R、S4 − S0（L-audit，best，外层 BF1，10 折配对，双侧 Wilcoxon）。
-- **N-A 的 Holm 家族**（重入节点、G3R）：S4−S0、S1−S0、S2−S0、S4−S2。
-- **交互项**（描述）：(S4−S0)\_G3R − (S4−S0)\_G0，按第 3 节第 21 条解读。
+- **视图**（r16）：按 EXPERIMENT_POLICY，主实验使用原名视图；S0 指原名 S0o（图上未改名的 token ID）。匿名 8H 的 S0 成绩只作历史参考，不参与任何配对比较。
+- **主终点**：重入节点、G3R、S4 − S0o（L-audit，best，外层 BF1，10 折配对，双侧 Wilcoxon）。
+- **N-A 的 Holm 家族**（重入节点、G3R）：S4−S0o、S1o−S0o、S2−S0o、S4−S2。
+- **交互项**（描述）：(S4−S0o)\_G3R − (S4−S0o)\_G0，按第 3 节第 21 条解读。
+- **名字泄漏的必报项**（描述，r16）：每个配置按 SolidiFI（buggy_*）与非 SolidiFI 文件分层报告 BF1、TP/FP/FN 与 Wilson 区间；N-B 中 S4−S4m（只换 CTX 的名字，CODE 仍为原名）。原名 CTX 中约 39%–49% 的节点行含 SolidiFI 标记子串（第 5I 节），结论必须结合分层结果解读。
+- **设备与数值一致性**（r16）：同一比较中的两个配置（含 S0o）必须在同一设备类型、同一 torch/CUDA 版本、相同的 TF32 设置下运行；plan 记录 torch.backends.cuda.matmul.allow_tf32 与 cudnn.allow_tf32 的取值，每个 receipt 记录实际取值与 GPU 型号，不一致则拒绝汇总。
 - **N-B**：全部只作描述。
 - **N-C 的 Holm 家族**（重入节点、G3R）：S5−S4（主比较）、S6−S5、S7−S6、S5−S8。注明这是本机试点版本，正式结论以服务器复跑为准。
 - **访问控制节点与两个合约任务**：只作描述。访问控制另附 20 个非 SolidiFI 正例的逐节点概率表；重入另附 32 个非 SolidiFI 正例（以及全部非 SolidiFI 误报）的逐节点概率表。
@@ -1256,33 +1261,37 @@ NodeSem、dfg_v2 与原回归测试通过；reentrancy_node 上的 GPU 功能验
 ### 5.7 Prompt NS-P5：批次 N-A 的计划与封存（不训练）
 
 ```text
-# NS-P5：N-A 计划（{S1,S2,S4} × {G0,G3R} × 30 折 = 180 次新 fit，另外引用 S0 的 60 个 8H 结果）
+# NS-P5：N-A 计划（原名视图；{S0o,S1o,S2,S4} × {G0,G3R} × 30 折 = 240 次新 fit）
+
+依据：PROMPTS r16 第 4.12 节与 EXPERIMENT_POLICY（原名为主）。匿名 8H 的 S0 不复用、不作配对基线，只在报告中作为历史参考。
 
 ## 1. 准备
-- 为每个（配置、任务）写好载体 NPZ 与 manifest（主视图）；核对行身份。
-- 为 180 个 job 生成零步初值（node_sem.init），记录文件 SHA 与 state SHA；在 CPU 上逐个构造并核对 digest。
-- S0 × {G0,G3R} × 30：只写入对 8H receipt 与初值的引用，并逐个只读 verify。
+- 为每个（配置、任务、图配置）写好载体 NPZ 与 manifest：S0o/S1o 用原名 token ID（核对与图上原 token 逐位相同），S2/S4 用 NS-P3b2 的 CODE/CTX/STATIC（ns_p3/CURRENT）；核对行身份与 SHA。
+- 为 240 个 job 生成零步初值（node_sem.init）：S0o 与 8H 的 S0 初值逐位相同（参数相同、只有输入不同）；其余配置共同参数与 8H 相同。记录文件 SHA 与 state SHA，在 CPU 上逐个构造并核对 digest。
+- 每个 job 的 dropout 身份（fit_seed、task、fold、profile、spec_digest、ntype）可由 plan 复现。
 
 ## 2. plan（排他创建 artifacts/batch_NA_v1/）
-- job：task_id、fold、seed=1、profile、spec（引用与 digest）、图引用、label_view、folds、初值、载体、config（与 8H 相同）。
+- job：task_id、fold、seed=1、profile、spec（引用与 digest）、图引用、label_view（L-audit）、folds、初值、载体、config（与 8H 相同）、设备类型。
 - 预先登记（写进 plan，以后不能改）：
-  - 主终点：reentrancy_node、G3R、S4 − S0，L-audit best 外层 BF1，10 折配对，双侧 Wilcoxon；
-  - Holm 家族（reentrancy_node、G3R）：S4−S0、S1−S0、S2−S0、S4−S2；
-  - 交互项（描述）：(S4−S0)_G3R − (S4−S0)_G0，并附第 3 节第 21 条的解读说明；
-  - 其余任务和比较只作描述；访问控制附 20 个非 SolidiFI 正例的逐节点概率表；
-  - S* 选择规则：inner_val best BF1，先在折内平均，四个任务等权；在 S1/S2/S4 × G3R 中选择；平局时取载体维度更小的；
+  - 主终点：reentrancy_node、G3R、S4 − S0o，L-audit best 外层 BF1，10 折配对，双侧 Wilcoxon；
+  - Holm 家族（reentrancy_node、G3R）：S4−S0o、S1o−S0o、S2−S0o、S4−S2；
+  - 交互项（描述）：(S4−S0o)_G3R − (S4−S0o)_G0，并附第 3 节第 21 条的解读说明；
+  - 必报描述项：每个配置的 SolidiFI/非 SolidiFI 分层（BF1、TP/FP/FN、Wilson 区间；分层只按文件名前缀 buggy_，不读标签）；重入另附 32 个非 SolidiFI 正例与全部非 SolidiFI 误报的逐节点概率表，访问控制附 20 个非 SolidiFI 正例的逐节点概率表；天花板说明中的逐折错误数与相对错误减少率；匿名 8H S0 的成绩只作历史参考列；
+  - S* 选择规则：inner_val best BF1，先在折内平均，四个任务等权；在 S1o/S2/S4 × G3R 中选择；平局时取载体维度更小的；
   - 报告必含项：第 4.12 节全部。
+- 设备：plan 写明每个比较族使用的设备类型（本机 RTX3050 或服务器，二者不能混用于同一比较）；记录 allow_tf32（matmul、cudnn）的取值，训练时不改动默认设置，但每个 receipt 记录实际值与 GPU 型号。
+- 资源前提（NS-P4b 实测）：reentrancy_contract/G3R 上 S4 的 peak reserved 2194 MiB、最低空闲 44 MiB（8H S0 为 2094/44–74 MiB），本机可运行但没有余量。硬停止只在 OOM/CUDA 错误；若 N-A 中任一 fit OOM，整批停止并报告，由用户决定是否把该任务的全部配置移到服务器重跑（不得只把 OOM 的配置挪走）。
 - runtime：_code_refs() ∪ node_sem 代码 SHA。
-- 估算本机耗时与显存（依据 8H 的实测和 NS-P4 的冒烟）。
+- 估算本机耗时与显存（依据 8H 的实测与 NS-P4b 的单轮数据；S0o/S1o 约同 8H，S4 每 fit 约为 8H 的 1.1–1.5 倍）。
 
 ## 3. 授权模板
-authorization.template.json（execution_authorized=false；需要用户填写：标签方案 L-audit、seed=[1]、运行位置、资源策略 local_dev_v1）。停下等用户授权。
+authorization.template.json（execution_authorized=false；需要用户填写：标签方案 L-audit、seed=[1]、运行位置（本机或服务器）、资源策略 local_dev_v1、视图 original）。停下等用户授权。
 
 ## 测试
-plan/seal 篡改检测；S0 引用的 receipt 被修改时拒绝；runtime 变化时拒绝启动。
+plan/seal 篡改检测；载体或初值 SHA 改变时拒绝；runtime 变化时拒绝启动；同一比较族出现不同设备类型或 TF32 设置时拒绝汇总。
 
 ## 验收
-plan 与 seal 封存，PROGRESS.md 记录耗时估计；提交 NS-P5。不训练。
+plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。不训练。
 ```
 
 ### 5.8 Prompt NS-P5A：执行 N-A 并报告（用户授权后）
@@ -1290,28 +1299,28 @@ plan 与 seal 封存，PROGRESS.md 记录耗时估计；提交 NS-P5。不训练
 ```text
 # NS-P5A：执行 N-A
 
-1. 把用户授权原文写入 artifacts/batch_NA_v1/authorization.json（排他创建），绑定 plan 与 seal 的 SHA，写明 job 数为 180（另有 60 个复用）。
+1. 把用户授权原文写入 artifacts/batch_NA_v1/authorization.json（排他创建），绑定 plan 与 seal 的 SHA，写明 job 数为 240（原名视图，不复用匿名 8H）。
 2. 开训前证明：
-   - 用新 plan 重新执行 NS-P1 的 S0 等价检查（CPU，2 epoch），作为回归；
-   - 试点：完整跑 2 个正式 fit（reentrancy_node fold0 G3R S4；reentrancy_contract fold0 G0 S1），记录耗时与显存。试点结果计入正式产物，不重跑。
+   - 用新 plan 重新执行 NS-P1 的 S0 等价检查（CPU，2 epoch），并对 S0o 核对其初值与 8H S0 逐位相同、载体与原图 token 逐位相同，作为回归；
+   - 试点：完整跑 2 个正式 fit（reentrancy_node fold0 G3R S4；reentrancy_contract fold0 G3R S4，后者用于确认完整训练的显存），记录耗时、显存与 TF32 设置。试点结果计入正式产物，不重跑。
 3. 按 plan 顺序串行运行剩余 fit，每项一个独立子进程。失败就停，保留现场；重试必须经用户批准（沿用 8H 的 attempt_00k 规则）。运行中只记录进度，不汇总任何 F1。
-4. 完成后：verify 180/180，并只读核对 60 个 S0 引用。
+4. 完成后：verify 240/240；核对全部 receipt 的设备类型与 TF32 设置一致。
 5. 报告（node_sem/reporting.py，复用 benchmark_v2.reporting 的 wilson、scored、stratified_score 与 experiment/stats.py）：
    - 先只按 inner_val 选出 S*（封存 selection.json），然后才读取 outer_test；
-   - 主表：四个任务 × 配置 × 剖面的折均 BF1；
+   - 主表：四个任务 × 配置 × 剖面的折均 BF1；SolidiFI/非 SolidiFI 分层表；匿名 8H S0 历史参考列（不做配对检验）；
    - 主终点与 Holm 家族（差值均值、95% bootstrap 区间、提升/持平/下降、A12、Wilcoxon 原始 p 与 Holm 校正后的 p）；
    - 交互项；
-   - 第 4.12 节的全部必含项，包括注意力饱和诊断：对 S0、S1、S2、S4 × G3R 的 best checkpoint 各做一次 eval 前向，统计第一层每个关系 head 最大权重 ≥0.99 的比例（方法同 dfg_v2/attention_probe.py）；
+   - 第 4.12 节的全部必含项，包括注意力饱和诊断：对 S0o、S1o、S2、S4 × G3R 的 best checkpoint 各做一次 eval 前向，统计第一层每个关系 head 最大权重 ≥0.99 的比例（方法同 dfg_v2/attention_probe.py）；
    - 写 artifacts/batch_NA_v1/reports/REPORT.md 与 report.json，以及 scripts/node_sem/NS_P5A_REPORT.md。然后停下。
 ```
 
 ### 5.9 Prompt NS-P6：批次 N-B
 
 ```text
-# NS-P6：N-B（S3 × G3R、S4g × G3R、S4-noG（G0，layers=0），共 90 次 fit）
+# NS-P6：N-B（S3 × G3R、S4g × G3R、S4-noG（G0，layers=0）、S4m × G3R，共 120 次 fit）
 
 流程同 NS-P5 + NS-P5A：先计划与封存，等授权，再执行与报告。目录 artifacts/batch_NB_v1/。
-- 预先登记的比较（全部只作描述）：S4−S3、S3−S2（S2 引用 N-A 的结果）、S4g−S4、S4−S4-noG（S4-noG 与 G3R 上的 S4 比较，并另报与 G0 上 S4 的比较）。
+- 预先登记的比较（全部只作描述）：S4−S3、S3−S2（S2 引用 N-A 的结果）、S4g−S4、S4−S4-noG（S4-noG 与 G3R 上的 S4 比较，并另报与 G0 上 S4 的比较）、S4−S4m（名字对照，同时报 SolidiFI/非 SolidiFI 分层）。设备类型与 TF32 设置必须与 N-A 相同。
 - 报告另加：S4g 中按节点类型统计的门控权重均值与分布。
 - 引用 N-A 结果时，按 receipt SHA 只读核对。
 ```
@@ -1638,6 +1647,18 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 2. **dropout 种子不含节点类型**，各类型的掩码序列相同（我的种子定义遗漏）。
 
 **对 NS-P5 的资源前提：** S4 在 reentrancy_contract/G3R 上很可能超出本机 4 GiB 卡；正式 N-A 若含该任务的 S4，需在服务器执行，或在 NS-P5 计划中明确分设备执行。
+
+## 5L. NS-P4b 审查记录（2026-11-03，Claude）
+
+**结论：通过。** 下一步是 NS-P5（已按原名视图改写，见第 4.12 节与第 5.7 节）。
+
+**复核：**
+- dropout 种子加入 ntype（adapter.py 一行修改），新增测试覆盖不同类型掩码不同、同类型可复现、评估不推进计数。
+- GPU 显存数据我逐项对照 resources 目录与 8H resources.csv：reentrancy_node 上 6 项 peak reserved 与 8H 之比 0.94–1.00（S4-noG 0.22）；reentrancy_contract/G3R 上 S1o 2074 MiB（0.99），S4 2194 MiB（1.048）、最低空闲 44 MiB，与 8H 该任务 5 折的最低空闲 44–74 MiB 处在同一水平。S4 在本机能跑，但没有余量。
+- **TF32**：我在 NS-P4b 中给的 GPU/CPU 一致性门槛（1e-4）没有考虑 Ampere 卡默认启用 TF32（torch 1.8.1 中 matmul 与 cudnn 的 allow_tf32 默认为 true）；默认设置下 S4 的差为 1.07e-3。Codex 停止后经诊断确认：同一 GPU 默认设置下重复运行逐位相同，关闭 TF32 后差降到 8.3e-7。把一致性检查改为“临时关闭 TF32 的 GPU eval 与 CPU 比较”、训练仍用默认设置并在 finally 中恢复，是正确的：它验证的是实现等价，而训练与 8H 保持相同的数值设置。默认 TF32 下的差值单列，没有被说成通过。由此带来一条新要求：同一比较中的配置必须在相同 TF32 设置与同一设备类型上运行（已写入第 4.12 节与 NS-P5）。
+- 日志接入失败（训练前，未进行优化步骤）与用户先误点“停止”后更正的两次恢复，都封存了新计划并保留旧失败现场，复用的结果有收据，处理正确。
+
+**视图口径**：用户在 NS-P3b、NS-P3b2、NS-P4、NS-P4b 中均保持原名为主，没有选择我在第 5H 节建议的匿名主终点。因此从本版起，第 4.12 节与 NS-P5/5A/P6 按原名视图改写：S0 改为新跑原名 S0o，SolidiFI/非 SolidiFI 分层和 S4−S4m 作为预先登记的描述项。匿名复核（N-D）保留为待用户决定的选项。
 
 ## 6. 里程碑
 
