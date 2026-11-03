@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r14（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+版本：r15（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+
+**r15 相对 r14 的修改**：NS-P4 审查（第 5K 节）。新增 **NS-P4b**（第 5.6b 节，NS-P5 之前完成）：修正我在 NS-P4 中设定的绝对 100 MiB 显存门槛（8H 的 S0 本身在同一任务上最低空闲只有 44–74 MiB），改为相对 8H 的门槛并补完 GPU 功能验收；模态 dropout 的种子加入节点类型。
 
 **r14 相对 r13 的修改**：NS-P3b2 审查通过（第 5J 节），下一步为 NS-P4；NS-P4 第 3 节补充原名视图的 S0o/S1o 配置登记与核对（原名为主时的配对基线所需）。
 
@@ -545,7 +547,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 ## 5. Codex Prompts
 
-使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3a3 → P3b → P3b2 → P4 → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3a3 → P3b → P3b2 → P4 → P4b → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ### 5.1 共享上下文（每个会话先贴这一段）
 
@@ -1219,6 +1221,38 @@ configs/S2.json、S3.json、S4.json、S4g.json、S4-noG.json（视图按 EXPERIM
 测试与冒烟通过；PROGRESS.md 记录每个配置的 D、构造耗时、冒烟结果；提交 NS-P4。
 ```
 
+### 5.6b Prompt NS-P4b：GPU 功能验收（相对门槛）与 dropout 种子修正（NS-P5 之前必须完成）
+
+```text
+# NS-P4b：修正显存门槛、补完 GPU 验收、dropout 种子按节点类型区分
+
+前置：NS-P4（3b132618）。ns_p4/attempt2 只读保留（包括 S1o 中止现场）；新结果写入 ns_p4/attempt3/。不登记正式实验，不改 HGT、训练器、图、特征与 8H。
+
+## 背景（审查结论，写进 PROGRESS）
+1. NS-P4 第 4b 节“整卡最低空闲低于 100 MiB 即停止”是我的门槛设定错误：8H 的 S0 在 reentrancy_contract/G3R 的 5 折上 peak reserved 为 2094 MiB、最低空闲 44–74 MiB，按这个门槛 8H 本身也会被判失败。S1o 的 peak allocated 1853 MiB、peak reserved 2074 MiB，均不高于 8H S0 的 1895/2094 MiB，说明 S1o 没有显存回退；停止原因是门槛不合理，不是实现问题。Codex 按规则停止、不重试、保留现场的做法正确。
+2. 在本机 4 GiB 卡上，CUDA/DGL 上下文初始化即占用约 1244 MiB；S4 的输入宽 760（8H 为 512）并多出约 1.1M 参数，在 reentrancy_contract/G3R 上大概率超过本机余量。本机能验证的是 GPU 路径的功能正确性，全尺寸显存需求要在服务器上测量。
+3. adapter.reset_dropout 的种子是 parameter_seed(fit_seed, "modality_dropout", [task, fold, profile, spec_digest])，不含节点类型；所有节点类型的适配器在同一 forward 计数下生成完全相同的伯努利序列，不同类型中行号相同的节点被同时保留或丢弃。这是我在 NS-P4 中给的种子定义遗漏了 ntype。
+
+## 1. dropout 种子（adapter.py）
+- 种子改为 parameter_seed(fit_seed, "modality_dropout", [task_id, fold, profile, spec_digest, ntype])。
+- 测试：两个不同 ntype 的适配器在同一 forward 计数下掩码不同（构造足够行数断言不全相同）；同一 ntype 两次运行逐位相同；评估模式不推进计数；全局 RNG 不受影响。
+- 重新运行 NodeSem 全部测试；CPU 冒烟只对含 dropout 的多模态配置（S3、S3m、S4、S4g、S4m、S4-noG）在 reentrancy_node fold0 上各重跑 1 epoch，写入 attempt3（旧结果保留，不比较 loss 大小）。
+
+## 2. 显存门槛（p4_acceptance.py 的 GPU 模式）
+- 去掉绝对 100 MiB 门槛。硬停止条件只有 OOM（或 CUDA 错误）。
+- 相对比较：对同一任务/折/图配置，读取 8H 的 resources.csv（S0 的 peak_allocated、peak_reserved、minimum_free），报告 NodeSem 配置的差值；peak_reserved 超过 8H 的 1.25 倍时在报告中标为“显存需求明显增加”，不停止。
+- 启动前空闲仍须 ≥3000 MiB（保证没有其他进程占卡），否则不启动并报告。
+
+## 3. GPU 验收（1 epoch，非正式，持有 .training.lock）
+- reentrancy_node fold0 G3R：S1o、S2、S4、S4g、S4m；S4-noG 用 G0。每项完成 1 epoch 训练、best/last 保存、inner_val/outer_test 评分与重载一致性验收（与 CPU 验收相同的检查）。
+- GPU/CPU 一致性：对 S4 与 S4g，用同一初值在 eval 模式下各做一次前向（CPU 与 GPU），logits 最大绝对差 ≤1e-4（相对 ≤1e-4），并核对 last_gates 在 CPU 上、每行和为 1。
+- reentrancy_contract fold0 G3R：S1o 与 S4 各 1 epoch，用于测量显存（第 2 节的相对报告）。S4 若 OOM，记录发生阶段与当时的 allocated/reserved，标为“需服务器测量”，不降配、不重试。
+- 报告表：每项的 peak allocated、peak reserved、最低空闲、与 8H S0 的差值、耗时。
+
+## 4. 验收
+NodeSem、dfg_v2 与原回归测试通过；reentrancy_node 上的 GPU 功能验收全部通过（这是本步通过的必要条件）；reentrancy_contract 的显存结果如实记录（OOM 不算失败，但必须写入 NS-P5 的资源前提）；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；提交 NS-P4b。不推进 NS-P5。
+```
+
 ### 5.7 Prompt NS-P5：批次 N-A 的计划与封存（不训练）
 
 ```text
@@ -1589,6 +1623,21 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 **记录的限制（不阻塞）：**
 - checked_call 的状态在语句中任一调用无法唯一解析时就是 unknown（每任务 35–115 行），其中已证实存在经检查运算的只有 7/4/6/4 行；按我在 NS-P3b2 中的规定，这些行的 checked_by_helper 为 0。严格按三值逻辑应保留为 1，但影响太小，不单独返工；以后修改 STATIC 时一并处理。
 - 循环更新表达式的来源距离仍写 unknown（每任务约 30 行），原因是冻结 facts 没有为它们定义相对距离。
+
+## 5K. NS-P4 审查记录（2026-11-03，Claude）
+
+**已核实正确：**
+- 融合实现（adapter.py）与方案一致：连续模态 LayerNorm → 无偏置投影，STATIC 不归一化；按存在位求和加共享偏置；gated 对缺失模态屏蔽、全缺失时输出偏置且不产生 NaN（先替换整行再 softmax，前向与反向都安全）；dropout 只在训练模式、用局部 CPU Generator；旧 S1 的参数名与 p=0 算术路径保留。
+- model.validate 对各模态投影、归一化、门控、共享嵌入的注册逐项校验；layers=0 只允许 G0；HGT 与训练器未改。
+- 线性等价改用 float64 参考加容差（最大差 3.8e-05、输出尺度 114）是正确的：不同 GEMM 累加顺序无法保证 float32 逐位相同，我原来要求逐位相同是不可实现的；同一路径重复运行仍逐位相同。
+- FeatureSpec 允许 p=1 只为覆盖全缺失测试，生产配置为 0.1，合理。
+- CPU 冒烟 7 个配置全部通过（有限 loss、各模态投影有非零梯度、共同初值与 8H 相同、重载一致）；S0o 载体与原图 token 逐位相同（8 项），参数摘要与 8H S0 一致。构造时间未超过 8H 的 3 倍。
+
+**需要修正（NS-P4b）：**
+1. **显存门槛是我的错误。** 8H 的 S0 在 reentrancy_contract/G3R 上最低空闲为 44–74 MiB（resources.csv），按 100 MiB 门槛同样会失败。S1o 的 peak allocated/reserved（1853/2074 MiB）不高于 8H S0（1895/2094 MiB），没有显存回退。Codex 按规则停止、保留现场、不重试，处理正确；但因此 S4 没有任何 GPU 验收，GPU 路径（设备转换、门控、dropout 掩码搬运）尚未验证。
+2. **dropout 种子不含节点类型**，各类型的掩码序列相同（我的种子定义遗漏）。
+
+**对 NS-P5 的资源前提：** S4 在 reentrancy_contract/G3R 上很可能超出本机 4 GiB 卡；正式 N-A 若含该任务的 S4，需在服务器执行，或在 NS-P5 计划中明确分设备执行。
 
 ## 6. 里程碑
 
