@@ -218,3 +218,18 @@ NS-P2 实际完成 text_view.py、p2_acceptance.py、offline 资产/编码器、
 facts_verify核对52,418行身份、源码/文本/SHA/实现/schema、8H生效runtime及22,813冻结文件通过。旧attempt3的23文件全部SHA不变，CURRENT验收后原子切换；首次create-only写拒绝已有CURRENT的记录保留。三文档仅追加并做UTF-8/CJK校验，详细实施见training_changes§79，命令/失败与成功收据在artifacts/ns_p3a3。
 
 本轮没有GPU、训练、编码或solc验证，不推进NS-P3b；仍是受限静态事实系统。最终实验将使用用户安排的显存充足服务器，本机RTX3050 4GiB仅为开发限制，服务器未在本轮部署。本地提交、不自动推送。
+
+
+## 2026-11-02 NS-P3b 完成：CTX/STATIC（修改 AI：Codex）
+
+输入e77d42d3/PROMPTS r12，读取共享§5.1。git pull DNS失败有记录；本轮only original，从accepted_attempt4与text_v1生成。用户批准独立encode_ctx、精确AST临时sidecar和保留标签的第8级限长；保留anonymous接口但不新建匿名产物，masked为局部CTX名字对照。
+
+新增ctx_alignment/ctx_fields/static_profile/behavior_schema/p3_prepare/p3_acceptance、offline/encode_ctx/ctx_budget及3组测试。K/L/M按unknown_fields逐字段清零+N，不因整组unknown丢确定信息。实际STATIC243维、N35；S3/S4=514/758维。
+
+四任务AC合约/节点、重入合约/节点13693/7892/18610/12223行；8份CTX两次编码逐位一致、误差0，共104836向量，4份STATIC共52418。第8级仅四个masked各1次（七级后261→256，标签留）；全量masked残留标识符0，52 Oracle改名后STATIC/文本一致。统计/去重/耗时见stats.json和NS_P3B_REPORT。
+
+原编码/回归进程消失、无失败或完成证据，原因未知；用户批准保留现场、复用首份成功并在resume_attempt2完成剩余7份，测试补完。encoding_index连接全部8份结果，不覆盖原目录。独立审查修正具名seal路径；扫描词表/临时篡改夹具修正留档，严格断言保留。
+
+727+2653+223+6=3609测试通过，0失败/跳过，42既有警告；8CTX/4STATIC/4旧CODE核验，32组合真实装配通过。8H生效runtime/load及22,813冻结文件一致；原图/标签/折/HGT/tokenizer/旧CODE/facts不改。CURRENT连接验收seal与索引，详细选择/命令/失败记录见training_changes§80。
+
+checked_call摘要未纳入本轮表，尚未消费；局部masked不消除原名CODE捷径。无HGT训练/F1/编译/NS-P4；本地提交、不自动推送。最终实验按用户计划在显存充足服务器运行，RTX3050 4GiB仅本机开发限制，服务器本轮未部署。

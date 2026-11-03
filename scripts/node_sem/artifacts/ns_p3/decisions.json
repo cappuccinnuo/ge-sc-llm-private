@@ -1,0 +1,52 @@
+{
+  "version": "nodesem-p3b-decisions-v1",
+  "implementer": "Codex",
+  "view": "original",
+  "decisions": [
+    {
+      "id": "independent_ctx_entry",
+      "approved": true,
+      "reason": "Old CODE manifests bind offline/encode.py SHA",
+      "choice": "New offline/encode_ctx.py reuses original encoder primitives; old file untouched"
+    },
+    {
+      "id": "readonly_ast_sidecar",
+      "approved": true,
+      "reason": "Sealed rows omit function signature and complete identifier positions",
+      "choice": "Exact frozen Projector AST joins; declaration roles, IDENT fallback, FUNC/TYPE placeholders; no fact or graph modification"
+    },
+    {
+      "id": "bounded_final_fallback",
+      "approved": true,
+      "reason": "Seven stages can still exceed 256 with long retained FROM/TO",
+      "choice": "Stage8 trims field contents in fixed priority, preserving all labels, with separate counts"
+    },
+    {
+      "id": "resume_attempt2",
+      "approved": true,
+      "reason": "Encoder and test processes disappeared without failure/completion evidence; cause unknown",
+      "choice": "Preserve old attempts; validate/reuse first success; 7 remaining jobs under new directory, no parameter change or automatic retry"
+    }
+  ],
+  "interpretations": [
+    {
+      "id": "onehot_unknown",
+      "reason": "Explicit per-field unknown rule requires zero value bits, while generic text says one bit",
+      "choice": "Unknown applicable group has zero value bits + N flag; every other one-hot has exactly one, including not_applicable"
+    },
+    {
+      "id": "anonymous_interface",
+      "choice": "Existing view enum, text/code/carrier interfaces preserved; no anonymous production inputs loaded; masked CTX is a local-name diagnostic"
+    },
+    {
+      "id": "checked_call_not_consumed",
+      "choice": "No extra dimensions added beyond sections4.5/4.6; available checked_call summary not consumed; future scope decision needed"
+    }
+  ],
+  "review": {
+    "blocker_fixed": "Named CTX manifest seal resolution in acceptance only",
+    "independent_review": "No other substantive issue found; reverse dictionary-order rename preserved masked CTX and STATIC"
+  },
+  "training": false,
+  "server_note": "Final experiments planned on a server with sufficient VRAM; RTX3050 4GiB limitation is local development only; server not deployed here"
+}

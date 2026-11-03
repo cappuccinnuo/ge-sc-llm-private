@@ -1,0 +1,58 @@
+........................................................................ [  9%]
+........................................................................ [ 19%]
+........................................................................ [ 29%]
+........................................................................ [ 39%]
+........................................................................ [ 49%]
+........................................................................ [ 59%]
+........................................................................ [ 69%]
+........................................................................ [ 79%]
+........................................................................ [ 89%]
+.....................................................F.................. [ 99%]
+.......                                                                  [100%]
+=================================== FAILURES ===================================
+________ test_ctx_fields_seal_uses_named_sidecar_and_rejects_tampering _________
+
+tmp_path = PosixPath('/tmp/pytest-of-zhao/pytest-52/test_ctx_fields_seal_uses_name0')
+
+    def test_ctx_fields_seal_uses_named_sidecar_and_rejects_tampering(tmp_path):
+        from scripts.node_sem.p3_acceptance import sealed_fields
+        from scripts.DFG.dfg_v2.benchmark_v2.prepare import ref, write
+        p=tmp_path/"ctx_fields.manifest.json"
+        write(p, {"rows":[]})
+        write(p.with_suffix(".seal.json"), {"manifest":ref(p)})
+        assert sealed_fields(p)=={"rows":[]}
+>       write(p, {"rows":[1]})
+
+scripts/node_sem/tests/test_p3_acceptance.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/dfg_v2/benchmark_v2/prepare.py:48: in write
+    with Path(path).open("x", encoding="utf8") as stream:
+../../miniconda3/envs/mando/lib/python3.7/pathlib.py:1208: in open
+    opener=self._opener)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/pytest-of-zhao/pytest-52/test_ctx_fields_seal_uses_name0/ctx_fields.manifest.json')
+name = '/tmp/pytest-of-zhao/pytest-52/test_ctx_fields_seal_uses_name0/ctx_fields.manifest.json'
+flags = 524481, mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileExistsError: [Errno 17] File exists: '/tmp/pytest-of-zhao/pytest-52/test_ctx_fields_seal_uses_name0/ctx_fields.manifest.json'
+
+../../miniconda3/envs/mando/lib/python3.7/pathlib.py:1063: FileExistsError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/node_sem/tests/test_p3_acceptance.py::test_ctx_fields_seal_uses_named_sidecar_and_rejects_tampering
+1 failed, 726 passed, 4 warnings in 88.89s (0:01:28)

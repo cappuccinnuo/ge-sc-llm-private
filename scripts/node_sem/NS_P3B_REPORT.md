@@ -1,0 +1,78 @@
+# NS-P3b：CTX与STATIC实现及验收
+
+日期2026-11-02；实施与记录：Codex。输入node-sem@e77d42d3、PROMPTS r12、共享§5.1与§5.5b。启动git pull因WSL DNS无法解析github.com失败，使用本地r12；未声称远端已同步。
+
+## 已完成
+
+CURRENT→accepted_attempt4/original的事实v1.1与原名text_v1，共52,418行。原名/局部masked CTX各一套，共104,836个256维向量；STATIC四套243维。临时S3=CODE256+CTX256+2存在位=514，S4=256+256+243+3=758。只装配载体，不登记NS-P4配置或训练。
+
+## 文件与逻辑
+
+- ctx_alignment.py：冻结ProjectionView/Projector精确AST身份连接，补FUNC签名、声明角色及标识符跨度；临时sidecar不改facts/DFG/图，不按最近行猜测。兼容AST同跨度包装identifier只处理一次。
+- ctx_fields.py：固定字段顺序和适用性，UNKNOWN逐字段处理，FROM/TO各最多2条并按相对距离选取；original保留拼写，masked按本节点首次出现和声明角色分配STATE/PARAM/LOCAL/FUNC/TYPE/IDENT占位名，保留内建/关键字和字面量。
+- static_profile.py、behavior_schema.json：声明式列区间、适用性、独热/多热、未知位、encode/explain往返；K/L/M清单从facts_schema派生，不依赖变量拼写、文件身份、pragma版本或标签。
+- p3_prepare.py：先验收CURRENT、seal、validation、闭包、源码/文本/图身份，再排他创建字段/STATIC及清单；STATIC float32二值、present全true。
+- offline/encode_ctx.py、ctx_budget.py：独立CTX入口，复用旧encode.py的冻结加载配置、池化、锁、去重及重复编码函数；逐级限长、记录每行证据。
+- p3_acceptance.py：独立重算STATIC、全量masked词法扫描、检查编码/载体身份、32次装配、旧CODE及8H运行闭包。
+- tests/test_ctx_static.py、test_p3_acceptance.py、offline/test_ctx_budget.py：语义/未知、52 Oracle改名重抽、扰动、预算、漏名和封存篡改拒绝。
+
+STATIC实际243维由schema决定，不是硬填“约200”。A/A1/A2/A3/A4=9/1/8/10/5，B/C/D/D1/D2/D3=14/5/8/12/6/20，E/E1/F/G/H/I/J=11/5/7/12/6/12/16，K/L/M/N=21/12/8/35。增加量来自明确不适用、已接受unknown枚举与逐字段未知位。普通独热恰好1位（包括不适用）；适用但未知时取值位全0并置N，遵循§5.5b明确规则，不清空其他确定字段。
+
+## 已批准调整
+
+1. 用户批准独立encode_ctx.py，保持旧encode.py不变，因为旧M1清单绑定其SHA，直接新增--ctx会使旧产物验收失败。
+2. 用户批准只读AST辅助信息：封存facts/text没有FUNC签名及完整STMT/FROM标识符位置；原Projector精确对齐、声明角色与明确IDENT回退，不从symbol身份字符串截名字、不改旧事实。
+3. 用户批准原七级之后的第8级限长：长FROM/TO可能令STMT清空后仍超过256。按固定优先级缩字段内容，所有标签保留，单列次数，不依赖tokenizer从尾部删除DEF/USE。
+4. 原编码及回归进程/会话消失，没有失败或结束证据，原因未确认。用户批准保留现场，验收复用首份成功结果，新resume_attempt2只完成其余7项，并补完中断回归；不换参数、不自动无限重试。
+
+## 实际编码与统计
+
+CodeT5p110m revision d9f3a534af4252f04b10cd9f78e05037542d10f6；资产SHA 2e4c548e3ebeb2f8a1c05cbe0197f8381c9f3249682e14dccb827c1827f55140；model_default池化、模型内归一化、fp16冻结CUDA推理、float32输出、batch32、max_length256。与旧CODE的资产/池化/精度核对一致，CODE自身仍128token。没有新下载、升级或环境改变。
+
+| 任务 | names | 行数 | 去重后文本 | 去重率 | 总秒数 | 最终截断级别 0/1/2/3/4/5/6/7/8 |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| access_control_contract | original | 13693 | 6267 | 54.23% | 195.082 | 13463/68/3/47/49/8/51/4/0 |
+| access_control_contract | masked | 13693 | 4876 | 64.39% | 151.631 | 13490/76/0/56/36/5/25/4/1 |
+| access_control_node | original | 7892 | 3199 | 59.47% | 98.433 | 7718/52/3/34/37/6/38/4/0 |
+| access_control_node | masked | 7892 | 2601 | 67.04% | 86.388 | 7733/57/0/39/33/3/22/4/1 |
+| reentrancy_contract | original | 18610 | 7129 | 61.69% | 188.556 | 18340/89/3/56/51/8/56/7/0 |
+| reentrancy_contract | masked | 18610 | 5380 | 71.09% | 156.525 | 18361/92/0/67/43/7/33/6/1 |
+| reentrancy_node | original | 12223 | 3536 | 71.07% | 104.831 | 11985/75/3/50/42/8/53/7/0 |
+| reentrancy_node | masked | 12223 | 2805 | 77.05% | 89.663 | 12007/78/0/55/38/5/33/6/1 |
+
+8份均两遍逐位相同、最大绝对差0，tokenizer隐式尾截断0。第8级在四个masked任务各1次，均是buggy_35对应任务内实例：418→七级后261→第8级256，仅缩TO内容，全部标签保留；原名0次。跨任务重复不能当作4个独立源码事件。详见fallback_examples及encoded_text。
+成功编码合计1071.108秒；单进程peak allocated最大677.321MiB。耗时含加载、限长、两次推理、输出与校验，峰值不是整卡或训练需求。未完成旧attempt耗时未知，未纳入成功之和。每STATIC列1比例、每CTX字段非空/unknown率、截断与去重详见artifacts/ns_p3/stats.json，不按标签分组。
+
+## 测试与完整性
+
+最终NodeSem 727通过/4警告，DFG v2 2653通过/9警告，原DDG+graph_utils 223通过/29警告，离线6项OK；合计3609通过，0失败/跳过，42条既有DGL distutils / NetworkX gpickle弃用警告。
+
+52 Oracle双射改名后重抽facts，STATIC逐位和masked CTX逐字一致；独立逆字典序改名样例也一致。标签/漏洞元数据与DOT前缀扰动不改变新特征；损坏精确AST锚点拒绝。52,418行masked词法扫描无残留用户identifier，字符串和数值字面量不误作标识符，合法schema枚举保留。
+
+8CTX、4STATIC、4旧原名CODE全量载体验收通过，行身份/顺序/源码/code SHA、向量和实现/资产SHA一致；4任务×2种CTX×2图×S3/S4共32次装配通过，原图节点/边/属性不变，只在深拷贝中写token。8H load及runtime_resume_v2一致，22,813冻结历史文件字节不变。读取图的完整性路径仍核对含标签的指纹，但标签不进入特征或统计。
+
+开发期修正并留档：同跨度Yul包装/子identifier重复替换；截断测试不合法role夹具；扫描词表缺少合法one/many/zero/param_local/scalar枚举；独立审查发现CTX具名seal被错误按通用manifest.seal读取；该篡改测试又误用create-only write，导致1失败726通过。后者仅改为有意覆写临时夹具后，727通过；拒绝断言未改。旧失败、探针、被中断日志均保留，未删除测试或放宽关键断言。
+
+## 边界与停止位置
+
+- 本轮主视图仍original；保留旧anonymous配置、text/CODE/carrier接口和历史文件供后续比较。本轮不读匿名产物、不生成匿名facts；masked只是局部CTX对照，不是8G/8H整文件匿名视图。匿名事实到CTX全流程尚未接通；后续是否比较需另行明确绑定。
+- 已批准的checked_call一层运算摘要未列入本轮§4.5/4.6表，故暂未编码。supported且result_condition_check=true的任务内行数AC合约/节点214/103、重入合约/节点271/105；不能声称所有已提取语义均已进入特征。未临时扩维使本批失效，证据unconsumed_facts.json。
+- 仍继承受限AST/声明/别名/调用分析能力，unknown不等于否定；没有新的Solidity编译验证。原名CODE和字符串捷径未被局部masked CTX消除；未来需要匹配原名S0，不能将旧匿名8H得分当作配对基线。
+- 截断文本是编码特征，不保证保留完整语法，不回送语义分析器。本轮没有HGT正式/冒烟训练、新F1、NS-P4融合或后续批次。
+- 最终实验按用户安排使用显存充足服务器，当前RTX3050 4GiB只是本机开发限制；本轮没有部署或实测服务器。产物在WSL工作树，不额外向C盘写模型或训练日志。
+
+## 命令和归档
+
+mando：PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64；tests/acceptance用CUDA_VISIBLE_DEVICES=''。实际命令：
+
+    python -B -m scripts.node_sem.p3_prepare --task <task_id> --ctx-out <新CTX目录> --static-out <新STATIC目录>
+    /home/zhao/miniconda3/envs/nodesem/bin/python -s -B scripts/node_sem/offline/encode_ctx.py --fields <ctx_fields或ctx_fields_masked.jsonl> --out <新输出目录>
+    python -B -m scripts.node_sem.p3_acceptance --encoding-index scripts/node_sem/artifacts/ns_p3/resume_attempt2/encoding_index.json --out <新验收目录>
+    python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests
+    python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+    python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+    /home/zhao/miniconda3/envs/nodesem/bin/python -s -B -m unittest discover -s scripts/node_sem/offline -p test_ctx_budget.py
+
+生产入口拒绝覆盖已有目录。四任务实际路径在preparation_runs.json；首个成功命令在encoding_runs.json；恢复7项在resume_attempt2/runs.json；测试/验收命令和结果各有run记录。nodesem GPU编码用原.training.lock非阻塞锁且串行，未与训练并发。
+
+CURRENT.json连接validation/seal、stats及显式编码索引（1复用+7新结果），旧attempt不覆盖。源码、字段文本、manifest、统计和收据按既有方式提交；NPZ、模型权重和HF缓存保留本地。三份历史记录仅追加并校验原前缀SHA，doc_check强制UTF-8/CJK。按共享上下文完成本地NS-P3b提交后停止，不自动推送。

@@ -2457,3 +2457,12 @@ accepted_attempt4 四任务52,418行验收通过，1,400个任务内行实例有
 650+2653+223=3526测试通过，0失败/跳过，42条既有警告；52 Oracle、五类50文件冒烟通过，正确分组条件一致性差异0。22,813冻结文件及8H运行版本只读验收通过。详细分母、每项影响、选择和命令见NS_P3A3_REPORT.md与training_changes§79。
 
 后续仍使用original，NS-P3b需消费逐字段unknown_fields，原匿名8H成绩不是原名实验的配对基线。无训练/GPU/编码/编译，不自动推进下一阶段或推送。最终实验按用户安排使用显存充足服务器，RTX3050 4GiB只是本机开发限制；本轮未部署服务器。
+
+
+### 2026-11-02 NodeSem NS-P3b 完成（修改 AI：Codex）
+
+原名accepted_attempt4事实生成原名/局部masked CTX各52,418行，8套256维编码；STATIC四套243维。用户批准独立encode_ctx保留旧CODE源码SHA、只读AST签名/标识符辅助对齐、保留标签的最终限长兜底。中断后获准保留现场、复用首份成功并在新attempt完成余7项，未换模型/参数。详情见training_changes§80、decisions.json。
+
+8套两遍编码逐位一致、max error=0；全量masked标识符残留0。S3/S4=514/758维，G0/G3R两种CTX共32次真实装配通过；3609测试通过，42条既有警告。旧CODE、8H及22,813冻结文件核验通过。报告NS_P3B_REPORT，产物CURRENT连接明确的复用/新编码索引。
+
+仍以original为主，保留匿名接口供以后比较，masked仅局部CTX对照。checked_call摘要未在本轮字段表中、尚未消费；没有HGT训练/F1/NS-P4。最终实验按用户安排使用显存充足服务器，4GiB只是本机开发限制；本轮未部署服务器。本地提交、不自动推送。
