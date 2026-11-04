@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r17（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+版本：r18（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+
+**r18 相对 r17 的修改**：NS-P5A 增加第 0b 节（不改变结果的耗时优化与执行顺序）与第 0c 节（与 Codex 会话、网络无关的后台运行、睡眠防护与中断恢复）。依据：8H 实测每个 fit 墙钟约 143 秒（训练约 102 秒）；NS-P4b 的阶段日志显示 NodeSem 在 reentrancy_contract/S4 上训练前的构造与校验约 90 秒、移到 GPU 与绑定约 27 秒、训练后验收约 18 秒；8H 第一次运行曾因 Windows 睡眠约 80 分钟在 71/170 处中断。
 
 **r17 相对 r16 的修改**：NS-P5 审查通过（第 5M 节）。NS-P5A 补充：正式 worker 的绑定方式（执行修订记录，不改已封存 plan）、禁止沿用冒烟的 1 epoch 覆盖、本机批次与服务器批次的关系。
 
@@ -1307,6 +1309,18 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
    - 每个 receipt 记录实际 GPU 型号、torch/CUDA 版本、allow_tf32（matmul、cudnn）、显存峰值与最低空闲（local_dev_v1：低于 100 MiB 只标 memory_tight，不停止；OOM/CUDA 错误停止整批）；
    - 写一份执行修订记录 artifacts/batch_NA_v1/execution_revision.json（排他创建）：绑定 plan 与 seal SHA、worker 及其新增依赖的源码 SHA，并证明 plan.runtime 中的全部模型/训练/特征源码 SHA 在执行时不变；已封存的 plan 与 seal 不改。
    - 先在 CPU 上做 worker 自检（独立目录，不计入正式结果）：reentrancy_node fold0 G3R S4，只在自检中把 maximum_training_epochs 设为 1（与 p4_acceptance.run_fit 相同），证明两者的 history、best/last 参数摘要与预测逐位相同；然后用测试证明正式调用路径中不存在这一覆盖。
+0b. 耗时优化（只去掉重复的校验与验收专用步骤，不改变任何训练计算、随机数或结果）：
+   - 载体：NS-P5 的准备阶段已为 32 个（任务、图配置、配置）组合写好并深度核验了载体（锚点、逐行 SHA、来源与代码 SHA）。正式 worker 直接读取该载体矩阵：核对 NPZ 文件 SHA、manifest SHA、图指纹与行顺序各一次，然后写入图副本的 token 属性；不在每个 fit 中重复 _anchor_gate、assemble、逐行 SHA 与多次深拷贝/指纹。开训前对 32 个组合各做一次证明：读取的载体与 carrier.carry() 现算的结果逐位相同（只需构造，不训练）。
+   - 初值：只核对 plan 引用的零步文件 SHA 与 state digest；与 8H 零步状态的逐张量比较已在准备阶段完成并封存，不在每个 fit 中重复。
+   - 正式 worker 不包含验收专用步骤：梯度审计 hook、零步 CPU/GPU 一致性前向、TF32 诊断、额外的阶段性 eval。保留 8H 协议中的全部步骤：每个 epoch 的 inner_val 评估（早停与 best 选择需要）、best/last 保存与重载一致性检查、outer_test 评分与收据。
+   - 输出：每个 epoch 一行进度即可（时间、epoch、loss、inner_val loss）；不写大段调试输出。预测文件按 8H 的格式写一次，不重复写。
+   - 执行顺序（写入 execution_revision，不改 plan 与 seal；每个 fit 是独立进程、种子固定，顺序不影响结果）：先运行主终点与 Holm 家族所需的 reentrancy_node × G3R × {S0o, S4, S2, S1o}（40 个），再运行其余任务与 G0。这样即使后续中断，主终点也最先完成。
+   - 计时：每个 fit 的收据记录各阶段耗时（启动、载体、构造、初值、训练、评分、写出）；完成 reentrancy_node 的前 4 个 fit 后，按实测外推整批耗时并写入 progress.json。
+0c. 后台运行与中断恢复（训练不依赖 Codex 会话或网络）：
+   - 启动方式：由一个控制器进程串行调度全部 fit，用 setsid nohup（或 tmux 会话）启动，与 Codex 的会话、终端无关；控制器把 pid、当前 job、已完成数、最近一次心跳时间写入 artifacts/batch_NA_v1/controller_status.json（原子替换）。Codex 断开或退出不影响训练；重新连接后只读这些文件了解进度。训练过程不访问网络（编码向量已预先生成，不下载模型，不推送 GitHub）。
+   - 恢复：控制器重启时只读核对已有成功收据（verify），从下一个未完成的 job 继续，不重跑已成功的 fit。
+   - 被外部中断的 fit（进程被终止、机器睡眠或断电，日志中没有 Python 异常或 OOM）：按 8H 的 attempt_00k 规则处理。如果用户在授权中预先同意“外部中断的 fit 从封存零步初值重新开始一次，作为新的 attempt”，控制器可以自动执行一次；否则停下等用户批准。数值错误、OOM、输入或校验失败一律停止，不自动重试。
+   - 防睡眠：8H 第一次运行在 71/170 处因 Windows 睡眠约 80 分钟而中断。开训前检查并在报告中记录：笔记本接通电源；Windows 电源计划的睡眠与休眠在训练期间设为“从不”（或使用等效的保持唤醒工具）；保持一个 WSL 终端（例如 tmux 会话）打开，避免 WSL 在没有终端时关闭虚拟机。这些是用户侧的设置，控制器只做检查与提醒，不修改 Windows 设置。
 1. 把用户授权原文写入 artifacts/batch_NA_v1/authorization.json（排他创建），绑定 plan、seal 与 execution_revision 的 SHA，写明 job 数为 240（原名视图，不复用匿名 8H）、运行位置与设备族（按用户已批准的方案：本机 RTX3050 为本批的设备族，服务器另建批次）。
 2. 开训前证明：
    - 用新 plan 重新执行 NS-P1 的 S0 等价检查（CPU，2 epoch），并对 S0o 核对其初值与 8H S0 逐位相同、载体与原图 token 逐位相同，作为回归；
