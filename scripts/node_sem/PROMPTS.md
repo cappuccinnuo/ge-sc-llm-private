@@ -1306,7 +1306,7 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
    - 初值只从 plan 引用的零步文件读取，核对文件 SHA 与 state digest；
    - 每个 receipt 记录实际 GPU 型号、torch/CUDA 版本、allow_tf32（matmul、cudnn）、显存峰值与最低空闲（local_dev_v1：低于 100 MiB 只标 memory_tight，不停止；OOM/CUDA 错误停止整批）；
    - 写一份执行修订记录 artifacts/batch_NA_v1/execution_revision.json（排他创建）：绑定 plan 与 seal SHA、worker 及其新增依赖的源码 SHA，并证明 plan.runtime 中的全部模型/训练/特征源码 SHA 在执行时不变；已封存的 plan 与 seal 不改。
-   - 先在 CPU 上用 reentrancy_node fold0 G3R S4 跑 2 epoch 的 worker 自检（写在独立目录，不计入正式结果），证明 worker 与 p4_acceptance.run_fit 在相同输入与相同 epoch 数下逐位相同。
+   - 先在 CPU 上做 worker 自检（独立目录，不计入正式结果）：reentrancy_node fold0 G3R S4，只在自检中把 maximum_training_epochs 设为 1（与 p4_acceptance.run_fit 相同），证明两者的 history、best/last 参数摘要与预测逐位相同；然后用测试证明正式调用路径中不存在这一覆盖。
 1. 把用户授权原文写入 artifacts/batch_NA_v1/authorization.json（排他创建），绑定 plan、seal 与 execution_revision 的 SHA，写明 job 数为 240（原名视图，不复用匿名 8H）、运行位置与设备族（按用户已批准的方案：本机 RTX3050 为本批的设备族，服务器另建批次）。
 2. 开训前证明：
    - 用新 plan 重新执行 NS-P1 的 S0 等价检查（CPU，2 epoch），并对 S0o 核对其初值与 8H S0 逐位相同、载体与原图 token 逐位相同，作为回归；
