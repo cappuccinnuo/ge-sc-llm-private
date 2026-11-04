@@ -1,0 +1,68 @@
+{
+  "version": "nodesem-na-plan-v1",
+  "execution_authorized": false,
+  "scope": "formal_NA",
+  "label_policy": "L-audit",
+  "seeds": [
+    1
+  ],
+  "view": "original",
+  "resource_policy": {
+    "version": "local_dev_v1",
+    "baseline_minimum_free_mib": 3000.0,
+    "running_minimum_free_mib": 100.0,
+    "sampling_seconds": 0.5,
+    "process_scope": "fresh_process_one_job"
+  },
+  "jobs": 240,
+  "matrix_sha256": "3558171ce60087078ae387be7ac83196279b14c2a346f76b26dba56ec093d0c8",
+  "planned_device_families": {
+    "reentrancy_contract": {
+      "location": "local_RTX3050",
+      "device_type": "cuda",
+      "gpu_model": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "torch_version": "1.8.1+cu111",
+      "cuda_build_version": "11.1",
+      "allow_tf32": {
+        "matmul": true,
+        "cudnn": true
+      }
+    },
+    "access_control_contract": {
+      "location": "local_RTX3050",
+      "device_type": "cuda",
+      "gpu_model": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "torch_version": "1.8.1+cu111",
+      "cuda_build_version": "11.1",
+      "allow_tf32": {
+        "matmul": true,
+        "cudnn": true
+      }
+    },
+    "reentrancy_node": {
+      "location": "local_RTX3050",
+      "device_type": "cuda",
+      "gpu_model": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "torch_version": "1.8.1+cu111",
+      "cuda_build_version": "11.1",
+      "allow_tf32": {
+        "matmul": true,
+        "cudnn": true
+      }
+    },
+    "access_control_node": {
+      "location": "local_RTX3050",
+      "device_type": "cuda",
+      "gpu_model": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "torch_version": "1.8.1+cu111",
+      "cuda_build_version": "11.1",
+      "allow_tf32": {
+        "matmul": true,
+        "cudnn": true
+      }
+    }
+  },
+  "run_location": null,
+  "user_request": null,
+  "instructions": "Create separate authorized record bound to final plan SHA; never edit this sealed template"
+}

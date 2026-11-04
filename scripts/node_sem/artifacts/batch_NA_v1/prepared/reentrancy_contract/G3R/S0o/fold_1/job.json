@@ -1,0 +1,5343 @@
+{
+  "name": "S0o",
+  "task_id": "reentrancy_contract",
+  "granularity": "contract",
+  "fold": 1,
+  "seed": 1,
+  "profile": "G3R",
+  "view": "original",
+  "reuse_8h": false,
+  "spec": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NA_v1/prepared/reentrancy_contract/G3R/S0o/spec.json",
+    "sha256": "6926e56e3af13630b0bc4fd8703705c052f9da90b5f93e68d114493f1ce76b68"
+  },
+  "spec_sha256": "9e111660ebf77fa427134747ac6e01f95a287690475cf018b67ad1bb61619e85",
+  "config_template": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NA_v1/prepared/reentrancy_contract/G3R/S0o/template.json",
+    "sha256": "d74ca1363cfd1c4ec0aac52170f6595b053441f9a64251a7af98fa4eae33e473"
+  },
+  "graph": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/reentrancy_contract/F3/hcg.gpickle",
+    "sha256": "eee05276a1e0ac16e54b166d0db7c2e6c8a112f3f32976fc80d85d19126970df",
+    "fingerprint": "6632882d5e2d8521b2835183ba148708915139f472e6efbf56996bc49e4ba673",
+    "computation_fingerprint": "0ba65d9ba9911c6b66c9a1ca4670ed39ac6275a4a966576bbd7ea612db5e8f33",
+    "nodes": 18610,
+    "edges": 36256
+  },
+  "labels": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm/scripts/DFG/experiments/artifacts/20261012_v1/reentrancy_author/prepared/graph_labels.json",
+    "sha256": "2f294a72c70680695f1bb5a5aab2a81e581795e0859a5dbf705acb36c2d650b9"
+  },
+  "folds": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8d_v1/F/folds/reentrancy_contract.json",
+    "sha256": "a99558ec5a16aff1fce35c4988f2559b154c5f15446e532c74c85f7e78811f2f"
+  },
+  "label_view": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8d_v1/F/label_views.json",
+    "sha256": "c57bc81d501b62f8492c18f17d73352f48ad4b6d042fcf303135ce2cd214f1ef"
+  },
+  "config": {
+    "seed": 1,
+    "schedule_epochs": 50,
+    "hidden_size": 128,
+    "layers": 2,
+    "heads": 8,
+    "use_norm": true,
+    "dropout": 0.2,
+    "feature": "inside_token",
+    "optimizer": "Adam",
+    "initial_lr": 0.0005,
+    "max_lr": 0.01,
+    "div_factor": 20,
+    "final_div_factor": 1,
+    "cycle_momentum": true,
+    "weight_decay": 5e-06,
+    "loss": "unweighted_cross_entropy",
+    "patience": 7,
+    "delta": 0.001,
+    "selection": "strict minimum inner validation loss; post-update eval forward",
+    "primary_checkpoint": "best",
+    "secondary_checkpoint": "last",
+    "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+    "schema_policy": "registered_schema_allow_train_unseen",
+    "partition_policy": "group_disjoint_nested_file_supervision",
+    "device": "cuda:0",
+    "threads": 2,
+    "metric_unit": "source file",
+    "protocol": "dfg-v2-grouped-nested",
+    "protocol_version": "dfg-v2-grouped-nested-v1",
+    "forward_scope": "full_fixed_task_graph",
+    "score_role": "outer_test",
+    "mode": "full",
+    "maximum_training_epochs": 50,
+    "environment": {
+      "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+      "torch": "1.8.1+cu111",
+      "dgl": "0.6.1",
+      "sklearn": "1.0.2",
+      "numpy": "1.21.6",
+      "networkx": "2.6.3"
+    },
+    "layer_impl": "shared_projection",
+    "selection_role": "inner_val"
+  },
+  "split": {
+    "fold": 1,
+    "inner_seed": 496144367,
+    "summary": {
+      "inner_train_files": {
+        "files": 91,
+        "groups": 78,
+        "positive_files": 45,
+        "negative_files": 46,
+        "source_cohorts": {
+          "nonSolidiFI": 66,
+          "SolidiFI": 25
+        },
+        "original_node_positive": 4327,
+        "original_node_negative": 7205,
+        "audit_node_positive": 0,
+        "audit_node_negative": 0,
+        "audit_masked_nodes": 0,
+        "group_members": {
+          "group_00ad7e6af99883f13eb2de01c62fa71e5b207171f93c473bc445ba304edf9eed": [
+            "0ff68af866b6bc20bd43cd449e0e6d34d1158ade6579e822a1dbffef32dc0aeb",
+            "4d9c7ad89267bdf202d3d736e0dd5081c3b6122865d910b5ca053513bdaf2cd1"
+          ],
+          "group_01cf3b3cfb8f15afbe7337b85dabda510062daf4782afae4efbdac04585fe151": [
+            "4b12d20f28068aae0d9f842ec1d9b5a0fcfda14bac735c36441b6e8bb0439fe2"
+          ],
+          "group_04cb2c23f2937c95b8fe5e6f665345f24fc8b1c793caa564b355fa6d1cb2fbea": [
+            "c75e97335a9c894a96e89d1f2be462f0651b431c059a9533f2b6ac69b75bd29d"
+          ],
+          "group_097d16060b36dc65b0550676ba6b72f5760b5a8c8f33d8afbc1451006e9bd613": [
+            "49ddbaae25d0a2632a8cb1d7e7711167b8f2cfa05a74f37d193e9a0502fcaabc"
+          ],
+          "group_0c97d18a58dfb1f2cb0df52070ce7ee467eb586e8bf99a5465363995cdc87902": [
+            "aa871741710c8b14465b7725456ccd2c260a94dc6b565a3e91b056331ce320f7"
+          ],
+          "group_0d48e811cea45897c8cfcc3f09a41bdc1cea267da6c0c5d309fbd3af9e86a982": [
+            "ec46efab7c39c317b9a129edd8aecd4941e3f0b7cfa3a6bf36350851149a4df6"
+          ],
+          "group_0e391d2c9a9375e1999ce4a0f7ba88d3f4d95fab337aeee44d2da0775122bc53": [
+            "5232365184d16627735332608fdf0e20c81f78ea7b95817745f6807650e6d543"
+          ],
+          "group_0ecd37fadea716cc046da73485dcb8421129ee53ed08474768b3672306930274": [
+            "c665582fe7717e9a0492618f104f94ab30668f4db6a9676c5a34bd38465148c3"
+          ],
+          "group_1404a7d7049cd2c75763d913b366e9bf0da594329af35bd72c045d32513fd357": [
+            "64a61016b6ab8678e5caff0d393841df1a59203e73b189af7792efe98ba77c79"
+          ],
+          "group_1562b87d72e2c0a9bb79ad50f97f6ff82a53db02221f57cf439c699db261a262": [
+            "772f92c0ee9300cc31ce067cd5ce586f1afaf32cbb65354ce977db964ece9005"
+          ],
+          "group_163798d857d2c57085220c836ae23b3a43e36c4f99c2191326ce1f4aad21af2c": [
+            "e607edc3d27de0eeb8f23b5718c24494e438204897126f07706673f4651e2ab6"
+          ],
+          "group_1a475d0391024c788ab2674b1a344589195086fee94a5c9e7453eaa9531c8b3d": [
+            "77fb8835f8a82a555b2973cdb88f278b4fde535aba086f251c29cf81a208cd78"
+          ],
+          "group_1b42ea26aaaf53813ac06cffe3f67517d0ca78eeb8fa3e3b0f70bcea77fc4263": [
+            "b68137fb8574c2aacdad455a929a1a3af2d82814412be70c0528bab66b84ec8c"
+          ],
+          "group_1c2b826fba81fd8f49391d3fa448e1ac99f5c5b9cd2972808fd55930bd281670": [
+            "0c29aaf657ede4e91683378967ceead6972b2cf9ac868c41d82912e7ac134864"
+          ],
+          "group_21920a0b745f66e2b99cb0012f62c2e13648a1856973812d5a170cc1fdc7fe7e": [
+            "81ce8e676d51c1a5201b4036e0706a2b13125cc566b569a9c460b4e3e2475445"
+          ],
+          "group_26ec9db9347a0c110440bb370b5a2a94b5aff706278d8e279b2e163b0f348795": [
+            "10837eb665d0602a09850dbe14184f9984976477eb109630173516b7f624bdcf",
+            "19b45551144e9482203b1ea7164e9dec56453932b6a96ffbb255f9b23ec6797f",
+            "d9cb5112b5972d2a488e81de8cf3d8a0adee12677c7f8169becdeb8fe38a4426",
+            "dffaf5d0c94b0f6d48e8920bba612fd7dd81e7ad105958407f611eda454a1615"
+          ],
+          "group_27548a0fa81ea39f64adfba7319a9cae60f401fdab646b9df35b79935179cbe9": [
+            "9831d2e1812bd4354355f5df8808a2c9ee35d5901352c92dcd46cb85803c4326"
+          ],
+          "group_281723bff5a498483fd7ce98b976264db8146eaa2bcd92b81369843e9361eee3": [
+            "677111521504dc745158f0251128e367c64e29f0dbf3a9a72d8025cfae9ea37f"
+          ],
+          "group_2fe95b3bd561fcfd5ed0059cf6bf7d1fbdc1abeed19b8e910fbacaf56b180231": [
+            "6d757fd4953669bdc4d684ed964a4f081ac544fb310057a8b57fff6231a4ba54"
+          ],
+          "group_32c6f8aa1f1808fdf8743a328ef8d62d9b242df1762419b66807d4e3127ca6d1": [
+            "fa2c2f7cad2574bf0db8a069eb959ecd0b317d2109e714df518952dacbb2ec98"
+          ],
+          "group_33c1174704d84e3a509a0490a07685ae19789938388c23170ce674a92d7a46c2": [
+            "522d586cba23a990fc5b58a5fe1621e38c0cd4a26f26a07cce523e2c334271eb",
+            "ef8435476b153f73790a6d06edf62960392ba9a6c6f44f65d14bc8785766de99"
+          ],
+          "group_4fe95863ad97cb72c61724a977b65e60488fd6f9d50095f33dedf277cd3541ac": [
+            "b82aefd45aa15850aa04f107743337f96124abe947df8edd76e995f6a92aa159"
+          ],
+          "group_50bb6c40a00c5055272c682548a0f04eaea22d3785ab4e0f61a4f16eb538e2b2": [
+            "92ea114c6f63e7b293bfca517856ec5e1f6855f41de2ff90ad99ead6ee898519"
+          ],
+          "group_50f99b198207b8e3645e371668c5a9a889b5cafbfc9d214f62b8dcb5753b2cf9": [
+            "e6041f50098e25f47d15b8b2ce8f4bdc27ccd98a682748c2f4e592f9ca6982a6"
+          ],
+          "group_515392452ad70d9c9120fa83733be5c8a538d98ec7350235f8e4508f7eb609bb": [
+            "f6f4dcb465022b89f73cca5dbbdb43c21c3bd2cff802f5512c5c0704eb6df94a"
+          ],
+          "group_55541d89108ff478f734fd68458699603a53f7cf7a13a41df5f0d17125bbc669": [
+            "472d0cf800b1bf8c8f46816d5008a737b464c2b034340894a9727f1b4a5ec0ff"
+          ],
+          "group_591ac5dc0f15c5a7f7c40307b1ade8128488d1541279d6ff3303ebc45ad432fb": [
+            "fc4421e707b1e2cc15f4a105471b4311da13aaf2dc69ddc4bffcd4e9716680c2"
+          ],
+          "group_5a0dbd6295092aed272d43b1255853bfa83020452cd73d61ee8a815e492c3e3c": [
+            "3c113d203292c2ec5ecef1512e2c956f201951c64366e67752df8ccf1218a8d5"
+          ],
+          "group_5a6334427db9d9a71107a18fabb94d268510e16eb270858924954a1e83b2e8bb": [
+            "a6d88a730838480c20e44e801ae7b091dba4e896dd94113467be824d1cc13b74"
+          ],
+          "group_5e094ecb69773095a52656e8548b784f1952e9a67f32685bcd7ea3ad5d108a30": [
+            "d8f143a08f3e8f2f6086e2ec7c7958e7546ac27bc491e3cfe94ac3975354b14f"
+          ],
+          "group_5ef6f35ddf76f83ba581aef0b16f0c9e98431d1d2bbc23e89acbb0ae9de99a61": [
+            "f2ea10b23a9c3a256cc4765ff67286096caec4969588a7d312fe8772a2c00917"
+          ],
+          "group_5efabc99795521d4a9946ff0defb6402e067a1fec189188820b5d0c335f13596": [
+            "3a422c95979191f45d01ac2e4f0dffdd48bec15da97f49707b1a3c8884d218a0"
+          ],
+          "group_687163ea5a830de100014fe1d0987b70dea8d547df0dbc81bb98f015332bb9c5": [
+            "4e6062f2a33dfa70d63e76c2f9d75dd5cbef15b2f415ee446770b496ae281007",
+            "cb9d8d169d531dd636e27852509b724d9ca14a643f472596f258fd84beae42f1"
+          ],
+          "group_69b203ee003c9d483408c9273a386dbccd0f3ee7a6a4f589a8ed9f9b56113cd6": [
+            "5ccaf49d3d690525e4f0b7f7b69d1d8693e8a0cd8292f8b1fb5431d3feacb3fb"
+          ],
+          "group_6ca54838a0df77a706deb656fc22377639fc6879392a90084c18bf745c9b491f": [
+            "68d7c9e1d8a721166faee561c3ff3f273a0683dae427c69fec3fc0e51c535320"
+          ],
+          "group_7197eacb5db49fe8065715e7e0e3031ddf3404c19ca4f13e0b784af9f3c7eb5c": [
+            "2699f8f9b4db161d851c47caa6b40689a1006eca0dfc99df52846c06f30e5411"
+          ],
+          "group_79136e92252b7302d084c91de61e486b5027ef4facf012f24db7c1630ac05e78": [
+            "011b41704c879e06ef1089cffda1e9032fe09194c7e76e20cba2c2d774ecccc3"
+          ],
+          "group_79fcf7cd2590bf693b46a503e15c4355c8ca08877b292b9daca2b90b351d5aac": [
+            "d74fd4dbae53e2d6ec4f6fac863eee6be8b051e88464005e64f8b059652d1f7c"
+          ],
+          "group_7df7e79ea90643393cb5c9fa16c929c01bf531246b2e56ff3b40ceddb022af8e": [
+            "91800d8d83f6f1b572f5fad783ef7d0e29cbfbe428091a375a47d32a9e9bcb28"
+          ],
+          "group_7f878b28117bfdde128beb848bf5f62f0235aa151017ab374be5575bdbca26f6": [
+            "c15e310df3d335b07cd60e9077a85d84302aea68141cbf6c9d3cc675b64c3eb0"
+          ],
+          "group_85e1c29b3dda7cb5c132f66fd6811862198a482296f8087e25fb1e96b3c65dd8": [
+            "a9f369e51bcd409b264fd437fbdf9b1cd2aea4e7caf79f078bd5b7eba96b982b"
+          ],
+          "group_8a7bcfa3eb89e377678ca9917cb709f60d1f9c40ad309d92c02d52e0fcf6b5aa": [
+            "9dce216f0d0957f2afdf5ab237e4e5936c0130bd8cec529aae786366ee30aab9"
+          ],
+          "group_8ab878d32313bdd41c1bae6fa2973ae637801bf064d24351127f8fec27d5f034": [
+            "0d8e5a31122e48a6b6353cc63ba315278be8679f6c581fe0a20d7a319de074c9"
+          ],
+          "group_8b0cefe4aefd1f78c6d86c6475a09287f5d921a4f20bca0d7f6760977d51daf9": [
+            "5a0f53ccf9a750d1b86a2c79582f721734b9c810781d80d6533914a802993ca7"
+          ],
+          "group_8ba009dc6bff13531e8c90a7d15dca1cbce303ed8993fdd7ea0fafd833f3ce58": [
+            "54abc4ce874b148b0763835e73b2151c64d15a1e1a24f91aad2aeaef792f435f"
+          ],
+          "group_8ce5033388ac014ce12176a4731621060c47ce2cd9f10bda0a43d7166c3bded4": [
+            "e7bd9e4d37151990e2ce0e0d9cffd186aa744d6754999881152e8c422c8dfdef"
+          ],
+          "group_8d553161eb074bbdc354fdf9d166a98e8ebf2fd19a5a9b7f894c4c1e92da1f5c": [
+            "b67a7f2fbe9cadc25ec9407c93280a8c80b44d765342059709a1063ab1aa02b5"
+          ],
+          "group_9ac306be523d8179902cb24d1d2c20f192344572a3e6fb1f3f364ef0719f0c5e": [
+            "c1985898858a27bba578830f1105c7ee60206ff3c3365fdc941e758ae3e8575f",
+            "f78d065c07a403eb0adcc3c40be2729f6e6bbab04f8fabfaf700a492b4530f1f"
+          ],
+          "group_9ae0f87f0127b8b57b3f7f60be362b438aeac8da6411ea791cbe89c4aa0affff": [
+            "b3821a92b430e44f2ea1b987250b7c2973a71e65268d8c2ef59195a24e598ca5"
+          ],
+          "group_9bc1b088c44a1588c1885f5859729a5a1b33e417b0ceccd9abbbf41ae901cfe9": [
+            "2e9c46842226393377017eeca016016ac72231138730f8935fc660ed272e0eb7"
+          ],
+          "group_9d2e68566d68ea846050925e337287b1fdeaeb2bb3cc90329fb0e691ce3cd8f8": [
+            "9957a9fb06bf9581eb9827e6ac2ddc59427259c42a8507863978425623b24af5"
+          ],
+          "group_a22905f052c8561882866f65c2dc2b3edac172ff144108ed9f700e445d55f488": [
+            "5c02d522a982f2d5037f1e5819687b6872b2a53b247eee4b4e37f1f3aa14412b"
+          ],
+          "group_a3243cbf562d9d0f5e9ae88d117e3ab9fdb474434c5330f1b1717c6efb3dc3c1": [
+            "c6584e287aa692b118bd9e071ca85fd57d2c820b8e712a9a7f195659623f99b5"
+          ],
+          "group_b0ef706f0d9e74223a4f01b0f3326a48eec206fe4b384dadb448ed85ad69f00f": [
+            "66679301d55692aa3403d3f89b931dc76ab95222f5dc4862600cec0962e5e3a2"
+          ],
+          "group_b1863860fbdf2592dc89e6382f0eb2cdba314972886e6ab565dd2fb7e52c66ab": [
+            "48dc5c388674fb4a61428245b12aa15a6c76efd60ca13ee51b26f67de609fd8b"
+          ],
+          "group_b1ba22a400fce925ffddb6c164cc2cc55245d269fa4af9abab850e03ad2e1db6": [
+            "d2bef7afa18b52597ddbfa42429eca0cdf90b3a7b9cf6993ae5eab2ef4df4d37"
+          ],
+          "group_b503d794699fd9fa2b4b7386e69ccfa56e6c62ebb921b6cdc1520ca461298912": [
+            "1c7b87f70b1642834d4455a6af6cc74ba660cff8c715d0a0dee2a085227f9810"
+          ],
+          "group_bc0577e001d22e58cc79dd6bbc753c0b900954cb70f72f38abf1e7ebe5b9c2f0": [
+            "42fbeec1337aee15b2a79b652724f6af5b2038bccc4cffa5ef489f962f4db709"
+          ],
+          "group_be08208d00c80b8f28033bde087489ac2119c70dbd968f2a663962dde935eacd": [
+            "12a65b3c2a785baef80a1dc360cee1efe0dbd4d323a27aa032bf1cae018a73f7"
+          ],
+          "group_c2ee251f3d855f45e8c2cd9076fda0488e05fd19a637f6b4f960b3dfb744b2d2": [
+            "cedfe4940187a9936d0af15b946ca737813d53679b5b231a2cdfef00ca705ae4"
+          ],
+          "group_c4b9d43cb4a968fda3ebc249ab2dee23617cf9737c32c954acfaa02293997898": [
+            "711102a7c3eb8725cfbb734dd83475069fbd41e46e55a7607c3ddfbfacf9b043"
+          ],
+          "group_c84eeab17eb0488ef5eda5e71294eb3ed058c72018df74fdcc2dc088332ef831": [
+            "0ed838fe213d5e47f7395ccd1d8d9d8218713e37d2e1001fc64a7f360dc75e85"
+          ],
+          "group_cc32723e6bd68b9d5d27b98e4c263fc034a0a083ac5b151b9d617402714dc253": [
+            "91dc6da7847791530e6eb6a8535b799ec16367f6ada85bd0ea95eef2bf8c5d94",
+            "a49f2126fc508617818302340988a2f25a9e03af394888ce2c7d03833468d7c8"
+          ],
+          "group_cf6d3874935f483d8e6da9049699fafaf45448b115628ed7139cf491882ca43a": [
+            "8b26972886d3298f1cf8a75786c2c47aae18c6e409b07d55c191dbae157cdb4e"
+          ],
+          "group_d3ec3a191cb5799bd6f052cc2ccd5da8c46d3d4efe037c7279836a778a7ef6fc": [
+            "a2913f3ad6eb3b6058c4399f63d60e7dd22866c43c28e4387e6690b73316cf9e"
+          ],
+          "group_d7e09ef97d6fb16621e024ec33d75c0f9b93776a226f55cac43eb40410d61034": [
+            "3ba40f6d3430a63ad7f387f8065db416c6b73700a054299dfa6e13ddebc823ca",
+            "5cb2e823e416e400d8a396d027a1345ff1bd58856ed59eba54d89fc3fdc6dcc7",
+            "66344d1eaebdfa5b1a75d524f68c45a3734dff719cee290c008f8e2f5f6435e1",
+            "875b9a43998f064624e3d3743894e959dd607b49e749b43f8fc56ae2151c7167",
+            "f439e9344bcd10799623b606725d99e429a0e1774f6a598f2f7746b0c12738a2"
+          ],
+          "group_dd9c970644ba20bb6b7bfdd5686949af89e4cbc930c80f8be386279543bb67a5": [
+            "313f9dee31343bb7398104df046652a64a501b88277be002c6bd8278fc8cb586"
+          ],
+          "group_e9fb5a1ffb46d122fe5dd8212b4e353f427c4d7d443a4bdbc0df3910247d57d2": [
+            "20cd6527a4c016579fd27bfcb4667c2dd7c3056d258a9d4389f31a5e9d423664"
+          ],
+          "group_ea7047293377cbe52287092b5b4ba5100ee9e626f1f002e2734f8d10be57b931": [
+            "6eea86d8cafbd3e306e49c6422e0c3ff62ce79ba29d3ebf3b4e2cf326b63656e"
+          ],
+          "group_ef5401968684b17a02f3894c7dd5039200e338f965836e1d22593cd88cdb7549": [
+            "59ed2c45ee26063b4aae4a78f22f097680eae361c3e82413252249602e5b4068",
+            "d227454699743f5f78b1a4d13adfb3cb593e8d9c1c4ed1f955c929dd04b8de0d"
+          ],
+          "group_ef64ed3046c1be2ad84a4db64b2d06d4738e4b045ae59d66b1e86f4a8d5e76ca": [
+            "63905f29052d81c02481ba50fdc87badcd9d3ef335e1588521aa8ea5ac77ca3b"
+          ],
+          "group_f23a0dc19f894ed41999c53a9d0164238022f38460005c9af43c09c7026b88b0": [
+            "b4c03dc875c487f3027338b4413e3da939520621c87bc0535581cb3c86deb970"
+          ],
+          "group_f5e580c63e093420f047ba3a742a4da76bea28c0f708a3f8e66557ffa673472f": [
+            "72d428be6326c60b6a82baabfe941967cafa2c8fcd38b1e609b18cd67376ab18"
+          ],
+          "group_f74545f6c33a51f5bafee17efdfa3f01923d3d3e13b83a38bce19bd76116a37f": [
+            "85f98f8f2f3c30069ae25e0e17d63c4f5c9bd546b069dec079824be3c1b8a6b9"
+          ],
+          "group_f80e2065e4f9ee8e17f4fc3f671bc4464b0f9387814225fde171574da55d2c5b": [
+            "b056c95ee286fd5c3e28baaac85f7a129432254c9aa3bffe16ca5eb44462433a"
+          ],
+          "group_fa0dc659d6375422709fdfc28786fe74352803791ae07258bf9a3d13efb92ab6": [
+            "21f4d8f56df00e79b08ca7095ddc8f77aa8707d11a5428b62e86c8f06d0953c7"
+          ],
+          "group_fb3a9ffe3390e533d43e67606120e6b343bf329bd104a311cc0bd30012ed2f44": [
+            "432c72ac382ca1d40e3caa55b3aeae24b0d290cf556a51541c6ad16194dd6f3f"
+          ],
+          "group_ffb6f989056170791d508bd8eecdf427d7629600436d00290c3cf3c64b0eeb93": [
+            "d4145170a6ca482daa9dd193bed75e7c01c27e018891e4dc38ba2f8b323761f1"
+          ]
+        }
+      },
+      "inner_val_files": {
+        "files": 23,
+        "groups": 20,
+        "positive_files": 12,
+        "negative_files": 11,
+        "source_cohorts": {
+          "nonSolidiFI": 16,
+          "SolidiFI": 7
+        },
+        "original_node_positive": 988,
+        "original_node_negative": 1855,
+        "audit_node_positive": 0,
+        "audit_node_negative": 0,
+        "audit_masked_nodes": 0,
+        "group_members": {
+          "group_04188bc1176c6a25a572a33c8a690a51510c47fe4726c91a31ca77302476ca1c": [
+            "00dd6b61d681e76ce626cda1d4da1ea44d0bf7ea328bcfca668e18614ce8303f"
+          ],
+          "group_1b5514ca79d752cd5b421e8a445bcdae09b5fa134549649d18f0c1d786590852": [
+            "0fc52a7ac22bf64d6d5330aa7a2c7869c9440339c0d7d31b28675104fa913480"
+          ],
+          "group_21a85c8b8683e0b5bad896c5029683929902a957c403a966abe27ee46040db3a": [
+            "daa393774d561d1cb73846a86ff81a29d4f03b126c202ba7cc6e86a3cca6a519"
+          ],
+          "group_2b0153a7865de072573e7a07a3e3c356d2f9e3f597eb04ea9505efaeb2ddbcbf": [
+            "8087aec1fb6d8fd4e304a1a68551ba270f49f4a4f091e178d5843a1456adb313"
+          ],
+          "group_30e020e914e8c6e485d15e5734131e2055f4ae3cc2437fecc2debeb2c2c258e0": [
+            "3a349f0bec7bab24293592b50f64f166c345174aa45cca2ea465ffe5e6372826",
+            "f7aa54df7a1313b8e8aa4b73da29109db238c4a1b43ade09708ad398c71c255d"
+          ],
+          "group_3a5f25799c8878efea1a87ebc610524178a2b5f08ff5770499727a27b70ee23c": [
+            "83d0de730f0309866941af313312b115118343ef7a94e7eff42824927b79f932"
+          ],
+          "group_483346a8f85125bf603272c46b1d0dc0f59dba1ced4c5233e4b6bf05a55655f1": [
+            "9a1010da5950d20c5ceb12718c321d1302d3680126e5601d5ef3518941cf5d2f"
+          ],
+          "group_4e4f16c9ef9ce68e6dfaac34348fad465664560e993189256c4d923750dea741": [
+            "c8598c70523591765ba3c4d2558217c5b5ce48dff2f8cfa626959eacbc6a1570"
+          ],
+          "group_52eab618b7fa934edd617d4bffc4d1a09adcfffa004bfd7cac4ff2e798afdcfd": [
+            "234316cad29026c562f92cd6ce330131dbeab75b01ea3e0933cfab9c6e8694d0"
+          ],
+          "group_6cde6428991bd69083c8e89887efe4e897773b5af97710476b17f98aa7490f76": [
+            "9376ee47b500f76646ac091591adb88220c4d9c00574f001f5bcec07ed6e8d5b"
+          ],
+          "group_6ff5eb62737db51d63baa73f3a90beb8e60892132085cbb5bf2a204baf061a55": [
+            "08ae648379ef9447df2c4836e10c4d4a85b66757df0bde82eca2b6ef3a8ab36a",
+            "61bdd8647424d60302f2a1cfce509113359f8e1df4c659c466127ec241d022ae",
+            "7c45a726e31f16676c61b37b5c200c6fc4d929a58919679f361af29cbcd6e672"
+          ],
+          "group_76ce78e2128a79ac1477bc835fc1fc32040940709fe99fac053f58660332ec5c": [
+            "1f7ab1168477d5d7d526243728d57366549fd74a374ff25eb9270fb94618b509"
+          ],
+          "group_77b6874a1de3aa444bd9608bdc65a65db0dd7d67d634ca13f005f90cfd701dab": [
+            "2455082a1686af4c63d8d737a8ede40a467979a8d7d354415b760f3611320a0e"
+          ],
+          "group_809ad98d7f070da365cb18ec56ad9d26a1e6d7d879410f7c780e4e54081beb92": [
+            "b987d8e9eb6992947a966b89814e3686bd402e3b8950b46d0a303be293b80fd0"
+          ],
+          "group_a351c0f40b94eeaf90a5e62cec4c2f840e158f0012cbbfaaa8282e0222aa8ab9": [
+            "2671534d9ae727179ad10455ed8fd8c0da36da84d767e572f6a1bd1d42e22496"
+          ],
+          "group_a9dc11b868f53061da2fb2c1cce35bd54618b49d03616f44a0956ebb87d497ef": [
+            "7c651bc38182be2cbfb10adeb7bb1ea6385422a160e16400710f1e41460564e3"
+          ],
+          "group_b7badcb5f1c3a0e32fbf89dc5f3547866bb9f36be65217ff3676ab9be8850a63": [
+            "883730dcc9cb9aee7cbf4b932b804d74dc2a033cc4b1ea02b3517eac878301bb"
+          ],
+          "group_e78271156bc07cbdb1a05e192d043849678074c884dd8db76285bce27ba6ae1e": [
+            "589cbfa7274df71a3c1c84d4f026a1180900cbe3512f043b9f0c8151a9ede84b"
+          ],
+          "group_ed76c5bc03f7aa93deef2088f1ae18acbc2b3c720fee08132e659b5df03bf3fe": [
+            "5afe4d8ff5213fd985286006c27b0a1273cc83b677f3e19070c836b9f4a98d61"
+          ],
+          "group_f8c8a97b517952bf5db99673964c31f5767696adee9da91a26b83dd51750dfa4": [
+            "3a909a64c25275d6bc2ad2a62006fe7c8f702627926b089dc86d80fe2a2190cc"
+          ]
+        }
+      },
+      "outer_test_files": {
+        "files": 28,
+        "groups": 26,
+        "positive_files": 14,
+        "negative_files": 14,
+        "source_cohorts": {
+          "nonSolidiFI": 20,
+          "SolidiFI": 8
+        },
+        "original_node_positive": 1255,
+        "original_node_negative": 2682,
+        "audit_node_positive": 0,
+        "audit_node_negative": 0,
+        "audit_masked_nodes": 0,
+        "group_members": {
+          "group_082590da1440e0751b237cf95565b0cedfb37bc4010490187afffcf472f336e9": [
+            "e6028196f7794618709dbfd4e44234194393b19d68294af85d966e3c861db8de"
+          ],
+          "group_12a0d18d56cc403e85cbe6741cef57586ed3c342d1df66223f62ccc92d7ebe2d": [
+            "948abf8f6d68ee1fb4183ef11f6d1cf3203c0861f3643a4c3c62f2e436540d29"
+          ],
+          "group_1ac6122c831f3e05e13a695611a047d10f0081545004119482b8c107219ae7df": [
+            "68f5dacf913ff7a76c83bbcaa4aebbe1a1386204392cc1529546a6481702fe0f"
+          ],
+          "group_22695693cbc5fa875bbf8b5c619d738928bc708fe73e9609aab45eadd8b8c656": [
+            "91e9269f46bb99482f173788ef9a7590e69bb1cf5e427599e0a3782d5bf2d7e0"
+          ],
+          "group_2fe4878bbabef4b9f460e71e11fb511fc9a2fe8d0af1db6304d958ad49634332": [
+            "76ae7623bbc74bda1edee9d8121bc01d2a9cff7e095dd5cf6385d10e2d05339d"
+          ],
+          "group_3583b15927c5888dfd4c0d33b4ac050c3882f2bdecb27610a71a8f63e972b592": [
+            "737615fbaeaf78ec0f412e52dfd2e1f8136ef81757b77f238c16f5ef3c594706"
+          ],
+          "group_38196b89eedeca98f923c701e97fc73d36da84cf932ffe4e1a7744989ad4503a": [
+            "d39499912032f15feacee77e44cb802bd1825145b18c86e9389077e9197bd5e7",
+            "d9d2cdae21fba98947133359dd5dfad57209c427236dec263236a055b4ed3aaa"
+          ],
+          "group_51a60b75562fcf476ed68bc241e07f808f87acaac9ce24ea059e681bbd2e403d": [
+            "cc7314cb506c44a33712e64f7c5be84151f0de66d31026f6d75e450f23f81f6c"
+          ],
+          "group_5840d6d35525b90c66f8809417b1494dde932313bc01e4df6b80b06483a8e576": [
+            "0cd398735e90231d70fd5e6c73d724feba337234313c9cbd35ca2538511d0683",
+            "ddae8d0dd2700988aff51e68199b153fb337508f61ec720e5fa0c8075f6eb3f2"
+          ],
+          "group_5d218061e0e8d72e855838c2dc1abee2868b41f4d200f568b6c192fa5cf2a538": [
+            "5fb4cb358cb10fbfbece5a09085af6161fcd3f2b4bae5c58c0c13ebcceeded58"
+          ],
+          "group_62e4c1ba145c6d25e55d07113ca7d95161b5607a66164492c7dc9d2694d81af7": [
+            "b91c41badec9e95d4287f22da1b256b2cdc3f971f0842d14da372b7c0320ac32"
+          ],
+          "group_6adbb8da1fb847284d6f81fca46e7d91dae7aea748003a1b10ae2006ad3f0a58": [
+            "8c5f7865ed99defc82e5da4f69328e3936edcaa91823f6dbaa9a8eef926b0c77"
+          ],
+          "group_80505393184e9992832a31dddd89be94f57c9565677a8387c88348df577017e9": [
+            "a8faf916d314974e24594bfd5ad0b63ceb440cacd210c98596b71358dcc8b830"
+          ],
+          "group_8c6a82db119d5e23b4fd840272c2e84f5ada3e2189ee611519a2c405c4eae8d5": [
+            "98960e80447e894ae97c904c1301ff58dd3f53ca5e1d9deb4f4dd0c82cf76c9f"
+          ],
+          "group_8ec7c073bd8e89e63b84c8dd97ed3c3dfe41916747e073c68bab8571f26645c9": [
+            "37dffe994240f88f731b82adf1d09a764e152461759385bbbed45856f875a9c6"
+          ],
+          "group_90c01961e65e2dea48c7bbf977951315d24ad57d5c0e015596ad5847758a9ffa": [
+            "54391dd92b53a8df6d322872c1038b7a49bc578ae9aae640305434b4db8afaa3"
+          ],
+          "group_95510231126c5b351712b813d2fada91e3182e85f26934682145f430733cdce8": [
+            "da3f18dce44dbf57429fad987e813bc771673b5c50eba93ecccef1922b5484c1"
+          ],
+          "group_ad571b084c55b5d04526a6e116b6ed37812901ddd2ca40168f9b3420af3cf907": [
+            "a13e80a3258738877d99810b5101f690fe3c232015731d4419689e0c85380dad"
+          ],
+          "group_beb40fc174deeb97fd4ce936d90f67cf40caf04d529bcb4f89538167b204fc92": [
+            "ce43fde887b85e180b45993c7bc080ec32c6370059a51c95fdc0b8e93825032d"
+          ],
+          "group_c6eb3b19f2c393c72376937875857550ae0d263f772f604ddbb96c08c63a23e9": [
+            "b2fda6e69ac4773f9658e0a269ec5e60877bdaf42b4325f02ad2ff88e32bfe70"
+          ],
+          "group_d98b8d5c923bd18fc0f1ab8ea947b4099d332bd6e5be2bede3a0d158a9a26fdb": [
+            "ea71b201ddfd2938a2f8520181e6c83ff6f95adb8e65dbb63add56b6f7a29294"
+          ],
+          "group_eb64fb5ee7a0ccfc05af5b0b1dc5f4a9898919ed1a00ab1015009c5a4e6e911b": [
+            "d70e88c1b765dc1630392ff8cfdcdd44dc811333ae51777d81dcf50d77e98168"
+          ],
+          "group_ed04149625759020f73faec28d0e7aa74e58dce440752d676740ef3df26bba27": [
+            "fd33ca7dea42a31376cae5dc3953b1d266902486c853eb7e585d3e4ac8c3de8f"
+          ],
+          "group_f2c2e5fc887a6f5b5b4b907c95a3a6426608e112459ddda2c861ee2b76456cf9": [
+            "77ab851e5e556ed8aae931eb9b605168a5f09e2568a62589a60c58916ce912eb"
+          ],
+          "group_fa99ab9cb7cc146dd3fb9f1f1b6a30248b8afe2ff92aa855cf4f8970ca9abe38": [
+            "b878ed978f780eb90dec32e8b79ad5230181e70ca631c73a1daf7338407f0792"
+          ],
+          "group_fb49e9fd2c71832c28e8d646b00c8f6b3938b98883a2bbe59a4db7f5f7d24934": [
+            "2fd41769b0d19e85f093a6298a19ae7b00829199372d97c4faa26f082fd16dc7"
+          ]
+        }
+      }
+    },
+    "inner_train_files": [
+      "0x1839864616602fee4d5cc7a6448dd257636c9a9a.sol",
+      "0x198482924b5ed2c8dd5a0c824fcd618c6b49e6e8.sol",
+      "0x2492644798cb3b5162159a6e7d261fe74435eeea.sol",
+      "0x2860685847546b39f8c75a6dfb7d8d40d34b75f6.sol",
+      "0x311118596fe611e3ffe0be3b616f60e891c6877e.sol",
+      "0x416768387836bd8715d127ef9065975325cfad14.sol",
+      "0x424646690d85aae60bb1f14c7a7c0ae98c459593.sol",
+      "0x445897386fdd9f76f4c1b339a583d00ff215d6c2.sol",
+      "0x4927643162fe6d18c7f046b3d155d8da0eee80e8.sol",
+      "0x501202610ce02b97fcbd406157431214ca55ec75.sol",
+      "0x53402193b152e08223a21e4dfc1768fbefee1c2f.sol",
+      "0x561eac93c92360949ab1f1403323e6db345cbf31.sol",
+      "0x6064997937870a11b97490350dfc68e18685f8b1.sol",
+      "0x618737029ae07215dfc2c0b4204b8f91e9909366.sol",
+      "0x627125882d592bbf122815364667efff3bdcd4c6.sol",
+      "0x627fa62ccbb1c1b04ffaecd72a53e37fc0e17839.sol",
+      "0x634446285f22aa660b36424ecd27455ab9bde51c.sol",
+      "0x66158309d118b797882c27ee40cb803c7e49173a.sol",
+      "0x67793426747f8c79332520c1291c4fc6443c8407.sol",
+      "0x678042580304a7f32dd03b027d90083818dc16a1.sol",
+      "0x6805661283c64a79323d187f9d6b2ca4dae59fd0.sol",
+      "0x6817178368e30a0cd92662442a966b428e8f2d49.sol",
+      "0x7541b76cb60f4c60af330c208b0623b7f54bf615.sol",
+      "0x759685437c6d4658b00b5cebdf907dfdeba52357.sol",
+      "0x767385821ba49a86c343ea9d674702a9177ab816.sol",
+      "0x7714365713c0167e07d1c19a168ba9a2c392d84b.sol",
+      "0x7a8721a9d64c74da899424c1b52acbf58ddc9782.sol",
+      "0x7b368c4e805c3870b6c49a3f1f49f69af8662cf3.sol",
+      "0x88088019a2a235f9e7495124d0b0e90f41a777b0.sol",
+      "0x892697720ad461f019fd1f4bc4d52447a59c0687.sol",
+      "0x8c7777c45481dba411450c228cb692ac3d550344.sol",
+      "0x9341097483f88fbb65bfc6ea4c26a04e0c4429a0.sol",
+      "0x93c32845fae42c83a70e5f06214c8433665c2ab5.sol",
+      "0x941d225236464a25eb18076df7da6a91d0f95e9e.sol",
+      "0x945192524c6605d20be6c529dd318666b74078bc.sol",
+      "0x9652847049867929260c9e16b31dfbb3b011817f.sol",
+      "0x96870071f10cd91825f6ba416a41a65359c6e3e2.sol",
+      "0x96edbe868531bd23a6c05e9d0c424ea64fb1b78b.sol",
+      "0x980358360409b1cc913a916bc0bf6f52f775242a.sol",
+      "0xa0008f510fe9ee696e7e320c9e5cbf61e27791ee.sol",
+      "0xa02d0b6bfce1dbd02b9cbb70e6b480333e8a86ec.sol",
+      "0xa08b00eb41a452540c44e953d9ee86f86793af55.sol",
+      "0xa1b85dbba00f8d99ad1da05010fcc9e92c4aec60.sol",
+      "0xa1c32fcbb0a0d4bda9451950b6c5c1a9106b8afc.sol",
+      "0xa2b5ceb15354343c6f7a1569ac250cdd9b0634ba.sol",
+      "0xa2dbb4808d9ec74dc548cae39d3660e57f189840.sol",
+      "0xa2e4fb662ba999a1e1bac839340c4d34e36e5d19.sol",
+      "0xa3baa9cd4f5c0f75541e7c78462a6f36ed62049a.sol",
+      "0xa5f3a4a1c21126f643dc10c3ea8eae8b336a5d66.sol",
+      "0xa6fd6f9b44127dbdc02fa1712fbedd21d14b4f20.sol",
+      "0xa7c58385b66e5d9905fef9dc43d7fb270e527497.sol",
+      "0xa7e648d515f80a67c1d4e3af3317299ecbdf23a5.sol",
+      "0xa7f1863212762d6b6f7b958b46a21ba9e4818422.sol",
+      "0xa8bf8d59fac7134a822ab47bf2d4506438530964.sol",
+      "0xa8db62c8441dafec990e7736988ee1c49b96d454.sol",
+      "0xaae1f51cf3339f18b6d3f3bdc75a5facd744b0b8.sol",
+      "0xbaf51e761510c1a11bf48dd87c0307ac8a8c8a4f.sol",
+      "0xbe4041d55db380c5ae9d4a9b9703f1ed4e7e3888.sol",
+      "0xcead721ef5b11f1a7b530171aab69b16c5e66b6e.sol",
+      "0xf015c35649c82f5467c9c74b7f28ee67665aad68.sol",
+      "buggy_11.sol",
+      "buggy_16.sol",
+      "buggy_17.sol",
+      "buggy_20.sol",
+      "buggy_21.sol",
+      "buggy_24.sol",
+      "buggy_25.sol",
+      "buggy_28.sol",
+      "buggy_29.sol",
+      "buggy_3.sol",
+      "buggy_30.sol",
+      "buggy_31.sol",
+      "buggy_32.sol",
+      "buggy_33.sol",
+      "buggy_34.sol",
+      "buggy_35.sol",
+      "buggy_38.sol",
+      "buggy_4.sol",
+      "buggy_40.sol",
+      "buggy_42.sol",
+      "buggy_43.sol",
+      "buggy_44.sol",
+      "buggy_45.sol",
+      "buggy_47.sol",
+      "buggy_50.sol",
+      "etherbank.sol",
+      "etherstore.sol",
+      "reentrance.sol",
+      "reentrancy_dao.sol",
+      "reentrancy_insecure.sol",
+      "simple_dao.sol"
+    ],
+    "inner_val_files": [
+      "0x12345678982cb986dd291b50239295e3cb10cdf6.sol",
+      "0x23a91059fdc9579a9fbd0edc5f2ea0bfdb70deb4.sol",
+      "0x488690160a80702e6b8e47c7d62ec2779eb5f240.sol",
+      "0x66322181534ff227904daf5ea692a2f2ba62d582.sol",
+      "0xa1b756be589441519b1a08e16bc4f60ab177d916.sol",
+      "0xa2d75fdceb750cc0fd96b3d6c10780ef1a12c58b.sol",
+      "0xa3cd2dd81c0115d801282f1711e9656ae2770566.sol",
+      "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+      "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+      "0xa5e5916a380fea1e633df88d7b5e1835a85b8262.sol",
+      "0xa8eda9d4aee0eb882f8752c6ba7e16d9233c9ad2.sol",
+      "0xa9f5ccdd11178ac90746ad76153bb9d0915edd9f.sol",
+      "0xb5e1b1ee15c6fa0e48fce100125569d430f1bd12.sol",
+      "0xb93430ce38ac4a6bb47fb1fc085ea669353fd89e.sol",
+      "buggy_15.sol",
+      "buggy_19.sol",
+      "buggy_26.sol",
+      "buggy_27.sol",
+      "buggy_39.sol",
+      "buggy_49.sol",
+      "buggy_7.sol",
+      "modifier_reentrancy.sol",
+      "reentrancy_simple.sol"
+    ],
+    "outer_test_files": [
+      "0x01f8c4e3fa3edeb29e514cba738d87ce8c091d3f.sol",
+      "0x12345678979f29ebc99e00bdc5693ddea564ca80.sol",
+      "0x173566176a1deebb47569c8366e84ba7b10b3b8b.sol",
+      "0x2842366841b3a117ef143cc04568768be758b49e.sol",
+      "0x4320e6f8c05b27ab4707cd1f6d5ce6f3e4b3a5a1.sol",
+      "0x444147624d24efaf097c5c5417c4adc9ba20da66.sol",
+      "0x4e73b32ed6c35f570686b89848e5f39f20ecc106.sol",
+      "0x5199071825cc1d6cd019b0d7d42b08106f6cf16d.sol",
+      "0x966889549fe7b3b950063151f6e2ad7651becdb9.sol",
+      "0xa08d1762538439848b71a39cfef7f0454f1176ed.sol",
+      "0xa3f7871a4b86bcc3b6e97c8fd0745e71c55e1f82.sol",
+      "0xa4d1dbfe6850b4e9b8935c8b80ae11b1c12a0927.sol",
+      "0xa5c11e420fd480675302f8e09e40b22ff65e5dfc.sol",
+      "0xa6af8a6e0a1911425252f2dbd12da9361f4bcd9e.sol",
+      "0xa6f3594ab9982c09885ecf7506f7e356f2f89454.sol",
+      "0xa7fac98b27435c90b916950bbeed91c7dbfe3e44.sol",
+      "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+      "buggy_14.sol",
+      "buggy_18.sol",
+      "buggy_2.sol",
+      "buggy_22.sol",
+      "buggy_23.sol",
+      "buggy_36.sol",
+      "buggy_48.sol",
+      "buggy_6.sol",
+      "reentrancy_bonus.sol",
+      "reentrancy_cross_function.sol",
+      "spank_chain_payment.sol"
+    ]
+  },
+  "graph_files": [
+    "0x01f8c4e3fa3edeb29e514cba738d87ce8c091d3f.sol",
+    "0x12345678979f29ebc99e00bdc5693ddea564ca80.sol",
+    "0x12345678982cb986dd291b50239295e3cb10cdf6.sol",
+    "0x173566176a1deebb47569c8366e84ba7b10b3b8b.sol",
+    "0x1839864616602fee4d5cc7a6448dd257636c9a9a.sol",
+    "0x198482924b5ed2c8dd5a0c824fcd618c6b49e6e8.sol",
+    "0x23a91059fdc9579a9fbd0edc5f2ea0bfdb70deb4.sol",
+    "0x2492644798cb3b5162159a6e7d261fe74435eeea.sol",
+    "0x2842366841b3a117ef143cc04568768be758b49e.sol",
+    "0x2860685847546b39f8c75a6dfb7d8d40d34b75f6.sol",
+    "0x311118596fe611e3ffe0be3b616f60e891c6877e.sol",
+    "0x416768387836bd8715d127ef9065975325cfad14.sol",
+    "0x424646690d85aae60bb1f14c7a7c0ae98c459593.sol",
+    "0x4320e6f8c05b27ab4707cd1f6d5ce6f3e4b3a5a1.sol",
+    "0x444147624d24efaf097c5c5417c4adc9ba20da66.sol",
+    "0x445897386fdd9f76f4c1b339a583d00ff215d6c2.sol",
+    "0x488690160a80702e6b8e47c7d62ec2779eb5f240.sol",
+    "0x4927643162fe6d18c7f046b3d155d8da0eee80e8.sol",
+    "0x4e73b32ed6c35f570686b89848e5f39f20ecc106.sol",
+    "0x501202610ce02b97fcbd406157431214ca55ec75.sol",
+    "0x5199071825cc1d6cd019b0d7d42b08106f6cf16d.sol",
+    "0x53402193b152e08223a21e4dfc1768fbefee1c2f.sol",
+    "0x561eac93c92360949ab1f1403323e6db345cbf31.sol",
+    "0x6064997937870a11b97490350dfc68e18685f8b1.sol",
+    "0x618737029ae07215dfc2c0b4204b8f91e9909366.sol",
+    "0x627125882d592bbf122815364667efff3bdcd4c6.sol",
+    "0x627fa62ccbb1c1b04ffaecd72a53e37fc0e17839.sol",
+    "0x634446285f22aa660b36424ecd27455ab9bde51c.sol",
+    "0x66158309d118b797882c27ee40cb803c7e49173a.sol",
+    "0x66322181534ff227904daf5ea692a2f2ba62d582.sol",
+    "0x67793426747f8c79332520c1291c4fc6443c8407.sol",
+    "0x678042580304a7f32dd03b027d90083818dc16a1.sol",
+    "0x6805661283c64a79323d187f9d6b2ca4dae59fd0.sol",
+    "0x6817178368e30a0cd92662442a966b428e8f2d49.sol",
+    "0x7541b76cb60f4c60af330c208b0623b7f54bf615.sol",
+    "0x759685437c6d4658b00b5cebdf907dfdeba52357.sol",
+    "0x767385821ba49a86c343ea9d674702a9177ab816.sol",
+    "0x7714365713c0167e07d1c19a168ba9a2c392d84b.sol",
+    "0x7a8721a9d64c74da899424c1b52acbf58ddc9782.sol",
+    "0x7b368c4e805c3870b6c49a3f1f49f69af8662cf3.sol",
+    "0x88088019a2a235f9e7495124d0b0e90f41a777b0.sol",
+    "0x892697720ad461f019fd1f4bc4d52447a59c0687.sol",
+    "0x8c7777c45481dba411450c228cb692ac3d550344.sol",
+    "0x9341097483f88fbb65bfc6ea4c26a04e0c4429a0.sol",
+    "0x93c32845fae42c83a70e5f06214c8433665c2ab5.sol",
+    "0x941d225236464a25eb18076df7da6a91d0f95e9e.sol",
+    "0x945192524c6605d20be6c529dd318666b74078bc.sol",
+    "0x9652847049867929260c9e16b31dfbb3b011817f.sol",
+    "0x966889549fe7b3b950063151f6e2ad7651becdb9.sol",
+    "0x96870071f10cd91825f6ba416a41a65359c6e3e2.sol",
+    "0x96edbe868531bd23a6c05e9d0c424ea64fb1b78b.sol",
+    "0x980358360409b1cc913a916bc0bf6f52f775242a.sol",
+    "0xa0008f510fe9ee696e7e320c9e5cbf61e27791ee.sol",
+    "0xa02d0b6bfce1dbd02b9cbb70e6b480333e8a86ec.sol",
+    "0xa08b00eb41a452540c44e953d9ee86f86793af55.sol",
+    "0xa08d1762538439848b71a39cfef7f0454f1176ed.sol",
+    "0xa1b756be589441519b1a08e16bc4f60ab177d916.sol",
+    "0xa1b85dbba00f8d99ad1da05010fcc9e92c4aec60.sol",
+    "0xa1c32fcbb0a0d4bda9451950b6c5c1a9106b8afc.sol",
+    "0xa2b5ceb15354343c6f7a1569ac250cdd9b0634ba.sol",
+    "0xa2d75fdceb750cc0fd96b3d6c10780ef1a12c58b.sol",
+    "0xa2dbb4808d9ec74dc548cae39d3660e57f189840.sol",
+    "0xa2e4fb662ba999a1e1bac839340c4d34e36e5d19.sol",
+    "0xa3baa9cd4f5c0f75541e7c78462a6f36ed62049a.sol",
+    "0xa3cd2dd81c0115d801282f1711e9656ae2770566.sol",
+    "0xa3f7871a4b86bcc3b6e97c8fd0745e71c55e1f82.sol",
+    "0xa4d1dbfe6850b4e9b8935c8b80ae11b1c12a0927.sol",
+    "0xa4f9fe0ad9b9765dc0364444332fa4c69923a6d3.sol",
+    "0xa5b91fbfec2f9a708592f9cd3c9e20becdfcb816.sol",
+    "0xa5c11e420fd480675302f8e09e40b22ff65e5dfc.sol",
+    "0xa5e5916a380fea1e633df88d7b5e1835a85b8262.sol",
+    "0xa5f3a4a1c21126f643dc10c3ea8eae8b336a5d66.sol",
+    "0xa6af8a6e0a1911425252f2dbd12da9361f4bcd9e.sol",
+    "0xa6f3594ab9982c09885ecf7506f7e356f2f89454.sol",
+    "0xa6fd6f9b44127dbdc02fa1712fbedd21d14b4f20.sol",
+    "0xa7c58385b66e5d9905fef9dc43d7fb270e527497.sol",
+    "0xa7e648d515f80a67c1d4e3af3317299ecbdf23a5.sol",
+    "0xa7f1863212762d6b6f7b958b46a21ba9e4818422.sol",
+    "0xa7fac98b27435c90b916950bbeed91c7dbfe3e44.sol",
+    "0xa8bf8d59fac7134a822ab47bf2d4506438530964.sol",
+    "0xa8db62c8441dafec990e7736988ee1c49b96d454.sol",
+    "0xa8ec550c291993a450ea525d90863e61a7ebef5c.sol",
+    "0xa8eda9d4aee0eb882f8752c6ba7e16d9233c9ad2.sol",
+    "0xa9f5ccdd11178ac90746ad76153bb9d0915edd9f.sol",
+    "0xaae1f51cf3339f18b6d3f3bdc75a5facd744b0b8.sol",
+    "0xb5e1b1ee15c6fa0e48fce100125569d430f1bd12.sol",
+    "0xb93430ce38ac4a6bb47fb1fc085ea669353fd89e.sol",
+    "0xbaf51e761510c1a11bf48dd87c0307ac8a8c8a4f.sol",
+    "0xbe4041d55db380c5ae9d4a9b9703f1ed4e7e3888.sol",
+    "0xcead721ef5b11f1a7b530171aab69b16c5e66b6e.sol",
+    "0xf015c35649c82f5467c9c74b7f28ee67665aad68.sol",
+    "buggy_11.sol",
+    "buggy_14.sol",
+    "buggy_15.sol",
+    "buggy_16.sol",
+    "buggy_17.sol",
+    "buggy_18.sol",
+    "buggy_19.sol",
+    "buggy_2.sol",
+    "buggy_20.sol",
+    "buggy_21.sol",
+    "buggy_22.sol",
+    "buggy_23.sol",
+    "buggy_24.sol",
+    "buggy_25.sol",
+    "buggy_26.sol",
+    "buggy_27.sol",
+    "buggy_28.sol",
+    "buggy_29.sol",
+    "buggy_3.sol",
+    "buggy_30.sol",
+    "buggy_31.sol",
+    "buggy_32.sol",
+    "buggy_33.sol",
+    "buggy_34.sol",
+    "buggy_35.sol",
+    "buggy_36.sol",
+    "buggy_38.sol",
+    "buggy_39.sol",
+    "buggy_4.sol",
+    "buggy_40.sol",
+    "buggy_42.sol",
+    "buggy_43.sol",
+    "buggy_44.sol",
+    "buggy_45.sol",
+    "buggy_47.sol",
+    "buggy_48.sol",
+    "buggy_49.sol",
+    "buggy_50.sol",
+    "buggy_6.sol",
+    "buggy_7.sol",
+    "etherbank.sol",
+    "etherstore.sol",
+    "modifier_reentrancy.sol",
+    "reentrance.sol",
+    "reentrancy_bonus.sol",
+    "reentrancy_cross_function.sol",
+    "reentrancy_dao.sol",
+    "reentrancy_insecure.sol",
+    "reentrancy_simple.sol",
+    "simple_dao.sol",
+    "spank_chain_payment.sol"
+  ],
+  "h8_initial": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8h_v1/prepared_attempt3/reentrancy_contract/fold_1/G3R_initial.pt",
+    "sha256": "a4b55bf3a5255730106c36ed9596603db99e667abfa8fbd02ebe7aed4b19c6c4",
+    "state_sha256": "c3c14a77853dfe367b62b796fc320d54838f5804f1a18ad18c1087338454aff0"
+  },
+  "initialization": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8h_v1/prepared_attempt3/reentrancy_contract/fold_1/initialization.json",
+    "sha256": "d6b141c7c0a9cf71c62789c0214a4e0d85baf4f7a02d5baee8df9b93147f2d38"
+  },
+  "seeds": {
+    "constructor": 11001,
+    "fit": 1011001
+  },
+  "source_preparation": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/plan/plan.json",
+    "sha256": "be66792cbd43978588761393f354f1df89f1a181104bbee5d567252aae57536a"
+  },
+  "feature_view": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NA_v1/prepared/reentrancy_contract/G3R/S0o/carrier/carrier_manifest.json",
+    "sha256": "8009b41004db048ff281b317176daa49d5dbb2b429f921f1f3605faa0b5d03ee"
+  },
+  "feature_npz": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NA_v1/prepared/reentrancy_contract/G3R/S0o/carrier/carrier.npz",
+    "sha256": "213967387f55d9929416e858b2adf3873bd8165ded1fee5891192d50c54ec952"
+  },
+  "original_graph_fingerprint": "79d68c002d38134f0715198691a8f49f0807fd0015c38e63d86f290e720dfcfd",
+  "node_count": 18610,
+  "registered_node_types": [
+    "constructor_definition",
+    "continue_statement",
+    "contract_declaration",
+    "end_if",
+    "end_loop",
+    "env_source",
+    "expression_statement",
+    "for",
+    "function_definition",
+    "if",
+    "interface_declaration",
+    "library_declaration",
+    "modifier_definition",
+    "new_variable",
+    "return",
+    "struct_declaration",
+    "while"
+  ],
+  "carrier_dim": 512,
+  "parameters": 5283380,
+  "device_policy": {
+    "location": "local_RTX3050",
+    "device_type": "cuda",
+    "gpu_model": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "torch_version": "1.8.1+cu111",
+    "cuda_build_version": "11.1",
+    "allow_tf32": {
+      "matmul": true,
+      "cudnn": true
+    }
+  },
+  "constructor_seconds": 38.5817178649595,
+  "support": {
+    "protocol": "dfg-v2-grouped-nested",
+    "protocol_version": "dfg-v2-grouped-nested-v1",
+    "profile": "G3R",
+    "policy": "register_full_fixed_task_graph; audit_three_part_training_support",
+    "forward_scope": "full_fixed_task_graph",
+    "schema": {
+      "node_types": [
+        {
+          "name": "constructor_definition",
+          "index": 0
+        },
+        {
+          "name": "continue_statement",
+          "index": 1
+        },
+        {
+          "name": "contract_declaration",
+          "index": 2
+        },
+        {
+          "name": "end_if",
+          "index": 3
+        },
+        {
+          "name": "end_loop",
+          "index": 4
+        },
+        {
+          "name": "env_source",
+          "index": 5
+        },
+        {
+          "name": "expression_statement",
+          "index": 6
+        },
+        {
+          "name": "for",
+          "index": 7
+        },
+        {
+          "name": "function_definition",
+          "index": 8
+        },
+        {
+          "name": "if",
+          "index": 9
+        },
+        {
+          "name": "interface_declaration",
+          "index": 10
+        },
+        {
+          "name": "library_declaration",
+          "index": 11
+        },
+        {
+          "name": "modifier_definition",
+          "index": 12
+        },
+        {
+          "name": "new_variable",
+          "index": 13
+        },
+        {
+          "name": "return",
+          "index": 14
+        },
+        {
+          "name": "struct_declaration",
+          "index": 15
+        },
+        {
+          "name": "while",
+          "index": 16
+        }
+      ],
+      "canonical_relations": [
+        {
+          "canonical": [
+            "constructor_definition",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 0
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "index": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "index": 2
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "index": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "contract_declaration"
+          ],
+          "index": 4
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_if"
+          ],
+          "index": 5
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_loop"
+          ],
+          "index": 6
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "expression_statement"
+          ],
+          "index": 7
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "function_definition"
+          ],
+          "index": 8
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "modifier_definition"
+          ],
+          "index": 9
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "new_variable"
+          ],
+          "index": 10
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "index": 11
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 12
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "end_if"
+          ],
+          "index": 13
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 14
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 15
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          "index": 16
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 17
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "next_line",
+            "while"
+          ],
+          "index": 18
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 19
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "constructor_definition"
+          ],
+          "index": 20
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "end_if"
+          ],
+          "index": 21
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 22
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "modifier_definition"
+          ],
+          "index": 23
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 24
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "index": 25
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "constructor_definition"
+          ],
+          "index": 26
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "index": 27
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "modifier_definition"
+          ],
+          "index": 28
+        },
+        {
+          "canonical": [
+            "end_if",
+            "end_if",
+            "expression_statement"
+          ],
+          "index": 29
+        },
+        {
+          "canonical": [
+            "end_if",
+            "end_if",
+            "if"
+          ],
+          "index": 30
+        },
+        {
+          "canonical": [
+            "end_if",
+            "end_if",
+            "return"
+          ],
+          "index": 31
+        },
+        {
+          "canonical": [
+            "end_if",
+            "end_if",
+            "while"
+          ],
+          "index": 32
+        },
+        {
+          "canonical": [
+            "end_if",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 33
+        },
+        {
+          "canonical": [
+            "end_if",
+            "neg_next",
+            "if"
+          ],
+          "index": 34
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "constructor_definition"
+          ],
+          "index": 35
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 36
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 37
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 38
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "if"
+          ],
+          "index": 39
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "library_declaration"
+          ],
+          "index": 40
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          "index": 41
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 42
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "return"
+          ],
+          "index": 43
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 44
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "neg_next",
+            "for"
+          ],
+          "index": 45
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "neg_next",
+            "while"
+          ],
+          "index": 46
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 47
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          "index": 48
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 49
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "if"
+          ],
+          "index": 50
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 51
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "return"
+          ],
+          "index": 52
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "expression_statement"
+          ],
+          "index": 53
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "function_definition"
+          ],
+          "index": 54
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "if"
+          ],
+          "index": 55
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "new_variable"
+          ],
+          "index": 56
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "return"
+          ],
+          "index": 57
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 58
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "index": 59
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "index": 60
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 61
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "index": 62
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "index": 63
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "constructor_definition"
+          ],
+          "index": 64
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 65
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "index": 66
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "index": 67
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 68
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "index": 69
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "index": 70
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "WRITES_STATE",
+            "new_variable"
+          ],
+          "index": 71
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "end_if",
+            "end_if"
+          ],
+          "index": 72
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 73
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "neg_next",
+            "if"
+          ],
+          "index": 74
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "constructor_definition"
+          ],
+          "index": 75
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "continue_statement"
+          ],
+          "index": 76
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "end_if"
+          ],
+          "index": 77
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 78
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 79
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "for"
+          ],
+          "index": 80
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 81
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "if"
+          ],
+          "index": 82
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "modifier_definition"
+          ],
+          "index": 83
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 84
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "return"
+          ],
+          "index": 85
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "while"
+          ],
+          "index": 86
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "pos_next",
+            "for"
+          ],
+          "index": 87
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "pos_next",
+            "if"
+          ],
+          "index": 88
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "pos_next",
+            "while"
+          ],
+          "index": 89
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 90
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 91
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 92
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "index": 93
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 94
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "index": 95
+        },
+        {
+          "canonical": [
+            "for",
+            "neg_next",
+            "end_loop"
+          ],
+          "index": 96
+        },
+        {
+          "canonical": [
+            "for",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 97
+        },
+        {
+          "canonical": [
+            "for",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 98
+        },
+        {
+          "canonical": [
+            "for",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 99
+        },
+        {
+          "canonical": [
+            "for",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 100
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "expression_statement"
+          ],
+          "index": 101
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "if"
+          ],
+          "index": 102
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "new_variable"
+          ],
+          "index": 103
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 104
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "index": 105
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "index": 106
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 107
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "index": 108
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "index": 109
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "external_call",
+            "constructor_definition"
+          ],
+          "index": 110
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "index": 111
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "external_call",
+            "modifier_definition"
+          ],
+          "index": 112
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 113
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "internal_call",
+            "constructor_definition"
+          ],
+          "index": 114
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "index": 115
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "internal_call",
+            "modifier_definition"
+          ],
+          "index": 116
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 117
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "end_if"
+          ],
+          "index": 118
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 119
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 120
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "for"
+          ],
+          "index": 121
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "if"
+          ],
+          "index": 122
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "interface_declaration"
+          ],
+          "index": 123
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "library_declaration"
+          ],
+          "index": 124
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 125
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "return"
+          ],
+          "index": 126
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          "index": 127
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "recursive_method_call",
+            "interface_declaration"
+          ],
+          "index": 128
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "recursive_method_call",
+            "library_declaration"
+          ],
+          "index": 129
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "constructor_definition"
+          ],
+          "index": 130
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 131
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "index": 132
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 133
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "index": 134
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "index": 135
+        },
+        {
+          "canonical": [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          "index": 136
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "end_if"
+          ],
+          "index": 137
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "expression_statement"
+          ],
+          "index": 138
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "if"
+          ],
+          "index": 139
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "new_variable"
+          ],
+          "index": 140
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "return"
+          ],
+          "index": 141
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "end_if"
+          ],
+          "index": 142
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 143
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 144
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 145
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "modifier_definition"
+          ],
+          "index": 146
+        },
+        {
+          "canonical": [
+            "if",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 147
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "expression_statement"
+          ],
+          "index": 148
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "for"
+          ],
+          "index": 149
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "if"
+          ],
+          "index": 150
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "new_variable"
+          ],
+          "index": 151
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "return"
+          ],
+          "index": 152
+        },
+        {
+          "canonical": [
+            "interface_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 153
+        },
+        {
+          "canonical": [
+            "interface_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "index": 154
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "end_if"
+          ],
+          "index": 155
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 156
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 157
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "index": 158
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "index": 159
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "index": 160
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 161
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "index": 162
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "internal_call",
+            "modifier_definition"
+          ],
+          "index": 163
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 164
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "end_if"
+          ],
+          "index": 165
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 166
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ],
+          "index": 167
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 168
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "recursive_method_call",
+            "contract_declaration"
+          ],
+          "index": 169
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 170
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "index": 171
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "index": 172
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 173
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "index": 174
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "index": 175
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "constructor_definition"
+          ],
+          "index": 176
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "expression_statement"
+          ],
+          "index": 177
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "for"
+          ],
+          "index": 178
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "if"
+          ],
+          "index": 179
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "new_variable"
+          ],
+          "index": 180
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "return"
+          ],
+          "index": 181
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 182
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "index": 183
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "index": 184
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 185
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "index": 186
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "index": 187
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_WRITES_STATE",
+            "expression_statement"
+          ],
+          "index": 188
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_WRITES_STATE",
+            "new_variable"
+          ],
+          "index": 189
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "WRITES_STATE",
+            "new_variable"
+          ],
+          "index": 190
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "first_next_line",
+            "constructor_definition"
+          ],
+          "index": 191
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "neg_next",
+            "if"
+          ],
+          "index": 192
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "constructor_definition"
+          ],
+          "index": 193
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 194
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "end_if"
+          ],
+          "index": 195
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 196
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 197
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "for"
+          ],
+          "index": 198
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 199
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "if"
+          ],
+          "index": 200
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "library_declaration"
+          ],
+          "index": 201
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "modifier_definition"
+          ],
+          "index": 202
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 203
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "return"
+          ],
+          "index": 204
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "while"
+          ],
+          "index": 205
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "pos_next",
+            "for"
+          ],
+          "index": 206
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "pos_next",
+            "if"
+          ],
+          "index": 207
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "pos_next",
+            "while"
+          ],
+          "index": 208
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 209
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "index": 210
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 211
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "index": 212
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "index": 213
+        },
+        {
+          "canonical": [
+            "return",
+            "end_if",
+            "end_if"
+          ],
+          "index": 214
+        },
+        {
+          "canonical": [
+            "return",
+            "neg_next",
+            "if"
+          ],
+          "index": 215
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "end_if"
+          ],
+          "index": 216
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "end_loop"
+          ],
+          "index": 217
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 218
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "function_definition"
+          ],
+          "index": 219
+        },
+        {
+          "canonical": [
+            "return",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 220
+        },
+        {
+          "canonical": [
+            "return",
+            "pos_next",
+            "if"
+          ],
+          "index": 221
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "next_line",
+            "contract_declaration"
+          ],
+          "index": 222
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "next_line",
+            "library_declaration"
+          ],
+          "index": 223
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "index": 224
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "index": 225
+        },
+        {
+          "canonical": [
+            "while",
+            "end_if",
+            "end_if"
+          ],
+          "index": 226
+        },
+        {
+          "canonical": [
+            "while",
+            "neg_next",
+            "end_loop"
+          ],
+          "index": 227
+        },
+        {
+          "canonical": [
+            "while",
+            "next_line",
+            "continue_statement"
+          ],
+          "index": 228
+        },
+        {
+          "canonical": [
+            "while",
+            "next_line",
+            "expression_statement"
+          ],
+          "index": 229
+        },
+        {
+          "canonical": [
+            "while",
+            "next_line",
+            "new_variable"
+          ],
+          "index": 230
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "expression_statement"
+          ],
+          "index": 231
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "new_variable"
+          ],
+          "index": 232
+        }
+      ],
+      "sha256": "b9c027c22f153c5b08f6a3a8b9df6425e75b46f8f8f0da2d2f7aef17b2adfa4d"
+    },
+    "supported": true,
+    "files": {
+      "inner_train": 91,
+      "inner_val": 23,
+      "outer_test": 28
+    },
+    "parts_sha256": "b1a82c856f1e6aefc71de8df5c42f367119bcb5f25d017c6022d930dad6f40b2",
+    "nodes": [
+      {
+        "name": "contract_declaration",
+        "inner_train_nodes": 267,
+        "inner_val_nodes": 65,
+        "outer_test_nodes": 80
+      },
+      {
+        "name": "new_variable",
+        "inner_train_nodes": 2198,
+        "inner_val_nodes": 494,
+        "outer_test_nodes": 780
+      },
+      {
+        "name": "function_definition",
+        "inner_train_nodes": 2264,
+        "inner_val_nodes": 654,
+        "outer_test_nodes": 733
+      },
+      {
+        "name": "expression_statement",
+        "inner_train_nodes": 4054,
+        "inner_val_nodes": 1010,
+        "outer_test_nodes": 1437
+      },
+      {
+        "name": "constructor_definition",
+        "inner_train_nodes": 105,
+        "inner_val_nodes": 30,
+        "outer_test_nodes": 30
+      },
+      {
+        "name": "modifier_definition",
+        "inner_train_nodes": 104,
+        "inner_val_nodes": 35,
+        "outer_test_nodes": 26
+      },
+      {
+        "name": "return",
+        "inner_train_nodes": 778,
+        "inner_val_nodes": 225,
+        "outer_test_nodes": 242
+      },
+      {
+        "name": "library_declaration",
+        "inner_train_nodes": 50,
+        "inner_val_nodes": 16,
+        "outer_test_nodes": 20
+      },
+      {
+        "name": "if",
+        "inner_train_nodes": 803,
+        "inner_val_nodes": 147,
+        "outer_test_nodes": 282
+      },
+      {
+        "name": "end_if",
+        "inner_train_nodes": 775,
+        "inner_val_nodes": 147,
+        "outer_test_nodes": 275
+      },
+      {
+        "name": "interface_declaration",
+        "inner_train_nodes": 29,
+        "inner_val_nodes": 9,
+        "outer_test_nodes": 7
+      },
+      {
+        "name": "struct_declaration",
+        "inner_train_nodes": 50,
+        "inner_val_nodes": 9,
+        "outer_test_nodes": 11
+      },
+      {
+        "name": "for",
+        "inner_train_nodes": 22,
+        "inner_val_nodes": 1,
+        "outer_test_nodes": 5
+      },
+      {
+        "name": "end_loop",
+        "inner_train_nodes": 27,
+        "inner_val_nodes": 1,
+        "outer_test_nodes": 7
+      },
+      {
+        "name": "while",
+        "inner_train_nodes": 5,
+        "inner_val_nodes": 0,
+        "outer_test_nodes": 2
+      },
+      {
+        "name": "continue_statement",
+        "inner_train_nodes": 1,
+        "inner_val_nodes": 0,
+        "outer_test_nodes": 0
+      },
+      {
+        "name": "env_source",
+        "inner_train_nodes": 194,
+        "inner_val_nodes": 46,
+        "outer_test_nodes": 58
+      }
+    ],
+    "relations": [
+      {
+        "canonical": [
+          "constructor_definition",
+          "DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 54,
+        "inner_val_edges": 12,
+        "outer_test_edges": 25
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "DATA_DEF_USE",
+          "if"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "REV_READS_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "external_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 11,
+        "inner_val_edges": 4,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "first_next_line",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "first_next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "first_next_line",
+          "end_loop"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "first_next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 1,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "first_next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 32,
+        "inner_val_edges": 11,
+        "outer_test_edges": 12
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "first_next_line",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 22,
+        "inner_val_edges": 7,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "first_next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 40,
+        "inner_val_edges": 9,
+        "outer_test_edges": 12
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "internal_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 27,
+        "inner_val_edges": 9,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "next_line",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 1,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 98,
+        "inner_val_edges": 29,
+        "outer_test_edges": 25
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "constructor_definition",
+          "recursive_method_call",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 105,
+        "inner_val_edges": 30,
+        "outer_test_edges": 30
+      },
+      {
+        "canonical": [
+          "continue_statement",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "continue_statement",
+          "next_line",
+          "while"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "first_next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 1,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 1,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 56,
+        "inner_val_edges": 12,
+        "outer_test_edges": 20
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "next_line",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 181,
+        "inner_val_edges": 48,
+        "outer_test_edges": 53
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "next_line",
+          "struct_declaration"
+        ],
+        "inner_train_edges": 21,
+        "inner_val_edges": 4,
+        "outer_test_edges": 4
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "recursive_method_call",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 105,
+        "inner_val_edges": 30,
+        "outer_test_edges": 30
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "recursive_method_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 1901,
+        "inner_val_edges": 512,
+        "outer_test_edges": 597
+      },
+      {
+        "canonical": [
+          "contract_declaration",
+          "recursive_method_call",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 104,
+        "inner_val_edges": 34,
+        "outer_test_edges": 26
+      },
+      {
+        "canonical": [
+          "end_if",
+          "end_if",
+          "expression_statement"
+        ],
+        "inner_train_edges": 285,
+        "inner_val_edges": 31,
+        "outer_test_edges": 101
+      },
+      {
+        "canonical": [
+          "end_if",
+          "end_if",
+          "if"
+        ],
+        "inner_train_edges": 4,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "end_if",
+          "end_if",
+          "return"
+        ],
+        "inner_train_edges": 96,
+        "inner_val_edges": 16,
+        "outer_test_edges": 34
+      },
+      {
+        "canonical": [
+          "end_if",
+          "end_if",
+          "while"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "end_if",
+          "first_next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "end_if",
+          "neg_next",
+          "if"
+        ],
+        "inner_train_edges": 720,
+        "inner_val_edges": 145,
+        "outer_test_edges": 250
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 1,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 58,
+        "inner_val_edges": 2,
+        "outer_test_edges": 27
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 68,
+        "inner_val_edges": 15,
+        "outer_test_edges": 24
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "if"
+        ],
+        "inner_train_edges": 51,
+        "inner_val_edges": 0,
+        "outer_test_edges": 13
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "library_declaration"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 76,
+        "inner_val_edges": 20,
+        "outer_test_edges": 26
+      },
+      {
+        "canonical": [
+          "end_if",
+          "next_line",
+          "return"
+        ],
+        "inner_train_edges": 17,
+        "inner_val_edges": 2,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "first_next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "neg_next",
+          "for"
+        ],
+        "inner_train_edges": 22,
+        "inner_val_edges": 1,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "neg_next",
+          "while"
+        ],
+        "inner_train_edges": 5,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 10,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "next_line",
+          "for"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "next_line",
+          "if"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 10,
+        "inner_val_edges": 1,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "end_loop",
+          "next_line",
+          "return"
+        ],
+        "inner_train_edges": 3,
+        "inner_val_edges": 0,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "env_source",
+          "ENV_FLOW",
+          "expression_statement"
+        ],
+        "inner_train_edges": 1761,
+        "inner_val_edges": 455,
+        "outer_test_edges": 554
+      },
+      {
+        "canonical": [
+          "env_source",
+          "ENV_FLOW",
+          "function_definition"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 1,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "env_source",
+          "ENV_FLOW",
+          "if"
+        ],
+        "inner_train_edges": 320,
+        "inner_val_edges": 68,
+        "outer_test_edges": 104
+      },
+      {
+        "canonical": [
+          "env_source",
+          "ENV_FLOW",
+          "new_variable"
+        ],
+        "inner_train_edges": 360,
+        "inner_val_edges": 76,
+        "outer_test_edges": 121
+      },
+      {
+        "canonical": [
+          "env_source",
+          "ENV_FLOW",
+          "return"
+        ],
+        "inner_train_edges": 23,
+        "inner_val_edges": 6,
+        "outer_test_edges": 4
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 240,
+        "inner_val_edges": 17,
+        "outer_test_edges": 131
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "DATA_DEF_USE",
+          "for"
+        ],
+        "inner_train_edges": 18,
+        "inner_val_edges": 1,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "DATA_DEF_USE",
+          "if"
+        ],
+        "inner_train_edges": 12,
+        "inner_val_edges": 0,
+        "outer_test_edges": 4
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 24,
+        "inner_val_edges": 0,
+        "outer_test_edges": 20
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "DATA_DEF_USE",
+          "return"
+        ],
+        "inner_train_edges": 25,
+        "inner_val_edges": 0,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "DATA_DEF_USE",
+          "while"
+        ],
+        "inner_train_edges": 4,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "REV_DATA_DEF_USE",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 54,
+        "inner_val_edges": 12,
+        "outer_test_edges": 25
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "REV_DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 240,
+        "inner_val_edges": 17,
+        "outer_test_edges": 131
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "REV_DATA_DEF_USE",
+          "for"
+        ],
+        "inner_train_edges": 30,
+        "inner_val_edges": 2,
+        "outer_test_edges": 4
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "REV_DATA_DEF_USE",
+          "function_definition"
+        ],
+        "inner_train_edges": 1588,
+        "inner_val_edges": 399,
+        "outer_test_edges": 560
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "REV_DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 498,
+        "inner_val_edges": 70,
+        "outer_test_edges": 205
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "REV_ENV_FLOW",
+          "env_source"
+        ],
+        "inner_train_edges": 1761,
+        "inner_val_edges": 455,
+        "outer_test_edges": 554
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "REV_READS_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 1694,
+        "inner_val_edges": 384,
+        "outer_test_edges": 592
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "WRITES_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 1960,
+        "inner_val_edges": 429,
+        "outer_test_edges": 716
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "end_if",
+          "end_if"
+        ],
+        "inner_train_edges": 285,
+        "inner_val_edges": 31,
+        "outer_test_edges": 101
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "first_next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 1,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "neg_next",
+          "if"
+        ],
+        "inner_train_edges": 33,
+        "inner_val_edges": 0,
+        "outer_test_edges": 15
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 98,
+        "inner_val_edges": 29,
+        "outer_test_edges": 25
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "continue_statement"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 58,
+        "inner_val_edges": 2,
+        "outer_test_edges": 27
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "end_loop"
+        ],
+        "inner_train_edges": 10,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 3118,
+        "inner_val_edges": 728,
+        "outer_test_edges": 1178
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "for"
+        ],
+        "inner_train_edges": 28,
+        "inner_val_edges": 1,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 1132,
+        "inner_val_edges": 363,
+        "outer_test_edges": 352
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "if"
+        ],
+        "inner_train_edges": 218,
+        "inner_val_edges": 45,
+        "outer_test_edges": 91
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 102,
+        "inner_val_edges": 34,
+        "outer_test_edges": 23
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 579,
+        "inner_val_edges": 119,
+        "outer_test_edges": 231
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "return"
+        ],
+        "inner_train_edges": 198,
+        "inner_val_edges": 51,
+        "outer_test_edges": 66
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "next_line",
+          "while"
+        ],
+        "inner_train_edges": 4,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "pos_next",
+          "for"
+        ],
+        "inner_train_edges": 10,
+        "inner_val_edges": 1,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "pos_next",
+          "if"
+        ],
+        "inner_train_edges": 257,
+        "inner_val_edges": 35,
+        "outer_test_edges": 85
+      },
+      {
+        "canonical": [
+          "expression_statement",
+          "pos_next",
+          "while"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "for",
+          "DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 30,
+        "inner_val_edges": 2,
+        "outer_test_edges": 4
+      },
+      {
+        "canonical": [
+          "for",
+          "DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 9,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "for",
+          "REV_DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 18,
+        "inner_val_edges": 1,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "for",
+          "REV_DATA_DEF_USE",
+          "function_definition"
+        ],
+        "inner_train_edges": 9,
+        "inner_val_edges": 1,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "for",
+          "REV_DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "for",
+          "REV_READS_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "for",
+          "neg_next",
+          "end_loop"
+        ],
+        "inner_train_edges": 22,
+        "inner_val_edges": 1,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "for",
+          "next_line",
+          "end_loop"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "for",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 28,
+        "inner_val_edges": 1,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "for",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 8,
+        "inner_val_edges": 1,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "for",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 0,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "for",
+          "pos_next",
+          "expression_statement"
+        ],
+        "inner_train_edges": 10,
+        "inner_val_edges": 1,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "for",
+          "pos_next",
+          "if"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "for",
+          "pos_next",
+          "new_variable"
+        ],
+        "inner_train_edges": 11,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 1588,
+        "inner_val_edges": 399,
+        "outer_test_edges": 560
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "DATA_DEF_USE",
+          "for"
+        ],
+        "inner_train_edges": 9,
+        "inner_val_edges": 1,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "DATA_DEF_USE",
+          "if"
+        ],
+        "inner_train_edges": 177,
+        "inner_val_edges": 20,
+        "outer_test_edges": 58
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 236,
+        "inner_val_edges": 52,
+        "outer_test_edges": 99
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "DATA_DEF_USE",
+          "return"
+        ],
+        "inner_train_edges": 233,
+        "inner_val_edges": 74,
+        "outer_test_edges": 69
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "REV_ENV_FLOW",
+          "env_source"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 1,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "external_call",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 11,
+        "inner_val_edges": 4,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "external_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 1814,
+        "inner_val_edges": 612,
+        "outer_test_edges": 646
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "external_call",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 14,
+        "outer_test_edges": 19
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "first_next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 32,
+        "inner_val_edges": 11,
+        "outer_test_edges": 12
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "internal_call",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 27,
+        "inner_val_edges": 9,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "internal_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 1084,
+        "inner_val_edges": 318,
+        "outer_test_edges": 306
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "internal_call",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 35,
+        "inner_val_edges": 31,
+        "outer_test_edges": 9
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 56,
+        "inner_val_edges": 12,
+        "outer_test_edges": 20
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 68,
+        "inner_val_edges": 15,
+        "outer_test_edges": 24
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "end_loop"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 1132,
+        "inner_val_edges": 363,
+        "outer_test_edges": 352
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "for"
+        ],
+        "inner_train_edges": 8,
+        "inner_val_edges": 1,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "if"
+        ],
+        "inner_train_edges": 248,
+        "inner_val_edges": 54,
+        "outer_test_edges": 85
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "interface_declaration"
+        ],
+        "inner_train_edges": 29,
+        "inner_val_edges": 9,
+        "outer_test_edges": 7
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "library_declaration"
+        ],
+        "inner_train_edges": 44,
+        "inner_val_edges": 12,
+        "outer_test_edges": 19
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 284,
+        "inner_val_edges": 63,
+        "outer_test_edges": 117
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "next_line",
+          "return"
+        ],
+        "inner_train_edges": 279,
+        "inner_val_edges": 114,
+        "outer_test_edges": 72
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "recursive_method_call",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 1901,
+        "inner_val_edges": 512,
+        "outer_test_edges": 597
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "recursive_method_call",
+          "interface_declaration"
+        ],
+        "inner_train_edges": 146,
+        "inner_val_edges": 45,
+        "outer_test_edges": 41
+      },
+      {
+        "canonical": [
+          "function_definition",
+          "recursive_method_call",
+          "library_declaration"
+        ],
+        "inner_train_edges": 217,
+        "inner_val_edges": 98,
+        "outer_test_edges": 95
+      },
+      {
+        "canonical": [
+          "if",
+          "REV_DATA_DEF_USE",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "if",
+          "REV_DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 12,
+        "inner_val_edges": 0,
+        "outer_test_edges": 4
+      },
+      {
+        "canonical": [
+          "if",
+          "REV_DATA_DEF_USE",
+          "function_definition"
+        ],
+        "inner_train_edges": 177,
+        "inner_val_edges": 20,
+        "outer_test_edges": 58
+      },
+      {
+        "canonical": [
+          "if",
+          "REV_DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 247,
+        "inner_val_edges": 42,
+        "outer_test_edges": 93
+      },
+      {
+        "canonical": [
+          "if",
+          "REV_ENV_FLOW",
+          "env_source"
+        ],
+        "inner_train_edges": 320,
+        "inner_val_edges": 68,
+        "outer_test_edges": 104
+      },
+      {
+        "canonical": [
+          "if",
+          "REV_READS_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 389,
+        "inner_val_edges": 67,
+        "outer_test_edges": 132
+      },
+      {
+        "canonical": [
+          "if",
+          "end_if",
+          "end_if"
+        ],
+        "inner_train_edges": 4,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "if",
+          "neg_next",
+          "end_if"
+        ],
+        "inner_train_edges": 720,
+        "inner_val_edges": 145,
+        "outer_test_edges": 250
+      },
+      {
+        "canonical": [
+          "if",
+          "neg_next",
+          "expression_statement"
+        ],
+        "inner_train_edges": 33,
+        "inner_val_edges": 0,
+        "outer_test_edges": 15
+      },
+      {
+        "canonical": [
+          "if",
+          "neg_next",
+          "if"
+        ],
+        "inner_train_edges": 60,
+        "inner_val_edges": 0,
+        "outer_test_edges": 14
+      },
+      {
+        "canonical": [
+          "if",
+          "neg_next",
+          "new_variable"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "if",
+          "neg_next",
+          "return"
+        ],
+        "inner_train_edges": 16,
+        "inner_val_edges": 2,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "if",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 51,
+        "inner_val_edges": 0,
+        "outer_test_edges": 13
+      },
+      {
+        "canonical": [
+          "if",
+          "next_line",
+          "end_loop"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "if",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 218,
+        "inner_val_edges": 45,
+        "outer_test_edges": 91
+      },
+      {
+        "canonical": [
+          "if",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 248,
+        "inner_val_edges": 54,
+        "outer_test_edges": 85
+      },
+      {
+        "canonical": [
+          "if",
+          "next_line",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "if",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 231,
+        "inner_val_edges": 45,
+        "outer_test_edges": 72
+      },
+      {
+        "canonical": [
+          "if",
+          "pos_next",
+          "expression_statement"
+        ],
+        "inner_train_edges": 257,
+        "inner_val_edges": 35,
+        "outer_test_edges": 85
+      },
+      {
+        "canonical": [
+          "if",
+          "pos_next",
+          "for"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "if",
+          "pos_next",
+          "if"
+        ],
+        "inner_train_edges": 48,
+        "inner_val_edges": 6,
+        "outer_test_edges": 14
+      },
+      {
+        "canonical": [
+          "if",
+          "pos_next",
+          "new_variable"
+        ],
+        "inner_train_edges": 14,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "if",
+          "pos_next",
+          "return"
+        ],
+        "inner_train_edges": 76,
+        "inner_val_edges": 10,
+        "outer_test_edges": 32
+      },
+      {
+        "canonical": [
+          "interface_declaration",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 29,
+        "inner_val_edges": 9,
+        "outer_test_edges": 7
+      },
+      {
+        "canonical": [
+          "interface_declaration",
+          "recursive_method_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 146,
+        "inner_val_edges": 45,
+        "outer_test_edges": 41
+      },
+      {
+        "canonical": [
+          "library_declaration",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "library_declaration",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 44,
+        "inner_val_edges": 12,
+        "outer_test_edges": 19
+      },
+      {
+        "canonical": [
+          "library_declaration",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "library_declaration",
+          "next_line",
+          "struct_declaration"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 4,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "library_declaration",
+          "recursive_method_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 217,
+        "inner_val_edges": 98,
+        "outer_test_edges": 95
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "external_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 14,
+        "outer_test_edges": 19
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "first_next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 22,
+        "inner_val_edges": 7,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "internal_call",
+          "function_definition"
+        ],
+        "inner_train_edges": 35,
+        "inner_val_edges": 31,
+        "outer_test_edges": 9
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "internal_call",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 4,
+        "outer_test_edges": 10
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "next_line",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 102,
+        "inner_val_edges": 34,
+        "outer_test_edges": 23
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "next_line",
+          "if"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 1,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "modifier_definition",
+          "recursive_method_call",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 104,
+        "inner_val_edges": 34,
+        "outer_test_edges": 26
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 498,
+        "inner_val_edges": 70,
+        "outer_test_edges": 205
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "DATA_DEF_USE",
+          "for"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "DATA_DEF_USE",
+          "if"
+        ],
+        "inner_train_edges": 247,
+        "inner_val_edges": 42,
+        "outer_test_edges": 93
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 56,
+        "inner_val_edges": 3,
+        "outer_test_edges": 36
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "DATA_DEF_USE",
+          "return"
+        ],
+        "inner_train_edges": 146,
+        "inner_val_edges": 33,
+        "outer_test_edges": 53
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "DATA_DEF_USE",
+          "while"
+        ],
+        "inner_train_edges": 4,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "READS_STATE",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "READS_STATE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 1694,
+        "inner_val_edges": 384,
+        "outer_test_edges": 592
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "READS_STATE",
+          "for"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "READS_STATE",
+          "if"
+        ],
+        "inner_train_edges": 389,
+        "inner_val_edges": 67,
+        "outer_test_edges": 132
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "READS_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 409,
+        "inner_val_edges": 76,
+        "outer_test_edges": 163
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "READS_STATE",
+          "return"
+        ],
+        "inner_train_edges": 252,
+        "inner_val_edges": 85,
+        "outer_test_edges": 57
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "REV_DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 24,
+        "inner_val_edges": 0,
+        "outer_test_edges": 20
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "REV_DATA_DEF_USE",
+          "for"
+        ],
+        "inner_train_edges": 9,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "REV_DATA_DEF_USE",
+          "function_definition"
+        ],
+        "inner_train_edges": 236,
+        "inner_val_edges": 52,
+        "outer_test_edges": 99
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "REV_DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 56,
+        "inner_val_edges": 3,
+        "outer_test_edges": 36
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "REV_ENV_FLOW",
+          "env_source"
+        ],
+        "inner_train_edges": 360,
+        "inner_val_edges": 76,
+        "outer_test_edges": 121
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "REV_READS_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 409,
+        "inner_val_edges": 76,
+        "outer_test_edges": 163
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "REV_WRITES_STATE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 1960,
+        "inner_val_edges": 429,
+        "outer_test_edges": 716
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "REV_WRITES_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 3,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "WRITES_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 3,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "first_next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 40,
+        "inner_val_edges": 9,
+        "outer_test_edges": 12
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "neg_next",
+          "if"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "constructor_definition"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 181,
+        "inner_val_edges": 48,
+        "outer_test_edges": 53
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 76,
+        "inner_val_edges": 20,
+        "outer_test_edges": 26
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "end_loop"
+        ],
+        "inner_train_edges": 10,
+        "inner_val_edges": 1,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 579,
+        "inner_val_edges": 119,
+        "outer_test_edges": 231
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "for"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 0,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 284,
+        "inner_val_edges": 63,
+        "outer_test_edges": 117
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "if"
+        ],
+        "inner_train_edges": 231,
+        "inner_val_edges": 45,
+        "outer_test_edges": 72
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "library_declaration"
+        ],
+        "inner_train_edges": 0,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "modifier_definition"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 1,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 1310,
+        "inner_val_edges": 312,
+        "outer_test_edges": 484
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "return"
+        ],
+        "inner_train_edges": 73,
+        "inner_val_edges": 16,
+        "outer_test_edges": 24
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "next_line",
+          "while"
+        ],
+        "inner_train_edges": 5,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "pos_next",
+          "for"
+        ],
+        "inner_train_edges": 11,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "pos_next",
+          "if"
+        ],
+        "inner_train_edges": 14,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "new_variable",
+          "pos_next",
+          "while"
+        ],
+        "inner_train_edges": 3,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "return",
+          "REV_DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 25,
+        "inner_val_edges": 0,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "return",
+          "REV_DATA_DEF_USE",
+          "function_definition"
+        ],
+        "inner_train_edges": 233,
+        "inner_val_edges": 74,
+        "outer_test_edges": 69
+      },
+      {
+        "canonical": [
+          "return",
+          "REV_DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 146,
+        "inner_val_edges": 33,
+        "outer_test_edges": 53
+      },
+      {
+        "canonical": [
+          "return",
+          "REV_ENV_FLOW",
+          "env_source"
+        ],
+        "inner_train_edges": 23,
+        "inner_val_edges": 6,
+        "outer_test_edges": 4
+      },
+      {
+        "canonical": [
+          "return",
+          "REV_READS_STATE",
+          "new_variable"
+        ],
+        "inner_train_edges": 252,
+        "inner_val_edges": 85,
+        "outer_test_edges": 57
+      },
+      {
+        "canonical": [
+          "return",
+          "end_if",
+          "end_if"
+        ],
+        "inner_train_edges": 96,
+        "inner_val_edges": 16,
+        "outer_test_edges": 34
+      },
+      {
+        "canonical": [
+          "return",
+          "neg_next",
+          "if"
+        ],
+        "inner_train_edges": 16,
+        "inner_val_edges": 2,
+        "outer_test_edges": 5
+      },
+      {
+        "canonical": [
+          "return",
+          "next_line",
+          "end_if"
+        ],
+        "inner_train_edges": 17,
+        "inner_val_edges": 2,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "return",
+          "next_line",
+          "end_loop"
+        ],
+        "inner_train_edges": 3,
+        "inner_val_edges": 0,
+        "outer_test_edges": 3
+      },
+      {
+        "canonical": [
+          "return",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 198,
+        "inner_val_edges": 51,
+        "outer_test_edges": 66
+      },
+      {
+        "canonical": [
+          "return",
+          "next_line",
+          "function_definition"
+        ],
+        "inner_train_edges": 279,
+        "inner_val_edges": 114,
+        "outer_test_edges": 72
+      },
+      {
+        "canonical": [
+          "return",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 73,
+        "inner_val_edges": 16,
+        "outer_test_edges": 24
+      },
+      {
+        "canonical": [
+          "return",
+          "pos_next",
+          "if"
+        ],
+        "inner_train_edges": 76,
+        "inner_val_edges": 10,
+        "outer_test_edges": 32
+      },
+      {
+        "canonical": [
+          "struct_declaration",
+          "next_line",
+          "contract_declaration"
+        ],
+        "inner_train_edges": 21,
+        "inner_val_edges": 4,
+        "outer_test_edges": 4
+      },
+      {
+        "canonical": [
+          "struct_declaration",
+          "next_line",
+          "library_declaration"
+        ],
+        "inner_train_edges": 6,
+        "inner_val_edges": 4,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "while",
+          "REV_DATA_DEF_USE",
+          "expression_statement"
+        ],
+        "inner_train_edges": 4,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "while",
+          "REV_DATA_DEF_USE",
+          "new_variable"
+        ],
+        "inner_train_edges": 4,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "while",
+          "end_if",
+          "end_if"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "while",
+          "neg_next",
+          "end_loop"
+        ],
+        "inner_train_edges": 5,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "while",
+          "next_line",
+          "continue_statement"
+        ],
+        "inner_train_edges": 1,
+        "inner_val_edges": 0,
+        "outer_test_edges": 0
+      },
+      {
+        "canonical": [
+          "while",
+          "next_line",
+          "expression_statement"
+        ],
+        "inner_train_edges": 4,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "while",
+          "next_line",
+          "new_variable"
+        ],
+        "inner_train_edges": 5,
+        "inner_val_edges": 0,
+        "outer_test_edges": 2
+      },
+      {
+        "canonical": [
+          "while",
+          "pos_next",
+          "expression_statement"
+        ],
+        "inner_train_edges": 2,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      },
+      {
+        "canonical": [
+          "while",
+          "pos_next",
+          "new_variable"
+        ],
+        "inner_train_edges": 3,
+        "inner_val_edges": 0,
+        "outer_test_edges": 1
+      }
+    ],
+    "registered_without_train_nodes": [],
+    "registered_without_train_relations": [
+      [
+        "end_if",
+        "next_line",
+        "library_declaration"
+      ],
+      [
+        "for",
+        "REV_DATA_DEF_USE",
+        "new_variable"
+      ],
+      [
+        "function_definition",
+        "external_call",
+        "modifier_definition"
+      ],
+      [
+        "library_declaration",
+        "next_line",
+        "end_if"
+      ],
+      [
+        "library_declaration",
+        "next_line",
+        "new_variable"
+      ],
+      [
+        "modifier_definition",
+        "external_call",
+        "function_definition"
+      ],
+      [
+        "modifier_definition",
+        "internal_call",
+        "modifier_definition"
+      ],
+      [
+        "new_variable",
+        "DATA_DEF_USE",
+        "for"
+      ],
+      [
+        "new_variable",
+        "next_line",
+        "library_declaration"
+      ]
+    ],
+    "v2_training_edges": 21594,
+    "ddg_training_edges": 21594,
+    "no_samples_or_edges_removed": true
+  },
+  "initial": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NA_v1/prepared/reentrancy_contract/G3R/S0o/fold_1/initial.pt",
+    "sha256": "f4ded2bde717527531c3c209f585d9bd3fc02c8d82bc705d36b1c1fff6241b98",
+    "state_sha256": "c3c14a77853dfe367b62b796fc320d54838f5804f1a18ad18c1087338454aff0"
+  },
+  "dropout": {
+    "fit_seed": 1011001,
+    "task_id": "reentrancy_contract",
+    "fold": 1,
+    "profile": "G3R",
+    "spec_digest": "9e111660ebf77fa427134747ac6e01f95a287690475cf018b67ad1bb61619e85",
+    "probability": 0.0,
+    "seeds": {},
+    "reset": "immediately before each fresh fit, counters zero; eval does not advance",
+    "cuda_determinism": "EmbeddingBag/scatter backward atomic additions may be nondeterministic"
+  },
+  "preparation_evidence": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NA_v1/prepared/reentrancy_contract/G3R/S0o/fold_1/preparation.json",
+    "sha256": "0750ef340ee0e64cf774fdc8dcce5954d449d4779d1e0aca79058e05cc36f327"
+  }
+}

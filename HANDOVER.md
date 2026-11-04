@@ -2517,3 +2517,14 @@ Contract GPU passed: 2; OOM: 0. Tests: 805+2653+223=3681 passed; 0 failed/skippe
 用户先误选“停止”，随后明确更正“刚才点错了，按照你推荐的方式进行”。依据更正授权，新resume2计划保留旧失败、plan/seal及精确旧driver源码，复用6CPU和2GPU成功收据，只继续6项剩余GPU。1e-4的绝对/张量相对门槛仍保持，但验收前提改为同初值CPU与临时关闭TF32的GPU eval。默认TF32下的差异单列，不能称默认GPU也通过该门槛。训练前用finally恢复matmul/cudnn的原TF32设置（均true），完整fit后再次核验；训练计算、参数、随机种子、模型及数据保持原样，未把训练改成禁用TF32。
 
 独立诊断入口p4b_parity_diagnostic.py未调用训练器。参数、原计划和证据保留；零步诊断与单轮fit分别计数，不作为新的seed实验。若诊断或fit出错仍停止，未自动放宽容差。
+
+
+## 2026-11-03 NodeSem NS-P5：N-A原名计划完成（修改 AI：Codex）
+
+按r16封存artifacts/batch_NA_v1：{S0o,S1o,S2,S4}×{G0,G3R}×30折=240个新fit计划；本轮训练0次、CUDA未初始化。32套载体、240份零步初值逐一CPU严格重载；32组fresh fold1证明参数逐位一致，16组原token一致。S0o全参数及其他配置共同参数取对应8H零步锚点，旧匿名分数不作原名配对基线。
+
+用户批准本机RTX3050先导、服务器另建，以及先证明再复用未训练结构。保留分组嵌套协议、inner_val选best/outer_test最终评分、L-audit/seed1/默认TF32，同一比较族不混设备。G0+S4仍含DFG派生特征，不是无DFG对照。非SolidiFI节点正例32/20核对通过。
+
+3722测试通过，0失败/跳过，42既有警告；8H、旧P4和三文档前缀核验通过。准备52.6分钟，正式fit名义估算8.03–8.68小时，仅假设估算；合约S4单轮最低空闲44MiB，不能保证全量稳定。
+
+新增batch_na.py/p5_prepare.py/test_batch_na.py，旧执行器/冻结代码不变；授权模板false，NS-P5A另绑worker与授权，不改旧seal。报告NS_P5_REPORT、详细选择/命令见training_changes§84。最终实验使用用户安排的显存充足服务器，本机4GiB仅开发限制，服务器未部署实测。重产物留WSL、不额外写C盘；本地提交，不自动推送、不启动训练。
