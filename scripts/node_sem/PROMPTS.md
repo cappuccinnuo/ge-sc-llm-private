@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r16（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+版本：r17（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+
+**r17 相对 r16 的修改**：NS-P5 审查通过（第 5M 节）。NS-P5A 补充：正式 worker 的绑定方式（执行修订记录，不改已封存 plan）、禁止沿用冒烟的 1 epoch 覆盖、本机批次与服务器批次的关系。
 
 **r16 相对 r15 的修改**：NS-P4b 审查通过（第 5L 节）。按 EXPERIMENT_POLICY（原名为主）改写第 4.12 节的批次与预先登记、NS-P5、NS-P5A、NS-P6：S0 不再复用匿名 8H，改为新跑原名 S0o；N-A 为 {S0o,S1o,S2,S4}×{G0,G3R}=240 次；N-B 加入 S4m 名字对照；所有比较要求同一设备类型与相同 TF32 设置；SolidiFI/非 SolidiFI 分层为预先登记的描述项。
 
@@ -1299,7 +1301,13 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
 ```text
 # NS-P5A：执行 N-A
 
-1. 把用户授权原文写入 artifacts/batch_NA_v1/authorization.json（排他创建），绑定 plan 与 seal 的 SHA，写明 job 数为 240（原名视图，不复用匿名 8H）。
+0. 正式 worker（r17）：NS-P5 的 plan 没有绑定执行入口（旧 execution.py 只接受匿名 S0/S1，必须继续拒绝本 plan）。新增 scripts/node_sem/batch_na_worker.py，复用 NS-P4/P4b 已验收的 run_fit 核心路径（构造 → 载体与初值核验 → FitInputGuard → 冻结 trainer.fit → best/last 评分与重载），但：
+   - 不得覆盖 maximum_training_epochs、patience、学习率或任何训练配置；effective_config 必须与 plan 中该 job 的 config 逐字段相同（测试断言，冒烟用的 maximum_training_epochs=1 不能出现在正式路径中）；
+   - 初值只从 plan 引用的零步文件读取，核对文件 SHA 与 state digest；
+   - 每个 receipt 记录实际 GPU 型号、torch/CUDA 版本、allow_tf32（matmul、cudnn）、显存峰值与最低空闲（local_dev_v1：低于 100 MiB 只标 memory_tight，不停止；OOM/CUDA 错误停止整批）；
+   - 写一份执行修订记录 artifacts/batch_NA_v1/execution_revision.json（排他创建）：绑定 plan 与 seal SHA、worker 及其新增依赖的源码 SHA，并证明 plan.runtime 中的全部模型/训练/特征源码 SHA 在执行时不变；已封存的 plan 与 seal 不改。
+   - 先在 CPU 上用 reentrancy_node fold0 G3R S4 跑 2 epoch 的 worker 自检（写在独立目录，不计入正式结果），证明 worker 与 p4_acceptance.run_fit 在相同输入与相同 epoch 数下逐位相同。
+1. 把用户授权原文写入 artifacts/batch_NA_v1/authorization.json（排他创建），绑定 plan、seal 与 execution_revision 的 SHA，写明 job 数为 240（原名视图，不复用匿名 8H）、运行位置与设备族（按用户已批准的方案：本机 RTX3050 为本批的设备族，服务器另建批次）。
 2. 开训前证明：
    - 用新 plan 重新执行 NS-P1 的 S0 等价检查（CPU，2 epoch），并对 S0o 核对其初值与 8H S0 逐位相同、载体与原图 token 逐位相同，作为回归；
    - 试点：完整跑 2 个正式 fit（reentrancy_node fold0 G3R S4；reentrancy_contract fold0 G3R S4，后者用于确认完整训练的显存），记录耗时、显存与 TF32 设置。试点结果计入正式产物，不重跑。
@@ -1311,6 +1319,7 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
    - 主终点与 Holm 家族（差值均值、95% bootstrap 区间、提升/持平/下降、A12、Wilcoxon 原始 p 与 Holm 校正后的 p）；
    - 交互项；
    - 第 4.12 节的全部必含项，包括注意力饱和诊断：对 S0o、S1o、S2、S4 × G3R 的 best checkpoint 各做一次 eval 前向，统计第一层每个关系 head 最大权重 ≥0.99 的比例（方法同 dfg_v2/attention_probe.py）；
+   - 报告首页写明：本批全部在本机 RTX3050 设备族（TF32 默认开启）上完成，是按预先登记分析的本机批次；服务器批次将另行封存、使用同一预先登记，作为复现报告；两者不合并、不择优，结论不一致时两者都报告；
    - 写 artifacts/batch_NA_v1/reports/REPORT.md 与 report.json，以及 scripts/node_sem/NS_P5A_REPORT.md。然后停下。
 ```
 
@@ -1659,6 +1668,19 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 - 日志接入失败（训练前，未进行优化步骤）与用户先误点“停止”后更正的两次恢复，都封存了新计划并保留旧失败现场，复用的结果有收据，处理正确。
 
 **视图口径**：用户在 NS-P3b、NS-P3b2、NS-P4、NS-P4b 中均保持原名为主，没有选择我在第 5H 节建议的匿名主终点。因此从本版起，第 4.12 节与 NS-P5/5A/P6 按原名视图改写：S0 改为新跑原名 S0o，SolidiFI/非 SolidiFI 分层和 S4−S4m 作为预先登记的描述项。匿名复核（N-D）保留为待用户决定的选项。
+
+## 5M. NS-P5 审查记录（2026-11-03，Claude）
+
+**结论：通过。** 下一步是 NS-P5A（需要用户填写授权后才能训练）。
+
+**复核：**
+- 240 个 job 覆盖 {S0o,S1o,S2,S4} × {G0,G3R} × 30 折（重入/访问控制合约各 5 折、节点各 10 折），8 个（任务、图配置）组合中 4 个配置使用同一图文件，且图的 SHA 与 8H plan 中对应的 G0/G3R 完全相同（G0 为作者 E0 图，G3R 为 graphs_v2_r1 的 F3）。
+- 训练配置逐任务取自 8H（例如 reentrancy_contract：lr 5e-4、OneCycle max 0.01、50 epoch、patience 7、按最小 inner_val loss 选 best），没有统一覆盖。
+- 预先登记与第 4.12 节一致：主终点、Holm 四比较（Wilcoxon 双侧，zsplit，与 8H 相同）、交互项只描述、S* 只在 S1o/S2/S4×G3R 中按 inner_val 选择且不替换 S4、SolidiFI 分层只按文件名前缀（不读标签）、非 SolidiFI 正例 32/20 的逐节点表、匿名 8H 只作历史参考。
+- local_dev_v1 中“运行时最低空闲 100 MiB”只产生 memory_tight 提醒（local_dev.py），不会中止 reentrancy_contract/G3R/S4（NS-P4b 实测 44 MiB）；OOM 与 CUDA 错误才停止。
+- Codex 主动指出“G0 上的 S4 仍含由 DFG 生成的 CTX/STATIC，不能当作无 DFG 对照”，并写进交互项的解读，这是正确且重要的补充。
+
+**NS-P5A 前需要明确的两点（已写入第 5.8 节）：** 正式 worker 尚未绑定，且 NS-P4 的验收入口带有 maximum_training_epochs=1 的覆盖，正式路径必须证明不带任何训练配置覆盖；用户批准的“本机先导、服务器另建批次”需要在授权与报告中写清两批的关系。
 
 ## 6. 里程碑
 
