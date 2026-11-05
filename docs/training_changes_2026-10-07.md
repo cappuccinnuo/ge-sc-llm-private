@@ -8424,3 +8424,104 @@ prepare已执行，命令和exit记录在ns_p5/run_prepare.py、prepare_exit.jso
 最终追加记录：准备52.6分钟，planSHA为fa880ce2a7d97187c4805adb35189e323b4332e7cb8e9a77b21d2271bebf8cb2，名义运行估算8.03–8.68小时。所有重产物留WSL且SHA引用，不复制至C盘。文档辅助写入曾因Windows命令长度限制和UNC直接写入受限未启动/未落盘；改用短ASCII脚本、Unicode转义写UTF8模板，没有影响准备进程、图、初值、测试或seal。
 
 未执行240次训练、GPU前向、服务器部署、NS-P5A、额外模型下载/编码/编译、新关系或更多seed；不以计划完整声称实验完成。新授权模板execution_authorized=false，标签L-audit/seed[1]/original/local_dev_v1预填，run_location/user_request等待执行授权。按用户服务器意图和共享上下文本地提交NS-P5，未推送。
+
+
+## 85. 2026-11-03 NodeSem NS-P5A N-A 执行接入（修改 AI：Codex）
+
+### 85.1 范围与冻结边界
+
+按 node-sem@b7d8ef883e75b207f8655d1cd58469fc3938425c 的 PROMPTS r18 执行，文档SHA为5e2f57a41f2a91d979ecba895f23511ef5b1f4ed2b0985e4d8c3af0394f2a198。本节为实施中记录，正式结果验收将在后续小节追加；不能把下述测试通过当作240次训练已完成。
+
+继续使用NS-P5已封存的batch_NA_v1/plan.json，SHA为fa880ce2a7d97187c4805adb35189e323b4332e7cb8e9a77b21d2271bebf8cb2。旧plan/seal、240份零步初值、32套载体、图、标签、折及旧执行器均不改。新增na_carrier、batch_na_worker、batch_na_controller、p5a_acceptance、reporting、na_attention及两组测试；原DFG、HGT、tokenizer、冻结trainer不修改。
+
+主视图original；L-audit、分组嵌套、seed1、默认TF32、50轮上限、原Adam/OneCycle/早停规则全部逐job沿用。S0o原始token linear、S1o可学习token嵌入、S2原名CODE、S4原名CODE+CTX+245维STATIC；载体维数512/513/257/760。旧匿名8H只提供已封存零步锚点、协议和历史参考，不能作为本批原名配对基线。G0+S4仍包含DFG派生CTX/STATIC。
+
+### 85.2 用户批准的执行选择
+
+r18“先完成两个正式pilot”和“主终点40项优先”存在顺序歧义，用户批准“同意先完成两个 pilot，再完成主比较40项（推荐）”。执行顺序为：重入节点G3R/S4/fold0、重入合约G3R/S4/fold0，然后剩余39项重入节点G3R主比较，再执行其余任务。两个pilot计入240，不重训；仅execution_revision记录新顺序，旧plan不变。
+
+用户批准“允许确认属于外部中断时最多重跑一次（推荐）”。实现限定为控制器实际观察到SIGTERM/SIGHUP，且没有Python异常、OOM/CUDA错误证据，保留attempt_001后从同一零步初值开始attempt_002。SIGKILL可能来自内核OOM，不能仅凭没有Python日志认定外部中断；原因不明则停止。任何数值、输入、checkpoint或资源错误仍停止整批，不降维、不切CPU、不无限重试。机器睡眠不等于自动继续计算。
+
+本轮实施请求原文与两项答复写入decisions_P5A.json；授权另建authorization.json，绑定plan、seal、execution_revision、240任务、original/L-audit/seed1/local_RTX3050。旧authorization.template仍false。用户此前明确最终实验使用显存充足服务器，本批按已批准方案为本机先导；服务器另行封存、按同一预先登记复现，不合并或择优，若结论不一致须同时报告。本轮未部署或测量服务器。
+
+### 85.3 执行器与验收设计
+
+na_carrier直接读取已封存NPZ/manifest，分别核对文件SHA、原图指纹、spec、行身份及顺序、维数/有限性，再把向量安装到图副本。正式路径不重复AST锚点、assemble或逐行向量SHA。开训前32组逐位比较carry现算载体，并额外核对同种子模型参数、输入与schema；S0o另核对原token。原图和冻结构造器不变。
+
+worker复用P4/P4b路径，但去除1epoch覆盖、额外梯度hook和零步精度诊断；正式effective_config必须完整等于封存job.config。仅从封存零步文件加载，SHA+tensor digest核验；每fit恢复原fit seed及按任务/折/图/spec/节点类型隔离的dropout状态。FitInputGuard和冻结fit继续承担监督、checkpoint及重载预测核验。冻结trainer本身的关系梯度审计保留；删除的是验收专用额外hook。
+
+新增独立CPU验收：重入节点G3R/S4新旧路径各1轮；重入节点G3R及访问控制合约G0的S0o原始linear基线与新路径各2轮，共6次非正式CPU拟合。只在验收中改epoch上限，比较每轮loss、best/last参数、Adam/调度器状态及全部预测；墙钟字段不要求数值相同。两实例OneCycleLR绑定方法沿用NS-P1已批准的“同类、同函数实现”比较，其他字段严格逐位。
+
+控制器由tmux独立进程启动，串行调度，每fit独立子进程并持有原全局GPU锁；status/progress原子替换，训练期间不访问网络。成功收据重验后跳过。运行日志每轮一行；inner_val仍每轮评估，best/last和outer_test按原格式只导出一次。记录启动、载体、构造、初值、训练/评分及写出耗时；fit内部子项包含重叠时间，报告注明不直接相加。前4个重入节点fit外推仅是初期估计。
+
+power_check记录已接交流电、100%电量，Windows交流睡眠/休眠索引均为0（从不），没有更改Windows设置；WSL磁盘尚余约746GiB，GPU初始空闲3300MiB。local_dev_v1启动门槛3000MiB，运行低于100MiB仅提示，OOM仍停止。大产物留WSL，不另写C盘。
+
+最终报告先仅用inner_val封存S*，再读取outer_test；按身份重算指标，分开best/last、折均值/pooled OOF、L-audit/原标签。Holm只应用预登记主比较家族；其他任务描述性报告。注意力在全部正式拟合完成后，用120个G3R best checkpoint各1次eval，逐关系/head区分单邻居恒为1与多邻居饱和，不增加训练。N-A没有gated配置，门控分布应明确“不适用”。
+
+### 85.4 当前测试与待完成项
+
+最终单元回归883 NodeSem＋2653 DFG v2＋223原项目＝3759通过，0失败/跳过，42条既有弃用警告。额外定向37项属于上述集合，不重复累计。完整合成240项汇总测试发现空分层不能调用原metrics；新报告将其记为n=0、指标null，未改变非空统计算法；首次失败及修复后通过日志保留。PowerShell首次读取电池受沙箱权限限制，未写产物；用获准的只读调用后得到真实记录。
+
+命令与日志在batch_NA_v1/acceptance、carrier_gate.log和cpu_gate.log。此时载体/CPU实证仍在完成中，未启动正式GPU训练、未产生正式新F1。后续仅在所有门槛通过后封存execution_revision与授权并运行两个正式pilot，结果和全部任务进度继续追加；不自动开始N-B、多seed或新模型模块。
+
+
+## 2026-11-04 NS-P5A 正式批次运行中（修改 AI：Codex）
+
+开训门槛现已全部通过：32/32 封存载体与现算载体、同种子模型逐位一致，6/6 非正式 CPU 等价 fit 通过；3759 单元回归通过，0 失败/跳过，42 既有警告。此记录补充前一时间点“尚未开训”的状态，不改旧文。
+
+正式运行已封存 execution_revision 与独立 authorization；旧 plan/seal 未改。两个正式 pilot 均验收通过：重入节点 G3R/S4/fold0 约179.5秒，22轮，最小空闲397MiB；重入合约 G3R/S4/fold0 约218.2秒，17轮，最小空闲74MiB。两者 best/last 重载预测一致，默认TF32保持开启，计入240次。74MiB按local_dev_v1记录memory_tight，不触发未经批准的降配或停止。
+
+截至本次追加，控制器已验收40/240次，正在重入节点G3R/S1o/fold9；进度以batch_NA_v1/controller_status.json为准。前4个重入节点fit平均约162.66秒，外推整批拟合10.84小时仅为初期估计，不包括120次训练后注意力eval；不得据此保证完成时间。训练期间不汇总F1。
+
+训练在tmux nodesem-na-v1中单GPU串行执行，与Codex会话和网络独立；Windows已接电、交流睡眠/休眠为从不，设置未被修改。失败停止且保留现场；仅已批准并确认的外部SIGTERM/SIGHUP最多重跑一次。当前没有训练失败记录。
+
+新增独立finish_delivery.py仅在controller complete、240个正式收据、120个注意力结果及全部引用SHA通过后写NS_P5A_REPORT并追加三份最终记录、按显式小文件清单本地提交；不启动训练、不读取中途F1、不push。收尾源码和文档前缀另由delivery_revision记录；若用户随后改变文档、HEAD或暂存区，收尾拒绝自动提交，保留结果供核对。该脚本不属于正式计算路径，不改变已封存运行源码。
+
+最终服务器实验使用用户安排的充足显存设备，另建批次并保持相同预登记；本机RTX3050 4GiB只是当前开发限制，两批不合并、不择优。原名为主，匿名8H仅历史参考和零步锚点；本轮不运行N-B、多seed或服务器实验。产物留WSL，不另复制到C盘。
+
+
+### 85.6 正式启动与独立收尾记录
+
+本次独立执行修订SHA为965bdb41efac286e2fc8f8207731479247cc4045f2940da3728010ae70f67f42；授权SHA为5e9050fefc3b27870065bf909ecd89632fe9b39e70a3b6ba44f5e22919a452c4。已冻结364个原计算源码引用和5个新增正式模块；收尾脚本仅处理已完成产物，另记录来源而不修改execution_revision。
+
+验收正式CPU结果：S4新旧路径各1轮，两个S0o基线组各2轮，两路径history/模型/Adam/调度器/预测严格等价。Comparator来源代码与输入HEAD相同；OneCycleLR方法对象沿用既有批准的函数实现比较。6次验收拟合与240正式拟合分开，不计入正式结果。
+
+收尾脚本已做两项纯CPU自检：真实未完成批次必须拒绝结束；合成负差值结果可正确呈现符号、提升/持平/下降数量、参考选型及UTF-8中文。这是文档收尾检查，不增加正式训练或推断，不重复计入3759项单元回归。它还检查并发文档/source变更，拒绝吞入用户新修改；只允许预先列明的代码、三文档、报告和小型证据本地提交，PT/NPZ/大型日志不提交。
+
+
+## NS-P5A N-A 全量完成（修改 AI：Codex）
+
+<!-- NS-P5A_FINAL_DELIVERY_V1 -->
+
+240/240 原名正式 fit、120/120 G3R best 注意力 eval 已验收；两个正式 pilot 计入 240，不重复训练。32 组载体/模型逐位证明和 6 次 CPU 等价 fit 已通过；3759 单元回归通过，0 失败/跳过，42 既有警告。正式配置与计划逐字段相同，全部 checkpoint/预测重载和设备/TF32 一致性通过。
+
+主终点重入节点 G3R 的 S4−S0o 为 +0.1474 个百分点，提升/持平/下降 8/0/2 折；Holm 校正 p=0.0742188。S*=S2 仅按 inner_val 选择；best/last、折均值/OOF、原标签与 L-audit 分开。完整表、统计边界和命令见 NS_P5A_REPORT.md 与 batch_NA_v1/reports。
+
+最终服务器另建批次并按相同预登记复现；本机 4GiB 仅当前限制，两批不混合、不择优。本轮没有 N-B、多 seed、七类扩展或服务器运行；没有自动 push。
+
+### 85.5 最终验收补充
+
+{
+  "input_head": "b7d8ef883e75b207f8655d1cd58469fc3938425c",
+  "formal_fits": 240,
+  "attention_evals": 120,
+  "fit_wall_seconds": 37733.730776786804,
+  "max_allocated_mib": 1958.70068359375,
+  "max_reserved_mib": 2386.0,
+  "min_free_mib": 34.0,
+  "memory_tight_fits": 20,
+  "failures": 0,
+  "external_interruptions": 0,
+  "finalized_utc": "2026-11-04T16:19:38.584562+00:00"
+}
+
+本节追加到先前“验收/训练尚未开始”的时间点之后，不改历史状态。execution_revision SHA=965bdb41efac286e2fc8f8207731479247cc4045f2940da3728010ae70f67f42；原 plan/seal SHA 保持 §85.1 所记录值。正式失败与外部中断数量包含保留现场，重跑不计新 seed。收尾脚本仅在 controller complete 且 240/120 索引与文件 SHA 均通过后写报告、追加文档和本地提交；不会训练、修改旧产物或启动下一批。
+
+
+## 2026-11-04 NS-P5A 收尾核验补充（修改 AI：Codex）
+
+240次正式训练和120次注意力eval全部完成，失败/外部中断/重试均为0。独立收尾脚本已经生成报告及三文档最终记录，但本地提交在git diff --cached --check处退出：冻结CSV使用标准CRLF，Git默认将行末CR提示为trailing whitespace。使用仅本次命令的git -c core.whitespace=cr-at-eol diff --cached --check复查通过；未转换CSV、未修改训练/报告统计源码、旧seal或结果字节，也未重训。保留delivery_failure_295895.json和旧日志，另写delivery_recovery.json，再完成本地提交；不自动push。
+
+结果解读：G3R上的S4相对S0o，重入合约/访问控制合约/重入节点/访问控制节点best折均BF1分别增加1.6789/0.3284/0.1474/0.0076个百分点。主终点重入节点8升2降，Holm p=0.07421875，不能声称通过0.05的校正显著性标准。仅CODE的S2在重入节点达到99.8265%，高于S4的99.7721%；inner_val选出的参考S*也是S2，因此现有证据未证明CTX+STATIC联合增强优于CODE。
+
+非SolidiFI节点pool单列：重入S0o→S4为TP20→25、FP11→7、FN12→7，BF1 63.49%→78.13%；访问控制为TP0→2、FP3→10、FN20→18，BF1 0%→12.5%，仍然漏掉18/20个正例。总体99%以上不能等同真实来源文件已解决。该分层是小样本诊断，并非独立重复。best预登记主结果不因last更好而替换；重入节点last的S4−S0o为-0.0326个百分点，与best的小正向不同。
