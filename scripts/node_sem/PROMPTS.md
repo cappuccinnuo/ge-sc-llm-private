@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r18（2026-11-03）。作者：Claude（方案与审查），实现：Codex。
+版本：r19（2026-11-04）。作者：Claude（方案与审查），实现：Codex。
+
+**r19 相对 r18 的修改**：NS-P5A（N-A 240 次训练）审查通过（第 5N 节）。NS-P6 按 N-A 的结果补充执行细节与事后描述项（明确标为事后、只作描述）。
 
 **r18 相对 r17 的修改**：NS-P5A 增加第 0b 节（不改变结果的耗时优化与执行顺序）与第 0c 节（与 Codex 会话、网络无关的后台运行、睡眠防护与中断恢复）。依据：8H 实测每个 fit 墙钟约 143 秒（训练约 102 秒）；NS-P4b 的阶段日志显示 NodeSem 在 reentrancy_contract/S4 上训练前的构造与校验约 90 秒、移到 GPU 与绑定约 27 秒、训练后验收约 18 秒；8H 第一次运行曾因 Windows 睡眠约 80 分钟在 71/170 处中断。
 
@@ -1340,12 +1342,22 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
 ### 5.9 Prompt NS-P6：批次 N-B
 
 ```text
-# NS-P6：N-B（S3 × G3R、S4g × G3R、S4-noG（G0，layers=0）、S4m × G3R，共 120 次 fit）
+# NS-P6：N-B（S3 × G3R、S4g × G3R、S4-noG（G0，layers=0）、S4m × G3R；四个任务，共 120 次 fit）
 
-流程同 NS-P5 + NS-P5A：先计划与封存，等授权，再执行与报告。目录 artifacts/batch_NB_v1/。
-- 预先登记的比较（全部只作描述）：S4−S3、S3−S2（S2 引用 N-A 的结果）、S4g−S4、S4−S4-noG（S4-noG 与 G3R 上的 S4 比较，并另报与 G0 上 S4 的比较）、S4−S4m（名字对照，同时报 SolidiFI/非 SolidiFI 分层）。设备类型与 TF32 设置必须与 N-A 相同。
-- 报告另加：S4g 中按节点类型统计的门控权重均值与分布。
-- 引用 N-A 结果时，按 receipt SHA 只读核对。
+流程同 NS-P5 + NS-P5A：先计划与封存（artifacts/batch_NB_v1/，排他创建），停下等用户授权，再执行与报告。
+
+## 1. 计划
+- 配置：S3（CODE+CTX，concat）、S4g（CODE+CTX+STATIC，gated）、S4m（与 S4 相同，但 CTX 用 ctx_masked）均在 G3R；S4-noG 在 G0、layers=0。特征来自 ns_p3/CURRENT（NS-P3b2），载体与初值按 NS-P5 的方法准备并深度核验；S4m 的 CODE 仍为原名，必须在计划中写明。
+- 训练配置、折、标签（L-audit）、seed=1、初值规则与 N-A 完全相同；设备族必须与 N-A 相同（本机 RTX3050、torch 1.8.1+cu111、TF32 默认开启），否则拒绝与 N-A 比较。
+- 执行沿用 N-A 已验收的 batch_na_worker 与 batch_na_controller（载体快路径、无训练配置覆盖、tmux/setsid 后台、心跳、从已验证收据恢复、外部中断最多重跑一次需用户在授权中同意）；用执行修订记录绑定，不改 N-A 的任何文件。开训前重做电源检查。
+- 顺序：先 reentrancy_node（40 个），再其余任务。
+- 预先登记的比较（全部只作描述，不做 Holm）：S4−S3、S3−S2（S2 引用 N-A）、S4g−S4、S4−S4-noG（并另报 S4-noG 与 G0 上 S4 的比较）、S4−S4m。
+- 事后描述项（r19，依据 N-A 结果加入，在计划中明确标为“事后、只作描述、不参与任何结论的显著性判断”）：S3−S2、S4g−S2、S4m−S2，以及 N-A 中的 S4−S1o、S2−S1o；每项都按 SolidiFI/非 SolidiFI 分层报告 pooled TP/FP/FN 与 BF1，重入节点与访问控制节点另附非 SolidiFI 正例（32/20 个）的逐节点概率对照（同一节点在各配置下的预测）。
+- 报告另加：S4g 按节点类型的门控权重均值与分布（只统计有可用模态的行）；S4g 与 S2 在 CODE 门控权重上的关系（门控是否把权重几乎全部给 CODE）。
+- 引用 N-A 结果时按 receipt SHA 只读核对。
+
+## 2. 授权与执行
+写 authorization.template.json（execution_authorized=false），停下等用户。授权后按 N-A 的方式执行、验收（120/120 收据逐一核验）与报告；写 NS_P6_REPORT.md；更新 PROGRESS、HANDOVER、training_changes（doc_check 通过）。完成后停下，不进入 NS-P7。
 ```
 
 ### 5.10 Prompt NS-P7：M3b LLM 描述（本机试点）
@@ -1695,6 +1707,25 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 - Codex 主动指出“G0 上的 S4 仍含由 DFG 生成的 CTX/STATIC，不能当作无 DFG 对照”，并写进交互项的解读，这是正确且重要的补充。
 
 **NS-P5A 前需要明确的两点（已写入第 5.8 节）：** 正式 worker 尚未绑定，且 NS-P4 的验收入口带有 maximum_training_epochs=1 的覆盖，正式路径必须证明不带任何训练配置覆盖；用户批准的“本机先导、服务器另建批次”需要在授权与报告中写清两批的关系。
+
+## 5N. NS-P5A（N-A）审查记录（2026-11-04，Claude）
+
+**结论：执行与数据通过，进入 NS-P6。** 不需要纠正性 Prompt。
+
+**复核：**
+- 240 个 fit 的 resources.csv 完整（每配置 60 个），实际墙钟合计 10.48 小时（我在 r18 中估计 8–9.5 小时，偏乐观；S4 每个 fit 训练外仍有 40–85 秒开销）；最低整卡空闲 34 MiB（reentrancy_contract/S1o），只产生 memory_tight 提醒；没有失败、外部中断或重试。电源检查（交流供电、睡眠与休眠为“从不”）与 tmux 后台运行都有记录。
+- 正式 worker 不覆盖训练配置（只把 maximum_training_epochs 用于完整性检查）；best/last 轮次合理（best 平均 8–23 轮，last 比 best 多 5–7 轮，与 patience 7 一致）。
+- 我用 scipy 独立复算重入节点 G3R 的四项 Wilcoxon：S4−S0o p=0.0371、S2−S0o p=0.0098 与报告完全相同；S1o−S0o 与 S4−S2 含零差，报告使用的 scipy 1.7.3 以正态近似得到 0.0144 与 0.2213（我环境中的新版 scipy 给出 0.0117 与 0.2539，差别来自版本对零差的处理，不改变结论）。Holm 校正后：S2−S0o 0.039、S1o−S0o 0.043（均 <0.05），S4−S0o 0.074，S4−S2 0.221。NS_P5A_REPORT 只写了主终点的 Holm 值，没有写出另两项通过校正，应补述（见下）。
+- access_control_contract 的 G0/S4 与 G3R/S4 折均值相同（92.2245）是逐折数值换位造成的巧合（逐折结果不同），不是重复运行或图引用错误。
+
+**结果的解读（我的独立判断）：**
+1. 主终点未通过：S4−S0o = +0.147 个百分点，Holm p=0.074。
+2. 相对 S0o 的提升主要来自“不再把整数 token ID 直接线性输入”：只学 token 嵌入的 S1o 与只用 CODE 的 S2 都通过 Holm，而 S4 与 S1o 几乎相同（99.772 vs 99.789），S4 低于 S2（−0.054，6 降 3 升）。现有证据不支持 CTX+STATIC 在 CODE 之上带来增益。
+3. 原名视图下 SolidiFI 已饱和：重入节点 G3R 中 SolidiFI 的 6751 个正例，S1o/S2/S4 全部检出（FN=0），差别只剩 11–24 个误报；整体 BF1 几乎完全由 SolidiFI 决定（占正例 99.5%）。同一任务在匿名 8H 中 S0 的 SolidiFI 为 TP 6705/FP 44/FN 46，即原名把这部分变成了“认名字”。这证实了第 5H 节的担心：在原名主终点上，语义增强几乎没有可测量的空间。
+4. 有信息量的部分在非 SolidiFI（重入节点 32 个正例）：TP/FP/FN 为 S0o 20/11/12、S1o 22/1/10、S2 25/5/7、S4 25/7/7；匿名 8H S0 为 21/19/11。CODE 带来约 5 个 TP，CTX+STATIC 没有再增加；访问控制节点的非 SolidiFI 20 个正例，各配置只检出 0–2 个。这些只是小样本描述。
+5. N-B 仍值得按预先登记完成（约 5–6 小时）：S4g 检验“concat 把 CODE 信号稀释”这一可能，S4m 检验 CTX 中的名字，S4-noG 检验 CTX/STATIC 能否替代 DFG 边；我在 NS-P6 中加入了明确标为事后描述的 S2/S1o 对照与逐节点对照。
+
+**文档补述（不需要 Codex 重做）：** 第 5N 节即为补述：Holm 家族中 S2−S0o、S1o−S0o 通过 0.05，S4−S0o 与 S4−S2 未通过。
 
 ## 6. 里程碑
 
