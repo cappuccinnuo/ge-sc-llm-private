@@ -8525,3 +8525,66 @@ power_check记录已接交流电、100%电量，Windows交流睡眠/休眠索引
 结果解读：G3R上的S4相对S0o，重入合约/访问控制合约/重入节点/访问控制节点best折均BF1分别增加1.6789/0.3284/0.1474/0.0076个百分点。主终点重入节点8升2降，Holm p=0.07421875，不能声称通过0.05的校正显著性标准。仅CODE的S2在重入节点达到99.8265%，高于S4的99.7721%；inner_val选出的参考S*也是S2，因此现有证据未证明CTX+STATIC联合增强优于CODE。
 
 非SolidiFI节点pool单列：重入S0o→S4为TP20→25、FP11→7、FN12→7，BF1 63.49%→78.13%；访问控制为TP0→2、FP3→10、FN20→18，BF1 0%→12.5%，仍然漏掉18/20个正例。总体99%以上不能等同真实来源文件已解决。该分层是小样本诊断，并非独立重复。best预登记主结果不因last更好而替换；重入节点last的S4−S0o为-0.0326个百分点，与best的小正向不同。
+
+
+## 86. 2026-11-04 NS-P6：N-B原名消融计划封存（修改 AI：Codex）
+
+### 86.1 范围、来源与阶段边界
+
+读取node-sem@a4145f3017471054ed6d0e1bbe4a4249a17c02b2的PROMPTS r19、§5.1共享上下文、§5.9 NS-P6、EXPERIMENT_POLICY及N-A完成报告。开始时WSL DNS不能解析GitHub，使用既有Windows代理/Git只读同步后确认Already up to date；未切换分支、未覆盖用户文件。
+
+r19要求先准备与封存，再单独取得训练授权。本轮完成N-B准备门槛，训练0次、GPU前向0次、CUDA未初始化；不是N-B训练结果完成。120项固定矩阵：四任务30折×{S3、S4g、S4m、S4-noG}；合约5折/节点10折。S3/S4g/S4m用G3R，S4-noG用G0且明确layers=0。没有重跑N-A、修改DDG/HGT/tokenizer/数据/标签/折、重新编码或下载模型。
+
+batch_NB_v1独立排他创建，plan SHA=df62bc0ab3e1ce6719d0739005edc54a7b629bc693057df82dbae9db6a993c0a，seal SHA=955d13d4803e4740b5f5eab4efc62abbf32a2ae0d44510ad2036667a7c83ce7a。authorization.template.json为false；没有正式授权/执行修订。输入Git HEAD与实际计算源码摘要分开记录，共374个运行源码归档，后续本地提交不会假装与准备时HEAD相同。
+
+### 86.2 两项方案差异与用户明确选择
+
+第一项：N-A worker/controller及计划只允许240项与原配置/授权格式，无法用N-B120项直接执行。向用户说明并获批“同意新增独立 N-B 适配，复用原训练核心（推荐）”。因此新增batch_nb_worker/controller，不修改旧白名单；直接import原construct、formal_config、run_core、verify_attempt，保留原optimizer、scheduler、fit、监督、checkpoint和评分算法。调度只处理新矩阵、授权、目的绑定和收据；新binding purpose=formal_NB。失败/成功恢复沿用原规则，训练不因指标下降中断。
+
+第二项：r19把S3−S2同时列为预登记与事后。用户获知重复后选择“同意按历史来源区分并记录（推荐）”。整体S3−S2仍是此前计划的描述性对照；新增分层与逐节点解读标为r19事后，不重复计算，不作显著性推断。所有N-B比较只作描述，不加Holm，不更换主结果或按outer_test选配置。
+
+精确答复见ns_p6_checks/decisions_verbatim.json，计划引用decisions.json。先前批准的“证明逐位相同后复用未训练结构”继续适用，不再次请求。每组用fold1 fresh模型与复用结构比较全部初始化张量和字典；通过后各折仍从对应封存零步锚点独立写入所有参数，未继承已训练权重。
+
+### 86.3 实际实现与输入绑定
+
+新增batch_nb.py负责120项完整矩阵、S4m/零层规格、SHA递归校验、初值/common参数、设备比较和统计身份。nb_history.py只读核验N-A240份收据、产物及报告，保存有SHA的引用索引；历史提交/HEAD不同不被当作计算相同的充分依据。p6_prepare.py复用NS-P5准备方法并保留来源SHA，封存16套载体、120份初值、源码、特征来源和资源估计。
+
+batch_nb_worker.py复用N-A训练核心；batch_nb_controller.py是独立串行调度适配。未复制训练算法。所有配置原cfg字典与N-A逐字段一致；S4-noG的有效0层由既有FeatureSpec.layers覆盖，不能用“0 or cfg.layers”的错误表达。原cfg仍保留2层字段作为冻结来源，实际模型gcs长度为0，两者在证据中分别记录。
+
+S3=CODE256+CTX256+2存在位=514；S4g/S4m/S4-noG=CODE256+CTX256+STATIC245+3存在位=760。STATIC采用P3b2已验收245维，非早期243维。S4m仅CTX来自masked，CODE是original；其他配置均original，未恢复全量匿名主视图。
+
+全部共同HGT/分类器参数与对应8H零步来源逐位相同；S4-noG只比分类器，禁止残留gcs参数。新adapter参数沿用nodesem-semantic-initialization-v2，种子含完整spec，故跨配置新投影参数不承诺相同。dropout身份按task/fold/profile/spec/node_type固定，正式fit前恢复原fit seed。不得把后续分数差异全部解释为纯语义因果。
+
+### 86.4 真实准备与回归证据
+
+120/120初值CPU严格重载，文件SHA、tensor digest、task/fold/profile/spec、optimizer_steps=0、共同参数全部通过；16/16 fresh结构逐位证明和16/16封存载体快路径的输入/参数证明通过。原图指纹、schema/support保持不变。准备41.01分钟；正式fit=0、CUDA initialized=false。
+
+N-A240/240成功收据、所有收据引用和报告引用SHA只读核验；N-B每项的图、标签、折、split、config、seed、零步来源和设备政策与N-A匹配。354个冻结DFG/作者源码和8H生效runtime_resume_v2/load通过，374个N-B运行源码与新归档一致。旧计划/seal、源码和结果未重写。
+
+单元回归925 NodeSem＋2653 DFGv2＋223原DDG/graph_utils＝3801通过，失败/跳过0，42条现有DGL/distutils和NetworkX弃用警告。新增42项N-B定向覆盖矩阵及非法类型、对照顺序、零层/CTX边界、历史初值、文件篡改、跨批输入/精度错配、授权拒绝、N-A旧入口拒收N-B，以及训练核心函数身份不变。中间915项与定向复跑不重复累计；日志保留。
+
+在mando中设置CUDA_VISIBLE_DEVICES=''、PYTHONDONTWRITEBYTECODE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2及既有TREE_SITTER_LIB_DIR后执行：
+- python -B -u -m scripts.node_sem.p6_prepare prepare --decisions scripts/node_sem/artifacts/ns_p6_checks/decisions.json
+- python -B -m pytest -q -p no:cacheprovider scripts/node_sem/tests
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
+- python -B -m pytest -q -p no:cacheprovider scripts/DFG/tests tests/test_graph_utils.py
+
+prepare末尾独立load(deep=True)重验120项，不以生成成功代替验证。最终日志ns_p6_checks/regressions_final.json复制成新batch_NB_v1/regressions.json；旧中间记录保留。只读复查入口p6_prepare verify；不要重复prepare覆盖目录。
+
+### 86.5 后续执行与报告要求
+
+独立批准后才生成execution_decisions、execution_revision和authorization；开训前重新检查交流供电、睡眠/休眠、可用显存。重入节点40项优先，其后重入合约20、访问控制合约20、访问控制节点40。每项独立进程、单GPU、旧锁；成功验证后复用。确认外部中断最多同初值重跑一次需要本次授权再次明确，其他错误立即停止。重新运行失败项不称新seed或epoch续训。
+
+保持dfg-v2-grouped-nested/L-audit/seed1、完整固定图前向、inner_train监督、inner_val早停/最低loss best、outer_test最终评分、best/last分开。保留N-A各任务真实学习率、Adam/OneCycle、最大50轮、patience7/delta0.001。torch1.8.1+cu111、RTX3050、matmul/cudnn TF32=true与N-A同族；不同设备不能混合配对。
+
+统计清单封存S4−S3、S3−S2、S4g−S4、S4−S4-noG并补G0上的S4对照、S4−S4m。事后S4g−S2、S4m−S2、S4−S1o、S2−S1o及分层/非SolidiFI32/20正例逐节点概率单列。报告包括逐折与样本标准差、pooled OOF/混淆矩阵、错误变化、关系支持和资源；不混合不同任务或标签，Wilson仅P/R，BF1点估计。
+
+S4g门控按节点类型与可用模态统计，S2没有可学习门控，不造门控数值；S4-noG无注意力，报告不适用。N-B专用结果汇总和门控/注意力评估尚需执行阶段接入及绑定，本轮未实现完成报告的假象。控制器120fit齐备仅标complete_training_pending_NB_report，不能用它代替最终验收。
+
+### 86.6 资源、局限与交接
+
+N-A同任务同图S4总耗时给出120fit的0.8–1.5倍情景估计4.93–9.25小时，非置信区间，不含准备/门控/注意力评估；N-B尚无实测。历史整卡最低空闲34MiB，local_dev_v1低空闲只提醒，OOM仍停止；不开新GPU预检/训练来绕过单独授权。
+
+产物约2.43GiB（PT/NPZ约2.29GiB）留WSL，不写C盘副本；只把源码、文档、摘要/小型审查元数据加入Git，不提交权重、模型下载或载体。无必要依赖升级或下载。详细入口见NS_P6_README，完整准备报告NS_P6_REPORT。
+
+最终实验按用户明确安排将在显存充足的服务器开展；本机RTX3050 4GiB仅开发限制，服务器尚未部署实测。本地与服务器另建批次，不混合、不择优替换困难折。未执行120次训练、训练后评分/诊断、NS-P7、多seed或新关系扩展。三文档只追加、旧前缀SHA核验及doc_check后本地提交；本轮不自动push。

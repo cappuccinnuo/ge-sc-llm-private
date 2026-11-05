@@ -343,3 +343,16 @@ Contract GPU passed: 2; OOM: 0. Tests: 805+2653+223=3681 passed; 0 failed/skippe
 结果解读：G3R上的S4相对S0o，重入合约/访问控制合约/重入节点/访问控制节点best折均BF1分别增加1.6789/0.3284/0.1474/0.0076个百分点。主终点重入节点8升2降，Holm p=0.07421875，不能声称通过0.05的校正显著性标准。仅CODE的S2在重入节点达到99.8265%，高于S4的99.7721%；inner_val选出的参考S*也是S2，因此现有证据未证明CTX+STATIC联合增强优于CODE。
 
 非SolidiFI节点pool单列：重入S0o→S4为TP20→25、FP11→7、FN12→7，BF1 63.49%→78.13%；访问控制为TP0→2、FP3→10、FN20→18，BF1 0%→12.5%，仍然漏掉18/20个正例。总体99%以上不能等同真实来源文件已解决。该分层是小样本诊断，并非独立重复。best预登记主结果不因last更好而替换；重入节点last的S4−S0o为-0.0326个百分点，与best的小正向不同。
+
+
+## 2026-11-04 NS-P6准备完成：N-B120项封存（修改 AI：Codex）
+
+基于PROMPTS r19与当前原名政策，新增batch_nb.py、nb_history.py、p6_prepare.py、batch_nb_worker.py、batch_nb_controller.py及42项定向测试；原N-A、DFG/HGT/tokenizer、图/标签/折/特征和训练核心不变。用户批准独立N-B调度适配，S3−S2整体保留历史描述性身份、新分层/逐节点分析标事后；精确回复已记录。
+
+S3/S4g/S4m×G3R、S4-noG×G0零层，各30项，共120。16套载体、120份零步初值CPU重载及SHA/digest通过；16组fresh-vs-reuse逐位证明、16组载体快路径一致证明通过，准备41.01分钟。N-A240收据及产物只读通过，8H354冻结源码/生效修订通过；N-B374源码归档一致。
+
+925+2653+223=3801测试通过，0失败/跳过，42现有警告；三套CPU命令及日志见ns_p6_checks和NS_P6_REPORT。S4m只mask CTX、CODE原名；S4-noG关闭消息传递但保留DFG派生特征，不作纯无DFG对照。初始化规则与N-A一致，但新增adapter参数跨spec不保证数值相同。
+
+独立plan/seal和authorization.template=false已保存，0训练、0GPU前向。PROMPTS §5.9要求停下等单独训练授权；训练后专用汇总/门控/注意力接入仍属执行阶段，不宣称已交付N-B结果。约4.93–9.25小时仅按N-A推算的fit范围，非实测保证。
+
+最终服务器实验显存充足、另建批次，本机RTX30504GiB仅开发限制；不混设备结果。详细选择、命令、限制见training_changes§86，入口NS_P6_README；三文档只追加，UTF-8检查后本地提交，不自动push。PT/NPZ保留WSL。
