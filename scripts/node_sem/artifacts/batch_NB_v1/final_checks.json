@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "docs",
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "scripts.node_sem.doc_check",
+        "--expect-cjk",
+        "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/NS_P6_REPORT.md:8984",
+        "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/docs/training_changes_2026-10-07.md:918421",
+        "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/HANDOVER.md:264272",
+        "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/PROGRESS.md:51702",
+        "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/NS_P6_README.md:2907"
+      ],
+      "passed": true
+    },
+    {
+      "name": "focused_final",
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/node_sem/tests/test_nb_analysis.py"
+      ],
+      "passed": true
+    },
+    {
+      "name": "diagnostics_final",
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "scripts.node_sem.nb_diagnostics",
+        "--root",
+        "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NB_v1",
+        "--verify"
+      ],
+      "passed": true
+    }
+  ]
+}

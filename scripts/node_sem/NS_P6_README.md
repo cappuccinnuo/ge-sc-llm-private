@@ -40,3 +40,8 @@ python -B -m scripts.node_sem.batch_nb_controller verify --root scripts/node_sem
 PT/NPZ、特征和初值保存在 WSL；Git 保存代码、计划、摘要及可审查记录。下载的预训练资产保持原样，本阶段无需再编码或下载。
 
 用户已说明最终实验会在显存充足的服务器开展。当前RTX3050 4GiB只是本机开发限制；本批与N-A绑定同一设备、PyTorch/CUDA和TF32设置。服务器另建批次，不混合、择优或用服务器单个结果替换本机困难折。服务器尚未实测。
+
+
+## 2026-11-05执行完成后的复核
+
+后续已单独授权并完成120次训练与本轮只读诊断，上述准备期未授权叙述为历史状态。当前结果和限制以NS_P6_REPORT完成节为准。使用nb_diagnostics --verify核对90次诊断，不覆盖已有plan/seal/报告。N-A权重当前缺失，原p6_prepare verify深度核验可能失败，不宣称完整可重载。

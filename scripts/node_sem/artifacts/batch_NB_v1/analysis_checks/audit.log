@@ -1,0 +1,23 @@
+Using backend: pytorch
+Traceback (most recent call last):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/nb_finalize.py", line 130, in <module>
+    try:globals()[args.command](Path(args.root))
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/nb_finalize.py", line 30, in audit
+    verify_na(na_root,old,job,old_entries[worker.job_id(job)][0],deep=True)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/batch_na_worker.py", line 175, in verify_attempt
+    for item in receipt["artifacts"]:checked(item)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/prepare.py", line 42, in checked
+    if sha(reference["path"]) != reference["sha256"]:
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/prepare.py", line 29, in sha
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py", line 1214, in read_bytes
+    with self.open(mode='rb') as f:
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py", line 1208, in open
+    opener=self._opener)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/pathlib.py", line 1063, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NA_v1/runs/reentrancy_contract__G0__S0o__fold_0/attempt_001/fit/best.pt'
