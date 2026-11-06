@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r19（2026-11-04）。作者：Claude（方案与审查），实现：Codex。
+版本：r20（2026-11-05）。作者：Claude（方案与审查），实现：Codex。
+
+**r20 相对 r19 的修改**：NS-P6（N-B）审查（第 5O 节）。新增只做评估、不训练的诊断 Prompt **NS-P6c**（第 5.9c 节）：更正 N-A 权重缺失的原因记录（用户主动删除），规定权重保留与 Git 体积规则，并用已有 N-B 检查点检验“门控无效”与“信息冗余”两种解释。NS-P7 在评估口径确定前暂缓。
 
 **r19 相对 r18 的修改**：NS-P5A（N-A 240 次训练）审查通过（第 5N 节）。NS-P6 按 N-A 的结果补充执行细节与事后描述项（明确标为事后、只作描述）。
 
@@ -558,7 +560,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 ## 5. Codex Prompts
 
-使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3a3 → P3b → P3b2 → P4 → P4b → P5 → P5A → P6 → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴 5.1 共享上下文，再贴一个 Prompt。按 NS-P0 → P1 → P1b → P2 → P2b → P3a → P3a2 → P3a3 → P3b → P3b2 → P4 → P4b → P5 → P5A → P6 → P6c → P7 → P8 → P9 的顺序执行。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ### 5.1 共享上下文（每个会话先贴这一段）
 
@@ -1360,6 +1362,46 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
 写 authorization.template.json（execution_authorized=false），停下等用户。授权后按 N-A 的方式执行、验收（120/120 收据逐一核验）与报告；写 NS_P6_REPORT.md；更新 PROGRESS、HANDOVER、training_changes（doc_check 通过）。完成后停下，不进入 NS-P7。
 ```
 
+### 5.9c Prompt NS-P6c：记录更正与模态贡献诊断（只做评估，不训练）
+
+```text
+# NS-P6c：N-A 权重缺失原因更正、保留规则，以及 CTX/STATIC 贡献的只读诊断
+
+前置：NS-P6（a112d2bc）。不训练、不更新任何参数、不改 N-A/N-B 的 plan、seal、收据、预测与报告；新结果写入 artifacts/ns_p6c/（排他创建）。GPU 只用于 eval 前向，先非阻塞检查 .training.lock；也可全部用 CPU。
+
+## 1. 记录更正
+- 用户已说明：N-A 的 480 个 best.pt/last.pt 是用户本人为节省空间主动删除的。在 HANDOVER、PROGRESS、training_changes 与 NS_P6_REPORT.md 末尾追加更正（只追加，不改旧文字）：缺失原因 = 用户主动删除；N-A 的结果由收据、预测与指标（均有 SHA）保存，不受影响；N-A 的注意力诊断已在删除前完成并封存；以后不能重载 N-A 模型，服务器批次将重新训练。
+- batch_NB_v1/historical_weight_availability.json 不改；另写 artifacts/ns_p6c/na_checkpoint_note.json 记录用户说明原文与时间。
+
+## 2. 权重保留与 Git 体积规则（写进 HANDOVER 的固定规则）
+- N-B 的 best.pt 在本 Prompt 的诊断完成前必须保留；诊断完成后可由用户决定删除。删除前生成 SHA 索引（路径、大小、sha256），删除后在报告中注明。
+- 以后提交到 Git 的只有代码、计划/封存、收据、报告与 SHA 索引；逐行载体 manifest、百万行索引等可重新生成的大 JSON 不再提交，改为提交其 SHA 与生成命令。不改写已有历史；报告当前 .git 体积。
+
+## 3. 诊断（使用 N-B 的 S4g 与 S4、N-A 不可用的部分不做）
+所有统计按（任务、折、模型）分别计算再汇总；同一节点在不同折重复出现，不当作独立样本。
+
+3.1 有效贡献（S4g，G3R，30 个模型）
+- 对每个节点类型、每个模态 m，计算 g_m · ‖P_m(x_m)‖（门控权重 × 投影后向量的 L2 范数），以及它占三项总和的比例；与只看 g_m 的结果并列报告。说明：门控权重不等于贡献。
+
+3.2 推理时移除（S4g 与 S4，G3R，各 30 个模型）
+- 四种输入：完整；去掉 CTX；去掉 STATIC；两者都去掉（只留 CODE）。“去掉”= 把该模态的存在位置 0（与训练时 modality dropout 的处理一致，不是填零向量后仍标为存在）。
+- 报告每种情况下 outer_test 的 BF1、离散预测改变的节点/合约数、概率的平均绝对变化；单列重入节点 32 个、访问控制节点 20 个非 SolidiFI 正例与非 SolidiFI 误报的变化。
+- 判读规则（预先写入报告）：若去掉 CTX 与 STATIC 后预测几乎不变（改变 < 0.1% 的节点且非 SolidiFI 正例无变化），则模型在功能上没有使用这两种输入。
+
+3.3 冗余探针（不需要模型）
+- 对每个 STATIC 位（只取在该任务中取 1 比例在 1%–99% 之间的位），在每个外层折的 inner_train 上用 CODE 向量拟合 L2 逻辑回归（正则系数在 inner_val 上从 {0.01,0.1,1,10} 选），在 outer_test 上报告 AUC 与平衡准确率；同样用 CTX 向量做一遍。
+- 汇总：AUC ≥ 0.95 的位数与比例，按 4.6 节的组（A–N）列出。这回答“STATIC 的信息是否已经包含在 CODE/CTX 中”。
+
+3.4 非 SolidiFI 信号探针（不需要模型）
+- 只在非 SolidiFI 的节点上（重入、访问控制两个节点任务），按同样的外层折，用逻辑回归比较三种输入：CODE、STATIC、CODE+STATIC；报告 outer_test 的 AUC 与 BF1（阈值在 inner_val 上选），以及 CODE+STATIC 相对 CODE 的逐折差。样本很小，只作描述。
+
+## 4. 报告与验收
+- 写 artifacts/ns_p6c/REPORT.md 与 report.json、scripts/node_sem/NS_P6C_REPORT.md；第一段直接回答：门控在机制上是否工作（3.1）、模型在功能上是否使用了 CTX/STATIC（3.2）、STATIC 是否与 CODE 冗余（3.3）、非 SolidiFI 上 STATIC 是否有额外信号（3.4）。
+- 每个模型读取前核对 best.pt 的 SHA 与 state digest；前向前后参数摘要不变；eval 模式；不写回任何 N-B 文件。
+- 新增测试：存在位置 0 与 modality dropout 的行为一致；贡献计算在构造数据上与手算一致；探针的折划分只用该外层折的 inner_train/inner_val。
+- 全部 NodeSem 测试通过；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；本地提交。完成后停下，不进入 NS-P7。
+```
+
 ### 5.10 Prompt NS-P7：M3b LLM 描述（本机试点）
 
 ```text
@@ -1726,6 +1768,18 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 5. N-B 仍值得按预先登记完成（约 5–6 小时）：S4g 检验“concat 把 CODE 信号稀释”这一可能，S4m 检验 CTX 中的名字，S4-noG 检验 CTX/STATIC 能否替代 DFG 边；我在 NS-P6 中加入了明确标为事后描述的 S2/S1o 对照与逐节点对照。
 
 **文档补述（不需要 Codex 重做）：** 第 5N 节即为补述：Holm 家族中 S2−S0o、S1o−S0o 通过 0.05，S4−S0o 与 S4−S2 未通过。
+
+## 5O. NS-P6（N-B）审查记录（2026-11-05，Claude）
+
+**执行与数据：通过。** 我用 fold_metrics 独立复算了 N-B 的折均值与关键差值，与报告一致（例如重入节点 S4−S4-noG = +1.598 个百分点，10 折均升）。S4m 在 reentrancy_contract 五折完全相同（每折恰好 1 个错误），属实。S4m fold8 的失败是显存采样读数失败而非 OOM，经用户授权从同一零步初值重跑，处理正确。Codex 写明的限制（S2 的 modality dropout 为 0 而多模态为 0.1；S4-noG 的 CTX/STATIC 仍含 DFG 派生事实；S4m 的 CODE 仍为原名；全部只作描述）准确。
+
+**结果：** 在 CODE 之上加入 CTX、STATIC，或把 concat 换成门控，在四个任务上都没有带来增益；差别对应每个任务约 6–14 个节点或 1 个合约文件。非 SolidiFI 重入节点上仍以 S2 最好。重入节点上去掉消息传递（S4-noG）明显变差。
+
+**门控是否无效：** 现有证据不支持“门控坏了”。门控权重离开了均匀初值、随节点类型变化（CODE 约 0.36–0.50，CTX 约 0.25–0.44，STATIC 约 0.13–0.27），并没有塌缩。更可能的解释是：(1) CTX/STATIC 的信息与 CODE 和图消息传递冗余（CTX 描述的数据流与 G3R 的 DFG 边相同，STATIC 的多数事实在代码文本中可见）；(2) 原名视图下 SolidiFI 已饱和，评估无法分辨小增益。门控权重不等于贡献，有效贡献是门控权重 × 投影范数。NS-P6c 用已有 N-B 检查点做只读诊断来区分这两种解释。
+
+**N-A 权重：** 用户说明是本人为节省空间主动删除；结果不受影响（见 NS-P6c 第 1 节）。
+
+**NS-P7 暂缓：** S5–S8 会面对同样饱和的评估。建议先确定评估口径（视图、非 SolidiFI 终点、seed 数、类别），再决定是否进行 LLM 描述。
 
 ## 6. 里程碑
 
