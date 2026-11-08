@@ -1,6 +1,12 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r25（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+版本：r26（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+
+**r26 相对 r25 的修改**：用户决定（2026-11-08）：(1) 在本机用当前 3B 模型全量运行 describe_v2，教师文本去掉 role 字段——此规定只适用于当前 3B 模型，以后换模型时必须重新评估；(2) 设计本机 LLM 阶段的实验，省略非必要对照。据此：
+- 新增 **NS-P7c**（第 5.10c 节）：全量生成、无 role 的教师向量、两项必要的只读诊断；
+- NS-P8 拆为 **NS-P8a**（S6 = S4 + 教师向量，先看上限并按预先登记的规则决定是否继续）与 **NS-P8b**（学生蒸馏、S5，以及只在 S5 有增益时运行的 S8）；
+- 省略的非必要对照：judge_v2 生成与 S7（判断性内容泄漏对照）、S2 为基础的 LLM 变体、带 role 的教师文本变体、CODE 单独的信号探针；
+- 第 4.8 节：在 3B 模型下去掉学生的角色辅助损失（role 目标精确率只有约 70%）。
 
 **r25 相对 r24 的修改**：NS-P7b 审查（第 5S 节）。执行与代码正确；第二次试点仍未通过。NS-P8 依赖全量教师向量，目前不能按原设计开始，下一步需用户在三条路线中选择。
 
@@ -434,7 +440,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
   - 早停节点：inner_val 文件中、教师有效的节点；
   - outer_test 节点的教师向量绝不进入训练或早停。
 - **结构**：`e_ctx` 按维标准化（均值与方差只用训练节点估计，并保存）后，与 `b_static` 拼接 → `Linear(→512)` → GELU → Dropout 0.1 → `Linear(512→384)` = `s_sem`；另有一个角色头 `Linear(384→10)`。
-- **损失**：`1 − cos(s_sem, t)` + 0.3 × CE(role)。
+- **损失**：`1 − cos(s_sem, t)` + 0.3 × CE(role)。r26：使用当前 3B 模型时去掉角色头与 CE(role)，损失只用 `1 − cos(s_sem, t)`（LLM 的 role 精确率约 70%，作为监督目标噪声太大）；换模型后重新评估。
 - **训练**：AdamW（lr 1e-3，wd 1e-4），batch 1024，最多 30 轮，早停监控 inner_val 余弦损失（patience 5）。CPU 运行，种子由 parameter_seed(fit 种子, "student", task/fold) 派生。
 - **导出**：给该任务全部节点（含辅助节点）生成 `s_sem`。
 - **防泄漏断言**（导出前强制执行，失败即报错）：
@@ -528,7 +534,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 |---|---|---:|
 | N-A | {S0o, S1o, S2, S4} × {G0, G3R}（原名视图，r16；S0o 新跑，不复用匿名 8H） | 240 |
 | N-B | S3 × G3R、S4g × G3R、S4-noG（G0）、S4m × G3R（名字对照） | 120 |
-| N-C | {S5, S6, S7, S8} × G3R（本机 LLM 试点版） | 120 |
+| N-C | r26：N-C1 = S6 × G3R（30）；通过预先登记的继续规则后 N-C2 = S5 × G3R（30），S5 有增益时再加 S8 × G3R（30）；S7 省略（本机 3B 版） | 30–90 |
 | N-D | 匿名视图复核 {S0（复用 8H）, S4-anon} × G3R：需先接通匿名 CTX（8G 双射映射 names），目前未实现，由用户决定是否执行 | 30 |
 
 **预先登记（写进 plan，以后不改）：**
@@ -1591,34 +1597,92 @@ Schema: {"function_intent": "<= 25 words", "statements": [{"line": int, "role": 
 全部测试通过；llm_v1 产物与结论未改；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；Git 只提交代码、模板、计划、报告、紧凑结果与 SHA 索引；提交 NS-P7b。不进入全量运行与 NS-P8。
 ```
 
-### 5.11 Prompt NS-P8：学生蒸馏与批次 N-C
+### 5.10c Prompt NS-P7c：全量 describe_v2、无 role 的教师向量与必要诊断（用户决定，3B 模型）
 
 ```text
-# NS-P8：按折蒸馏学生；N-C（{S5,S6,S7,S8} × G3R × 30 折 = 120 次 fit）计划与封存
+# NS-P7c：本机全量 LLM 描述（describe_v2）、教师向量、两项只读诊断
 
-## 1. 学生（mando CPU，student.py）
-按第 4.8 节实现 train_student(task_id, fold, view)：
-- 训练节点：该折 inner_train 文件中、教师有效的原节点；早停节点：inner_val 文件中、教师有效的原节点（文件划分读取 8D 冻结折）；
-- 导出前执行防泄漏断言：
-  1. 训练集与早停集中没有 outer_test 文件的节点；
-  2. 训练集与早停集不相交；
-  3. 学生代码没有读取标签（白名单加扰动测试）；
-- 导出全部节点（含辅助节点）的 s_sem，写成 student_<task_id>_fold<k>.npz 与 manifest。manifest 记录训练节点数、早停轮次、inner_val 余弦、outer_test 有效节点上的余弦（只作诊断）、角色准确率、学生权重 SHA。
+依据：用户 2026-11-08 的决定（PROMPTS r26）。第二次试点未通过的结论保留不变；用户明确接受当前 3B 模型的质量并要求全量运行。报告首页必须写明：两次试点均未通过（原因见第 5R、5S 节），本次全量运行是用户在知情的情况下作出的决定。
+沿用 llm_v2 的模型、后端、资产 seal、describe_v2 模板（不改，包括第 8 条关于 this.f() 的已知不准确之处）、度量、GPU 锁、电源检查与后台运行方式。新结果写入 artifacts/llm_v3/（排他创建）。不运行 judge_v2；不训练任何模型。
 
-## 2. S8 置换
-在同一任务、同一折、同一节点类型内，用固定种子（parameter_seed(fit 种子, "S8", [task_id, fold])）对 s_sem 的行做置换；manifest 记录置换。
+## 1. 生成单元与运行
+- 单元：llm_v2 的 4,485 个唯一提示。没有函数体、也没有任何语句目标的单元（接口或抽象函数声明）不调用模型，记为 skipped_no_body（第二次试点中这类单元两次输出到 2048 token 上限）；有函数体但没有语句目标的单元照常生成 function_intent。
+- 参数不变（temperature 0、top_k 1、seed 0、n_ctx 4096、max_tokens 2048、JSON schema 约束、一次格式重试）。
+- 后台控制器（setsid/tmux）、15 秒心跳、按 cache_key 从已完成处继续；进度与预计剩余时间写入心跳文件。只有 OOM、CUDA 错误或整体解析失败率超过 5% 时停止并报告；不自动换模型、不改模板。
+- 先完成 reentrancy_node 涉及的单元，再完成其余单元（顺序不影响结果，便于中断时主任务先完成）。
 
-## 3. 载体与配置
-S5（S4 + STUDENT，按折）、S6（S4 + TEACHER）、S7（S4 + TEACHER_JUDGE）、S8（S4 + 置换后的 STUDENT）。注意：S5 和 S8 的载体按折生成（feature_view 与 feature_npz 也按 job 分别引用）。
+## 2. 后处理与教师有效性
+- 用 llm_post_v2 对齐与计分。
+- 教师“存在”的规则（r26，与第 4.7 节不同，理由见下）：解析成功、行号有效、summary 非空、没有黑名单命中，且不属于“已核验且忠实性 < 0.5”。静态参考为 unknown（忠实性为 null）的节点视为存在，并标记 unverified。
+  理由：第二次试点中，无静态参考的节点占 23%，原因是 DFG 覆盖不足而不是描述错误；在可核验节点上 ≥0.5 的比例为 92.1%。若排除这些节点，教师向量的缺失会与节点结构系统性相关。
+- 同时报告按旧规则（必须已核验且 ≥0.5）的存在数，作为对照数字，不生成第二套向量。
+- 质量统计（只报告，不作为停止条件）：解析成功率、黑名单率、可核验节点的忠实性分布、unverified 比例、role 精确率/召回率（external 布尔、state_update），全部按 SolidiFI/非 SolidiFI 分层。
 
-## 4. 计划与封存
-目录 artifacts/batch_NC_v1/。预先登记：
-- Holm 家族（reentrancy_node、G3R）：S5−S4（主比较）、S6−S5、S7−S6、S5−S8；S4 引用 N-A 的结果；
-- 注明这是本机 3B 试点版本，正式结论以服务器复跑为准。
-写授权模板，停下。执行与报告同 NS-P5A，另加 LLM 成本表与学生诊断表。
+## 3. 教师向量（nodesem，offline/teacher_encode.py）
+- 教师文本（r26，仅适用于当前 3B 模型；以后换模型必须重新评估是否加回 role）：
+  - 语句/条件节点："{summary}. function: {intent}"；
+  - 函数节点："function: {intent}"。
+- bge-small-en-v1.5（NS-P2 已登记，核对 SHA），normalize_embeddings=True，384 维；行集合与顺序 = text_v1 的 F3 全集；不存在的行写零向量、存在位为 0；两遍编码逐位相同。
+- 输出 artifacts/llm_v3/teacher/teacher.npz 与 manifest（nodesem-modality-v1，能被 carrier._load 读取）；在 FeatureSpec 中登记 TEACHER 模态（384 维 + 存在位），不登记训练配置。
+
+## 4. 两项必要的只读诊断（CPU，沿用 NS-P6c2 的折、C/正则网格与 seed）
+- 4.1 可重建性：在教师存在的节点上，用 CTX+STATIC 做岭回归预测教师向量（inner_train 拟合，inner_val 选正则，outer_test 评分），报告 outer_test 平均余弦；对照为“同节点种类的教师均值向量”的平均余弦。用途：NS-P8b 的学生只用 CTX+STATIC 作输入，若岭回归已接近完全重建，学生不会带来新信息。
+- 4.2 非 SolidiFI 信号：只在非 SolidiFI 的语句/条件节点上，比较 STATIC 与 STATIC+TEACHER 的 AUC 与 BF1（逐折与均值；可估折单列；只作描述）。
+- 报告第一段直接给出这两项的数字。
+
+## 5. 测试与验收
+- 测试：skipped_no_body 判定（有体无目标照常生成）；新存在规则的四种情形（已核验且 ≥0.5、已核验且 <0.5、unverified、黑名单）；教师文本不含 role；零向量与存在位；manifest 可被 carrier 读取；诊断的拟合只用 inner_train/inner_val。
+- 全部测试通过；llm_v1/llm_v2 产物不变；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；Git 只提交代码、计划、报告、紧凑统计与 SHA 索引（原始响应、缓存、向量留在 WSL）；提交后停下，不进入 NS-P8a。
+```
+
+### 5.11 Prompt NS-P8a：批次 N-C1（S6 = S4 + 教师向量，先看上限）
+
+```text
+# NS-P8a：N-C1 计划、封存、授权后执行与报告（S6 × G3R × 30 折）
+
+前置：NS-P7c 通过审查。S6 = S4 + TEACHER（concat，与 S4 相同的融合、初值规则与训练配置）；只用 G3R；4 个任务共 30 个 fit（合约 5 折 × 2，节点 10 折 × 2）。S4 的结果引用 N-A（只读，按 receipt SHA 核对）。新目录 artifacts/batch_NC1_v1/（排他创建）。
+
+## 1. 准备与计划
+- 载体：S4 的输入 + TEACHER（384 维 + 存在位）；按 NS-P5 的方式准备并深度核验，初值零步文件中与 S4 共有的参数与 N-A 的 S4 初值逐位相同。
+- 设备族必须与 N-A 相同（本机 RTX3050、torch 1.8.1+cu111、TF32 默认开启），否则拒绝与 N-A 比较。执行沿用 batch_na_worker/controller（载体快路径、无训练配置覆盖、后台、心跳、从已验证收据恢复）；电源检查。
+- 顺序：reentrancy_node → access_control_node → access_control_contract → reentrancy_contract（最后一个在 N-A 中最低空闲只有 44 MiB，S6 多 385 维输入，可能 OOM）。OOM 时停止该任务并报告，已完成任务照常汇总；reentrancy_contract 的 S4/S6 比较移到服务器批次，不在本机只重跑一侧。
+- 预先登记（写入 plan，不得事后修改）：
+  - 主比较：reentrancy_node、G3R、S6 − S4，L-audit best 外层 BF1，10 折配对，双侧 Wilcoxon（本批只有这一项检验）；
+  - 必报描述：四个任务的 S6 − S4 折均差；每个任务的 SolidiFI/非 SolidiFI 分层 pooled TP/FP/FN 与 BF1；重入节点 32 个、访问控制节点 20 个非 SolidiFI 正例的逐节点概率对照（S4 与 S6）；
+  - 继续规则（决定是否执行 NS-P8b，不是结论性检验）：满足任一条件即继续——(a) reentrancy_node 的 S6 − S4 折均差 > 0；(b) reentrancy_node 非 SolidiFI 的 pooled BF1 中 S6 高于 S4。两项都不满足时，本机 LLM 阶段结束（教师作为上限都没有帮助，按设计只用 CTX+STATIC 学习的学生不可能更好），不运行 NS-P8b。
+- 写授权模板（execution_authorized=false），停下等用户。
+
+## 2. 执行与报告（用户授权后）
+按 NS-P5A 的方式执行、逐一核验 30 个收据、汇总；报告首页写明本批是本机 3B 模型的试点版本，并直接给出继续规则的判定结果。写 NS_P8A_REPORT.md；更新 PROGRESS、HANDOVER、training_changes；提交后停下。
 
 ## 测试
-小数据（2 个文件、2 折）上训练并导出，覆盖全部节点；人为注入一个 outer_test 节点时断言抛出；同种子两次导出逐位一致。
+plan/seal 篡改检测；S4 引用的 SHA 核对；与 N-A 设备族或 TF32 设置不一致时拒绝汇总；继续规则的判定只读取预先登记的两个数字。
+```
+
+### 5.11b Prompt NS-P8b：学生蒸馏与批次 N-C2（只在 NS-P8a 判定继续时执行）
+
+```text
+# NS-P8b：按折学生；S5 = S4 + 学生向量；S5 有增益时再运行 S8（置换对照）
+
+前置：NS-P8a 报告判定“继续”。新目录 artifacts/batch_NC2_v1/（排他创建）。
+
+## 1. 学生（mando CPU，student.py，按第 4.8 节，r26 版损失）
+- 每个（任务、外层折）一个学生：输入为按维标准化的 e_ctx（均值方差只用训练节点估计）与 b_static 的拼接 → Linear(→512) → GELU → Dropout 0.1 → Linear(512→384)；损失只用 1 − cos(s_sem, t)（3B 模型下不使用角色头）。
+- 训练节点：该折 inner_train 文件中、教师存在的节点；早停：inner_val 文件中、教师存在的节点（patience 5，最多 30 轮，AdamW lr 1e-3、wd 1e-4，batch 1024，种子由 parameter_seed 派生）。
+- 防泄漏断言（导出前强制）：训练与早停节点不含 outer_test 文件；二者不相交；学生代码不读取标签（白名单与扰动测试）。
+- 导出该任务全部节点（含辅助节点）的 s_sem 与 manifest（训练节点数、早停轮次、inner_val 余弦、outer_test 上学生与教师的平均余弦，以及与 NS-P7c 第 4.1 节岭回归余弦的对照）。
+
+## 2. 批次
+- N-C2 第一部分：S5 = S4 + STUDENT（按折载体）× G3R × 30 折。
+- 预先登记：主比较 reentrancy_node、G3R、S5 − S4（双侧 Wilcoxon）；必报描述同 NS-P8a（分层与逐节点对照），另报 S5 与 S6 的差距（学生相对上限保留了多少）。
+- S8 的执行规则（预先登记）：只有当 reentrancy_node 的 S5 − S4 折均差 > 0 时，才运行 S8 = S4 + 置换后的 STUDENT（同任务、同折、同节点类型内用固定种子置换行）× G3R × 30 折，并把 S5 − S8 与 S5 − S4 一起做 Holm 校正；否则不运行 S8，报告中说明原因。
+- 设备族、执行方式、顺序与 OOM 规则同 NS-P8a。
+
+## 3. 授权、执行与报告
+先计划与封存，写授权模板并停下；授权后执行、核验收据、汇总；写 NS_P8B_REPORT.md（含 LLM 生成成本表与学生诊断表）；更新三份文档；提交后停下。
+
+## 测试
+小数据（2 个文件、2 折）上训练并导出，覆盖全部节点；人为注入 outer_test 节点时断言抛出；同种子两次导出逐位一致；置换只在同任务同折同节点类型内进行；S8 的执行条件只读取预先登记的数字。
 ```
 
 ### 5.12 Prompt NS-P9：原名视图（次要终点）与汇总
