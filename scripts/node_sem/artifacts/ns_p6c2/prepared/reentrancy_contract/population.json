@@ -1,0 +1,3761 @@
+{
+  "task_id": "reentrancy_contract",
+  "total_rows": 18610,
+  "kinds": {
+    "contract": 543,
+    "state_decl": 2369,
+    "function": 3816,
+    "statement": 6692,
+    "condition": 3375,
+    "modifier": 165,
+    "end": 1232,
+    "other": 120,
+    "env": 298
+  },
+  "columns": [
+    {
+      "index": 0,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.kinds",
+      "value": "call",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 356,
+      "prevalence": 0.035363067448097744,
+      "eligible": true
+    },
+    {
+      "index": 1,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.kinds",
+      "value": "delegatecall",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 2,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.kinds",
+      "value": "staticcall",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 3,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.kinds",
+      "value": "send",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 623,
+      "prevalence": 0.06188536803417105,
+      "eligible": true
+    },
+    {
+      "index": 4,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.kinds",
+      "value": "transfer",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 267,
+      "prevalence": 0.02652230058607331,
+      "eligible": true
+    },
+    {
+      "index": 5,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.kinds",
+      "value": "member",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 763,
+      "prevalence": 0.07579219231151287,
+      "eligible": true
+    },
+    {
+      "index": 6,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.kinds",
+      "value": "new",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 10,
+      "prevalence": 0.0009933445912387007,
+      "eligible": false
+    },
+    {
+      "index": 7,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.kinds",
+      "value": "selfdestruct",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 9,
+      "prevalence": 0.0008940101321148307,
+      "eligible": false
+    },
+    {
+      "index": 8,
+      "group": "A",
+      "parent_group": "A",
+      "field": "external.uninvoked_call_value",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1,
+      "prevalence": 9.933445912387007e-05,
+      "eligible": false
+    },
+    {
+      "index": 9,
+      "group": "A1",
+      "parent_group": "A",
+      "field": "external.value_attached",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1243,
+      "prevalence": 0.12347273269097049,
+      "eligible": true
+    },
+    {
+      "index": 10,
+      "group": "A2",
+      "parent_group": "A",
+      "field": "external.target_classes",
+      "value": "msg.sender",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1154,
+      "prevalence": 0.11463196582894607,
+      "eligible": true
+    },
+    {
+      "index": 11,
+      "group": "A2",
+      "parent_group": "A",
+      "field": "external.target_classes",
+      "value": "tx.origin",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 12,
+      "group": "A2",
+      "parent_group": "A",
+      "field": "external.target_classes",
+      "value": "param",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 453,
+      "prevalence": 0.04499850998311314,
+      "eligible": true
+    },
+    {
+      "index": 13,
+      "group": "A2",
+      "parent_group": "A",
+      "field": "external.target_classes",
+      "value": "state",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 758,
+      "prevalence": 0.07529552001589351,
+      "eligible": true
+    },
+    {
+      "index": 14,
+      "group": "A2",
+      "parent_group": "A",
+      "field": "external.target_classes",
+      "value": "local",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 102,
+      "prevalence": 0.010132114830634748,
+      "eligible": true
+    },
+    {
+      "index": 15,
+      "group": "A2",
+      "parent_group": "A",
+      "field": "external.target_classes",
+      "value": "literal",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 54,
+      "prevalence": 0.005364060792688983,
+      "eligible": false
+    },
+    {
+      "index": 16,
+      "group": "A2",
+      "parent_group": "A",
+      "field": "external.target_classes",
+      "value": "this",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 17,
+      "group": "A2",
+      "parent_group": "A",
+      "field": "external.target_classes",
+      "value": "other",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 65,
+      "prevalence": 0.006456739843051554,
+      "eligible": false
+    },
+    {
+      "index": 18,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "not_applicable",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 19,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "none",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 8824,
+      "prevalence": 0.8765272673090295,
+      "eligible": true
+    },
+    {
+      "index": 20,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "literal",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 317,
+      "prevalence": 0.03148902354226681,
+      "eligible": true
+    },
+    {
+      "index": 21,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "param",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 193,
+      "prevalence": 0.019171550610906925,
+      "eligible": true
+    },
+    {
+      "index": 22,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "state",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 499,
+      "prevalence": 0.04956789510281116,
+      "eligible": true
+    },
+    {
+      "index": 23,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "msg.value",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 6,
+      "prevalence": 0.0005960067547432204,
+      "eligible": false
+    },
+    {
+      "index": 24,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "this.balance",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 27,
+      "prevalence": 0.0026820303963444917,
+      "eligible": false
+    },
+    {
+      "index": 25,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "local",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 195,
+      "prevalence": 0.019370219529154662,
+      "eligible": true
+    },
+    {
+      "index": 26,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "arith",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1,
+      "prevalence": 9.933445912387007e-05,
+      "eligible": false
+    },
+    {
+      "index": 27,
+      "group": "A3",
+      "parent_group": "A",
+      "field": "external.value_class",
+      "value": "unknown",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 5,
+      "prevalence": 0.0004966722956193504,
+      "eligible": false
+    },
+    {
+      "index": 28,
+      "group": "A4",
+      "parent_group": "A",
+      "field": "external.data_class",
+      "value": "not_applicable",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 29,
+      "group": "A4",
+      "parent_group": "A",
+      "field": "external.data_class",
+      "value": "none",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 8995,
+      "prevalence": 0.8935134598192113,
+      "eligible": true
+    },
+    {
+      "index": 30,
+      "group": "A4",
+      "parent_group": "A",
+      "field": "external.data_class",
+      "value": "msg.data",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 31,
+      "group": "A4",
+      "parent_group": "A",
+      "field": "external.data_class",
+      "value": "param",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 555,
+      "prevalence": 0.05513062481374789,
+      "eligible": true
+    },
+    {
+      "index": 32,
+      "group": "A4",
+      "parent_group": "A",
+      "field": "external.data_class",
+      "value": "other",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 517,
+      "prevalence": 0.05135591536704082,
+      "eligible": true
+    },
+    {
+      "index": 33,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.write_count",
+      "value": "not_applicable",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 34,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.write_count",
+      "value": "zero",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 6892,
+      "prevalence": 0.6846130922817125,
+      "eligible": true
+    },
+    {
+      "index": 35,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.write_count",
+      "value": "one",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 3107,
+      "prevalence": 0.3086321644978643,
+      "eligible": true
+    },
+    {
+      "index": 36,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.write_count",
+      "value": "many",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 37,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.read_count",
+      "value": "not_applicable",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 38,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.read_count",
+      "value": "zero",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 6134,
+      "prevalence": 0.6093175722658191,
+      "eligible": true
+    },
+    {
+      "index": 39,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.read_count",
+      "value": "one",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 3471,
+      "prevalence": 0.344789907618953,
+      "eligible": true
+    },
+    {
+      "index": 40,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.read_count",
+      "value": "many",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 394,
+      "prevalence": 0.039137776894804806,
+      "eligible": true
+    },
+    {
+      "index": 41,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.write_indexed",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1592,
+      "prevalence": 0.15814045892520115,
+      "eligible": true
+    },
+    {
+      "index": 42,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.write_scalar",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1516,
+      "prevalence": 0.15059104003178703,
+      "eligible": true
+    },
+    {
+      "index": 43,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.read_indexed",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 2221,
+      "prevalence": 0.22062183371411542,
+      "eligible": true
+    },
+    {
+      "index": 44,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.write_auth",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 165,
+      "prevalence": 0.01639018575543856,
+      "eligible": true
+    },
+    {
+      "index": 45,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.read_auth",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 258,
+      "prevalence": 0.025628290453958476,
+      "eligible": true
+    },
+    {
+      "index": 46,
+      "group": "B",
+      "parent_group": "B",
+      "field": "state.array_size_change",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 32,
+      "prevalence": 0.0031787026919638424,
+      "eligible": false
+    },
+    {
+      "index": 47,
+      "group": "C",
+      "parent_group": "C",
+      "field": "order.reachable_from_ext_call",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 2421,
+      "prevalence": 0.24048872553888945,
+      "eligible": true
+    },
+    {
+      "index": 48,
+      "group": "C",
+      "parent_group": "C",
+      "field": "order.dominated_by_ext_call",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 2354,
+      "prevalence": 0.23383331677759014,
+      "eligible": true
+    },
+    {
+      "index": 49,
+      "group": "C",
+      "parent_group": "C",
+      "field": "order.write_then_call",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 337,
+      "prevalence": 0.033475712724744214,
+      "eligible": true
+    },
+    {
+      "index": 50,
+      "group": "C",
+      "parent_group": "C",
+      "field": "order.call_then_write",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1402,
+      "prevalence": 0.13926691169166583,
+      "eligible": true
+    },
+    {
+      "index": 51,
+      "group": "C",
+      "parent_group": "C",
+      "field": "order.ext_call_in_loop",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 22,
+      "prevalence": 0.0021853581007251414,
+      "eligible": false
+    },
+    {
+      "index": 52,
+      "group": "D",
+      "parent_group": "D",
+      "field": "guards.kinds",
+      "value": "none",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 4056,
+      "prevalence": 0.402900566206417,
+      "eligible": true
+    },
+    {
+      "index": 53,
+      "group": "D",
+      "parent_group": "D",
+      "field": "guards.kinds",
+      "value": "require",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 3918,
+      "prevalence": 0.3891924108473229,
+      "eligible": true
+    },
+    {
+      "index": 54,
+      "group": "D",
+      "parent_group": "D",
+      "field": "guards.kinds",
+      "value": "if_branch",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 940,
+      "prevalence": 0.09337439157643787,
+      "eligible": true
+    },
+    {
+      "index": 55,
+      "group": "D",
+      "parent_group": "D",
+      "field": "guards.kinds",
+      "value": "early_exit",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1191,
+      "prevalence": 0.11830734081652926,
+      "eligible": true
+    },
+    {
+      "index": 56,
+      "group": "D",
+      "parent_group": "D",
+      "field": "guards.kinds",
+      "value": "loop_cond",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 143,
+      "prevalence": 0.01420482765471342,
+      "eligible": true
+    },
+    {
+      "index": 57,
+      "group": "D",
+      "parent_group": "D",
+      "field": "guards.kinds",
+      "value": "modifier",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1151,
+      "prevalence": 0.11433396245157446,
+      "eligible": true
+    },
+    {
+      "index": 58,
+      "group": "D",
+      "parent_group": "D",
+      "field": "guards.kinds",
+      "value": "internal_check",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 122,
+      "prevalence": 0.012118804013112149,
+      "eligible": true
+    },
+    {
+      "index": 59,
+      "group": "D",
+      "parent_group": "D",
+      "field": "guards.kinds",
+      "value": "sender",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 870,
+      "prevalence": 0.08642097943776696,
+      "eligible": true
+    },
+    {
+      "index": 60,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "msg.sender",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 2968,
+      "prevalence": 0.29482467467964635,
+      "eligible": true
+    },
+    {
+      "index": 61,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "tx.origin",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 12,
+      "prevalence": 0.001192013509486441,
+      "eligible": false
+    },
+    {
+      "index": 62,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "state",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 4251,
+      "prevalence": 0.4222707857355717,
+      "eligible": true
+    },
+    {
+      "index": 63,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "param",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 2762,
+      "prevalence": 0.27436177610012913,
+      "eligible": true
+    },
+    {
+      "index": 64,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "local",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1195,
+      "prevalence": 0.11870467865302474,
+      "eligible": true
+    },
+    {
+      "index": 65,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "literal",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 3102,
+      "prevalence": 0.30813549220224495,
+      "eligible": true
+    },
+    {
+      "index": 66,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "timestamp",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 289,
+      "prevalence": 0.028707658686798452,
+      "eligible": true
+    },
+    {
+      "index": 67,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "block",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 68,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "msg.value",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 137,
+      "prevalence": 0.0136088208999702,
+      "eligible": true
+    },
+    {
+      "index": 69,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "balance",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 39,
+      "prevalence": 0.0038740439058309326,
+      "eligible": false
+    },
+    {
+      "index": 70,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "external_result",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 1046,
+      "prevalence": 0.10390384424356809,
+      "eligible": true
+    },
+    {
+      "index": 71,
+      "group": "D1",
+      "parent_group": "D",
+      "field": "guards.operands",
+      "value": "hash",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 47,
+      "prevalence": 0.004668719578821893,
+      "eligible": false
+    },
+    {
+      "index": 72,
+      "group": "D2",
+      "parent_group": "D",
+      "field": "guards.pairs",
+      "value": "env_state",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 853,
+      "prevalence": 0.08473229363266117,
+      "eligible": true
+    },
+    {
+      "index": 73,
+      "group": "D2",
+      "parent_group": "D",
+      "field": "guards.pairs",
+      "value": "env_param",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 2,
+      "prevalence": 0.00019866891824774015,
+      "eligible": false
+    },
+    {
+      "index": 74,
+      "group": "D2",
+      "parent_group": "D",
+      "field": "guards.pairs",
+      "value": "env_literal",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 5,
+      "prevalence": 0.0004966722956193504,
+      "eligible": false
+    },
+    {
+      "index": 75,
+      "group": "D2",
+      "parent_group": "D",
+      "field": "guards.pairs",
+      "value": "state_param",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 22,
+      "prevalence": 0.0021853581007251414,
+      "eligible": false
+    },
+    {
+      "index": 76,
+      "group": "D2",
+      "parent_group": "D",
+      "field": "guards.pairs",
+      "value": "hash_state_literal",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 77,
+      "group": "D2",
+      "parent_group": "D",
+      "field": "guards.pairs",
+      "value": "time_state_param",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 78,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "condition.present",
+      "value": "true",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 3375,
+      "prevalence": 1.0,
+      "eligible": false
+    },
+    {
+      "index": 79,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "msg.sender",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 1198,
+      "prevalence": 0.354962962962963,
+      "eligible": true
+    },
+    {
+      "index": 80,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "tx.origin",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 3,
+      "prevalence": 0.0008888888888888889,
+      "eligible": false
+    },
+    {
+      "index": 81,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "state",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 1595,
+      "prevalence": 0.4725925925925926,
+      "eligible": true
+    },
+    {
+      "index": 82,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "param",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 1453,
+      "prevalence": 0.4305185185185185,
+      "eligible": true
+    },
+    {
+      "index": 83,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "local",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 702,
+      "prevalence": 0.208,
+      "eligible": true
+    },
+    {
+      "index": 84,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "literal",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 1393,
+      "prevalence": 0.41274074074074074,
+      "eligible": true
+    },
+    {
+      "index": 85,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "timestamp",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 54,
+      "prevalence": 0.016,
+      "eligible": true
+    },
+    {
+      "index": 86,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "block",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 87,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "msg.value",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 27,
+      "prevalence": 0.008,
+      "eligible": false
+    },
+    {
+      "index": 88,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "balance",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 14,
+      "prevalence": 0.004148148148148148,
+      "eligible": false
+    },
+    {
+      "index": 89,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "external_result",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 733,
+      "prevalence": 0.21718518518518518,
+      "eligible": true
+    },
+    {
+      "index": 90,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.operand_classes",
+      "value": "hash",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 7,
+      "prevalence": 0.002074074074074074,
+      "eligible": false
+    },
+    {
+      "index": 91,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.eq_pairs",
+      "value": "env_state",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 151,
+      "prevalence": 0.04474074074074074,
+      "eligible": true
+    },
+    {
+      "index": 92,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.eq_pairs",
+      "value": "env_param",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 2,
+      "prevalence": 0.0005925925925925926,
+      "eligible": false
+    },
+    {
+      "index": 93,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.eq_pairs",
+      "value": "env_literal",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 3,
+      "prevalence": 0.0008888888888888889,
+      "eligible": false
+    },
+    {
+      "index": 94,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.eq_pairs",
+      "value": "state_param",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 17,
+      "prevalence": 0.005037037037037037,
+      "eligible": false
+    },
+    {
+      "index": 95,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.eq_pairs",
+      "value": "hash_state_literal",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 96,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.eq_pairs",
+      "value": "time_state_param",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 97,
+      "group": "D3",
+      "parent_group": "D",
+      "field": "self_condition.early_exit_if",
+      "value": "true",
+      "applicable": [
+        "condition"
+      ],
+      "n": 3375,
+      "positive": 787,
+      "prevalence": 0.2331851851851852,
+      "eligible": true
+    },
+    {
+      "index": 98,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "msg.sender",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 3512,
+      "prevalence": 0.2757970786869797,
+      "eligible": true
+    },
+    {
+      "index": 99,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "msg.value",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 157,
+      "prevalence": 0.012329197424218627,
+      "eligible": true
+    },
+    {
+      "index": 100,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "msg.data_sig",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 10,
+      "prevalence": 0.000785299198994817,
+      "eligible": false
+    },
+    {
+      "index": 101,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "tx.origin",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 6,
+      "prevalence": 0.0004711795193968902,
+      "eligible": false
+    },
+    {
+      "index": 102,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "tx.gasprice",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 103,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "block.timestamp",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 178,
+      "prevalence": 0.013978325742107743,
+      "eligible": true
+    },
+    {
+      "index": 104,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "block.number",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 14,
+      "prevalence": 0.001099418878592744,
+      "eligible": false
+    },
+    {
+      "index": 105,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "block.other",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 106,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "blockhash",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 4,
+      "prevalence": 0.00031411967959792684,
+      "eligible": false
+    },
+    {
+      "index": 107,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "gasleft",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 108,
+      "group": "E",
+      "parent_group": "E",
+      "field": "env.merged",
+      "value": "this.balance",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "env"
+      ],
+      "n": 12734,
+      "positive": 269,
+      "prevalence": 0.02112454845296058,
+      "eligible": true
+    },
+    {
+      "index": 109,
+      "group": "E1",
+      "parent_group": "E",
+      "field": "env.uses",
+      "value": "arith",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 271,
+      "prevalence": 0.0217915728530074,
+      "eligible": true
+    },
+    {
+      "index": 110,
+      "group": "E1",
+      "parent_group": "E",
+      "field": "env.uses",
+      "value": "hash",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 4,
+      "prevalence": 0.000321646831778707,
+      "eligible": false
+    },
+    {
+      "index": 111,
+      "group": "E1",
+      "parent_group": "E",
+      "field": "env.uses",
+      "value": "guard",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 1286,
+      "prevalence": 0.1034094564168543,
+      "eligible": true
+    },
+    {
+      "index": 112,
+      "group": "E1",
+      "parent_group": "E",
+      "field": "env.uses",
+      "value": "state",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 1422,
+      "prevalence": 0.11434544869733033,
+      "eligible": true
+    },
+    {
+      "index": 113,
+      "group": "E1",
+      "parent_group": "E",
+      "field": "env.uses",
+      "value": "call",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 1182,
+      "prevalence": 0.09504663879060792,
+      "eligible": true
+    },
+    {
+      "index": 114,
+      "group": "F",
+      "parent_group": "F",
+      "field": "external.return_handling",
+      "value": "not_applicable",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 8041,
+      "prevalence": 0.7987483858150393,
+      "eligible": true
+    },
+    {
+      "index": 115,
+      "group": "F",
+      "parent_group": "F",
+      "field": "external.return_handling",
+      "value": "checked_in_require",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 161,
+      "prevalence": 0.015992847918943082,
+      "eligible": true
+    },
+    {
+      "index": 116,
+      "group": "F",
+      "parent_group": "F",
+      "field": "external.return_handling",
+      "value": "checked_in_if",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 561,
+      "prevalence": 0.05572663156849111,
+      "eligible": true
+    },
+    {
+      "index": 117,
+      "group": "F",
+      "parent_group": "F",
+      "field": "external.return_handling",
+      "value": "assigned_checked",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 351,
+      "prevalence": 0.03486639515247839,
+      "eligible": true
+    },
+    {
+      "index": 118,
+      "group": "F",
+      "parent_group": "F",
+      "field": "external.return_handling",
+      "value": "assigned_unchecked",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 397,
+      "prevalence": 0.03943578027217642,
+      "eligible": true
+    },
+    {
+      "index": 119,
+      "group": "F",
+      "parent_group": "F",
+      "field": "external.return_handling",
+      "value": "ignored",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 409,
+      "prevalence": 0.04062779378166286,
+      "eligible": true
+    },
+    {
+      "index": 120,
+      "group": "F",
+      "parent_group": "F",
+      "field": "external.return_handling",
+      "value": "unknown",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 147,
+      "prevalence": 0.0146021654912089,
+      "eligible": true
+    },
+    {
+      "index": 121,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.ops",
+      "value": "+",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 414,
+      "prevalence": 0.04112446607728221,
+      "eligible": true
+    },
+    {
+      "index": 122,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.ops",
+      "value": "-",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 331,
+      "prevalence": 0.03287970597000099,
+      "eligible": true
+    },
+    {
+      "index": 123,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.ops",
+      "value": "*",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 143,
+      "prevalence": 0.01420482765471342,
+      "eligible": true
+    },
+    {
+      "index": 124,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.ops",
+      "value": "/",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 160,
+      "prevalence": 0.015893513459819212,
+      "eligible": true
+    },
+    {
+      "index": 125,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.ops",
+      "value": "%",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 32,
+      "prevalence": 0.0031787026919638424,
+      "eligible": false
+    },
+    {
+      "index": 126,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.ops",
+      "value": "**",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 46,
+      "prevalence": 0.004569385119698024,
+      "eligible": false
+    },
+    {
+      "index": 127,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.on_state",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 556,
+      "prevalence": 0.05522995927287176,
+      "eligible": true
+    },
+    {
+      "index": 128,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.small_int",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 36,
+      "prevalence": 0.0035760405284593227,
+      "eligible": false
+    },
+    {
+      "index": 129,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.from_param",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 726,
+      "prevalence": 0.07211681732392967,
+      "eligible": true
+    },
+    {
+      "index": 130,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.from_env",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 270,
+      "prevalence": 0.026820303963444918,
+      "eligible": true
+    },
+    {
+      "index": 131,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.result_to_sensitive",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 792,
+      "prevalence": 0.0786728916261051,
+      "eligible": true
+    },
+    {
+      "index": 132,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.in_unchecked",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 133,
+      "group": "G",
+      "parent_group": "G",
+      "field": "arith.checked_by_helper",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 271,
+      "prevalence": 0.01929100227790433,
+      "eligible": true
+    },
+    {
+      "index": 134,
+      "group": "H",
+      "parent_group": "H",
+      "field": "loop.bound",
+      "value": "not_applicable",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 135,
+      "group": "H",
+      "parent_group": "H",
+      "field": "loop.bound",
+      "value": "none",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 9924,
+      "prevalence": 0.9857951723452866,
+      "eligible": true
+    },
+    {
+      "index": 136,
+      "group": "H",
+      "parent_group": "H",
+      "field": "loop.bound",
+      "value": "constant",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 23,
+      "prevalence": 0.002284692559849012,
+      "eligible": false
+    },
+    {
+      "index": 137,
+      "group": "H",
+      "parent_group": "H",
+      "field": "loop.bound",
+      "value": "state",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 101,
+      "prevalence": 0.010032780371510877,
+      "eligible": true
+    },
+    {
+      "index": 138,
+      "group": "H",
+      "parent_group": "H",
+      "field": "loop.bound",
+      "value": "param_local",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 19,
+      "prevalence": 0.0018873547233535313,
+      "eligible": false
+    },
+    {
+      "index": 139,
+      "group": "H",
+      "parent_group": "H",
+      "field": "loop.bound",
+      "value": "unknown",
+      "applicable": [
+        "statement",
+        "condition"
+      ],
+      "n": 10067,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 140,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.visibility",
+      "value": "not_applicable",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 141,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.visibility",
+      "value": "default",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 1123,
+      "prevalence": 0.07994020501138953,
+      "eligible": true
+    },
+    {
+      "index": 142,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.visibility",
+      "value": "public",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 9490,
+      "prevalence": 0.6755410022779044,
+      "eligible": true
+    },
+    {
+      "index": 143,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.visibility",
+      "value": "external",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 988,
+      "prevalence": 0.07033029612756264,
+      "eligible": true
+    },
+    {
+      "index": 144,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.visibility",
+      "value": "internal",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 2188,
+      "prevalence": 0.155751708428246,
+      "eligible": true
+    },
+    {
+      "index": 145,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.visibility",
+      "value": "private",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 259,
+      "prevalence": 0.018436788154897493,
+      "eligible": true
+    },
+    {
+      "index": 146,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.payable",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 559,
+      "prevalence": 0.039792141230068336,
+      "eligible": true
+    },
+    {
+      "index": 147,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.read_only",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 2774,
+      "prevalence": 0.19746583143507973,
+      "eligible": true
+    },
+    {
+      "index": 148,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.is_constructor",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 640,
+      "prevalence": 0.04555808656036447,
+      "eligible": true
+    },
+    {
+      "index": 149,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.is_fallback",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 76,
+      "prevalence": 0.00541002277904328,
+      "eligible": false
+    },
+    {
+      "index": 150,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.has_modifier",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 1704,
+      "prevalence": 0.12129840546697039,
+      "eligible": true
+    },
+    {
+      "index": 151,
+      "group": "I",
+      "parent_group": "I",
+      "field": "function_ctx.name_case_only_differs_from_contract",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 152,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "assign",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 2852,
+      "prevalence": 0.2293341910582181,
+      "eligible": true
+    },
+    {
+      "index": 153,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "add_assign",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 247,
+      "prevalence": 0.019861691862335155,
+      "eligible": true
+    },
+    {
+      "index": 154,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "sub_assign",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 224,
+      "prevalence": 0.018012222579607592,
+      "eligible": true
+    },
+    {
+      "index": 155,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "compound_assign",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 6,
+      "prevalence": 0.00048247024766806047,
+      "eligible": false
+    },
+    {
+      "index": 156,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "delete",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 9,
+      "prevalence": 0.0007237053715020908,
+      "eligible": false
+    },
+    {
+      "index": 157,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "emit",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 158,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "ternary",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 25,
+      "prevalence": 0.0020102926986169186,
+      "eligible": false
+    },
+    {
+      "index": 159,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "index",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 3038,
+      "prevalence": 0.24429076873592795,
+      "eligible": true
+    },
+    {
+      "index": 160,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "deep_member",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 1078,
+      "prevalence": 0.08668382116436153,
+      "eligible": true
+    },
+    {
+      "index": 161,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "literal",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 4536,
+      "prevalence": 0.36474750723705374,
+      "eligible": true
+    },
+    {
+      "index": 162,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "hash",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 36,
+      "prevalence": 0.002894821486008363,
+      "eligible": false
+    },
+    {
+      "index": 163,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "ecrecover",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 6,
+      "prevalence": 0.00048247024766806047,
+      "eligible": false
+    },
+    {
+      "index": 164,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "abi_encode",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 33,
+      "prevalence": 0.0026535863621743325,
+      "eligible": false
+    },
+    {
+      "index": 165,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "exit",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 10,
+      "prevalence": 0.0008041170794467674,
+      "eligible": false
+    },
+    {
+      "index": 166,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "return",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 1245,
+      "prevalence": 0.10011257639112255,
+      "eligible": true
+    },
+    {
+      "index": 167,
+      "group": "J",
+      "parent_group": "J",
+      "field": "syntax",
+      "value": "assembly",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl"
+      ],
+      "n": 12436,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 168,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "not_applicable",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 169,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "mapping",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 864,
+      "prevalence": 0.3647108484592655,
+      "eligible": true
+    },
+    {
+      "index": 170,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "array",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 31,
+      "prevalence": 0.013085690164626424,
+      "eligible": true
+    },
+    {
+      "index": 171,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "address",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 324,
+      "prevalence": 0.13676656817222457,
+      "eligible": true
+    },
+    {
+      "index": 172,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "integer",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 697,
+      "prevalence": 0.29421696918531026,
+      "eligible": true
+    },
+    {
+      "index": 173,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "bool",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 214,
+      "prevalence": 0.09033347403967919,
+      "eligible": true
+    },
+    {
+      "index": 174,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "bytes_string",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 160,
+      "prevalence": 0.0675390460109751,
+      "eligible": true
+    },
+    {
+      "index": 175,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "struct_contract",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 79,
+      "prevalence": 0.03334740396791895,
+      "eligible": true
+    },
+    {
+      "index": 176,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.shape",
+      "value": "other",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 177,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.public",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 620,
+      "prevalence": 0.26171380329252847,
+      "eligible": true
+    },
+    {
+      "index": 178,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.constant_immutable",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 133,
+      "prevalence": 0.05614183199662305,
+      "eligible": true
+    },
+    {
+      "index": 179,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.has_initializer",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 616,
+      "prevalence": 0.2600253271422541,
+      "eligible": true
+    },
+    {
+      "index": 180,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.auth",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 92,
+      "prevalence": 0.038834951456310676,
+      "eligible": true
+    },
+    {
+      "index": 181,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.write_functions",
+      "value": "not_applicable",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 182,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.write_functions",
+      "value": "zero",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 264,
+      "prevalence": 0.1114394259181089,
+      "eligible": true
+    },
+    {
+      "index": 183,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.write_functions",
+      "value": "one",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 1674,
+      "prevalence": 0.706627268889827,
+      "eligible": true
+    },
+    {
+      "index": 184,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.write_functions",
+      "value": "many",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 379,
+      "prevalence": 0.15998311523849726,
+      "eligible": true
+    },
+    {
+      "index": 185,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.only_constructor_writes",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 187,
+      "prevalence": 0.07893626002532714,
+      "eligible": true
+    },
+    {
+      "index": 186,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.unguarded_writer",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 1965,
+      "prevalence": 0.8294639088222879,
+      "eligible": true
+    },
+    {
+      "index": 187,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.read_in_guard",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 1448,
+      "prevalence": 0.6112283663993247,
+      "eligible": true
+    },
+    {
+      "index": 188,
+      "group": "K",
+      "parent_group": "K",
+      "field": "state_decl.used_as_call_value_or_target",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 881,
+      "prevalence": 0.37188687209793164,
+      "eligible": true
+    },
+    {
+      "index": 189,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.external_call",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 1724,
+      "prevalence": 0.4330570208490329,
+      "eligible": true
+    },
+    {
+      "index": 190,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.state_write",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 2052,
+      "prevalence": 0.5154483798040693,
+      "eligible": true
+    },
+    {
+      "index": 191,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.sender_guard",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 388,
+      "prevalence": 0.09746294900778699,
+      "eligible": true
+    },
+    {
+      "index": 192,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.auth_write",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 154,
+      "prevalence": 0.038683747802059784,
+      "eligible": true
+    },
+    {
+      "index": 193,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.selfdestruct",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 9,
+      "prevalence": 0.002260738507912585,
+      "eligible": false
+    },
+    {
+      "index": 194,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.delegatecall",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 195,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.loop",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 29,
+      "prevalence": 0.00728460185882944,
+      "eligible": false
+    },
+    {
+      "index": 196,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.ext_call_in_loop",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 8,
+      "prevalence": 0.002009545340366742,
+      "eligible": false
+    },
+    {
+      "index": 197,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.timestamp",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 109,
+      "prevalence": 0.02738005526249686,
+      "eligible": true
+    },
+    {
+      "index": 198,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.tx_origin",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 2,
+      "prevalence": 0.0005023863350916855,
+      "eligible": false
+    },
+    {
+      "index": 199,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.write_then_call",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 194,
+      "prevalence": 0.04873147450389349,
+      "eligible": true
+    },
+    {
+      "index": 200,
+      "group": "L",
+      "parent_group": "L",
+      "field": "fn_summary.call_then_write",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 1279,
+      "prevalence": 0.3212760612911329,
+      "eligible": true
+    },
+    {
+      "index": 201,
+      "group": "M",
+      "parent_group": "M",
+      "field": "contract_summary.kind",
+      "value": "not_applicable",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 202,
+      "group": "M",
+      "parent_group": "M",
+      "field": "contract_summary.kind",
+      "value": "contract",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 412,
+      "prevalence": 0.7587476979742173,
+      "eligible": true
+    },
+    {
+      "index": 203,
+      "group": "M",
+      "parent_group": "M",
+      "field": "contract_summary.kind",
+      "value": "library",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 86,
+      "prevalence": 0.15837937384898712,
+      "eligible": true
+    },
+    {
+      "index": 204,
+      "group": "M",
+      "parent_group": "M",
+      "field": "contract_summary.kind",
+      "value": "interface",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 45,
+      "prevalence": 0.08287292817679558,
+      "eligible": true
+    },
+    {
+      "index": 205,
+      "group": "M",
+      "parent_group": "M",
+      "field": "contract_summary.explicit_constructor",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 196,
+      "prevalence": 0.36095764272559855,
+      "eligible": true
+    },
+    {
+      "index": 206,
+      "group": "M",
+      "parent_group": "M",
+      "field": "contract_summary.payable_fallback",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 51,
+      "prevalence": 0.09392265193370165,
+      "eligible": true
+    },
+    {
+      "index": 207,
+      "group": "M",
+      "parent_group": "M",
+      "field": "contract_summary.selfdestruct",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 9,
+      "prevalence": 0.016574585635359115,
+      "eligible": true
+    },
+    {
+      "index": 208,
+      "group": "M",
+      "parent_group": "M",
+      "field": "contract_summary.auth_state",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 138,
+      "prevalence": 0.2541436464088398,
+      "eligible": true
+    },
+    {
+      "index": 209,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.dfg",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "function",
+        "modifier",
+        "contract",
+        "env",
+        "end",
+        "other"
+      ],
+      "n": 18610,
+      "positive": 1073,
+      "prevalence": 0.05765717356260075,
+      "eligible": true
+    },
+    {
+      "index": 210,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.order",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "function",
+        "modifier",
+        "contract",
+        "env",
+        "end",
+        "other"
+      ],
+      "n": 18610,
+      "positive": 812,
+      "prevalence": 0.043632455668995165,
+      "eligible": true
+    },
+    {
+      "index": 211,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.guard",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "function",
+        "modifier",
+        "contract",
+        "env",
+        "end",
+        "other"
+      ],
+      "n": 18610,
+      "positive": 18,
+      "prevalence": 0.0009672219236969372,
+      "eligible": false
+    },
+    {
+      "index": 212,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "function",
+        "modifier",
+        "contract",
+        "env",
+        "end",
+        "other"
+      ],
+      "n": 18610,
+      "positive": 68,
+      "prevalence": 0.0036539494895217626,
+      "eligible": false
+    },
+    {
+      "index": 213,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.projection",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "state_decl",
+        "function",
+        "modifier",
+        "contract",
+        "env",
+        "end",
+        "other"
+      ],
+      "n": 18610,
+      "positive": 5794,
+      "prevalence": 0.31133799032778076,
+      "eligible": true
+    },
+    {
+      "index": 214,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.checked_call",
+      "value": "true",
+      "applicable": [
+        "statement",
+        "condition",
+        "function",
+        "modifier"
+      ],
+      "n": 14048,
+      "positive": 115,
+      "prevalence": 0.00818621867881549,
+      "eligible": false
+    },
+    {
+      "index": 215,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.auth",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 216,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.constant_immutable",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 217,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.has_initializer",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 218,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.only_constructor_writes",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 17,
+      "prevalence": 0.007176023638666104,
+      "eligible": false
+    },
+    {
+      "index": 219,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.public",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 220,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.read_functions",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 81,
+      "prevalence": 0.03419164204305614,
+      "eligible": true
+    },
+    {
+      "index": 221,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.read_in_guard",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 34,
+      "prevalence": 0.014352047277332207,
+      "eligible": true
+    },
+    {
+      "index": 222,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.shape",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 223,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.unguarded_write_functions",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 61,
+      "prevalence": 0.025749261291684256,
+      "eligible": true
+    },
+    {
+      "index": 224,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.unguarded_writer",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 24,
+      "prevalence": 0.010130856901646263,
+      "eligible": true
+    },
+    {
+      "index": 225,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.used_as_call_value_or_target",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 50,
+      "prevalence": 0.021105951878429716,
+      "eligible": true
+    },
+    {
+      "index": 226,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.state_decl.write_functions",
+      "value": "true",
+      "applicable": [
+        "state_decl"
+      ],
+      "n": 2369,
+      "positive": 52,
+      "prevalence": 0.021950189953566904,
+      "eligible": true
+    },
+    {
+      "index": 227,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.auth_write",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 15,
+      "prevalence": 0.0037678975131876413,
+      "eligible": false
+    },
+    {
+      "index": 228,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.call_then_write",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 28,
+      "prevalence": 0.007033408691283597,
+      "eligible": false
+    },
+    {
+      "index": 229,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.delegatecall",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 230,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.ext_call_in_loop",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 231,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.external_call",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 232,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.loop",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 233,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.selfdestruct",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 234,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.sender_guard",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 13,
+      "prevalence": 0.003265511178095956,
+      "eligible": false
+    },
+    {
+      "index": 235,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.state_write",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 10,
+      "prevalence": 0.0025119316754584277,
+      "eligible": false
+    },
+    {
+      "index": 236,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.timestamp",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 237,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.tx_origin",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 238,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.fn_summary.write_then_call",
+      "value": "true",
+      "applicable": [
+        "function",
+        "modifier"
+      ],
+      "n": 3981,
+      "positive": 29,
+      "prevalence": 0.00728460185882944,
+      "eligible": false
+    },
+    {
+      "index": 239,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.contract_summary.auth_state",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 8,
+      "prevalence": 0.014732965009208104,
+      "eligible": true
+    },
+    {
+      "index": 240,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.contract_summary.auth_state_count",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 13,
+      "prevalence": 0.02394106813996317,
+      "eligible": true
+    },
+    {
+      "index": 241,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.contract_summary.explicit_constructor",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 242,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.contract_summary.kind",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 243,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.contract_summary.payable_fallback",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    },
+    {
+      "index": 244,
+      "group": "N",
+      "parent_group": "N",
+      "field": "unknown.contract_summary.selfdestruct",
+      "value": "true",
+      "applicable": [
+        "contract"
+      ],
+      "n": 543,
+      "positive": 0,
+      "prevalence": 0.0,
+      "eligible": false
+    }
+  ],
+  "control_columns": [
+    "node_kind=statement",
+    "node_kind=condition",
+    "node_kind=state_decl",
+    "node_kind=function",
+    "node_kind=modifier",
+    "node_kind=contract",
+    "node_kind=env",
+    "node_kind=end",
+    "node_kind=other",
+    "syntax=assign",
+    "syntax=add_assign",
+    "syntax=sub_assign",
+    "syntax=compound_assign",
+    "syntax=delete",
+    "syntax=emit",
+    "syntax=ternary",
+    "syntax=index",
+    "syntax=deep_member",
+    "syntax=literal",
+    "syntax=hash",
+    "syntax=ecrecover",
+    "syntax=abi_encode",
+    "syntax=exit",
+    "syntax=return",
+    "syntax=assembly"
+  ],
+  "control_is_target_for_syntax_group": true,
+  "population": "schema.applicable intersect CODE/STATIC presence",
+  "eligibility_scope": "whole-task unlabelled applicable population"
+}
