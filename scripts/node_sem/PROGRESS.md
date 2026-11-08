@@ -427,3 +427,10 @@ CPU调度修订：用户批准保留首轮现场，复用已完成的访问控�
 在原名源码上实现LLM提示层a_k编号，原图/CODE/CTX/STATIC/HGT/标签/划分不变。254个源码SHA、7,670个唯一函数形成4,485个唯一提示。固定50函数（26非SolidiFI，含10个正例所在函数）使用本地Qwen2.5-Coder-3B-Instruct Q4_K_M完成，约242.35秒、50/50 JSON成功、0重试/0OOM。faithfulness中位0.6667、≥0.5为80/123=65.04%，external_call精确率75%、state_update72.34%，未达预定门槛，停止全量生成和后续教师/学生工作。
 
 用户批准后端最小安装、role分母及unknown保守处理；只新增nodesem后端与本批独立CUDA库，原包与mando不变。access_check原诊断误用了保护范围guards，0%不可解释为识别准确率；更正状态见NS_P7_REPORT.md及独立审核记录。3993项最终回归通过、42条既有警告，8H及354冻结源码一致。详见scripts/node_sem/NS_P7_REPORT.md、artifacts/llm_v1。最终实验仍在显存充足服务器另建批次，本机显存只是开发限制；没有启动NS-P8。
+
+
+## 2026-11-08 NS-P7b 第二次50函数试点（修改 AI：Codex）
+
+未通过预先封存门槛。原50函数响应只作事后诊断，不改第一次未通过；新seed=2样本无源码函数SHA重叠，保持模型/后端/推理参数。新度量处理下标读取、external布尔主指标与self_condition；describe_v2补根变量口径及合约头，judge_v2仅登记。详见scripts/node_sem/NS_P7B_REPORT.md。
+
+最终测试4033通过，旧256份产物及354份冻结源码核验一致。没有全量生成、教师编码或训练；最终实验仍在显存充足服务器另建批次，本机4GiB仅开发限制。
