@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r22（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+版本：r23（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+
+**r23 相对 r22 的修改**：按用户要求完成 NS-P7（LLM 描述）的完整设计（第 5.10 节），并按当前状态更新第 4.7 节：提示由原名源码生成、在提示层统一改名为 a_k（与视图无关）；增加试点的预先登记通过标准、非 SolidiFI 分层抽样、教师向量的只读诊断。凡是我建议但尚未实施的事项，统一标注为【建议·未实施】，集中列在 NS-P7 末尾与第 4.12 节之后，需用户逐项决定。
 
 **r22 相对 r21 的修改**：NS-P6c2 审查通过（第 5Q 节），不需要纠正。诊断阶段结束；下一步由用户在“NS-P7（LLM 描述）”与“针对 STATIC 的小批次”之间决定。
 
@@ -397,7 +399,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
 
 - **单位**：每个函数（含 modifier、构造函数、fallback）调用一次。
 - **输入**：
-  - 主视图的改名源码；在 AST 上把 comment 节点的字节范围替换成等长空白（NS-P0 已验证这样做 ERROR/MISSING 仍为 0、执行 token 不变），渲染提示时再去掉只含空白的行，行号映射以替换后的源码为准；
+  - 原名源码（r23：按 EXPERIMENT_POLICY 取原名视图；提示中全部非保留标识符随后改为 a_k，因此提示内容与视图无关）；在 AST 上把 comment 节点的字节范围替换成等长空白（NS-P0 已验证这样做 ERROR/MISSING 仍为 0、执行 token 不变），渲染提示时再去掉只含空白的行，行号映射以替换后的源码为准；
   - 函数内按首次出现顺序把非保留标识符重新编号为 `a1, a2, …`；
   - 加上同一合约的状态变量声明（使用同一套编号）；
   - 每行加函数内相对行号 `L1|`、`L2|`、……
@@ -419,7 +421,7 @@ mando 侧为每个节点输出一个 JSON 对象（字段固定，缺失写 `"-"
     - 低于 0.5 的节点标记 unfaithful。
 - **教师向量**：只对有效节点计算（解析成功、行号有效、忠实、summary 非空），文本为 `role: <role>. <summary>. function: <intent>`，用 `BAAI/bge-small-en-v1.5`（normalize）编码，得到 384 维。无效节点的存在位为 0。
 - **S7 对照**：模板 `judge_v1`，允许 `security_note`（≤20 词），不做黑名单过滤，编码为 `t_judge`。manifest 标注 `control_judgement`。
-- **本机流程**：先试点 50 个函数（固定抽样种子），报告耗时、解析成功率、黑名单命中率、忠实性分布；用户确认后再全量运行。原名视图的 LLM 运行留到服务器。
+- **本机流程**：先试点 50 个函数单元（按任务 × SolidiFI/非 SolidiFI 分层，固定抽样种子），按 NS-P7 第 4 节预先登记的标准判定是否通过；用户确认后再全量运行。由于提示在 a_k 改名后与视图无关，一次运行同时服务于原名与匿名两种视图，不需要按视图分别运行。
 
 ### 4.8 M3c：按折蒸馏的学生
 
@@ -1435,64 +1437,90 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
 - 全部 NodeSem 测试通过；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；Git 只提交代码、报告、紧凑汇总与 SHA 索引；提交后停下，不进入 NS-P7。
 ```
 
-### 5.10 Prompt NS-P7：M3b LLM 描述（本机试点）
+### 5.10 Prompt NS-P7：M3b LLM 行为描述（本机试点 → 全量），不训练
 
 ```text
-# NS-P7：LLM 行为描述管线（本机试点）
+# NS-P7：LLM 行为描述管线、教师向量与只读诊断
 
-## 0. 用户准备
-在 nodesem 环境中安装 llama-cpp-python（CUDA 版本），或准备 llama-server；下载一个 3B 级代码指令模型的 GGUF Q4 文件（例如 Qwen2.5-Coder-3B-Instruct 的 Q4_K_M）。把路径告诉 Codex。Codex 记录 SHA、llama.cpp 版本与运行参数（n_ctx 4096、n_gpu_layers、temperature 0、seed 0）。
+前置：NS-P6c2 审查通过（PROMPTS r22/r23）。依据第 4.7 节。facts 用 CURRENT（accepted_attempt4），文本与行身份用 text_v1 原名视图，STATIC/CTX/CODE 用 ns_p3/CURRENT。本 Prompt 不训练 HGT、不训练学生（学生与 N-C 在 NS-P8）。所有输出排他创建在 artifacts/llm_v1/；失败保留现场、不自动重试（除第 3 节规定的一次 JSON 重试）。
 
-## 1. 提示输入（mando，llm_inputs.py）
-对每个函数单元（function、constructor、modifier、fallback）：
-- 从主视图改名源码中取出函数的 AST 范围；在 AST 上删除 comment 节点，重新解析检查 ERROR=0；
-- 函数内按首次出现顺序把非保留 identifier 重新编号为 a1, a2, …；同一合约的状态变量声明用同一张编号表；
-- 每行加 "L<相对行号>| " 前缀。需要描述的语句：该函数内除 end_if、end_loop 和函数定义本身以外的 HCG 节点，按节点 AST 起始位置换算成相对行号；
-- 保存 prompt_map：{相对行号: [row_key...]}、{a_k: 匿名名}；
-- 超过 120 行的函数按 60 行分段，每段附签名；
-- cache_key = sha256(模板版本 + 模型 SHA + 提示全文)；按 cache_key 去重。
-输出 artifacts/llm_v1/inputs/<task_id>.jsonl 与 manifest（函数数、去重数、行数分布）。
-测试：生产者扰动测试（第 4.2 节，直接调用 llm_inputs，提示文本逐字相同）；重新编号是双射，还原后与原函数逐字一致；去注释后 ERROR=0；行号到节点的映射与 AST 一致；提示中的 identifier 只能是保留名或 a_k；提示中没有原名和绝对行号。
+## 0. 用户准备与资产登记
+- 用户提供：一个 3B 级代码指令模型的 GGUF Q4 文件（建议 Qwen2.5-Coder-3B-Instruct Q4_K_M），以及在 nodesem 环境中可用的 llama-cpp-python（CUDA 版）或 llama-server。把路径告诉 Codex；不自行从网络下载模型。
+- Codex 用 offline/asset_registry.py 登记：GGUF 文件 SHA、大小、许可证文本位置、llama.cpp/llama-cpp-python 版本、编译选项（是否 CUDA）、运行参数（n_ctx 4096、n_gpu_layers、temperature 0、top_k 1、seed 0、batch 大小）。bge-small-en-v1.5 已在 NS-P2 登记（commit 5c38ec7c…），直接复用并核对 SHA。
+- 使用 GPU 时必须持有 .training.lock（与 HGT 训练互斥）；不得与训练同时占用 4 GiB 显存。
 
-## 2. 提示模板（写成模块常量，模板版本 describe_v1）
-SYSTEM:
-You describe what Solidity code does. You never assess security.
-Rules:
-1. Describe behavior only: what each statement reads, writes, computes, calls or checks, and its role in the function.
-2. Do not judge safety. Never use these words or their variants: vulnerability, vulnerable, reentrancy, reentrant, exploit, attack, attacker, unsafe, insecure, risk, risky, bug, flaw, overflow, underflow, malicious, dangerous, safe, secure.
-3. Identifiers have been renamed (a1, a2, ...). Do not guess their original names.
-4. If unsure, write "unknown".
-5. Output JSON only, matching the schema exactly.
-USER:
-Contract state variables:
-{state_vars}
-Function:
-{function_with_lines}
-Describe the statements at these lines: {line_list}
-Schema: {"function_intent": "<= 25 words", "statements": [{"line": int, "role": one of [input_validation, access_check, state_read, state_update, value_transfer, external_call, computation, event_emit, control, other], "summary": "<= 20 words", "reads": [str], "writes": [str], "external": bool}]}
-judge_v1（只用于 S7）：在 Rules 第 2 条处改为要求增加 "security_note": "<= 20 words, possible weaknesses"，schema 加上该字段。
+## 1. 提示输入（mando 环境，llm_inputs.py）
+- 单位：每个 function、constructor、modifier、fallback/receive（按 facts.node_kind 与 AST 判定）。四个任务的源文件取并集（约 254 个文件、约 6900 个函数单元，其中非 SolidiFI 约 3000 个，以实际统计为准），每个单元只生成一次提示，按任务记录引用关系。
+- 源码：原名源码（核对 source SHA）；按第 4.7 节把 comment 字节范围替换为等长空白，重新解析确认 ERROR=0、MISSING=0；渲染提示时去掉只含空白的行，行号映射以替换后的源码为准。
+- 改名：函数内与该合约状态变量声明中的全部非保留标识符（变量、参数、函数名、事件名、合约名、用户类型名、modifier 名）按首次出现顺序改为 a1, a2, …；同一合约的状态变量与函数共用一张编号表；保留名使用 NS-P2 的 reserved 集合。字符串与数字字面量不改。
+- 每行加函数内相对行号前缀 "L<k>| "；要描述的行 = 该函数内除 end_if、end_loop 与函数定义本身以外的 HCG 节点（复用 NS-P3b 的 ctx_alignment 得到节点 AST 起点，换算成相对行号）；函数节点本身对应 function_intent。
+- prompt_map：{相对行号: [row_key…]}、{a_k: 原名}，与提示一起保存（原名只在 prompt_map 中，绝不进入提示）。
+- 超过 120 行的函数按 60 行分段，每段附签名；记录分段。
+- cache_key = sha256(模板版本 + 模型资产 SHA + 运行参数 + 提示全文)；按 cache_key 去重（SolidiFI 模板函数会大量重复），记录去重率。
+- 输出：llm_v1/inputs/units.jsonl（每个唯一提示一行）、llm_v1/inputs/<task_id>_rows.jsonl（row_key → cache_key、相对行号）与 manifest（函数数、去重数、行数与 token 数分布、分段数）。
+- 测试：
+  - 改名是双射，按 prompt_map 还原后与去注释的原函数逐字一致；
+  - 提示中的 identifier 只允许保留名与 a_k（全文扫描）；没有文件名、绝对行号；SolidiFI 标记子串（re_ent、txorigin、intou、tmstmp、TOD、unchk、bug_）在提示中出现 0 次；
+  - 名字无关性：对 Oracle fixture 做任意标识符双射改名后，生成的提示逐字相同；
+  - 行号到节点的映射与 AST 一致；每个需描述的 row_key 恰好出现在一个相对行号下；
+  - 生产者扰动测试（第 4.2 节）：直接调用 llm_inputs，提示逐字相同。
 
-## 3. 生成（nodesem，offline/llm_describe.py）
-- 用 JSON schema 语法约束输出；温度 0，seed 0；每个 cache_key 写一个原始响应文件（含耗时、输入和输出 token 数）。
-- 解析失败时重试 1 次（在 user 末尾追加 "Return valid JSON only."），仍然失败就标记 parse_failed。
-- 先跑试点：用固定种子抽 50 个函数单元（按任务分层），输出 pilot_report.json（耗时、token 数、解析成功率、黑名单命中率、忠实性分布、3 个完整样例）。停下等用户确认，再全量运行 describe_v1 和 judge_v1。
-- 试点允许使用 llama.cpp 的 CPU 模式（n_gpu_layers=0）运行，这样可以与 N-A 训练并行，尽早发现 3B 模型质量不足的风险。CPU 与 GPU 的输出不保证逐位相同；正式全量运行固定一种模式，并写进 manifest。
+## 2. 提示模板（模块常量）
+- describe_v1：沿用第 4.7 节与 r22 版 NS-P7 中的 SYSTEM/USER 原文与 schema（只描述行为、禁用安全判断词、不猜原名、不确定写 unknown、只输出 JSON）。
+- judge_v1（只用于 S7 对照）：在 describe_v1 基础上允许 "security_note"（≤20 词），不做黑名单过滤。
+- 模板文本的 SHA 写入 manifest；修改模板必须改版本号并重新登记。
 
-## 4. 后处理（mando，llm_post.py）
-- 校验 line 在列表内；同一行取第一条；role 规范化；
-- 黑名单正则过滤 summary 与 intent（只用于 describe_v1）；
-- 忠实性：把名字按 prompt_map 还原为匿名名，再与 NS-P3 的 StatementFacts 比较。公式见第 4.7 节；
+## 3. 生成（nodesem 环境，offline/llm_describe.py）
+- 用 llama.cpp 的 JSON schema 语法约束输出；温度 0、top_k 1、seed 0。每个 cache_key 写一个原始响应文件（输入、输出、耗时、输入/输出 token 数、是否命中缓存、后端模式 CPU/GPU）。
+- 解析失败时重试 1 次（在 user 末尾追加 "Return valid JSON only."），仍失败记为 parse_failed，不再重试。
+- 运行方式沿用 N-A 的后台方式：tmux/setsid 控制器、心跳文件、从已完成的 cache_key 继续；开训前做电源检查。网络断开不影响运行。
+- CPU 与 GPU 的输出不保证逐位相同：试点可以用 CPU（n_gpu_layers=0）；正式全量固定一种模式并写入 manifest，不混用。
+
+## 4. 试点与预先登记的通过标准（停下等用户确认）
+- 抽样：固定种子，从唯一函数单元中按（任务 × SolidiFI/非 SolidiFI）分层抽 50 个；其中非 SolidiFI 至少 25 个，并必须包含重入节点 32 个与访问控制节点 20 个非 SolidiFI 正例所在的函数中的至少 10 个（抽样只用文件名前缀与正例节点所在函数的身份，不把标签写进提示）。
+- 报告 pilot_report.json：每单元耗时与 token 数、解析成功率、黑名单命中率、忠实性分布（第 4.7 节公式）、role 与 facts 的一致性（role=external_call 与 facts 外部调用、role=state_update 与 facts 状态写、role=access_check 与发送者守卫的一致率）、3 个完整样例（含提示与输出）、按实测吞吐外推全量 describe_v1 与 judge_v1 的本机耗时。
+- 通过标准（写入 manifest，事后不改）：重试后解析成功率 ≥ 95%；节点级 faithfulness 中位数 ≥ 0.7 且 ≥ 80% 的节点 ≥ 0.5；describe_v1 黑名单命中率 ≤ 5%；role 与 facts 的一致率在外部调用与状态写两项上 ≥ 80%。
+- 任一标准不满足：停下报告，列出可选方案（换更大模型、调整模板、仅在服务器运行），不得自行修改模板或阈值后重跑。
+- 全部满足：仍停下，等用户确认全量运行与预计耗时（按粗略估计，本机全量可能需要十几到数十小时，以试点实测为准）。
+
+## 5. 全量运行（用户确认后）
+- 先 describe_v1，后 judge_v1；按 cache_key 去重，进度与预计剩余时间写入心跳文件。
+- 完成后核对：每个需描述的 row_key 都有结果或明确的失败原因（parse_failed、missing、segment_error）。
+
+## 6. 后处理（mando 环境，llm_post.py）
+- line 必须在给定列表内；同一行取第一条；role 不在词表内改为 other；
+- describe_v1 的 summary 与 intent 做黑名单过滤（命中则置空并标记）；
+- 忠实性按第 4.7 节，与 accepted_attempt4 的 StatementFacts 比较（名字按 prompt_map 还原）；
 - 有效节点：解析成功、行号有效、faithfulness ≥ 0.5、summary 非空；
-- 输出 teacher_text.jsonl（row_key、role、summary、intent、faithfulness、flags）与 stats.json（函数数、去重调用数、token 数、耗时、parse_failed、missing、judgement_filtered、unfaithful 的比例、faithfulness 分位数、role 分布）。
+- 输出 teacher_text.jsonl（row_key、role、summary、intent、faithfulness、flags）与 stats.json（函数数、去重调用数、token 数、耗时、parse_failed/missing/blacklist/unfaithful 比例、faithfulness 分位数、role 分布；全部按 SolidiFI/非 SolidiFI 分层）。
 
-## 5. 教师向量（nodesem，offline/teacher_encode.py）
-文本 "role: {role}. {summary}. function: {intent}"，用 bge-small-en-v1.5（normalize_embeddings=True）编码，得到 384 维。无效节点写零向量，并在 manifest 中把存在位标记为 0。输出 teacher.npz；judge_v1 的结果另存为 teacher_judge.npz（manifest 标注 control_judgement）。
+## 7. 教师向量（nodesem 环境，offline/teacher_encode.py）
+- 文本 "role: {role}. {summary}. function: {intent}"，bge-small-en-v1.5、normalize_embeddings=True，384 维；函数节点使用 "function: {intent}"。
+- 行集合与顺序 = text_v1 的 F3 全集；无效或不需描述的行（env、contract、state_decl、end 节点、失败行）写零向量，存在位为 0。
+- 输出 teacher.npz（describe_v1）与 teacher_judge.npz（judge_v1，manifest 标注 control_judgement），manifest 遵守 nodesem-modality-v1，能被 carrier._load 读取；两遍编码逐位相同。
+- 只在 FeatureSpec 中登记 TEACHER 与 TEACHER_JUDGE 两种模态（含维度与存在位），不登记任何训练配置（S5–S8 在 NS-P8）。
 
-## 测试（使用 FakeBackend，不调用真实模型）
-解析与重试；行号校验；role 规范化；黑名单置空与计数；忠实性的三种情形（完全一致 = 1、部分一致、完全不一致 < 0.5）；缓存命中时不调用后端。
+## 8. 只读诊断（CPU，不训练 HGT；沿用 NS-P6c2 的探针、折、C 网格与 seed）
+- 8.1 冗余：在有效节点上，分别用 CODE、CTX、STATIC、CTX+STATIC 线性回归（岭回归，inner_val 选正则）预测教师向量，报告 outer_test 上的平均余弦相似度。说明：NS-P8 的学生只用 CTX+STATIC 作输入，若 CTX+STATIC 已能高度重建教师向量，学生不会带来超出 CTX/STATIC 的信息。
+- 8.2 信号：只在非 SolidiFI 的语句/条件节点上，按 NS-P6c2 第 2 节的设定，比较 CODE、STATIC、TEACHER、STATIC+TEACHER 的 AUC 与 BF1（只作描述，可估折单列）。
+- 8.3 judge 泄漏：同样设定下比较 TEACHER 与 TEACHER_JUDGE，报告 judge 版本相对 describe 版本的变化（用于判断 S7 的意义）。
+- 报告第一段直接回答：教师向量能否被 CTX+STATIC 重建；在非 SolidiFI 节点上教师向量是否提供超出 STATIC 的信号。
 
-## 验收
-试点报告提交并停下；用户确认后全量运行；PROGRESS.md 记录 stats.json 的关键数字；提交 NS-P7。
+## 9. 测试（FakeBackend，不调用真实模型）
+解析与一次重试；行号校验；role 规范化；黑名单置空与计数；忠实性三种情形（完全一致=1、部分一致、完全不一致<0.5）；缓存命中时不调用后端；分段与签名；零向量与存在位；manifest 能被 carrier 读取；诊断的折划分只用该外层折的 inner_train/inner_val。
+
+## 10. 验收
+试点报告提交后停下；用户确认后全量运行；全部测试通过；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；Git 只提交代码、模板、计划、报告、紧凑汇总与 SHA 索引（原始响应、向量与缓存留在 WSL）；提交 NS-P7。完成后停下，不进入 NS-P8。
+
+## 【建议·未实施】（Claude 的建议，本 Prompt 不执行，需用户逐项决定）
+1. 【建议·未实施】STATIC 尺度处理：在 STATIC 投影前加 LayerNorm 或可学习尺度。依据：NS-P6c 中 STATIC 投影范数约为 CODE 的 1/8–1/19，移除 STATIC 只改变 3–10 个预测。会改变 S4 及之后所有配置，需要新的批次。
+2. 【建议·未实施】STATIC 小批次：S2+STATIC（含第 1 项的尺度处理）× G3R × 30 折（约 1.5–2 小时），在 NS-P8 之前运行，检验非 SolidiFI 上的 STATIC 信号能否被 HGT 用上。
+3. 【建议·未实施】非 SolidiFI 共同终点：在 N-C（NS-P8）的预先登记中把非 SolidiFI 分层（重入节点 32 个正例）列为与整体 BF1 并列的共同终点，而不只是描述项。
+4. 【建议·未实施】S5 的基线：N-A/N-B 中 S4 不优于 S2，建议 N-C 同时登记 S2+s_sem（与 S5 = S4+s_sem 并列），避免把学生向量叠加在一个更弱的基础上。
+5. 【建议·未实施】先看上限再蒸馏：NS-P8 中先运行 S6（直接用教师向量）重入节点 G3R 10 折；若 S6 不优于其基础配置，则不再训练学生与 S5/S8。
+6. 【建议·未实施】匿名视图：在用户同意的前提下，用匿名 CODE（NS-P2 已编码）+ STATIC/TEACHER（与视图无关）+ 8H 的 S0 做匿名视图对照，检验去掉名字捷径后语义特征的作用。需要修改 EXPERIMENT_POLICY。
+7. 【建议·未实施】多个 seed：在服务器批次中至少 3 个 seed，以分辨接近上限的微小差异。
+8. 【建议·未实施】更大的 LLM：若本机 3B 模型未通过第 4 节标准或 8.2 显示无信号，服务器批次换 7B 级或更大的代码模型再评估，而不是在本机反复调整模板。
 ```
 
 ### 5.11 Prompt NS-P8：学生蒸馏与批次 N-C
