@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r23（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+版本：r24（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+
+**r24 相对 r23 的修改**：NS-P7 试点审查（第 5R 节）。试点按预先登记标准判为未通过，处理正确；但未通过部分来自我在第 4.7 节中留下的度量与模板缺陷（下标路径未归一、role 类别重叠、judge 模板自相矛盾、提示缺合约名）。新增 **NS-P7b**（第 5.10b 节）：先封存修正后的度量与 describe_v2 模板，再用新的、不重叠的 50 个函数做第二次试点；门槛数值不变。
 
 **r23 相对 r22 的修改**：按用户要求完成 NS-P7（LLM 描述）的完整设计（第 5.10 节），并按当前状态更新第 4.7 节：提示由原名源码生成、在提示层统一改名为 a_k（与视图无关）；增加试点的预先登记通过标准、非 SolidiFI 分层抽样、教师向量的只读诊断。凡是我建议但尚未实施的事项，统一标注为【建议·未实施】，集中列在 NS-P7 末尾与第 4.12 节之后，需用户逐项决定。
 
@@ -1538,6 +1540,55 @@ Schema: {"function_intent": "<= 25 words", "statements": [{"line": int, "role": 
 8. 【建议·未实施】更大的 LLM：若本机 3B 模型未通过第 4 节标准或 8.2 显示无信号，服务器批次换 7B 级或更大的代码模型再评估，而不是在本机反复调整模板。
 ```
 
+### 5.10b Prompt NS-P7b：修正度量与模板后的第二次试点（不全量、不训练）
+
+```text
+# NS-P7b：describe_v2 / judge_v2、修正的忠实性与角色一致性度量、第二次 50 函数试点
+
+前置：NS-P7（fff7141a）。llm_v1 的全部产物只读保留，第一次试点的“未通过”结论保持不变、不改写。新结果写入 artifacts/llm_v2/（排他创建）。模型、后端、资产 seal、GPU 锁、电源检查与后台运行方式沿用 llm_v1。不做全量生成、不编码教师向量、不训练。
+
+## 背景（审查结论，写进 PROGRESS）
+第一次试点 JSON 100% 可解析、黑名单 1.6%，但忠实性中位数 0.667、≥0.5 比例 65%、external_call 精确率 75%（召回 35%）、state_update 精确率 72%。其中一部分是真实的模型错误（把局部计算 `uint256 c = a / b` 标成 state_update；buggy_50 摘要对应到错误的行），另一部分来自我的方案缺陷：
+1. 忠实性只把成员访问 a.b 归到根变量，没有处理下标访问：模型写 `a3[a2]`（即 balances[msg.sender]），封存事实是根变量 balances，Jaccard 判为不一致。这类写法在状态写入中最常见；中位数恰好为 2/3 也符合“一个分量系统性为 0”的模式。
+2. role 词表中 value_transfer 与 external_call 重叠（transfer/send/call.value 同时是两者），门槛只认 role==external_call；schema 中已有的 external 布尔字段没有用于门槛。
+3. 模板没有说明 reads/writes 应列根变量还是完整路径、局部赋值属于哪个 role。
+4. 提示没有合约名，因此看不出“函数名与合约名不同的旧式构造函数”（如 rubixi.sol 的 DynamicPyramid），而这正是访问控制的一类典型问题。
+5. judge_v1 一面写 “You never assess security”，一面允许 security_note；教师文本公式也不含 security_note，S7 按现定义没有意义。
+6. Codex 已发现：access_check 诊断误用 guards（保护本句的条件）代替 self_condition（本句自身的条件）。
+修正度量后在同一批样本上重算只能作为事后诊断，不能据此宣布通过；是否通过只由第二次试点（新样本、度量与模板事先封存）决定，门槛数值不变、不下调。
+
+## 1. 度量修正（llm_post_v2.py，新模块，不改 llm_post.py）
+- 路径归一：两侧都把变量表达式归到根标识符：去掉 [ … ] 下标与 .member 成员；环境键（msg.sender、msg.value、msg.data、msg.sig、tx.origin、tx.gasprice、block.*、now、this.balance、address(this).balance）整体保留不拆；下标表达式内部出现的标识符与环境键计入 reads（例如 balances[msg.sender] = 0 的 reads 含 msg.sender，writes 为 balances）。facts 一侧同样处理（dfg uses/defs、state reads/writes、env keys）。
+- 忠实性公式不变（reads、writes 的 Jaccard 与 external 一致性三项平均）；unknown 的处理沿用 llm_v1（null、存在位 0、计入 ≥0.5 的分母）。
+- 角色一致性：
+  - 外部调用：主指标改为 external 布尔字段与 facts 外部调用的一致性（精确率、召回率，facts 未知单列）；role ∈ {external_call, value_transfer} 均视为声明了外部调用，作为第二指标并列报告；
+  - state_update：精确率/召回率对照 facts 状态写；
+  - access_check（诊断，不进门槛）：对照本句 self_condition 中的发送者相等比较（含析取型），不是 guards。
+- 门槛（数值与 llm_v1 相同，事先写入计划并封存）：解析 ≥95%；可核验节点忠实性中位数 ≥0.7 且全部目标节点 ≥0.5 的比例 ≥80%；describe 黑名单 ≤5%；外部调用（external 布尔）精确率与 state_update 精确率均 ≥80%，同时报告召回率。
+- 测试：下标与成员路径归一的正反例（balances[msg.sender] 与 balances 一致；msg.sender 与 msg.value 不一致；a.b.c 归到 a）；external 布尔与 role 的双指标；access_check 使用 self_condition 的反例（构造“被守卫但自身不是检查”的语句）。
+
+## 2. 模板 describe_v2 与 judge_v2（新版本号，llm_v1 模板不改）
+- 提示新增一行合约头 “contract <aK>” （与函数、状态变量共用同一张编号表），使模型能看出函数名是否与合约名相同。
+- describe_v2 的 Rules 在 v1 基础上加入（逐字写入模块常量并登记 SHA）：
+  6. reads and writes list root identifiers only (for x[i] or x.f write x), plus environment values such as msg.sender or block.timestamp exactly as written. Identifiers used inside an index count as reads.
+  7. state_update means the statement writes one of the listed contract state variables. Assigning a local variable is computation.
+  8. A statement that sends ether (transfer, send, call with value) has role value_transfer and external true. A call to another contract has role external_call and external true. Calls to functions of the same contract are not external.
+  9. Return exactly one entry for every listed line, in the given order; do not describe lines that are not listed.
+- judge_v2：SYSTEM 第一句改为 “You describe what Solidity code does and may note possible weaknesses.”；去掉第 2 条的禁用词；schema 加 security_note（≤20 词）；教师 judge 文本为 "role: {role}. {summary}. note: {security_note}. function: {intent}"。仅登记，不在本 Prompt 中运行。
+- 测试：两份模板 SHA 登记；提示中合约头与函数名使用同一编号；名字不变性、无原名、无 SolidiFI 标记等 llm_v1 的输入测试全部对 v2 重跑。
+
+## 3. 事后诊断：用修正度量重算第一次试点（只作诊断）
+对 llm_v1 已缓存的 50 份响应（describe_v1）用第 1 节的度量重算全部指标，与原指标并列，按原因分解变化（下标归一、external 布尔、role 合并、access_check 来源）。报告首行注明：这是事后重算，不构成通过。
+
+## 4. 第二次试点（describe_v2）
+- 抽样：seed=2，规则与 llm_v1 相同（四任务分层；非 SolidiFI ≥25，含至少 10 个有非 SolidiFI 正例的函数），且与第一次试点的 50 个函数不重叠（按源码函数 SHA）；正例函数不足时允许与第一次重叠，但需列出并单独报告。
+- 运行、缓存、心跳、一次 JSON 重试、后处理与报告同 llm_v1；报告同时给出第 1 节的全部指标、按 SolidiFI/非 SolidiFI 分层、5 个完整样例（含至少 2 个非 SolidiFI 正例函数）、以及与第一次试点逐项对照。
+- 停下：无论通过与否都停下等用户。通过时，附全量 describe_v2 的耗时外推（约 4,485 个唯一提示）；未通过时，列出未通过项与典型错误，建议在服务器换更大模型，不在本机继续调整模板。
+
+## 5. 验收
+全部测试通过；llm_v1 产物与结论未改；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；Git 只提交代码、模板、计划、报告、紧凑结果与 SHA 索引；提交 NS-P7b。不进入全量运行与 NS-P8。
+```
+
 ### 5.11 Prompt NS-P8：学生蒸馏与批次 N-C
 
 ```text
@@ -1888,6 +1939,14 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 **下一步（待用户决定）：**
 - 方案一：按原计划进入 NS-P7（LLM 描述，本机试点）。按目前证据，新增的文本模态很可能与 CODE/CTX 一样冗余。
 - 方案二（我的建议）：先做一个针对 STATIC 的小批次：S2+STATIC（STATIC 投影前加 LayerNorm 或可学习尺度）× G3R × 30 折，约 1.5–2 小时；预先登记非 SolidiFI 分层（重入节点 32 个正例）为共同终点，同时报告整体 BF1。若用户同意使用匿名视图，再加一组匿名 CODE + STATIC（STATIC 与视图无关，匿名 CODE 已在 NS-P2 编码，S0 可复用 8H），用来检验名字捷径去掉后 STATIC 是否发挥作用。
+
+## 5R. NS-P7 试点审查记录（2026-11-08，Claude）
+
+**处理正确的部分：** 50 个函数全部生成（JSON 重试 0、OOM 0，平均 4.8 秒/函数）；按预先封存的门槛判为未通过并停止，没有下调门槛或换模型重跑；unknown 事实不冒充空集合、计入分母；role 门槛采用固定分母并公开召回率；后端 CUDA 库装在独立目录、不改原环境；模型与缓存不进 Git。Codex 发现的 access_check 来源错误（guards 应为 self_condition）判断正确。我核对了 pilot_report 中的门槛数值与代码（llm_post.fact_sets、jaccard、role_agreement），与报告一致。
+
+**我的方案缺陷（导致试点结果不能完全归于模型）：** 下标路径没有归一（jaccard 只处理 “.”）；value_transfer 与 external_call 重叠且门槛没有使用 external 布尔字段；模板没有规定 reads/writes 的口径与局部赋值的角色；提示没有合约名（看不出旧式构造函数名错误）；judge_v1 自相矛盾且教师文本不含 security_note。也有真实的模型错误（局部计算标成 state_update、摘要对应到错误的行）。
+
+**处理方式：** 第一次试点的“未通过”保持不变。NS-P7b 先封存修正后的度量与模板，再用不重叠的新样本做第二次试点，门槛数值不变；用修正度量重算第一次试点只作事后诊断。第二次仍未通过时，本机不再调整，LLM 路线改到服务器用更大模型评估（第 5.10 节【建议·未实施】第 8 项）。
 
 ## 6. 里程碑
 
