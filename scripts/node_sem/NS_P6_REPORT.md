@@ -269,3 +269,8 @@ S4g没有普遍退化为仅使用CODE：四任务CODE平均门控权重约0.357�
 S2/S4使用N-A已封存注意力摘要（逐项SHA核验），没有重载缺失的N-A权重；S3/S4g/S4m来自本轮90次读取。证据见analysis_supplement/attention_summary.json及CSV。注意力饱和比例不是性能/因果指标，不能据此修改当前模型。
 
 另外独立复核360份history/best/last元数据，全部best等于严格最低inner_val loss所在轮，loss有限、last与日志最后一轮一致；selection_audit.json留证。这里是日志复核，不把它说成当前重载了480份缺失N-A模型。
+
+
+## 2026-11-05 NS-P6c 权重来源更正（修改 AI：Codex）
+
+根据用户提供的 PROMPTS.md r20 §5.9c 中的说明，N-A 的480个正式 best.pt/last.pt 是用户本人为节省空间主动删除的。此前“原因未查明”记录保留为当时检查事实，本条补充后续确认的原因，不追溯修改旧文。删除的具体时刻未提供，不编造时间。N-A的收据、预测和指标仍有SHA绑定，已报告数值不因删除权重而改变；注意力诊断在删除前已完成并封存。当前不能重载N-A模型，服务器批次需重新训练。batch_NB_v1/historical_weight_availability.json保持原样，新说明在artifacts/ns_p6c/na_checkpoint_note.json。
