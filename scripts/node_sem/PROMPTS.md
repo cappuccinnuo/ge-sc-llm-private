@@ -1466,8 +1466,23 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
   - 生产者扰动测试（第 4.2 节）：直接调用 llm_inputs，提示逐字相同。
 
 ## 2. 提示模板（模块常量）
-- describe_v1：沿用第 4.7 节与 r22 版 NS-P7 中的 SYSTEM/USER 原文与 schema（只描述行为、禁用安全判断词、不猜原名、不确定写 unknown、只输出 JSON）。
-- judge_v1（只用于 S7 对照）：在 describe_v1 基础上允许 "security_note"（≤20 词），不做黑名单过滤。
+describe_v1 原文（逐字写成模块常量）：
+SYSTEM:
+You describe what Solidity code does. You never assess security.
+Rules:
+1. Describe behavior only: what each statement reads, writes, computes, calls or checks, and its role in the function.
+2. Do not judge safety. Never use these words or their variants: vulnerability, vulnerable, reentrancy, reentrant, exploit, attack, attacker, unsafe, insecure, risk, risky, bug, flaw, overflow, underflow, malicious, dangerous, safe, secure.
+3. Identifiers have been renamed (a1, a2, ...). Do not guess their original names.
+4. If unsure, write "unknown".
+5. Output JSON only, matching the schema exactly.
+USER:
+Contract state variables:
+{state_vars}
+Function:
+{function_with_lines}
+Describe the statements at these lines: {line_list}
+Schema: {"function_intent": "<= 25 words", "statements": [{"line": int, "role": one of [input_validation, access_check, state_read, state_update, value_transfer, external_call, computation, event_emit, control, other], "summary": "<= 20 words", "reads": [str], "writes": [str], "external": bool}]}
+- judge_v1（只用于 S7 对照）：把 Rules 第 2 条改为 "2. You may add a short security_note (<= 20 words) describing possible weaknesses."，schema 的 statements 条目加 "security_note": "<= 20 words"；其余与 describe_v1 相同；不做黑名单过滤。
 - 模板文本的 SHA 写入 manifest；修改模板必须改版本号并重新登记。
 
 ## 3. 生成（nodesem 环境，offline/llm_describe.py）
