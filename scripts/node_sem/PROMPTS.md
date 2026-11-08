@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r20（2026-11-05）。作者：Claude（方案与审查），实现：Codex。
+版本：r21（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+
+**r21 相对 r20 的修改**：NS-P6c 审查（第 5P 节）。新增 CPU 小修 **NS-P6c2**（第 5.9c2 节）：冗余探针改为只在各字段的适用节点上计算（原探针在全部节点上计算，把“识别节点种类”混进了 AUC），并为非 SolidiFI 信号探针加只含语句/条件节点的敏感性分析。NS-P7 继续暂缓。
 
 **r20 相对 r19 的修改**：NS-P6（N-B）审查（第 5O 节）。新增只做评估、不训练的诊断 Prompt **NS-P6c**（第 5.9c 节）：更正 N-A 权重缺失的原因记录（用户主动删除），规定权重保留与 Git 体积规则，并用已有 N-B 检查点检验“门控无效”与“信息冗余”两种解释。NS-P7 在评估口径确定前暂缓。
 
@@ -1402,6 +1404,35 @@ plan 与 seal 封存，PROGRESS.md 记录耗时与显存估计；提交 NS-P5。
 - 全部 NodeSem 测试通过；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；本地提交。完成后停下，不进入 NS-P7。
 ```
 
+### 5.9c2 Prompt NS-P6c2：冗余探针按适用节点重算（CPU，只做评估）
+
+```text
+# NS-P6c2：修正 STATIC 冗余探针的人群，并补非 SolidiFI 信号探针的敏感性分析
+
+前置：NS-P6c（684b8c39）。ns_p6c 产物只读保留；新结果写入 artifacts/ns_p6c2/（排他创建）。只用 CPU，不加载任何 HGT 模型，不训练。复用 p6c_core.logistic_probe、split_indices 与同一折、同一 C 网格、同一 seed，不改它们。
+
+## 背景（审查结论，写进 PROGRESS）
+1. p6c_probes.run 的冗余探针在“CODE 与 STATIC 都存在的全部行”上拟合，取 1 比例也在全部行上计算。但 behavior_schema.json 中多数字段只适用于部分节点种类（A–D、F–H：statement/condition；K：state_decl；L：function/modifier；M：contract；I：statement/condition/function/modifier），在不适用的行上恒为 0。于是对这些位，AUC 很大一部分来自“CODE 能否认出节点种类”（例如区分状态声明与语句），不是“CODE 是否包含该语义事实”。这是我在 NS-P6c 中没有规定人群造成的遗漏。
+2. CTX 文本本身就是由同一套 facts 生成的（STATE_R/W、CALL、GUARD 等字段），CTX→STATIC 的高 AUC 是构造使然，不能作为冗余证据，只能作为 CTX 编码保真度的检查。
+3. NS-P6c 第 1 段中的 S4 属于 N-A（模型已删除），只评估 S4g 的处理正确；那是我在 NS-P6c 中的表述错误。
+
+## 1. 冗余探针（按适用节点）
+- 对每个 STATIC 位，人群 = 该字段 schema.applicable 中的节点种类且 CODE 与 STATIC 均存在的行；取 1 比例在该人群内计算，只保留 [1%,99%] 的位。
+- 其余设置与 NS-P6c 相同（inner_train 拟合与标准化，inner_val 选 C，outer_test 评分；单类别折记为不可估，不借测试集）。
+- 只对 CODE 做主分析；CTX 作为“编码保真度”单列，并在表头注明“CTX 由 facts 生成，此项不是冗余证据”。
+- 额外对照：在同一人群上，用“节点种类独热 + 语法种类（syntax 字段）”作为输入的探针 AUC。报告 CODE 相对这一对照的 AUC 差，以说明 CODE 是否包含超出节点/语法种类的信息。
+- 报告：按 A–N 父组与原子组，列出合格位数、可估位数、AUC≥0.95 的位数与比例、折均 AUC 的中位数；与 NS-P6c 的全部行结果并排，标明差别。
+
+## 2. 非 SolidiFI 信号探针的敏感性分析
+- 先报告重入节点 32 个、访问控制节点 20 个非 SolidiFI 正例的节点种类分布。
+- 在原分析之外，另做只含 statement/condition 节点的版本（其余设置不变），比较 CODE、STATIC、CODE+STATIC 的 AUC 与 BF1；同样只作描述，可估折单列。
+
+## 3. 验收
+- 测试：人群筛选与 schema.applicable 一致；取 1 比例在人群内计算；对照输入的列只来自节点种类与语法字段；所有拟合只用该外层折的 inner_train/inner_val。
+- 写 artifacts/ns_p6c2/REPORT.md、report.json 与 scripts/node_sem/NS_P6C2_REPORT.md；第一段直接回答：按适用节点计算后，CODE 能线性预测的 STATIC 位比例是多少、哪些组明显不能被 CODE 预测；非 SolidiFI 上 STATIC 的信号在只含语句节点时是否仍然存在。
+- 全部 NodeSem 测试通过；PROGRESS、HANDOVER、training_changes 追加（doc_check --expect-cjk 通过）；Git 只提交代码、报告、紧凑汇总与 SHA 索引；提交后停下，不进入 NS-P7。
+```
+
 ### 5.10 Prompt NS-P7：M3b LLM 描述（本机试点）
 
 ```text
@@ -1780,6 +1811,22 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 **N-A 权重：** 用户说明是本人为节省空间主动删除；结果不受影响（见 NS-P6c 第 1 节）。
 
 **NS-P7 暂缓：** S5–S8 会面对同样饱和的评估。建议先确定评估口径（视图、非 SolidiFI 终点、seed 数、类别），再决定是否进行 LLM 描述。
+
+## 5P. NS-P6c 审查记录（2026-11-08，Claude）
+
+**已核实正确：**
+- 推理时移除：我用 removal_folds.csv 复算四任务、四种条件的折均 BF1 与改变数（例如重入节点 code_only 97.5653、323/11806 改变；no_static 99.7155、10 改变），与报告一致。full 条件与封存预测逐身份一致（最大概率误差 0），参数前后不变；用存在位置 0 而不是零向量，与训练时的 modality dropout 一致。
+- 只评估 S4g、S4 单列为缺失：正确。S4 属于 N-A，模型已删除；NS-P6c 把 S4 写进来是我的表述错误。
+- 报告拼装的重复关键字错误发生在写出前，v2 入口先断言两边样本数相同再合并，只重做报告：处理正确。CPU 探针改为并行调度、保留首轮现场并证明输出逐项相同：处理正确。
+- Codex 对解读的保留（移除不等于重训消融；门控权重不等于贡献；探针是条件性描述）准确。
+
+**需要修正（NS-P6c2）：** 冗余探针在全部节点上计算，混入了“识别节点种类”（K 只适用于状态声明、L 只适用于函数等）；CTX→STATIC 是构造使然。见第 5.9c2 节。
+
+**目前可以得出的结论（我的判断）：**
+1. 门控在机制上工作。模型在功能上使用了 CTX：去掉 CTX 会改变较多预测（重入节点 115 个）。STATIC 几乎没有被使用：去掉 STATIC 只改变 3–10 个节点或合约，其投影范数只有 CODE 的约 1/10–1/20（0.47–0.94 对 7.0–10.6），占范数份额 10%–18%。
+2. 被使用不等于有额外价值：同时去掉 CTX 与 STATIC 会明显变差（重入节点 99.77→97.57），但只用 CODE 训练的 S2 本身就有 99.83。这是冗余与可替代的典型表现：模型在训练中依赖了 CTX，但 CODE 单独训练时可以达到同样的水平。
+3. 值得注意的正面信号：在非 SolidiFI 节点上单独训练的线性探针中，STATIC 比 CODE 更强（重入节点 AUC 0.973 对 0.934，BF1 89.2 对 87.1；访问控制节点 AUC 0.722 对 0.580）。也就是说，在名字不能直接给出答案的部分，STATIC 含有有用的信号，但 HGT 模型没有用上它。可能的原因：(a) 训练数据中 99.5% 的正例来自 SolidiFI，原名下名字与模板已足以拟合，模型没有动力使用 STATIC；(b) STATIC 不做归一化（这是我的方案设定），投影后的范数远小于经 LayerNorm 的 CODE/CTX。这两点都是方案层面的问题，不是实现错误。NS-P6c2 的敏感性分析用于确认这一信号不是节点种类造成的。
+4. NS-P7（LLM 描述）会再加入一种与 CODE/CTX 同类的文本模态，按目前证据很可能同样冗余。建议在 NS-P6c2 之后先做评估与训练信号的决定（匿名视图或非 SolidiFI 终点；STATIC 的尺度处理），再考虑 NS-P7。
 
 ## 6. 里程碑
 
