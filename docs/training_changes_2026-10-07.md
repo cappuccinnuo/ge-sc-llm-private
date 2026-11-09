@@ -9278,3 +9278,102 @@ CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider scripts/DFG/t
 真实输入命令见inputs_execution.json；GPU命令、独立CUDA库路径和PID见launch.json；计划pilot_plan.json、模板/度量metrics_contract.json、旧响应重算posthoc_v1/、新结果pilot_report/、逐节点CSV与验收记录finalization/。目录排他创建，不原样重复运行；这不是全量授权。
 
 Git仅保存新增代码、模板、计划、报告、紧凑结果和SHA索引；模型、运行库、安装包、完整提示和响应缓存继续留在WSL。未进入NS-P8，本轮不push。
+
+
+## NS-P7c 全量执行准备与继续记录（Codex，2026-11-08；进行中）
+
+## 2026-11-08 NS-P7c 全量执行中（修改 AI：Codex）
+
+按 PROMPTS r26 和用户“暂时继续当前的训练”的指令，继续现有 NS-P7c 批次，保留当前分组内外层划分、L-audit 和原名主输入设置。当前 GPU 工作为冻结 3B LLM 的 describe_v2 推理，不是 HGT 或 LLM 参数训练。两次试点未通过的结论保持，用户知情后决定全量运行。
+
+独立后台生成 PID 718695；后续控制器 PID 719581 等待生成正常结束，再串行完成后处理、BGE 教师向量编码、CPU 岭回归与逻辑回归诊断和报告。失败停止，不自动重试、不进入 NS-P8a。当前尚未完成全量结果，不提前报告诊断分数。
+
+本轮回归：NodeSem 1190、DFG v2 2653、旧 DDG/graph_utils 223，共4066项通过；8H只读装载与354份冻结源码核验通过。用户已批准岭回归alpha网格和逐任务teacher.npz/manifest＋总索引的接入方式。最终实验将在显存充足服务器另建批次，本机RTX3050 4GiB是当前开发限制。
+
+实施与选择：
+
+- 基于 node-sem@05bff064，先读更新后的共享上下文与 NS-P7c；历史 llm_v1/llm_v2 保留原文件，504份历史实验文件列入SHA清单，模型与后端继续用原资产seal。
+- 4485个唯一提示中284个无函数体且无目标的单元跳过，47个旧同模板有效响应只读复用，需新增4154次推理。优先重入节点相关单元；temperature0/top_k1/seed0/n_ctx4096/max_tokens2048/一次JSON格式重试保持。生成程序、输入、资产、授权与电源检查已独立封存。
+- 准备阶段首次尝试在构造函数/modifier片段的独立解析上失败，尚未加载模型；现场 llm_v3_setup_attempt1 保留。仅为函数体判定增加合约语法容器，真实提示文本不变；1064个裸片段解析不适配的实例在容器中可解析。
+- 教师存在规则按r26：静态参考unknown且描述有效的行允许存在，同时标unverified；已核验且忠实性<0.5仍缺失。输出仅summary＋function_intent，不编码role字段，同时保留旧存在规则的统计数字。
+- 用户批准：旧NS-P6c2没有岭回归alpha网格，现预先固定{0.01,0.1,1,10}；仅inner_train标准化/拟合和计算同类型教师均值，inner_val平均余弦选alpha，outer_test只评分。训练未见类型单列不可估，并给出共同可估节点上的对照。
+- 用户批准：carrier每份manifest只允许一个task_id，四个任务F3行集合不同，故 teacher/<task>/teacher.npz 与各自manifest分别保存，另有总索引；384维＋存在位，G0/G3R共用，不改载体或训练配置。
+- 已验证四个任务F3与旧诊断缓存行身份和顺序，教师后处理对真实历史响应可运行；BGE本地CPU接口及两次编码逐位一致的快速检查通过。正式全量BGE编码仍等待LLM生成完成，不能把该接口检查当作全量向量验收。
+- 新的后续控制器 pipeline/plan.json 独立绑定18个实现文件与各阶段命令；生成期间不改已封存代码，后续GPU编码要等生成进程结束并获得同一GPU锁。CPU诊断只拟合预定探针，不启动HGT或学生训练。
+- 完整测试：1190＋2653＋223＝4066项通过，42条既有弃用警告；33项本轮定向测试已包含在全量结果中，不重复累计。原NodeSem1185项中途记录保留，最终日志为regressions/nodesem_final.log。
+- 本轮尚未完成：全量生成、四份教师向量、30折可重建性及节点非SolidiFI信号诊断、最终报告与本地提交。当前没有推送GitHub，没有自动启动NS-P8a。
+
+进度证据：scripts/node_sem/artifacts/llm_v3/run1/heartbeat.json；阶段接续证据：pipeline/heartbeat.json、pipeline/plan.json；运行解释器、命令与PID分别见launch.json和pipeline/launch.json。
+
+
+## 92. 2026-11-08 NS-P7c 实施与选择记录（Codex）
+
+# NS-P7c：当前3B模型全量描述、无role教师向量与必要诊断
+
+access_control_contract 岭回归余弦 0.8790 / 同类型均值 0.8181；access_control_node 岭回归余弦 0.8772 / 同类型均值 0.8298；reentrancy_contract 岭回归余弦 0.8784 / 同类型均值 0.8162；reentrancy_node 岭回归余弦 0.8854 / 同类型均值 0.8254。access_control_node STATIC+TEACHER−STATIC：BF1 1.4815pp，AUC 0.0730；reentrancy_node STATIC+TEACHER−STATIC：BF1 2.7143pp，AUC -0.0196。两次50函数试点均未通过；本次全量运行是用户在知情后按PROMPTS r26作出的决定，不改写旧结论。
+
+## 1. 范围与实际改动
+
+基于node-sem@05bff064d991ed2c8a8f4f30f1b8006f26a08d34，读取最新共享上下文及NS-P7c。使用原describe_v2、Qwen2.5-Coder-3B-Instruct Q4_K_M及已封存参数，未更换模型或下载新权重；不运行judge、不训练HGT或学生。本轮CPU岭回归和逻辑回归拟合只用于诊断。
+新增llm_full、offline/llm_full调度，llm_teacher后处理，teacher_vectors、offline/teacher_encode，teacher_diagnostics、p7c_diagnostics、p7c_report和必要测试。旧模板、LLM试点、DFG、HGT、图、标签、特征与划分保持不变。
+
+## 2. 全量生成与教师覆盖
+
+4,485个唯一提示逐个有收据；无函数体且无语句目标的单元跳过，有函数体但无目标仍生成函数意图。重入节点优先；历史同模板响应按SHA只读复用。后台进程独立于对话与网络，15秒心跳，整体解析失败率按已完成推理单元计算、排除跳过项；超过5%停止。其他执行或输入完整性错误也停止，不自动重试。
+最终单元状态：{"ok": 4197, "parse_failed": 4, "skipped_no_body": 284}。本轮生成阶段墙钟 7.45 小时。
+教师只编码summary与function_intent，不把role字段拼入文本；这只适用于当前3B模型。静态参考未知但描述有效的节点保留并标unverified，已核验忠实性<0.5或黑名单描述仍缺失。unverified不代表已证明正确；自由摘要与函数意图没有被读写集合检查完整验证。
+
+|任务|全部行|教师存在|旧规则存在|unverified语句|可核验语句中≥0.5|
+|---|---:|---:|---:|---:|---:|
+|access_control_contract|13693|10232|8927|1454|91.0299%|
+|access_control_node|7892|6140|5660|588|92.9195%|
+|reentrancy_contract|18610|12397|11404|1134|90.1062%|
+|reentrancy_node|12223|7918|7533|493|90.9839%|
+
+解析、黑名单、忠实性、unverified与role精确率/召回率的SolidiFI/非SolidiFI分层详见finalization/quality.json；本轮不以role质量作为继续生成的门槛。去掉role字段不能保证自然语言summary不再包含相同的错误判断。
+
+## 3. 编码与载体
+
+复用已登记BAAI/bge-small-en-v1.5（revision 5c38ec7c405ec4b44b94cc5a9bb96e735b38267a），本地加载、冻结、384维、归一化，两遍编码逐位一致。每任务F3全集按身份和顺序对应，缺失写零向量＋存在位0；G0/G3R共用该模态。TEACHER在原FeatureSpec白名单已存在，本轮验证384＋1布局，不新增训练配置。
+
+## 4. 两项诊断与解释边界
+
+全部30折逐任务报告；岭回归仅在教师/CTX/STATIC存在的节点拟合，标准化与拟合只用inner_train，inner_val平均余弦选择alpha={0.01,0.1,1,10}，outer_test仅评分。同类型均值只用inner_train；训练未见节点类型单列不可估，同时给出共同可估节点上的岭回归结果。
+非SolidiFI信号只用原语句/条件节点集合，两个特征对照样本一致；教师缺失用零向量及存在位表示，不删除困难节点。C={0.01,0.1,1,10}、seed1及逻辑回归算法沿用NS-P6c2，inner_val选C和阈值；空或单类别划分按原规则不可估。合约任务没有相应节点标签终点，因此仅做可重建性诊断。
+|任务|岭回归余弦|同类型均值余弦|共同可估节点岭回归余弦|未见类型节点|
+|---|---:|---:|---:|---:|
+|access_control_contract|0.8790|0.8181|0.8790|1|
+|access_control_node|0.8772|0.8298|0.8773|4|
+|reentrancy_contract|0.8784|0.8162|0.8784|1|
+|reentrancy_node|0.8854|0.8254|0.8855|1|
+
+|任务|STATIC BF1|STATIC+TEACHER BF1|差值pp|STATIC AUC|STATIC+TEACHER AUC|BF1/AUC可估折|
+|---|---:|---:|---:|---:|---:|---:|
+|access_control_node|5.5556|7.0370|1.4815|0.5718|0.6448|9/8|
+|reentrancy_node|88.2381|90.9524|2.7143|0.9943|0.9747|10/10|
+
+以上为等权可估折均值，完整逐折、缺失与配对差值在finalization/results.json、folds.csv。它们是冻结划分上的描述性CPU诊断，不是HGT收益或新增独立数据集的泛化证明。高余弦说明线性可预测程度高，不能严格推出学生不可能改善下游优化；高均值基线也提示嵌入共性方向的影响。
+
+## 5. 实施选择、失败与限制
+
+用户批准两项接入澄清：(1)旧NS-P6c2没有岭回归网格，本轮预先固定alpha和无泄漏规则；(2)carrier要求每份manifest唯一task_id，故teacher/<task>/teacher.npz逐任务保存并提供总索引，未修改载体。
+封存前第一次准备因构造函数/modifier片段脱离合约上下文解析失败；保留llm_v3_setup_attempt1/failure.json，尚未加载模型或生成响应。只在判断函数体时增加语法容器，真实提示字节不变；1,064个该类函数实例在容器中均可解析，修复后完成准备。
+保留describe_v2第8条this.f()已知边界、external只能布尔导致unknown表达受限、单角色和根变量抽象限制；按本轮明确要求不改模板。函数意图和摘要仍可能错误，移除role并不等于解决全部语义错误。
+最终实验将在显存充足的服务器另建批次；本机RTX3050 4GiB只限制当前开发。本轮不自动更换更大模型、不自动进入NS-P8a。
+
+## 6. 测试与实际命令
+
+测试：4066通过。各套日志摘要：["1190 passed, 4 warnings in 22.57s", "2653 passed, 9 warnings in 172.59s (0:02:52)", "223 passed, 29 warnings in 3.71s"]。
+旧实验记录SHA核验数量：504；8H只读装载与冻结源码核验通过，详见frozen_audit.json。模型/后端继续按原资产seal核验。
+
+~~~bash
+python -B -m scripts.node_sem.llm_full prepare
+python -B -m scripts.node_sem.llm_full seal
+python -s -B scripts/node_sem/offline/llm_full.py --out scripts/node_sem/artifacts/llm_v3
+python -B -m scripts.node_sem.llm_teacher --out scripts/node_sem/artifacts/llm_v3
+python -s -B scripts/node_sem/offline/teacher_encode.py --out scripts/node_sem/artifacts/llm_v3
+python -B -m scripts.node_sem.p7c_diagnostics prepare
+python -B -m scripts.node_sem.p7c_diagnostics run
+~~~
+
+实际解释器、环境、PID和命令见launch.json与后续阶段执行记录；已存在目录拒绝覆盖，以上不是可原地重复执行的命令。Git仅归档代码、计划、报告、紧凑统计和SHA索引；权重、完整响应、向量留在WSL。

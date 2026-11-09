@@ -434,3 +434,19 @@ CPU调度修订：用户批准保留首轮现场，复用已完成的访问控�
 未通过预先封存门槛。原50函数响应只作事后诊断，不改第一次未通过；新seed=2样本无源码函数SHA重叠，保持模型/后端/推理参数。新度量处理下标读取、external布尔主指标与self_condition；describe_v2补根变量口径及合约头，judge_v2仅登记。详见scripts/node_sem/NS_P7B_REPORT.md。
 
 最终测试4033通过，旧256份产物及354份冻结源码核验一致。没有全量生成、教师编码或训练；最终实验仍在显存充足服务器另建批次，本机4GiB仅开发限制。
+
+
+## 2026-11-08 NS-P7c 全量执行中（修改 AI：Codex）
+
+按 PROMPTS r26 和用户“暂时继续当前的训练”的指令，继续现有 NS-P7c 批次，保留当前分组内外层划分、L-audit 和原名主输入设置。当前 GPU 工作为冻结 3B LLM 的 describe_v2 推理，不是 HGT 或 LLM 参数训练。两次试点未通过的结论保持，用户知情后决定全量运行。
+
+独立后台生成 PID 718695；后续控制器 PID 719581 等待生成正常结束，再串行完成后处理、BGE 教师向量编码、CPU 岭回归与逻辑回归诊断和报告。失败停止，不自动重试、不进入 NS-P8a。当前尚未完成全量结果，不提前报告诊断分数。
+
+本轮回归：NodeSem 1190、DFG v2 2653、旧 DDG/graph_utils 223，共4066项通过；8H只读装载与354份冻结源码核验通过。用户已批准岭回归alpha网格和逐任务teacher.npz/manifest＋总索引的接入方式。最终实验将在显存充足服务器另建批次，本机RTX3050 4GiB是当前开发限制。
+
+
+## 2026-11-08 NS-P7c 完成（修改 AI：Codex）
+
+access_control_contract 岭回归余弦 0.8790 / 同类型均值 0.8181；access_control_node 岭回归余弦 0.8772 / 同类型均值 0.8298；reentrancy_contract 岭回归余弦 0.8784 / 同类型均值 0.8162；reentrancy_node 岭回归余弦 0.8854 / 同类型均值 0.8254。access_control_node STATIC+TEACHER−STATIC：BF1 1.4815pp，AUC 0.0730；reentrancy_node STATIC+TEACHER−STATIC：BF1 2.7143pp，AUC -0.0196。
+
+两次试点未通过的结论保持；本次按用户r26决定完成3B全量describe_v2、无role教师向量及必要CPU诊断。未训练HGT或学生，未运行judge，不进入NS-P8a。详细记录见scripts/node_sem/NS_P7C_REPORT.md。用户确认岭回归网格和逐任务教师产物布局。最终实验将在显存充足服务器另建批次，本机4GiB只属开发限制。
