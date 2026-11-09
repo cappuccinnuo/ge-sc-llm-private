@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r26（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+版本：r27（2026-11-08）。作者：Claude（方案与审查），实现：Codex。
+
+**r27 相对 r26 的修改**：NS-P7c 审查通过（第 5T 节），下一步为 NS-P8a；NS-P8a 补充：N-A 的 S4 初值文件若已不在本地，按封存的参数摘要核对并用 node_sem.init 确定性重建。
 
 **r26 相对 r25 的修改**：用户决定（2026-11-08）：(1) 在本机用当前 3B 模型全量运行 describe_v2，教师文本去掉 role 字段——此规定只适用于当前 3B 模型，以后换模型时必须重新评估；(2) 设计本机 LLM 阶段的实验，省略非必要对照。据此：
 - 新增 **NS-P7c**（第 5.10c 节）：全量生成、无 role 的教师向量、两项必要的只读诊断；
@@ -1643,7 +1645,7 @@ Schema: {"function_intent": "<= 25 words", "statements": [{"line": int, "role": 
 前置：NS-P7c 通过审查。S6 = S4 + TEACHER（concat，与 S4 相同的融合、初值规则与训练配置）；只用 G3R；4 个任务共 30 个 fit（合约 5 折 × 2，节点 10 折 × 2）。S4 的结果引用 N-A（只读，按 receipt SHA 核对）。新目录 artifacts/batch_NC1_v1/（排他创建）。
 
 ## 1. 准备与计划
-- 载体：S4 的输入 + TEACHER（384 维 + 存在位）；按 NS-P5 的方式准备并深度核验，初值零步文件中与 S4 共有的参数与 N-A 的 S4 初值逐位相同。
+- 载体：S4 的输入 + TEACHER（384 维 + 存在位，artifacts/llm_v3/teacher/<task>/teacher.npz）；按 NS-P5 的方式准备并深度核验。初值：与 S4 共有的参数必须与 N-A 的 S4 零步初值逐位相同。若 N-A 的 initial 文件仍在本地，直接逐张量比较；若已被删除，用 node_sem.init 按 N-A plan 的种子规则确定性重建 S4 初值，先证明重建结果的 state digest 与 N-A plan/收据中封存的 digest 相同，再与 S6 的共有参数比较；两者都做不到时停下报告。
 - 设备族必须与 N-A 相同（本机 RTX3050、torch 1.8.1+cu111、TF32 默认开启），否则拒绝与 N-A 比较。执行沿用 batch_na_worker/controller（载体快路径、无训练配置覆盖、后台、心跳、从已验证收据恢复）；电源检查。
 - 顺序：reentrancy_node → access_control_node → access_control_contract → reentrancy_contract（最后一个在 N-A 中最低空闲只有 44 MiB，S6 多 385 维输入，可能 OOM）。OOM 时停止该任务并报告，已完成任务照常汇总；reentrancy_contract 的 S4/S6 比较移到服务器批次，不在本机只重跑一侧。
 - 预先登记（写入 plan，不得事后修改）：
@@ -2033,6 +2035,21 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 - A：用户明确接受当前质量，本机全量运行 describe_v2（约 6–10 小时），教师文本去掉 role 字段（只用 summary 与 intent），然后进入 NS-P8；需在报告中写明试点未通过及原因。
 - B：把 LLM 路线移到服务器，用 7B 级或更大的代码模型，按上面的新门槛规则重新试点；NS-P8 等待。
 - C（我的建议）：暂停 LLM 路线，先运行第 5.10 节【建议·未实施】第 1、2 项的 STATIC 小批次（约 1.5–2 小时）。依据：STATIC 是目前唯一显示出非冗余、且在非 SolidiFI 上有信号的输入，而 LLM 学生按设计只能从 CTX+STATIC 学习。
+
+## 5T. NS-P7c 审查记录（2026-11-08，Claude）
+
+**结论：通过。** 下一步是 NS-P8a。
+
+**复核：**
+- 代码与计划一致：teacher_text 只用 summary 与 function_intent（函数节点只用 intent），不含 role；存在规则为“解析成功、summary 非空、无黑名单命中（含函数 intent 的黑名单）、且不是已核验 <0.5”，静态参考未知者存在并标 unverified；函数 intent 一律标 unverified。scatter 对每行核对文本 SHA、存在位与文本是否一致、向量归一化；行身份与顺序逐项对照 text_v1 的 F3 全集。
+- 诊断：岭回归的标准化、拟合与同类型均值只用 inner_train，alpha 由 inner_val 选择，outer_test 只评分；信号探针沿用 NS-P6c2 的人群与 logistic_probe，教师缺失用零向量加存在位，不删除困难节点。
+- 运行：4,485 个唯一提示中 ok 4,197、parse_failed 4、skipped_no_body 284；生成墙钟 7.45 小时。复用第二次试点中模板、模型与参数完全相同的响应（cache_key 相同），正确。构造函数/modifier 片段的函数体判定只加语法容器、提示字节不变，处理正确。
+
+**全量质量（finalization/quality.json，我按分层读出）：** 可核验语句中忠实性 ≥0.5 的比例 86%–93%；但 role 质量明显低于试点：state_update 精确率 0.54–0.78，external 精确率在 access_control_contract 的非 SolidiFI 部分只有 0.28。这支持在 3B 模型下从教师文本中去掉 role；同时，summary 中可能含有同样的错误。
+
+**诊断的解读（我的判断）：**
+- 可重建性：岭回归余弦 0.877–0.885，同节点类型均值基线 0.816–0.830。bge 嵌入有很强的公共方向，余弦本身偏高；以“1 − 余弦”看，CTX+STATIC 只消除了相对类型均值的残差中约三分之一。即教师向量中有相当一部分内容不能由 CTX+STATIC 线性预测。这对 S6 是有利信号，但也意味着按设计只用 CTX+STATIC 学习的学生最多只能捕获其中可预测的部分。
+- 非 SolidiFI 信号：重入节点 BF1 +2.7 个百分点但 AUC −0.02；访问控制节点 AUC +0.07，但 BF1 只有约 6–7。方向不一致、样本很小，不能作为增益证据；是否有用由 NS-P8a 的 S6 − S4 决定。
 
 ## 6. 里程碑
 
