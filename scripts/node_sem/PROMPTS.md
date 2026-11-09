@@ -1,6 +1,8 @@
 # MANDO-LLM 节点语义增强（NodeSem v1）：方案与 Codex 编码 Prompts
 
-版本：r29（2026-11-09）。作者：Claude（方案与审查），实现：Codex。
+版本：r30（2026-11-09）。作者：Claude（方案与审查），实现：Codex。
+
+**r30 相对 r29 的修改**：NS-P9 审查通过（第 5W 节），接受 Codex 对我三处表述的更正。新增 **NS-P9b**（第 5.12b 节，只读、CPU、建议执行）：按漏洞模式（而非节点类型）统计训练正负例，检验持续漏报是否来自训练正例的模式单一。
 
 **r29 相对 r28 的修改**：NS-P8b 审查通过（第 5V 节）。NS-P9 改写为本机 NodeSem 阶段的只读汇总与持续漏报分析（不训练、不调用 LLM）；原 N-D 批次取消（原名视图已是主视图）。里程碑 M6 同步修改。
 
@@ -1732,6 +1734,30 @@ scripts/node_sem/NODESEM_REPORT.md 与 summary_NS_v1/reports/（机器可复核�
 汇总数字与来源逐位一致（自动比较）；来源缺失或 SHA 不符时报错；已有输出时拒绝覆盖；第 2 节的节点对齐与 NS-P8a/8b 的 nonSolidiFI_positive_pairs 一致。
 ```
 
+### 5.12b Prompt NS-P9b：按漏洞模式统计训练正负例（只读，建议执行）
+
+```text
+# NS-P9b：持续漏报的模式支撑（只读；不训练、不推理、不生成新特征）
+
+前置：NS-P9 审查通过（PROMPTS 第 5W 节）。新目录 artifacts/summary_NS_v1b/（排他创建）。只读使用已封存的 facts、STATIC（245 维解码）、L-audit 标签、原折与 summary_NS_v1 的 21 个持续漏报。
+
+## 1. 模式标签（只由已有 facts/STATIC 推出，规则写成代码并登记 SHA）
+- 访问控制节点：AC-txorigin（守卫操作数或环境量含 tx.origin）；AC-unguarded-auth-write（写授权状态且无发送者守卫）；AC-selfdestruct-unguarded；AC-delegatecall（区分目标为 param/state 及数据为 msg.data）；AC-constructor-name（is_constructor=false 且 name_case_only_differs_from_contract 或函数写授权状态且只在初始化语义中出现，规则需写明）；AC-other。函数节点按函数摘要，语句节点按语句 facts；一个节点可有多个标签。
+- 重入节点：外部调用种类（call.value / send / transfer / token 或其他合约方法 / 内部调用 / 无调用）× 节点类型（expression_statement、new_variable、if 条件等）× call_then_write；以及 modifier 头部含外部调用的函数节点。
+- 规则在小 fixture 上测试；遇 unknown 时标为 unknown，不猜测。
+
+## 2. 统计表
+- 每个节点任务：模式标签 × {SolidiFI, 非 SolidiFI} × {L-audit 正例, 负例} 的节点数（全数据，以及各外层折 inner_train 的最小/最大值）。
+- 对 21 个持续漏报与 NS-P9 中被检出的非 SolidiFI 正例（访问控制 mycontract、phishable、incorrect_constructor_name1/2/3；重入中被检出的 25–26 个）：所属模式标签，以及各折 inner_train 中同模式正例数与同模式负例数（替代 NS-P9 的“同节点类型”计数）。
+- 访问控制：SolidiFI 正例中 AC-txorigin 的比例；非 SolidiFI 正例按模式的分布。
+
+## 3. 交付
+summary_NS_v1b/reports/ 下的 CSV/JSON 与一页 NS_P9B_REPORT.md：只给计数与比例，并逐条说明 21 个漏报的同模式训练支撑；不改标签、不下漏洞真值结论。更新 PROGRESS、HANDOVER、training_changes；提交后停下。
+
+## 测试
+模式规则在 fixture 上逐条正确；计数与 L-audit 标签和折逐位对齐；输出排他创建；来源 SHA 不符时报错。
+```
+
 ### 5.13 以后执行：服务器复跑
 
 ```text
@@ -2118,6 +2144,30 @@ NS-P3a 期间按用户指令写入的 EXPERIMENT_POLICY.md 规定后续实验只
 6. **合约级不可解读：** 每折约 28 个合约，一个合约约 3.4 个百分点；−0.95 与 −0.05 都是单个合约的变化。
 
 **下一步：** NS-P9 改为只读汇总与持续漏报分析（第 5.12 节，r29）。第 3 点的系统性漏报是决定下一阶段（边语义或标签）的关键证据。
+
+## 5W. NS-P9 审查记录（2026-11-09，Claude）
+
+**结论：执行与数据通过，不需要修正。建议在选择下一阶段之前执行只读的 NS-P9b。**
+
+**复核：**
+- 我从 N-A、N-B、N-C1、N-C2 的 fold_metrics 独立复算报告第 2、3 节的全部单元格（best 240 个、last 60 个），等权均值 ± 样本 SD 与报告逐字符一致。跨批次重复记录没有冲突。
+- Holm 表与 N-A report.json 的 p_raw/p_adjusted 一致；N-C1、N-C2 的数值与我此前的复核一致。
+- 非 SolidiFI pooled（S0o 20/11/12 与 0/3/20；S2 25/5/7 与 2/9/18）与 N-A pooled_oof 一致。逐正例宽表中 S4/S5/S6/S8 的概率与 N-C2 配对表逐位相同。
+- 我按六个配置重算“全部漏报”的节点，得到重入 6 个、访问控制 15 个，名单与报告一致。
+- 代码：summary_cases 经 AST 精确对齐身份，前后核对图指纹，训练支撑从冻结标签与折计算；summary_edges 用冻结的 materialize 区分原始正向边与 G3R 消息方向。路径查询的节点对是人工选定的，我抽查了 6 个重入案例的源码，选点合理。
+- 三处开发期失败（辅助记录多余字段、重复的 n 字段、辅助节点 row_key）都只是汇总器接入问题，修正方式正确，失败目录保留，没有触碰模型输出。
+
+**接受 Codex 的更正（我此前的表述有误）：**
+- “所有配置在 SolidiFI 上 FN 都是 0”不对：S0o 在重入 best/last 各有 4 个，S6 重入 last 有 2 个。我核对的是 N-C2 中 S4/S5/S6/S8 的 best，不应推广到所有配置。
+- “一个合约约 3.4 个百分点”只对 accuracy 近似成立；BF1 的变化取决于该合约是 FP 还是 FN。
+- 我在 NS-P9 中列入了 S3m，但 N-B 从未运行它；Codex 标为未运行、不补训，处理正确。
+
+**我对持续漏报的补充判断（附证据）：**
+- 访问控制：只有 phishable 与 mycontract 被检出，二者都是 `require(tx.origin == owner)`，与 SolidiFI 注入的 tx.origin 模式同类（8B 中不经学习的标识符规则在该任务上达到 98.97）。15 个持续漏报的 STATIC 位里都没有 tx.origin，它们是无守卫的 owner 写入、错误的构造函数名、无守卫的 selfdestruct 与 delegatecall。报告第 (c) 类“相关输入存在、同类型正例少”按节点类型计数（5–9 个），不是按漏洞模式计数，低估了问题。更可能的机制是：训练正例几乎都是 tx.origin 模式，模型学到的是这个模式，而不是“无守卫的授权写入”。这需要 NS-P9b 的计数来确认。
+- 重入：etherbank 15759 是同一行上的 `throw;`，属于行级标签投影的副产物，调用节点本身已被检出，这个漏报不代表漏掉一次攻击。reentrancy_dao 8315 的经典 `call.value` 模式在 facts 中已有 call_then_write=true，却被漏掉，它位于 new_variable 节点，这类节点在正例中罕见。这与 NS-P6c 的发现一致：模型几乎不使用 STATIC。spank_chain 12958 是 ETH `.transfer`（2300 gas），按常见理解很难重入，标签本身值得商榷（不改标签，只记录）。
+- 第 (b) 类（缺少关系，边语义阶段的候选）共 5 例：重入 2 例（modifier 执行、跨函数调用效果），访问控制 3 例（delegatecall 存储上下文、数组写的别名）。即使边语义完全解决这 5 例，也只覆盖 21 个持续漏报中的约四分之一。
+
+**下一步：** 执行 NS-P9b（第 5.12b 节，只读、CPU）。之后由用户选择下一阶段的节点基线。
 
 ## 6. 里程碑
 
