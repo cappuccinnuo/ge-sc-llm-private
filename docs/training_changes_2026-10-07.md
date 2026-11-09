@@ -9677,3 +9677,43 @@ CPU学生通过后，逐任务图仅作为HGT装配与完整性核验输入；�
 代码中的S8 spec_digest随机身份适配只在构造阶段改变适配层用于reset_dropout的身份；model.nodesem_spec、nodesem_spec_sha256及载体内容仍为实际S8。S5正常路径原样调用冻结construct/run_core；compute body与已验收worker除purpose外一致的测试通过，且S5/S8相同输入及权重时随机前向逐位相同。真正正式HGT执行与checkpoint往返验收仍待授权后完成，准备验收不能代替正式fit成功。
 
 30个学生使用相同原fold不同派生种子，属于一套固定seed的交叉验证，不是30次独立seed重复。S8每类型固定置换保存映射；不按指标重选或删困难节点。大权重和NPZ留在WSL，不删除历史模型。
+
+
+## 96. 2026-11-09 NS-P8b N-C2执行授权与后台启动（Codex）
+
+### 授权范围与封存身份
+
+用户原文“授权执行”，对应上一轮已明确的30次S5及按预登记条件最多30次S8。execution_decisions.json单独记录授权，不修改plan.json、plan.seal.json或authorization.template.json。jobs=60表示固定矩阵容量，不是无条件运行S8。external_interrupt_retry_once=false，任何失败均保留原attempt并停止，未授权自动重试。
+
+plan SHA256为c5777ad85298f966d5127fc0667bb9175886cf49078348938776a6eda9a089ef；新execution_revision SHA256为5855a925774498987898b390d818fed8ce525613cf1de2864a48fe2b708766c7；authorization SHA256为29537f273a4c03c7389fa9b16057ecb73d62a77b321b6e2d05b8c83cf94097e4。seal入口重新核验封存源码、输入及准备/4196项回归证据后成功。无计算文件变更。
+
+### 启动检查与实际命令
+
+2026-11-09T06:22:01Z电源检查：System.Windows.Forms.SystemInformation.PowerStatus为Online；powercfg只读查询交流睡眠/休眠超时均0；没有改Windows电源设置。RTX3050总4096MiB、启动检查空闲3514MiB，driver527.99。首次在受限工具环境尝试Add-Type编译电源API被权限限制，未写成有效记录；随后用系统已有Forms接口成功读取真实状态。这是启动检查工具限制，不是fit失败或重试。
+
+mando环境执行python -B -m scripts.node_sem.batch_nc2_controller seal。随后以subprocess.Popen、start_new_session=True、stdin=DEVNULL，stdout/stderr写到batch_NC2_v1/controller.log，后台启动python -B -u -m scripts.node_sem.batch_nc2_controller run --root /home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/batch_NC2_v1。控制器PID743872，首个worker PID743876；launch.json记录命令、时间和SHA。不设置CUDA_VISIBLE_DEVICES覆盖，OMP/MKL线程数为2，模型缓存离线。
+
+### 运行边界与后续交付
+
+先完成30份S5及收据，再由nc2_gate从冻结标签、对齐节点预测重算重入节点best外层BF1等权折均S5−S4；严格大于0才运行30份S8。节点/合约、best/last、SolidiFI分层继续分别报告。S5/S8初值及随机起点配对不变；不会按有利折补跑，不改early stopping或最大轮数。保持local_dev_v1资源策略，运行中低空闲仅记录，OOM/数值/输入/checkpoint错误仍停止，不降配或切CPU。
+
+本节是启动记录，不提前声称正式训练完成或学生带来提升。30/60次是否执行完及最终统计以收据和后续NS_P8B_REPORT为准。最终显存充足服务器实验另建批次，本机RTX3050 4GiB只是当前开发限制。当前不自动推送。
+
+
+## 97. 2026-11-09 NS-P8b N-C2完整训练与汇总完成（修改 AI：Codex）
+
+60/60次正式拟合及验收完成（S5/S8各30），失败0、重试0，后台墙钟约3小时35分钟。原名G3R/L-audit，30个S4及30个S6只读参照；best折均BF1的S5−S4：重入节点+0.008145pp、访问控制节点+0.177842pp、访问控制合约−0.948617pp、重入合约−0.045977pp。主比较Holm p=0.645603，S5−S8为0.273677，没有稳定主任务改善的证据。
+
+非SolidiFI节点best：重入TP仍25、FP7→9，BF1下降；访问控制TP仍2/20、FP10→0，主要减少误报，仍漏18/20。S5未保留教师的召回收益；best与last部分方向不同。完整表、逐节点变化及资源见NS_P8B_REPORT.md和batch_NC2_v1/reports/，原准备报告已原字节归档。
+
+新增只读nc2_reporting.py及21项报告测试；完整4217测试通过。8H/N-C1/N-C2冻结源码及旧计划不变，S4删除的60份历史权重不宣称可重载。最终显存充足服务器另建批次，本机4GiB仅开发限制；本轮停止，不自动下一阶段或push。
+
+详细实施：新增N-C2只读汇总入口复用已验收的N-C1指标重算、节点对齐、OOF去重、资源及梯度审计逻辑，未修改训练算法。reporting_revision.json绑定新增来源SHA、原plan/execution_revision/complete和21项测试证据；原运行seal保持不变。report_complete.json记录独立报告收据，与训练完成记录分开。
+
+S8门槛按封存的重入节点best等权折均S5−S4严格大于0独立重算，得到+0.0081449258pp，与训练后的s8_decision逐位规则一致；不是按有利子集或fold决定。两项Wilcoxon分别p=0.645603、0.136838，Holm后0.645603、0.273677；其他比较不加检验。折间bootstrap、警告、A12均随原算法保留，不能挑bootstrap正区间替代Wilcoxon结论。
+
+输出120个模型结果的best/last对照（本批60+历史60），240条折指标记录；主L-audit与orig辅助分开，三组S5−S4/S6/S8配对、三类来源分层pooled、逐文件纠错和概率变化、32/20非SolidiFI正例身份对齐、关系支持/梯度及资源齐全。历史S4文件缺失明确记录60份，当前仅引用其封存预测；S6和本轮文件SHA均实核。
+
+S5 best对S4的纠正/新增错误分别为重入节点6/5、访问控制节点11/0、访问控制合约0/1、重入合约2/2，多数变化仅为概率。S5/S8均student全节点覆盖，S6覆盖有效描述节点；与教师的差距不纯粹代表压缩损失。教师增量非正时不计算保留比值。当前不建议把学生增强写成已证明稳定有效。
+
+完整回归：1341+2653+223=4217，42条既有警告。新增报告测试21项先通过再进行正式只读汇总；后续完整回归复核。后台运行日志、60份收据、120份新权重及全部特征仍留WSL；Git只提交代码/文档/紧凑结果/SHA，不上传大权重或向量。最终checkpoint选择仍为最低inner_val loss的best，last仅辅助，未事后换终点。

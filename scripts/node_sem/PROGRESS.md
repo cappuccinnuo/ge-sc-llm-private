@@ -494,3 +494,21 @@ access_control_contract 岭回归余弦 0.8790 / 同类型均值 0.8181；access
 最终服务器实验另建显存充足批次；本机RTX3050 4GiB仅开发限制。本轮不启动下一阶段、不自动推送。
 
 新增文件：student.py、student_artifacts.py、p8b_students.py、nc2_init.py、nc2_carrier.py、batch_nc2.py、p8b_prepare.py、batch_nc2_worker.py、batch_nc2_controller.py、nc2_gate.py，以及test_student.py/test_batch_nc2.py、NS_P8B报告与README。测试命令为mando CPU下python -B -m pytest -q -p no:cacheprovider，分别指定scripts/node_sem/tests、scripts/DFG/dfg_v2/tests、scripts/DFG/tests tests/test_graph_utils.py；日志在batch_NC2_v1/checks。
+
+
+## 2026-11-09 NS-P8b N-C2获授权并后台启动（修改 AI：Codex）
+
+用户明确回复“授权执行”。新增execution_decisions、execution_revision、authorization，绑定原plan/seal，原准备授权模板false保留。独立WSL后台控制器PID 743872，首项为重入节点G3R/S5 fold0；此处记录启动，不代表30项已经完成。
+
+执行30项S5，全部验收后仅当重入节点best外层BF1的S5−S4等权折均差严格大于0时执行全部30项S8，否则全部跳过。保持原名视图、冻结初值/图/划分/训练配置，单GPU串行，错误停止保留现场且不自动重试。运行状态见scripts/node_sem/artifacts/batch_NC2_v1/controller_status.json。
+
+启动前确认插电、睡眠及休眠超时均禁用，GPU空闲3514MiB；没有修改Windows设置或关闭其他程序。最终实验仍将在显存充足服务器另建批次，本机4GiB仅开发限制，不混合设备结果。
+
+
+## 2026-11-09 NS-P8b N-C2完整训练与汇总完成（修改 AI：Codex）
+
+60/60次正式拟合及验收完成（S5/S8各30），失败0、重试0，后台墙钟约3小时35分钟。原名G3R/L-audit，30个S4及30个S6只读参照；best折均BF1的S5−S4：重入节点+0.008145pp、访问控制节点+0.177842pp、访问控制合约−0.948617pp、重入合约−0.045977pp。主比较Holm p=0.645603，S5−S8为0.273677，没有稳定主任务改善的证据。
+
+非SolidiFI节点best：重入TP仍25、FP7→9，BF1下降；访问控制TP仍2/20、FP10→0，主要减少误报，仍漏18/20。S5未保留教师的召回收益；best与last部分方向不同。完整表、逐节点变化及资源见NS_P8B_REPORT.md和batch_NC2_v1/reports/，原准备报告已原字节归档。
+
+新增只读nc2_reporting.py及21项报告测试；完整4217测试通过。8H/N-C1/N-C2冻结源码及旧计划不变，S4删除的60份历史权重不宣称可重载。最终显存充足服务器另建批次，本机4GiB仅开发限制；本轮停止，不自动下一阶段或push。
