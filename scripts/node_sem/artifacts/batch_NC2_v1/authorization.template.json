@@ -1,0 +1,31 @@
+{
+  "version": "nodesem-nc2-plan-v1",
+  "execution_authorized": false,
+  "scope": "formal_NC2",
+  "unconditional_jobs": 30,
+  "conditional_jobs": 30,
+  "jobs": 60,
+  "matrix_sha256": "7fe7242c13957c75e716323ea0e5369d2f89f0a0e2b4a4175197be7ae01af124",
+  "view": "original",
+  "label_policy": "L-audit",
+  "seeds": [
+    1
+  ],
+  "user_request": null,
+  "conditional_rule": {
+    "task_id": "reentrancy_node",
+    "checkpoint": "best",
+    "score_role": "outer_test",
+    "comparison": [
+      "S5",
+      "S4"
+    ],
+    "metric": "buggy_f1",
+    "aggregate": "equal fold mean",
+    "operator": "strictly > 0",
+    "then": "execute all 30 S8",
+    "otherwise": "skip all S8"
+  },
+  "external_interrupt_retry_once": false,
+  "instructions": "Separate explicit authorization; never edit this template"
+}

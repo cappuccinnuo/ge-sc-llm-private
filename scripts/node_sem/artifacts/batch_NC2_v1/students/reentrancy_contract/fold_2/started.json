@@ -1,0 +1,50 @@
+{
+  "task_id": "reentrancy_contract",
+  "fold": 2,
+  "sources": {
+    "ctx": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/encoded/original/reentrancy_contract/ctx/manifest.json",
+      "sha256": "cb787b5107a3b84b6ee2e935894ca8c87cf76031294cbc2a8cd85588a3815e33"
+    },
+    "static": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/reentrancy_contract/manifest.json",
+      "sha256": "2b082b651a083d38cda9c517af1f828e20d15697844ba55029dc12d2d75e1186"
+    },
+    "teacher": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/llm_v3/teacher/reentrancy_contract/manifest.json",
+      "sha256": "b63eace49564ad527c686b87d864c2a2b7d8cf37b974b76fa0b65fb94a31f36e"
+    }
+  },
+  "split_sha256": "69cea1b32a3f1e8d8ac07ce7a77210eeb871544c591fa0bf72f0eea30ee82c1f",
+  "implementation": {
+    "student.py": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/student.py",
+      "sha256": "18989750ec250a3d78d8dfd6abb2616b074d2d2ed6f385b6af9a1ff466f4285d"
+    },
+    "student_artifacts.py": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/student_artifacts.py",
+      "sha256": "a87e7578037ef3d349779461eb2f8773eb0f0911f4d64147a716a75d862fc97f"
+    },
+    "carrier.py": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/carrier.py",
+      "sha256": "28abf88d0997cecddb80ff11119aa9c83c2cc862955175bfbdb4da555502f5e9"
+    },
+    "teacher_diagnostics.py": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/teacher_diagnostics.py",
+      "sha256": "a713327e2fa2eebfc09984d166e1352ca0a2c769b1ce0ddc7ffa3e6bf5a1f9ef"
+    }
+  },
+  "policy": {
+    "hidden": 512,
+    "output": 384,
+    "dropout": 0.1,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "loss": "1-cosine",
+    "selection": "strict minimum inner_val mean cosine loss",
+    "scaler": "population mean/variance on teacher-present inner_train only"
+  }
+}

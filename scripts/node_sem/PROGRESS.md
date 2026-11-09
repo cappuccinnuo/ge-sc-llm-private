@@ -481,3 +481,16 @@ access_control_contract 岭回归余弦 0.8790 / 同类型均值 0.8181；access
 预登记继续条件由重入非SolidiFI pooled BF1的+0.6629pp触发：TP25→26且FP7→8，FN7→6；错误总数不变，不能宣称稳定增益，last该子集反降2.4420pp。访问控制非SolidiFI节点BF1 12.50%→34.48%，TP2→5、FP10→4，但仍漏15/20正例。32/20正例已按源码SHA和节点身份逐一对齐，学生阶段未启动。
 
 只读报告入口与24项回归新增，全套4139项通过；375份运行源码、旧图/输入/计划不变，UTF-8记录检查继续执行。完整数字与边界见scripts/node_sem/NS_P8A_REPORT.md及batch_NC1_v1/reports/。最终服务器实验另建显存充足批次，不混合本机结果。准备报告已原样归档；本轮本地提交，不自动push或NS-P8b。
+
+
+## 2026-11-09 NS-P8b N-C2学生与计划准备完成（修改 AI：Codex）
+
+30/30个CPU学生蒸馏、全节点导出和诊断已完成；30项S5＋30项条件S8的逐折载体、零步初值和plan/seal已封存。正式HGT训练0次，授权模板false，按PROMPTS §5.11b等待本批独立训练授权。原名视图、S4/G3R、冻结标签/划分/配置保持。
+
+学生outer教师余弦均值：重入节点0.895862、访问控制节点0.890985、访问控制合约0.890789、重入合约0.888804，均略高于原岭回归；这是向量拟合诊断，不是漏洞检测提升。学生全部节点存在，教师仅有效描述节点存在，后续S5/S6差异含覆盖变化。
+
+用户批准3文件两折防泄漏测试、S5/S8共享全部初值与随机起点、完整验收后复用冻结S4载体与未训练结构。4196项回归通过，8H354与N-C1原375份源码不变；失败0/重试0。S8只在重入节点best的S5−S4等权折均差>0时全体运行，否则全体跳过。详情见scripts/node_sem/NS_P8B_REPORT.md、NS_P8B_README.md及batch_NC2_v1。
+
+最终服务器实验另建显存充足批次；本机RTX3050 4GiB仅开发限制。本轮不启动下一阶段、不自动推送。
+
+新增文件：student.py、student_artifacts.py、p8b_students.py、nc2_init.py、nc2_carrier.py、batch_nc2.py、p8b_prepare.py、batch_nc2_worker.py、batch_nc2_controller.py、nc2_gate.py，以及test_student.py/test_batch_nc2.py、NS_P8B报告与README。测试命令为mando CPU下python -B -m pytest -q -p no:cacheprovider，分别指定scripts/node_sem/tests、scripts/DFG/dfg_v2/tests、scripts/DFG/tests tests/test_graph_utils.py；日志在batch_NC2_v1/checks。
