@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-本轮只做CPU准备、验收与封存。正式训练必须有单独用户授权；`authorization.template.json` 永久保持 `execution_authorized=false`。本阶段没有S6成绩，不能把NS-P7c逻辑回归诊断当作S6结果。
+2026-11-09：用户单独授权后，30/30次S6训练及最终报告已完成。原 `authorization.template.json` 仍为false，执行授权在独立authorization.json；旧模板、plan和seal不变。结果见NS_P8A_REPORT.md。以下准备与启动命令是历史执行说明，不能覆盖既有批次或重复训练。
 
 ## 输入与初始化
 

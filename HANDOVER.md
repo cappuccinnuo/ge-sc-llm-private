@@ -2694,3 +2694,19 @@ access_control_contract 岭回归余弦 0.8790 / 同类型均值 0.8181；access
 独立N-C1接入获用户批准，复用冻结训练核心；继续条件未变，未达时仅说明预登记资源停止，不称学生不可能更好。4115测试通过，8H和354份冻结源码不变。本轮正式训练0/30，authorization.template=false，按PROMPTS §5.11等待单独训练授权；NS-P8b不自动运行。详细设计、选择、限制及实际命令见scripts/node_sem/NS_P8A_REPORT.md与NS_P8A_README.md。
 
 历史30次S4共约1.60小时，S6尚未实测；重入合约历史最低空闲44MiB，OOM按原规则停止，不调整计算。最终实验将在显存充足服务器另建批次，本机4GiB仅属当前开发限制，不混合设备结果。本轮不自动push。
+
+
+## 2026-11-08 NS-P8a N-C1获授权并后台启动（修改 AI：Codex）
+
+用户明确授权“授权训练，可以在后台训练就行”。已新建execution_decisions、execution_revision与authorization，绑定原30项plan/seal；原authorization.template=false保持不变。后台控制器PID 725002，独立WSL会话、日志重定向、单GPU锁串行；已进入重入节点G3R/S6 fold0。此处记录为启动状态，尚非30项完成或效果结论。
+
+启动前确认插电、禁睡眠、禁休眠，GPU空闲约3391MiB；没有修改Windows电源设置。训练沿用冻结配置和零步初值，OOM等错误停止并保留attempt，不自动重试、不启动NS-P8b。进度看scripts/node_sem/artifacts/batch_NC1_v1/controller_status.json，逐项日志与收据在runs/。正式服务器实验仍另建显存充足批次，本机限制不改变本轮计算。
+
+
+## 2026-11-09 NS-P8a N-C1完成（修改 AI：Codex）
+
+30/30次S6正式训练与收据验收完成，失败0、重试0；只读引用30个S4，60份S6 best/last完整。总墙钟约1小时46分钟。best BF1折均S6−S4：重入节点−0.0490pp（主比较p=0.9592）、访问控制节点+0.1617pp、访问控制合约−0.0638pp、重入合约+0.6437pp。
+
+预登记继续条件由重入非SolidiFI pooled BF1的+0.6629pp触发：TP25→26且FP7→8，FN7→6；错误总数不变，不能宣称稳定增益，last该子集反降2.4420pp。访问控制非SolidiFI节点BF1 12.50%→34.48%，TP2→5、FP10→4，但仍漏15/20正例。32/20正例已按源码SHA和节点身份逐一对齐，学生阶段未启动。
+
+只读报告入口与24项回归新增，全套4139项通过；375份运行源码、旧图/输入/计划不变，UTF-8记录检查继续执行。完整数字与边界见scripts/node_sem/NS_P8A_REPORT.md及batch_NC1_v1/reports/。最终服务器实验另建显存充足批次，不混合本机结果。准备报告已原样归档；本轮本地提交，不自动push或NS-P8b。
