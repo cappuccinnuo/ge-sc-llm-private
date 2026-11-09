@@ -1,0 +1,406 @@
+{
+  "task_id": "access_control_node",
+  "file": "simple_suicide.sol",
+  "source": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/simple_suicide.sol",
+    "sha256": "07ab4f0b502c4d91859f2446f4dd3edf8330000c9e21ddb9940bb70580526300",
+    "metadata": {
+      "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+      "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/simple_suicide.sol",
+      "source_sha256": "07ab4f0b502c4d91859f2446f4dd3edf8330000c9e21ddb9940bb70580526300",
+      "row_file": "dataset/access_control/simple_suicide.sol",
+      "version": "0.4.0"
+    }
+  },
+  "graph": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+    "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+    "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+    "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+    "nodes": 7892,
+    "edges": 16569
+  },
+  "nodes": [
+    {
+      "id": 12755,
+      "node_type": "contract_declaration",
+      "code": "\"contract SimpleSuicide {\\n  function sudicideAnyone() {\\n    selfdestruct(msg.sender);\\n  }\\n}\"",
+      "alignment": {
+        "function": null,
+        "function_key": null,
+        "function_lines": null,
+        "raw_lines": [
+          10,
+          16
+        ],
+        "raw_span": [
+          239,
+          365
+        ],
+        "source_text": "contract SimpleSuicide {\n  // <yes> <report> ACCESS_CONTROL\n  function sudicideAnyone() {\n    selfdestruct(msg.sender);\n  }\n\n}",
+        "graph_stored_lines": [
+          [
+            2,
+            6
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {},
+        "contract_summary": {
+          "auth_state": false,
+          "auth_state_count": 0,
+          "explicit_constructor": false,
+          "kind": "contract",
+          "payable_fallback": false,
+          "selfdestruct": true,
+          "status": "supported",
+          "unknown_fields": []
+        },
+        "dfg": {},
+        "env": {},
+        "external": {},
+        "fn_summary": {},
+        "function_ctx": {},
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "contract",
+        "order": {},
+        "provenance": {
+          "source_sha256": "07ab4f0b502c4d91859f2446f4dd3edf8330000c9e21ddb9940bb70580526300",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 12756,
+      "node_type": "function_definition",
+      "code": "\"function sudicideAnyone() {\\n    selfdestruct(msg.sender);\\n  }\"",
+      "alignment": {
+        "function": "function sudicideAnyone()",
+        "function_key": [
+          301,
+          362,
+          "function_definition"
+        ],
+        "function_lines": [
+          12,
+          14
+        ],
+        "raw_lines": [
+          12,
+          14
+        ],
+        "raw_span": [
+          301,
+          362
+        ],
+        "source_text": "function sudicideAnyone() {\n    selfdestruct(msg.sender);\n  }",
+        "graph_stored_lines": [
+          [
+            3,
+            5
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {},
+        "env": {},
+        "external": {},
+        "fn_summary": {
+          "auth_write": false,
+          "call_then_write": false,
+          "delegatecall": false,
+          "ext_call_in_loop": false,
+          "external_call": true,
+          "loop": false,
+          "selfdestruct": true,
+          "sender_guard": false,
+          "state_write": false,
+          "status": "supported",
+          "timestamp": false,
+          "tx_origin": false,
+          "unknown_fields": [],
+          "write_then_call": false
+        },
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "default"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "function",
+        "order": {},
+        "provenance": {
+          "source_sha256": "07ab4f0b502c4d91859f2446f4dd3edf8330000c9e21ddb9940bb70580526300",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 12757,
+      "node_type": "expression_statement",
+      "code": "\"selfdestruct(msg.sender);\"",
+      "alignment": {
+        "function": "function sudicideAnyone()",
+        "function_key": [
+          301,
+          362,
+          "function_definition"
+        ],
+        "function_lines": [
+          12,
+          14
+        ],
+        "raw_lines": [
+          13,
+          13
+        ],
+        "raw_span": [
+          333,
+          358
+        ],
+        "source_text": "selfdestruct(msg.sender);",
+        "graph_stored_lines": [
+          [
+            4,
+            4
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": false,
+          "from_param": false,
+          "in_unchecked": false,
+          "on_state": false,
+          "ops": [],
+          "sinks": [],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [],
+          "status": "supported",
+          "to": [],
+          "uses": []
+        },
+        "env": {
+          "keys": [
+            "msg.sender"
+          ],
+          "uses": [
+            "call"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [
+            "selfdestruct"
+          ],
+          "return_handling": "ignored",
+          "target_classes": [
+            "msg.sender"
+          ],
+          "uninvoked_call_value": false,
+          "value_attached": false,
+          "value_class": "none"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "default"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [],
+        "nearest": null,
+        "node_kind": "statement",
+        "order": {
+          "call_then_write": false,
+          "dominated_by_ext_call": false,
+          "ext_call_in_loop": false,
+          "pre_ext_call": null,
+          "reachable_from_ext_call": false,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "07ab4f0b502c4d91859f2446f4dd3edf8330000c9e21ddb9940bb70580526300",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {
+          "array_size_change": false,
+          "reads": [],
+          "status": "supported",
+          "writes": []
+        },
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {
+          "state_state_name_missing": 1
+        }
+      }
+    },
+    {
+      "id": 13286,
+      "node_type": "env_source",
+      "code": "msg.sender",
+      "alignment": null,
+      "facts": {
+        "arith": {},
+        "checked_call": {},
+        "contract_summary": {},
+        "dfg": {},
+        "env": {
+          "keys": [
+            "msg.sender"
+          ],
+          "uses": []
+        },
+        "external": {},
+        "fn_summary": {},
+        "function_ctx": {},
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "env",
+        "order": {},
+        "provenance": {
+          "source_sha256": "07ab4f0b502c4d91859f2446f4dd3edf8330000c9e21ddb9940bb70580526300",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": 12755,
+      "target": 12756,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 12755,
+      "target": 12756,
+      "key": "1",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "recursive_method_call",
+        "edge_type": "recursive_method_call",
+        "label": "recursive_method_call"
+      }
+    },
+    {
+      "source": 12756,
+      "target": 12757,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 13286,
+      "target": 12757,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.sender",
+        "spellings": [
+          "msg.sender"
+        ],
+        "evidence_indices": [
+          2114
+        ]
+      }
+    }
+  ],
+  "note": "Raw F3 stored directions. G3R uses explicit reverse semantic relations in the model; no reversed edge is a reversed causal fact."
+}

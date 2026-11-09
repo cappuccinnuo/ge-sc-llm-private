@@ -1,0 +1,2481 @@
+{
+  "task_id": "access_control_node",
+  "file": "wallet_04_confused_sign.sol",
+  "source": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/wallet_04_confused_sign.sol",
+    "sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+    "metadata": {
+      "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+      "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/wallet_04_confused_sign.sol",
+      "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+      "row_file": "dataset/access_control/wallet_04_confused_sign.sol",
+      "version": "0.4.24"
+    }
+  },
+  "graph": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+    "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+    "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+    "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+    "nodes": 7892,
+    "edges": 16569
+  },
+  "nodes": [
+    {
+      "id": 9856,
+      "node_type": "contract_declaration",
+      "code": "\"contract Wallet {\\n     address creator;\\n     mapping(address => uint256) balances;\\n     constructor() public {\\n         creator = msg.sender;\\n     }\\n     function deposit() public payable {\\n         assert(balances[msg.sender] + msg.value > balances[msg.sender]);\\n         balances[msg.sender] += msg.value;\\n     }\\n     function withdraw(uint256 amount) public {\\n         require(amount >= balances[msg.sender]);\\n         msg.sender.transfer(amount);\\n         balances[msg.sender] -= amount;\\n     }\\n     function migrateTo(address to) public {\\n         require(creator == msg.sender);\\n         to.transfer(this.balance);\\n     }\\n }\"",
+      "alignment": {
+        "function": null,
+        "function_key": null,
+        "function_lines": null,
+        "raw_lines": [
+          14,
+          42
+        ],
+        "raw_span": [
+          387,
+          1146
+        ],
+        "source_text": "contract Wallet {\n     address creator;\n\n     mapping(address => uint256) balances;\n\n     constructor() public {\n         creator = msg.sender;\n     }\n\n     function deposit() public payable {\n         assert(balances[msg.sender] + msg.value > balances[msg.sender]);\n         balances[msg.sender] += msg.value;\n     }\n\n     function withdraw(uint256 amount) public {\n         // <yes> <report> ACCESS_CONTROL\n         require(amount >= balances[msg.sender]);\n         msg.sender.transfer(amount);\n         balances[msg.sender] -= amount;\n     }\n\n     // In an emergency the owner can migrate  allfunds to a different address.\n\n     function migrateTo(address to) public {\n         require(creator == msg.sender);\n         to.transfer(this.balance);\n     }\n\n }",
+        "graph_stored_lines": [
+          [
+            2,
+            21
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {},
+        "contract_summary": {
+          "auth_state": true,
+          "auth_state_count": 1,
+          "explicit_constructor": true,
+          "kind": "contract",
+          "payable_fallback": false,
+          "selfdestruct": false,
+          "status": "supported",
+          "unknown_fields": []
+        },
+        "dfg": {},
+        "env": {},
+        "external": {},
+        "fn_summary": {},
+        "function_ctx": {},
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "contract",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 9857,
+      "node_type": "new_variable",
+      "code": "\"address creator;\"",
+      "alignment": {
+        "function": null,
+        "function_key": null,
+        "function_lines": null,
+        "raw_lines": [
+          15,
+          15
+        ],
+        "raw_span": [
+          410,
+          426
+        ],
+        "source_text": "address creator;",
+        "graph_stored_lines": [
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {},
+        "contract_summary": {},
+        "dfg": {},
+        "env": {
+          "keys": [],
+          "uses": []
+        },
+        "external": {},
+        "fn_summary": {},
+        "function_ctx": {},
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "state_decl",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {
+          "auth": true,
+          "constant_immutable": false,
+          "has_initializer": false,
+          "only_constructor_writes": true,
+          "public": false,
+          "read_functions": "one",
+          "read_in_guard": true,
+          "shape": "address",
+          "status": "supported",
+          "unguarded_write_functions": 1,
+          "unguarded_writer": true,
+          "unknown_fields": [],
+          "used_as_call_value_or_target": false,
+          "write_functions": "one"
+        },
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 9858,
+      "node_type": "new_variable",
+      "code": "\"mapping(address => uint256) balances;\"",
+      "alignment": {
+        "function": null,
+        "function_key": null,
+        "function_lines": null,
+        "raw_lines": [
+          17,
+          17
+        ],
+        "raw_span": [
+          433,
+          470
+        ],
+        "source_text": "mapping(address => uint256) balances;",
+        "graph_stored_lines": [
+          [
+            4,
+            4
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {},
+        "contract_summary": {},
+        "dfg": {},
+        "env": {
+          "keys": [],
+          "uses": []
+        },
+        "external": {},
+        "fn_summary": {},
+        "function_ctx": {},
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "state_decl",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {
+          "auth": false,
+          "constant_immutable": false,
+          "has_initializer": false,
+          "only_constructor_writes": false,
+          "public": false,
+          "read_functions": "many",
+          "read_in_guard": true,
+          "shape": "mapping",
+          "status": "supported",
+          "unguarded_write_functions": 2,
+          "unguarded_writer": true,
+          "unknown_fields": [],
+          "used_as_call_value_or_target": false,
+          "write_functions": "many"
+        },
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 9859,
+      "node_type": "constructor_definition",
+      "code": "\"constructor() public {\\n         creator = msg.sender;\\n     }\"",
+      "alignment": {
+        "function": "constructor() public",
+        "function_key": [
+          477,
+          537,
+          "constructor_definition"
+        ],
+        "function_lines": [
+          19,
+          21
+        ],
+        "raw_lines": [
+          19,
+          21
+        ],
+        "raw_span": [
+          477,
+          537
+        ],
+        "source_text": "constructor() public {\n         creator = msg.sender;\n     }",
+        "graph_stored_lines": [
+          [
+            5,
+            7
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {},
+        "env": {},
+        "external": {},
+        "fn_summary": {
+          "auth_write": true,
+          "call_then_write": false,
+          "delegatecall": false,
+          "ext_call_in_loop": false,
+          "external_call": false,
+          "loop": false,
+          "selfdestruct": false,
+          "sender_guard": false,
+          "state_write": true,
+          "status": "supported",
+          "timestamp": false,
+          "tx_origin": false,
+          "unknown_fields": [],
+          "write_then_call": false
+        },
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": true,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "default"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "function",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 9860,
+      "node_type": "expression_statement",
+      "code": "\"creator = msg.sender;\"",
+      "alignment": {
+        "function": "constructor() public",
+        "function_key": [
+          477,
+          537,
+          "constructor_definition"
+        ],
+        "function_lines": [
+          19,
+          21
+        ],
+        "raw_lines": [
+          20,
+          20
+        ],
+        "raw_span": [
+          509,
+          530
+        ],
+        "source_text": "creator = msg.sender;",
+        "graph_stored_lines": [
+          [
+            6,
+            6
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": false,
+          "from_param": false,
+          "in_unchecked": false,
+          "on_state": false,
+          "ops": [],
+          "sinks": [],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [],
+          "status": "supported",
+          "to": [],
+          "uses": []
+        },
+        "env": {
+          "keys": [
+            "msg.sender"
+          ],
+          "uses": [
+            "state"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [],
+          "return_handling": "not_applicable",
+          "target_classes": [],
+          "uninvoked_call_value": false,
+          "value_attached": false,
+          "value_class": "none"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": true,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "default"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [
+          "creator"
+        ],
+        "nearest": null,
+        "node_kind": "statement",
+        "order": {
+          "call_then_write": false,
+          "dominated_by_ext_call": false,
+          "ext_call_in_loop": false,
+          "pre_ext_call": null,
+          "reachable_from_ext_call": false,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {
+          "array_size_change": false,
+          "reads": [],
+          "status": "supported",
+          "writes": [
+            {
+              "auth": true,
+              "shape": "address",
+              "var": "creator"
+            }
+          ]
+        },
+        "state_decl": {},
+        "syntax": [
+          "assign"
+        ],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 9861,
+      "node_type": "function_definition",
+      "code": "\"function deposit() public payable {\\n         assert(balances[msg.sender] + msg.value > balances[msg.sender]);\\n         balances[msg.sender] += msg.value;\\n     }\"",
+      "alignment": {
+        "function": "function deposit() public payable",
+        "function_key": [
+          544,
+          704,
+          "function_definition"
+        ],
+        "function_lines": [
+          23,
+          26
+        ],
+        "raw_lines": [
+          23,
+          26
+        ],
+        "raw_span": [
+          544,
+          704
+        ],
+        "source_text": "function deposit() public payable {\n         assert(balances[msg.sender] + msg.value > balances[msg.sender]);\n         balances[msg.sender] += msg.value;\n     }",
+        "graph_stored_lines": [
+          [
+            8,
+            11
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {},
+        "env": {},
+        "external": {},
+        "fn_summary": {
+          "auth_write": false,
+          "call_then_write": false,
+          "delegatecall": false,
+          "ext_call_in_loop": false,
+          "external_call": false,
+          "loop": false,
+          "selfdestruct": false,
+          "sender_guard": false,
+          "state_write": true,
+          "status": "supported",
+          "timestamp": false,
+          "tx_origin": false,
+          "unknown_fields": [],
+          "write_then_call": false
+        },
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": true,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "function",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 9862,
+      "node_type": "expression_statement",
+      "code": "\"assert(balances[msg.sender] + msg.value > balances[msg.sender]);\"",
+      "alignment": {
+        "function": "function deposit() public payable",
+        "function_key": [
+          544,
+          704,
+          "function_definition"
+        ],
+        "function_lines": [
+          23,
+          26
+        ],
+        "raw_lines": [
+          24,
+          24
+        ],
+        "raw_span": [
+          589,
+          653
+        ],
+        "source_text": "assert(balances[msg.sender] + msg.value > balances[msg.sender]);",
+        "graph_stored_lines": [
+          [
+            9,
+            9
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": true,
+          "from_param": false,
+          "in_unchecked": false,
+          "on_state": true,
+          "ops": [
+            "+"
+          ],
+          "sinks": [
+            "guard"
+          ],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [],
+          "status": "supported",
+          "to": [],
+          "uses": []
+        },
+        "env": {
+          "keys": [
+            "msg.sender",
+            "msg.value"
+          ],
+          "uses": [
+            "arith",
+            "guard"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [],
+          "return_handling": "not_applicable",
+          "target_classes": [],
+          "uninvoked_call_value": false,
+          "value_attached": false,
+          "value_class": "none"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": true,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [
+          "balances"
+        ],
+        "nearest": null,
+        "node_kind": "condition",
+        "order": {
+          "call_then_write": false,
+          "dominated_by_ext_call": false,
+          "ext_call_in_loop": false,
+          "pre_ext_call": null,
+          "reachable_from_ext_call": false,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {
+          "early_exit_if": false,
+          "eq_pairs": [],
+          "operand_classes": [
+            "msg.sender",
+            "msg.value",
+            "state"
+          ]
+        },
+        "state": {
+          "array_size_change": false,
+          "reads": [
+            {
+              "auth": false,
+              "shape": "mapping",
+              "var": "balances"
+            }
+          ],
+          "status": "supported",
+          "writes": []
+        },
+        "state_decl": {},
+        "syntax": [
+          "index"
+        ],
+        "unresolved": {
+          "state_state_name_missing": 1
+        }
+      }
+    },
+    {
+      "id": 9863,
+      "node_type": "expression_statement",
+      "code": "\"balances[msg.sender] += msg.value;\"",
+      "alignment": {
+        "function": "function deposit() public payable",
+        "function_key": [
+          544,
+          704,
+          "function_definition"
+        ],
+        "function_lines": [
+          23,
+          26
+        ],
+        "raw_lines": [
+          25,
+          25
+        ],
+        "raw_span": [
+          663,
+          697
+        ],
+        "source_text": "balances[msg.sender] += msg.value;",
+        "graph_stored_lines": [
+          [
+            10,
+            10
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": true,
+          "from_param": false,
+          "in_unchecked": false,
+          "on_state": true,
+          "ops": [
+            "+"
+          ],
+          "sinks": [
+            "state"
+          ],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [],
+          "status": "supported",
+          "to": [],
+          "uses": []
+        },
+        "env": {
+          "keys": [
+            "msg.sender",
+            "msg.value"
+          ],
+          "uses": [
+            "arith",
+            "state"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [],
+          "return_handling": "not_applicable",
+          "target_classes": [],
+          "uninvoked_call_value": false,
+          "value_attached": false,
+          "value_class": "none"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": true,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "present",
+        "guards": [
+          {
+            "disjunctive": false,
+            "eq_pairs": [],
+            "is_sender_guard": false,
+            "kind": "require",
+            "offset": -1,
+            "operand_classes": [
+              "msg.sender",
+              "msg.value",
+              "state"
+            ],
+            "polarity": 1,
+            "rule": "1"
+          }
+        ],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [
+          "balances"
+        ],
+        "nearest": 0,
+        "node_kind": "statement",
+        "order": {
+          "call_then_write": false,
+          "dominated_by_ext_call": false,
+          "ext_call_in_loop": false,
+          "pre_ext_call": null,
+          "reachable_from_ext_call": false,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {
+          "array_size_change": false,
+          "reads": [
+            {
+              "auth": false,
+              "shape": "mapping",
+              "var": "balances"
+            }
+          ],
+          "status": "supported",
+          "writes": [
+            {
+              "auth": false,
+              "shape": "mapping",
+              "var": "balances"
+            }
+          ]
+        },
+        "state_decl": {},
+        "syntax": [
+          "add_assign",
+          "index"
+        ],
+        "unresolved": {
+          "state_state_name_missing": 1
+        }
+      }
+    },
+    {
+      "id": 9864,
+      "node_type": "function_definition",
+      "code": "\"function withdraw(uint256 amount) public {\\n         require(amount >= balances[msg.sender]);\\n         msg.sender.transfer(amount);\\n         balances[msg.sender] -= amount;\\n     }\"",
+      "alignment": {
+        "function": "function withdraw(uint256 amount) public",
+        "function_key": [
+          711,
+          931,
+          "function_definition"
+        ],
+        "function_lines": [
+          28,
+          33
+        ],
+        "raw_lines": [
+          28,
+          33
+        ],
+        "raw_span": [
+          711,
+          931
+        ],
+        "source_text": "function withdraw(uint256 amount) public {\n         // <yes> <report> ACCESS_CONTROL\n         require(amount >= balances[msg.sender]);\n         msg.sender.transfer(amount);\n         balances[msg.sender] -= amount;\n     }",
+        "graph_stored_lines": [
+          [
+            12,
+            16
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {},
+        "env": {},
+        "external": {},
+        "fn_summary": {
+          "auth_write": false,
+          "call_then_write": true,
+          "delegatecall": false,
+          "ext_call_in_loop": false,
+          "external_call": true,
+          "loop": false,
+          "selfdestruct": false,
+          "sender_guard": false,
+          "state_write": true,
+          "status": "supported",
+          "timestamp": false,
+          "tx_origin": false,
+          "unknown_fields": [],
+          "write_then_call": false
+        },
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "function",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 9865,
+      "node_type": "expression_statement",
+      "code": "\"require(amount >= balances[msg.sender]);\"",
+      "alignment": {
+        "function": "function withdraw(uint256 amount) public",
+        "function_key": [
+          711,
+          931,
+          "function_definition"
+        ],
+        "function_lines": [
+          28,
+          33
+        ],
+        "raw_lines": [
+          30,
+          30
+        ],
+        "raw_span": [
+          805,
+          845
+        ],
+        "source_text": "require(amount >= balances[msg.sender]);",
+        "graph_stored_lines": [
+          [
+            13,
+            13
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": false,
+          "from_param": false,
+          "in_unchecked": false,
+          "on_state": false,
+          "ops": [],
+          "sinks": [],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [
+            {
+              "node": 9864,
+              "offset": null
+            }
+          ],
+          "status": "supported",
+          "to": [],
+          "uses": [
+            {
+              "from_offset": null,
+              "kind": "parameter",
+              "var": "amount"
+            }
+          ]
+        },
+        "env": {
+          "keys": [
+            "msg.sender"
+          ],
+          "uses": [
+            "guard"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [],
+          "return_handling": "not_applicable",
+          "target_classes": [],
+          "uninvoked_call_value": false,
+          "value_attached": false,
+          "value_class": "none"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [
+          "amount",
+          "balances"
+        ],
+        "nearest": null,
+        "node_kind": "condition",
+        "order": {
+          "call_then_write": false,
+          "dominated_by_ext_call": false,
+          "ext_call_in_loop": false,
+          "pre_ext_call": null,
+          "reachable_from_ext_call": false,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {
+          "early_exit_if": false,
+          "eq_pairs": [],
+          "operand_classes": [
+            "msg.sender",
+            "param",
+            "state"
+          ]
+        },
+        "state": {
+          "array_size_change": false,
+          "reads": [
+            {
+              "auth": false,
+              "shape": "mapping",
+              "var": "balances"
+            }
+          ],
+          "status": "supported",
+          "writes": []
+        },
+        "state_decl": {},
+        "syntax": [
+          "index"
+        ],
+        "unresolved": {
+          "state_state_name_missing": 1
+        }
+      }
+    },
+    {
+      "id": 9866,
+      "node_type": "expression_statement",
+      "code": "\"msg.sender.transfer(amount);\"",
+      "alignment": {
+        "function": "function withdraw(uint256 amount) public",
+        "function_key": [
+          711,
+          931,
+          "function_definition"
+        ],
+        "function_lines": [
+          28,
+          33
+        ],
+        "raw_lines": [
+          31,
+          31
+        ],
+        "raw_span": [
+          855,
+          883
+        ],
+        "source_text": "msg.sender.transfer(amount);",
+        "graph_stored_lines": [
+          [
+            14,
+            14
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": false,
+          "from_param": false,
+          "in_unchecked": false,
+          "on_state": false,
+          "ops": [],
+          "sinks": [],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [
+            {
+              "node": 9864,
+              "offset": null
+            }
+          ],
+          "status": "supported",
+          "to": [],
+          "uses": [
+            {
+              "from_offset": null,
+              "kind": "parameter",
+              "var": "amount"
+            }
+          ]
+        },
+        "env": {
+          "keys": [
+            "msg.sender"
+          ],
+          "uses": [
+            "call"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [
+            "transfer"
+          ],
+          "return_handling": "ignored",
+          "target_classes": [
+            "msg.sender"
+          ],
+          "uninvoked_call_value": false,
+          "value_attached": true,
+          "value_class": "param"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "present",
+        "guards": [
+          {
+            "disjunctive": false,
+            "eq_pairs": [],
+            "is_sender_guard": false,
+            "kind": "require",
+            "offset": -1,
+            "operand_classes": [
+              "msg.sender",
+              "param",
+              "state"
+            ],
+            "polarity": 1,
+            "rule": "1"
+          }
+        ],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [
+          "amount"
+        ],
+        "nearest": 0,
+        "node_kind": "statement",
+        "order": {
+          "call_then_write": true,
+          "dominated_by_ext_call": false,
+          "ext_call_in_loop": false,
+          "pre_ext_call": null,
+          "reachable_from_ext_call": false,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {
+          "array_size_change": false,
+          "reads": [],
+          "status": "supported",
+          "writes": []
+        },
+        "state_decl": {},
+        "syntax": [
+          "deep_member"
+        ],
+        "unresolved": {
+          "state_state_name_missing": 1
+        }
+      }
+    },
+    {
+      "id": 9867,
+      "node_type": "expression_statement",
+      "code": "\"balances[msg.sender] -= amount;\"",
+      "alignment": {
+        "function": "function withdraw(uint256 amount) public",
+        "function_key": [
+          711,
+          931,
+          "function_definition"
+        ],
+        "function_lines": [
+          28,
+          33
+        ],
+        "raw_lines": [
+          32,
+          32
+        ],
+        "raw_span": [
+          893,
+          924
+        ],
+        "source_text": "balances[msg.sender] -= amount;",
+        "graph_stored_lines": [
+          [
+            15,
+            15
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": true,
+          "from_param": true,
+          "in_unchecked": false,
+          "on_state": true,
+          "ops": [
+            "-"
+          ],
+          "sinks": [
+            "state"
+          ],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [
+            {
+              "node": 9864,
+              "offset": null
+            }
+          ],
+          "status": "supported",
+          "to": [],
+          "uses": [
+            {
+              "from_offset": null,
+              "kind": "parameter",
+              "var": "amount"
+            }
+          ]
+        },
+        "env": {
+          "keys": [
+            "msg.sender"
+          ],
+          "uses": [
+            "arith",
+            "state"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [],
+          "return_handling": "not_applicable",
+          "target_classes": [],
+          "uninvoked_call_value": false,
+          "value_attached": false,
+          "value_class": "none"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "present",
+        "guards": [
+          {
+            "disjunctive": false,
+            "eq_pairs": [],
+            "is_sender_guard": false,
+            "kind": "require",
+            "offset": -2,
+            "operand_classes": [
+              "msg.sender",
+              "param",
+              "state"
+            ],
+            "polarity": 1,
+            "rule": "1"
+          }
+        ],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [
+          "amount",
+          "balances"
+        ],
+        "nearest": 0,
+        "node_kind": "statement",
+        "order": {
+          "call_then_write": false,
+          "dominated_by_ext_call": true,
+          "ext_call_in_loop": false,
+          "pre_ext_call": {
+            "node": 9866,
+            "offset": -1
+          },
+          "reachable_from_ext_call": true,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {
+          "array_size_change": false,
+          "reads": [
+            {
+              "auth": false,
+              "shape": "mapping",
+              "var": "balances"
+            }
+          ],
+          "status": "supported",
+          "writes": [
+            {
+              "auth": false,
+              "shape": "mapping",
+              "var": "balances"
+            }
+          ]
+        },
+        "state_decl": {},
+        "syntax": [
+          "index",
+          "sub_assign"
+        ],
+        "unresolved": {
+          "state_state_name_missing": 1
+        }
+      }
+    },
+    {
+      "id": 9868,
+      "node_type": "function_definition",
+      "code": "\"function migrateTo(address to) public {\\n         require(creator == msg.sender);\\n         to.transfer(this.balance);\\n     }\"",
+      "alignment": {
+        "function": "function migrateTo(address to) public",
+        "function_key": [
+          1019,
+          1142,
+          "function_definition"
+        ],
+        "function_lines": [
+          37,
+          40
+        ],
+        "raw_lines": [
+          37,
+          40
+        ],
+        "raw_span": [
+          1019,
+          1142
+        ],
+        "source_text": "function migrateTo(address to) public {\n         require(creator == msg.sender);\n         to.transfer(this.balance);\n     }",
+        "graph_stored_lines": [
+          [
+            17,
+            20
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {},
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {},
+        "env": {},
+        "external": {},
+        "fn_summary": {
+          "auth_write": false,
+          "call_then_write": false,
+          "delegatecall": false,
+          "ext_call_in_loop": false,
+          "external_call": true,
+          "loop": false,
+          "selfdestruct": false,
+          "sender_guard": true,
+          "state_write": false,
+          "status": "supported",
+          "timestamp": false,
+          "tx_origin": false,
+          "unknown_fields": [],
+          "write_then_call": false
+        },
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "function",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 9869,
+      "node_type": "expression_statement",
+      "code": "\"require(creator == msg.sender);\"",
+      "alignment": {
+        "function": "function migrateTo(address to) public",
+        "function_key": [
+          1019,
+          1142,
+          "function_definition"
+        ],
+        "function_lines": [
+          37,
+          40
+        ],
+        "raw_lines": [
+          38,
+          38
+        ],
+        "raw_span": [
+          1068,
+          1099
+        ],
+        "source_text": "require(creator == msg.sender);",
+        "graph_stored_lines": [
+          [
+            18,
+            18
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": false,
+          "from_param": false,
+          "in_unchecked": false,
+          "on_state": false,
+          "ops": [],
+          "sinks": [],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [],
+          "status": "supported",
+          "to": [],
+          "uses": []
+        },
+        "env": {
+          "keys": [
+            "msg.sender"
+          ],
+          "uses": [
+            "guard"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [],
+          "return_handling": "not_applicable",
+          "target_classes": [],
+          "uninvoked_call_value": false,
+          "value_attached": false,
+          "value_class": "none"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "none",
+        "guards": [],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [
+          "creator"
+        ],
+        "nearest": null,
+        "node_kind": "condition",
+        "order": {
+          "call_then_write": false,
+          "dominated_by_ext_call": false,
+          "ext_call_in_loop": false,
+          "pre_ext_call": null,
+          "reachable_from_ext_call": false,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {
+          "early_exit_if": false,
+          "eq_pairs": [
+            "env_state"
+          ],
+          "operand_classes": [
+            "msg.sender",
+            "state"
+          ]
+        },
+        "state": {
+          "array_size_change": false,
+          "reads": [
+            {
+              "auth": true,
+              "shape": "address",
+              "var": "creator"
+            }
+          ],
+          "status": "supported",
+          "writes": []
+        },
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {
+          "state_state_name_missing": 1
+        }
+      }
+    },
+    {
+      "id": 9870,
+      "node_type": "expression_statement",
+      "code": "\"to.transfer(this.balance);\"",
+      "alignment": {
+        "function": "function migrateTo(address to) public",
+        "function_key": [
+          1019,
+          1142,
+          "function_definition"
+        ],
+        "function_lines": [
+          37,
+          40
+        ],
+        "raw_lines": [
+          39,
+          39
+        ],
+        "raw_span": [
+          1109,
+          1135
+        ],
+        "source_text": "to.transfer(this.balance);",
+        "graph_stored_lines": [
+          [
+            19,
+            19
+          ]
+        ]
+      },
+      "facts": {
+        "arith": {
+          "from_env": false,
+          "from_param": false,
+          "in_unchecked": false,
+          "on_state": false,
+          "ops": [],
+          "sinks": [],
+          "small_int": false
+        },
+        "checked_call": {
+          "has_arithmetic": false,
+          "has_guard": false,
+          "result_condition_check": false,
+          "status": "not_applicable"
+        },
+        "contract_summary": {},
+        "dfg": {
+          "defs": [],
+          "from": [
+            {
+              "node": 9868,
+              "offset": null
+            }
+          ],
+          "status": "supported",
+          "to": [],
+          "uses": [
+            {
+              "from_offset": null,
+              "kind": "parameter",
+              "var": "to"
+            }
+          ]
+        },
+        "env": {
+          "keys": [
+            "this.balance"
+          ],
+          "uses": [
+            "call"
+          ]
+        },
+        "external": {
+          "data_class": "none",
+          "kinds": [
+            "transfer"
+          ],
+          "return_handling": "ignored",
+          "target_classes": [
+            "param"
+          ],
+          "uninvoked_call_value": false,
+          "value_attached": true,
+          "value_class": "this.balance"
+        },
+        "fn_summary": {},
+        "function_ctx": {
+          "has_modifier": false,
+          "is_constructor": false,
+          "is_fallback": false,
+          "name_case_only_differs_from_contract": false,
+          "payable": false,
+          "read_only": false,
+          "visibility": "public"
+        },
+        "guard_status": "present",
+        "guards": [
+          {
+            "disjunctive": false,
+            "eq_pairs": [
+              "env_state"
+            ],
+            "is_sender_guard": true,
+            "kind": "require",
+            "offset": -1,
+            "operand_classes": [
+              "msg.sender",
+              "state"
+            ],
+            "polarity": 1,
+            "rule": "1"
+          }
+        ],
+        "loop": {
+          "bound": "none"
+        },
+        "names": [
+          "to"
+        ],
+        "nearest": 0,
+        "node_kind": "statement",
+        "order": {
+          "call_then_write": false,
+          "dominated_by_ext_call": false,
+          "ext_call_in_loop": false,
+          "pre_ext_call": null,
+          "reachable_from_ext_call": false,
+          "status": "supported",
+          "write_then_call": false
+        },
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {
+          "array_size_change": false,
+          "reads": [],
+          "status": "supported",
+          "writes": []
+        },
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {
+          "state_state_name_missing": 1
+        }
+      }
+    },
+    {
+      "id": 13294,
+      "node_type": "env_source",
+      "code": "msg.sender",
+      "alignment": null,
+      "facts": {
+        "arith": {},
+        "checked_call": {},
+        "contract_summary": {},
+        "dfg": {},
+        "env": {
+          "keys": [
+            "msg.sender"
+          ],
+          "uses": []
+        },
+        "external": {},
+        "fn_summary": {},
+        "function_ctx": {},
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "env",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 13295,
+      "node_type": "env_source",
+      "code": "msg.value",
+      "alignment": null,
+      "facts": {
+        "arith": {},
+        "checked_call": {},
+        "contract_summary": {},
+        "dfg": {},
+        "env": {
+          "keys": [
+            "msg.value"
+          ],
+          "uses": []
+        },
+        "external": {},
+        "fn_summary": {},
+        "function_ctx": {},
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "env",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    },
+    {
+      "id": 13296,
+      "node_type": "env_source",
+      "code": "this.balance",
+      "alignment": null,
+      "facts": {
+        "arith": {},
+        "checked_call": {},
+        "contract_summary": {},
+        "dfg": {},
+        "env": {
+          "keys": [
+            "this.balance"
+          ],
+          "uses": []
+        },
+        "external": {},
+        "fn_summary": {},
+        "function_ctx": {},
+        "guard_status": "none",
+        "guards": [],
+        "loop": {},
+        "names": [],
+        "nearest": null,
+        "node_kind": "env",
+        "order": {},
+        "provenance": {
+          "source_sha256": "5ec3d85c76b1f1a15ec1295085087f1d969742bdc2aaf9c6fb1a79bfffa8735d",
+          "store_refs": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+              "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+            }
+          ],
+          "view": "original"
+        },
+        "self_condition": {},
+        "state": {},
+        "state_decl": {},
+        "syntax": [],
+        "unresolved": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": 9856,
+      "target": 9857,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9856,
+      "target": 9859,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "recursive_method_call",
+        "edge_type": "recursive_method_call",
+        "label": "recursive_method_call"
+      }
+    },
+    {
+      "source": 9856,
+      "target": 9861,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "recursive_method_call",
+        "edge_type": "recursive_method_call",
+        "label": "recursive_method_call"
+      }
+    },
+    {
+      "source": 9856,
+      "target": 9864,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "recursive_method_call",
+        "edge_type": "recursive_method_call",
+        "label": "recursive_method_call"
+      }
+    },
+    {
+      "source": 9856,
+      "target": 9868,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "recursive_method_call",
+        "edge_type": "recursive_method_call",
+        "label": "recursive_method_call"
+      }
+    },
+    {
+      "source": 9857,
+      "target": 9858,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9857,
+      "target": 9869,
+      "key": 0,
+      "attributes": {
+        "edge_type": "READS_STATE",
+        "dfg_v2_version": "dfg-v2",
+        "state_vars": [
+          "creator"
+        ],
+        "via_alias": false,
+        "evidence_indices": [
+          1549
+        ]
+      }
+    },
+    {
+      "source": 9858,
+      "target": 9862,
+      "key": 0,
+      "attributes": {
+        "edge_type": "READS_STATE",
+        "dfg_v2_version": "dfg-v2",
+        "state_vars": [
+          "balances"
+        ],
+        "via_alias": false,
+        "evidence_indices": [
+          1542,
+          1543
+        ]
+      }
+    },
+    {
+      "source": 9858,
+      "target": 9863,
+      "key": 0,
+      "attributes": {
+        "edge_type": "READS_STATE",
+        "dfg_v2_version": "dfg-v2",
+        "state_vars": [
+          "balances"
+        ],
+        "via_alias": false,
+        "evidence_indices": [
+          1544
+        ]
+      }
+    },
+    {
+      "source": 9858,
+      "target": 9865,
+      "key": 0,
+      "attributes": {
+        "edge_type": "READS_STATE",
+        "dfg_v2_version": "dfg-v2",
+        "state_vars": [
+          "balances"
+        ],
+        "via_alias": false,
+        "evidence_indices": [
+          1546
+        ]
+      }
+    },
+    {
+      "source": 9858,
+      "target": 9867,
+      "key": 0,
+      "attributes": {
+        "edge_type": "READS_STATE",
+        "dfg_v2_version": "dfg-v2",
+        "state_vars": [
+          "balances"
+        ],
+        "via_alias": false,
+        "evidence_indices": [
+          1547
+        ]
+      }
+    },
+    {
+      "source": 9859,
+      "target": 9860,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9859,
+      "target": 9861,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "first_next_line",
+        "edge_type": "first_next_line",
+        "label": "first_next_line"
+      }
+    },
+    {
+      "source": 9860,
+      "target": 9857,
+      "key": 0,
+      "attributes": {
+        "edge_type": "WRITES_STATE",
+        "dfg_v2_version": "dfg-v2",
+        "state_vars": [
+          "creator"
+        ],
+        "via_alias": false,
+        "evidence_indices": [
+          1541
+        ]
+      }
+    },
+    {
+      "source": 9861,
+      "target": 9862,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9862,
+      "target": 9863,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9863,
+      "target": 9858,
+      "key": 0,
+      "attributes": {
+        "edge_type": "WRITES_STATE",
+        "dfg_v2_version": "dfg-v2",
+        "state_vars": [
+          "balances"
+        ],
+        "via_alias": false,
+        "evidence_indices": [
+          1545
+        ]
+      }
+    },
+    {
+      "source": 9864,
+      "target": 9865,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9864,
+      "target": 9865,
+      "key": 1,
+      "attributes": {
+        "edge_type": "DATA_DEF_USE",
+        "ddg_version": "0.1.1",
+        "ddg_fact_indices": [
+          4000
+        ],
+        "routes": [
+          "legacy"
+        ],
+        "dfg_v2_version": "dfg-v2"
+      }
+    },
+    {
+      "source": 9864,
+      "target": 9866,
+      "key": 0,
+      "attributes": {
+        "edge_type": "DATA_DEF_USE",
+        "ddg_version": "0.1.1",
+        "ddg_fact_indices": [
+          4001
+        ],
+        "routes": [
+          "legacy"
+        ],
+        "dfg_v2_version": "dfg-v2"
+      }
+    },
+    {
+      "source": 9864,
+      "target": 9867,
+      "key": 0,
+      "attributes": {
+        "edge_type": "DATA_DEF_USE",
+        "ddg_version": "0.1.1",
+        "ddg_fact_indices": [
+          4002
+        ],
+        "routes": [
+          "legacy"
+        ],
+        "dfg_v2_version": "dfg-v2"
+      }
+    },
+    {
+      "source": 9865,
+      "target": 9866,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9866,
+      "target": 9867,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9867,
+      "target": 9858,
+      "key": 0,
+      "attributes": {
+        "edge_type": "WRITES_STATE",
+        "dfg_v2_version": "dfg-v2",
+        "state_vars": [
+          "balances"
+        ],
+        "via_alias": false,
+        "evidence_indices": [
+          1548
+        ]
+      }
+    },
+    {
+      "source": 9868,
+      "target": 9869,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 9868,
+      "target": 9870,
+      "key": 0,
+      "attributes": {
+        "edge_type": "DATA_DEF_USE",
+        "ddg_version": "0.1.1",
+        "ddg_fact_indices": [
+          4003
+        ],
+        "routes": [
+          "legacy"
+        ],
+        "dfg_v2_version": "dfg-v2"
+      }
+    },
+    {
+      "source": 9869,
+      "target": 9870,
+      "key": "0",
+      "attributes": {
+        "color": "red",
+        "controlflow_type": "next_line",
+        "edge_type": "next_line",
+        "label": "next_line"
+      }
+    },
+    {
+      "source": 13294,
+      "target": 9860,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.sender",
+        "spellings": [
+          "msg.sender"
+        ],
+        "evidence_indices": [
+          2141
+        ]
+      }
+    },
+    {
+      "source": 13294,
+      "target": 9862,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.sender",
+        "spellings": [
+          "msg.sender"
+        ],
+        "evidence_indices": [
+          2142,
+          2144
+        ]
+      }
+    },
+    {
+      "source": 13294,
+      "target": 9863,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.sender",
+        "spellings": [
+          "msg.sender"
+        ],
+        "evidence_indices": [
+          2145
+        ]
+      }
+    },
+    {
+      "source": 13294,
+      "target": 9865,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.sender",
+        "spellings": [
+          "msg.sender"
+        ],
+        "evidence_indices": [
+          2147
+        ]
+      }
+    },
+    {
+      "source": 13294,
+      "target": 9866,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.sender",
+        "spellings": [
+          "msg.sender"
+        ],
+        "evidence_indices": [
+          2148
+        ]
+      }
+    },
+    {
+      "source": 13294,
+      "target": 9867,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.sender",
+        "spellings": [
+          "msg.sender"
+        ],
+        "evidence_indices": [
+          2149
+        ]
+      }
+    },
+    {
+      "source": 13294,
+      "target": 9869,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.sender",
+        "spellings": [
+          "msg.sender"
+        ],
+        "evidence_indices": [
+          2150
+        ]
+      }
+    },
+    {
+      "source": 13295,
+      "target": 9862,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.value",
+        "spellings": [
+          "msg.value"
+        ],
+        "evidence_indices": [
+          2143
+        ]
+      }
+    },
+    {
+      "source": 13295,
+      "target": 9863,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "msg.value",
+        "spellings": [
+          "msg.value"
+        ],
+        "evidence_indices": [
+          2146
+        ]
+      }
+    },
+    {
+      "source": 13296,
+      "target": 9870,
+      "key": 0,
+      "attributes": {
+        "edge_type": "ENV_FLOW",
+        "dfg_v2_version": "dfg-v2",
+        "env_key": "this.balance",
+        "spellings": [
+          "this.balance"
+        ],
+        "evidence_indices": [
+          2151
+        ]
+      }
+    }
+  ],
+  "note": "Raw F3 stored directions. G3R uses explicit reverse semantic relations in the model; no reversed edge is a reversed causal fact."
+}

@@ -1,0 +1,3994 @@
+[
+  {
+    "task_id": "access_control_node",
+    "file": "incorrect_constructor_name3.sol",
+    "source_sha256": "a1a505f4d25449a4a566b9a84b8c51ecdc2cbe768f9d1f041900d90a530807a6",
+    "source_id": "a511b82a7de943ca7c01bfd58215bf4ac54f6bf28231d5f0eb266016e815706f",
+    "original_graph_node_id": 8500,
+    "node_type": "expression_statement",
+    "fold": 4,
+    "S4_probability": 0.5801764726638794,
+    "S5_probability": 0.04609829559922218,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function withdraw()\n        public\n        onlyowner",
+      "function_key": [
+        469,
+        570,
+        "function_definition"
+      ],
+      "function_lines": [
+        25,
+        30
+      ],
+      "raw_lines": [
+        29,
+        29
+      ],
+      "raw_span": [
+        535,
+        564
+      ],
+      "source_text": "owner.transfer(this.balance);",
+      "graph_stored_lines": [
+        [
+          18,
+          18
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "incorrect_constructor_name3.sol",
+      "source_id": "a511b82a7de943ca7c01bfd58215bf4ac54f6bf28231d5f0eb266016e815706f",
+      "source_sha256": "a1a505f4d25449a4a566b9a84b8c51ecdc2cbe768f9d1f041900d90a530807a6",
+      "original_graph_node_id": 8500,
+      "node_type": "expression_statement",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/incorrect_constructor_name3.sol",
+      "sha256": "a1a505f4d25449a4a566b9a84b8c51ecdc2cbe768f9d1f041900d90a530807a6",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/incorrect_constructor_name3.sol",
+        "source_sha256": "a1a505f4d25449a4a566b9a84b8c51ecdc2cbe768f9d1f041900d90a530807a6",
+        "row_file": "dataset/access_control/incorrect_constructor_name3.sol",
+        "version": "0.4.24"
+      }
+    },
+    "static_active_bits": [
+      "external.kinds=transfer",
+      "external.value_attached=true",
+      "external.target_classes=state",
+      "external.value_class=this.balance",
+      "external.data_class=none",
+      "state.write_count=zero",
+      "state.read_count=one",
+      "state.read_auth=true",
+      "guards.kinds=modifier",
+      "guards.kinds=sender",
+      "guards.operands=msg.sender",
+      "guards.operands=state",
+      "guards.pairs=env_state",
+      "env.merged=this.balance",
+      "env.uses=call",
+      "external.return_handling=ignored",
+      "loop.bound=none",
+      "function_ctx.visibility=public",
+      "function_ctx.has_modifier=true",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "contract_summary.kind=not_applicable"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {
+        "from_env": false,
+        "from_param": false,
+        "in_unchecked": false,
+        "on_state": false,
+        "ops": [],
+        "sinks": [],
+        "small_int": false
+      },
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {
+        "defs": [],
+        "from": [],
+        "status": "supported",
+        "to": [],
+        "uses": []
+      },
+      "env": {
+        "keys": [
+          "this.balance"
+        ],
+        "uses": [
+          "call"
+        ]
+      },
+      "external": {
+        "data_class": "none",
+        "kinds": [
+          "transfer"
+        ],
+        "return_handling": "ignored",
+        "target_classes": [
+          "state"
+        ],
+        "uninvoked_call_value": false,
+        "value_attached": true,
+        "value_class": "this.balance"
+      },
+      "fn_summary": {},
+      "function_ctx": {
+        "has_modifier": true,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "public"
+      },
+      "guard_status": "present",
+      "guards": [
+        {
+          "disjunctive": false,
+          "eq_pairs": [
+            "env_state"
+          ],
+          "is_sender_guard": true,
+          "kind": "modifier",
+          "offset": null,
+          "operand_classes": [
+            "msg.sender",
+            "state"
+          ],
+          "polarity": 1,
+          "rule": "5"
+        }
+      ],
+      "loop": {
+        "bound": "none"
+      },
+      "names": [
+        "owner"
+      ],
+      "nearest": 0,
+      "node_kind": "statement",
+      "order": {
+        "call_then_write": false,
+        "dominated_by_ext_call": false,
+        "ext_call_in_loop": false,
+        "pre_ext_call": null,
+        "reachable_from_ext_call": false,
+        "status": "supported",
+        "write_then_call": false
+      },
+      "provenance": {
+        "source_sha256": "a1a505f4d25449a4a566b9a84b8c51ecdc2cbe768f9d1f041900d90a530807a6",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {
+        "array_size_change": false,
+        "reads": [
+          {
+            "auth": true,
+            "shape": "address",
+            "var": "owner"
+          }
+        ],
+        "status": "supported",
+        "writes": []
+      },
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {}
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 8493,
+        "target": 8500,
+        "key": 0,
+        "attributes": {
+          "edge_type": "READS_STATE",
+          "dfg_v2_version": "dfg-v2",
+          "state_vars": [
+            "owner"
+          ],
+          "via_alias": false,
+          "evidence_indices": [
+            1383
+          ]
+        }
+      },
+      {
+        "source": 8499,
+        "target": 8500,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 13269,
+        "target": 8500,
+        "key": 0,
+        "attributes": {
+          "edge_type": "ENV_FLOW",
+          "dfg_v2_version": "dfg-v2",
+          "env_key": "this.balance",
+          "spellings": [
+            "this.balance"
+          ],
+          "evidence_indices": [
+            2066
+          ]
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__incorrect_constructor_name3.sol.json",
+      "sha256": "10aec728b5df262ec117f16d3a8ef8fbdbe9f374a1f73d152cba92461b872037"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          11472,
+          12959,
+          7564,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          7564,
+          8854,
+          12757,
+          7894
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          7564,
+          8854,
+          12757,
+          7894,
+          9865
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          7894
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "multiowned_vulnerable.sol",
+    "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+    "source_id": "0991097d6ca14c69c650194bca6257116eab62817b29668aa772e15c3076a783",
+    "original_graph_node_id": 3183,
+    "node_type": "function_definition",
+    "fold": 0,
+    "S4_probability": 0.6208632588386536,
+    "S5_probability": 0.07290607690811157,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function withdrawAll() onlyOwner",
+      "function_key": [
+        1314,
+        1391,
+        "function_definition"
+      ],
+      "function_lines": [
+        56,
+        58
+      ],
+      "raw_lines": [
+        56,
+        58
+      ],
+      "raw_span": [
+        1314,
+        1391
+      ],
+      "source_text": "function withdrawAll() onlyOwner {\n    msg.sender.transfer(this.balance);\n  }",
+      "graph_stored_lines": [
+        [
+          25,
+          27
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "multiowned_vulnerable.sol",
+      "source_id": "0991097d6ca14c69c650194bca6257116eab62817b29668aa772e15c3076a783",
+      "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+      "original_graph_node_id": 3183,
+      "node_type": "function_definition",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/multiowned_vulnerable.sol",
+      "sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/multiowned_vulnerable.sol",
+        "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+        "row_file": "dataset/access_control/multiowned_vulnerable.sol",
+        "version": "0.4.23"
+      }
+    },
+    "static_active_bits": [
+      "external.value_class=not_applicable",
+      "external.data_class=not_applicable",
+      "state.write_count=not_applicable",
+      "state.read_count=not_applicable",
+      "external.return_handling=not_applicable",
+      "loop.bound=not_applicable",
+      "function_ctx.visibility=default",
+      "function_ctx.has_modifier=true",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "fn_summary.external_call=true",
+      "contract_summary.kind=not_applicable"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {},
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {},
+      "env": {},
+      "external": {},
+      "fn_summary": {
+        "auth_write": false,
+        "call_then_write": false,
+        "delegatecall": false,
+        "ext_call_in_loop": false,
+        "external_call": true,
+        "loop": false,
+        "selfdestruct": false,
+        "sender_guard": false,
+        "state_write": false,
+        "status": "supported",
+        "timestamp": false,
+        "tx_origin": false,
+        "unknown_fields": [],
+        "write_then_call": false
+      },
+      "function_ctx": {
+        "has_modifier": true,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "default"
+      },
+      "guard_status": "none",
+      "guards": [],
+      "loop": {},
+      "names": [],
+      "nearest": null,
+      "node_kind": "function",
+      "order": {},
+      "provenance": {
+        "source_sha256": "ee0df823e630dd8fc538222bfb82ad97fd563b9f1185e3eba3d02dfefd812fc6",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {},
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {}
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 3182,
+        "target": 3183,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 3182,
+        "target": 3183,
+        "key": "1",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "recursive_method_call",
+          "edge_type": "recursive_method_call",
+          "label": "recursive_method_call"
+        }
+      },
+      {
+        "source": 3183,
+        "target": 3184,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__multiowned_vulnerable.sol.json",
+      "sha256": "4df450db254017c3aefec24bf86e4bd193ab36411cd3dad8353bf6753ae85285"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 5,
+        "positive_files": 5,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          10847
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 5,
+        "positive_files": 5,
+        "node_ids": [
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "mycontract.sol",
+    "source_sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+    "source_id": "f6441bb0b1783b5b8047d2c202261a0f90e65e6f3ed62cb12d75ccc7ec128e61",
+    "original_graph_node_id": 11608,
+    "node_type": "function_definition",
+    "fold": 8,
+    "S4_probability": 0.8791665434837341,
+    "S5_probability": 0.1130223348736763,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function sendTo(address receiver, uint amount) public",
+      "function_key": [
+        349,
+        523,
+        "function_definition"
+      ],
+      "function_lines": [
+        18,
+        22
+      ],
+      "raw_lines": [
+        18,
+        22
+      ],
+      "raw_span": [
+        349,
+        523
+      ],
+      "source_text": "function sendTo(address receiver, uint amount) public {\n        // <yes> <report> ACCESS_CONTROL\n        require(tx.origin == owner);\n        receiver.transfer(amount);\n    }",
+      "graph_stored_lines": [
+        [
+          7,
+          10
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "mycontract.sol",
+      "source_id": "f6441bb0b1783b5b8047d2c202261a0f90e65e6f3ed62cb12d75ccc7ec128e61",
+      "source_sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+      "original_graph_node_id": 11608,
+      "node_type": "function_definition",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/mycontract.sol",
+      "sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/mycontract.sol",
+        "source_sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+        "row_file": "dataset/access_control/mycontract.sol",
+        "version": "0.4.24"
+      }
+    },
+    "static_active_bits": [
+      "external.value_class=not_applicable",
+      "external.data_class=not_applicable",
+      "state.write_count=not_applicable",
+      "state.read_count=not_applicable",
+      "external.return_handling=not_applicable",
+      "loop.bound=not_applicable",
+      "function_ctx.visibility=public",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "fn_summary.external_call=true",
+      "fn_summary.sender_guard=true",
+      "fn_summary.tx_origin=true",
+      "contract_summary.kind=not_applicable"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {},
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {},
+      "env": {},
+      "external": {},
+      "fn_summary": {
+        "auth_write": false,
+        "call_then_write": false,
+        "delegatecall": false,
+        "ext_call_in_loop": false,
+        "external_call": true,
+        "loop": false,
+        "selfdestruct": false,
+        "sender_guard": true,
+        "state_write": false,
+        "status": "supported",
+        "timestamp": false,
+        "tx_origin": true,
+        "unknown_fields": [],
+        "write_then_call": false
+      },
+      "function_ctx": {
+        "has_modifier": false,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "public"
+      },
+      "guard_status": "none",
+      "guards": [],
+      "loop": {},
+      "names": [],
+      "nearest": null,
+      "node_kind": "function",
+      "order": {},
+      "provenance": {
+        "source_sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {},
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {}
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 11604,
+        "target": 11608,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "recursive_method_call",
+          "edge_type": "recursive_method_call",
+          "label": "recursive_method_call"
+        }
+      },
+      {
+        "source": 11608,
+        "target": 11609,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 11608,
+        "target": 11610,
+        "key": 0,
+        "attributes": {
+          "edge_type": "DATA_DEF_USE",
+          "ddg_version": "0.1.1",
+          "ddg_fact_indices": [
+            4492,
+            4493
+          ],
+          "routes": [
+            "legacy"
+          ],
+          "dfg_v2_version": "dfg-v2"
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__mycontract.sol.json",
+      "sha256": "e248c230a4d2d40fd5a5bf945c2b35ef2b7ded97b9614df77bbe6a9c35fdbeea"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 5,
+        "positive_files": 5,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          10847
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 5,
+        "positive_files": 5,
+        "node_ids": [
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "mycontract.sol",
+    "source_sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+    "source_id": "f6441bb0b1783b5b8047d2c202261a0f90e65e6f3ed62cb12d75ccc7ec128e61",
+    "original_graph_node_id": 11610,
+    "node_type": "expression_statement",
+    "fold": 8,
+    "S4_probability": 0.9440033435821533,
+    "S5_probability": 0.17733030021190643,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function sendTo(address receiver, uint amount) public",
+      "function_key": [
+        349,
+        523,
+        "function_definition"
+      ],
+      "function_lines": [
+        18,
+        22
+      ],
+      "raw_lines": [
+        21,
+        21
+      ],
+      "raw_span": [
+        491,
+        517
+      ],
+      "source_text": "receiver.transfer(amount);",
+      "graph_stored_lines": [
+        [
+          9,
+          9
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "mycontract.sol",
+      "source_id": "f6441bb0b1783b5b8047d2c202261a0f90e65e6f3ed62cb12d75ccc7ec128e61",
+      "source_sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+      "original_graph_node_id": 11610,
+      "node_type": "expression_statement",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/mycontract.sol",
+      "sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/mycontract.sol",
+        "source_sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+        "row_file": "dataset/access_control/mycontract.sol",
+        "version": "0.4.24"
+      }
+    },
+    "static_active_bits": [
+      "external.kinds=transfer",
+      "external.value_attached=true",
+      "external.target_classes=param",
+      "external.value_class=param",
+      "external.data_class=none",
+      "state.write_count=zero",
+      "state.read_count=zero",
+      "guards.kinds=require",
+      "guards.kinds=sender",
+      "guards.operands=tx.origin",
+      "guards.operands=state",
+      "guards.pairs=env_state",
+      "external.return_handling=ignored",
+      "loop.bound=none",
+      "function_ctx.visibility=public",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "contract_summary.kind=not_applicable"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {
+        "from_env": false,
+        "from_param": false,
+        "in_unchecked": false,
+        "on_state": false,
+        "ops": [],
+        "sinks": [],
+        "small_int": false
+      },
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {
+        "defs": [],
+        "from": [
+          {
+            "node": 11608,
+            "offset": null
+          }
+        ],
+        "status": "supported",
+        "to": [],
+        "uses": [
+          {
+            "from_offset": null,
+            "kind": "parameter",
+            "var": "receiver"
+          },
+          {
+            "from_offset": null,
+            "kind": "parameter",
+            "var": "amount"
+          }
+        ]
+      },
+      "env": {
+        "keys": [],
+        "uses": []
+      },
+      "external": {
+        "data_class": "none",
+        "kinds": [
+          "transfer"
+        ],
+        "return_handling": "ignored",
+        "target_classes": [
+          "param"
+        ],
+        "uninvoked_call_value": false,
+        "value_attached": true,
+        "value_class": "param"
+      },
+      "fn_summary": {},
+      "function_ctx": {
+        "has_modifier": false,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "public"
+      },
+      "guard_status": "present",
+      "guards": [
+        {
+          "disjunctive": false,
+          "eq_pairs": [
+            "env_state"
+          ],
+          "is_sender_guard": true,
+          "kind": "require",
+          "offset": -1,
+          "operand_classes": [
+            "state",
+            "tx.origin"
+          ],
+          "polarity": 1,
+          "rule": "1"
+        }
+      ],
+      "loop": {
+        "bound": "none"
+      },
+      "names": [
+        "amount",
+        "receiver"
+      ],
+      "nearest": 0,
+      "node_kind": "statement",
+      "order": {
+        "call_then_write": false,
+        "dominated_by_ext_call": false,
+        "ext_call_in_loop": false,
+        "pre_ext_call": null,
+        "reachable_from_ext_call": false,
+        "status": "supported",
+        "write_then_call": false
+      },
+      "provenance": {
+        "source_sha256": "5bdf79f5c7565c26dfe7437e94c354a6d6b2d353101f6d4dbe0ce8a36c4e1df1",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {
+        "array_size_change": false,
+        "reads": [],
+        "status": "supported",
+        "writes": []
+      },
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {
+        "state_state_name_missing": 1
+      }
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 11608,
+        "target": 11610,
+        "key": 0,
+        "attributes": {
+          "edge_type": "DATA_DEF_USE",
+          "ddg_version": "0.1.1",
+          "ddg_fact_indices": [
+            4492,
+            4493
+          ],
+          "routes": [
+            "legacy"
+          ],
+          "dfg_v2_version": "dfg-v2"
+        }
+      },
+      {
+        "source": 11609,
+        "target": 11610,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__mycontract.sol.json",
+      "sha256": "e248c230a4d2d40fd5a5bf945c2b35ef2b7ded97b9614df77bbe6a9c35fdbeea"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          11472,
+          12959,
+          7564,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          7564,
+          8854,
+          12757,
+          7894
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          7564,
+          8854,
+          12757,
+          7894,
+          9865
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          7894
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "phishable.sol",
+    "source_sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+    "source_id": "d91f65facb04c24a8af04931a4bd5e26039e9629457dd1e7127f21643a805091",
+    "original_graph_node_id": 7563,
+    "node_type": "function_definition",
+    "fold": 0,
+    "S4_probability": 0.9860280752182007,
+    "S5_probability": 0.22172722220420837,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function withdrawAll(address _recipient) public",
+      "function_key": [
+        307,
+        483,
+        "function_definition"
+      ],
+      "function_lines": [
+        18,
+        22
+      ],
+      "raw_lines": [
+        18,
+        22
+      ],
+      "raw_span": [
+        307,
+        483
+      ],
+      "source_text": "function withdrawAll(address _recipient) public {\n        // <yes> <report> ACCESS_CONTROL\n        require(tx.origin == owner);\n        _recipient.transfer(this.balance);\n    }",
+      "graph_stored_lines": [
+        [
+          8,
+          11
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "phishable.sol",
+      "source_id": "d91f65facb04c24a8af04931a4bd5e26039e9629457dd1e7127f21643a805091",
+      "source_sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+      "original_graph_node_id": 7563,
+      "node_type": "function_definition",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/phishable.sol",
+      "sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/phishable.sol",
+        "source_sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+        "row_file": "dataset/access_control/phishable.sol",
+        "version": "0.4.22"
+      }
+    },
+    "static_active_bits": [
+      "external.value_class=not_applicable",
+      "external.data_class=not_applicable",
+      "state.write_count=not_applicable",
+      "state.read_count=not_applicable",
+      "external.return_handling=not_applicable",
+      "loop.bound=not_applicable",
+      "function_ctx.visibility=public",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "fn_summary.external_call=true",
+      "fn_summary.sender_guard=true",
+      "fn_summary.tx_origin=true",
+      "contract_summary.kind=not_applicable"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {},
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {},
+      "env": {},
+      "external": {},
+      "fn_summary": {
+        "auth_write": false,
+        "call_then_write": false,
+        "delegatecall": false,
+        "ext_call_in_loop": false,
+        "external_call": true,
+        "loop": false,
+        "selfdestruct": false,
+        "sender_guard": true,
+        "state_write": false,
+        "status": "supported",
+        "timestamp": false,
+        "tx_origin": true,
+        "unknown_fields": [],
+        "write_then_call": false
+      },
+      "function_ctx": {
+        "has_modifier": false,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "public"
+      },
+      "guard_status": "none",
+      "guards": [],
+      "loop": {},
+      "names": [],
+      "nearest": null,
+      "node_kind": "function",
+      "order": {},
+      "provenance": {
+        "source_sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {},
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {}
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 7559,
+        "target": 7563,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "recursive_method_call",
+          "edge_type": "recursive_method_call",
+          "label": "recursive_method_call"
+        }
+      },
+      {
+        "source": 7561,
+        "target": 7563,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "first_next_line",
+          "edge_type": "first_next_line",
+          "label": "first_next_line"
+        }
+      },
+      {
+        "source": 7563,
+        "target": 7564,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 7563,
+        "target": 7565,
+        "key": 0,
+        "attributes": {
+          "edge_type": "DATA_DEF_USE",
+          "ddg_version": "0.1.1",
+          "ddg_fact_indices": [
+            3652
+          ],
+          "routes": [
+            "legacy"
+          ],
+          "dfg_v2_version": "dfg-v2"
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__phishable.sol.json",
+      "sha256": "3b1e4f9050eb66d11d25e0d85a794c396150201dd64db7afdf8d390c9663bf80"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 5,
+        "positive_files": 5,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          10847
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 6,
+        "positive_files": 6,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          7886,
+          8372,
+          8497,
+          3174,
+          11356,
+          12756,
+          10847
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 5,
+        "positive_files": 5,
+        "node_ids": [
+          8497,
+          3174,
+          12756,
+          10847,
+          7893
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "phishable.sol",
+    "source_sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+    "source_id": "d91f65facb04c24a8af04931a4bd5e26039e9629457dd1e7127f21643a805091",
+    "original_graph_node_id": 7565,
+    "node_type": "expression_statement",
+    "fold": 0,
+    "S4_probability": 0.9973433613777161,
+    "S5_probability": 0.35076040029525757,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function withdrawAll(address _recipient) public",
+      "function_key": [
+        307,
+        483,
+        "function_definition"
+      ],
+      "function_lines": [
+        18,
+        22
+      ],
+      "raw_lines": [
+        21,
+        21
+      ],
+      "raw_span": [
+        443,
+        477
+      ],
+      "source_text": "_recipient.transfer(this.balance);",
+      "graph_stored_lines": [
+        [
+          10,
+          10
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "phishable.sol",
+      "source_id": "d91f65facb04c24a8af04931a4bd5e26039e9629457dd1e7127f21643a805091",
+      "source_sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+      "original_graph_node_id": 7565,
+      "node_type": "expression_statement",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/phishable.sol",
+      "sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/phishable.sol",
+        "source_sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+        "row_file": "dataset/access_control/phishable.sol",
+        "version": "0.4.22"
+      }
+    },
+    "static_active_bits": [
+      "external.kinds=transfer",
+      "external.value_attached=true",
+      "external.target_classes=param",
+      "external.value_class=this.balance",
+      "external.data_class=none",
+      "state.write_count=zero",
+      "state.read_count=zero",
+      "guards.kinds=require",
+      "guards.kinds=sender",
+      "guards.operands=tx.origin",
+      "guards.operands=state",
+      "guards.pairs=env_state",
+      "env.merged=this.balance",
+      "env.uses=call",
+      "external.return_handling=ignored",
+      "loop.bound=none",
+      "function_ctx.visibility=public",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "contract_summary.kind=not_applicable"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {
+        "from_env": false,
+        "from_param": false,
+        "in_unchecked": false,
+        "on_state": false,
+        "ops": [],
+        "sinks": [],
+        "small_int": false
+      },
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {
+        "defs": [],
+        "from": [
+          {
+            "node": 7563,
+            "offset": null
+          }
+        ],
+        "status": "supported",
+        "to": [],
+        "uses": [
+          {
+            "from_offset": null,
+            "kind": "parameter",
+            "var": "_recipient"
+          }
+        ]
+      },
+      "env": {
+        "keys": [
+          "this.balance"
+        ],
+        "uses": [
+          "call"
+        ]
+      },
+      "external": {
+        "data_class": "none",
+        "kinds": [
+          "transfer"
+        ],
+        "return_handling": "ignored",
+        "target_classes": [
+          "param"
+        ],
+        "uninvoked_call_value": false,
+        "value_attached": true,
+        "value_class": "this.balance"
+      },
+      "fn_summary": {},
+      "function_ctx": {
+        "has_modifier": false,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "public"
+      },
+      "guard_status": "present",
+      "guards": [
+        {
+          "disjunctive": false,
+          "eq_pairs": [
+            "env_state"
+          ],
+          "is_sender_guard": true,
+          "kind": "require",
+          "offset": -1,
+          "operand_classes": [
+            "state",
+            "tx.origin"
+          ],
+          "polarity": 1,
+          "rule": "1"
+        }
+      ],
+      "loop": {
+        "bound": "none"
+      },
+      "names": [
+        "_recipient"
+      ],
+      "nearest": 0,
+      "node_kind": "statement",
+      "order": {
+        "call_then_write": false,
+        "dominated_by_ext_call": false,
+        "ext_call_in_loop": false,
+        "pre_ext_call": null,
+        "reachable_from_ext_call": false,
+        "status": "supported",
+        "write_then_call": false
+      },
+      "provenance": {
+        "source_sha256": "8525b9c841c6378acc4771ef8e5139aee074c1b508b68f1129120b4d19b79e8a",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {
+        "array_size_change": false,
+        "reads": [],
+        "status": "supported",
+        "writes": []
+      },
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {
+        "state_state_name_missing": 1
+      }
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 7563,
+        "target": 7565,
+        "key": 0,
+        "attributes": {
+          "edge_type": "DATA_DEF_USE",
+          "ddg_version": "0.1.1",
+          "ddg_fact_indices": [
+            3652
+          ],
+          "routes": [
+            "legacy"
+          ],
+          "dfg_v2_version": "dfg-v2"
+        }
+      },
+      {
+        "source": 7564,
+        "target": 7565,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 13282,
+        "target": 7565,
+        "key": 0,
+        "attributes": {
+          "edge_type": "ENV_FLOW",
+          "dfg_v2_version": "dfg-v2",
+          "env_key": "this.balance",
+          "spellings": [
+            "this.balance"
+          ],
+          "evidence_indices": [
+            2103
+          ]
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__phishable.sol.json",
+      "sha256": "3b1e4f9050eb66d11d25e0d85a794c396150201dd64db7afdf8d390c9663bf80"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          11472,
+          12959,
+          7564,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          7564,
+          8854,
+          12757,
+          7894
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          7564,
+          8854,
+          12757,
+          7894,
+          9865
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          7894
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "rubixi.sol",
+    "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+    "source_id": "cfbca1ae8373ecfdae32eff1cf3a490d3cad1b422206238741312e8b373235f6",
+    "original_graph_node_id": 11394,
+    "node_type": "expression_statement",
+    "fold": 1,
+    "S4_probability": 0.8488457798957825,
+    "S5_probability": 0.007705511059612036,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function collectAllFees() onlyowner",
+      "function_key": [
+        2856,
+        3035,
+        "function_definition"
+      ],
+      "function_lines": [
+        82,
+        87
+      ],
+      "raw_lines": [
+        85,
+        85
+      ],
+      "raw_span": [
+        2960,
+        2988
+      ],
+      "source_text": "creator.send(collectedFees);",
+      "graph_stored_lines": [
+        [
+          47,
+          47
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "rubixi.sol",
+      "source_id": "cfbca1ae8373ecfdae32eff1cf3a490d3cad1b422206238741312e8b373235f6",
+      "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+      "original_graph_node_id": 11394,
+      "node_type": "expression_statement",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/rubixi.sol",
+      "sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/rubixi.sol",
+        "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+        "row_file": "dataset/access_control/rubixi.sol",
+        "version": "0.4.15"
+      }
+    },
+    "static_active_bits": [
+      "external.kinds=send",
+      "external.value_attached=true",
+      "external.target_classes=state",
+      "external.value_class=state",
+      "external.data_class=none",
+      "state.write_count=zero",
+      "state.read_count=many",
+      "state.read_auth=true",
+      "guards.kinds=early_exit",
+      "guards.kinds=modifier",
+      "guards.kinds=sender",
+      "guards.operands=msg.sender",
+      "guards.operands=state",
+      "guards.operands=literal",
+      "guards.pairs=env_state",
+      "external.return_handling=ignored",
+      "loop.bound=none",
+      "function_ctx.visibility=default",
+      "function_ctx.has_modifier=true",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "contract_summary.kind=not_applicable",
+      "unknown.dfg=true",
+      "unknown.order=true"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {
+        "from_env": false,
+        "from_param": false,
+        "in_unchecked": false,
+        "on_state": false,
+        "ops": [],
+        "sinks": [],
+        "small_int": false
+      },
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {
+        "defs": [],
+        "from": [],
+        "status": "unknown",
+        "to": [],
+        "uses": []
+      },
+      "env": {
+        "keys": [],
+        "uses": []
+      },
+      "external": {
+        "data_class": "none",
+        "kinds": [
+          "send"
+        ],
+        "return_handling": "ignored",
+        "target_classes": [
+          "state"
+        ],
+        "uninvoked_call_value": false,
+        "value_attached": true,
+        "value_class": "state"
+      },
+      "fn_summary": {},
+      "function_ctx": {
+        "has_modifier": true,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "default"
+      },
+      "guard_status": "present",
+      "guards": [
+        {
+          "disjunctive": false,
+          "eq_pairs": [],
+          "is_sender_guard": false,
+          "kind": "early_exit",
+          "offset": -2,
+          "operand_classes": [
+            "literal",
+            "state"
+          ],
+          "polarity": -1,
+          "rule": "3"
+        },
+        {
+          "disjunctive": false,
+          "eq_pairs": [
+            "env_state"
+          ],
+          "is_sender_guard": true,
+          "kind": "modifier",
+          "offset": null,
+          "operand_classes": [
+            "msg.sender",
+            "state"
+          ],
+          "polarity": 1,
+          "rule": "5p"
+        }
+      ],
+      "loop": {
+        "bound": "none"
+      },
+      "names": [
+        "collectedFees",
+        "creator"
+      ],
+      "nearest": 0,
+      "node_kind": "statement",
+      "order": {
+        "call_then_write": false,
+        "dominated_by_ext_call": false,
+        "ext_call_in_loop": false,
+        "pre_ext_call": null,
+        "reachable_from_ext_call": false,
+        "status": "unknown",
+        "write_then_call": false
+      },
+      "provenance": {
+        "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {
+        "array_size_change": false,
+        "reads": [
+          {
+            "auth": false,
+            "shape": "integer",
+            "var": "collectedFees"
+          },
+          {
+            "auth": true,
+            "shape": "address",
+            "var": "creator"
+          }
+        ],
+        "status": "supported",
+        "writes": []
+      },
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {
+        "semantic_cfg_unsupported": 1,
+        "state_state_name_missing": 1
+      }
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 11351,
+        "target": 11394,
+        "key": 0,
+        "attributes": {
+          "edge_type": "READS_STATE",
+          "dfg_v2_version": "dfg-v2",
+          "state_vars": [
+            "collectedFees"
+          ],
+          "via_alias": false,
+          "evidence_indices": [
+            1755
+          ]
+        }
+      },
+      {
+        "source": 11355,
+        "target": 11394,
+        "key": 0,
+        "attributes": {
+          "edge_type": "READS_STATE",
+          "dfg_v2_version": "dfg-v2",
+          "state_vars": [
+            "creator"
+          ],
+          "via_alias": false,
+          "evidence_indices": [
+            1754
+          ]
+        }
+      },
+      {
+        "source": 11392,
+        "target": 11394,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 11394,
+        "target": 11395,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__rubixi.sol.json",
+      "sha256": "af125e86cce8f2f1a88c2fbb271402c42a54e11f74ef530cc22113a287053b4a"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          11472,
+          12959,
+          7564,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          7564,
+          8854,
+          12757,
+          7894
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          7564,
+          8854,
+          12757,
+          7894,
+          9865
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          7894
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "rubixi.sol",
+    "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+    "source_id": "cfbca1ae8373ecfdae32eff1cf3a490d3cad1b422206238741312e8b373235f6",
+    "original_graph_node_id": 11404,
+    "node_type": "expression_statement",
+    "fold": 1,
+    "S4_probability": 0.6839625835418701,
+    "S5_probability": 0.007440808229148388,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function collectFeesInEther(uint _amt) onlyowner",
+      "function_key": [
+        3046,
+        3329,
+        "function_definition"
+      ],
+      "function_lines": [
+        89,
+        97
+      ],
+      "raw_lines": [
+        95,
+        95
+      ],
+      "raw_span": [
+        3259,
+        3278
+      ],
+      "source_text": "creator.send(_amt);",
+      "graph_stored_lines": [
+        [
+          54,
+          54
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "rubixi.sol",
+      "source_id": "cfbca1ae8373ecfdae32eff1cf3a490d3cad1b422206238741312e8b373235f6",
+      "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+      "original_graph_node_id": 11404,
+      "node_type": "expression_statement",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/rubixi.sol",
+      "sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/rubixi.sol",
+        "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+        "row_file": "dataset/access_control/rubixi.sol",
+        "version": "0.4.15"
+      }
+    },
+    "static_active_bits": [
+      "external.kinds=send",
+      "external.value_attached=true",
+      "external.target_classes=state",
+      "external.value_class=param",
+      "external.data_class=none",
+      "state.write_count=zero",
+      "state.read_count=one",
+      "state.read_auth=true",
+      "guards.kinds=early_exit",
+      "guards.kinds=modifier",
+      "guards.kinds=sender",
+      "guards.operands=msg.sender",
+      "guards.operands=state",
+      "guards.operands=literal",
+      "guards.pairs=env_state",
+      "external.return_handling=ignored",
+      "loop.bound=none",
+      "function_ctx.visibility=default",
+      "function_ctx.has_modifier=true",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "contract_summary.kind=not_applicable",
+      "unknown.dfg=true",
+      "unknown.order=true"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {
+        "from_env": false,
+        "from_param": false,
+        "in_unchecked": false,
+        "on_state": false,
+        "ops": [],
+        "sinks": [],
+        "small_int": false
+      },
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {
+        "defs": [],
+        "from": [],
+        "status": "unknown",
+        "to": [],
+        "uses": []
+      },
+      "env": {
+        "keys": [],
+        "uses": []
+      },
+      "external": {
+        "data_class": "none",
+        "kinds": [
+          "send"
+        ],
+        "return_handling": "ignored",
+        "target_classes": [
+          "state"
+        ],
+        "uninvoked_call_value": false,
+        "value_attached": true,
+        "value_class": "param"
+      },
+      "fn_summary": {},
+      "function_ctx": {
+        "has_modifier": true,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "default"
+      },
+      "guard_status": "present",
+      "guards": [
+        {
+          "disjunctive": false,
+          "eq_pairs": [],
+          "is_sender_guard": false,
+          "kind": "early_exit",
+          "offset": -2,
+          "operand_classes": [
+            "literal",
+            "state"
+          ],
+          "polarity": -1,
+          "rule": "3"
+        },
+        {
+          "disjunctive": false,
+          "eq_pairs": [
+            "env_state"
+          ],
+          "is_sender_guard": true,
+          "kind": "modifier",
+          "offset": null,
+          "operand_classes": [
+            "msg.sender",
+            "state"
+          ],
+          "polarity": 1,
+          "rule": "5p"
+        }
+      ],
+      "loop": {
+        "bound": "none"
+      },
+      "names": [
+        "creator"
+      ],
+      "nearest": 0,
+      "node_kind": "statement",
+      "order": {
+        "call_then_write": false,
+        "dominated_by_ext_call": false,
+        "ext_call_in_loop": false,
+        "pre_ext_call": null,
+        "reachable_from_ext_call": false,
+        "status": "unknown",
+        "write_then_call": false
+      },
+      "provenance": {
+        "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {
+        "array_size_change": false,
+        "reads": [
+          {
+            "auth": true,
+            "shape": "address",
+            "var": "creator"
+          }
+        ],
+        "status": "supported",
+        "writes": []
+      },
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {
+        "semantic_cfg_unsupported": 1,
+        "state_state_name_missing": 1
+      }
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 11355,
+        "target": 11404,
+        "key": 0,
+        "attributes": {
+          "edge_type": "READS_STATE",
+          "dfg_v2_version": "dfg-v2",
+          "state_vars": [
+            "creator"
+          ],
+          "via_alias": false,
+          "evidence_indices": [
+            1759
+          ]
+        }
+      },
+      {
+        "source": 11402,
+        "target": 11404,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 11404,
+        "target": 11405,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__rubixi.sol.json",
+      "sha256": "af125e86cce8f2f1a88c2fbb271402c42a54e11f74ef530cc22113a287053b4a"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          11472,
+          12959,
+          7564,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          7564,
+          8854,
+          12757,
+          7894
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          7564,
+          8854,
+          12757,
+          7894,
+          9865
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          7894
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "rubixi.sol",
+    "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+    "source_id": "cfbca1ae8373ecfdae32eff1cf3a490d3cad1b422206238741312e8b373235f6",
+    "original_graph_node_id": 11419,
+    "node_type": "expression_statement",
+    "fold": 1,
+    "S4_probability": 0.5965107083320618,
+    "S5_probability": 0.003005160018801689,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function changeMultiplier(uint _mult) onlyowner",
+      "function_key": [
+        3817,
+        3978,
+        "function_definition"
+      ],
+      "function_lines": [
+        112,
+        116
+      ],
+      "raw_lines": [
+        115,
+        115
+      ],
+      "raw_span": [
+        3941,
+        3967
+      ],
+      "source_text": "pyramidMultiplier = _mult;",
+      "graph_stored_lines": [
+        [
+          68,
+          68
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "rubixi.sol",
+      "source_id": "cfbca1ae8373ecfdae32eff1cf3a490d3cad1b422206238741312e8b373235f6",
+      "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+      "original_graph_node_id": 11419,
+      "node_type": "expression_statement",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/rubixi.sol",
+      "sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/rubixi.sol",
+        "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+        "row_file": "dataset/access_control/rubixi.sol",
+        "version": "0.4.15"
+      }
+    },
+    "static_active_bits": [
+      "external.value_class=none",
+      "external.data_class=none",
+      "state.write_count=one",
+      "state.read_count=zero",
+      "state.write_scalar=true",
+      "guards.kinds=early_exit",
+      "guards.kinds=modifier",
+      "guards.kinds=sender",
+      "guards.operands=msg.sender",
+      "guards.operands=state",
+      "guards.operands=param",
+      "guards.operands=literal",
+      "guards.pairs=env_state",
+      "external.return_handling=not_applicable",
+      "loop.bound=none",
+      "function_ctx.visibility=default",
+      "function_ctx.has_modifier=true",
+      "syntax=assign",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "contract_summary.kind=not_applicable",
+      "unknown.dfg=true",
+      "unknown.order=true"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {
+        "from_env": false,
+        "from_param": false,
+        "in_unchecked": false,
+        "on_state": false,
+        "ops": [],
+        "sinks": [],
+        "small_int": false
+      },
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {
+        "defs": [],
+        "from": [],
+        "status": "unknown",
+        "to": [],
+        "uses": []
+      },
+      "env": {
+        "keys": [],
+        "uses": []
+      },
+      "external": {
+        "data_class": "none",
+        "kinds": [],
+        "return_handling": "not_applicable",
+        "target_classes": [],
+        "uninvoked_call_value": false,
+        "value_attached": false,
+        "value_class": "none"
+      },
+      "fn_summary": {},
+      "function_ctx": {
+        "has_modifier": true,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "default"
+      },
+      "guard_status": "present",
+      "guards": [
+        {
+          "disjunctive": false,
+          "eq_pairs": [],
+          "is_sender_guard": false,
+          "kind": "early_exit",
+          "offset": -2,
+          "operand_classes": [
+            "literal",
+            "param"
+          ],
+          "polarity": -1,
+          "rule": "3"
+        },
+        {
+          "disjunctive": false,
+          "eq_pairs": [
+            "env_state"
+          ],
+          "is_sender_guard": true,
+          "kind": "modifier",
+          "offset": null,
+          "operand_classes": [
+            "msg.sender",
+            "state"
+          ],
+          "polarity": 1,
+          "rule": "5p"
+        }
+      ],
+      "loop": {
+        "bound": "none"
+      },
+      "names": [
+        "pyramidMultiplier"
+      ],
+      "nearest": 0,
+      "node_kind": "statement",
+      "order": {
+        "call_then_write": false,
+        "dominated_by_ext_call": false,
+        "ext_call_in_loop": false,
+        "pre_ext_call": null,
+        "reachable_from_ext_call": false,
+        "status": "unknown",
+        "write_then_call": false
+      },
+      "provenance": {
+        "source_sha256": "a4c33aa1b035feff8e114e5afab6a15e524636d4ea4660459d3b5909272eabed",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {
+        "array_size_change": false,
+        "reads": [],
+        "status": "supported",
+        "writes": [
+          {
+            "auth": false,
+            "shape": "integer",
+            "var": "pyramidMultiplier"
+          }
+        ]
+      },
+      "state_decl": {},
+      "syntax": [
+        "assign"
+      ],
+      "unresolved": {
+        "semantic_cfg_unsupported": 1,
+        "state_state_name_missing": 1
+      }
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 11417,
+        "target": 11419,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 11419,
+        "target": 11353,
+        "key": 0,
+        "attributes": {
+          "edge_type": "WRITES_STATE",
+          "dfg_v2_version": "dfg-v2",
+          "state_vars": [
+            "pyramidMultiplier"
+          ],
+          "via_alias": false,
+          "evidence_indices": [
+            1768
+          ]
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__rubixi.sol.json",
+      "sha256": "af125e86cce8f2f1a88c2fbb271402c42a54e11f74ef530cc22113a287053b4a"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          11472,
+          12959,
+          7564,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          7564,
+          8854,
+          12757,
+          7894
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          7564,
+          8854,
+          12757,
+          7894,
+          9865
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          7894
+        ]
+      }
+    ]
+  },
+  {
+    "task_id": "access_control_node",
+    "file": "wallet_02_refund_nosub.sol",
+    "source_sha256": "3bf849eea5a234dcf2755aa526f934b3edfa560ee7eac3d70385887e3bc6ff79",
+    "source_id": "5351a89f91ec9307f8043486fb874c3b13b4db0dbf5e20f98e098fe07f9ade60",
+    "original_graph_node_id": 11916,
+    "node_type": "expression_statement",
+    "fold": 4,
+    "S4_probability": 0.8123090863227844,
+    "S5_probability": 0.012684104032814503,
+    "case_type": "removed_fp",
+    "alignment": {
+      "function": "function migrateTo(address to) public",
+      "function_key": [
+        1150,
+        1273,
+        "function_definition"
+      ],
+      "function_lines": [
+        41,
+        44
+      ],
+      "raw_lines": [
+        43,
+        43
+      ],
+      "raw_span": [
+        1240,
+        1266
+      ],
+      "source_text": "to.transfer(this.balance);",
+      "graph_stored_lines": [
+        [
+          22,
+          22
+        ]
+      ]
+    },
+    "frozen_label": {
+      "file": "wallet_02_refund_nosub.sol",
+      "source_id": "5351a89f91ec9307f8043486fb874c3b13b4db0dbf5e20f98e098fe07f9ade60",
+      "source_sha256": "3bf849eea5a234dcf2755aa526f934b3edfa560ee7eac3d70385887e3bc6ff79",
+      "original_graph_node_id": 11916,
+      "node_type": "expression_statement",
+      "orig": 0,
+      "L-orig_target": 0,
+      "L-orig_include": true,
+      "L-audit_target": 0,
+      "L-audit_include": true,
+      "exclusion_reasons": [],
+      "solidifi": false
+    },
+    "source": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/wallet_02_refund_nosub.sol",
+      "sha256": "3bf849eea5a234dcf2755aa526f934b3edfa560ee7eac3d70385887e3bc6ff79",
+      "metadata": {
+        "csv_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/versions.csv",
+        "csv_sha256": "6bb1d0542e443533c730aefeb2ac7139e31b1c4955287a9df99e2d4d928b4570",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm/data/smartbug-dataset/dataset/access_control/wallet_02_refund_nosub.sol",
+        "source_sha256": "3bf849eea5a234dcf2755aa526f934b3edfa560ee7eac3d70385887e3bc6ff79",
+        "row_file": "dataset/access_control/wallet_02_refund_nosub.sol",
+        "version": "0.4.24"
+      }
+    },
+    "static_active_bits": [
+      "external.kinds=transfer",
+      "external.value_attached=true",
+      "external.target_classes=param",
+      "external.value_class=this.balance",
+      "external.data_class=none",
+      "state.write_count=zero",
+      "state.read_count=zero",
+      "guards.kinds=require",
+      "guards.kinds=sender",
+      "guards.operands=msg.sender",
+      "guards.operands=state",
+      "guards.pairs=env_state",
+      "env.merged=this.balance",
+      "env.uses=call",
+      "external.return_handling=ignored",
+      "loop.bound=none",
+      "function_ctx.visibility=public",
+      "state_decl.shape=not_applicable",
+      "state_decl.write_functions=not_applicable",
+      "contract_summary.kind=not_applicable"
+    ],
+    "static_manifest": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/ns_p3/attempt_b2/static/original/access_control_node/manifest.json",
+      "sha256": "a740c37cf7b859db7e515c83ed489ddd6ab639a25ff0f43038dcf97baa50a8b6"
+    },
+    "facts": {
+      "arith": {
+        "from_env": false,
+        "from_param": false,
+        "in_unchecked": false,
+        "on_state": false,
+        "ops": [],
+        "sinks": [],
+        "small_int": false
+      },
+      "checked_call": {
+        "has_arithmetic": false,
+        "has_guard": false,
+        "result_condition_check": false,
+        "status": "not_applicable"
+      },
+      "contract_summary": {},
+      "dfg": {
+        "defs": [],
+        "from": [
+          {
+            "node": 11914,
+            "offset": null
+          }
+        ],
+        "status": "supported",
+        "to": [],
+        "uses": [
+          {
+            "from_offset": null,
+            "kind": "parameter",
+            "var": "to"
+          }
+        ]
+      },
+      "env": {
+        "keys": [
+          "this.balance"
+        ],
+        "uses": [
+          "call"
+        ]
+      },
+      "external": {
+        "data_class": "none",
+        "kinds": [
+          "transfer"
+        ],
+        "return_handling": "ignored",
+        "target_classes": [
+          "param"
+        ],
+        "uninvoked_call_value": false,
+        "value_attached": true,
+        "value_class": "this.balance"
+      },
+      "fn_summary": {},
+      "function_ctx": {
+        "has_modifier": false,
+        "is_constructor": false,
+        "is_fallback": false,
+        "name_case_only_differs_from_contract": false,
+        "payable": false,
+        "read_only": false,
+        "visibility": "public"
+      },
+      "guard_status": "present",
+      "guards": [
+        {
+          "disjunctive": false,
+          "eq_pairs": [
+            "env_state"
+          ],
+          "is_sender_guard": true,
+          "kind": "require",
+          "offset": -1,
+          "operand_classes": [
+            "msg.sender",
+            "state"
+          ],
+          "polarity": 1,
+          "rule": "1"
+        }
+      ],
+      "loop": {
+        "bound": "none"
+      },
+      "names": [
+        "to"
+      ],
+      "nearest": 0,
+      "node_kind": "statement",
+      "order": {
+        "call_then_write": false,
+        "dominated_by_ext_call": false,
+        "ext_call_in_loop": false,
+        "pre_ext_call": null,
+        "reachable_from_ext_call": false,
+        "status": "supported",
+        "write_then_call": false
+      },
+      "provenance": {
+        "source_sha256": "3bf849eea5a234dcf2755aa526f934b3edfa560ee7eac3d70385887e3bc6ff79",
+        "store_refs": [
+          {
+            "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/audit.json",
+            "sha256": "acbaf44f0e0ea3fa25de141f8cd40586cb6cdd02baece15d3e67e4e803f9ada7"
+          }
+        ],
+        "view": "original"
+      },
+      "self_condition": {},
+      "state": {
+        "array_size_change": false,
+        "reads": [],
+        "status": "supported",
+        "writes": []
+      },
+      "state_decl": {},
+      "syntax": [],
+      "unresolved": {
+        "state_state_name_missing": 1
+      }
+    },
+    "graph": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+      "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c",
+      "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+      "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+      "nodes": 7892,
+      "edges": 16569
+    },
+    "incident_edges": [
+      {
+        "source": 11914,
+        "target": 11916,
+        "key": 0,
+        "attributes": {
+          "edge_type": "DATA_DEF_USE",
+          "ddg_version": "0.1.1",
+          "ddg_fact_indices": [
+            4662
+          ],
+          "routes": [
+            "legacy"
+          ],
+          "dfg_v2_version": "dfg-v2"
+        }
+      },
+      {
+        "source": 11915,
+        "target": 11916,
+        "key": "0",
+        "attributes": {
+          "color": "red",
+          "controlflow_type": "next_line",
+          "edge_type": "next_line",
+          "label": "next_line"
+        }
+      },
+      {
+        "source": 13290,
+        "target": 11916,
+        "key": 0,
+        "attributes": {
+          "edge_type": "ENV_FLOW",
+          "dfg_v2_version": "dfg-v2",
+          "env_key": "this.balance",
+          "spellings": [
+            "this.balance"
+          ],
+          "evidence_indices": [
+            2129
+          ]
+        }
+      }
+    ],
+    "file_evidence": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/access_control_node__wallet_02_refund_nosub.sol.json",
+      "sha256": "7ed90a7ac39d848dc7cf7d5f67efa9b710fe6b44b8f26118b2ca522df639da7c"
+    },
+    "same_type_nonSolidiFI_inner_train": [
+      {
+        "fold": 0,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 1,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 2,
+        "positive_nodes": 7,
+        "positive_files": 7,
+        "node_ids": [
+          11472,
+          12959,
+          7564,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 3,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 4,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          11357,
+          12757,
+          9865
+        ]
+      },
+      {
+        "fold": 5,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          7564,
+          8854,
+          12757,
+          7894
+        ]
+      },
+      {
+        "fold": 6,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 7,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          7564,
+          8854,
+          12757,
+          7894,
+          9865
+        ]
+      },
+      {
+        "fold": 8,
+        "positive_nodes": 8,
+        "positive_files": 7,
+        "node_ids": [
+          10581,
+          10583,
+          12959,
+          8854,
+          11357,
+          12757,
+          11913,
+          9865
+        ]
+      },
+      {
+        "fold": 9,
+        "positive_nodes": 9,
+        "positive_files": 8,
+        "node_ids": [
+          10581,
+          10583,
+          11472,
+          12959,
+          11609,
+          8854,
+          12757,
+          11913,
+          7894
+        ]
+      }
+    ]
+  }
+]

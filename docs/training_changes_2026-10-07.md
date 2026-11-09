@@ -9717,3 +9717,42 @@ S8门槛按封存的重入节点best等权折均S5−S4严格大于0独立重算
 S5 best对S4的纠正/新增错误分别为重入节点6/5、访问控制节点11/0、访问控制合约0/1、重入合约2/2，多数变化仅为概率。S5/S8均student全节点覆盖，S6覆盖有效描述节点；与教师的差距不纯粹代表压缩损失。教师增量非正时不计算保留比值。当前不建议把学生增强写成已证明稳定有效。
 
 完整回归：1341+2653+223=4217，42条既有警告。新增报告测试21项先通过再进行正式只读汇总；后续完整回归复核。后台运行日志、60份收据、120份新权重及全部特征仍留WSL；Git只提交代码/文档/紧凑结果/SHA，不上传大权重或向量。最终checkpoint选择仍为最低inner_val loss的best，last仅辅助，未事后换终点。
+
+
+## 98. 2026-11-09 NS-P9 本机NodeSem只读汇总与持续漏报审查（修改 AI：Codex）
+
+### 范围与来源
+
+按PROMPTS.md r29 §5.1/§5.12开展，已在开始前核对node-sem真实HEAD a5702240与远端（ff-only同步，无新变更）。本轮是阶段汇总，不是继续训练；原名original、L-audit、8D分组嵌套CV、seed=1、best主last辅，四任务独立。N-A240+N-B120+N-C1 30+N-C2 60=450次已有正式拟合，900条best/last主指标；跨报告660条历史重复引用逐位一致。NS-P6c、6c2、7c只读引用既有结果，不重跑探针、LLM或模型。
+
+用户明确批准两处清单修正：S3m没有正式结果，标记未运行，不补训或替代；S4-noG实际是G0且layers=0，保留真实身份，不标成G3R，也不等同于NA的G0/S4。最终报告只列S0o/S2/S4/S5/S6基线候选及依赖/成本，不替用户选型。
+
+### 实现与数据完整性
+
+新增summary.py、summary_cases.py、summary_edges.py、summary_report.py及tests/test_summary.py。代码仅位于scripts/node_sem，采用import复用冻结aggregate_metrics、validate_records、aligned_rows、ProjectionView/Projector、static_profile.explain及model_input.materialize；不改DFG、HGT、训练器、标签或模型结构。
+
+summary_NS_v1排他创建。对来源plan/seal、complete、report receipt、逐fit receipt、实际用到的预测、图、源码、STATIC/facts等做SHA核验。四项指标直接取fold_metrics，来源聚合用冻结纯统计函数复核binary64逐位一致，不采用打印后四舍五入值比较。原Holm家族及原始/校正p原样引用，标注来源SciPy1.7.3，不重新做Wilcoxon、bootstrap或Holm，不跨批次合并家族。原标签辅助结果与L-audit分开；NA原标签记录额外含样本数/混淆矩阵，辅助四指标按validate_records规范化后核对，主结果记录仍严格逐项一致。
+
+正例宽表按task/fold/source SHA/source_id/file/HCG ID对齐，不按CSV行号。重入32、访问控制20个非SolidiFI正例×六配置，best/last分开，共104条宽表；与NC1已有104条、NC2已有312条配对记录的预测与概率逐位一致。访问控制S5相对S4减少的10个非SolidiFI FP逐条列出函数/类型/源码行/概率。
+
+### 案例审查与结论
+
+六配置均漏报的best正例为重入6个、访问控制15个。21例的orig与L-audit均为1，C1沿用非SolidiFI作者标签，C2保留；这是标签来源证据，不是重新确认漏洞真值。函数节点/语句节点可能同属一个漏洞位置，不能把21节点写成21个独立漏洞。
+
+每例保存原源码SHA、AST精确跨度、raw_lines和graph_stored_lines、现成STATIC激活位及facts、图边/最短消息路径、各fold inner_train同类型非SolidiFI正例数。使用冻结materialize还原G3R反向消息，不把REV_*解释成反向执行依赖；完整图跨文件边为0，逐文件路径有效。没有重新生成特征、调用模型或改变任何输入。
+
+初步分类为a1、b5、c10、d5，分类不排他且不作因果断言。etherbank的throw与外部调用共用原行，存在标注位置/范围解释问题；modifier_reentrancy已有连接却没有显式modifier应用顺序，函数摘要不包含其外部调用效果；reentrancy_bonus已有函数级CG边，但callee调用到caller后续写为3跳。reentrancy_dao的call_then_write等局部信息已经存在。访问控制多例已有授权状态写/无守卫或selfdestruct事实；不能统一归因缺边。FibonacciBalance缺少delegatecall库/调用者storage上下文连接；mapping_write的普通声明相邻路径不是存储别名边。spank_chain_payment两种transfer共用粗事实类别、存在投影/守卫局限，当前不能证明其造成漏报。
+
+主终点（重入节点G3R best BF1）：S2−S0o +0.201793pp、Holm p=0.0390625；S4−S0o +0.147412pp、Holm p=0.07421875；S4−S2 −0.054381pp、p=0.221272。S6−S4 −0.049008pp、单一p=0.959248；S5−S4 +0.008145pp、Holm p=0.645603；S5−S8 +0.060519pp、Holm p=0.273677。N-B只描述，不另做显著性检验。
+
+非SolidiFI best pooled：重入S0o/S2/S4/S6/S5/S8的TP为20/25/25/26/25/25；访问控制为0/2/2/5/2/1。S5访问控制FP10→0但仍漏18/20；教师S6能识别5/20但不是主终点成功。局限修正：SolidiFI不是全部配置/检查点FN=0（重入S0o best/last各4，S6 last为2）；合约重入28–29文件/折，访问控制22–23，单文件对accuracy约100/n百分点而非对BF1固定3.4pp。
+
+### 成本、失败记录与交付
+
+成功fit小时NA/NB/NC1/NC2分别7.6805/4.5967/1.1355/2.3011；成功进程小时10.4816/6.5309/1.7129/3.4624，整卡最低空闲34/40/42/34MiB。两类时间不能相加，未计失败attempt或控制器等待。LLM历史生成26812.33秒、教师编码30.69秒、学生CPU拟合诊断289.23秒，均为旧记录共享成本，不按任务重复计费。
+
+保留本轮开发收集失败：attempt1对orig辅助记录的附加字段过严；attempt2重复传入metrics已有的n字段；cases首次把env_source的图ID直接当row_key。均修正新汇总器接入，保留现场，无旧来源SHA异常、无正式训练失败。有效结果为collection_attempt3、cases_attempt2和edge_review，最终只复制成功产物到reports。加入缺源/SHA篡改、重复身份、跨来源数值差异、节点身份/目标/折不一致、输出覆盖拒绝、反向消息语义等测试。回归结果与冻结/文档检查见verification和complete.json。
+
+交付NODESEM_REPORT.md、summary_NS_v1/README.md、机器CSV/JSON、来源清单和本地提交。HANDOVER/PROGRESS本节追加，旧前缀逐字节保留。8H只读load通过，354份冻结计算源码与runtime_resume_v2一致。N-A权重仍为已删除状态，不宣称本轮可重载。最终实验将在显存充足服务器另建批次；本地4GiB仅开发条件，不把本机与服务器结果混合。本轮不自动推送、不启动下一阶段。
+
+验收补记（Codex）：最终1353+2653+223=4229项回归通过，新增NS-P9测试12项；独立summary_verify.py重新核对899份来源（1,982,269,021字节）、原节点身份及折、概率、旧文档前缀和354份冻结计算源码。新增验证入口未加载任何正式模型；合成回归中的前向不计为新增正式实验。
