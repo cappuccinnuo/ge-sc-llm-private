@@ -1,0 +1,15 @@
+{
+  "before_preparation": true,
+  "formal_fits": 0,
+  "checks": [
+    {
+      "result": "48 passed / 1 failed",
+      "reason": "New synthetic test incorrectly demanded bitwise float32 output across different carrier strides; common initial tensor equality passed"
+    },
+    {
+      "result": "48 passed / 1 failed",
+      "reason": "Test attempted float64 production input, correctly rejected by frozen float32 contract"
+    }
+  ],
+  "correction": "float32 1e-6 tolerance plus functional float64 reference 1e-12; exact common-parameter tests unchanged; no frozen adapter changes"
+}

@@ -2685,3 +2685,12 @@ CPU调度修订：用户批准保留首轮现场，复用已完成的访问控�
 access_control_contract 岭回归余弦 0.8790 / 同类型均值 0.8181；access_control_node 岭回归余弦 0.8772 / 同类型均值 0.8298；reentrancy_contract 岭回归余弦 0.8784 / 同类型均值 0.8162；reentrancy_node 岭回归余弦 0.8854 / 同类型均值 0.8254。access_control_node STATIC+TEACHER−STATIC：BF1 1.4815pp，AUC 0.0730；reentrancy_node STATIC+TEACHER−STATIC：BF1 2.7143pp，AUC -0.0196。
 
 两次试点未通过的结论保持；本次按用户r26决定完成3B全量describe_v2、无role教师向量及必要CPU诊断。未训练HGT或学生，未运行judge，不进入NS-P8a。详细记录见scripts/node_sem/NS_P7C_REPORT.md。用户确认岭回归网格和逐任务教师产物布局。最终实验将在显存充足服务器另建批次，本机4GiB只属开发限制。
+
+
+## 2026-11-08 NS-P8a N-C1准备与封存完成（修改 AI：Codex）
+
+已准备30个S6/G3R任务（重入节点10、访问控制节点10、访问控制合约5、重入合约5），原名S4基础上增加384维TEACHER及存在位，载体760→1145维。30份N-A S4零步初值均存在、SHA及摘要通过；全部共同参数逐位复制核验，4组载体/快路径与新建结构证明通过。已删除的60份历史best/last仅按封存预测和收据作指标参照，不宣称可重载。
+
+独立N-C1接入获用户批准，复用冻结训练核心；继续条件未变，未达时仅说明预登记资源停止，不称学生不可能更好。4115测试通过，8H和354份冻结源码不变。本轮正式训练0/30，authorization.template=false，按PROMPTS §5.11等待单独训练授权；NS-P8b不自动运行。详细设计、选择、限制及实际命令见scripts/node_sem/NS_P8A_REPORT.md与NS_P8A_README.md。
+
+历史30次S4共约1.60小时，S6尚未实测；重入合约历史最低空闲44MiB，OOM按原规则停止，不调整计算。最终实验将在显存充足服务器另建批次，本机4GiB仅属当前开发限制，不混合设备结果。本轮不自动push。
