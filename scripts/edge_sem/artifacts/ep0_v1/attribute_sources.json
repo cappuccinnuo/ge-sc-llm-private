@@ -1,0 +1,772 @@
+{
+  "ARITH_OPS": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+    "**"
+  ],
+  "ENV_KEYS": [
+    "msg.sender",
+    "msg.value",
+    "msg.data",
+    "msg.sig",
+    "tx.origin",
+    "tx.gasprice",
+    "block.timestamp",
+    "block.number",
+    "block.difficulty",
+    "block.coinbase",
+    "block.gaslimit",
+    "blockhash",
+    "gasleft",
+    "this.balance"
+  ],
+  "RETURN_HANDLING": [
+    "not_applicable",
+    "checked_in_require",
+    "checked_in_if",
+    "assigned_checked",
+    "assigned_unchecked",
+    "ignored",
+    "unknown"
+  ],
+  "SHAPES": [
+    "mapping",
+    "array",
+    "address",
+    "integer",
+    "bool",
+    "bytes_string",
+    "struct_contract",
+    "other"
+  ],
+  "SYNTAX": [
+    "assign",
+    "add_assign",
+    "sub_assign",
+    "compound_assign",
+    "delete",
+    "emit",
+    "ternary",
+    "index",
+    "deep_member",
+    "literal",
+    "hash",
+    "ecrecover",
+    "abi_encode",
+    "exit",
+    "return",
+    "assembly"
+  ],
+  "attributes_generated": false,
+  "guard_anchor_source": "in-memory GuardAnalyzer; serialized facts omit _anchor",
+  "schema": {
+    "bytes": 15630,
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/facts_schema.py",
+    "sha256": "1eead71fc189425ad75f9d0f86db766f70a12fd7ae3de8fb83ae4d2bd2aa4fa5"
+  },
+  "tasks": {
+    "access_control_contract": {
+      "bit15_available": false,
+      "dfg_variable_fields": [
+        "from_offset",
+        "kind",
+        "var"
+      ],
+      "facts_ref": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/facts_v1/accepted_attempt4/original/access_control_contract/facts.jsonl",
+        "sha256": "79f047f64ef0744d9878956ef92ef60eca5cfac5da3b25e9f6cc6d9686c9c980"
+      },
+      "fn_summary_fields": [
+        "auth_write",
+        "call_then_write",
+        "delegatecall",
+        "ext_call_in_loop",
+        "external_call",
+        "loop",
+        "selfdestruct",
+        "sender_guard",
+        "state_write",
+        "status",
+        "timestamp",
+        "tx_origin",
+        "unknown_fields",
+        "write_then_call"
+      ],
+      "l1_evidence_count": 7932,
+      "l1_evidence_keys": {
+        "analysis_path": 7932,
+        "definition": 7932,
+        "function": 7932,
+        "routes": 7932,
+        "self_fact": 7932,
+        "source": 7932,
+        "symbol": 7932,
+        "target": 7932,
+        "use": 7932
+      },
+      "observed": {
+        "arith_ops": {
+          "%": 31,
+          "*": 195,
+          "**": 41,
+          "+": 188,
+          "-": 140,
+          "/": 151
+        },
+        "env": {
+          "block.number": 11,
+          "block.timestamp": 107,
+          "blockhash": 2,
+          "msg.data": 13,
+          "msg.sender": 1087,
+          "msg.value": 71,
+          "this.balance": 339,
+          "tx.origin": 1156
+        },
+        "guard_kind": {
+          "early_exit": 613,
+          "if_branch": 1018,
+          "internal_check": 678,
+          "loop_cond": 184,
+          "modifier": 1398,
+          "require": 4274
+        },
+        "guard_operands": {
+          "balance": 16,
+          "external_result": 307,
+          "hash": 83,
+          "literal": 3543,
+          "local": 1095,
+          "msg.sender": 1784,
+          "msg.value": 110,
+          "param": 4422,
+          "state": 3135,
+          "timestamp": 152,
+          "tx.origin": 839
+        },
+        "return_handling": {
+          "assigned_checked": 14,
+          "assigned_unchecked": 400,
+          "checked_in_if": 15,
+          "checked_in_require": 52,
+          "ignored": 668,
+          "not_applicable": 6608,
+          "unknown": 101
+        },
+        "sink": {
+          "arith": 20,
+          "array_index": 32,
+          "call_arg": 78,
+          "call_target": 122,
+          "call_value": 17,
+          "guard": 249,
+          "hash_input": 4,
+          "loop_bound": 15,
+          "other": 278,
+          "return": 220,
+          "state_write": 81
+        },
+        "status": {
+          "dfg:supported": 6441,
+          "dfg:unknown": 1417,
+          "guard:none": 9250,
+          "guard:present": 4384,
+          "guard:unknown": 59,
+          "order:supported": 6706,
+          "order:unknown": 1152,
+          "state:supported": 7815,
+          "state:unknown": 43
+        },
+        "syntax": {
+          "abi_encode": 25,
+          "add_assign": 48,
+          "assign": 1698,
+          "compound_assign": 3,
+          "deep_member": 93,
+          "delete": 11,
+          "ecrecover": 9,
+          "exit": 32,
+          "hash": 32,
+          "index": 1437,
+          "literal": 2240,
+          "return": 1151,
+          "sub_assign": 48,
+          "ternary": 17
+        },
+        "type_shape": {},
+        "var_kind": {
+          "local": 1654,
+          "parameter": 6702,
+          "return": 68
+        },
+        "write_shape": {
+          "address": 239,
+          "array": 60,
+          "bool": 82,
+          "bytes_string": 73,
+          "integer": 301,
+          "mapping": 823,
+          "struct_contract": 31
+        }
+      },
+      "rows": 13693,
+      "state_write_fields": [
+        "auth",
+        "shape",
+        "var"
+      ],
+      "top_level_fields": {
+        "arith": 13693,
+        "checked_call": 13693,
+        "contract_summary": 13693,
+        "dfg": 13693,
+        "env": 13693,
+        "external": 13693,
+        "fn_summary": 13693,
+        "function_ctx": 13693,
+        "guard_status": 13693,
+        "guards": 13693,
+        "loop": 13693,
+        "names": 13693,
+        "nearest": 13693,
+        "node_kind": 13693,
+        "order": 13693,
+        "provenance": 13693,
+        "self_condition": 13693,
+        "state": 13693,
+        "state_decl": 13693,
+        "syntax": 13693,
+        "unresolved": 13693
+      },
+      "update_marker_fields": []
+    },
+    "access_control_node": {
+      "bit15_available": false,
+      "dfg_variable_fields": [
+        "from_offset",
+        "kind",
+        "var"
+      ],
+      "facts_ref": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/facts_v1/accepted_attempt4/original/access_control_node/facts.jsonl",
+        "sha256": "e674116aee460d9e37d5bdb934e0d9c991964762f148c6428bb82b1b4beaf6fe"
+      },
+      "fn_summary_fields": [
+        "auth_write",
+        "call_then_write",
+        "delegatecall",
+        "ext_call_in_loop",
+        "external_call",
+        "loop",
+        "selfdestruct",
+        "sender_guard",
+        "state_write",
+        "status",
+        "timestamp",
+        "tx_origin",
+        "unknown_fields",
+        "write_then_call"
+      ],
+      "l1_evidence_count": 5226,
+      "l1_evidence_keys": {
+        "analysis_path": 5226,
+        "definition": 5226,
+        "function": 5226,
+        "routes": 5226,
+        "self_fact": 5226,
+        "source": 5226,
+        "symbol": 5226,
+        "target": 5226,
+        "use": 5226
+      },
+      "observed": {
+        "arith_ops": {
+          "%": 13,
+          "*": 61,
+          "**": 18,
+          "+": 100,
+          "-": 75,
+          "/": 64
+        },
+        "env": {
+          "block.number": 11,
+          "block.timestamp": 54,
+          "blockhash": 2,
+          "msg.data": 8,
+          "msg.sender": 515,
+          "msg.value": 47,
+          "this.balance": 330,
+          "tx.origin": 1156
+        },
+        "guard_kind": {
+          "early_exit": 226,
+          "if_branch": 748,
+          "internal_check": 81,
+          "loop_cond": 181,
+          "modifier": 715,
+          "require": 2586
+        },
+        "guard_operands": {
+          "balance": 6,
+          "external_result": 189,
+          "hash": 83,
+          "literal": 1917,
+          "local": 855,
+          "msg.sender": 893,
+          "msg.value": 86,
+          "param": 2518,
+          "state": 1513,
+          "timestamp": 66,
+          "tx.origin": 839
+        },
+        "return_handling": {
+          "assigned_checked": 8,
+          "assigned_unchecked": 175,
+          "checked_in_if": 5,
+          "checked_in_require": 28,
+          "ignored": 601,
+          "not_applicable": 3794,
+          "unknown": 53
+        },
+        "sink": {
+          "arith": 14,
+          "array_index": 29,
+          "call_arg": 57,
+          "call_target": 107,
+          "call_value": 8,
+          "guard": 138,
+          "hash_input": 2,
+          "loop_bound": 11,
+          "other": 239,
+          "return": 96,
+          "state_write": 55
+        },
+        "status": {
+          "dfg:supported": 4130,
+          "dfg:unknown": 534,
+          "guard:none": 5325,
+          "guard:present": 2555,
+          "guard:unknown": 12,
+          "order:supported": 4218,
+          "order:unknown": 446,
+          "state:supported": 4643,
+          "state:unknown": 21
+        },
+        "syntax": {
+          "abi_encode": 19,
+          "add_assign": 30,
+          "assign": 826,
+          "compound_assign": 3,
+          "deep_member": 80,
+          "delete": 8,
+          "ecrecover": 5,
+          "exit": 8,
+          "hash": 23,
+          "index": 631,
+          "literal": 1116,
+          "return": 433,
+          "sub_assign": 33,
+          "ternary": 2
+        },
+        "type_shape": {},
+        "var_kind": {
+          "local": 1115,
+          "parameter": 4368,
+          "return": 22
+        },
+        "write_shape": {
+          "address": 103,
+          "array": 56,
+          "bool": 33,
+          "bytes_string": 36,
+          "integer": 158,
+          "mapping": 365,
+          "struct_contract": 16
+        }
+      },
+      "rows": 7892,
+      "state_write_fields": [
+        "auth",
+        "shape",
+        "var"
+      ],
+      "top_level_fields": {
+        "arith": 7892,
+        "checked_call": 7892,
+        "contract_summary": 7892,
+        "dfg": 7892,
+        "env": 7892,
+        "external": 7892,
+        "fn_summary": 7892,
+        "function_ctx": 7892,
+        "guard_status": 7892,
+        "guards": 7892,
+        "loop": 7892,
+        "names": 7892,
+        "nearest": 7892,
+        "node_kind": 7892,
+        "order": 7892,
+        "provenance": 7892,
+        "self_condition": 7892,
+        "state": 7892,
+        "state_decl": 7892,
+        "syntax": 7892,
+        "unresolved": 7892
+      },
+      "update_marker_fields": []
+    },
+    "reentrancy_contract": {
+      "bit15_available": false,
+      "dfg_variable_fields": [
+        "from_offset",
+        "kind",
+        "var"
+      ],
+      "facts_ref": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/facts_v1/accepted_attempt4/original/reentrancy_contract/facts.jsonl",
+        "sha256": "a09a28d78315c329a25873dbbcf9b970965e9f58875ed90a8ff02120cc6e4390"
+      },
+      "fn_summary_fields": [
+        "auth_write",
+        "call_then_write",
+        "delegatecall",
+        "ext_call_in_loop",
+        "external_call",
+        "loop",
+        "selfdestruct",
+        "sender_guard",
+        "state_write",
+        "status",
+        "timestamp",
+        "tx_origin",
+        "unknown_fields",
+        "write_then_call"
+      ],
+      "l1_evidence_count": 7503,
+      "l1_evidence_keys": {
+        "analysis_path": 7503,
+        "definition": 7503,
+        "function": 7503,
+        "routes": 7503,
+        "self_fact": 7503,
+        "source": 7503,
+        "symbol": 7503,
+        "target": 7503,
+        "use": 7503
+      },
+      "observed": {
+        "arith_ops": {
+          "%": 32,
+          "*": 143,
+          "**": 46,
+          "+": 414,
+          "-": 331,
+          "/": 160
+        },
+        "env": {
+          "block.number": 14,
+          "block.timestamp": 178,
+          "blockhash": 4,
+          "msg.data": 10,
+          "msg.sender": 3512,
+          "msg.value": 157,
+          "this.balance": 269,
+          "tx.origin": 6
+        },
+        "guard_kind": {
+          "early_exit": 1287,
+          "if_branch": 1295,
+          "internal_check": 242,
+          "loop_cond": 177,
+          "modifier": 1346,
+          "require": 5927
+        },
+        "guard_operands": {
+          "balance": 39,
+          "external_result": 1064,
+          "hash": 47,
+          "literal": 4746,
+          "local": 1903,
+          "msg.sender": 3269,
+          "msg.value": 142,
+          "param": 4557,
+          "state": 5332,
+          "timestamp": 309,
+          "tx.origin": 12
+        },
+        "return_handling": {
+          "assigned_checked": 351,
+          "assigned_unchecked": 397,
+          "checked_in_if": 561,
+          "checked_in_require": 161,
+          "ignored": 409,
+          "not_applicable": 8041,
+          "unknown": 147
+        },
+        "sink": {
+          "arith": 59,
+          "array_index": 32,
+          "call_arg": 98,
+          "call_target": 171,
+          "call_value": 193,
+          "guard": 660,
+          "hash_input": 5,
+          "loop_bound": 6,
+          "other": 409,
+          "return": 254,
+          "state_write": 105
+        },
+        "status": {
+          "dfg:supported": 8994,
+          "dfg:unknown": 1073,
+          "guard:none": 12599,
+          "guard:present": 5993,
+          "guard:unknown": 18,
+          "order:supported": 9255,
+          "order:unknown": 812,
+          "state:supported": 9999,
+          "state:unknown": 68
+        },
+        "syntax": {
+          "abi_encode": 33,
+          "add_assign": 247,
+          "assign": 2852,
+          "compound_assign": 6,
+          "deep_member": 1078,
+          "delete": 9,
+          "ecrecover": 6,
+          "exit": 10,
+          "hash": 36,
+          "index": 3038,
+          "literal": 4536,
+          "return": 1245,
+          "sub_assign": 224,
+          "ternary": 25
+        },
+        "type_shape": {},
+        "var_kind": {
+          "local": 3113,
+          "parameter": 5422,
+          "return": 90
+        },
+        "write_shape": {
+          "address": 407,
+          "array": 66,
+          "bool": 241,
+          "bytes_string": 71,
+          "integer": 667,
+          "mapping": 1526,
+          "struct_contract": 130
+        }
+      },
+      "rows": 18610,
+      "state_write_fields": [
+        "auth",
+        "shape",
+        "var"
+      ],
+      "top_level_fields": {
+        "arith": 18610,
+        "checked_call": 18610,
+        "contract_summary": 18610,
+        "dfg": 18610,
+        "env": 18610,
+        "external": 18610,
+        "fn_summary": 18610,
+        "function_ctx": 18610,
+        "guard_status": 18610,
+        "guards": 18610,
+        "loop": 18610,
+        "names": 18610,
+        "nearest": 18610,
+        "node_kind": 18610,
+        "order": 18610,
+        "provenance": 18610,
+        "self_condition": 18610,
+        "state": 18610,
+        "state_decl": 18610,
+        "syntax": 18610,
+        "unresolved": 18610
+      },
+      "update_marker_fields": []
+    },
+    "reentrancy_node": {
+      "bit15_available": false,
+      "dfg_variable_fields": [
+        "from_offset",
+        "kind",
+        "var"
+      ],
+      "facts_ref": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/node_sem/artifacts/facts_v1/accepted_attempt4/original/reentrancy_node/facts.jsonl",
+        "sha256": "8586837fab8c62a3eb61262e7c568ff8fdc1fba1bfef550df55a12c6f227d5c0"
+      },
+      "fn_summary_fields": [
+        "auth_write",
+        "call_then_write",
+        "delegatecall",
+        "ext_call_in_loop",
+        "external_call",
+        "loop",
+        "selfdestruct",
+        "sender_guard",
+        "state_write",
+        "status",
+        "timestamp",
+        "tx_origin",
+        "unknown_fields",
+        "write_then_call"
+      ],
+      "l1_evidence_count": 4258,
+      "l1_evidence_keys": {
+        "analysis_path": 4258,
+        "definition": 4258,
+        "function": 4258,
+        "routes": 4258,
+        "self_fact": 4258,
+        "source": 4258,
+        "symbol": 4258,
+        "target": 4258,
+        "use": 4258
+      },
+      "observed": {
+        "arith_ops": {
+          "%": 15,
+          "*": 56,
+          "**": 15,
+          "+": 319,
+          "-": 250,
+          "/": 57
+        },
+        "env": {
+          "block.number": 12,
+          "block.timestamp": 120,
+          "blockhash": 2,
+          "msg.data": 4,
+          "msg.sender": 2884,
+          "msg.value": 117,
+          "this.balance": 244,
+          "tx.origin": 4
+        },
+        "guard_kind": {
+          "early_exit": 1008,
+          "if_branch": 994,
+          "internal_check": 81,
+          "loop_cond": 175,
+          "modifier": 616,
+          "require": 4082
+        },
+        "guard_operands": {
+          "balance": 27,
+          "external_result": 1005,
+          "hash": 47,
+          "literal": 3318,
+          "local": 1488,
+          "msg.sender": 2324,
+          "msg.value": 95,
+          "param": 2697,
+          "state": 3800,
+          "timestamp": 164,
+          "tx.origin": 7
+        },
+        "return_handling": {
+          "assigned_checked": 334,
+          "assigned_unchecked": 180,
+          "checked_in_if": 556,
+          "checked_in_require": 131,
+          "ignored": 301,
+          "not_applicable": 5080,
+          "unknown": 53
+        },
+        "sink": {
+          "arith": 32,
+          "array_index": 28,
+          "call_arg": 61,
+          "call_target": 143,
+          "call_value": 186,
+          "guard": 508,
+          "hash_input": 5,
+          "loop_bound": 6,
+          "other": 356,
+          "return": 103,
+          "state_write": 52
+        },
+        "status": {
+          "dfg:supported": 6196,
+          "dfg:unknown": 439,
+          "guard:none": 8135,
+          "guard:present": 4076,
+          "guard:unknown": 12,
+          "order:supported": 6262,
+          "order:unknown": 373,
+          "state:supported": 6613,
+          "state:unknown": 22
+        },
+        "syntax": {
+          "abi_encode": 30,
+          "add_assign": 235,
+          "assign": 1925,
+          "compound_assign": 1,
+          "deep_member": 1051,
+          "delete": 3,
+          "ecrecover": 6,
+          "exit": 10,
+          "hash": 34,
+          "index": 2247,
+          "literal": 3337,
+          "return": 433,
+          "sub_assign": 206,
+          "ternary": 7
+        },
+        "type_shape": {},
+        "var_kind": {
+          "local": 2393,
+          "parameter": 2678,
+          "return": 22
+        },
+        "write_shape": {
+          "address": 263,
+          "array": 57,
+          "bool": 197,
+          "bytes_string": 38,
+          "integer": 481,
+          "mapping": 1106,
+          "struct_contract": 112
+        }
+      },
+      "rows": 12223,
+      "state_write_fields": [
+        "auth",
+        "shape",
+        "var"
+      ],
+      "top_level_fields": {
+        "arith": 12223,
+        "checked_call": 12223,
+        "contract_summary": 12223,
+        "dfg": 12223,
+        "env": 12223,
+        "external": 12223,
+        "fn_summary": 12223,
+        "function_ctx": 12223,
+        "guard_status": 12223,
+        "guards": 12223,
+        "loop": 12223,
+        "names": 12223,
+        "nearest": 12223,
+        "node_kind": 12223,
+        "order": 12223,
+        "provenance": 12223,
+        "self_condition": 12223,
+        "state": 12223,
+        "state_decl": 12223,
+        "syntax": 12223,
+        "unresolved": 12223
+      },
+      "update_marker_fields": []
+    }
+  }
+}

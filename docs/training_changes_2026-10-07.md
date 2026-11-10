@@ -9756,3 +9756,50 @@ summary_NS_v1排他创建。对来源plan/seal、complete、report receipt、逐
 交付NODESEM_REPORT.md、summary_NS_v1/README.md、机器CSV/JSON、来源清单和本地提交。HANDOVER/PROGRESS本节追加，旧前缀逐字节保留。8H只读load通过，354份冻结计算源码与runtime_resume_v2一致。N-A权重仍为已删除状态，不宣称本轮可重载。最终实验将在显存充足服务器另建批次；本地4GiB仅开发条件，不把本机与服务器结果混合。本轮不自动推送、不启动下一阶段。
 
 验收补记（Codex）：最终1353+2653+223=4229项回归通过，新增NS-P9测试12项；独立summary_verify.py重新核对899份来源（1,982,269,021字节）、原节点身份及折、概率、旧文档前缀和354份冻结计算源码。新增验证入口未加载任何正式模型；合成回归中的前向不计为新增正式实验。
+
+
+## 99. 2026-11-10 EdgeSem EP0只读侦察与接口边界（修改 AI：Codex）
+
+### 范围、版本与用户选择
+
+NodeSem结果暂时封存后，用户明确要求执行scripts/edge_sem/PROMPTS.md的EP0，先读共享上下文。本轮开始分支edge-sem/7692bc88，已跟踪工作树干净；原本存在的模型、旧运行目录和锁文件均不删除。共享上下文要求git pull --ff-only origin edge-sem，首次被自动审批以“未单独授权远程同步”拒绝；用户明确选择“授权快进同步edge-sem分支”。WSL原命令DNS失败，随后Windows Git经已有127.0.0.1:7897代理完成同一ff-only同步到ce8fa93a，只更新PROMPTS r2→r3，未强推、reset或覆盖历史。
+
+本轮范围仅EP0：输入SHA与历史轮数、边/方向/参数统计、CFG/guard/调用可行性、73属性来源审计、CPU A/B/C探针和报告。未批准D1改匿名主视图、D2取消早停或D3七类冻结规则；侦察复用8H匿名输入不等于改变NodeSem原名主视图。没有实现EP1生产materialize、F4新关系、边特征或EdgeAwareHGT，未开始任何正式拟合/GPU任务。
+
+### 输入与统计实现
+
+新增scripts/edge_sem/recon内的只读程序，使用Python3.7/mando、CUDA_VISIBLE_DEVICES为空、禁用pycache、OMP/MKL各2线程。输入从8H plan、graphs_v2_r1/store及各任务prepared引用获取；通过N-A S4 spec定位最终已验收STATIC/facts，仅作事实来源，不沿用N-A模型或训练权重。每个使用的文件先验SHA；安全图读取器复用，所有模型探针从新鲜构造器开始，不加载历史pt。
+
+四任务共384个task/file引用（不是384份去重源码），F0/F3、特征manifest/NPZ、labels/label_view、grouped folds、source metadata和L1–L3来源均在inputs.json。30个历史G3R成功收据逐一核对final_result、history、effective_config；best/last原0基与报告1基分开记录。节点任务实际initial_lr=.0002/max_lr=.005/div_factor25，合约.0005/.01/20；其余保持8H封存值。PROMPTS §1.4简写是合约配置，不能直接填到节点任务。
+
+反射前、作者基础反射后、G3R merge和typed全部canonical/边数逐项保存。同类型合并与异类型反向撞正向分别统计，稀疏<20关系保留。重入节点212→220、访问控制节点225→234；每层新增32832/36936，公式ΔR×(2×8×16²+8)。typed仅是探针内存字典，没有写回图。
+
+CFG复用FileCFG的legacy→v2回退、版本元数据和精确事件锚点；从入口可达子图计算支配，目标支配源才算自然回边。投影只跨越无事件块，不依据源码行号。后支配仅以真实出口接虚拟出口，覆盖有限退出路径；不能证明无限执行的终止性。四任务mapped next_line回边分别重入合约26、重入节点26、访问控制合约32、访问控制节点29，全部不足50，cf_back禁用。完整函数支持率、事件锚点缺失与AST语句缺失逐文件留证。
+
+### 关系可行性与重要差异
+
+节点两任务MOD_APPLY调用187/204，唯一绑定并有图端点178/195；经继承88/86，与GuardAnalyzer.audit对照。CALL_SITE唯一内部绑定182/188，图端点180/186；另有重载13/13与super3/3无法绑定。最初粗扫把未分类的require等算入unknown，补充calls.py使用冻结builtin判别与声明身份排除内置/事件/库/转换，最终以call_classification.json分母为准；这项统计纠正没有新增解析能力。
+
+GUARDS记录6956/4537，可映射6340/3822，去重正向边6305/3787；modifier记录616/715全部未映射。已复核源码facts_guards._modifiers传给_guard的是invocation，_guard原样保存为_anchor，而不是文档宣称的modifier体内条件节点。原函数没有暴露该源节点；不能把调用位置近似投影到函数头充当守卫。后续建议在EdgeSem增加只读来源适配，但本轮不实现，需要先确认。
+
+73位来源逐项列于recon.json.attribute_slots，真实枚举列于attribute_sources.json。L1 evidence没有strong/weak字段，第15位依模板恒0。实际dfg.kind为local/parameter/return，文档四类缺少return规则；dfg变量记录没有类型字段。state.writes.shape代表根声明类型（integer/address/mapping等），不等于scalar/struct_member的写入访问方式；syntax也未直接区分全部decl/param/incdec。READS_STATE源端为声明，不能直接作为函数内def来定义跨外部调用路径。这些是后续属性来源与适用性问题，未静默补类别或猜值。
+
+匿名源码由8G封存edits在内存恢复；直接配原图code会被Projector拒绝。使用已有node_code_view修改临时副本code，384/384文件的compat AST ID到HCG节点身份完全一致，原图不变，不输出匿名源码或匿名特征。此证明仅覆盖投影身份，不宣称EP5全部新边/属性已经通过名字不变性。
+
+### CPU接入与性能边界
+
+A：重入节点fold0按封存constructor seed10000构造G3R锚模型，深拷贝并原样重建DGL/layers，state digest和eval logits逐位相同，max_abs=0。
+
+B：typed220关系、5176676参数，非关系与映射关系行逐位复制；用冻结L-audit inner_train8518节点作一次交叉熵反向，有限loss/梯度通过，optimizer step0。gradient_audit的浅层schema路径能验证实际typed字典和支持；但深度registration在dfg_profile=G3R报Graph/schema mismatch，在G3R-T报Unknown DFG v2 profile。因此浅层通过不是checkpoint接入通过。旧checkpoint.validate_binding绑定profile/task/reducer/layer_impl、registered schema/canonical、aux policy及graph/folds/labels/label_view/feature_view/feature_npz引用；必须另外设计EdgeSem绑定适配，不能只改一个profile字符串，也不能伪装G0P。源码行范围与SHA逐函数归档。
+
+C：仅用相同文件内随机端点模拟当前可映射新关系规模，274关系、60732边、5619908参数；train-mode CPU前向保留autograd，耗时2.216秒，RSS前1541013504字节、峰值3017945088、增量1476931584、高水位3026731008。无modifier缺失边、未来属性激活、backward或Adam状态；普通新关系构造器初值仅作规模估计，不是r3语义初始化验收。这个CPU数值不能证明4GiB GPU一定足够。
+
+### 验收、记录与停止位置
+
+开发脚本错误已保留：STATEMENTS误导入、run的--分隔符、辅助节点空dfg、mando未装psutil（改用/proc而非安装依赖）、split字典包含fold等元数据，以及emit语法夹具预期修正。均发生于新侦察代码/测试接入，未修改冻结源码或重试正式拟合；成功产物不覆盖。最终EdgeSem11、NodeSem1353、DFG v2 2653测试通过，共4017；实际命令、退出码和日志SHA见execution目录，最终verification.json核对旧8H.load、_code_refs、全部冻结源码、输入引用与文档旧字节前缀。
+
+RECON.md、recon.json、独立ep0_v1产物与三文档一并本地提交（EP0前缀），未自动push。EP0侦察已完成，但modifier来源、typed checkpoint适配、属性来源/适用性存在设计边界，报告供审查后再决定EP1。最终实验将在显存充足服务器另建批次；当前RTX3050 4GiB只是本机开发条件，服务器没有在本轮部署或验收，也不混合设备成绩。
+
+最终交付补充：recon/verify.py独立核对冻结源码、输入引用、旧文档字节前缀、CPU/回归收据和UTF-8。PROMPTS.md工作树CRLF与HEAD的LF规范化后正文完全相同，保留现有字节及inputs.json所记SHA，不将纯换行差异提交。
+
+最终检查记录：第一次git diff --check将PROMPTS既有CRLF当作行尾空白而退出；已保留该日志。仅在检查命令中声明cr-at-eol，继续检查实际行尾空白，不改文件；核验正文等价和原始SHA仍保持。
