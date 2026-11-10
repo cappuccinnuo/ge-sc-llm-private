@@ -1,7 +1,13 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r6（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r7（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r7 相对 r6 的修改**（审查 EP0d 产出后）：
+1. EP0d 已核对并接受：`_resolve_callee` 与冻结 `resolve_callable` 第 189–205 行逐行一致，6707 次绑定等价；复合 callee 使 40/35 个调用表达式、38/39 条参照边转为已确认；两项门槛通过（覆盖 257/259、266/268；未确定 6.18%、5.22%）。用户批准的接收者适配（只用于 address_builtin 分类）语义正确：`!msg.sender.send(v)` 的含义是 `!(msg.sender.send(v))`。
+2. 新发现、门槛看不到的缺口：库函数 using-for 调用的接收者类型。冻结 `_using_callable`（facts_ast.py 第 214–243 行）只接受 identifier 与数组下标接收者；映射下标（`balances[msg.sender].sub(x)`）、括号表达式（`(20 * a).div(100)`）、链式库调用（`a.mul(b).div(c)`）、结构体成员等全部得不到类型而成为 unknown。ep0d_v1 的 raw_calls 中，reason = receiver_or_member_not_confirmed 的调用里，方法名为 add/sub/mul/div/mod/pow 的就有 221 个（23 个文件，两个任务相同），而已解析的库调用只有 154/140。作者 HCG 不连库调用，所以 internal_call 参照集与门槛都测不到这一缺口。这正是算术类所需的证据，必须在 EP2 之前补上。
+3. 同一 unknown 池中还有 353/338 个 `x.call.value(v)` / `.gas(g)` 的中间调用与 27/19 个 `abi.encodePacked` 等，它们不应成为目标，但应分类为 call_option 与 builtin，而不是 unknown，以免掩盖真正的缺口。
+4. 新增 EP0e（只读加修改 call_resolve.py），在 EP1 之前完成。
 
 **r6 相对 r5 的修改**（审查 EP0c 产出后；逐边按 (file, source_node, target_node, edge_key) 连接 ep0b_v1/calls_refined_* 与 ep0c_v1/calls_*.rough_comparison 复核）：
 1. EP0c 按 r5 门槛正确停止：覆盖 219/221、227/229 通过，但 undetermined 54/221（24.4%）、53/229（23.1%）超过 20%。
@@ -43,7 +49,7 @@
 10. D1–D3 在 EP7 之前必须有用户确认记录；未确认不得开始训练。
 11. 措辞修正（recursive_method_call 一句）；u 按关系键各一行。
 
-使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP0c → EP0d → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP0c → EP0d → EP0e → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ---
 
@@ -428,6 +434,47 @@ fixtures：同合约内部调用；继承来的函数；库调用（SafeMath.sub
 测试通过；RECON.md 第 11 节给出差异与门槛结论；三套回归测试通过；未修改冻结文件。
 ```
 
+### 4.2e EP0e：using-for 库调用的接收者类型（r7 新增）
+
+```text
+# EP0e：库调用接收者类型推断、调用选项分类与库调用召回
+
+输出追加到 scripts/edge_sem/RECON.md 第 12 节与 scripts/edge_sem/artifacts/ep0e_v1/；EP0–EP0d 产物不改。不建图、不训练、不生成属性向量。
+
+## 1. 修改 scripts/edge_sem/call_resolve.py
+### 1.1 receiver_type(sem, expr) -> 规范类型字符串或 None（新函数，只用结构与声明，不按名字猜）
+- identifier：root_binding 的声明类型（经冻结 _canonical_type）。
+- parenthesized_expression：内部表达式的类型。
+- 下标访问：基表达式类型为 mapping(K => V) 时为 V（支持嵌套映射逐层剥离；解析 mapping 文本时只按 `=>` 与括号配对切分）；为 T[] 或 T[n] 时为 T。
+- member_expression：基表达式类型是同文件唯一的 struct 声明时，取该字段的声明类型；`msg.value`、`block.timestamp`、`block.number`、`now`、`x.length`、`x.balance` 为 uint256；`msg.sender`、`tx.origin` 为 address（这些内置名都要做未遮蔽检查）。
+- call_expression：resolve_call 解析为函数且该函数恰有一个返回参数时，取该返回类型；类型转换 `uint256(x)` 等取目标类型。
+- 二元算术（+ - * / % **）：两侧类型相同取该类型；一侧为数字字面量时取另一侧类型；两侧都是字面量时为 uint256。比较与逻辑运算为 bool。数字字面量单独出现时为 uint256。
+- 其他一律 None。
+### 1.2 using-for 解析
+- 新增 `_using_resolve(sem, call_node, receiver_type, method)`：复制冻结 `_using_callable` 第 214–243 行中 using 指令遍历与匹配部分（文件头写明来源与 SHA256），差别只在 receiver_type 由调用方给出；匹配条件（同文件唯一库、方法名唯一、参数个数 = 实参 + 1、第一个参数规范类型 = receiver_type；`using L for *` 时不比较源类型）一项不改。
+- 在 resolve_call 中：冻结 resolve_callable 与 EP0d 的复合 callee 都失败、且被调者（必要时取 _postfix）是 member_expression 时，用 receiver_type 求接收者类型再调用 _using_resolve；成功则 status = resolved、kind = library、reason = typed_receiver。
+### 1.3 非目标分类
+- `.value(...)`、`.gas(...)` 作用在 call/delegatecall/staticcall 成员上的中间调用：status = call_option（基接收者经 _address_receiver 确认为地址时 reason 写 address_receiver，否则 unconfirmed_receiver）。
+- 未遮蔽的 `abi.encode`、`abi.encodePacked`、`abi.encodeWithSelector`、`abi.encodeWithSignature`、`abi.decode`：status = builtin。
+- 这两类都不返回目标。
+
+## 2. 等价与不变性
+- 在 EP0d 全部调用表达式上：EP0d 已 resolved 的调用，status/kind/target 完全不变；EP0d 中 identifier 与数组下标接收者的 using-for 调用，_using_resolve 与冻结 _using_callable 结果完全相同（逐调用比较）。
+- 改名用例：把全部非保留标识符改名后，每个调用的 status/kind 不变，目标对应同一声明。
+
+## 3. 库调用召回（门槛在本 Prompt 中登记，看到结果前不得修改）
+- 候选集（与解析器无关的定义）：调用方合约链上可见的 using 指令所挂载的同文件库中，恰有一个函数与方法名相同、且其参数个数 = 实参个数 + 1 的成员调用表达式；排除接收者是库名本身的直接调用（已由冻结规则处理）。
+- 召回 = 候选集中解析为该函数的比例；按任务、按接收者形状（identifier、映射下标、数组下标、括号、链式调用、结构体成员、其他）分别报告；未解析的按原因分类并列样例。
+- 门槛：两个节点任务的召回都 ≥ 90%；解析到候选集以外函数的调用数为 0（若不为 0，逐条列出并停下）。不通过就停下报告。
+- 报告新的语句级 CALL_SITE 候选数（按 kind）与相对 EP0d 的新增；重算 EP0d 的两项门槛并确认仍通过。
+
+## 4. 测试（追加到 tests/test_call_resolve.py）
+`balances[msg.sender].sub(x)`（mapping(address => uint256)）；`allowed[a][b].sub(v)`（嵌套映射）；`(20 * a).div(100)`；`a.mul(b).div(c)`（链式）；`s.total.add(x)`（结构体字段）；`msg.value.mul(2)`；`using L for *`；接收者类型与库第一个参数类型不符时不解析；`msg.sender.call.value(v)("")` 中的 `.value(v)` 为 call_option；`abi.encodePacked(x)` 为 builtin；一个 `msg` 被遮蔽的反例；改名用例覆盖以上形状。
+
+## 验收
+测试通过；RECON.md 第 12 节给出召回、门槛与差异；三套回归测试通过；未修改冻结文件。
+```
+
 ### 4.3 EP1：关系注册与 materialize（E0）
 
 ```text
@@ -482,7 +529,7 @@ build_task(task_id, out_dir) -> manifest
 - 输入：node_sem.facts_io.load_context(task_id) 的 F3 图、源码与证据。只读。
 - 对每个 source_file：用 node_sem.facts_ast.AstSemantics 与 ProjectionView/Projector 建立 “AST 节点身份 → 图节点” 映射（与 facts.py 相同的方法，可调用其内部函数；需要改行为就复制并写明来源 SHA）。
 - MOD_APPLY：对每个 function_definition/constructor_definition 节点，取函数头的 modifier_invocation，按 GuardAnalyzer._modifiers 的解析规则（含继承、参数绑定检查）找到唯一的 modifier_definition，映射到图节点后建边。解析失败的按原因计数（unresolved / not_unique / not_in_graph）。
-- CALL_SITE：对每个语句节点（包括修饰器体内的语句），枚举其 AST 子树中的 call_expression，调用 EP0c/EP0d 的 scripts/edge_sem/call_resolve.py::resolve_call 得到唯一的同文件定义（含库函数、按实参个数消歧的重载与复合 callee）；不建边的类别按 resolve_call 的 status 分类计数。同一语句到同一定义只建一条边；边记录保留 resolve_call 的 kind（internal、inherited、library、overload_arity）。
+- CALL_SITE：对每个语句节点（包括修饰器体内的语句），枚举其 AST 子树中的 call_expression，调用 EP0c–EP0e 的 scripts/edge_sem/call_resolve.py::resolve_call 得到唯一的同文件定义（含库函数及其类型化接收者、按实参个数消歧的重载与复合 callee）；不建边的类别按 resolve_call 的 status 分类计数。同一语句到同一定义只建一条边；边记录保留 resolve_call 的 kind（internal、inherited、library、overload_arity）。
 - 输出：out_dir/f4_edges.jsonl，每行 {"relation", "src", "dst", "rule", "src_anchor": [start_byte, end_byte, type], "dst_anchor": [...], "file"}；out_dir/f4_audit.json（各类计数）；out_dir/manifest.json（输入 SHA、实现文件 SHA、行数、jsonl 的 SHA）。不写新的 gpickle；模型侧按 jsonl 在内存副本上加边。
 - add_edges(nx_graph_copy, edges) -> nx_graph_copy：只在深拷贝上加边，edge_type 为关系名；加边前后原图指纹不变。
 
