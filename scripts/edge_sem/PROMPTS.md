@@ -1,7 +1,14 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r4（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r5（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r5 相对 r4 的修改**（审查 EP0b 产出后；数字来自 ep0b_v1/calls_refined_*.json 的逐边复核）：
+1. CALL_SITE 门槛的参照集无效。EP0b 按预登记门槛正确停止（覆盖 45.88% / 38.25%）。逐边检查未覆盖的 internal_call 后发现，作者 HCG 的 internal_call 是按函数名连边的：重入节点任务 464 条中至少 208 条不是内部调用——76 条在调用方函数里找不到任何对应调用表达式，99 条是地址内置的 `msg.sender.transfer(x)`/`x.send(v)` 被连到同名的 ERC20 `transfer` 函数，33 条是 `ERC20Interface(addr).transfer(...)`、`new T(...)` 等对外部合约的调用；访问控制节点任务 591 条中至少 329 条同理（76/219/34）。以这样的边为“应有的内部调用”计算召回，测的是与作者名字匹配错误的一致程度。门槛本身（80%）不变，参照集改为“经类型解析确认为内部调用的 internal_call 边”（EP0c）。这是在看到结果后改口径，理由与证据写入 RECON 第 10 节，不因此调整阈值。
+2. 按上述粗分类，真正的内部调用缺口是：库调用 38/27、重载 18/18、super 2/2、修饰器相关 10/8、绑定到不同声明 7/7。现行 CALL_SITE 对真正内部调用的覆盖约为 178/253（70.4%）与 197/259（76.1%）。
+3. CALL_SITE 范围扩大：库函数调用（EVM 中是内部跳转，SafeMath 等库是算术类证据）建边；同名重载按实参个数唯一匹配时建边；修饰器体内语句发出的调用建边（修饰器调用本身仍由 MOD_APPLY 表示）。新增属性位 73 `call_to_library`（核心候选，交给端点检验）。向量长度 74。
+4. 新增 EP0c（只读加一个生产模块 call_resolve.py），在 EP1 之前完成第 1–3 项的测量。
+5. EP0b 其余结果已核对并接受：guard_source.py 与冻结 `_modifiers` 逐行一致，`_lexical` 无审计或缓存副作用；修饰器内层 anchor 映射 100%；属性来源可行性（类型解析 89.6–99.0%，def_kind 未知约 1%）可以支持 EP4。
 
 **r4 相对 r3 的修改**（审查 EP0 产出后；每项都对照了代码或 ep0_v1 产物）：
 1. 修饰器守卫来源（EP0 D-01，已核实）：`facts_guards._modifiers` 第 380–381 行把 `invocation` 作为 `_guard` 的 anchor，所以 616/715 条修饰器守卫记录的 `_anchor` 是函数头的 `modifier_invocation`，不是修饰器体内的守卫语句；r1–r3 第 1.5 节的说法是错的。改为 EdgeSem 本地只读解析器复现 `_modifiers` 的解析，取 `_lexical(holes[0], modifier)` 返回的内层守卫 anchor（修饰器体内的 require/if 语句）作为 GUARDS 源节点（3.2、EP0b、EP3）。HCG 含修饰器体语句（重入节点任务 modifier_definition→expression_statement 的 next_line 有 55 条）。
@@ -30,7 +37,7 @@
 10. D1–D3 在 EP7 之前必须有用户确认记录；未确认不得开始训练。
 11. 措辞修正（recursive_method_call 一句）；u 按关系键各一行。
 
-使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP0c → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ---
 
@@ -107,14 +114,14 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 | 关系 | 方向 | 构建方式 |
 |---|---|---|
 | MOD_APPLY | 函数/构造函数定义节点 → 被应用的修饰器定义节点 | 函数头 `modifier_invocation`，按 `GuardAnalyzer._modifiers` 同样的规则解析（含继承）；解析失败不建边并计数 |
-| CALL_SITE | 含内部调用的语句节点 → 被调函数定义节点 | `AstSemantics` 的调用解析；只连到同一文件内能唯一解析的 function/modifier/constructor 定义；外部合约调用、低级调用、库调用不建边 |
+| CALL_SITE | 含内部调用的语句节点（包括修饰器体内的语句）→ 被调函数定义节点 | r5：`scripts/edge_sem/call_resolve.py`（EP0c）：先用 `AstSemantics.resolve_callable`；库函数调用建边；同名重载只在实参个数唯一匹配一个定义时建边；外部合约调用、低级调用、地址内置 transfer/send、`this.f()`、`new`、类型转换后的成员调用、事件 emit 不建边。全部只连到同一文件内的定义节点 |
 | GUARDS | 守卫条件所在节点 → 它保护的语句节点 | 进程内 `GuardAnalyzer.for_node`，把每条非修饰器守卫记录的 `_anchor` 按 AST 身份精确映射到图节点（EP0：非修饰器记录 100% 可精确映射，不需要“最小包含语句”回退）；修饰器守卫的源节点由 EdgeSem 本地解析器给出的内层 anchor（修饰器体内的 require/if 语句）映射得到，连到被修饰函数内的语句；映射不到的守卫丢弃并计数。目标包括全部被保护语句（封存事实中每条语句约 1.0 条守卫记录，最多 13），不只连状态写或外部调用 |
 
 自环、重复边：同一 (源, 目标, 关系) 只保留一条，计数。
 
-### 3.3 E2：边属性（uint8[73]）
+### 3.3 E2：边属性（uint8[74]）
 
-准入规则：(1) 在同一关系内会变化；(2) 描述两端的关系而不是单个端点；(3) HGT 两层内难以从拓扑恢复。0–54 与 68–72 是**核心候选**，55–67 是节点上下文组（只在剖面 G4R-AC 中启用）。核心候选是否真正进入核心，由 EP4 的端点检验在任何训练之前决定（见下文），结果写入 attrs manifest 的 `core_indices` 并在 EP9 冻结。反向边复制正向边的向量。
+准入规则：(1) 在同一关系内会变化；(2) 描述两端的关系而不是单个端点；(3) HGT 两层内难以从拓扑恢复。0–54、68–72 与 73 是**核心候选**，55–67 是节点上下文组（只在剖面 G4R-AC 中启用）。核心候选是否真正进入核心，由 EP4 的端点检验在任何训练之前决定（见下文），结果写入 attrs manifest 的 `core_indices` 并在 EP9 冻结。反向边复制正向边的向量。
 
 | 索引 | 名称 | 适用边 | 来源 |
 |---|---|---|---|
@@ -154,12 +161,13 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 | 70 | unk_order | 用到 order 字段的位所在的边 | 相关端点 `order.status` = unknown |
 | 71 | unk_state | WRITES_STATE、READS_STATE | 相关端点 `state.status` = unknown |
 | 72 | unk_guard | GUARDS、MOD_APPLY，以及所有以 guard_status 为 unknown 的语句为目标的边 | `guard_status` = unknown |
+| 73 | call_to_library | CALL_SITE | r5：resolve_call 的 kind = library（核心候选，交给端点检验） |
 
 **未知值规则（r2）**：某一位依赖的事实为 unknown 时，该位写 0，同时对应的 unk 位写 1；不得把 unknown 当作 false 用在规则基线中。规则基线“没有 caller_identity GUARDS 入边的状态写语句”排除 guard_status 为 unknown 的语句，并报告被排除的数量。封存事实中 order 为 unknown 的语句约 5.6–9.6%，dfg 约 6.6–11.4%，guard 为 12 条（每任务）。
 
 **端点检验（r3，EP4 执行，训练前完成）**：判断一个核心候选位 b 是否只是某个端点的性质。对每种适用关系 r 和每一侧（源侧：每个源节点的 r 出边；目标侧：每个目标节点的 r 入边），合格节点 = 该侧至少有 2 条 r 边、且其中至少一条 b = 1 的节点；恒定节点 = 合格节点中所有 r 边都是 b = 1 的节点。把各关系的合格数与恒定数分别相加（按节点计数合并），得到每侧的恒定比例。某一侧合格节点 ≥ 30 且恒定比例 ≥ 99% 时，b 判定为端点事实，移入上下文组；两侧合格节点都 < 30 时，b 留在核心并标为“未判定”，在报告中列出。阈值 99% 与 30 现在登记，不得根据结果调整。只看“出现 1 时是否恒为 1”，是因为几乎处处为 0 的稀疏位在任何节点上都“恒定”，按 r2 的写法会被全部误判为端点。预计调用位（37–42）与守卫操作数位（49–54）会被移出；守卫种类位（43–48）不一定，因为同一个修饰器内的 `require` 对修饰器内语句是 require、对被修饰函数的语句是 modifier。未知位（68–72）不参加端点检验：每个未知位进入它所限定的位所在的组（限定的位分属两组时两组都含它）。在两个节点任务的全部边上都为 0 的位（包括第 15 位）不进入核心（r4）。
 
-`recursive_method_call` 边的全部位为 0；其他每种边只填表中“适用边”列包含它的位，其余为 0。名称常量写成 `EDGE_FEATURE_NAMES`（长度 73）；核心位的索引列表 `core_indices` 由端点检验决定，不写成常量。不允许读取任何标识符拼写来计算任何一位。
+`recursive_method_call` 边的全部位为 0；其他每种边只填表中“适用边”列包含它的位，其余为 0。名称常量写成 `EDGE_FEATURE_NAMES`（长度 74）；核心位的索引列表 `core_indices` 由端点检验决定，不写成常量。不允许读取任何标识符拼写来计算任何一位。
 
 ### 3.4 E3：边感知层
 
@@ -347,6 +355,41 @@ Python 3.7.12、PyTorch 1.8.1+cu111、DGL 0.6.1、tree_sitter 0.20.4、RTX 3050 
 等价测试通过；RECON.md 第 9 节给出三部分数字与结论；未修改任何冻结文件；三套测试通过。
 ```
 
+### 4.2c EP0c：调用解析与 CALL_SITE 参照集（只读加一个模块，r5 新增）
+
+```text
+# EP0c：调用解析模块与按类型确认的 CALL_SITE 覆盖
+
+输出追加到 scripts/edge_sem/RECON.md 第 10 节与 scripts/edge_sem/artifacts/ep0c_v1/；只读脚本放 scripts/edge_sem/recon/。沿用 EP0/EP0b 的输入核验与执行记录方式。不建图、不训练、不生成属性向量。
+
+## 1. scripts/edge_sem/call_resolve.py（EP2 将直接使用）
+resolve_call(sem, call_node) -> dict：{"status", "kind", "target"}。
+- 先调用 AstSemantics.resolve_callable(call_node)。返回 function/modifier/constructor 定义时：kind = library（定义所在合约是 library）、inherited（定义不在调用方合约）或 internal。
+- resolve_callable 因同名多个函数声明返回 unknown、且 callee 是裸标识符时：在调用方作用域内取同名 function 定义，按参数个数与实参个数比较；恰好一个匹配则 kind = overload_arity，否则 status = overload_unresolved。不比较参数类型名。
+- 其余情况只分类、不给 target，status ∈ {builtin（require/assert/keccak256 等）、address_builtin（接收者是 address/address payable 类型，或 msg.sender、tx.origin、payable(...)、address(...)，方法为 transfer/send/call/delegatecall/staticcall）、external_member（接收者类型是合约或接口，或 this.f）、cast_member（T(x).f(...)）、new_contract、super、event_or_struct、unknown}。接收者类型一律用 AstSemantics.root_binding 解析声明后的类型名判断，不得用正则按名字猜。
+- 文件头写明依赖的冻结函数与 SHA。
+
+## 2. HCG internal_call 的按类型参照集
+对两个节点任务 F3 图中每条 internal_call 边 (f → g)，枚举 f 拥有的全部语句（含修饰器体）中 callee 名字与 g 的名字相同的调用表达式（沿用 EP0b 的定位方式），逐个用 resolve_call 分类：
+- 只要有一个表达式的 target 恰为 g：参照类 = internal_confirmed；
+- 有表达式但全部是 address_builtin、external_member、cast_member、new_contract、builtin：参照类 = not_internal（作者 HCG 的同名误连）；
+- target 存在但不是 g：参照类 = rebinding（记录两个定义）；
+- overload_unresolved、super、unknown：参照类 = undetermined；
+- 没有任何表达式：参照类 = no_expression。
+输出每类数量，并与 r5 头部的粗分类（重入 208、访问控制 329 条非内部）逐条对照，列出不一致的边及原因。
+
+## 3. 覆盖与门槛
+- 覆盖：参照类 internal_confirmed 的边中，存在 (s → g) 的 resolve_call 边且 s 归 f 的比例。分别报告：r5 范围（含库与重载消歧）与 EP0 原范围。
+- 门槛（r5 登记，阈值仍为 80%）：r5 范围对 internal_confirmed 的覆盖 ≥ 80% 才进入 EP1；否则停下报告。undetermined 不进分母，但单独报告数量；若 undetermined 超过 internal_confirmed 的 20%，也停下报告。
+- 同时报告：r5 范围的语句级 CALL_SITE 边数（按 kind）、相对 EP0 的新增边、与 HCG 完全对不上的 CALL_SITE（存在 resolve_call 边但 HCG 没有 f → g 的 internal_call）数量与样例。
+
+## 4. 测试 scripts/edge_sem/tests/test_call_resolve.py
+fixtures：同合约内部调用；继承来的函数；库调用（SafeMath.sub(a, b) 与 using SafeMath for uint 的 a.sub(b)）；参数个数不同的两个同名函数（各调用一次）；参数个数相同的重载（overload_unresolved）；msg.sender.transfer(x)、owner.send(v) 与同合约内同名 transfer 函数并存（address_builtin，不得连到同名函数）；ERC20Interface(token).transfer(a, b)（cast_member）；token.transfer(a, b)，token 为合约类型状态变量（external_member）；this.f()；new C()；修饰器体内调用内部函数；super.f()；require、keccak256、emit 事件。另加一个改名用例：把全部非保留标识符改名后，每个调用的 status/kind 不变、target 映射到改名后的同一声明。
+
+## 验收
+测试通过；RECON.md 第 10 节给出参照集分类、覆盖率与门槛结论；三套回归测试通过；未修改冻结文件。
+```
+
 ### 4.3 EP1：关系注册与 materialize（E0）
 
 ```text
@@ -401,7 +444,7 @@ build_task(task_id, out_dir) -> manifest
 - 输入：node_sem.facts_io.load_context(task_id) 的 F3 图、源码与证据。只读。
 - 对每个 source_file：用 node_sem.facts_ast.AstSemantics 与 ProjectionView/Projector 建立 “AST 节点身份 → 图节点” 映射（与 facts.py 相同的方法，可调用其内部函数；需要改行为就复制并写明来源 SHA）。
 - MOD_APPLY：对每个 function_definition/constructor_definition 节点，取函数头的 modifier_invocation，按 GuardAnalyzer._modifiers 的解析规则（含继承、参数绑定检查）找到唯一的 modifier_definition，映射到图节点后建边。解析失败的按原因计数（unresolved / not_unique / not_in_graph）。
-- CALL_SITE：对每个语句节点，枚举其 AST 子树中的 call_expression，用 AstSemantics 的调用解析找到唯一的同文件 function/modifier/constructor 定义；外部合约调用、低级调用（external.kinds 非空的成员调用）、库与接口调用、事件 emit 不建边，分类计数。同一语句到同一定义只建一条边。
+- CALL_SITE：对每个语句节点（包括修饰器体内的语句），枚举其 AST 子树中的 call_expression，调用 EP0c 的 scripts/edge_sem/call_resolve.py::resolve_call 得到唯一的同文件定义（含库函数与按实参个数消歧的重载）；不建边的类别按 resolve_call 的 status 分类计数。同一语句到同一定义只建一条边；边记录保留 resolve_call 的 kind（internal、inherited、library、overload_arity）。
 - 输出：out_dir/f4_edges.jsonl，每行 {"relation", "src", "dst", "rule", "src_anchor": [start_byte, end_byte, type], "dst_anchor": [...], "file"}；out_dir/f4_audit.json（各类计数）；out_dir/manifest.json（输入 SHA、实现文件 SHA、行数、jsonl 的 SHA）。不写新的 gpickle；模型侧按 jsonl 在内存副本上加边。
 - add_edges(nx_graph_copy, edges) -> nx_graph_copy：只在深拷贝上加边，edge_type 为关系名；加边前后原图指纹不变。
 
@@ -410,6 +453,7 @@ fixtures（tests/fixtures/*.sol，自写小合约）：
 - 带两个修饰器的函数（其中一个继承自父合约）→ 两条 MOD_APPLY；修饰器名拼写不存在 → 计入 unresolved，不建边。
 - 语句 `x = helper(a);` 调用同文件 helper → 一条 CALL_SITE 到 helper 定义；`token.transfer(a, b)` 与 `msg.sender.call.value(v)("")` → 不建边，分别计入 external 与 low_level。
 - 同一语句两次调用同一函数 → 一条边。
+- r5：`a.sub(b)`（using SafeMath for uint）→ 一条 CALL_SITE 到 SafeMath.sub，kind = library；`msg.sender.transfer(x)` 与同合约内的 `transfer(address,uint)` 并存时不建边；参数个数不同的两个同名函数各被调用一次 → 各连到对应定义（kind = overload_arity）。
 - 真实文件：reentrancy 数据中的 reentrancy_bonus、access_control 中的 rubixi 与 unprotected0（按 source_file 名在 F3 中查找；找不到就报告），人工核对后把期望边写成测试。
 
 ## 验收
@@ -445,11 +489,11 @@ fixtures：
 ### 4.6 EP4：E2 边属性
 
 ```text
-# EP4：边属性（uint8[73]）与端点检验
+# EP4：边属性（uint8[74]）与端点检验
 
 ## 1. scripts/edge_sem/attrs.py
-- EDGE_FEATURE_NAMES（长度 73，顺序与 PROMPTS.md 3.3 表完全一致）；CORE_CANDIDATES（0–14、16–54 与 68–72；第 15 位停用，r4）；CONTEXT（55–67）；GROUPS（名称 → 索引列表）；ONE_HOT_GROUPS（var_kind、value_shape、def_kind、write_access、write_op 为单热：适用时恰好一个 1，不适用时全 0）。
-- compute_attributes(context, f3_graph, f4_edges, facts) -> {edge_key: uint8[73]}
+- EDGE_FEATURE_NAMES（长度 74，顺序与 PROMPTS.md 3.3 表完全一致）；CORE_CANDIDATES（0–14、16–54、68–72 与 73；第 15 位停用，r4）；CONTEXT（55–67）；GROUPS（名称 → 索引列表）；ONE_HOT_GROUPS（var_kind、value_shape、def_kind、write_access、write_op 为单热：适用时恰好一个 1，不适用时全 0）。
+- compute_attributes(context, f3_graph, f4_edges, facts) -> {edge_key: uint8[74]}
   - edge_key = f"{source_file}::{src}->{dst}::{edge_type}::{k}"，k 为同一对节点同一类型的多重边序号（按 nx 的 key 排序编号）。
   - facts 来自 node_sem.facts.extract(task_id)（原名视图）；守卫字段来自 EP3 的边记录。
   - 支配、后支配、可达性用 EP0 选定的语义 CFG，按函数缓存。
@@ -469,6 +513,7 @@ fixtures：
   * (bool ok, ) = a.call(d); 后续无条件使用：指向调用的边 call_return_checked=0；if (!a.send(x)) revert(); → 1。
   * require(msg.sender == owner) 的 GUARDS 边：guard_kind=require，guard_operands 含 caller_identity。
   * CALL_SITE 到写状态的 helper：call_callee_writes_state=1。
+  * CALL_SITE 到库函数：call_to_library=1；到同合约函数：0。
 - 未知值：构造 dfg.status=unknown 的语句，相关位为 0 且 unk_dfg=1；guard_status=unknown 的语句作为目标时 unk_guard=1。
 - 端点检验：构造一个位只依赖目标节点的小图，判定为端点；一个位随边变化的小图，判定为非端点；一个几乎处处为 0、只在少数边上为 1 且随边变化的稀疏位，判定为非端点（r3 回归测试）；合格节点不足 30 时判定为未判定。
 - 名字无关性（快速版，正式闸门在 EP5）：把 fixture 中所有非保留标识符改名后重算，向量逐位相同。
