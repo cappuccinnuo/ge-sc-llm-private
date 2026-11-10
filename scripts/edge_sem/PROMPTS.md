@@ -1,7 +1,13 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r5（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r6（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r6 相对 r5 的修改**（审查 EP0c 产出后；逐边按 (file, source_node, target_node, edge_key) 连接 ep0b_v1/calls_refined_* 与 ep0c_v1/calls_*.rough_comparison 复核）：
+1. EP0c 按 r5 门槛正确停止：覆盖 219/221、227/229 通过，但 undetermined 54/221（24.4%）、53/229（23.1%）超过 20%。
+2. 未确定的主因是复合 callee：冻结语法把 `!isInvestExpired(user)`、`x >= y + findOnePercent(y)` 这类调用解析为 call_expression(function = unary/binary_expression, …)，冻结 `resolve_callable` 因此返回 None（重入 38 条、访问控制 39 条）。冻结的事实管线本身就用 `AstSemantics._postfix` 取这类调用的真实被调者（`facts_ast.py` 第 281 行 `_call`），所以 EdgeSem 用同一个 `_postfix` 结果去解析目标，与冻结语义一致，不是新的猜测。改动见 EP0d。
+3. 更正 r5 头部的粗分类：r5 把 EP0b 标为 conversion_new_or_wrapper 的边算作“对外部合约的类型转换或 new 调用”（33/34），实际上其中 38/39 条是上述复合 callee 的内部调用，2 条已确认为内部调用，真正确认的外部转换/new 只有 6/6。按严格分类，作者 HCG 中不是内部调用的 internal_call 为 76 + 99 + 6 = 181（重入）与 76 + 219 + 6 = 301（访问控制）；其中 no_expression 只是找不到表达式，不等于已证明错误。“HCG 按函数名连边”的结论仍成立（地址内置 transfer/send 被连到同名函数 99/219 条），但 r5 的 208/329 是我的分类错误，以本条为准。
+4. 门槛不变（覆盖 ≥ 80%，undetermined ≤ 20%），EP0d 在新批次重算。
 
 **r5 相对 r4 的修改**（审查 EP0b 产出后；数字来自 ep0b_v1/calls_refined_*.json 的逐边复核）：
 1. CALL_SITE 门槛的参照集无效。EP0b 按预登记门槛正确停止（覆盖 45.88% / 38.25%）。逐边检查未覆盖的 internal_call 后发现，作者 HCG 的 internal_call 是按函数名连边的：重入节点任务 464 条中至少 208 条不是内部调用——76 条在调用方函数里找不到任何对应调用表达式，99 条是地址内置的 `msg.sender.transfer(x)`/`x.send(v)` 被连到同名的 ERC20 `transfer` 函数，33 条是 `ERC20Interface(addr).transfer(...)`、`new T(...)` 等对外部合约的调用；访问控制节点任务 591 条中至少 329 条同理（76/219/34）。以这样的边为“应有的内部调用”计算召回，测的是与作者名字匹配错误的一致程度。门槛本身（80%）不变，参照集改为“经类型解析确认为内部调用的 internal_call 边”（EP0c）。这是在看到结果后改口径，理由与证据写入 RECON 第 10 节，不因此调整阈值。
@@ -37,7 +43,7 @@
 10. D1–D3 在 EP7 之前必须有用户确认记录；未确认不得开始训练。
 11. 措辞修正（recursive_method_call 一句）；u 按关系键各一行。
 
-使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP0c → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP0c → EP0d → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ---
 
@@ -390,6 +396,38 @@ fixtures：同合约内部调用；继承来的函数；库调用（SafeMath.sub
 测试通过；RECON.md 第 10 节给出参照集分类、覆盖率与门槛结论；三套回归测试通过；未修改冻结文件。
 ```
 
+### 4.2d EP0d：复合 callee 解析与门槛重算（r6 新增）
+
+```text
+# EP0d：复合 callee 的目标解析，重算 EP0c 门槛
+
+输出追加到 scripts/edge_sem/RECON.md 第 11 节与 scripts/edge_sem/artifacts/ep0d_v1/；EP0c 产物不改。不建图、不训练、不生成属性向量。
+
+## 1. 修改 scripts/edge_sem/call_resolve.py
+- 当 `resolve_callable(call_node)` 没有返回函数定义、且 callee（unwrap 后）是 unary_expression 或 binary_expression 时：令 pc = sem._postfix(callee)（冻结函数，事实管线 `_call` 用的就是它）。
+  - pc 是 identifier：按冻结 resolve_callable 第 192–196 行的同一规则解析（binding kind 为 function、作用域存在、members 中该名字唯一且与 binding 声明一致）；不唯一时进入已有的“参数个数消歧”分支（用 pc 的名字与 call_node 的实参个数）。
+  - pc 是 member_expression：按冻结第 197–203 行的同一规则解析（库声明的成员，或 `_using_callable(call_node, receiver, name)`）。
+  - 解析成功：status = resolved，kind 按现有规则（library / inherited / internal / overload_arity），reason 写 postfix_callee。
+  - 其他情况维持现有分类流程（address_builtin、external_member、cast_member、new_contract、super、unknown 等），它们本来就用 _postfix 结果分类。
+- 复制的规则写成本地函数 `_resolve_callee(sem, call_node, callee)`，文件头写明来源 `scripts/node_sem/facts_ast.py` 第 189–205 行与该文件 SHA256；`resolve_callable` 本身不改、不 monkeypatch。并加一个等价测试：callee 是裸 identifier 或 member_expression 时，`_resolve_callee(sem, call, unwrap(callee))` 与 `sem.resolve_callable(call)` 在 EP0c 全部调用上结果完全相同。
+
+## 2. 测试（追加到 tests/test_call_resolve.py；删除或改写 test_composite_callee_remains_unknown_without_binding_adapter）
+- `require(!isOwner(msg.sender));`、`if (!_check(a)) revert();` → internal，目标为对应定义。
+- `x >= y + findOnePercent(y)` → findOnePercent 的定义。
+- `-negate(a)`（若语法允许）与 `!SafeMath.lt(a, b)` 风格的库调用 → library。
+- `!msg.sender.send(v)` → 仍为 address_builtin，不连同名函数。
+- 两个参数个数不同的同名函数，以 `!f(a)` 与 `!f(a, b)` 调用 → 各自的定义（overload_arity）。
+- 改名用例覆盖复合 callee：改名后 status/kind 不变，目标对应同一声明。
+
+## 3. 重算（与 EP0c 相同的输入、口径与门槛）
+- 重新跑 EP0c 第 2、3 节的参照集分类与覆盖（脚本可复用 recon/ep0c_*.py，输出到 ep0d_v1），报告与 EP0c 的逐边差异：哪些边从 undetermined 变为 internal_confirmed / rebinding / not_internal，以及原因。
+- 门槛（未改）：r5 范围对 internal_confirmed 的覆盖 ≥ 80%；undetermined / internal_confirmed ≤ 20%。两项都通过才进入 EP1，否则停下报告。
+- 同时报告语句级 CALL_SITE 候选数（按 kind）及相对 EP0c 的新增。
+
+## 验收
+测试通过；RECON.md 第 11 节给出差异与门槛结论；三套回归测试通过；未修改冻结文件。
+```
+
 ### 4.3 EP1：关系注册与 materialize（E0）
 
 ```text
@@ -444,7 +482,7 @@ build_task(task_id, out_dir) -> manifest
 - 输入：node_sem.facts_io.load_context(task_id) 的 F3 图、源码与证据。只读。
 - 对每个 source_file：用 node_sem.facts_ast.AstSemantics 与 ProjectionView/Projector 建立 “AST 节点身份 → 图节点” 映射（与 facts.py 相同的方法，可调用其内部函数；需要改行为就复制并写明来源 SHA）。
 - MOD_APPLY：对每个 function_definition/constructor_definition 节点，取函数头的 modifier_invocation，按 GuardAnalyzer._modifiers 的解析规则（含继承、参数绑定检查）找到唯一的 modifier_definition，映射到图节点后建边。解析失败的按原因计数（unresolved / not_unique / not_in_graph）。
-- CALL_SITE：对每个语句节点（包括修饰器体内的语句），枚举其 AST 子树中的 call_expression，调用 EP0c 的 scripts/edge_sem/call_resolve.py::resolve_call 得到唯一的同文件定义（含库函数与按实参个数消歧的重载）；不建边的类别按 resolve_call 的 status 分类计数。同一语句到同一定义只建一条边；边记录保留 resolve_call 的 kind（internal、inherited、library、overload_arity）。
+- CALL_SITE：对每个语句节点（包括修饰器体内的语句），枚举其 AST 子树中的 call_expression，调用 EP0c/EP0d 的 scripts/edge_sem/call_resolve.py::resolve_call 得到唯一的同文件定义（含库函数、按实参个数消歧的重载与复合 callee）；不建边的类别按 resolve_call 的 status 分类计数。同一语句到同一定义只建一条边；边记录保留 resolve_call 的 kind（internal、inherited、library、overload_arity）。
 - 输出：out_dir/f4_edges.jsonl，每行 {"relation", "src", "dst", "rule", "src_anchor": [start_byte, end_byte, type], "dst_anchor": [...], "file"}；out_dir/f4_audit.json（各类计数）；out_dir/manifest.json（输入 SHA、实现文件 SHA、行数、jsonl 的 SHA）。不写新的 gpickle；模型侧按 jsonl 在内存副本上加边。
 - add_edges(nx_graph_copy, edges) -> nx_graph_copy：只在深拷贝上加边，edge_type 为关系名；加边前后原图指纹不变。
 
