@@ -1,0 +1,185 @@
+"""Bounded same-file CALL_SITE resolution (EP0c/EP0d, EdgeSem plan r6).
+
+Frozen dependencies, imported without modification:
+scripts/node_sem/facts_ast.py SHA256:
+644ca31a1dd890f67ac850e28fa68b9ae6b585cb0be019a6611aba154fc1d5a5
+AstSemantics.resolve_callable, root_binding, resolve_identifier, members,
+scope, arguments, builtin_call and _postfix. Declaration identity, not a
+vulnerability/name pattern, determines targets. Unresolved cases have no target.
+Library means a same-file library definition, not an assertion about EVM opcodes.
+_resolve_callee copies facts_ast.py::AstSemantics.resolve_callable lines 189-205
+(SHA256 above), accepting an explicit callee instead of extracting it from call.
+Only unary/binary callees use the frozen _postfix before this local binding step.
+The original NodeSem method and its bytecode are never modified.
+"""
+from scripts.node_sem.facts_ast import FUNCTIONS, key, unwrap
+
+FROZEN_AST_SHA256 = "644ca31a1dd890f67ac850e28fa68b9ae6b585cb0be019a6611aba154fc1d5a5"
+BUILTINS = frozenset(("require", "assert", "revert", "selfdestruct", "suicide",
+    "keccak256", "sha3", "sha256", "ripemd160", "ecrecover", "addmod", "mulmod",
+    "blockhash", "gasleft"))
+ADDRESS_METHODS = frozenset(("transfer", "send", "call", "delegatecall", "staticcall"))
+EVENT_STRUCT = frozenset(("event_definition", "event_declaration", "struct_declaration",
+                         "enum_declaration", "error_declaration"))
+
+
+def result(status, kind=None, target=None, reason=""):
+    return dict(status=status, kind=kind, target=target, reason=reason)
+
+
+def _unshadowed(sem, node, name):
+    return (node is not None and node.type == "identifier" and sem.text(node) == name
+            and sem.resolve_identifier(node)["kind"] == "unknown"
+            and not sem.members(node).get(name)
+            and not sem.has_import
+            and sem.scope(node) is not None)
+
+
+def _address_receiver(sem, receiver):
+    receiver = unwrap(receiver)
+    if receiver is None:
+        return False
+    if receiver.type == "identifier":
+        binding = sem.root_binding(receiver)
+        return (binding["declaration"] is not None
+                and " ".join(binding["type_name"].split()) in ("address", "address payable"))
+    if receiver.type == "member_expression":
+        obj = unwrap(receiver.child_by_field_name("object"))
+        prop = sem.text(receiver.child_by_field_name("property"))
+        return ((_unshadowed(sem, obj, "msg") and prop == "sender")
+                or (_unshadowed(sem, obj, "tx") and prop == "origin"))
+    if receiver.type == "payable_conversion_expression":
+        return True
+    if receiver.type in ("call_expression", "type_cast_expression"):
+        callee = unwrap(receiver.child_by_field_name("function"))
+        if callee is None:
+            callee = receiver.child_by_field_name("type")
+        if callee is None and receiver.type == "type_cast_expression":
+            callee = next((n for n in receiver.named_children if n.type == "primitive_type"), None)
+        if callee is not None and sem.text(callee) in ("address", "payable"):
+            # Primitive type tokens cannot bind a user declaration; identifiers
+            # require the usual shadow/import checks.
+            return callee.type != "identifier" or _unshadowed(sem, callee, sem.text(callee))
+    return False
+
+
+def _contract_receiver(sem, receiver):
+    receiver = unwrap(receiver)
+    if receiver is None:
+        return False
+    if _unshadowed(sem, receiver, "this"):
+        return True
+    # root_binding alone would confuse struct.member with the root's type.
+    # Complex receivers stay unknown unless the cast rule below applies.
+    if receiver.type != "identifier":
+        return False
+    binding = sem.root_binding(receiver)
+    if binding["declaration"] is None:
+        return False
+    types = [c for c in sem.contracts
+             if c.type in ("contract_declaration", "interface_declaration")
+             and sem.text(c.child_by_field_name("name")) == binding["type_name"].strip()]
+    return len(types) == 1
+
+
+def _resolve_callee(sem, call_node, callee):
+    """Frozen resolve_callable binding rules with an explicit callee argument."""
+    if callee is None:
+        return None
+    if callee.type == "identifier":
+        binding = sem.resolve_identifier(callee)
+        if binding["kind"] != "function" or sem.scope(call_node) is None:
+            return None
+        rows = sem.members(call_node).get(sem.text(callee), [])
+        if len(rows) != 1 or key(rows[0]) != key(binding["declaration"]):
+            return None
+    elif callee.type == "member_expression":
+        receiver = unwrap(callee.child_by_field_name("object"))
+        name = sem.text(callee.child_by_field_name("property"))
+        library = sem.resolve_identifier(receiver).get("declaration")
+        if library is None or library.type != "library_declaration":
+            return sem._using_callable(call_node, receiver, name)
+        rows = [x for x in library.child_by_field_name("body").named_children
+                if sem.text(x.child_by_field_name("name")) == name]
+    else:
+        return None
+    return rows[0] if len(rows) == 1 and rows[0].type == "function_definition" else None
+
+
+def _resolved(sem, call_node, target, reason):
+    contract = sem.contract(target)
+    if contract is not None and contract.type == "library_declaration":
+        kind = "library"
+    elif key(contract) != key(sem.contract(call_node)):
+        kind = "inherited"
+    else:
+        kind = "internal"
+    return result("resolved", kind, target, reason)
+
+
+def resolve_call(sem, call_node):
+    """Return status/kind/target plus a diagnostic reason; never mutate a graph.
+
+    Resolved statuses have an AST definition target. Arity resolution deliberately
+    does not compare argument types or guess overload/override dispatch.
+    """
+    if call_node is not None and call_node.type == "emit_statement":
+        return result("event_or_struct", reason="explicit_emit_statement")
+    if call_node is None or call_node.type != "call_expression":
+        return result("unknown", reason="not_call_expression")
+    target = sem.resolve_callable(call_node)
+    if target is not None and target.type in FUNCTIONS:
+        return _resolved(sem, call_node, target, "frozen_unique_declaration")
+
+    callee = unwrap(call_node.child_by_field_name("function"))
+    if callee is None:
+        return result("unknown", reason="missing_callee")
+    if sem.builtin_call(call_node, BUILTINS):
+        return result("builtin", reason="unshadowed_builtin")
+    # EP0d: preserve the original AST and resolve only the suffix already
+    # selected by the frozen fact pipeline. Non-composite callees are unchanged.
+    diagnostic_callee = sem._postfix(callee)
+    postfix = callee.type in ("unary_expression", "binary_expression")
+    if postfix:
+        target = _resolve_callee(sem, call_node, diagnostic_callee)
+        if target is not None:
+            return _resolved(sem, call_node, target, "postfix_callee")
+        callee = diagnostic_callee
+    if callee is not None and callee.type == "identifier":
+        binding = sem.resolve_identifier(callee)
+        members = sem.members(call_node).get(sem.text(callee), [])
+        functions = [n for n in members if n.type == "function_definition"]
+        if (sem.scope(call_node) is not None and len(functions) > 1
+                and len(functions) == len(members) and binding["kind"] == "unknown"):
+            count = len(sem.arguments(call_node))
+            matches = [fn for fn in functions
+                       if len([p for p in fn.named_children if p.type == "parameter"]) == count]
+            if len(matches) == 1:
+                return result("resolved", "overload_arity", matches[0],
+                              "postfix_callee" if postfix else "unique_parameter_count")
+            return result("overload_unresolved", reason="parameter_count_not_unique")
+        if members and all(n.type in EVENT_STRUCT for n in members):
+            return result("event_or_struct", reason="declared_non_function")
+        return result("unknown", reason="unbound_or_unsupported_identifier")
+
+    if diagnostic_callee is not None and diagnostic_callee.type == "new_expression":
+        return result("new_contract", reason="new_expression")
+    if diagnostic_callee is not None and diagnostic_callee.type == "member_expression":
+        receiver = unwrap(diagnostic_callee.child_by_field_name("object"))
+        method = sem.text(diagnostic_callee.child_by_field_name("property"))
+        if _unshadowed(sem, receiver, "super"):
+            return result("super", reason="super_dispatch_not_implemented")
+        if method in ADDRESS_METHODS and _address_receiver(sem, receiver):
+            return result("address_builtin", reason="confirmed_address_receiver")
+        if receiver is not None and receiver.type in ("call_expression", "type_cast_expression"):
+            cast = unwrap(receiver.child_by_field_name("function"))
+            if cast is None:
+                cast = receiver.child_by_field_name("type")
+            declaration = sem.resolve_identifier(cast).get("declaration")
+            if declaration is not None and declaration.type in (
+                    "contract_declaration", "interface_declaration"):
+                return result("cast_member", reason="confirmed_same_file_contract_cast")
+        if _contract_receiver(sem, receiver):
+            return result("external_member", reason="confirmed_contract_receiver")
+        return result("unknown", reason="receiver_or_member_not_confirmed")
+    return result("unknown", reason="unsupported_callee_shape")

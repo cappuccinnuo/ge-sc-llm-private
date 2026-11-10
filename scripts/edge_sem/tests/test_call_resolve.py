@@ -120,10 +120,12 @@ def test_rename_preserves_targets_and_kinds():
         else:
             assert s["target"] is None
 
-def test_composite_callee_remains_unknown_without_binding_adapter():
+def test_composite_callee_resolves_with_frozen_postfix_binding():
     sem = semantics("contract C {function ready() internal returns(bool){return true;} "
         "function f() public {if(!ready()){return;}}}")
-    assert resolve(sem, "!ready()")["status"] == "unknown"
+    row = resolve(sem, "!ready()")
+    assert (row["status"], row["kind"], row["reason"]) == ("resolved", "internal", "postfix_callee")
+    assert sem.text(row["target"].child_by_field_name("name")) == "ready"
 
 
 def test_calls_inside_emit_arguments_are_still_internal_calls():
@@ -157,3 +159,120 @@ def test_reference_classes_preserve_unknowns_and_exact_target_identity():
     assert classify_reference(a,[candidate("super")])[0] == "undetermined"
     assert classify_reference(a,[])[0] == "no_expression"
     assert classify_reference(a,[],False)[0] == "undetermined"
+
+@pytest.mark.parametrize("expr,target_name", [
+    ("!isOwner(msg.sender)", "isOwner"),
+    ("!_check(a)", "_check"),
+    ("x >= y + findOnePercent(y)", "findOnePercent"),
+])
+def test_postfix_internal_targets(expr,target_name):
+    sem = semantics("contract C {function isOwner(address a) internal returns(bool){return true;} "
+        "function _check(uint a) internal returns(bool){return true;} "
+        "function findOnePercent(uint a) internal returns(uint){return a;} "
+        "function f(uint a,uint x,uint y) public {require(!isOwner(msg.sender));"
+        "if (!_check(a)) revert(); bool ok = x >= y + findOnePercent(y);}}")
+    row = resolve(sem,expr)
+    assert (row["status"],row["kind"],row["reason"]) == ("resolved","internal","postfix_callee")
+    assert sem.text(row["target"].child_by_field_name("name")) == target_name
+
+
+@pytest.mark.parametrize("expr", ["!SafeMath.lt(a,b)", "-a.negate()"])
+def test_postfix_direct_and_extension_library(expr):
+    sem = semantics("library SafeMath {function lt(int a,int b) internal returns(bool){return a<b;} "
+        "function negate(int a) internal returns(int){return -a;}} "
+        "contract C {using SafeMath for int; function f(int a,int b) public {"+expr+";}}")
+    row = resolve(sem,expr)
+    assert (row["status"],row["kind"],row["reason"]) == ("resolved","library","postfix_callee")
+
+
+def test_negative_bare_call_in_library():
+    sem = semantics("library L {function negate(int a) internal returns(int){return -a;} "
+        "function f(int a) internal returns(int){return -negate(a);}}")
+    assert resolve(sem,"-negate(a)")["kind"] == "library"
+
+
+def test_postfix_overload_arity_and_same_arity_remain_distinct():
+    sem = semantics("contract C {function f(uint a) internal returns(bool){return true;} "
+        "function f(uint a,uint b) internal returns(bool){return true;} "
+        "function run(uint a,uint b) public {!f(a);!f(a,b);}}")
+    a,b = resolve(sem,"!f(a)"),resolve(sem,"!f(a,b)")
+    assert a["kind"] == b["kind"] == "overload_arity"
+    assert a["reason"] == b["reason"] == "postfix_callee"
+    assert key(a["target"]) != key(b["target"])
+    sem = semantics("contract C {function f(uint a) internal returns(bool){return true;} "
+        "function f(address a) internal returns(bool){return true;} "
+        "function run(uint a) public {!f(a);}}")
+    row = resolve(sem,"!f(a)")
+    assert row["status"] == "overload_unresolved" and row["target"] is None
+
+
+@pytest.mark.parametrize("expr,status",[
+    ("!msg.sender.send(v)","address_builtin"),
+    ("!token.check(v)","external_member"),
+    ("!super.check(v)","super"),
+])
+def test_postfix_does_not_resolve_external_or_super(expr,status):
+    sem = semantics("contract B {function check(uint x) internal returns(bool){return true;}} "
+        "interface Token {function check(uint x) external returns(bool);} "
+        "contract C is B {Token token; function send(uint v) internal returns(bool){return true;} "
+        "function f(uint v) public {"+expr+";}}")
+    row = resolve(sem,expr)
+    assert row["status"] == status and row["target"] is None
+
+
+def test_postfix_preserves_inherited_target():
+    sem = semantics("contract B {function check(uint a) internal returns(bool){return true;}} "
+        "contract C is B {function f(uint a) public {!check(a);}}")
+    assert resolve(sem,"!check(a)")["kind"] == "inherited"
+
+
+def test_postfix_rename_preserves_binding_identity():
+    source = ("library L {function less(uint x,uint y) internal returns(bool){return x<y;}} "
+        "contract B {function allowed(uint x) internal returns(bool){return true;}} "
+        "contract C is B {using L for uint; address payable receiver; "
+        "function f(uint x) internal returns(bool){return true;} "
+        "function f(uint x,uint y) internal returns(bool){return true;} "
+        "function run(uint a,uint b) public {!allowed(a);!f(a);!f(a,b);!L.less(a,b);!a.less(b);!receiver.send(a);}}")
+    first=semantics(source)
+    reserved={"msg","tx","block","this","super","send"}
+    names=sorted({first.text(n) for n in first.nodes if n.type=="identifier"}-reserved)
+    replacements={name:"renamed_"+str(i) for i,name in enumerate(names)}
+    raw=first.view.raw
+    spans={(n.start_byte,n.end_byte,replacements[first.text(n)].encode())
+           for n in first.nodes if not n.named_children and first.text(n) in replacements}
+    for start,end,value in sorted(spans,reverse=True):
+        raw=raw[:start]+value+raw[end:]
+    second=AstSemantics(ProjectionView(raw.decode(),"renamed.sol"))
+    a=[n for n in first.nodes if n.type=="call_expression"]
+    b=[n for n in second.nodes if n.type=="call_expression"]
+    assert len(a)==len(b)==6
+    for x,y in zip(a,b):
+        old,new=resolve_call(first,x),resolve_call(second,y)
+        assert (old["status"],old["kind"],old["reason"]) == (new["status"],new["kind"],new["reason"])
+        if old["target"] is not None:
+            assert first.functions.index(old["target"]) == second.functions.index(new["target"])
+        else:
+            assert new["target"] is None
+
+
+@pytest.mark.parametrize("task",["reentrancy_node","access_control_node"])
+def test_real_ep0c_calls_adapter_equivalence(task):
+    from scripts.edge_sem.recon.ep0d_equivalence import audit_task
+    rows=audit_task(task)
+    assert rows and sum(r["eligible"] for r in rows)>0
+    assert all(r["all_equal"] and r["prior_calls"]==r["eligible"]+r["ineligible"] for r in rows)
+
+
+def test_postfix_address_receiver_keeps_shadow_checks():
+    sem = semantics("contract C {struct Environment {address sender;} Environment msg; "
+        "function send(uint a) internal returns(bool){return true;} "
+        "function f(uint a) public {!msg.sender.send(a);}}")
+    row = resolve(sem,"!msg.sender.send(a)")
+    assert row["status"] == "unknown" and row["target"] is None
+
+
+def test_postfix_address_receiver_does_not_guess_unknown_type():
+    sem = semantics("contract C {function send(uint a) internal returns(bool){return true;} "
+        "function f(uint a,uint receiver) public {!receiver.send(a);}}")
+    row = resolve(sem,"!receiver.send(a)")
+    assert row["status"] == "unknown" and row["target"] is None

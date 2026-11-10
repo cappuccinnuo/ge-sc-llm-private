@@ -9904,3 +9904,75 @@ ep0c_run包装两次ep0c_calls --task <节点任务>、三套pytest -q -p no:cac
 CPU回归EdgeSem59、NodeSem1353、DFG v2 2653，共4065通过；新增25项解析/参照测试。独立验收从保存候选重新计数分类、分母、覆盖、增量与HCG缺失对；核对750份冻结源码、354项DFG计算引用、旧8H.load、历史输入/产物及文档原始字节前缀。所有中文文档UTF-8追加并按共享要求doc_check。没有正式模型失败重试；回归中的合成计算不计为新增实验。
 
 最终实验将在显存充足服务器上另建批次，本机RTX3050 4GiB只是当前开发限制，本轮没有部署或验收服务器。D1主视图、D2 P2和D3七类规则未被本次只读任务批准。完成EP0c交付后本地提交并停止，不自动push或开始EP1。
+
+
+## 102. 2026-11-10 EdgeSem EP0d复合callee解析与门槛通过（修改 AI：Codex）
+
+### 起点、授权与产物边界
+
+用户要求完成EP0d；先读取PROMPTS r6前言、§4.1共享上下文和§4.2d。当前edge-sem@099174edec6fea60751ce5844c519e6acddfd019，git pull --ff-only origin edge-sem沿用既有授权和Windows Git既有代理，返回Already up to date。没有自动切分支、reset、修改旧seal或覆盖旧实验。
+
+在scripts/edge_sem/artifacts/ep0d_v1排他创建产物，before.json记录原HEAD、PROMPTS、8H plan/seal、750份冻结源码、354项_code_refs、196份EP0/EP0b/EP0c旧产物、29份其他EdgeSem源码和四文档原SHA/字节数。call_resolve.py及test_call_resolve.py的EP0c版本另存baseline/*.py.txt。原图、标签、折、特征、初始化、checkpoint均保持；本轮不建图、不生成属性向量、不训练或使用GPU。
+
+### 实现细节与复制边界
+
+原AstSemantics.resolve_callable仍最先调用，已经成功的目标不经新路径。只有原绑定失败且unwrap后的callee类型为unary_expression或binary_expression，才由冻结_postfix取得callee后缀。新增EdgeSem本地_resolve_callee(sem,call_node,callee)，按冻结facts_ast.py第189–205行复制绑定规则，文件头明确来源SHA256 644ca31a1dd890f67ac850e28fa68b9ae6b585cb0be019a6611aba154fc1d5a5。
+
+identifier分支要求绑定kind=function、作用域存在、members中唯一且声明身份与binding完全相同；member分支只能是原同文件library成员或冻结_using_callable可唯一确认的目标。不新增类型推断或动态分派；裸标识符同名重载继续既有参数个数规则，唯一才绑定。成功reason固定postfix_callee，kind按原定义归属为internal/inherited/library或overload_arity。_resolved仅抽取原kind判定，旧成功行输出逐字段相等。
+
+无monkeypatch、冻结模块赋值或字节码重绑；无按漏洞类别或函数名字模式决定是否加边。声明名只用于原词法绑定，改名夹具核验结构身份不变。
+
+### 用户确认的方案调整与失败记录
+
+模板要求!msg.sender.send(v)保持address_builtin。首次39个开发测试中：1 failed、36 passed、2个真实语料测试未选。真实AST显示外层callee是member_expression，其object为unary_expression，取反挂在msg.sender上，所以仅外层callee适配无法覆盖此用例。
+
+按用户确认“同意增加受限接收者分类适配（推荐）”，只在_address_receiver中对一元/二元接收者使用冻结_postfix；后续精确address/address payable类型、作用域、导入/遮蔽检查保留。只返回分类布尔，不增加函数target，也不改变_contract_receiver。新增遮蔽msg和uint接收者反例，防止按send名字误连同名内部函数。
+
+批准记录为adjustment_approval.json（question_id call_7cab29425d0b48cfb024710290cfaba9）；首次失败execution/targeted_tests.*及development修复前源码保留，批准后targeted_tests_receiver为39 passed/2 deselected。正式真实输入中address_builtin/not_internal计数没有因该修正增加。验收脚本生成过程的写入前compile还拦截了一个多余括号，修正后才创建脚本/开始正式验收；没有因此重跑语料、训练或覆盖产物。
+
+### 真实语料等价与变化明细
+
+ep0d_equivalence逐文件读取同一contexts/file_views，验证原call_expression字节锚点集合等于EP0c。对全部原始identifier/member_expression callee调用比较冻结resolve_callable与本地_resolve_callee的完整AST声明身份（含双方None），重入3420/3420、访问控制3287/3287完全相同。原始调用总数3834/3342；其他形状414/55属于新增路径或不适用检查，未混入普通形状等价率。71/57为任务文件实例数，跨任务可能复用同一源码。
+
+逐调用差异：重入40个、访问控制35个unknown解析为resolved，reason均postfix_callee；旧已解析行逐字段不变。重入另1条modifier_reentrancy.sol表达式仅原因从unsupported_callee_shape细化为unbound_or_unsupported_identifier，仍unknown、无target，不当作恢复成功。
+
+逐HCG多重边以task/file/source SHA/source node/target node/key对齐，总数1055不变，旧候选表达式集合与目标端点不变。ep0c_comparison.json给出全部迁移与77条改变边的完整前后记录。重入38条、访问控制39条undetermined变internal_confirmed；变rebinding=0、变not_internal=0；其余类别全部不变。原调用表达式、作者图函数级平行边、去重语句候选分别计数，不能将40/35、38/39、38/33混成一个单位。
+
+### 门槛、候选增量及r5/r6来源
+
+原HCG internal_call重入464、访问控制591。重算类别：
+- 重入internal_confirmed259、not_internal105、rebinding8、undetermined16、no_expression76；
+- 访问控制internal_confirmed268、not_internal225、rebinding8、undetermined14、no_expression76。
+
+门槛继续使用覆盖至少80%、undetermined/internal_confirmed至多20%，没有调参：
+- 重入覆盖257/259=99.23%，未确定16/259=6.18%；
+- 访问控制覆盖266/268=99.25%，未确定14/268=5.22%；
+- 两任务均通过。原EP0分子178/197不变，在新增确认后的分母上为68.73%/73.51%；下降仅是参照集扩大，不是删除原边。
+
+r6已将r5的conversion_new_or_wrapper粗排除纠正：可确认外部组各6，而非33/34。当前对应三组仍为76+99+6=181、76+219+6=301。census的rough_expected/rough_delta刻意保留原r5粗数作历史对照，summary.coarse_count_provenance明确其来源；不覆盖EP0c或伪造r5未提供的逐边清单。no_expression不等于证实非内部。
+
+语句级候选360/354，较EP0c322/321增加38/33：
+- internal196/205（新增23/25）；
+- inherited7/6（新增0/0）；
+- library154/140（新增15/8）；
+- overload_arity各3（新增0/0）。
+两任务新增候选各涉及15个文件实例。原EP0的180/186对全部保留，累计增加180/168。原HCG无相应函数级internal_call的候选151/132，较EP0c增加13/7且均为库调用，不将“不对应”自动解释为旧图错误。
+
+剩余未确定HCG边：同参数个数重载12/12、super2/2、接收者/成员2/0。两任务各2条已绑定调用仍在emit参数，缺精确语句源端投影；来自buggy_43/44，未接到邻近节点。8/8条rebinding、76/76条无对应表达式继续保留，gap_review.json列完整清单。约99%是同一解析器定义的已确认集合内投影率，不能宣称独立语义召回、精度、全语言覆盖或漏洞检测提升。
+
+### 回归、只读核验、交付
+
+修改：scripts/edge_sem/call_resolve.py、tests/test_call_resolve.py。
+新增：recon/ep0d_common.py（不可变基线）、ep0d_run.py（排他执行收据）、ep0d_calls.py（同口径分类）、ep0d_equivalence.py（全量普通callee等价）、ep0d_report.py（逐边/逐调用差异）、ep0d_verify.py（独立重算与哈希验收）。
+
+实际执行使用mando、CUDA_VISIBLE_DEVICES为空、PYTHONDONTWRITEBYTECODE=1、OMP_NUM_THREADS=MKL_NUM_THREADS=2、原TREE_SITTER_LIB_DIR。ep0d_run记录python -B的完整命令、日志SHA、退出码及墙钟：
+- ep0d_calls --task reentrancy_node 与 access_control_node；
+- -m pytest -q -p no:cacheprovider scripts/edge_sem/tests：75 passed；
+- 同命令scripts/node_sem/tests：1353 passed；
+- 同命令scripts/DFG/dfg_v2/tests：2653 passed；
+- ep0d_report；doc_check --expect-cjk <四文档:追加前字节数>；ep0d_verify。
+合计4081项完整CPU回归通过，解析模块41项（含2个真实全量等价测试），比EP0c净增16项。pytest原有依赖弃用警告保留，不修改环境。
+
+验收从保存原始调用及端点身份重新计算分类/分母/覆盖/候选集和EP0c迁移，不用CSV行号推断。核对750冻结源码、354项计算引用、697份旧输入、196旧产物、29其他EdgeSem源码、原8H.load及四文档旧字节前缀；修改前2份源码快照核验原SHA。execution失败日志与成功收据均保留，输出排他创建。RECON追加§11，HANDOVER与PROGRESS只追加，中文通过UTF-8/CJK检查。
+
+EP0d交付后按共享上下文本地commit并停止，不自动push或EP1；准入门槛通过不等于本轮批准后续训练。D1/D2/D3等设计决定在后续阶段明确。最终实验会在显存充足服务器另建批次，RTX3050 4GiB只是本机开发限制，本轮未部署或验收服务器，不混用设备成绩。

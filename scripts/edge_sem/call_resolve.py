@@ -1,4 +1,4 @@
-"""Bounded same-file CALL_SITE resolution (EP0c / EdgeSem plan r5).
+"""Bounded same-file CALL_SITE resolution (EP0c/EP0d, EdgeSem plan r6).
 
 Frozen dependencies, imported without modification:
 scripts/node_sem/facts_ast.py SHA256:
@@ -7,6 +7,10 @@ AstSemantics.resolve_callable, root_binding, resolve_identifier, members,
 scope, arguments, builtin_call and _postfix. Declaration identity, not a
 vulnerability/name pattern, determines targets. Unresolved cases have no target.
 Library means a same-file library definition, not an assertion about EVM opcodes.
+_resolve_callee copies facts_ast.py::AstSemantics.resolve_callable lines 189-205
+(SHA256 above), accepting an explicit callee instead of extracting it from call.
+Only unary/binary callees use the frozen _postfix before this local binding step.
+The original NodeSem method and its bytecode are never modified.
 """
 from scripts.node_sem.facts_ast import FUNCTIONS, key, unwrap
 
@@ -33,6 +37,11 @@ def _unshadowed(sem, node, name):
 
 def _address_receiver(sem, receiver):
     receiver = unwrap(receiver)
+    # Approved EP0d correction: the frozen grammar can attach a prefix to
+    # msg.sender inside the receiver rather than to the whole callee. This
+    # affects only exclusion classification, never a function binding target.
+    if receiver is not None and receiver.type in ("unary_expression", "binary_expression"):
+        receiver = sem._postfix(receiver)
     if receiver is None:
         return False
     if receiver.type == "identifier":
@@ -78,6 +87,41 @@ def _contract_receiver(sem, receiver):
     return len(types) == 1
 
 
+def _resolve_callee(sem, call_node, callee):
+    """Frozen resolve_callable binding rules with an explicit callee argument."""
+    if callee is None:
+        return None
+    if callee.type == "identifier":
+        binding = sem.resolve_identifier(callee)
+        if binding["kind"] != "function" or sem.scope(call_node) is None:
+            return None
+        rows = sem.members(call_node).get(sem.text(callee), [])
+        if len(rows) != 1 or key(rows[0]) != key(binding["declaration"]):
+            return None
+    elif callee.type == "member_expression":
+        receiver = unwrap(callee.child_by_field_name("object"))
+        name = sem.text(callee.child_by_field_name("property"))
+        library = sem.resolve_identifier(receiver).get("declaration")
+        if library is None or library.type != "library_declaration":
+            return sem._using_callable(call_node, receiver, name)
+        rows = [x for x in library.child_by_field_name("body").named_children
+                if sem.text(x.child_by_field_name("name")) == name]
+    else:
+        return None
+    return rows[0] if len(rows) == 1 and rows[0].type == "function_definition" else None
+
+
+def _resolved(sem, call_node, target, reason):
+    contract = sem.contract(target)
+    if contract is not None and contract.type == "library_declaration":
+        kind = "library"
+    elif key(contract) != key(sem.contract(call_node)):
+        kind = "inherited"
+    else:
+        kind = "internal"
+    return result("resolved", kind, target, reason)
+
+
 def resolve_call(sem, call_node):
     """Return status/kind/target plus a diagnostic reason; never mutate a graph.
 
@@ -90,24 +134,23 @@ def resolve_call(sem, call_node):
         return result("unknown", reason="not_call_expression")
     target = sem.resolve_callable(call_node)
     if target is not None and target.type in FUNCTIONS:
-        contract = sem.contract(target)
-        if contract is not None and contract.type == "library_declaration":
-            kind = "library"
-        elif key(contract) != key(sem.contract(call_node)):
-            kind = "inherited"
-        else:
-            kind = "internal"
-        return result("resolved", kind, target, "frozen_unique_declaration")
+        return _resolved(sem, call_node, target, "frozen_unique_declaration")
 
     callee = unwrap(call_node.child_by_field_name("function"))
     if callee is None:
         return result("unknown", reason="missing_callee")
     if sem.builtin_call(call_node, BUILTINS):
         return result("builtin", reason="unshadowed_builtin")
-    # Frozen grammar can attach unary/binary prefixes to the callee. _postfix
-    # is used only for non-target classification, not expanded internal binding.
+    # EP0d: preserve the original AST and resolve only the suffix already
+    # selected by the frozen fact pipeline. Non-composite callees are unchanged.
     diagnostic_callee = sem._postfix(callee)
-    if callee.type == "identifier":
+    postfix = callee.type in ("unary_expression", "binary_expression")
+    if postfix:
+        target = _resolve_callee(sem, call_node, diagnostic_callee)
+        if target is not None:
+            return _resolved(sem, call_node, target, "postfix_callee")
+        callee = diagnostic_callee
+    if callee is not None and callee.type == "identifier":
         binding = sem.resolve_identifier(callee)
         members = sem.members(call_node).get(sem.text(callee), [])
         functions = [n for n in members if n.type == "function_definition"]
@@ -117,7 +160,8 @@ def resolve_call(sem, call_node):
             matches = [fn for fn in functions
                        if len([p for p in fn.named_children if p.type == "parameter"]) == count]
             if len(matches) == 1:
-                return result("resolved", "overload_arity", matches[0], "unique_parameter_count")
+                return result("resolved", "overload_arity", matches[0],
+                              "postfix_callee" if postfix else "unique_parameter_count")
             return result("overload_unresolved", reason="parameter_count_not_unique")
         if members and all(n.type in EVENT_STRUCT for n in members):
             return result("event_or_struct", reason="declared_non_function")

@@ -50,3 +50,23 @@ EP0b完成，CALL_SITE门槛未通过，停止后续落地并提交审查，不�
 定向首轮4失败/16通过，来源为新代码对address/payable/emit实际AST接口未适配及无效夹具；初版源码和失败记录保留，修正后20通过，再补5项边界。正式CPU回归：python -B -m pytest -q -p no:cacheprovider scripts/edge_sem/tests、scripts/node_sem/tests、scripts/DFG/dfg_v2/tests，59+1353+2653=4065通过。实际wrapper命令、耗时、SHA见execution；独立验收重算类别/覆盖/差集，并核对冻结代码、输入、旧产物、8H.load、_code_refs、文档前缀和UTF-8。
 
 限制：99%为resolver条件下的投影率，不能当独立语义召回；未改变r5阈值；未实现建议中的callee后缀绑定扩展或更改旧图。最终实验在显存充足服务器另建批次，本机4GiB只限制开发，本轮本地提交不自动push。
+
+
+## EP0d：复合callee解析与门槛重算（Codex，2026-11-10）
+
+依据PROMPTS r6 §4.1/4.2d，输入HEAD 099174ed；快进同步已为最新。修改call_resolve.py及test_call_resolve.py，新增recon/ep0d_common、ep0d_run、ep0d_calls、ep0d_equivalence、ep0d_report、ep0d_verify六个模块，独立写入artifacts/ep0d_v1；RECON追加§11，三份记录只追加。
+
+冻结resolve_callable失败且callee为一元/二元时，冻结_postfix选择后缀，EdgeSem本地复制原绑定规则；成功reason=postfix_callee。普通identifier/member在EP0c全部原调用中3420+3287=6707项目标完全等价；旧成功绑定和候选均保留。仍不猜super、同参数数目重载或未确认类型。
+
+与模板的唯一批准调整：!msg.sender.send(v)的取反实际在receiver，用户同意只对地址内置分类的receiver调用冻结_postfix，保留类型/遮蔽检查。首次1失败/36通过/2未选及修改前源码保留；批准后39通过/2未选，再完成全量回归。该修正没有增加真实语料的not_internal排除项。验收脚本写入前compile发现的括号错误已修复，未产生正式验收重试。
+
+重入/访问控制HCG原总数464/591不变；internal_confirmed=259/268，undetermined=16/14，其余not_internal105/225、rebinding8/8、no_expression76/76不变。新确认38/39条均从undetermined而来，无改为not_internal/rebinding。投影257/259=99.23%、266/268=99.25%，未知比例6.18%/5.22%，原80%/20%门槛通过。候选360/354，较EP0c增加38/33（internal23/25、library15/8）。r6纠正r5粗分类，181/301仍为可复核对照，208/329仅保留历史来源。
+
+实际命令使用mando python -B：
+- -m scripts.edge_sem.recon.ep0d_common
+- ep0d_run包装ep0d_calls --task reentrancy_node/access_control_node
+- -m pytest -q -p no:cacheprovider scripts/edge_sem/tests、scripts/node_sem/tests、scripts/DFG/dfg_v2/tests
+- ep0d_report、doc_check --expect-cjk <路径:原字节数>、ep0d_verify
+完整命令、环境、耗时、日志SHA见execution。正式三套CPU回归75+1353+2653=4081通过；冻结750源码、354计算引用、697输入、196旧产物、29其他EdgeSem源码及8H.load与原文档前缀纳入最终验收。
+
+本轮只交付解析和证据，约99%不是独立语义召回/精度。残留重载12/12、super2/2、接收者2/0及各2条emit投影缺口保留；不建图、不训练，停止供审查，不自动EP1/push。最终实验将在显存充足服务器另建批次，本机4GiB只限制开发。
