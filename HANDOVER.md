@@ -2811,3 +2811,16 @@ r4类型解析成功率89.57%–99.03%，未确认项保留unknown；真实shape
 三套 CPU 回归共 **4,121 passed**。详细结果与剩余 35 项原因见 `scripts/edge_sem/RECON.md` §12，证据见 `scripts/edge_sem/artifacts/ep0e_v1/`。本轮无训练、无生产图或属性向量，历史产物、输入与四份旧文档内容保持不变；按共享流程本地提交，本轮不推送。
 
 最终实验将使用显存充足的服务器；当前 RTX3050 4GiB 仅为本机开发限制。本轮产物仍在 WSL，不向 C 盘另存大文件。
+
+
+## 2026-11-10 EdgeSem EP1结构接入与等价闸门完成（修改 AI：Codex）
+
+依据 PROMPTS r8、起点 a71b2bc1，实现8剖面注册、typed显式REV_、语义参数复制与独立模型深校验。重入节点fold0/9关闭增强时，规范键、端点、全部参数和eval前向逐位复现原G3R；两任务G3R-T均完成CPU前后向且有限，未训练、optimizer step=0、未用GPU。
+
+重入typed关系220、参数5,176,676；访问控制234、参数5,291,588。三套回归149+1353+2653=4155通过。详见scripts/edge_sem/EP1_REPORT.md、artifacts/ep1_v1及PROGRESS中的完整低支持关系清单。首次新registry漏if_true/if_false的失败日志保留，修复仅增加control别名。
+
+旧DFG/NodeSem/作者代码、输入和历史产物不改；三文档只追加。8H N-anon-s仅作为本次等价验收的历史夹具，不决定后续主视图。dfg_profile=G3R记录锚来源，edge_profile记录实际结构；typed不绕过冻结checkpoint，正式绑定留EP7。
+
+EP0e 312/347的历史库召回门槛仍未通过；r8允许独立EP1，本轮没有实施或批准EP2的解析调整。属性/安慰剂模型仅注册且当前入口拒绝构造，cf_back仍禁用。按流程本地提交，停在EP1，不自动push或训练。
+
+最终实验将在显存充足服务器进行；RTX3050 4GiB仅为当前本机开发限制，本轮不部署服务器。产物保留WSL，不向C盘另写大型缓存。

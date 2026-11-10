@@ -1,0 +1,5742 @@
+{
+  "cf_back": false,
+  "ep2_r8_decisions_authorized": false,
+  "evidence_refs": [
+    {
+      "bytes": 48542,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep1_v1/probes/access_control_node_G3R-T_fold0.json",
+      "sha256": "4657426eff27222c911cd2595b2286ba084f54837bafe9b1ea47e964802efeaf"
+    },
+    {
+      "bytes": 44397,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep1_v1/probes/reentrancy_node_G3R-T_fold0.json",
+      "sha256": "3895211156e8a1f3b1f694aa91969e4c9cfbf327d97601638aa45c2f85290777"
+    },
+    {
+      "bytes": 2677,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep1_v1/probes/reentrancy_node_G3R_fold0.json",
+      "sha256": "bf35d7656980600c6bec128b6ca5789d571ce690f6665cb51c626a0e2c4381a5"
+    },
+    {
+      "bytes": 2679,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep1_v1/probes/reentrancy_node_G3R_fold9.json",
+      "sha256": "77f8685b9c6ed0b6c732146e4b8d6b61cc52d85ceca304e1e95a63888e638acb"
+    },
+    {
+      "bytes": 2827,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep1_v1/audit_plan.json",
+      "sha256": "ed0b64b15f33c106c2ea986e0b62212ecc2d5da219b038d55d5d079f0cd56356"
+    }
+  ],
+  "gate_pass": true,
+  "gpu_executed": false,
+  "graphs_written": 0,
+  "head": "a71b2bc16f1edd7c8f298209c8a2a9b0b862eab3",
+  "historical_ep0e": {
+    "candidates": 347,
+    "gate_pass": false,
+    "matched": 312,
+    "retained_as_measured": true
+  },
+  "limitations": [
+    "CPU structural acceptance only; no trained quality or GPU memory conclusion.",
+    "dfg_profile is G3R anchor lineage; typed models need local validation, checkpoint adapter awaits EP7.",
+    "Attribute/placebo models are registered but cannot be silently built as plain structural models.",
+    "The 8H-bound historical feature view is only a parity fixture, not a new primary-view decision.",
+    "Synthetic rename tests and parsing coverage remain separate from this direction/model gate."
+  ],
+  "optimizer_steps": 0,
+  "probes": [
+    {
+      "canonical_count": 234,
+      "config": {
+        "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+        "cycle_momentum": true,
+        "delta": 0.001,
+        "device": "cuda:0",
+        "div_factor": 25,
+        "dropout": 0.2,
+        "environment": {
+          "dgl": "0.6.1",
+          "networkx": "2.6.3",
+          "numpy": "1.21.6",
+          "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+          "sklearn": "1.0.2",
+          "torch": "1.8.1+cu111"
+        },
+        "feature": "inside_token",
+        "final_div_factor": 1,
+        "forward_scope": "full_fixed_task_graph",
+        "heads": 8,
+        "hidden_size": 128,
+        "initial_lr": 0.0002,
+        "layer_impl": "shared_projection",
+        "layers": 2,
+        "loss": "unweighted_cross_entropy",
+        "max_lr": 0.005,
+        "maximum_training_epochs": 50,
+        "metric_unit": "HCG node",
+        "mode": "full",
+        "optimizer": "Adam",
+        "partition_policy": "group_disjoint_nested_file_supervision",
+        "patience": 7,
+        "primary_checkpoint": "best",
+        "protocol": "dfg-v2-grouped-nested",
+        "protocol_version": "dfg-v2-grouped-nested-v1",
+        "schedule_epochs": 50,
+        "schema_policy": "registered_schema_allow_train_unseen",
+        "score_role": "outer_test",
+        "secondary_checkpoint": "last",
+        "seed": 1,
+        "selection": "strict minimum inner validation loss; post-update eval forward",
+        "selection_role": "inner_val",
+        "threads": 2,
+        "use_norm": true,
+        "weight_decay": 0.0
+      },
+      "construction_seconds": 8.446456702018622,
+      "copied_rows": [
+        234,
+        234
+      ],
+      "cuda_initialized": false,
+      "feature_view": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/access_control_node/anonymous_manifest.json",
+        "sha256": "a3b0fd9a0b605c74461a6d0761b457ac291da7591a315914a4f55ba2fae92f3f"
+      },
+      "fold": 0,
+      "forward_backward_finite": true,
+      "forward_backward_seconds": 2.4350043990125414,
+      "graph_unchanged": true,
+      "objective": "mean squared logits; structural probe, no labels or optimizer",
+      "optimizer_steps": 0,
+      "parameter_count": 5291588,
+      "profile": "G3R-T",
+      "relations": [
+        {
+          "canonical": [
+            "constructor_definition",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 44
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_recursive_method_call",
+            "contract_declaration"
+          ],
+          "edges": 73
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_if"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "expression_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "function_definition"
+          ],
+          "edges": 66
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "modifier_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 69
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "next_line",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 91
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 29
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "constructor_definition"
+          ],
+          "edges": 73
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "edges": 1820
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "modifier_definition"
+          ],
+          "edges": 61
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "expression_statement"
+          ],
+          "edges": 160
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "if"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "return"
+          ],
+          "edges": 53
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 134
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 59
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 22
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "if"
+          ],
+          "edges": 25
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 32
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "return"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "while"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_neg_next",
+            "for"
+          ],
+          "edges": 26
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_neg_next",
+            "while"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 12
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "return"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "expression_statement"
+          ],
+          "edges": 1882
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "function_definition"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "if"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "new_variable"
+          ],
+          "edges": 30
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "return"
+          ],
+          "edges": 12
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 197
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 22
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 22
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "constructor_definition"
+          ],
+          "edges": 44
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 197
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 37
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 2725
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 269
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 1882
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 718
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 33
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "constructor_definition"
+          ],
+          "edges": 69
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 59
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 12
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 1634
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 1561
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "modifier_definition"
+          ],
+          "edges": 57
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 112
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "for"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 131
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 765
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 160
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "continue_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 1634
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "for"
+          ],
+          "edges": 33
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "if"
+          ],
+          "edges": 44
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 68
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "return"
+          ],
+          "edges": 111
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "while"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 37
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 22
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 10
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 33
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "for",
+            "neg_next",
+            "end_loop"
+          ],
+          "edges": 26
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 2725
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 10
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 94
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 142
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "edges": 99
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "constructor_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "function_definition"
+          ],
+          "edges": 676
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "modifier_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 66
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_internal_call",
+            "constructor_definition"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_internal_call",
+            "function_definition"
+          ],
+          "edges": 548
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_internal_call",
+            "modifier_definition"
+          ],
+          "edges": 26
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 91
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 22
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "interface_declaration"
+          ],
+          "edges": 20
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "library_declaration"
+          ],
+          "edges": 27
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_recursive_method_call",
+            "contract_declaration"
+          ],
+          "edges": 1820
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_recursive_method_call",
+            "interface_declaration"
+          ],
+          "edges": 106
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_recursive_method_call",
+            "library_declaration"
+          ],
+          "edges": 122
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 676
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "edges": 548
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 1561
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "for"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "if"
+          ],
+          "edges": 49
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 96
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "return"
+          ],
+          "edges": 141
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "constructor_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 94
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 59
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 92
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 33
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 25
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 44
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 49
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "modifier_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 45
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "end_if"
+          ],
+          "edges": 134
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "expression_statement"
+          ],
+          "edges": 33
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "if"
+          ],
+          "edges": 33
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "return"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 131
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "if"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 15
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "return"
+          ],
+          "edges": 44
+        },
+        {
+          "canonical": [
+            "interface_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 20
+        },
+        {
+          "canonical": [
+            "interface_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "edges": 106
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 27
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "edges": 122
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "REV_recursive_method_call",
+            "contract_declaration"
+          ],
+          "edges": 61
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "edges": 26
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 57
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 269
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 59
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 62
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "edges": 95
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "expression_statement"
+          ],
+          "edges": 718
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "for"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "if"
+          ],
+          "edges": 92
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "new_variable"
+          ],
+          "edges": 111
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "return"
+          ],
+          "edges": 151
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "while"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 22
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 142
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 62
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 30
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 111
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_WRITES_STATE",
+            "expression_statement"
+          ],
+          "edges": 765
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 29
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 32
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 68
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 96
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 138
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "for"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 15
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 112
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "for"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "if"
+          ],
+          "edges": 45
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 138
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "return"
+          ],
+          "edges": 57
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "while"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 99
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 95
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 12
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 151
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 111
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 141
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 57
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 44
+        },
+        {
+          "canonical": [
+            "return",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 53
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "library_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "continue_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "neg_next",
+            "end_loop"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "while"
+          ],
+          "edges": 1
+        }
+      ],
+      "source_graph": {
+        "computation_fingerprint": "43136752ce1374ef4a5feda74fffcc8ef46f1567c4ebf4308dbb09a03bb4a6aa",
+        "edges": 16569,
+        "fingerprint": "4e45cef75550d9f449d10d7f411eb9c0395db53139c7bb4cebddebed54f6b8eb",
+        "nodes": 7892,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/access_control_node/F3/hcg.gpickle",
+        "sha256": "ed86b79ab971fdad32fabe249ddb0902591d07ba217b90c9ae3082b7f430028c"
+      },
+      "sparse_relations": [
+        {
+          "canonical": [
+            "constructor_definition",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_if"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "expression_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "modifier_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "next_line",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "if"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "return"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "while"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_neg_next",
+            "while"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 12
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "return"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "function_definition"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "if"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "return"
+          ],
+          "edges": 12
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 12
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "for"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "continue_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "while"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 10
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 10
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "constructor_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "modifier_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_internal_call",
+            "constructor_definition"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "for"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "constructor_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "modifier_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "return"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "if"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 15
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "for"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "while"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "for"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 15
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "for"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "while"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 12
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "library_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "continue_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "neg_next",
+            "end_loop"
+          ],
+          "edges": 9
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "while"
+          ],
+          "edges": 1
+        }
+      ],
+      "task_id": "access_control_node"
+    },
+    {
+      "canonical_count": 220,
+      "config": {
+        "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+        "cycle_momentum": true,
+        "delta": 0.001,
+        "device": "cuda:0",
+        "div_factor": 25,
+        "dropout": 0.2,
+        "environment": {
+          "dgl": "0.6.1",
+          "networkx": "2.6.3",
+          "numpy": "1.21.6",
+          "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+          "sklearn": "1.0.2",
+          "torch": "1.8.1+cu111"
+        },
+        "feature": "inside_token",
+        "final_div_factor": 1,
+        "forward_scope": "full_fixed_task_graph",
+        "heads": 8,
+        "hidden_size": 128,
+        "initial_lr": 0.0002,
+        "layer_impl": "shared_projection",
+        "layers": 2,
+        "loss": "unweighted_cross_entropy",
+        "max_lr": 0.005,
+        "maximum_training_epochs": 50,
+        "metric_unit": "HCG node",
+        "mode": "full",
+        "optimizer": "Adam",
+        "partition_policy": "group_disjoint_nested_file_supervision",
+        "patience": 7,
+        "primary_checkpoint": "best",
+        "protocol": "dfg-v2-grouped-nested",
+        "protocol_version": "dfg-v2-grouped-nested-v1",
+        "schedule_epochs": 50,
+        "schema_policy": "registered_schema_allow_train_unseen",
+        "score_role": "outer_test",
+        "secondary_checkpoint": "last",
+        "seed": 1,
+        "selection": "strict minimum inner validation loss; post-update eval forward",
+        "selection_role": "inner_val",
+        "threads": 2,
+        "use_norm": true,
+        "weight_decay": 0.0
+      },
+      "construction_seconds": 20.178422289987793,
+      "copied_rows": [
+        220,
+        220
+      ],
+      "cuda_initialized": false,
+      "feature_view": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/reentrancy_node/anonymous_manifest.json",
+        "sha256": "d94044c90d8aa86f7a79dbab062470120fc19faf63d471cb57984430cf2d46a1"
+      },
+      "fold": 0,
+      "forward_backward_finite": true,
+      "forward_backward_seconds": 5.171547606005333,
+      "graph_unchanged": true,
+      "objective": "mean squared logits; structural probe, no labels or optimizer",
+      "optimizer_steps": 0,
+      "parameter_count": 5176676,
+      "profile": "G3R-T",
+      "relations": [
+        {
+          "canonical": [
+            "constructor_definition",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 47
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_recursive_method_call",
+            "contract_declaration"
+          ],
+          "edges": 67
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_if"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "expression_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "function_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "new_variable"
+          ],
+          "edges": 60
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 63
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "next_line",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 5
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 24
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 113
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 24
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "constructor_definition"
+          ],
+          "edges": 67
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "edges": 1889
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "recursive_method_call",
+            "modifier_definition"
+          ],
+          "edges": 55
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "expression_statement"
+          ],
+          "edges": 332
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "return"
+          ],
+          "edges": 42
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 978
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "contract_declaration"
+          ],
+          "edges": 5
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 57
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 77
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "if"
+          ],
+          "edges": 28
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 92
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "return"
+          ],
+          "edges": 10
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_neg_next",
+            "for"
+          ],
+          "edges": 27
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_neg_next",
+            "while"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 14
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "return"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "expression_statement"
+          ],
+          "edges": 2216
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "if"
+          ],
+          "edges": 458
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "new_variable"
+          ],
+          "edges": 515
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "return"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 303
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 22
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 38
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "constructor_definition"
+          ],
+          "edges": 47
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 303
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 36
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 1414
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 572
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 2216
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 1817
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 36
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "constructor_definition"
+          ],
+          "edges": 63
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 57
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 1567
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 1115
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "modifier_definition"
+          ],
+          "edges": 55
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 368
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "for"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 294
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2252
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 332
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "continue_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 1567
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "for"
+          ],
+          "edges": 31
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "if"
+          ],
+          "edges": 325
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 352
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "return"
+          ],
+          "edges": 107
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "while"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 36
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 22
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 31
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "for",
+            "neg_next",
+            "end_loop"
+          ],
+          "edges": 27
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 1414
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 149
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 216
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "edges": 101
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "constructor_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "function_definition"
+          ],
+          "edges": 695
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "modifier_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_internal_call",
+            "constructor_definition"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_internal_call",
+            "function_definition"
+          ],
+          "edges": 421
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_internal_call",
+            "modifier_definition"
+          ],
+          "edges": 26
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 24
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 77
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "interface_declaration"
+          ],
+          "edges": 20
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_next_line",
+            "library_declaration"
+          ],
+          "edges": 28
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_recursive_method_call",
+            "contract_declaration"
+          ],
+          "edges": 1889
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_recursive_method_call",
+            "interface_declaration"
+          ],
+          "edges": 106
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_recursive_method_call",
+            "library_declaration"
+          ],
+          "edges": 130
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 695
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "edges": 421
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 1115
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "for"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "if"
+          ],
+          "edges": 327
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 343
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "return"
+          ],
+          "edges": 144
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "constructor_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 149
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 342
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 458
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 526
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 32
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 28
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 325
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 327
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "modifier_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 310
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 30
+        },
+        {
+          "canonical": [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "end_if"
+          ],
+          "edges": 978
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "expression_statement"
+          ],
+          "edges": 36
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "if"
+          ],
+          "edges": 32
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "return"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 294
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "if"
+          ],
+          "edges": 30
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 14
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "return"
+          ],
+          "edges": 37
+        },
+        {
+          "canonical": [
+            "interface_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 20
+        },
+        {
+          "canonical": [
+            "interface_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "edges": 106
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "function_definition"
+          ],
+          "edges": 28
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "recursive_method_call",
+            "function_definition"
+          ],
+          "edges": 130
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "REV_recursive_method_call",
+            "contract_declaration"
+          ],
+          "edges": 55
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "edges": 26
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 55
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 572
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 342
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 74
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "edges": 103
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "expression_statement"
+          ],
+          "edges": 1817
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "for"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "if"
+          ],
+          "edges": 526
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "new_variable"
+          ],
+          "edges": 565
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "return"
+          ],
+          "edges": 151
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 38
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 216
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 74
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 515
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 565
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_WRITES_STATE",
+            "expression_statement"
+          ],
+          "edges": 2252
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 60
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 113
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 92
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 14
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 352
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 343
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 636
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "for"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 14
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 368
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "for"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "if"
+          ],
+          "edges": 310
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 636
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "return"
+          ],
+          "edges": 59
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "while"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 101
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 103
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 151
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 10
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 107
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 144
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 59
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 37
+        },
+        {
+          "canonical": [
+            "return",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 42
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 24
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "library_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "continue_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "while",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "neg_next",
+            "end_loop"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 4
+        }
+      ],
+      "source_graph": {
+        "computation_fingerprint": "8aa7f2f6d71125195da68ddb680a116105389c1ace6c69d0140d4a977abe9e1e",
+        "edges": 23703,
+        "fingerprint": "9d738e25771643f82535933b1d1f99c4e3cf465b691765852f39f08872de7fff",
+        "nodes": 12223,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/reentrancy_node/F3/hcg.gpickle",
+        "sha256": "ead61ea0bb5db8fb68675fd7d91bc91d6d6fc63c60c5fd330b9730751369ff53"
+      },
+      "sparse_relations": [
+        {
+          "canonical": [
+            "constructor_definition",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "REV_next_line",
+            "contract_declaration"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_if"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "expression_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "first_next_line",
+            "function_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "internal_call",
+            "function_definition"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "constructor_definition",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "continue_statement",
+            "next_line",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 5
+        },
+        {
+          "canonical": [
+            "contract_declaration",
+            "next_line",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_end_if",
+            "while"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "contract_declaration"
+          ],
+          "edges": 5
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "modifier_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_if",
+            "next_line",
+            "return"
+          ],
+          "edges": 10
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "REV_neg_next",
+            "while"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "expression_statement"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "for"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "new_variable"
+          ],
+          "edges": 14
+        },
+        {
+          "canonical": [
+            "end_loop",
+            "next_line",
+            "return"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "env_source",
+            "ENV_FLOW",
+            "return"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "if"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "return"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "for"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "continue_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "expression_statement",
+            "next_line",
+            "while"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "for",
+            "DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "function_definition"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_READS_STATE",
+            "new_variable"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "function_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "for",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "for",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "constructor_definition"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_external_call",
+            "modifier_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_first_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "REV_internal_call",
+            "constructor_definition"
+          ],
+          "edges": 17
+        },
+        {
+          "canonical": [
+            "function_definition",
+            "next_line",
+            "for"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "constructor_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "if",
+            "REV_next_line",
+            "modifier_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "if",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "if",
+            "neg_next",
+            "return"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "if",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 14
+        },
+        {
+          "canonical": [
+            "library_declaration",
+            "next_line",
+            "struct_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "external_call",
+            "function_definition"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "modifier_definition",
+            "next_line",
+            "if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "DATA_DEF_USE",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "constructor_definition"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "READS_STATE",
+            "for"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_DATA_DEF_USE",
+            "for"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "constructor_definition"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 14
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "for"
+          ],
+          "edges": 13
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "if"
+          ],
+          "edges": 14
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "REV_pos_next",
+            "while"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "WRITES_STATE",
+            "new_variable"
+          ],
+          "edges": 2
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "for"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "new_variable",
+            "next_line",
+            "while"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 8
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_ENV_FLOW",
+            "env_source"
+          ],
+          "edges": 11
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_neg_next",
+            "if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "end_if"
+          ],
+          "edges": 10
+        },
+        {
+          "canonical": [
+            "return",
+            "REV_next_line",
+            "end_loop"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "struct_declaration",
+            "REV_next_line",
+            "library_declaration"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "expression_statement"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_DATA_DEF_USE",
+            "new_variable"
+          ],
+          "edges": 4
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "continue_statement"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "expression_statement"
+          ],
+          "edges": 6
+        },
+        {
+          "canonical": [
+            "while",
+            "REV_next_line",
+            "new_variable"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "while",
+            "end_if",
+            "end_if"
+          ],
+          "edges": 1
+        },
+        {
+          "canonical": [
+            "while",
+            "neg_next",
+            "end_loop"
+          ],
+          "edges": 7
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "expression_statement"
+          ],
+          "edges": 3
+        },
+        {
+          "canonical": [
+            "while",
+            "pos_next",
+            "new_variable"
+          ],
+          "edges": 4
+        }
+      ],
+      "task_id": "reentrancy_node"
+    },
+    {
+      "all_parameters_equal": true,
+      "anchor_seconds": 8.27541786400252,
+      "canonical_count": 212,
+      "config": {
+        "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+        "cycle_momentum": true,
+        "delta": 0.001,
+        "device": "cuda:0",
+        "div_factor": 25,
+        "dropout": 0.2,
+        "environment": {
+          "dgl": "0.6.1",
+          "networkx": "2.6.3",
+          "numpy": "1.21.6",
+          "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+          "sklearn": "1.0.2",
+          "torch": "1.8.1+cu111"
+        },
+        "feature": "inside_token",
+        "final_div_factor": 1,
+        "forward_scope": "full_fixed_task_graph",
+        "heads": 8,
+        "hidden_size": 128,
+        "initial_lr": 0.0002,
+        "layer_impl": "shared_projection",
+        "layers": 2,
+        "loss": "unweighted_cross_entropy",
+        "max_lr": 0.005,
+        "maximum_training_epochs": 50,
+        "metric_unit": "HCG node",
+        "mode": "full",
+        "optimizer": "Adam",
+        "partition_policy": "group_disjoint_nested_file_supervision",
+        "patience": 7,
+        "primary_checkpoint": "best",
+        "protocol": "dfg-v2-grouped-nested",
+        "protocol_version": "dfg-v2-grouped-nested-v1",
+        "schedule_epochs": 50,
+        "schema_policy": "registered_schema_allow_train_unseen",
+        "score_role": "outer_test",
+        "secondary_checkpoint": "last",
+        "seed": 1,
+        "selection": "strict minimum inner validation loss; post-update eval forward",
+        "selection_role": "inner_val",
+        "threads": 2,
+        "use_norm": true,
+        "weight_decay": 0.0
+      },
+      "construction_seconds": 20.85958136798581,
+      "cuda_initialized": false,
+      "endpoints_equal": true,
+      "feature_view": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/reentrancy_node/anonymous_manifest.json",
+        "sha256": "d94044c90d8aa86f7a79dbab062470120fc19faf63d471cb57984430cf2d46a1"
+      },
+      "fold": 0,
+      "forward_bitwise_equal": true,
+      "graph_unchanged": true,
+      "max_abs": 0.0,
+      "optimizer_steps": 0,
+      "parameter_count": 5111012,
+      "profile": "G3R",
+      "seed": 10000,
+      "source_graph": {
+        "computation_fingerprint": "8aa7f2f6d71125195da68ddb680a116105389c1ace6c69d0140d4a977abe9e1e",
+        "edges": 23703,
+        "fingerprint": "9d738e25771643f82535933b1d1f99c4e3cf465b691765852f39f08872de7fff",
+        "nodes": 12223,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/reentrancy_node/F3/hcg.gpickle",
+        "sha256": "ead61ea0bb5db8fb68675fd7d91bc91d6d6fc63c60c5fd330b9730751369ff53"
+      },
+      "state_digest": "9f82c447553ee9410c310b5b75034334e9c291439c819df365ef00117c5d3c39",
+      "task_id": "reentrancy_node"
+    },
+    {
+      "all_parameters_equal": true,
+      "anchor_seconds": 8.092646591016091,
+      "canonical_count": 212,
+      "config": {
+        "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+        "cycle_momentum": true,
+        "delta": 0.001,
+        "device": "cuda:0",
+        "div_factor": 25,
+        "dropout": 0.2,
+        "environment": {
+          "dgl": "0.6.1",
+          "networkx": "2.6.3",
+          "numpy": "1.21.6",
+          "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+          "sklearn": "1.0.2",
+          "torch": "1.8.1+cu111"
+        },
+        "feature": "inside_token",
+        "final_div_factor": 1,
+        "forward_scope": "full_fixed_task_graph",
+        "heads": 8,
+        "hidden_size": 128,
+        "initial_lr": 0.0002,
+        "layer_impl": "shared_projection",
+        "layers": 2,
+        "loss": "unweighted_cross_entropy",
+        "max_lr": 0.005,
+        "maximum_training_epochs": 50,
+        "metric_unit": "HCG node",
+        "mode": "full",
+        "optimizer": "Adam",
+        "partition_policy": "group_disjoint_nested_file_supervision",
+        "patience": 7,
+        "primary_checkpoint": "best",
+        "protocol": "dfg-v2-grouped-nested",
+        "protocol_version": "dfg-v2-grouped-nested-v1",
+        "schedule_epochs": 50,
+        "schema_policy": "registered_schema_allow_train_unseen",
+        "score_role": "outer_test",
+        "secondary_checkpoint": "last",
+        "seed": 1,
+        "selection": "strict minimum inner validation loss; post-update eval forward",
+        "selection_role": "inner_val",
+        "threads": 2,
+        "use_norm": true,
+        "weight_decay": 0.0
+      },
+      "construction_seconds": 20.976290285005234,
+      "cuda_initialized": false,
+      "endpoints_equal": true,
+      "feature_view": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/reentrancy_node/anonymous_manifest.json",
+        "sha256": "d94044c90d8aa86f7a79dbab062470120fc19faf63d471cb57984430cf2d46a1"
+      },
+      "fold": 9,
+      "forward_bitwise_equal": true,
+      "graph_unchanged": true,
+      "max_abs": 0.0,
+      "optimizer_steps": 0,
+      "parameter_count": 5111012,
+      "profile": "G3R",
+      "seed": 10009,
+      "source_graph": {
+        "computation_fingerprint": "8aa7f2f6d71125195da68ddb680a116105389c1ace6c69d0140d4a977abe9e1e",
+        "edges": 23703,
+        "fingerprint": "9d738e25771643f82535933b1d1f99c4e3cf465b691765852f39f08872de7fff",
+        "nodes": 12223,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/graphs_v2_r1/reentrancy_node/F3/hcg.gpickle",
+        "sha256": "ead61ea0bb5db8fb68675fd7d91bc91d6d6fc63c60c5fd330b9730751369ff53"
+      },
+      "state_digest": "d385aae5edb955013ad273a5fb54cd2f05402ebe8771c5ddf3214612416d8b34",
+      "task_id": "reentrancy_node"
+    }
+  ],
+  "prompt": {
+    "bytes": 88141,
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/PROMPTS.md",
+    "sha256": "ece6f1798c549d9275a95a812b0627af43d7677008c6328ecfae554ffc5ddc2f"
+  },
+  "source_refs": [
+    {
+      "bytes": 3270,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/__init__.py",
+      "sha256": "66eb4d194f4321fd71fa5b1c8fff3675a74ce6a92e433fbdfae8f3794b10d591"
+    },
+    {
+      "bytes": 3439,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/materialize.py",
+      "sha256": "b458b443069a6186840fa009ac3f7a5a1c991f88a84445e84b3bdc8e054befb7"
+    },
+    {
+      "bytes": 4186,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/init.py",
+      "sha256": "4e490aaff7370693cd9a2ae2084c3847ed4585f8819786c6d07652c169af8882"
+    },
+    {
+      "bytes": 9246,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/model.py",
+      "sha256": "2be0ee9e51db4a2c3a5b1149aebcacdf3ef6b5677e27b43e5997b103ba41273c"
+    },
+    {
+      "bytes": 7063,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_materialize.py",
+      "sha256": "d0118b5e90b2f0f917aae8ca31d5fb86ea39c71c56a92201b90fda33c14571ba"
+    },
+    {
+      "bytes": 8212,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_model_equivalence.py",
+      "sha256": "cb5ccfcb3fccb5ef439f02fad6ca2ad607c79a52e6aa03555c9826618338d768"
+    },
+    {
+      "bytes": 2612,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep1_common.py",
+      "sha256": "1bcc415e38e2d14880d69c0863033b076e3e85bdefe4fe876ff8166f085ecdc2"
+    },
+    {
+      "bytes": 3032,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep1_report.py",
+      "sha256": "b18957f9df735de74dd442b6825f27f47c8045dee2f2862484466996d90e9f4d"
+    },
+    {
+      "bytes": 1303,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep1_run.py",
+      "sha256": "b6a71235621ace2e2f31545a74f3ca8025f6b3528d7ccf7290612a8822bc1725"
+    },
+    {
+      "bytes": 5818,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep1_verify.py",
+      "sha256": "a67ab7256d068f4e49beacce772af5cf2ddec36c3d999813ac95e764e2032c01"
+    }
+  ],
+  "stage": "EP1",
+  "stop_after": "EP1",
+  "test_total": 4155,
+  "tests": {
+    "dfg_tests": {
+      "passed": 2653,
+      "receipt": {
+        "bytes": 466,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep1_v1/execution/dfg_tests.json",
+        "sha256": "b1dc58271588b53034e8dee3953f804cf0daf017c739e1b623b030b1a888e52f"
+      }
+    },
+    "edge_tests": {
+      "passed": 149,
+      "receipt": {
+        "bytes": 465,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep1_v1/execution/edge_tests.json",
+        "sha256": "2b771e328ed03f0cfe516e1dce6c3b09a923f088d4124eedf463c43d560b75b4"
+      }
+    },
+    "nodesem_tests": {
+      "passed": 1353,
+      "receipt": {
+        "bytes": 467,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep1_v1/execution/nodesem_tests.json",
+        "sha256": "d931b28a359d9a8e5d24971f0f4c209855e48ff478afe83a9d038335f7cce3bf"
+      }
+    }
+  },
+  "training_executed": false
+}

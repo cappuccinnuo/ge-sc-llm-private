@@ -10030,3 +10030,58 @@ mando CPU、CUDA_VISIBLE_DEVICES 为空、PYTHONDONTWRITEBYTECODE=1，OMP/MKL各
 只读核验 750冻结源码、354项_code_refs、697输入引用、239旧产物、35其他EdgeSem源码、8H load及图指纹；四份文档前缀字节不变，doc_check --expect-cjk 按追加前字节数验收。summary.gate_pass=false 与 verification.passed=true 不冲突：后者只证明记录完整与重算一致，不证明阶段准入。
 
 本轮到 EP0e 停止，本地提交、不自动push或进入EP1。最终实验会在显存充足的服务器进行，RTX3050 4GiB只是当前本机开发限制；本轮全部CPU，不借此改训练配置。产物写入WSL，不另占C盘大型缓存。
+
+
+## 104. EdgeSem EP1：关系注册、typed反向与CPU等价验收（Codex，2026-11-10）
+
+### 范围与来源
+
+从edge-sem a71b2bc16f1edd7c8f298209c8a2a9b0b862eab3读取最新r8（PROMPTS SHA ece6f1798c549d9275a95a812b0627af43d7677008c6328ecfae554ffc5ddc2f），先读§4.1并执行ff-only同步，已为最新。本轮只实现§4.3 EP1。r8允许方向与模型接入独立于EP0e调用覆盖推进；312/347=89.9135%的90%历史门槛仍失败。没有以本轮请求替代EP2前所需的解析选择审批。
+
+新增materialize.py、init.py、model.py及test_materialize.py/test_model_equivalence.py；修改原占位__init__.py；新增recon/ep1_common.py、ep1_run.py、ep1_report.py、ep1_verify.py。独立证据目录artifacts/ep1_v1，报告EP1_REPORT.md。旧call_resolve/guard_source、冻结DFG/NodeSem/作者代码和所有既有输入/产物保持不变。
+
+### 具体实施选择
+
+1. 八个profile登记direction_mode、cf_back、new_relations、edge_features、placebo。EP0实测各任务回边不足50，因此cf_back一律false并拒绝传入cf_back边。recursive_method_call为structure；MOD_APPLY按应用调用归call，真正守卫关系GUARDS归guard。该分类没有把modifier应用解释成授权证明。
+2. merge基础边完全复用reflect_graph；typed基础边各自保留正向和显式REV_，顺序/重复边不去重。DFG全部交给冻结materialize处理，保留已有双向规则。原始REV_拒绝；新关系键不得与已有键冲突。
+3. 文档同时要求二元materialize返回值和key_map，故在rel_meta已有base/reverse/family之外附anchor_key，并通过parameter_key_map提取非空映射。typed反向映射到原G3R的反射承载键；DFG和merge为同名键。merge的reverse=false只指无REV_前缀，不表示承载边单向。这是接口落实，没有修改方向设计。
+4. 复制器参考diagnostics8c/placebo.py，来源SHA写在文件头。全部非关系参数逐位复制；有来源的relation_att/msg/pri逐行复制；缺来源只允许E1及其REV_。规范键字符串固定为compact ASCII JSON三元数组，种子int(SHA256前16个十六进制字符)。每关系局部CPU Generator依次生成att和msg，范围±sqrt(6/((H+R_anchor)*dk²))，pri=1，不消耗全局随机状态。保留每层复制数量、范围和种子格式收据。
+5. 构造器以10000+fold（node）、11000+fold（contract）生成新鲜G3R，fit种子加1000000仅记录未使用。深拷贝原模型，再重建DGL、inp副本、canonical顺序、关系id、共享投影层和metapath；原前向、池化、归一化及dropout代码复用。CPU构造置于fork_rng，不加载旧训练权重。未来传入E1边时先在私有副本移除它们构造G3R锚，再在派生副本接入；本轮不生成E1语义边。
+6. dfg_profile=G3R只保留锚来源，edge_profile表达实际剖面。G3R委托旧深校验；typed复用中立浅校验并在EdgeSem内独立核对身份、监督掩码、标签、pooling、特征、schema、端点和metadata映射。原深校验拒绝typed是预期测试，未修改旧入口或伪装checkpoint身份；正式适配留EP7。
+7. 属性/安慰剂剖面当前只完成注册；模型构造明确报未实现，避免误用无属性层。带属性剖面要求未来真实EdgeAwareHGTLayer，不接受仅类名相同的其他层。没有启动EP6。
+8. 真实验收沿用EP0的8H历史N-anon-s夹具和图/特征SHA，只回答关闭增强是否复现同一输入，不选择匿名作为新主视图。收据config原样记录历史cuda:0配置；实际为CPU、CUDA_VISIBLE_DEVICES为空、cuda_initialized=false。typed反向用mean(logits²)，不用标签定义目标；原装配仍核验标签完整性。
+
+以上均为模板指定行为或接口表示的明确化，没有采用需替换方案的新设计。首轮定向测试发现现有合成CFG使用if_true/if_false而注册表只列真实图的pos_next/neg_next，导致19通过、2失败、9错误、4未选；仅EdgeSem补两个control别名。保存修复前源码和失败日志，修正后30通过、4未选，再执行完整套件。这是新注册表缺项修复，不改变冻结CFG、真实图或实验口径。
+
+### CPU结果
+
+| 任务/剖面 | fold | canonical关系数 | 参数量 | 构造秒数 | 验收 |
+|---|---:|---:|---:|---:|---|
+| reentrancy_node/G3R | 0 | 212 | 5,111,012 | 20.860 | 逐位等价 |
+| reentrancy_node/G3R | 9 | 212 | 5,111,012 | 20.976 | 逐位等价 |
+| reentrancy_node/G3R-T | 0 | 220 | 5,176,676 | 20.178 | 有限前后向 |
+| access_control_node/G3R-T | 0 | 234 | 5,291,588 | 8.446 | 有限前后向 |
+
+G3R两折规范键、端点、全部参数和eval输出逐位相同，最大绝对差0；fold0 state digest还与EP0 cpu_A一致。G3R-T完整关系分布与EP0 typed逐项相同；每层复制220/234行，全部有来源，有限值前后向成功。重入typed比merge共增加65,664参数（2层）；参数增加来自独立反向关系行，不是新增节点特征。访问控制typed参数5,291,588。所有原图fingerprint不变。
+
+构造时间为本机单次CPU总入口时间，包含重建与校验，不作为GPU估计。两任务低于20边的关系分别94/114，PROGRESS.md本节逐条给出；没有删除、共享或重初始化这些关系。typed改变关系分组及均值聚合分母，后续分数差异不能只归结为方向语义。
+
+### 验收、文件身份与命令
+
+EdgeSem149、NodeSem1353、DFG v2 2653，共4155通过。新增34项EdgeSem测试包含两个真实G3R折、两个typed任务、合成node/contract等价、RNG独立、重复顺序与键冲突、篡改端点/ID/特征/掩码/映射/层类型拒绝。全部CPU，训练0、optimizer step0、GPU运行0，没有新checkpoint或生产图。
+
+before.json绑定750份冻结源码、354项_code_refs、43份其他EdgeSem源码、287份历史产物、8H plan/seal与三文档原始字节。ep1_verify还只读检查697项输入引用、8H.load和每个收据/日志SHA，最终结论在verification.json。audit_plan.json在最终全量套件前绑定核心源码及选择；summary.json同时绑定报告/验收脚本与全部CPU探针。原文档追加前字节分别HANDOVER290093、training_changes1068848、PROGRESS11776，UTF-8/CJK检查只验新增内容，旧前缀逐字节保留。
+
+实际环境mando，CUDA_VISIBLE_DEVICES为空、PYTHONDONTWRITEBYTECODE=1、OMP/MKL各2线程、冻结TREE_SITTER_LIB_DIR。执行：
+- python -B -m scripts.edge_sem.recon.ep1_common
+- ep1_run --name unit_tests / unit_tests_control_aliases 包装定向pytest，失败和成功均独立保存
+- ep1_run --name edge_tests / nodesem_tests / dfg_tests -- -m pytest -q -p no:cacheprovider <相应tests目录>
+- ep1_run --name collect_report -- -m scripts.edge_sem.recon.ep1_report
+- ep1_run --name doc_check -- -m scripts.node_sem.doc_check --expect-cjk <三个路径:上述字节数> scripts/edge_sem/EP1_REPORT.md
+- ep1_run --name verify -- -m scripts.edge_sem.recon.ep1_verify
+
+ep1_run均通过python -B -m scripts.edge_sem.recon.ep1_run调用，完整argv/耗时/日志SHA保存在execution。首个正式EdgeSem测试设置EDGESEM_EP1_RECEIPTS=<批次>/probes并排他写入四份成功收据，常规测试不设此变量。没有重跑成功实验以改善结果。
+
+### 停止位置
+
+本轮交付EP1并本地提交，不自动push、EP2、新语义边构建、GPU或训练。历史EP0e gate仍false，EP1结构gate为true，两者口径不同。EP2中的库重载及outer call_option调整未实现，其他待审批设计不在本轮默认通过。最终实验将在显存充足服务器另建批次；本机RTX3050 4GiB只约束当前开发。产物写入WSL，不向C盘新增大型缓存。

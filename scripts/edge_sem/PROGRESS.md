@@ -84,3 +84,258 @@ EP0b完成，CALL_SITE门槛未通过，停止后续落地并提交审查，不�
 - CPU回归命令：`CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider <目录>`。EdgeSem115、NodeSem1353、DFG2653，共 **4121 passed**。只读核验8H load、750冻结源码、354_code_refs、697输入引用、239旧产物、35其他EdgeSem源码；四文档前缀字节及UTF-8/CJK核验。执行收据与完整命令在 `execution/`。
 - 报告 `summary.json` 的 gate_pass=false；完整性 `verification.json` 的 passed=true 只说明核验通过，不能冒充90%准入通过。无训练、无EP1、无冻结输入修改。本地提交，不自动推送。
 - 最终实验安排在显存充足的服务器；当前4GiB限制仅属于本机开发。产物留在WSL。
+
+
+## EP1：关系注册与typed模型接入（Codex，2026-11-10）
+
+依据PROMPTS r8 §4.1/4.3，起点a71b2bc1，ff-only同步已最新。r8允许本阶段独立推进；EP0e 312/347的90%历史召回门槛仍失败，未批准或实现EP2的解析扩展。
+
+修改__init__.py；新增materialize.py、init.py、model.py、tests/test_materialize.py、tests/test_model_equivalence.py、recon/ep1_{common,run,report,verify}.py。报告EP1_REPORT.md；独立证据artifacts/ep1_v1。冻结源码、输入和旧产物保持，三份文档只追加。
+
+- 登记8剖面；cf_back全部禁用；recursive_method_call归structure，MOD_APPLY归call。属性/安慰剂模型仅注册，当前入口显式拒绝冒充实现。
+- merge基础边调用原reflect_graph；typed保留正向＋独立REV_；DFG反向委托冻结materialize。metadata增加anchor_key提供文档要求的key_map，保持原二元返回接口。
+- 新鲜G3R锚逐位复制共享参数和来源关系行；E1无来源行以compact ASCII JSON canonical的SHA种子、锚模型Xavier范围初始化，不消耗全局RNG。没有使用训练权重。
+- dfg_profile保留G3R锚来源，edge_profile记录实际结构；typed用独立深校验，不绕过冻结checkpoint。EP7再接入正式绑定。
+- 首轮测试发现if_true/if_false注册遗漏，19通过、2失败、9错误、4未选，源码/日志留档；只补EdgeSem的control别名后30通过、4未选。模板实质方案不变，没有自行采用需审批的新方案。
+
+| 任务/剖面 | fold | canonical关系数 | 参数量 | 构造秒数 | 验收 |
+|---|---:|---:|---:|---:|---|
+| reentrancy_node/G3R | 0 | 212 | 5,111,012 | 20.860 | 逐位等价 |
+| reentrancy_node/G3R | 9 | 212 | 5,111,012 | 20.976 | 逐位等价 |
+| reentrancy_node/G3R-T | 0 | 220 | 5,176,676 | 20.178 | 有限前后向 |
+| access_control_node/G3R-T | 0 | 234 | 5,291,588 | 8.446 | 有限前后向 |
+
+G3R的fold0/9键、端点、全部参数、eval输出逐位相同，最大绝对差0；typed每关系计数与EP0完全一致，CPU前向/反向均有限，optimizer step0。重入两层typed增参65,664；访问控制参数总量5,291,588。耗时为单次CPU入口构造测量，含锚模型/重建/校验。原图指纹不变。
+
+真实探针复用8H历史N-anon-s作为等价夹具，本轮不决定后续主实验视图。typed反向目标mean(logits²)不使用标签；冻结装配仍检查标签。历史config的device保留cuda:0用于来源，实际执行为CPU、cuda_initialized=false。
+
+CPU完整回归149+1353+2653=4155通过。实际命令：python -B -m scripts.edge_sem.recon.ep1_run --name <name> -- -m pytest -q -p no:cacheprovider <edge_sem/tests、node_sem/tests、DFG/dfg_v2/tests>；报告/核验为ep1_report、ep1_verify，doc_check --expect-cjk按原字节数验新增中文。完整命令/耗时/退出码/日志SHA在execution。只读核验750冻结源码、354_code_refs、43其他EdgeSem源码、287历史产物、697输入引用和8H.load；最终见verification.json。
+
+以下逐条列出两个节点任务typed图中边数<20的canonical关系（计数为整个固定任务图，不是train/val分折支持）。分别94、114个；未做稀疏共享或删边。
+
+<details>
+<summary>reentrancy_node：94个低支持关系</summary>
+
+| 源类型 | 关系 | 目标类型 | 边数 |
+|---|---|---|---:|
+| constructor_definition | DATA_DEF_USE | if | 4 |
+| constructor_definition | REV_READS_STATE | new_variable | 3 |
+| constructor_definition | REV_next_line | contract_declaration | 3 |
+| constructor_definition | external_call | function_definition | 8 |
+| constructor_definition | first_next_line | end_if | 3 |
+| constructor_definition | first_next_line | end_loop | 2 |
+| constructor_definition | first_next_line | expression_statement | 1 |
+| constructor_definition | first_next_line | function_definition | 1 |
+| constructor_definition | internal_call | function_definition | 17 |
+| constructor_definition | next_line | new_variable | 1 |
+| continue_statement | REV_next_line | expression_statement | 1 |
+| continue_statement | next_line | while | 1 |
+| contract_declaration | REV_next_line | end_if | 5 |
+| contract_declaration | next_line | constructor_definition | 3 |
+| end_if | REV_end_if | if | 4 |
+| end_if | REV_end_if | while | 1 |
+| end_if | REV_first_next_line | constructor_definition | 3 |
+| end_if | next_line | contract_declaration | 5 |
+| end_if | next_line | modifier_definition | 1 |
+| end_if | next_line | return | 10 |
+| end_loop | REV_first_next_line | constructor_definition | 2 |
+| end_loop | REV_neg_next | while | 7 |
+| end_loop | next_line | expression_statement | 11 |
+| end_loop | next_line | for | 2 |
+| end_loop | next_line | if | 1 |
+| end_loop | next_line | new_variable | 14 |
+| end_loop | next_line | return | 6 |
+| env_source | ENV_FLOW | return | 11 |
+| expression_statement | DATA_DEF_USE | if | 8 |
+| expression_statement | DATA_DEF_USE | return | 8 |
+| expression_statement | DATA_DEF_USE | while | 4 |
+| expression_statement | REV_first_next_line | constructor_definition | 1 |
+| expression_statement | REV_next_line | end_loop | 11 |
+| expression_statement | REV_pos_next | for | 13 |
+| expression_statement | REV_pos_next | while | 3 |
+| expression_statement | next_line | continue_statement | 1 |
+| expression_statement | next_line | while | 6 |
+| for | DATA_DEF_USE | new_variable | 11 |
+| for | REV_DATA_DEF_USE | function_definition | 11 |
+| for | REV_DATA_DEF_USE | new_variable | 2 |
+| for | REV_READS_STATE | new_variable | 8 |
+| for | REV_next_line | end_loop | 2 |
+| for | REV_next_line | function_definition | 8 |
+| for | REV_next_line | new_variable | 11 |
+| for | pos_next | expression_statement | 13 |
+| for | pos_next | new_variable | 13 |
+| function_definition | DATA_DEF_USE | for | 11 |
+| function_definition | REV_external_call | constructor_definition | 8 |
+| function_definition | REV_external_call | modifier_definition | 4 |
+| function_definition | REV_first_next_line | constructor_definition | 1 |
+| function_definition | REV_internal_call | constructor_definition | 17 |
+| function_definition | next_line | for | 8 |
+| if | REV_DATA_DEF_USE | constructor_definition | 4 |
+| if | REV_DATA_DEF_USE | expression_statement | 8 |
+| if | REV_next_line | end_loop | 1 |
+| if | REV_next_line | modifier_definition | 1 |
+| if | end_if | end_if | 4 |
+| if | neg_next | new_variable | 2 |
+| if | neg_next | return | 1 |
+| if | pos_next | new_variable | 14 |
+| library_declaration | next_line | struct_declaration | 1 |
+| modifier_definition | REV_next_line | end_if | 1 |
+| modifier_definition | external_call | function_definition | 4 |
+| modifier_definition | next_line | if | 1 |
+| new_variable | DATA_DEF_USE | for | 2 |
+| new_variable | DATA_DEF_USE | while | 4 |
+| new_variable | READS_STATE | constructor_definition | 3 |
+| new_variable | READS_STATE | for | 8 |
+| new_variable | REV_DATA_DEF_USE | for | 11 |
+| new_variable | REV_WRITES_STATE | new_variable | 2 |
+| new_variable | REV_neg_next | if | 2 |
+| new_variable | REV_next_line | constructor_definition | 1 |
+| new_variable | REV_next_line | end_loop | 14 |
+| new_variable | REV_pos_next | for | 13 |
+| new_variable | REV_pos_next | if | 14 |
+| new_variable | REV_pos_next | while | 4 |
+| new_variable | WRITES_STATE | new_variable | 2 |
+| new_variable | next_line | for | 11 |
+| new_variable | next_line | while | 7 |
+| return | REV_DATA_DEF_USE | expression_statement | 8 |
+| return | REV_ENV_FLOW | env_source | 11 |
+| return | REV_neg_next | if | 1 |
+| return | REV_next_line | end_if | 10 |
+| return | REV_next_line | end_loop | 6 |
+| struct_declaration | REV_next_line | library_declaration | 1 |
+| while | REV_DATA_DEF_USE | expression_statement | 4 |
+| while | REV_DATA_DEF_USE | new_variable | 4 |
+| while | REV_next_line | continue_statement | 1 |
+| while | REV_next_line | expression_statement | 6 |
+| while | REV_next_line | new_variable | 7 |
+| while | end_if | end_if | 1 |
+| while | neg_next | end_loop | 7 |
+| while | pos_next | expression_statement | 3 |
+| while | pos_next | new_variable | 4 |
+
+</details>
+
+<details>
+<summary>access_control_node：114个低支持关系</summary>
+
+| 源类型 | 关系 | 目标类型 | 边数 |
+|---|---|---|---:|
+| constructor_definition | DATA_DEF_USE | if | 4 |
+| constructor_definition | REV_READS_STATE | new_variable | 3 |
+| constructor_definition | REV_next_line | contract_declaration | 3 |
+| constructor_definition | external_call | function_definition | 8 |
+| constructor_definition | first_next_line | end_if | 3 |
+| constructor_definition | first_next_line | end_loop | 2 |
+| constructor_definition | first_next_line | expression_statement | 1 |
+| constructor_definition | first_next_line | modifier_definition | 1 |
+| constructor_definition | internal_call | function_definition | 17 |
+| constructor_definition | next_line | new_variable | 1 |
+| continue_statement | REV_next_line | expression_statement | 1 |
+| continue_statement | next_line | while | 1 |
+| contract_declaration | next_line | constructor_definition | 3 |
+| contract_declaration | next_line | struct_declaration | 4 |
+| end_if | REV_end_if | if | 7 |
+| end_if | REV_end_if | while | 1 |
+| end_if | REV_first_next_line | constructor_definition | 3 |
+| end_if | next_line | modifier_definition | 1 |
+| end_if | next_line | return | 9 |
+| end_if | next_line | struct_declaration | 1 |
+| end_if | next_line | while | 2 |
+| end_loop | REV_first_next_line | constructor_definition | 2 |
+| end_loop | REV_neg_next | while | 9 |
+| end_loop | next_line | expression_statement | 12 |
+| end_loop | next_line | for | 2 |
+| end_loop | next_line | function_definition | 13 |
+| end_loop | next_line | if | 2 |
+| end_loop | next_line | new_variable | 2 |
+| end_loop | next_line | return | 3 |
+| end_loop | next_line | while | 1 |
+| env_source | ENV_FLOW | function_definition | 7 |
+| env_source | ENV_FLOW | if | 17 |
+| env_source | ENV_FLOW | return | 12 |
+| expression_statement | DATA_DEF_USE | if | 8 |
+| expression_statement | DATA_DEF_USE | return | 7 |
+| expression_statement | DATA_DEF_USE | while | 6 |
+| expression_statement | REV_first_next_line | constructor_definition | 1 |
+| expression_statement | REV_next_line | end_loop | 12 |
+| expression_statement | REV_pos_next | for | 13 |
+| expression_statement | REV_pos_next | while | 4 |
+| expression_statement | next_line | continue_statement | 1 |
+| expression_statement | next_line | while | 8 |
+| for | DATA_DEF_USE | if | 1 |
+| for | DATA_DEF_USE | new_variable | 11 |
+| for | REV_DATA_DEF_USE | function_definition | 10 |
+| for | REV_DATA_DEF_USE | new_variable | 3 |
+| for | REV_READS_STATE | new_variable | 8 |
+| for | REV_next_line | end_loop | 2 |
+| for | REV_next_line | function_definition | 8 |
+| for | REV_next_line | new_variable | 9 |
+| for | pos_next | expression_statement | 13 |
+| for | pos_next | new_variable | 13 |
+| function_definition | DATA_DEF_USE | for | 10 |
+| function_definition | REV_ENV_FLOW | env_source | 7 |
+| function_definition | REV_external_call | constructor_definition | 8 |
+| function_definition | REV_external_call | modifier_definition | 4 |
+| function_definition | REV_internal_call | constructor_definition | 17 |
+| function_definition | REV_next_line | end_loop | 13 |
+| function_definition | next_line | for | 8 |
+| if | REV_DATA_DEF_USE | constructor_definition | 4 |
+| if | REV_DATA_DEF_USE | expression_statement | 8 |
+| if | REV_DATA_DEF_USE | for | 1 |
+| if | REV_ENV_FLOW | env_source | 17 |
+| if | REV_next_line | end_loop | 2 |
+| if | REV_next_line | modifier_definition | 4 |
+| if | REV_pos_next | if | 7 |
+| if | end_if | end_if | 7 |
+| if | neg_next | new_variable | 2 |
+| if | neg_next | return | 2 |
+| if | pos_next | if | 7 |
+| if | pos_next | new_variable | 15 |
+| library_declaration | next_line | struct_declaration | 1 |
+| modifier_definition | REV_first_next_line | constructor_definition | 1 |
+| modifier_definition | REV_next_line | end_if | 1 |
+| modifier_definition | external_call | function_definition | 4 |
+| modifier_definition | next_line | if | 4 |
+| new_variable | DATA_DEF_USE | for | 3 |
+| new_variable | DATA_DEF_USE | while | 6 |
+| new_variable | READS_STATE | constructor_definition | 3 |
+| new_variable | READS_STATE | for | 8 |
+| new_variable | READS_STATE | while | 8 |
+| new_variable | REV_DATA_DEF_USE | for | 11 |
+| new_variable | REV_WRITES_STATE | new_variable | 2 |
+| new_variable | REV_neg_next | if | 2 |
+| new_variable | REV_next_line | constructor_definition | 1 |
+| new_variable | REV_next_line | end_loop | 2 |
+| new_variable | REV_pos_next | for | 13 |
+| new_variable | REV_pos_next | if | 15 |
+| new_variable | REV_pos_next | while | 4 |
+| new_variable | WRITES_STATE | new_variable | 2 |
+| new_variable | next_line | for | 9 |
+| new_variable | next_line | while | 6 |
+| return | REV_DATA_DEF_USE | expression_statement | 7 |
+| return | REV_ENV_FLOW | env_source | 12 |
+| return | REV_neg_next | if | 2 |
+| return | REV_next_line | end_if | 9 |
+| return | REV_next_line | end_loop | 3 |
+| struct_declaration | REV_next_line | contract_declaration | 4 |
+| struct_declaration | REV_next_line | end_if | 1 |
+| struct_declaration | REV_next_line | library_declaration | 1 |
+| while | REV_DATA_DEF_USE | expression_statement | 6 |
+| while | REV_DATA_DEF_USE | new_variable | 6 |
+| while | REV_READS_STATE | new_variable | 8 |
+| while | REV_next_line | continue_statement | 1 |
+| while | REV_next_line | end_if | 2 |
+| while | REV_next_line | end_loop | 1 |
+| while | REV_next_line | expression_statement | 8 |
+| while | REV_next_line | new_variable | 6 |
+| while | REV_pos_next | while | 1 |
+| while | end_if | end_if | 1 |
+| while | neg_next | end_loop | 9 |
+| while | pos_next | expression_statement | 4 |
+| while | pos_next | new_variable | 4 |
+| while | pos_next | while | 1 |
+
+</details>
+
+
+本轮未训练、未用GPU、未建新语义图；结构闸门不代表效果提升，typed也改变关系参数量与聚合分母。checkpoint适配和EdgeAware层仍待各自阶段，停止于EP1，本地提交而不自动push。最终实验将在显存充足服务器执行，本机RTX3050 4GiB仅为当前开发限制；本轮产物保存在WSL。

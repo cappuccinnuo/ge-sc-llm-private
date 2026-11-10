@@ -1,0 +1,544 @@
+..............FFEEEEEEEEE.....                                           [100%]
+==================================== ERRORS ====================================
+______ ERROR at setup of test_typed_registration_rejects_tamper[edge_id] _______
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x7014444a2bd0>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+______ ERROR at setup of test_typed_registration_rejects_tamper[endpoint] ______
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x7014440a89d0>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+______ ERROR at setup of test_typed_registration_rejects_tamper[features] ______
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x7014440f8c90>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+________ ERROR at setup of test_typed_registration_rejects_tamper[mask] ________
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x7014439f55d0>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+______ ERROR at setup of test_typed_registration_rejects_tamper[row_map] _______
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x701443c88890>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+______ ERROR at setup of test_typed_registration_rejects_tamper[metadata] ______
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x701444df2b90>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+____ ERROR at setup of test_typed_registration_rejects_tamper[cached_data] _____
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x701445092b50>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+_______ ERROR at setup of test_typed_registration_rejects_tamper[layer] ________
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x70144458f990>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+______ ERROR at setup of test_typed_does_not_bypass_frozen_deep_validator ______
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x701443dbbc10>
+
+    @pytest.fixture
+    def typed(hcg):
+>       return make_edge_model("node",augment(hcg,"G3R"),"G3R-T",hidden_size=16,layers=1,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+=================================== FAILURES ===================================
+_____________________ test_small_merge_model_parity[node] ______________________
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x701444cc8790>
+task = 'node'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    def test_small_merge_model_parity(hcg,task):
+        graph=augment(hcg,"G3R")
+        before=graph_fingerprint(graph)
+        torch.manual_seed(seeds(task,0)["constructor"])
+        anchor=make_model(task,graph,"G3R",hidden_size=16,layers=2,heads=2,layer_impl="shared_projection")
+>       model=make_edge_model(task,graph,fold=0,hidden_size=16,layers=2,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+___________________ test_small_merge_model_parity[contract] ____________________
+
+hcg = <networkx.classes.multidigraph.MultiDiGraph object at 0x7014448efe90>
+task = 'contract'
+
+    @pytest.mark.parametrize("task",["node","contract"])
+    def test_small_merge_model_parity(hcg,task):
+        graph=augment(hcg,"G3R")
+        before=graph_fingerprint(graph)
+        torch.manual_seed(seeds(task,0)["constructor"])
+        anchor=make_model(task,graph,"G3R",hidden_size=16,layers=2,heads=2,layer_impl="shared_projection")
+>       model=make_edge_model(task,graph,fold=0,hidden_size=16,layers=2,heads=2)
+
+scripts/edge_sem/tests/test_model_equivalence.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/model.py:103: in make_edge_model
+    model = _derive(anchor,profile,working)
+scripts/edge_sem/model.py:47: in _derive
+    data, metadata = materialize(edge_data(model.nx_graph), profile)
+scripts/edge_sem/materialize.py:43: in materialize
+    _meta(c, False, None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+canonical = ('if', 'if_true', 'expression_statement'), reverse = False
+anchor = None
+
+    def _meta(canonical, reverse, anchor):
+        base = canonical[1][len(REVERSE_PREFIX):] if reverse else canonical[1]
+        family = RELATION_FAMILY.get(base)
+        if family not in FAMILIES:
+>           raise ValueError("Unregistered relation family: " + base)
+E           ValueError: Unregistered relation family: if_true
+
+scripts/edge_sem/materialize.py:13: ValueError
+---------------------------- Captured stdout setup -----------------------------
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+First round of adding edges ===============
+End first round of adding edges ===============
+---------------------------------
+call_expressions:  {}
+---------------------------------
+function_calls:  {'calc_2': [(71, 10)], 'clean_0': [(72, 10)]}
+---------------------------------
+method_list:  {'calc_2': 13, 'clean_0': 54}
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/edge_sem/tests/test_model_equivalence.py::test_small_merge_model_parity[node]
+FAILED scripts/edge_sem/tests/test_model_equivalence.py::test_small_merge_model_parity[contract]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_registration_rejects_tamper[edge_id]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_registration_rejects_tamper[endpoint]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_registration_rejects_tamper[features]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_registration_rejects_tamper[mask]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_registration_rejects_tamper[row_map]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_registration_rejects_tamper[metadata]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_registration_rejects_tamper[cached_data]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_registration_rejects_tamper[layer]
+ERROR scripts/edge_sem/tests/test_model_equivalence.py::test_typed_does_not_bypass_frozen_deep_validator
+2 failed, 19 passed, 4 deselected, 4 warnings, 9 errors in 3.09s
