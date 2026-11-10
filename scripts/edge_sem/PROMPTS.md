@@ -1,7 +1,16 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r3（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r4（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r4 相对 r3 的修改**（审查 EP0 产出后；每项都对照了代码或 ep0_v1 产物）：
+1. 修饰器守卫来源（EP0 D-01，已核实）：`facts_guards._modifiers` 第 380–381 行把 `invocation` 作为 `_guard` 的 anchor，所以 616/715 条修饰器守卫记录的 `_anchor` 是函数头的 `modifier_invocation`，不是修饰器体内的守卫语句；r1–r3 第 1.5 节的说法是错的。改为 EdgeSem 本地只读解析器复现 `_modifiers` 的解析，取 `_lexical(holes[0], modifier)` 返回的内层守卫 anchor（修饰器体内的 require/if 语句）作为 GUARDS 源节点（3.2、EP0b、EP3）。HCG 含修饰器体语句（重入节点任务 modifier_definition→expression_statement 的 next_line 有 55 条）。
+2. CALL_SITE 覆盖缺口（EP0 未检查，新增）：重入节点任务 HCG 有 464 条函数级 internal_call 边，而语句级唯一解析的内部调用只有 182 个（另有重载 13、super 3）。EP0b 逐条核对 internal_call 边是否有对应 CALL_SITE，并对缺口分类后再进入 EP2。
+3. 绑定适配（D-02，已核实）：EP1 的 validate_registration 与 EP7 的 checkpoint 绑定都必须是 EdgeSem 本地实现；只改 profile 字符串不够。
+4. 属性来源（D-03/D-04，已核实）：var_kind 改为 {local, parameter, return_var, other}（state 与 environment 由关系类型决定，在同一关系内不变）；value_shape 改为在目标语句中解析变量声明后取类型；def_kind 与 write_op 改由定义语句的 AST 形式与运算符决定；30–33 改为 write_access {plain, indexed, member, other}（写入左值的 AST 形式），声明类型仍由 value_shape 表示；第 21 位只用于 DATA_DEF_USE；第 15 位无来源，停用。全部为 0 的位不进入核心。
+5. `facts_ast.shape()` 对类型名用 `startswith("address")`，用户自定义类型（如 addressBook）原名下判为 address、匿名后判为 struct_contract，违反名字不变性。EdgeSem 本地包装：只有类型名恰为 address 或 address payable 时才是 address。
+6. §1.4 的学习率是合约任务的值（D-06，已核实）：节点任务 initial_lr 0.0002、max_lr 0.005、div_factor 25。执行一律以各任务封存配置为准。
+7. 新增 EP0b（只读），完成第 1、2 项的测量后才进入 EP1。
 
 **r3 相对 r2 的修改**（对 r2 的独立复核；r2 的 11 项修改与第 6、7 项的实测数字已从封存事实复算确认）：
 1. 端点检验改为“出现 1 时是否恒为 1”：r2 的写法下，几乎处处为 0 的稀疏位（如 def_loop_carried）在每个节点上都“恒定”，会被全部移出核心；只统计至少 2 条同关系边的节点也使合格节点很少。新规则见 3.3，EP4 同步修改。
@@ -21,7 +30,7 @@
 10. D1–D3 在 EP7 之前必须有用户确认记录；未确认不得开始训练。
 11. 措辞修正（recursive_method_call 一句）；u 按关系键各一行。
 
-使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ---
 
@@ -55,13 +64,13 @@ benchmark v2 训练使用的是作者预编译图（DFG v2 的 F0，F3 = F0 + DF
 
 ### 1.4 训练协议（8H）
 
-Adam + OneCycle，`schedule_epochs`=50，`maximum_training_epochs`=50，initial_lr 0.0005，max_lr 0.01，div_factor 20，final_div_factor 1，patience 7，delta 0.001，hidden 128，2 层，8 头，seed=1，节点任务 10 折、合约任务 5 折，每个 epoch 一次全图更新，按 inner_val loss 选 best（`experiments/checkpoint.py::StopMonitor` 保存每一个严格的新最小值，patience 大于 50 即等于不早停）。早停使节点任务停在第 18–37 轮，退火阶段基本不执行。统计检验：`experiment/stats.py` 对节点任务用双侧、zsplit、不校正连续性的 Wilcoxon（mode=auto）。
+Adam + OneCycle，`schedule_epochs`=50，`maximum_training_epochs`=50；节点任务 initial_lr 0.0002、max_lr 0.005、div_factor 25，合约任务 initial_lr 0.0005、max_lr 0.01、div_factor 20（r4 更正，见 ep0_v1/inputs.json；执行以各任务封存配置为准）；final_div_factor 1，patience 7，delta 0.001，hidden 128，2 层，8 头，seed=1，节点任务 10 折、合约任务 5 折，每个 epoch 一次全图更新，按 inner_val loss 选 best（`experiments/checkpoint.py::StopMonitor` 保存每一个严格的新最小值，patience 大于 50 即等于不早停）。早停使节点任务停在第 18–37 轮，退火阶段基本不执行。统计检验：`experiment/stats.py` 对节点任务用双侧、zsplit、不校正连续性的 Wilcoxon（mode=auto）。
 
 ### 1.5 可复用的语义事实（NodeSem）
 
 - `scripts/node_sem/facts.py::extract(task_id)` 输出每个节点的 `StatementFacts`（`facts_schema.py`）：`external`（调用种类、带值、返回值处理）、`state`（读写）、`dfg`（defs/uses 的 kind，to 的 sink）、`order`（外部调用前后）、`arith`（运算符、unchecked）、`loop`、`function_ctx`、`fn_summary`（函数级：写状态、外部调用等）、`env`、`guards`。
 - `extract` 只允许 `view="original"`（实验政策）。`extract_source(source_text, ...)` 接受任意源码文本，可用于名字不变性闸门。
-- 守卫：`facts_guards.GuardAnalyzer.for_node(node)` 返回守卫记录，`kind` ∈ {require, if_branch, early_exit, loop_cond, modifier, internal_check}，含 `operand_classes`、`is_sender_guard`，以及内部字段 `_anchor`（守卫条件的 AST 节点）。修饰器守卫的 `_anchor` 位于修饰器体内；序列化时 `facts.py::_relative` 要求同一 owner，所以修饰器守卫的 `offset` 为 None——**从序列化事实无法恢复修饰器守卫的源节点**，GUARDS 必须在进程内用 `GuardAnalyzer` 构建。
+- 守卫：`facts_guards.GuardAnalyzer.for_node(node)` 返回守卫记录，`kind` ∈ {require, if_branch, early_exit, loop_cond, modifier, internal_check}，含 `operand_classes`、`is_sender_guard`，以及内部字段 `_anchor`。普通守卫的 `_anchor` 是守卫语句或 if/while/for 节点；internal_check 的 `_anchor` 是调用辅助函数的语句（同一函数内）；**修饰器守卫的 `_anchor` 是函数头的 `modifier_invocation`（`_modifiers` 第 380–381 行），不是修饰器体内的守卫语句**（r4 更正）。修饰器体内的守卫语句只在 `_modifiers` 内部的 `_lexical(holes[0], modifier)` 结果中出现，没有对外暴露，GUARDS 需要 EdgeSem 本地只读解析器取得它（3.2）。
 - `facts_io.load_context(task_id)` 读取 8H plan 与 `graphs_v2_r1/store.json` 的 F0/F3 图、源码和 L1–L3 证据，全部带 SHA 校验。
 - 修饰器解析统计：`GuardAnalyzer.audit`（modifier_resolved / modifier_unresolved / modifier_inherited）。
 
@@ -99,7 +108,7 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 |---|---|---|
 | MOD_APPLY | 函数/构造函数定义节点 → 被应用的修饰器定义节点 | 函数头 `modifier_invocation`，按 `GuardAnalyzer._modifiers` 同样的规则解析（含继承）；解析失败不建边并计数 |
 | CALL_SITE | 含内部调用的语句节点 → 被调函数定义节点 | `AstSemantics` 的调用解析；只连到同一文件内能唯一解析的 function/modifier/constructor 定义；外部合约调用、低级调用、库调用不建边 |
-| GUARDS | 守卫条件所在节点 → 它保护的语句节点 | 进程内 `GuardAnalyzer.for_node`，把每条守卫记录的 `_anchor` 经 Projector/AST 身份映射到图节点；修饰器守卫直接连到被修饰函数内的语句；映射不到的守卫丢弃并计数。目标包括全部被保护语句（封存事实中每条语句约 1.0 条守卫记录，最多 13），不只连状态写或外部调用 |
+| GUARDS | 守卫条件所在节点 → 它保护的语句节点 | 进程内 `GuardAnalyzer.for_node`，把每条非修饰器守卫记录的 `_anchor` 按 AST 身份精确映射到图节点（EP0：非修饰器记录 100% 可精确映射，不需要“最小包含语句”回退）；修饰器守卫的源节点由 EdgeSem 本地解析器给出的内层 anchor（修饰器体内的 require/if 语句）映射得到，连到被修饰函数内的语句；映射不到的守卫丢弃并计数。目标包括全部被保护语句（封存事实中每条语句约 1.0 条守卫记录，最多 13），不只连状态写或外部调用 |
 
 自环、重复边：同一 (源, 目标, 关系) 只保留一条，计数。
 
@@ -112,16 +121,16 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 | 0 | ctrl_src_dominates_dst | 控制边 | 语义 CFG 支配树 |
 | 1 | ctrl_dst_postdominates_src | 控制边 | 语义 CFG 后支配树 |
 | 2 | ctrl_branch_contains_ext_call | pos_next/neg_next | 分支内语句 `external.kinds` 非空 |
-| 3–6 | var_kind {state, local, parameter, environment} | 数据边 | `dfg.uses/defs[].kind`；ENV_FLOW 为 environment |
-| 7–14 | value_shape {mapping, array, address, integer, bool, bytes_string, struct_contract, other} | 数据边 | `facts_schema.SHAPES`（变量的声明类型） |
-| 15 | def_weak_update | DATA_DEF_USE、WRITES_STATE | DFG v2 L1 证据中的 strong/weak；若证据中没有该字段，此位恒 0 并在 EP0 报告 |
-| 16–19 | def_kind {assign, compound, decl_or_param, incdec_or_delete} | DATA_DEF_USE | 定义语句的 `syntax` |
+| 3–6 | var_kind {local, parameter, return_var, other} | DATA_DEF_USE | `dfg.uses[].kind`：local→local，parameter→parameter，return→return_var，其他→other（r4：实测取值为 local/parameter/return；state 与 environment 由关系类型决定，不再占位） |
+| 7–14 | value_shape {mapping, array, address, integer, bool, bytes_string, struct_contract, other} | DATA_DEF_USE、READS_STATE、WRITES_STATE | r4：在目标语句（WRITES_STATE 为源语句）中找文本等于该变量的标识符，用 `AstSemantics.root_binding` 解析声明，取 `type_name` 后调用 EdgeSem 本地 `shape_safe()`（与 `facts_ast.shape` 相同，但只有类型名恰为 address 或 address payable 时才判为 address）；同一语句中该名字解析到多个声明或无法解析时全 0 并置 unk_dfg |
+| 15 | def_weak_update（停用） | — | EP0：L1 证据没有 strong/weak 字段。此位恒为 0，不进入核心；保留索引只为不改变其他位的编号 |
+| 16–19 | def_kind {assign, compound, decl_or_param, incdec_or_delete} | DATA_DEF_USE | r4：定义节点的 AST 形式与运算符 token：变量声明语句或函数定义（参数）→ decl_or_param；`=` 赋值 → assign；`+=` `-=` `*=` 等 → compound；`++` `--` 或 delete → incdec_or_delete；其他或无法判断 → 全 0 并置 unk_dfg |
 | 20 | def_loop_carried | DATA_DEF_USE | def 到 use 的语义 CFG 路径经过回边 |
-| 21 | use_path_crosses_ext_call | DATA_DEF_USE、READS_STATE | 存在外部调用语句 x：x 从 def 可达且 use 从 x 可达（同一函数） |
+| 21 | use_path_crosses_ext_call | DATA_DEF_USE | 存在外部调用语句 x：x 从 def 可达且 use 从 x 可达（同一函数）。r4：READS_STATE 的源是状态声明，函数内路径没有定义，不适用（读发生在外部调用之后由上下文位 58 表示） |
 | 22–26 | use_context {condition, call, arithmetic, state_write_value, return} | 数据边 | `dfg.to[].sink`：guard/loop_bound→condition；call_arg/call_target/call_value/value→call；arith→arithmetic；state_write/state→state_write_value；return→return |
 | 27–29 | arith_op {additive, multiplicative, exponent} | 数据边（use_context 含 arithmetic） | `arith.ops` |
-| 30–33 | write_shape {scalar, mapping, array, struct_member} | WRITES_STATE | `state.writes` 与声明形态 |
-| 34–36 | write_op {assign, increase, decrease} | WRITES_STATE | `syntax`：assign / add_assign / sub_assign |
+| 30–33 | write_access {plain, indexed, member, other} | WRITES_STATE | r4：写入左值的 AST 形式：标识符 → plain；数组/映射下标访问 → indexed；成员访问 → member；其他 → other。声明类型由 7–14 表示（`state.writes.shape` 是根声明类型，不是访问方式） |
+| 34–36 | write_op {assign, increase, decrease} | WRITES_STATE | r4：运算符 token：`=` → assign；`+=` 或 `++` → increase；`-=` 或 `--` → decrease；其他复合运算全 0。`x = x + 1` 记为 assign（已知局限，写入报告） |
 | 37 | call_low_level | use_context=call 的数据边 | `external.kinds` ∩ {call, send, delegatecall, staticcall} |
 | 38 | call_delegatecall | 同上 | `external.kinds` |
 | 39 | call_sends_value | 同上 | `external.value_attached` |
@@ -148,7 +157,7 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 
 **未知值规则（r2）**：某一位依赖的事实为 unknown 时，该位写 0，同时对应的 unk 位写 1；不得把 unknown 当作 false 用在规则基线中。规则基线“没有 caller_identity GUARDS 入边的状态写语句”排除 guard_status 为 unknown 的语句，并报告被排除的数量。封存事实中 order 为 unknown 的语句约 5.6–9.6%，dfg 约 6.6–11.4%，guard 为 12 条（每任务）。
 
-**端点检验（r3，EP4 执行，训练前完成）**：判断一个核心候选位 b 是否只是某个端点的性质。对每种适用关系 r 和每一侧（源侧：每个源节点的 r 出边；目标侧：每个目标节点的 r 入边），合格节点 = 该侧至少有 2 条 r 边、且其中至少一条 b = 1 的节点；恒定节点 = 合格节点中所有 r 边都是 b = 1 的节点。把各关系的合格数与恒定数分别相加（按节点计数合并），得到每侧的恒定比例。某一侧合格节点 ≥ 30 且恒定比例 ≥ 99% 时，b 判定为端点事实，移入上下文组；两侧合格节点都 < 30 时，b 留在核心并标为“未判定”，在报告中列出。阈值 99% 与 30 现在登记，不得根据结果调整。只看“出现 1 时是否恒为 1”，是因为几乎处处为 0 的稀疏位在任何节点上都“恒定”，按 r2 的写法会被全部误判为端点。预计调用位（37–42）与守卫操作数位（49–54）会被移出；守卫种类位（43–48）不一定，因为同一个修饰器内的 `require` 对修饰器内语句是 require、对被修饰函数的语句是 modifier。未知位（68–72）不参加端点检验：每个未知位进入它所限定的位所在的组（限定的位分属两组时两组都含它）。
+**端点检验（r3，EP4 执行，训练前完成）**：判断一个核心候选位 b 是否只是某个端点的性质。对每种适用关系 r 和每一侧（源侧：每个源节点的 r 出边；目标侧：每个目标节点的 r 入边），合格节点 = 该侧至少有 2 条 r 边、且其中至少一条 b = 1 的节点；恒定节点 = 合格节点中所有 r 边都是 b = 1 的节点。把各关系的合格数与恒定数分别相加（按节点计数合并），得到每侧的恒定比例。某一侧合格节点 ≥ 30 且恒定比例 ≥ 99% 时，b 判定为端点事实，移入上下文组；两侧合格节点都 < 30 时，b 留在核心并标为“未判定”，在报告中列出。阈值 99% 与 30 现在登记，不得根据结果调整。只看“出现 1 时是否恒为 1”，是因为几乎处处为 0 的稀疏位在任何节点上都“恒定”，按 r2 的写法会被全部误判为端点。预计调用位（37–42）与守卫操作数位（49–54）会被移出；守卫种类位（43–48）不一定，因为同一个修饰器内的 `require` 对修饰器内语句是 require、对被修饰函数的语句是 modifier。未知位（68–72）不参加端点检验：每个未知位进入它所限定的位所在的组（限定的位分属两组时两组都含它）。在两个节点任务的全部边上都为 0 的位（包括第 15 位）不进入核心（r4）。
 
 `recursive_method_call` 边的全部位为 0；其他每种边只填表中“适用边”列包含它的位，其余为 0。名称常量写成 `EDGE_FEATURE_NAMES`（长度 73）；核心位的索引列表 `core_indices` 由端点检验决定，不写成常量。不允许读取任何标识符拼写来计算任何一位。
 
@@ -311,6 +320,33 @@ Python 3.7.12、PyTorch 1.8.1+cu111、DGL 0.6.1、tree_sitter 0.20.4、RTX 3050 
 - 给出 cf_back 是否启用、第 15 位是否可用、GUARDS 映射率、MOD_APPLY 与 CALL_SITE 的解析率、8G 匿名源码能否经 ProjectionView + Projector 投影到与原名源码相同的图节点（逐文件统计），作为 EP1–EP5 的参数。
 ```
 
+### 4.2b EP0b：修饰器守卫来源与 CALL_SITE 覆盖（只读，r4 新增）
+
+```text
+# EP0b：修饰器守卫来源与 CALL_SITE 覆盖（只读，不写生产代码）
+
+输出追加到 scripts/edge_sem/RECON.md 第 9 节与 scripts/edge_sem/artifacts/ep0b_v1/；只读脚本放 scripts/edge_sem/recon/。沿用 EP0 的输入核验与执行记录方式。
+
+## 1. 修饰器守卫的内层来源
+- 新建 scripts/edge_sem/guard_source.py（这是后续 EP3 要用的模块，本步只实现解析，不建边）：
+  modifier_guard_sources(analyzer, function) -> list[dict]
+  复现 GuardAnalyzer._modifiers 的解析步骤（文件头写明来源 scripts/node_sem/facts_guards.py 第 333–383 行与该文件 SHA256；调用冻结的 _scope、_bindings、_lexical、_require、_guard，不复制它们的实现）。对每个保留下来的修饰器守卫，返回 {"record": 与 _modifiers 相同的记录（不含 _anchor/_auth_declarations）, "invocation": modifier_invocation 节点, "inner_anchor": _lexical 返回记录的 _anchor（修饰器体内的 require 语句或 if 节点）}。
+- 等价测试（两个节点任务全部函数，以及两个合约任务全部函数）：对每个函数，modifier_guard_sources 的记录序列（去掉内部字段后）与 analyzer._modifiers(function)[0] 去掉内部字段后的序列完全相同（顺序、条数、字段）；unresolved 计数相同。任何不一致就停下报告。
+- 映射率：inner_anchor 按 AST 身份精确映射到 HCG 节点的比例（按任务、按修饰器统计）；映射不到的列出类型与原因。
+- 规模：按“内层守卫节点 → 被修饰函数内 for_node 认定的每条语句”统计预计 GUARDS 边数（去重），与 EP0 的非修饰器 GUARDS 边数合并后报告每任务总数和每语句入边数分布。
+
+## 2. CALL_SITE 对 HCG internal_call 的覆盖
+- 对两个节点任务 F3 图中每条 internal_call 边 (f → g)（以及 external_call 边，单列）：判断是否存在 EP0 口径的 CALL_SITE 对 (s → g)，其中 s 是 f 所拥有的语句节点。
+- 未覆盖的 internal_call 边逐条分类，并给出代表性样例（文件、行号、调用表达式文本只写入 artifacts，不进报告正文）：重载、super、修饰器（g 为 modifier_definition 或 f 为 modifier_definition）、库/using、HCG 边找不到对应调用表达式（可能是 HCG 自身按名字连的多余边）、名字对应到多个声明、调用位于状态变量初始化或修饰器调用参数中、其他。
+- 报告覆盖率（覆盖边 / internal_call 边）与每类数量。预先登记：若扣除“HCG 找不到调用表达式”一类后覆盖率仍低于 80%，停下报告，EP2 的 CALL_SITE 设计需要先修改；否则照 EP2 执行，并把缺口写入局限。
+
+## 3. 属性来源规则的可行性（只计数）
+按 r4 的 3.3 表，对两个节点任务统计：value_shape 的声明解析成功率与多声明率；def_kind 各类与无法判断的比例；write_access 各类比例；shape_safe 与 facts_ast.shape 结果不同的类型名（列出全部）。不计算属性向量。
+
+## 验收
+等价测试通过；RECON.md 第 9 节给出三部分数字与结论；未修改任何冻结文件；三套测试通过。
+```
+
 ### 4.3 EP1：关系注册与 materialize（E0）
 
 ```text
@@ -341,7 +377,7 @@ make_edge_model(task, graph_or_path, profile, device, fold, ...)：
   * 非关系参数逐个复制，形状不同就报错；relation_att/msg/pri 按 key_map 逐行复制；无来源的行用 torch.Generator 以 int(sha256(规范键字符串)[:16], 16) 为种子，att、msg 取 U(−b, b)，b = sqrt(6 / ((H + R_anchor)·d_k²))，R_anchor 为锚层的关系数（len(anchor_layer.edge_dict)），用 `torch.rand(shape, generator=g) * 2b − b` 生成（PyTorch 1.8.1 的 xavier_uniform_/uniform_ 不接受 generator）；pri 置 1。不消耗全局 RNG。
   * 复制后断言：每个有来源的行与来源逐位相同；锚模型的全部非关系参数逐位相同。
 - model.edge_profile = profile；model.dfg_profile 的取值按 EP0 第 6 节的结论设定，使 checkpoint 绑定可用。
-- validate_registration(model, ...)：edge_profile 为 G3R 时委托 dfg_v2.model.validate_registration；否则复用其中与剖面无关的检查（复制时写明来源与 SHA），并用 edge_sem.materialize 重新计算期望的规范键与端点逐条比较。
+- validate_registration(model, ...)：edge_profile 为 G3R 时委托 dfg_v2.model.validate_registration；否则复用其中与剖面无关的检查（复制时写明来源与 SHA），并用 edge_sem.materialize 重新计算期望的规范键与端点逐条比较。r4：EP0 已证实 typed 模型在冻结的深度校验下必然失败（dfg_profile=G3R 报 Graph/schema mismatch，G3R-T 报 Unknown DFG v2 profile），所以 EdgeSem 剖面一律不得调用冻结的 runtime_model.validate_registration 或 checkpoint.validate_binding，也不得把 dfg_profile 改成别的字符串去绕过；checkpoint 绑定适配在 EP7 实现。
 
 ## 4. 测试 scripts/edge_sem/tests/test_materialize.py、test_model_equivalence.py
 - 小图：节点类型 X、Y；基础关系 (X,next_line,X)×3、(X,a,Y)×2、(Y,a,X)×1；DFG 关系 (X,DATA_DEF_USE,X)×1。merge 模式与 dfg_v2.model_input.materialize(…, "G3R") 的键和端点逐元素相同；typed 模式下每个 REV_ 关系的边恰好是正向边的反转，正向关系中没有混入反向边。
@@ -386,7 +422,7 @@ fixtures（tests/fixtures/*.sol，自写小合约）：
 # EP3：GUARDS
 
 ## 1. build_f4.py 增加 GUARDS
-- 对每个语句与条件节点，调用 node_sem.facts_guards.GuardAnalyzer(semantics).for_node(ast_node)，逐条取守卫记录的 _anchor（守卫条件的 AST 节点），映射到图节点（守卫条件所在的语句或 if/while 节点）。映射规则：先找 AST 身份完全相同的图节点；没有就找包含该 AST 节点的最小语句节点；都没有就丢弃并按 kind 计数。
+- 对每个语句与条件节点，调用 node_sem.facts_guards.GuardAnalyzer(semantics).for_node(ast_node)。非修饰器守卫：取 _anchor，按 AST 身份精确映射到图节点；映射不到就丢弃并按 kind 计数（不做“最小包含语句”回退）。修饰器守卫（kind = modifier）：不使用其 _anchor（那是 modifier_invocation），改用 EP0b 的 scripts/edge_sem/guard_source.py::modifier_guard_sources 给出的 inner_anchor；同一函数的 for_node 修饰器记录与 modifier_guard_sources 的记录按顺序一一对应，对应失败就停下报告。
 - 建边：守卫节点 → 被保护语句节点，edge_type = GUARDS。修饰器守卫的源节点位于修饰器体内，目标是被修饰函数内的语句，不经过 MOD_APPLY。
 - 同一 (守卫节点, 语句) 只保留一条边；边记录中保留该守卫的 kind、operand_classes、is_sender_guard（供 EP4 计算属性），以及 rule 编号。
 - loop_cond 守卫也建边（覆盖拒绝服务与循环），kind 记为 loop_cond。
@@ -397,7 +433,7 @@ fixtures：
 - require(msg.sender == owner); owner = n; → GUARDS(require 语句 → 赋值)，kind=require，operands 含 caller_identity。
 - if (now > deadline) { x = 1; } → GUARDS(if → x=1)，kind=if_branch，operands 含 block_time。
 - if (!ok) revert(); y = 2; → early_exit 守卫连到 y=2。
-- 修饰器 onlyOwner 内 require(msg.sender == owner); _; 应用于函数 f → 修饰器内 require 语句 → f 内每条语句各一条 GUARDS，kind=modifier。
+- 修饰器 onlyOwner 内 require(msg.sender == owner); _; 应用于函数 f → 修饰器内 require 语句节点（不是 f 头部的 modifier_invocation）→ f 内每条语句各一条 GUARDS，kind=modifier。
 - 内部检查函数 _check() 中的 require 被调用 → kind=internal_check 的记录能映射时建边；映射不到时计数。
 - require(a + b >= a) → operands 不含 caller_identity。
 - for (i = 0; i < arr.length; i++) { arr[i].transfer(1); } → loop_cond 守卫连到循环体语句。
@@ -412,7 +448,7 @@ fixtures：
 # EP4：边属性（uint8[73]）与端点检验
 
 ## 1. scripts/edge_sem/attrs.py
-- EDGE_FEATURE_NAMES（长度 73，顺序与 PROMPTS.md 3.3 表完全一致）；CORE_CANDIDATES（0–54 与 68–72）；CONTEXT（55–67）；GROUPS（名称 → 索引列表）；ONE_HOT_GROUPS（var_kind、value_shape、def_kind、write_shape、write_op 为单热：适用时恰好一个 1，不适用时全 0）。
+- EDGE_FEATURE_NAMES（长度 73，顺序与 PROMPTS.md 3.3 表完全一致）；CORE_CANDIDATES（0–14、16–54 与 68–72；第 15 位停用，r4）；CONTEXT（55–67）；GROUPS（名称 → 索引列表）；ONE_HOT_GROUPS（var_kind、value_shape、def_kind、write_access、write_op 为单热：适用时恰好一个 1，不适用时全 0）。
 - compute_attributes(context, f3_graph, f4_edges, facts) -> {edge_key: uint8[73]}
   - edge_key = f"{source_file}::{src}->{dst}::{edge_type}::{k}"，k 为同一对节点同一类型的多重边序号（按 nx 的 key 排序编号）。
   - facts 来自 node_sem.facts.extract(task_id)（原名视图）；守卫字段来自 EP3 的边记录。
@@ -494,6 +530,7 @@ fixtures：
 
 ## 1. scripts/edge_sem/execution.py
 参照 scripts/node_sem/execution.py 改写（文件头写明来源与 SHA）：plan/seal/authorization、construct（调用 edge_sem.model.make_edge_model）、binding（新增 edge_profile、f4 manifest SHA、attrs manifest SHA、core_indices、P2 标识）、fit_one、verify_one、controller。训练函数 benchmark_v2.trainer.fit 原样调用；P2 通过配置实现：patience = maximum_training_epochs + 1（StopMonitor 在 patience ≥ 1 时接受任意值，并保存每一个严格的新最小值，所以不会早停，best 仍按 inner_val loss 选择）；不得复制或修改 trainer。
+- checkpoint 绑定适配（r4，EP0 D-02）：新建 scripts/edge_sem/checkpoint.py，复制 benchmark_v2/checkpoint.py::validate_binding 及其依赖的检查（文件头写明来源与 SHA），把其中对冻结 runtime_model.validate_registration 的调用改为 edge_sem.model.validate_registration，并在 binding 中加入 edge_profile、key_map 摘要、f4/attrs manifest SHA 与 core_indices；其余比较（task、reducer、layer_impl、canonical、辅助节点、initial SHA、配置、graph/folds/labels/label_view/feature_view/feature_npz 引用）一项不少。测试：G3R 剖面下，新函数对同一 checkpoint 的判定与冻结函数完全相同（接受与拒绝各构造一例）；G3R-T 与 G4R 剖面能通过自身校验，篡改任一绑定字段都被拒绝。
 - 节点特征：N-anon-s 的 S0（8H 匿名 token NPZ），装配方式与 8H 相同。
 - 运行版本：只绑定 scripts/edge_sem 下训练路径上的模块清单（照 NS-P1b 的做法），只读核验已完成 fit 时比较封存记录，不比较当前代码。
 
