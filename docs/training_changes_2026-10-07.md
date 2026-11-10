@@ -9803,3 +9803,41 @@ RECON.md、recon.json、独立ep0_v1产物与三文档一并本地提交（EP0�
 最终交付补充：recon/verify.py独立核对冻结源码、输入引用、旧文档字节前缀、CPU/回归收据和UTF-8。PROMPTS.md工作树CRLF与HEAD的LF规范化后正文完全相同，保留现有字节及inputs.json所记SHA，不将纯换行差异提交。
 
 最终检查记录：第一次git diff --check将PROMPTS既有CRLF当作行尾空白而退出；已保留该日志。仅在检查命令中声明cr-at-eol，继续检查实际行尾空白，不改文件；核验正文等价和原始SHA仍保持。
+
+
+## 100. 2026-11-10 EdgeSem EP0b来源等价与调用覆盖（修改 AI：Codex）
+
+### 版本、授权和范围
+
+用户要求完成EP0b。先读PROMPTS r4、共享上下文与各项要求；输入edge-sem@0ddbb07e，沿用已批准的git pull --ff-only origin edge-sem，Windows Git经既有代理返回Already up to date。未改主视图D1、训练协议D2或D3状态。独立ep0b_v1排他写入；旧EP0、DFG、NodeSem、作者代码与封存输入保留，RECON只追加第9节。无HGT拟合、GPU、历史权重加载、新图或属性向量。
+
+### 守卫来源实现和验收口径
+
+guard_source.py头部注明facts_guards.py第333–383行及SHA bb2bad3e65aab2e35a88955b7cc33d53ec324471156cca2f6987b377d24fbda5。复制仅_modifiers控制步骤，调用冻结_scope、_bindings、_lexical、_require、_guard及children/unwrap/walk。保留规则1/2/3并按原规则构造5/5p；record剔除内部字段，额外返回invocation和inner_anchor。required list接口不携带全局计数，另用inspect_modifier_guards返回unresolved/audit，不写原analyzer.audit或modifier cache。无语义替代设计。
+
+逐函数public记录的顺序、字段、条数、unresolved与audit增量比较：重入节点2283、访问控制节点2206、重入合约4035、访问控制合约3761，共12285，全部相等。每个for_node的modifier子序列也按顺序对齐。按模板取内层anchor后全部映射：616/715/1346/1398条记录；去重modifier正向边616/715/1344/1397，与非modifier6305/3787/8828/6701合并为6921/4502/10172/8098。按modifier独立anchor/应用记录/预计边数及每语句入边分布保存，节点最大13条。多placeholder、缺失绑定及参数不符继续原有回退。
+
+### CALL_SITE诊断、修订和门槛
+
+沿用EP0的STATEMENTS、owned_nodes和classify/resolve_callable，不扩展内部调用集合。182/188个唯一绑定表达式得到180/186个语句级边，和EP0相同。每条HCG多重边(f,g,key)按精确owner及callee图身份核对，不能按同名猜匹配。
+
+首轮gap诊断直接读取callee名字；抽查源码发现冻结grammar将取反/组合上下文包进callee，部分真实表达式被误记为无表达式。保留call_diagnostic_v1.py及calls_*.json；仅诊断定位改用冻结sem._postfix，新测试通过后生成calls_refined_*。重入66条、访问控制55条（含external_call）由无表达式改为其他，其中internal_call30/31条；覆盖布尔、EP0候选和门槛完全不变。旧/新源码SHA与逐条变化封存于revisions和call_category_changes.json。这是测量脚本纠错，不是生产绑定扩展，没有重跑任何模型。
+
+最终重入internal_call464条覆盖178（38.36%）；缺口重载18、super2、modifier10、库/using38、无表达式76、多个同名声明75、其他67。访问控制591覆盖197（33.33%）；对应缺口18/2/8/27/76/150/113。状态初始化与modifier参数类别本批均0。只扣除无表达式后178/388=45.88%、197/515=38.25%，两者均低于预登记80%。外部调用单列7/707、6/688；主要超出内部调用子集，不作为内部解析准确率。
+
+函数级去重对为396/530，覆盖146/164，与语句级180/186分母不同；并行边和多语句调用同一函数会改变计数。同名候选仅供诊断，成员调用不一定指向HCG同名目标，这些不确定项仍在分母。无表达式表示AST/冻结后缀定位未找到对应callee，不宣称证明作者HCG错误。代表性源码、文件和行号只在artifacts；raw byte anchor/source SHA可复核，保存的HCG行坐标与实际表达式行坐标明确区分。
+
+### r4属性可行性与限制
+
+DATA_DEF_USE通过FileCFG.symbol按完整身份查冻结符号表，不截取symbol字符串猜变量。随后按r4使用语句匹配同名标识符并root_binding；L2由封存证据取得变量名，写边用源语句。多声明或任一未解析匹配保留unknown；本次多声明0。
+按变量证据的解析成功数：重入DATA_DEF_USE4150/4200、READS_STATE3042/3187、WRITES_STATE2142/2254；访问控制5118/5168、1105/1185、687/767，比例89.57%–99.03%。分母是边变量证据，不是单纯图边；别名/无同名出现或绑定类型未知不猜测。成功率不等于完整别名/类型系统正确性证明。
+
+def_kind（decl_or_param/assign/compound/incdec_or_delete/unknown）重入3770/263/73/47/47，访问控制4857/200/7/55/49；唯一“定义节点+变量”另报。write_access按L2 occurrence精确AST：plain/indexed/member重入1036/972/246，访问控制352/277/138，other/unknown均0。write_op assign/increase/decrease/other为1783/236/209/26、680/36/36/15；x=x+1仍为assign，其他复合运算不猜增减。
+
+shape_safe仅在侦察模块实现r4的精确address/address payable判断，mapping/array优先级保留。addressBook等反例测试通过，真实两任务与旧shape不同的类型名集合为空，不宣称本批有类型恢复收益。没有修改facts_ast或生成73维向量。
+
+### 回归、记录及停止位置
+
+新增测试覆盖继承、参数、早退、无/多placeholder、constant、类型、赋值语义、调用归属、重载和callee后缀；最终EdgeSem34、NodeSem1353、DFG v2 2653，共4040通过。execution保存命令/耗时/退出码/log SHA；verification.json验冻结文件、输入、_code_refs、8H.load、EP0产物及四文档旧字节前缀，doc_check确认UTF-8。
+
+EP0b测量交付完成，但CALL_SITE门槛失败，停止后续调用边落地，不自动进入EP1/EP2或训练。建议下一步先审查范围排除、可绑定但AST形状不支持的调用与HCG对应争议，再由用户确定EP2修改；本轮只记录，不实施、不调整80%。最终实验会在显存充足服务器另建批次，本机RTX3050 4GiB只用于开发，未部署服务器。本轮代码/证据与三份记录文档本地提交，不自动push。

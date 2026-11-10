@@ -94,3 +94,85 @@ C不包含尚无法映射的modifier守卫、未来边属性激活、backward或
 开发接入错误均保留：首次STATEMENTS导入位置、run包装器的--分隔符、辅助节点空dfg组、mando缺少psutil（改用Linux/proc，无依赖安装）、split含元数据不能当三路列表。只修正新侦察脚本，无生产训练失败/自动重试；成功探针不重复执行。
 验证结果与冻结源码/文档前缀验收见artifacts/ep0_v1/verification.json；脚本与报告在本地提交，不自动推送。
 最终实验将在显存充足服务器上另建批次；RTX3050 4GiB仅是本机开发限制。服务器尚未在本轮部署/验收，不混合本机与服务器结果。
+
+
+## 9. EP0b：修饰器来源与调用覆盖复核（Codex，2026-11-10）
+
+依据PROMPTS r4，输入HEAD 0ddbb07e。旧EP0输入与产物保留，新增ep0b_v1。最终口径是summary.json与calls_refined_*；首轮calls_*和修订源码均保留。只解析和计数，不建图、不训练。
+
+### 9.1 修饰器内层来源
+
+guard_source.py复现冻结_modifiers的绑定/过滤步骤，调用_scope/_bindings/_lexical/_require/_guard。所需list接口返回record、invocation、inner_anchor；辅助inspect_modifier_guards返回unresolved/audit供验收，不修改冻结audit或modifier cache。文件头注明来源行范围与SHA。
+
+四任务共12285个函数实例（含无体声明）逐函数记录序列、顺序、unresolved与audit增量完全一致。按for_node保护语句扩展：
+
+|任务|函数实例|modifier记录映射|去重modifier边|非modifier边|合计正向GUARDS|含REV预计|
+|---|---:|---:|---:|---:|---:|---:|
+|reentrancy_node|2283|616/616|616|6305|6921|13842|
+|access_control_node|2206|715/715|715|3787|4502|9004|
+|reentrancy_contract|4035|1346/1346|1344|8828|10172|20344|
+|access_control_contract|3761|1398/1398|1397|6701|8098|16196|
+
+inner_anchor映射率均100%，无映射失败。按修饰器独立anchor、应用记录和预计边数见modifier_mapping_summary.json；每语句入边分布（含0）见summary.json.guards，两节点任务最多13条。记录数与去重边数分开；原多placeholder、缺失绑定、参数不符等仍回退，不扩大语义覆盖。
+
+### 9.2 CALL_SITE覆盖与停止门槛
+
+逐条核对HCG多重边(f,g,key)，仅当存在EP0原口径的(s→g)且s精确归f，才判覆盖。函数级多重边、去重函数对、调用表达式与语句级边的数量不能直接相减。
+
+|任务|internal_call边|覆盖|原覆盖率|无表达式排除|调整后覆盖率|80%门槛|
+|---|---:|---:|---:|---:|---:|---|
+|reentrancy_node|464|178|38.36%|76|178/388 = 45.88%|不通过|
+|access_control_node|591|197|33.33%|76|197/515 = 38.25%|不通过|
+
+未覆盖internal_call逐类计数；代表性文件、行号、表达式仅在artifacts，不进入正文：
+
+|类别|重入节点|访问控制节点|
+|---|---:|---:|
+|重载|18|18|
+|super|2|2|
+|modifier端点|10|8|
+|库/using|38|27|
+|未找到对应表达式|76|76|
+|同名候选对应多个声明|75|150|
+|状态变量初始化|0|0|
+|modifier调用参数|0|0|
+|其他|67|113|
+
+同名表达式仅定位缺口，不证明绑定到HCG目标；尤其外部成员调用的同名也可能属于其他对象。不确定项保留分母。冻结AST会把一元/二元上下文包进callee；首轮误列无表达式的重入66条、访问控制55条（含external_call）经冻结_postfix定位后改列其他，其中internal_call为30/31条。覆盖布尔与EP0候选完全不变，修订SHA和逐条变化见revisions与call_category_changes.json。
+
+external_call仅单列：重入7/707、访问控制6/688对应EP0候选，其余主要为库或外部成员调用，超出当前内部调用子集，不作为内部调用门槛。internal_call去重函数对为396/530，覆盖146/164；EP0语句级去重边180/186。并行边与多个语句调用同一函数导致计数不同。
+
+**CALL_SITE预登记门槛未通过，停下报告，不自动进入EP1/EP2。** 这衡量当前受限子集与作者HCG的对应覆盖，不是真实内部调用召回率。不能删掉库、super或unknown凑到80%；无表达式也不代表已证明作者图错误。建议先审查范围排除、可唯一绑定但AST形状不支持的调用，以及HCG对应争议，再决定EP2修订；本轮只提出，不实施，不改门槛。
+
+### 9.3 r4属性来源可行性
+
+分母是已有数据边的变量证据，一条边可有多条证据。L1变量由完整symbol身份查冻结声明表取得，再按r4在目标语句匹配标识符并root_binding；L2用封存变量名，WRITES_STATE在源语句解析。缺失或任一未解析匹配保持unknown，不猜类型。
+
+|任务|关系|类型可解析|成功率|多声明|
+|---|---|---:|---:|---:|
+|reentrancy_node|DATA_DEF_USE|4150/4200|98.81%|0|
+|reentrancy_node|READS_STATE|3042/3187|95.45%|0|
+|reentrancy_node|WRITES_STATE|2142/2254|95.03%|0|
+|access_control_node|DATA_DEF_USE|5118/5168|99.03%|0|
+|access_control_node|READS_STATE|1105/1185|93.25%|0|
+|access_control_node|WRITES_STATE|687/767|89.57%|0|
+
+|任务|decl_or_param|assign|compound|incdec_or_delete|unknown|
+|---|---:|---:|---:|---:|---:|
+|reentrancy_node|3770|263|73|47|47|
+|access_control_node|4857|200|7|55|49|
+
+def_kind未知为47/4200（1.12%）、49/5168（0.95%）；唯一“定义节点+变量”另报，避免高扇出重复计数。
+
+|任务|write_access plain|indexed|member|other/unknown|
+|---|---:|---:|---:|---:|
+|reentrancy_node|1036|972|246|0|
+|access_control_node|352|277|138|0|
+
+写操作按token：重入assign/increase/decrease/other=1783/236/209/26，访问控制680/36/36/15；x = x + 1保持assign，其他复合算符不猜increase/decrease。真实两任务shape_safe差异类型集合均为空；addressBook等反例测试通过，本批没有实际类型分类变化。全部类型名及逐条证据见attributes_*；没有生成73维向量。
+
+### 9.4 验收与边界
+
+CPU测试EdgeSem34、NodeSem1353、DFG v2 2653，共4040通过。实际命令、环境、耗时、退出码与日志SHA见execution。verification.json核对冻结源码、_code_refs、8H归档加载、输入/EP0产物和四文档旧字节前缀。没有HGT训练、GPU运行、历史模型权重加载、新图或属性向量。
+
+最终实验在显存充足服务器另建批次，RTX3050 4GiB只是本机开发条件；本轮未部署/验收服务器。主视图D1、P2等决定未被本次只读任务批准。
