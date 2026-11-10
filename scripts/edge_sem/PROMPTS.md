@@ -1,7 +1,20 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r1（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r2（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r2 相对 r1 的修改**（独立复核“Mando-LLM node-augmentation scheme”对话最后一条消息提出的 11 项问题；逐项对照代码或封存数据核实后修改；其中第 6、9 项经实测不成立或被高估，只做记录或缩小范围）：
+1. 共享参数复制：`copy_common_layer_parameters` 要求锚模型的全部关系键都在新模型中，typed 模式下被反射出的 `(B, e, A)` 键会消失并报错；它还把新关系行填 0（`relation_pri` 填 1），与“按名字种子初始化”矛盾。改为 edge_sem 自己的映射复制函数（EP1）。
+2. 稀疏关系共享从未接入 `HGTLayer`（每个关系键一行参数），本地阶段取消，`min_edges = 0`，只报告计数。
+3. 名字不变性闸门改为在图节点空间比较：`anon_binding.replace_spans` 把名字换成长度不同的 `vN`，字节锚点必然偏移。
+4. 统计检验更正为 `experiment/stats.py` 实际使用的双侧 zsplit Wilcoxon；每个联合假设的 p 值取两项中的较大者，再对 H1、H2 做 Holm。
+5. H1 改为 G4R 对 G3R-T（而不是 G3R），去掉方向修正的混杂；G3R-A 改为 G3R-TA（建在 G3R-T 上）。
+6. GUARDS 扇出：封存事实实测每条语句约 1.0 条守卫记录（reentrancy_node 6956/6635，access_control_node 4537/4664，最多 13），不构成问题；保留“守卫 → 全部被保护语句”，因为只连敏感语句会漏掉受算术边界检查保护的语句。
+7. 增加 5 个未知位（unk_cfg、unk_dfg、unk_order、unk_state、unk_guard）：封存事实中 order 为 unknown 的语句占 5.6–9.6%，dfg 占 6.6–11.4%；规则基线排除 guard_status 为 unknown 的语句并报告数量。
+8. 核心位由 EP4 的端点检验在训练前确定：对每个源节点的全部出边（或每个目标节点的全部入边）恒定的位视为端点事实，移入上下文组。预计调用位与被调函数位会移出。
+9. P2 的理由只保留“完成退火阶段”：按本协议计算，50 步的累积 Adam 步长约 0.26，现行停止点为 0.11–0.24，P2 不会显著改变零初始化参数能移动的幅度，也不是“零初始化必然无效”的补救。EP7 增加一折试点，报告 u、U 的范数。
+10. D1–D3 在 EP7 之前必须有用户确认记录；未确认不得开始训练。
+11. 措辞修正（recursive_method_call 一句）；u 按关系键各一行。
 
 使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
 
@@ -37,7 +50,7 @@ benchmark v2 训练使用的是作者预编译图（DFG v2 的 F0，F3 = F0 + DF
 
 ### 1.4 训练协议（8H）
 
-Adam + OneCycle，`schedule_epochs`=50，`maximum_training_epochs`=50，patience 7，delta 0.001，hidden 128，2 层，8 头，seed=1，节点任务 10 折、合约任务 5 折，每个 epoch 一次全图更新，按 inner_val loss 选 best。早停使节点任务停在第 18–37 轮，退火阶段基本不执行。
+Adam + OneCycle，`schedule_epochs`=50，`maximum_training_epochs`=50，initial_lr 0.0005，max_lr 0.01，div_factor 20，final_div_factor 1，patience 7，delta 0.001，hidden 128，2 层，8 头，seed=1，节点任务 10 折、合约任务 5 折，每个 epoch 一次全图更新，按 inner_val loss 选 best（`experiments/checkpoint.py::StopMonitor` 保存每一个严格的新最小值，patience 大于 50 即等于不早停）。早停使节点任务停在第 18–37 轮，退火阶段基本不执行。统计检验：`experiment/stats.py` 对节点任务用双侧、zsplit、不校正连续性的 Wilcoxon（mode=auto）。
 
 ### 1.5 可复用的语义事实（NodeSem）
 
@@ -57,9 +70,9 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 
 | 编号 | 决策 | 状态 |
 |---|---|---|
-| D1 | 主终点视图：N-anon-s（与 DFG 8H 一致），原名视图仅在服务器阶段作描述性次要终点 | 建议，待用户确认；未确认前按建议执行 |
-| D2 | 训练协议 P2：跑满 50 轮，保留 inner_val loss 最好的 checkpoint；其他配置与 8H 相同；G3R 基线在 P2 下重跑，不复用 8H 结果 | 建议，待用户确认 |
-| D3 | 通用性规则：EP9 结束后冻结关系列表、属性布局和超参数，原样用于七类，不做按类别的特征选择或调参 | 建议，待用户确认 |
+| D1 | 主终点视图：N-anon-s（与 DFG 8H 一致），原名视图仅在服务器阶段作描述性次要终点。注意：这与 NodeSem 阶段用户选定的“原名为主视图”不同 | 建议；EP7 之前必须有用户确认记录，未确认不得训练 |
+| D2 | 训练协议 P2：跑满 50 轮，保留 inner_val loss 最好的 checkpoint；其他配置与 8H 相同；G3R 基线在 P2 下重跑，不复用 8H 结果。理由只是完成退火阶段、不在学习率峰值附近选模型 | 建议；EP7 之前必须有用户确认记录 |
+| D3 | 通用性规则：EP9 结束后冻结关系列表、属性布局和超参数，原样用于七类，不做按类别的特征选择或调参 | 建议；EP7 之前必须有用户确认记录 |
 | D4 | 节点特征：主比较用 S0（8H 的匿名 token 特征），NodeSem 特征不进入本阶段；服务器阶段加 S2 臂 | 已定 |
 | D5 | 新关系只有 MOD_APPLY、CALL_SITE、GUARDS 三种；不加“外部调用后写状态”这类单一漏洞规则边 | 已定 |
 | D6 | E3 两项（注意力偏置、加性边消息）全部零初始化；不使用乘性 FiLM | 已定 |
@@ -72,7 +85,8 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 
 - **typed 反向**：每个基础关系 `(A, e, B)` 额外生成 `(B, "REV_" + e, A)`，正反向永不合并。模式 `merge` 调用作者 `reflect_graph`，必须与 G3R 逐元素一致；模式 `typed` 是新行为。DFG v2 的四种关系及其 `REV_*` 保持 DFG v2 的处理。
 - **cf_back（可选）**：在 DFG v2 语义 CFG 上用支配关系识别循环回边（目标支配源），把对应的 `next_line` 改为 `cf_back`；不得用行号。EP0 统计数量，少于 50 条/任务则不启用，记录理由。
-- **稀疏关系共享**：反射后边数少于 `min_edges`（EP0 定值，训练前登记）的关系，按 (基础边类型, 是否反向) 共享参数组。
+- **参数初始化（r2）**：`HGTLayer` 为每个关系键分配一行 `relation_att`/`relation_msg`/`relation_pri`。typed 模型的参数由锚模型（G3R）映射得到：typed 键 `(A, e, B)` 与 `(B, REV_e, A)` 都从 G3R 中承载这些边的合并键复制（同类型两端时是 `(A, e, A)`，不同类型时分别是 `(A, e, B)` 与 `(B, e, A)`）；DFG v2 关系逐键复制；只有 G3R 中没有对应来源的新关系（E1 及其 REV_）才按 sha256(规范键字符串) 派生的种子做与 `HGTLayer` 相同的初始化（att、msg 用 xavier_uniform，pri 为 1）。
+- **稀疏关系共享**：本地阶段不启用（`min_edges = 0`，每个关系键一行参数）；EP0 报告每关系边数，服务器阶段若需要再单独设计并登记。
 
 ### 3.2 E1：三种新关系（各带 REV_）
 
@@ -80,13 +94,13 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 |---|---|---|
 | MOD_APPLY | 函数/构造函数定义节点 → 被应用的修饰器定义节点 | 函数头 `modifier_invocation`，按 `GuardAnalyzer._modifiers` 同样的规则解析（含继承）；解析失败不建边并计数 |
 | CALL_SITE | 含内部调用的语句节点 → 被调函数定义节点 | `AstSemantics` 的调用解析；只连到同一文件内能唯一解析的 function/modifier/constructor 定义；外部合约调用、低级调用、库调用不建边 |
-| GUARDS | 守卫条件所在节点 → 它保护的语句节点 | 进程内 `GuardAnalyzer.for_node`，把每条守卫记录的 `_anchor` 经 Projector/AST 身份映射到图节点；修饰器守卫直接连到被修饰函数内的语句；映射不到的守卫丢弃并计数 |
+| GUARDS | 守卫条件所在节点 → 它保护的语句节点 | 进程内 `GuardAnalyzer.for_node`，把每条守卫记录的 `_anchor` 经 Projector/AST 身份映射到图节点；修饰器守卫直接连到被修饰函数内的语句；映射不到的守卫丢弃并计数。目标包括全部被保护语句（封存事实中每条语句约 1.0 条守卫记录，最多 13），不只连状态写或外部调用 |
 
 自环、重复边：同一 (源, 目标, 关系) 只保留一条，计数。
 
-### 3.3 E2：边属性（uint8[68]）
+### 3.3 E2：边属性（uint8[73]）
 
-准入规则：(1) 在同一关系内会变化；(2) 描述两端的关系而不是单个端点；(3) HGT 两层内难以从拓扑恢复。满足三条的进核心（0–54），只满足 (1) 的端点事实进节点上下文组（55–67），只在剖面 G4R-AC 中启用。反向边复制正向边的向量。
+准入规则：(1) 在同一关系内会变化；(2) 描述两端的关系而不是单个端点；(3) HGT 两层内难以从拓扑恢复。0–54 与 68–72 是**核心候选**，55–67 是节点上下文组（只在剖面 G4R-AC 中启用）。核心候选是否真正进入核心，由 EP4 的端点检验在任何训练之前决定（见下文），结果写入 attrs manifest 的 `core_indices` 并在 EP9 冻结。反向边复制正向边的向量。
 
 | 索引 | 名称 | 适用边 | 来源 |
 |---|---|---|---|
@@ -121,15 +135,24 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 | 62 | ctx_fn_externally_visible | 全部 | 目标节点 `function_ctx.visibility` ∈ {public, external, default} |
 | 63 | ctx_call_in_loop | 全部 | 目标节点 `order.ext_call_in_loop` |
 | 64–67 | env_kind {caller_identity, value, block_time_number, blockhash} | ENV_FLOW | env_source 节点的 `code` |
+| 68 | unk_cfg | 用到支配、后支配或可达性的边 | 所在函数不在语义 CFG 覆盖范围内，或端点映射不到语义 CFG |
+| 69 | unk_dfg | 数据边 | 任一端点 `dfg.status` = unknown |
+| 70 | unk_order | 用到 order 字段的位所在的边 | 相关端点 `order.status` = unknown |
+| 71 | unk_state | WRITES_STATE、READS_STATE | 相关端点 `state.status` = unknown |
+| 72 | unk_guard | GUARDS、MOD_APPLY，以及所有以 guard_status 为 unknown 的语句为目标的边 | `guard_status` = unknown |
 
-`recursive_method_call` 与 `end_if`、`first_next_line` 以外不适用的组全部置 0。名称常量写成 `EDGE_FEATURE_NAMES`（长度 68），核心长度 `CORE_DIM = 55`。不允许读取任何标识符拼写来计算任何一位。
+**未知值规则（r2）**：某一位依赖的事实为 unknown 时，该位写 0，同时对应的 unk 位写 1；不得把 unknown 当作 false 用在规则基线中。规则基线“没有 caller_identity GUARDS 入边的状态写语句”排除 guard_status 为 unknown 的语句，并报告被排除的数量。封存事实中 order 为 unknown 的语句约 5.6–9.6%，dfg 约 6.6–11.4%，guard 为 12 条（每任务）。
+
+**端点检验（r2，EP4 执行，训练前完成）**：对每个核心候选位 b 和每种关系，计算“对每个源节点的全部出边取值恒定”的源节点比例与“对每个目标节点的全部入边取值恒定”的目标节点比例（只统计至少有 2 条该关系边的节点）。任一比例 ≥ 99% 的位判定为端点事实，从核心移入上下文组。阈值 99% 现在登记，不得根据结果调整。预计调用位（37–42）与守卫操作数位（49–54）会被移出；守卫种类位（43–48）不一定，因为同一个修饰器内的 `require` 对修饰器内语句是 require、对被修饰函数的语句是 modifier。未知位（68–72）不参加端点检验：每个未知位进入它所限定的位所在的组（限定的位分属两组时两组都含它）。
+
+`recursive_method_call` 边的全部位为 0；其他每种边只填表中“适用边”列包含它的位，其余为 0。名称常量写成 `EDGE_FEATURE_NAMES`（长度 73）；核心位的索引列表 `core_indices` 由端点检验决定，不写成常量。不允许读取任何标识符拼写来计算任何一位。
 
 ### 3.4 E3：边感知层
 
 `EdgeAwareHGTLayer(HGTLayerSharedProjection)`：文件头写明来源 `scripts/DFG/dfg_v2/hgt_layer.py` 与 `sco_models/model_hgt.py` 的 SHA256，并在导入时核对。
 
-- 共享编码器（模型级一个，各层共用，每次前向每个关系计算一次）：`φ_e = W2·GELU(W1·a_e)`，a_e 为 float（uint8 转换），输入维度 = CORE_DIM（G4R-AC 时 68），隐层 32，输出 16，dropout 0.1。
-- 每层每个关系 r：注意力 `s̃_e = s_e + u_rᵀ φ_e`（u_r：16×heads），在 `edge_softmax` 之前加；消息 `m_e = α̃_e · (v_src W_r^MSG + U_{f(r)} φ_e)`，U 按关系族共享（族：control、call、data、guard、structure），16 → heads×d_k。
+- 共享编码器（模型级一个，各层共用，每次前向每个关系计算一次）：`φ_e = W2·GELU(W1·a_e)`，a_e 为 float（uint8 转换），只取 `core_indices`（G4R-AC 时再加上下文组），隐层 32，输出 16，dropout 0.1。
+- 每层每个关系 r：注意力 `s̃_e = s_e + u_rᵀ φ_e`（u_r：16×heads，每个关系键一行，不共享），在 `edge_softmax` 之前加；消息 `m_e = α̃_e · (v_src W_r^MSG + U_{f(r)} φ_e)`，U 按关系族共享（族：control、call、data、guard、structure），16 → heads×d_k。
 - u_r、U 全部零初始化；W1、W2 用默认初始化，但在零初始化下不影响输出。
 - 实现：把原来的 `fn.u_mul_e('v_%d', 't', 'm')` 换成 `apply_edges` 逐边算 `m`，再 `multi_update_all({etype: (fn.copy_e('m','m'), fn.sum('m','t'))}, cross_reducer='mean')`。共享投影、残差、dropout、LayerNorm 与父类逐行相同。
 - 闸门：关闭边特征时必须走父类 forward（逐位相同）；开启且处于初始化状态时，输出与父类最大绝对差 ≤ 1e-6。
@@ -145,22 +168,23 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 | G4R-A | G4R + E2 核心 + E3 |
 | G4R-Aπ | G4R-A，属性向量在同一关系的边之间随机置换（种子固定） |
 | G4R-AC | G4R-A + 节点上下文组（服务器阶段） |
-| G3R-A | G3R + E2 核心 + E3（只用已有关系） |
+| G3R-TA | G3R-T + E2 核心 + E3（只用已有关系，建在 typed 方向之上） |
 
 ### 3.6 实验与统计
 
 | 阶段 | 地点 | 剖面 | 任务 | fit 数 |
 |---|---|---|---|---:|
 | E-A | 本机 | G3R、G3R-T、G4R、G4R-P | reentrancy_node、access_control_node | 80 |
-| E-B | 本机 | G4R-A、G4R-Aπ、G3R-A | 同上 | 60 |
+| E-B | 本机 | G4R-A、G4R-Aπ、G3R-TA | 同上 | 60 |
 | E-C0 | 服务器 | 数据移植（见 1.6） | 五类 | 0 |
 | E-C | 服务器 | G3R、G3R-T、G4R、G4R-A、两种安慰剂；S0 与 S2 | 七类，节点与合约，5 个种子 | E-B 后定 |
 | E-D | 服务器 | G4R−r、G4R-A−g、G4R-AC、门控与解释 | 七类 | E-C 后定 |
 
-主假设（reentrancy_node，L-audit，best，BF1，N-anon-s；逐折配对，沿用 `experiment/stats.py` 的检验与 8H 的单侧精确 Wilcoxon，H1/H2 两项 Holm 校正）：
-- H1：G4R > G3R，且 G4R > G4R-P 时才成立。
-- H2：G4R-A > G4R，且 G4R-A > G4R-Aπ 时才成立。
-- G3R-T − G3R 为次要对比，作为对基础模型的修正报告。
+主假设（reentrancy_node，L-audit，best，BF1，N-anon-s；逐折配对，使用 `experiment/stats.py` 现有的双侧、zsplit Wilcoxon，与 8H 相同）：
+- H1（新关系）：G4R − G3R-T 与 G4R − G4R-P 两项的均值差都为正。H1 的 p 值取两项检验 p 值中的较大者。
+- H2（边属性）：G4R-A − G4R 与 G4R-A − G4R-Aπ 两项的均值差都为正。H2 的 p 值取两项中的较大者。
+- 对 H1、H2 两个 p 值做 Holm 校正（α = 0.05）。
+- G3R-T − G3R（方向修正）与 G3R-TA − G3R-T（只加属性）为次要对比，作为描述报告。
 
 必报（描述性）：access_control_node 结果；两类任务的非 SolidiFI 正例逐节点表（TP/FP/FN）；scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/persistent_cases.json 中的持续漏报节点逐案例表（涉及修饰器、语句级调用或无保护状态写的案例单独标出）；规则基线（“没有任何 caller_identity GUARDS 入边的状态写语句”；“带 use_path_crosses_ext_call 的边指向状态写”）；每关系边数；峰值显存；每 fit 时间；E3 的 u_r、U 训练后范数。
 
@@ -251,7 +275,7 @@ Python 3.7.12、PyTorch 1.8.1+cu111、DGL 0.6.1、tree_sitter 0.20.4、RTX 3050 
 ## 2. 基础边与方向
 - 每个任务 F3 图的规范关系 (源类型, 边类型, 目标类型) 及边数（反射前）。
 - 用 reflect_graph 反射后：每个关系的边数；其中“同类型两端合并”的关系与“反向键与已有正向键合并”的关系，各列出数量与边数。
-- typed 模式下的关系总数与每关系边数分布；给出 min_edges 的建议值（使不超过 10% 的关系被共享）及理由。
+- typed 模式下的关系总数与每关系边数分布（边数 < 20 的关系单列）。本地阶段不做稀疏共享，只报告。
 - 每层 HGT 新增参数量（typed 相对 merge）。
 
 ## 3. 循环与支配
@@ -279,7 +303,7 @@ Python 3.7.12、PyTorch 1.8.1+cu111、DGL 0.6.1、tree_sitter 0.20.4、RTX 3050 
 
 ## 7. 结论
 - 列出与本文第 1–3 节不一致之处；每一处说明是否影响方案。影响方案的，停下报告。
-- 给出 min_edges、cf_back 是否启用、第 15 位是否可用、GUARDS 映射率、MOD_APPLY 与 CALL_SITE 的解析率，作为 EP1–EP4 的参数。
+- 给出 cf_back 是否启用、第 15 位是否可用、GUARDS 映射率、MOD_APPLY 与 CALL_SITE 的解析率、8G 匿名源码能否经 ProjectionView + Projector 投影到与原名源码相同的图节点（逐文件统计），作为 EP1–EP5 的参数。
 ```
 
 ### 4.3 EP1：关系注册与 materialize（E0）
@@ -291,7 +315,7 @@ Python 3.7.12、PyTorch 1.8.1+cu111、DGL 0.6.1、tree_sitter 0.20.4、RTX 3050 
 - VERSION = "edgesem-v1"
 - NEW_RELATIONS = ("MOD_APPLY", "CALL_SITE", "GUARDS")；REVERSE_PREFIX = "REV_"
 - RELATION_FAMILY：给出每个基础边类型、DFG v2 关系、新关系所属的族（control、call、data、guard、structure）。recursive_method_call 属于 structure。
-- PROFILES：G3R、G3R-T、G4R、G4R-P、G4R-A、G4R-Aπ（代码中写成 "G4R-Api"）、G4R-AC、G3R-A，每个剖面声明：direction_mode（merge/typed）、cf_back（bool）、new_relations（集合）、edge_features（none/core/core_context）、placebo（none/relations/attributes）。
+- PROFILES：G3R、G3R-T、G4R、G4R-P、G4R-A、G4R-Aπ（代码中写成 "G4R-Api"）、G4R-AC、G3R-TA，每个剖面声明：direction_mode（merge/typed）、cf_back（bool）、new_relations（集合）、edge_features（none/core/core_context）、placebo（none/relations/attributes）。
 - 剖面校验：G4R 系列必须 typed；edge_features ≠ none 时必须使用 EdgeAwareHGTLayer。
 
 ## 2. scripts/edge_sem/materialize.py
@@ -301,24 +325,29 @@ materialize(data, profile) -> (symmetrical_data, rel_meta)
 - 基础边：merge 模式调用 gu.reflect_graph；typed 模式对每个 (A, e, B) 生成正向键与 (B, "REV_"+e, A)，同键多次出现时按原迭代顺序拼接。
 - 新关系：正向键与 REV_ 键，任何键与已有键冲突就报错。
 - rel_meta：{canonical: {"base": 基础类型, "reverse": bool, "family": 族}}。
-- relation_param_groups(symmetrical_data, min_edges) -> {canonical: group_id}：边数 ≥ min_edges 的关系各自一组；其余按 (base, reverse) 共享。min_edges = 0 时每关系一组。min_edges 取 EP0 的建议值，写成常量并在 PROGRESS.md 登记。
+- 不实现稀疏关系共享（r2：本地阶段每个关系键一行参数）。
 
 ## 3. scripts/edge_sem/model.py（本步只做结构，不含 E3）
 make_edge_model(task, graph_or_path, profile, device, fold, ...)：
 - 用 dfg_v2.model.make_model(profile="G3R", layer_impl="shared_projection", reducer="mean", 8H 的其余配置) 构造锚模型，种子按 dfg_v2/experiment/init.py 的 8H 规则。
-- 按 runtime_model.make_placebo 的模式派生：深拷贝，用 edge_sem.materialize 的结果建 DGL 图（节点特征 inp 从锚模型复制），重建 etypes_dict 与 edges[c].data["id"]，按新 etypes 重建 gcs（本步一律 HGTLayerSharedProjection），copy_common_layer_parameters 复制共享参数；新关系的参数按 sha256(规范键字符串) 派生的种子初始化（写成函数，测试其确定性）。
+- 按 runtime_model.make_placebo 的模式派生：深拷贝，用 edge_sem.materialize 的结果建 DGL 图（节点特征 inp 从锚模型复制），重建 etypes_dict 与 edges[c].data["id"]，按新 etypes 重建 gcs（本步一律 HGTLayerSharedProjection）。
+- 参数复制：不要直接用 copy_common_layer_parameters（它要求锚模型的全部关系键都在新模型中，typed 模式下被反射出的 (B, e, A) 键会消失而报错；它还把新关系行填 0/1）。写 edge_sem/init.py::copy_typed_layer_parameters(anchor_layer, new_layer, key_map)，文件头写明参考来源 diagnostics8c/placebo.py 与其 SHA256：
+  * key_map 由 materialize 给出：每个新键 → 锚模型中承载这些边的键（typed 正向键 (A,e,B) → G3R 的 (A,e,B)；(B,REV_e,A) → 同类型两端时 G3R 的 (A,e,A)，不同类型时 G3R 的 (B,e,A)；DFG v2 关系 → 同名键；merge 模式 → 同名键）；没有来源的键（E1 及其 REV_）不在 key_map 中。
+  * 非关系参数逐个复制，形状不同就报错；relation_att/msg/pri 按 key_map 逐行复制；无来源的行用 torch.Generator 以 int(sha256(规范键字符串)[:16], 16) 为种子，att、msg 做 xavier_uniform（与 HGTLayer 相同的 fan 计算），pri 置 1。不消耗全局 RNG。
+  * 复制后断言：每个有来源的行与来源逐位相同；锚模型的全部非关系参数逐位相同。
 - model.edge_profile = profile；model.dfg_profile 的取值按 EP0 第 6 节的结论设定，使 checkpoint 绑定可用。
 - validate_registration(model, ...)：edge_profile 为 G3R 时委托 dfg_v2.model.validate_registration；否则复用其中与剖面无关的检查（复制时写明来源与 SHA），并用 edge_sem.materialize 重新计算期望的规范键与端点逐条比较。
 
 ## 4. 测试 scripts/edge_sem/tests/test_materialize.py、test_model_equivalence.py
 - 小图：节点类型 X、Y；基础关系 (X,next_line,X)×3、(X,a,Y)×2、(Y,a,X)×1；DFG 关系 (X,DATA_DEF_USE,X)×1。merge 模式与 dfg_v2.model_input.materialize(…, "G3R") 的键和端点逐元素相同；typed 模式下每个 REV_ 关系的边恰好是正向边的反转，正向关系中没有混入反向边。
 - 新关系与已有键冲突时报错。
-- relation_param_groups：min_edges=0 时组数 = 关系数；min_edges 很大时同 (base, reverse) 共享。
+- copy_typed_layer_parameters：用小图构造 merge 与 typed 两个层，检查 key_map 覆盖、逐行复制、无来源行的确定性（两次调用逐位相同、不同键不同）与不消耗全局 RNG（调用前后 torch.random.get_rng_state() 相同）。
+- merge 模式派生模型经 copy_typed_layer_parameters 后与锚模型逐位相同（key_map 为恒等映射）。
 - 闸门 1（真实任务 reentrancy_node，fold 0 与 fold 9，CPU）：make_edge_model(profile="G3R") 与 dfg_v2.model.make_model(profile="G3R") 的规范键、端点、全部参数张量逐位相同，eval 模式下一次前向逐位相同。
 - G3R-T 模型能构造，typed 后关系数与 EP0 的统计一致，forward/backward 成功。
 
 ## 验收
-测试通过；PROGRESS.md 记录 G3R-T 的关系数、参数量、构造耗时、min_edges 取值与被共享的关系清单。
+测试通过；PROGRESS.md 记录 G3R-T 的关系数、参数量、构造耗时，以及边数 < 20 的关系清单。
 ```
 
 ### 4.4 EP2：F4 边构建器（MOD_APPLY、CALL_SITE）
@@ -375,19 +404,20 @@ fixtures：
 ### 4.6 EP4：E2 边属性
 
 ```text
-# EP4：边属性（uint8[68]）
+# EP4：边属性（uint8[73]）与端点检验
 
 ## 1. scripts/edge_sem/attrs.py
-- EDGE_FEATURE_NAMES（长度 68，顺序与 PROMPTS.md 3.3 表完全一致）；CORE_DIM = 55；GROUPS（名称 → 索引列表，含 8 个核心组与 context 组）；ONE_HOT_GROUPS（var_kind、value_shape、def_kind、write_shape、write_op 为单热：适用时恰好一个 1，不适用时全 0）。
-- compute_attributes(context, f3_graph, f4_edges, facts) -> {edge_key: uint8[68]}
+- EDGE_FEATURE_NAMES（长度 73，顺序与 PROMPTS.md 3.3 表完全一致）；CORE_CANDIDATES（0–54 与 68–72）；CONTEXT（55–67）；GROUPS（名称 → 索引列表）；ONE_HOT_GROUPS（var_kind、value_shape、def_kind、write_shape、write_op 为单热：适用时恰好一个 1，不适用时全 0）。
+- compute_attributes(context, f3_graph, f4_edges, facts) -> {edge_key: uint8[73]}
   - edge_key = f"{source_file}::{src}->{dst}::{edge_type}::{k}"，k 为同一对节点同一类型的多重边序号（按 nx 的 key 排序编号）。
   - facts 来自 node_sem.facts.extract(task_id)（原名视图）；守卫字段来自 EP3 的边记录。
   - 支配、后支配、可达性用 EP0 选定的语义 CFG，按函数缓存。
-  - 每一位严格按 3.3 表的来源计算；表中写“若没有就恒为 0”的位按 EP0 结论处理。
+  - 每一位严格按 3.3 表的来源计算；表中写“若没有就恒为 0”的位按 EP0 结论处理。依赖的事实为 unknown 时按 3.3 的未知值规则写对应 unk 位。
   - 不读取任何标识符拼写。代码审查要求：attrs.py 中不得出现对节点 code/label 文本的字符串匹配；env_kind 只能比较保留环境表达式（与 dfg_v2/env.py 的 14 个键对应）。
 - reverse 边不在这里计算；模型侧复制正向边的向量。
 - explain_edge(vec) -> list[str]；validate_vector(vec, relation) 检查单热组合法、不适用组为 0。
-- write_attributes(task_id, out_dir)：输出 attrs.npz（edge_keys 与 uint8 矩阵）、manifest.json（输入与实现 SHA）、stats.json（每一位在每种关系上取 1 的比例，以及在正样本目标节点入边与负样本目标节点入边中的比例——只作描述，读取标签只允许在这个统计函数中，并且该函数的输出不得被任何特征代码 import）。
+- endpoint_test(attrs, f4_edges, f3_graph) -> {bit: {relation: (源恒定比例, 目标恒定比例, 节点数)}}，按 3.3 的端点检验规则（阈值 99%，只统计至少 2 条该关系边的节点）给出 core_indices。
+- write_attributes(task_id, out_dir)：输出 attrs.npz（edge_keys 与 uint8 矩阵）、manifest.json（输入与实现 SHA，以及两个节点任务合并后的端点检验结果与 core_indices；两个任务的检验都在这一步完成，core_indices 取两任务都判定为非端点的位）、stats.json（每一位在每种关系上取 1 的比例，以及在正样本目标节点入边与负样本目标节点入边中的比例——只作描述，读取标签只允许在这个统计函数中，并且该函数的输出不得被任何特征代码 import）。
 
 ## 2. 测试 scripts/edge_sem/tests/test_attrs.py
 - len(EDGE_FEATURE_NAMES) == 68；单热组校验对合法/非法向量判断正确；explain_edge 往返一致。
@@ -398,6 +428,8 @@ fixtures：
   * (bool ok, ) = a.call(d); 后续无条件使用：指向调用的边 call_return_checked=0；if (!a.send(x)) revert(); → 1。
   * require(msg.sender == owner) 的 GUARDS 边：guard_kind=require，guard_operands 含 caller_identity。
   * CALL_SITE 到写状态的 helper：call_callee_writes_state=1。
+- 未知值：构造 dfg.status=unknown 的语句，相关位为 0 且 unk_dfg=1；guard_status=unknown 的语句作为目标时 unk_guard=1。
+- 端点检验：构造一个位只依赖目标节点的小图，判定为端点；一个位随边变化的小图，判定为非端点。
 - 名字无关性（快速版，正式闸门在 EP5）：把 fixture 中所有非保留标识符改名后重算，向量逐位相同。
 
 ## 验收
@@ -410,7 +442,7 @@ fixtures：
 # EP5：名字不变性、可达性与边统计
 
 ## 1. 名字不变性闸门
-- 对两个节点任务的每个 source_file：用 8G 匿名源码（EP0 第 5 节给出的来源）调用 node_sem.facts.extract_source 与 edge_sem 的构建器（GUARDS、MOD_APPLY、CALL_SITE、attrs），与原名结果比较：新边集合（按 AST 锚点与关系）与属性向量必须逐位相同。
+- 对两个节点任务的每个 source_file：用 8G 匿名源码（EP0 第 5 节给出的来源）调用 node_sem.facts.extract_source 与 edge_sem 的构建器（GUARDS、MOD_APPLY、CALL_SITE、attrs），与原名结果比较。比较必须在图节点空间进行：新边集合按 (源图节点, 目标图节点, 关系) 比较，属性向量按同一键比较，逐位相同。不得比较 AST 字节锚点（anon_binding.replace_spans 改变标识符长度，字节偏移必然不同）。匿名源码投影不到同一图节点的文件按 EP0 的结论处理：列出并停下报告。
 - 任何差异：列出文件、边、差异位，停下报告，不得继续 EP6。
 
 ## 2. 两跳可达
@@ -436,7 +468,7 @@ fixtures：
 - class EdgeAwareHGTLayer(HGTLayerSharedProjection)：
   - __init__ 先调用父类（参数分配顺序与 RNG 消耗与父类完全相同），之后才创建 u（[R, 16, heads]，零）与 U（ModuleDict 或参数，按族，[16, heads*d_k]，零），R 为关系数。
   - forward(G, h, psi=None)：psi 为 None 时直接 return super().forward(G, h)。否则复制父类 forward（写明来源行号），只做两处改动：(1) edge_softmax 之前 attn += (psi_r @ u[e_id])；(2) 消息改为逐边 m = attn * (v_src + (psi_r @ U[family]).view(-1, heads, d_k))，用 apply_edges 写入 edata，再 multi_update_all({etype: (fn.copy_e("m","m"), fn.sum("m","t"))}, cross_reducer="mean")。其余（共享投影、残差、dropout、LayerNorm）与父类逐行相同。
-- model.py：G4R-A、G4R-Api、G4R-AC、G3R-A 剖面用 EdgeAwareHGTLayer 重建 gcs（共享参数照 EP1 复制），图上写入 edges[c].data["ea"]（uint8，按 edge_key 对齐；REV_ 边复制正向边；无属性的关系全零）；前向时先算一次 psi 再传给每层。需要包一层 forward 时，按 runtime_model 的方式复制作者 forward 并写明来源 SHA。
+- model.py：G4R-A、G4R-Api、G4R-AC、G3R-TA 剖面用 EdgeAwareHGTLayer 重建 gcs（共享参数照 EP1 复制），图上写入 edges[c].data["ea"]（uint8，按 edge_key 对齐；REV_ 边复制正向边；无属性的关系全零）；前向时先算一次 psi 再传给每层。需要包一层 forward 时，按 runtime_model 的方式复制作者 forward 并写明来源 SHA。
 - validate_registration 增加：ea 张量与 attrs.npz 逐行一致；层类型与剖面一致。
 
 ## 2. 测试 scripts/edge_sem/tests/test_hgt_edge.py
@@ -456,7 +488,7 @@ fixtures：
 # EP7：执行器、P2 协议与 G3R 基线（训练）
 
 ## 1. scripts/edge_sem/execution.py
-参照 scripts/node_sem/execution.py 改写（文件头写明来源与 SHA）：plan/seal/authorization、construct（调用 edge_sem.model.make_edge_model）、binding（新增 edge_profile、f4 manifest SHA、attrs manifest SHA、min_edges、P2 标识）、fit_one、verify_one、controller。训练函数 benchmark_v2.trainer.fit 原样调用；P2 通过配置实现（patience 设为不会触发的值，例如 maximum_training_epochs + 1；若 trainer 不接受，按 trainer 的接口找最小改动方式，复制前先停下报告）。
+参照 scripts/node_sem/execution.py 改写（文件头写明来源与 SHA）：plan/seal/authorization、construct（调用 edge_sem.model.make_edge_model）、binding（新增 edge_profile、f4 manifest SHA、attrs manifest SHA、core_indices、P2 标识）、fit_one、verify_one、controller。训练函数 benchmark_v2.trainer.fit 原样调用；P2 通过配置实现：patience = maximum_training_epochs + 1（StopMonitor 在 patience ≥ 1 时接受任意值，并保存每一个严格的新最小值，所以不会早停，best 仍按 inner_val loss 选择）；不得复制或修改 trainer。
 - 节点特征：N-anon-s 的 S0（8H 匿名 token NPZ），装配方式与 8H 相同。
 - 运行版本：只绑定 scripts/edge_sem 下训练路径上的模块清单（照 NS-P1b 的做法），只读核验已完成 fit 时比较封存记录，不比较当前代码。
 
@@ -466,7 +498,13 @@ fixtures：
 ## 3. 显存探针（GPU，需授权）
 reentrancy_node 与 access_control_node 各一折：G3R、G3R-T、G4R、G4R-A 的峰值显存；超过 3.5 GiB 时停下报告，按 3.1 的共享规则或分块计算 psi 提出方案。
 
-## 4. 训练
+## 4. 用户确认（r2）
+训练前必须存在 scripts/edge_sem/artifacts/protocol_p2/decisions.json，逐项记录 D1–D3 的用户决定（确认或改为何种方案）与日期。没有这份文件，或任何一项不是“确认”且没有对应的替代方案，就停下，不得训练。
+
+## 5. 边参数试点（训练，单折，只看范数）
+reentrancy_node 第 0 折训练一次 G4R-A（P2）。只报告每层 u、U 的 Frobenius 范数随 epoch 的变化与最终值，不读取、不报告任何 outer_test 或 inner_val 指标；该 fit 不进入任何比较。预先登记的规则：若全部 u、U 的最终范数 < 1e-3，停下报告；否则照常进行。
+
+## 6. 训练
 G3R × 2 个节点任务 × 10 折 = 20 fits（P2）。授权文件就绪后执行。完成后报告逐折 BF1、best 轮数分布，并与 8H 的 G3R 对照（只作描述）。
 
 ## 验收
@@ -489,12 +527,12 @@ G3R × 2 个节点任务 × 10 折 = 20 fits（P2）。授权文件就绪后执�
 ### 4.11 EP9：阶段 E-B 与冻结（训练）
 
 ```text
-# EP9：阶段 E-B（G4R-A、G4R-Aπ、G3R-A；训练）与方案冻结
+# EP9：阶段 E-B（G4R-A、G4R-Aπ、G3R-TA；训练）与方案冻结
 
 - 2 个节点任务 × 3 个剖面 × 10 折 = 60 fits，P2，授权后执行。
-- 分析：H2（G4R-A − G4R 与 G4R-A − G4R-Aπ），H1/H2 两项 Holm 校正；G3R-A − G3R；训练后 u_r 与 U 的范数（按关系与族）；注意力偏置 u_rᵀφ_e 在正负样本目标节点入边上的分布（描述）。
+- 分析：H2（G4R-A − G4R 与 G4R-A − G4R-Aπ，取较大 p 值），H1/H2 两项 Holm 校正；G3R-TA − G3R-T；训练后 u_r 与 U 的范数（按关系与族）；注意力偏置 u_rᵀφ_e 在正负样本目标节点入边上的分布（描述）。
 - 输出 scripts/edge_sem/EP9_REPORT.md 与 scripts/edge_sem/EDGESEM_REPORT.md（汇总 E-A 与 E-B）。
-- 冻结：写 scripts/edge_sem/artifacts/frozen_schema/schema.json，包含关系列表、EDGE_FEATURE_NAMES、CORE_DIM、min_edges、E3 超参数、P2 定义，以及所有实现文件的 SHA。服务器阶段（E-C0、E-C、E-D）只能使用这份冻结内容；任何改动都要新版本号与理由。
+- 冻结：写 scripts/edge_sem/artifacts/frozen_schema/schema.json，包含关系列表、EDGE_FEATURE_NAMES、core_indices、E3 超参数、P2 定义，以及所有实现文件的 SHA。服务器阶段（E-C0、E-C、E-D）只能使用这份冻结内容；任何改动都要新版本号与理由。
 
 ## 验收
 60 个 fit 成功并核验；两份报告完成；冻结文件提交。
