@@ -276,3 +276,205 @@ def test_postfix_address_receiver_does_not_guess_unknown_type():
         "function f(uint a,uint receiver) public {!receiver.send(a);}}")
     row = resolve(sem,"!receiver.send(a)")
     assert row["status"] == "unknown" and row["target"] is None
+
+# EP0e: declaration-based receiver types; no method-name vulnerability heuristics.
+EP0E_SOURCE = (
+    "library L {"
+    "function add(uint a,uint b) internal pure returns(uint){return a+b;}"
+    "function sub(uint a,uint b) internal pure returns(uint){return a-b;}"
+    "function mul(uint a,uint b) internal pure returns(uint){return a*b;}"
+    "function div(uint a,uint b) internal pure returns(uint){return a/b;}} "
+    "contract C {using L for uint; mapping(address=>uint) balances; "
+    "mapping(address=>mapping(address=>uint)) allowed; uint[] xs; uint[2][3] grid; "
+    "struct S {uint total; bool balance;} S s; "
+    "function one(uint a) internal returns(uint named){return a;} "
+    "function two() internal returns(uint,uint){return (1,2);} "
+    "function f(uint a,uint b,uint c,uint x,uint v,address owner) public {"
+    "balances[msg.sender].sub(x);allowed[owner][msg.sender].sub(v);xs[a].add(x);"
+    "(20*a).div(100);a.mul(b).div(c);s.total.add(x);msg.value.mul(2);"
+    "uint256(a).mul(2);one(a).mul(2);xs.length.mul(2);owner.balance.mul(2);"
+    "block.timestamp.mul(2);block.number.mul(2);now.mul(2);"
+    "msg.sender.call.value(v)(\"\");msg.sender.call.gas(v).value(v)(\"\");"
+    "abi.encodePacked(x);two();}}"
+)
+
+
+@pytest.mark.parametrize("expr", [
+    "balances[msg.sender].sub(x)", "allowed[owner][msg.sender].sub(v)",
+    "(20*a).div(100)", "a.mul(b).div(c)", "s.total.add(x)",
+    "msg.value.mul(2)", "uint256(a).mul(2)", "one(a).mul(2)",
+    "xs.length.mul(2)", "owner.balance.mul(2)", "block.timestamp.mul(2)",
+    "block.number.mul(2)", "now.mul(2)",
+])
+def test_ep0e_typed_library_receivers(expr):
+    from scripts.edge_sem.call_resolve import receiver_type
+    from scripts.node_sem.facts_ast import unwrap
+    sem = semantics(EP0E_SOURCE)
+    node = call(sem, expr)
+    row = resolve_call(sem, node)
+    assert (row["status"], row["kind"], row["reason"]) == ("resolved", "library", "typed_receiver")
+    callee = unwrap(node.child_by_field_name("function"))
+    receiver = callee.child_by_field_name("object")
+    assert receiver_type(sem, receiver) == "uint256"
+    assert sem.text(row["target"].child_by_field_name("name")) == sem.text(callee.child_by_field_name("property"))
+
+
+@pytest.mark.parametrize("typ,expected", [
+    ("mapping(address=>uint256)", "uint256"),
+    ("mapping(address=>mapping(address=>uint256))", "mapping(address=>uint256)"),
+    ("mapping(address=>uint256[])", "uint256[]"),
+    ("uint256[2][3]", "uint256[2]"), ("uint256[]", "uint256"),
+    ("uint256", None), ("mapping(addressuint256)", None),
+])
+def test_ep0e_index_type_strips_exactly_one_level(typ,expected):
+    from scripts.edge_sem.call_resolve import _indexed_type
+    assert _indexed_type(typ) == expected
+
+
+def test_ep0e_array_legacy_binding_unchanged():
+    from scripts.edge_sem.call_resolve import receiver_type, _using_resolve
+    from scripts.node_sem.facts_ast import unwrap
+    sem = semantics(EP0E_SOURCE)
+    node = call(sem, "xs[a].add(x)")
+    receiver = unwrap(node.child_by_field_name("function")).child_by_field_name("object")
+    old = sem._using_callable(node, receiver, "add")
+    new = _using_resolve(sem, node, receiver_type(sem, receiver), "add")
+    assert old is not None and key(old) == key(new)
+    assert resolve_call(sem,node)["reason"] == "frozen_unique_declaration"
+
+
+def test_ep0e_using_star_still_checks_first_parameter_type():
+    source = ("library L {function add(uint a,uint b) internal returns(uint){return a+b;}} "
+        "contract C {using L for *; struct S {uint total; bool flag;} S s; "
+        "function f(uint x) public {s.total.add(x);s.flag.add(x);}}")
+    sem = semantics(source)
+    assert resolve(sem, "s.total.add(x)")["kind"] == "library"
+    row = resolve(sem, "s.flag.add(x)")
+    assert row["target"] is None and row["status"] == "unknown"
+
+
+@pytest.mark.parametrize("expr,reason", [
+    ('msg.sender.call.value(v)', "address_receiver"),
+    ('msg.sender.call.gas(v)', "address_receiver"),
+    ('msg.sender.call.gas(v).value(v)', "address_receiver"),
+    ('x.call.value(v)', "unconfirmed_receiver"),
+])
+def test_ep0e_call_options_have_no_definition_target(expr,reason):
+    sem = semantics("contract C {function f(uint x,uint v) public {"+expr+'("");}}')
+    row = resolve(sem,expr)
+    assert row["status"] == "call_option" and row["reason"] == reason
+    assert row["target"] is None
+
+
+@pytest.mark.parametrize("method", ["encode","encodePacked","encodeWithSelector","encodeWithSignature","decode"])
+def test_ep0e_abi_is_unshadowed_builtin(method):
+    sem = semantics("contract C {function f(uint x) public {abi."+method+"(x);}}")
+    row = resolve(sem,"abi."+method+"(x)")
+    assert row["status"] == "builtin" and row["target"] is None
+
+
+@pytest.mark.parametrize("source,expr", [
+    ("contract C {function f(uint abi,uint x) public {abi.encodePacked(x);}}", "abi.encodePacked(x)"),
+    ("library L {function mul(uint x,uint y) internal returns(uint){return x*y;}} "
+     "contract C {using L for uint; struct Environment {bool value;} Environment msg; "
+     "function f() public {msg.value.mul(2);}}", "msg.value.mul(2)"),
+])
+def test_ep0e_builtin_shadowing_does_not_supply_uint_or_namespace(source,expr):
+    sem = semantics(source)
+    row = resolve(sem,expr)
+    assert row["status"] == "unknown" and row["target"] is None
+
+
+def test_ep0e_unknown_and_declared_fields_remain_distinct():
+    from scripts.edge_sem.call_resolve import receiver_type
+    sem = semantics(EP0E_SOURCE)
+    assert receiver_type(sem,call(sem,"two()")) is None
+    field = next(n for n in sem.nodes if n.type=="member_expression" and sem.text(n)=="s.total")
+    assert receiver_type(sem,field)=="uint256"
+    sem = semantics("contract C {struct S {bool balance;} S s; "
+                    "function f(uint x) public {s.balance; x.balance; x.length; ~x; x == 1; x & 1;}}")
+    expressions = {sem.text(n):n for n in sem.nodes if n.type in ("member_expression","unary_expression","binary_expression")}
+    assert receiver_type(sem,expressions["s.balance"])=="bool"
+    for expr in ("x.balance","x.length","~x","x & 1"):
+        assert receiver_type(sem,expressions[expr]) is None
+    assert receiver_type(sem,expressions["x == 1"])=="bool"
+
+
+def test_ep0e_all_receiver_shapes_rename_preserves_targets():
+    from scripts.node_sem.facts_ast import walk
+    first=semantics(EP0E_SOURCE)
+    reserved={"msg","tx","block","this","super","now","abi","value","sender",
+              "timestamp","number","origin","length","balance","call","delegatecall","staticcall",
+              "gas","encode","encodePacked","encodeWithSelector","encodeWithSignature","decode"}
+    names=sorted({first.text(n) for n in first.nodes if n.type=="identifier"}-reserved)
+    renames={name:"renamed_"+str(i) for i,name in enumerate(names)}
+    raw=first.view.raw
+    spans={(n.start_byte,n.end_byte,renames[first.text(n)].encode())
+           for n in first.nodes if not n.named_children and first.text(n) in renames}
+    for start,end,value in sorted(spans,reverse=True):
+        raw=raw[:start]+value+raw[end:]
+    second=AstSemantics(ProjectionView(raw.decode(),"renamed.sol"))
+    a=[n for n in first.nodes if n.type=="call_expression"]
+    b=[n for n in second.nodes if n.type=="call_expression"]
+    assert len(a)==len(b) and len(a)>20
+    for x,y in zip(a,b):
+        old,new=resolve_call(first,x),resolve_call(second,y)
+        assert (old["status"],old["kind"])==(new["status"],new["kind"])
+        if old["target"] is None:
+            assert new["target"] is None
+        else:
+            assert first.functions.index(old["target"])==second.functions.index(new["target"])
+
+
+def test_ep0e_wildcard_is_documented_frozen_equivalence_exception():
+    from scripts.edge_sem.call_resolve import _using_resolve, receiver_type
+    from scripts.node_sem.facts_ast import unwrap
+    sem = semantics("library L {function add(uint a,uint b) internal returns(uint){return a+b;}} "
+                    "contract C {using L for *; function f(uint x) public {x.add(x);}}")
+    node = call(sem,"x.add(x)")
+    receiver = unwrap(node.child_by_field_name("function")).child_by_field_name("object")
+    assert sem._using_callable(node,receiver,"add") is None
+    target = _using_resolve(sem,node,receiver_type(sem,receiver),"add")
+    assert target is not None
+    assert key(resolve_call(sem,node)["target"]) == key(target)
+
+
+def test_ep0e_candidates_do_not_filter_by_inferred_receiver_type():
+    from scripts.edge_sem.recon.ep0e_using import structural_candidates
+    sem = semantics("library L {function add(uint x,uint y) internal returns(uint){return x+y;}} "
+                    "contract C {using L for uint; struct S {bool flag;} S s; "
+                    "function f(uint x) public {s.flag.add(x);}}")
+    node=call(sem,"s.flag.add(x)")
+    audit=structural_candidates(sem,node)
+    assert audit["reason"]=="unique_candidate"
+    assert resolve_call(sem,node)["target"] is None
+
+
+def test_ep0e_direct_library_call_is_not_extension_recall_candidate():
+    from scripts.edge_sem.recon.ep0e_using import structural_candidates
+    sem=semantics("library L {function add(uint x,uint y) internal returns(uint){return x+y;}} "
+                  "contract C {using L for uint; function f(uint x) public {L.add(x,x);}}")
+    node=call(sem,"L.add(x,x)")
+    assert resolve_call(sem,node)["kind"]=="library"
+    assert structural_candidates(sem,node)["reason"]=="direct_library"
+
+
+@pytest.mark.parametrize("task",["reentrancy_node","access_control_node"])
+def test_ep0e_real_prior_targets_and_legacy_using_equivalence(task):
+    from scripts.edge_sem.recon.ep0e_common import EP0D,contexts,file_views
+    from scripts.edge_sem.recon.common import read
+    from scripts.edge_sem.recon.ep0e_using import audit_file
+    old=read(EP0D/("calls_"+task+".json"))
+    by_file={}
+    for row in old["raw_calls"]:
+        by_file.setdefault(row["file"],[]).append(row)
+    count=0
+    for file,source,sub,sem,raw,inverse in file_views(contexts(task)):
+        calls=[n for n in sem.nodes if n.type=="call_expression"]
+        resolved={key(n):resolve_call(sem,n) for n in calls}
+        audit=audit_file(sem,by_file[file],resolved)
+        count+=audit["resolved_unchanged"]
+        assert all(not r["unexpected_mismatch"] for r in audit["using_equivalence"])
+        assert all(r["binding_rules_equal"] or r["approved_wildcard_exception"]
+                   for r in audit["using_equivalence"])
+    assert count==sum(r["status"]=="resolved" for r in old["raw_calls"])

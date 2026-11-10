@@ -70,3 +70,17 @@ EP0b完成，CALL_SITE门槛未通过，停止后续落地并提交审查，不�
 完整命令、环境、耗时、日志SHA见execution。正式三套CPU回归75+1353+2653=4081通过；冻结750源码、354计算引用、697输入、196旧产物、29其他EdgeSem源码及8H.load与原文档前缀纳入最终验收。
 
 本轮只交付解析和证据，约99%不是独立语义召回/精度。残留重载12/12、super2/2、接收者2/0及各2条emit投影缺口保留；不建图、不训练，停止供审查，不自动EP1/push。最终实验将在显存充足服务器另建批次，本机4GiB只限制开发。
+
+
+## EP0e：接收者类型、库候选召回与停止报告（Codex，2026-11-10）
+
+- 起点：edge-sem `6e95c9d7`、PROMPTS r7；读取§4.1，保留 EP0–EP0d。完成 receiver_type、受限 using 绑定、call_option/ABI 分类，以及独立候选枚举、原绑定对照和残留证据。
+- 用户批准：只跳过 `using L for *` 的通配 source 比较，仍检查库首参数类型和其他约束；冻结方法不改。首次失败、修正前源码、批准记录和合成等价例外均保存，真实语料例外0。
+- 主要改动：`call_resolve.py`、`tests/test_call_resolve.py`；新增 `recon/ep0e_{common,run,using,calls,examples,report,verify}.py`。结果目录 `artifacts/ep0e_v1/`，RECON§12、HANDOVER和训练变更§103只追加。
+- 结果：每任务独立库候选 **312/347＝89.9135%**，候选集外0，**未达90%，停止EP0e**。形状明细与35条缺口逐条保存。不改分母、不扩展规则追门槛。
+- 原364/358个成功调用完全不变；普通callee等价6707项，using等价439/743。各新增194个已解析调用，经已有对和重复投影合并后各新增188个语句候选，总数548/542。只有候选统计，没写图。
+- EP0d的1,055条HCG参照类别不变，覆盖99.23%/99.25%，unknown比6.18%/5.22%，原门槛仍通过；本轮库召回门槛另算。
+- 剩余：同名重载18、限定类型字符串6、未知接收者11（每任务）；访问控制另有1个prefix option仍unknown。方案更改须另行讨论，未自动实施。
+- CPU回归命令：`CUDA_VISIBLE_DEVICES='' python -B -m pytest -q -p no:cacheprovider <目录>`。EdgeSem115、NodeSem1353、DFG2653，共 **4121 passed**。只读核验8H load、750冻结源码、354_code_refs、697输入引用、239旧产物、35其他EdgeSem源码；四文档前缀字节及UTF-8/CJK核验。执行收据与完整命令在 `execution/`。
+- 报告 `summary.json` 的 gate_pass=false；完整性 `verification.json` 的 passed=true 只说明核验通过，不能冒充90%准入通过。无训练、无EP1、无冻结输入修改。本地提交，不自动推送。
+- 最终实验安排在显存充足的服务器；当前4GiB限制仅属于本机开发。产物留在WSL。

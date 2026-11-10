@@ -1,4 +1,4 @@
-"""Bounded same-file CALL_SITE resolution (EP0c/EP0d, EdgeSem plan r6).
+"""Bounded same-file CALL_SITE resolution (EP0c-EP0e, EdgeSem plan r7).
 
 Frozen dependencies, imported without modification:
 scripts/node_sem/facts_ast.py SHA256:
@@ -11,6 +11,11 @@ _resolve_callee copies facts_ast.py::AstSemantics.resolve_callable lines 189-205
 (SHA256 above), accepting an explicit callee instead of extracting it from call.
 Only unary/binary callees use the frozen _postfix before this local binding step.
 The original NodeSem method and its bytecode are never modified.
+_using_resolve copies the using traversal/matching in the same frozen file,
+lines 226-244 (scope check at 217-218), using the supplied receiver type.
+Approved EP0e exception: an any_source_type("*") directive imposes no source
+type restriction; the library's first parameter still must match exactly.
+receiver_type is EdgeSem-local; it does not alter the frozen type/DFG analysis.
 """
 from scripts.node_sem.facts_ast import FUNCTIONS, key, unwrap
 
@@ -122,6 +127,179 @@ def _resolved(sem, call_node, target, reason):
     return result("resolved", kind, target, reason)
 
 
+
+def _indexed_type(type_name):
+    """One index step; delimiters, not names, determine the element type."""
+    if not type_name:
+        return None
+    if type_name.endswith("]"):
+        opening = type_name.rfind("[")
+        return type_name[:opening] or None if opening >= 0 else None
+    if not (type_name.startswith("mapping(") and type_name.endswith(")")):
+        return None
+    depth, arrows = 0, []
+    for i, char in enumerate(type_name):
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth < 0 or (depth == 0 and i != len(type_name)-1):
+                return None
+        elif char == "=" and type_name[i:i+2] == "=>" and depth == 1:
+            arrows.append(i)
+    if depth != 0 or len(arrows) != 1:
+        return None
+    return type_name[arrows[0]+2:-1] or None
+
+
+def _struct_field_type(sem, type_name, field):
+    if not type_name:
+        return None
+    matches = []
+    for node in sem.nodes:
+        if node.type != "struct_declaration":
+            continue
+        name = sem.text(node.child_by_field_name("name"))
+        contract = sem.contract(node)
+        qualified = (sem.text(contract.child_by_field_name("name"))+"."+name
+                     if contract is not None else name)
+        if type_name == name or type_name == qualified:
+            matches.append(node)
+    if len(matches) != 1:
+        return None
+    fields = [n for n in matches[0].named_children if n.type == "struct_member"
+              and sem.text(n.child_by_field_name("name")) == field]
+    if len(fields) != 1:
+        return None
+    return sem._canonical_type(sem.text(fields[0].child_by_field_name("type"))) or None
+
+
+def receiver_type(sem, expr):
+    """Bounded expression type from syntax and declarations; unknown is None."""
+    expr = unwrap(expr)
+    if expr is None:
+        return None
+    if expr.type == "identifier":
+        binding = sem.root_binding(expr)
+        if binding["declaration"] is not None:
+            return sem._canonical_type(binding["type_name"]) or None
+        if _unshadowed(sem, expr, "now"):
+            return "uint256"
+        return None
+    if expr.type == "number_literal":
+        return "uint256"
+    if expr.type == "array_access":
+        return _indexed_type(receiver_type(sem, expr.child_by_field_name("base")))
+    if expr.type == "member_expression":
+        base = unwrap(expr.child_by_field_name("object"))
+        member = sem.text(expr.child_by_field_name("property"))
+        base_type = receiver_type(sem, base)
+        declared = _struct_field_type(sem, base_type, member)
+        if declared is not None:
+            return declared
+        for namespace, fields in (
+                ("msg", {"value": "uint256", "sender": "address"}),
+                ("block", {"timestamp": "uint256", "number": "uint256"}),
+                ("tx", {"origin": "address"})):
+            if member in fields and _unshadowed(sem, base, namespace):
+                return fields[member]
+        if member == "length" and base_type and (
+                base_type.endswith("]") or base_type == "bytes"
+                or (base_type.startswith("bytes") and base_type[5:].isdigit())):
+            return "uint256"
+        if member == "balance" and base_type == "address":
+            return "uint256"
+        return None
+    if expr.type in ("type_cast_expression", "payable_conversion_expression"):
+        if expr.type == "payable_conversion_expression":
+            return "address"
+        primitive = next((n for n in expr.named_children if n.type == "primitive_type"), None)
+        return sem._canonical_type(sem.text(primitive)) or None
+    if expr.type == "call_expression":
+        target = resolve_call(sem, expr)["target"]
+        if target is None:
+            return None
+        returns = target.child_by_field_name("return_type")
+        parameters = ([] if returns is None else
+                      [n for n in returns.named_children if n.type == "parameter"])
+        if len(parameters) != 1:
+            return None
+        return sem._canonical_type(sem.text(parameters[0].child_by_field_name("type"))) or None
+    if expr.type == "binary_expression":
+        symbols = {"+", "-", "*", "/", "%", "**", "==", "!=", "<", ">", "<=", ">=", "&&", "||"}
+        op = next((sem.text(n) for n in expr.children if not n.is_named and sem.text(n) in symbols), None)
+        if op in ("==", "!=", "<", ">", "<=", ">=", "&&", "||"):
+            return "bool"
+        if op not in ("+", "-", "*", "/", "%", "**"):
+            return None
+        left, right = unwrap(expr.child_by_field_name("left")), unwrap(expr.child_by_field_name("right"))
+        lt, rt = receiver_type(sem, left), receiver_type(sem, right)
+        if lt is not None and lt == rt:
+            return lt
+        if left is not None and left.type == "number_literal":
+            return rt
+        if right is not None and right.type == "number_literal":
+            return lt
+    return None
+
+
+def _using_resolve(sem, call_node, receiver_type, method):
+    """Frozen using traversal/matching with a caller-supplied canonical type."""
+    if not receiver_type:
+        return None
+    scope = sem.scope(call_node)
+    if scope is None:
+        return None
+    matches = []
+    for contract in scope.chain:
+        body = contract.child_by_field_name("body")
+        for directive in body.named_children:
+            if directive.type != "using_directive":
+                continue
+            source = directive.child_by_field_name("source")
+            wildcard = source is not None and source.type == "any_source_type" and sem.text(source) == "*"
+            if source is not None and not wildcard and sem._canonical_type(sem.text(source)) != receiver_type:
+                continue
+            alias = next((x for x in directive.named_children if x.type == "type_alias"), None)
+            if alias is None:
+                continue
+            libs = [x for x in sem.contracts if x.type == "library_declaration"
+                    and sem.text(x.child_by_field_name("name")) == sem.text(alias)]
+            if len(libs) != 1:
+                continue
+            functions = [x for x in libs[0].child_by_field_name("body").named_children
+                         if x.type == "function_definition" and sem.text(x.child_by_field_name("name")) == method]
+            if len(functions) != 1:
+                continue
+            fn = functions[0]
+            params = [x for x in fn.named_children if x.type == "parameter"]
+            if (len(params) != len(sem.arguments(call_node))+1
+                    or sem._canonical_type(sem.text(params[0].child_by_field_name("type"))) != receiver_type):
+                continue
+            matches.append(fn)
+    unique = {key(fn): fn for fn in matches}
+    return next(iter(unique.values())) if len(unique) == 1 else None
+
+
+def _call_option_receiver(sem, callee):
+    """Return the root receiver of .call[.gas(...)].value(...), if present."""
+    if callee is None or callee.type != "member_expression":
+        return None
+    if sem.text(callee.child_by_field_name("property")) not in ("value", "gas"):
+        return None
+    base = unwrap(callee.child_by_field_name("object"))
+    while base is not None and base.type == "call_expression":
+        option = sem._postfix(unwrap(base.child_by_field_name("function")))
+        if (option is None or option.type != "member_expression"
+                or sem.text(option.child_by_field_name("property")) not in ("value", "gas")):
+            return None
+        base = unwrap(option.child_by_field_name("object"))
+    if (base is not None and base.type == "member_expression"
+            and sem.text(base.child_by_field_name("property")) in ("call", "delegatecall", "staticcall")):
+        return unwrap(base.child_by_field_name("object"))
+    return None
+
+
 def resolve_call(sem, call_node):
     """Return status/kind/target plus a diagnostic reason; never mutate a graph.
 
@@ -172,6 +350,16 @@ def resolve_call(sem, call_node):
     if diagnostic_callee is not None and diagnostic_callee.type == "member_expression":
         receiver = unwrap(diagnostic_callee.child_by_field_name("object"))
         method = sem.text(diagnostic_callee.child_by_field_name("property"))
+        target = _using_resolve(sem, call_node, receiver_type(sem, receiver), method)
+        if target is not None:
+            return result("resolved", "library", target, "typed_receiver")
+        option_receiver = _call_option_receiver(sem, diagnostic_callee)
+        if option_receiver is not None:
+            return result("call_option", reason=("address_receiver"
+                if _address_receiver(sem, option_receiver) else "unconfirmed_receiver"))
+        if (method in ("encode", "encodePacked", "encodeWithSelector", "encodeWithSignature", "decode")
+                and _unshadowed(sem, receiver, "abi")):
+            return result("builtin", reason="unshadowed_abi_builtin")
         if _unshadowed(sem, receiver, "super"):
             return result("super", reason="super_dispatch_not_implemented")
         if method in ADDRESS_METHODS and _address_receiver(sem, receiver):

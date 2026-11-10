@@ -9976,3 +9976,57 @@ r6已将r5的conversion_new_or_wrapper粗排除纠正：可确认外部组各6�
 验收从保存原始调用及端点身份重新计算分类/分母/覆盖/候选集和EP0c迁移，不用CSV行号推断。核对750冻结源码、354项计算引用、697份旧输入、196旧产物、29其他EdgeSem源码、原8H.load及四文档旧字节前缀；修改前2份源码快照核验原SHA。execution失败日志与成功收据均保留，输出排他创建。RECON追加§11，HANDOVER与PROGRESS只追加，中文通过UTF-8/CJK检查。
 
 EP0d交付后按共享上下文本地commit并停止，不自动push或EP1；准入门槛通过不等于本轮批准后续训练。D1/D2/D3等设计决定在后续阶段明确。最终实验会在显存充足服务器另建批次，RTX3050 4GiB只是本机开发限制，本轮未部署或验收服务器，不混用设备成绩。
+
+
+## 103. 2026-11-10 EdgeSem EP0e接收者类型实现、独立库候选召回未达门槛（修改 AI：Codex）
+
+### 起点、同步与范围
+
+用户授权执行最新 `scripts/edge_sem/PROMPTS.md` 的 EP0e，先读取 §4.1。按既有授权快进同步 edge-sem：从 EP0d `23de2f35` 到 r7 `6e95c9d7`，仅模板更新。Windows Git 通过 UNC 执行 merge 缓慢，核对进程身份后仅停止本次自己的 merge 子进程，再由 WSL Git 对同一已取得的提交完成快进；没有 reset、覆盖或迁移旧产物。同步现场记于 `ep0e_v1/development_notes.json`。
+
+本轮仅 EdgeSem 源码与四份追加文档；不训练、不建图、不生成边属性向量，不改 NodeSem、DFG、作者代码、标签、特征、折和旧 seal。独立产物目录 `scripts/edge_sem/artifacts/ep0e_v1/` 拒绝覆盖。准备脚本最初仍指向旧 ep0d_v1，exclusive mkdir 在任何写入之前拒绝；仅修正新脚本的 OUT 路径，旧产物保留并逐项核验。
+
+### 实现与明确选择
+
+修改 `call_resolve.py` 和原测试文件；新增 `recon/ep0e_common.py`、`ep0e_run.py`、`ep0e_using.py`、`ep0e_calls.py`、`ep0e_examples.py`、`ep0e_report.py`、`ep0e_verify.py`。后两者只读汇总和完整性核验，不再次运行或改变绑定规则。
+
+receiver_type 按声明类型和结构处理括号、映射/数组单层剥离、唯一结构体字段、未遮蔽环境值、确认地址/数组属性、单返回值函数调用、原始类型转换、指定二元运算及数字；无法确认返回 None。使用原 scope/root_binding/canonical_type，不从业务变量名猜类型。真实解析器把类型转换表示为 type_cast_expression/payable_conversion_expression，依实际 AST 接入。using 复制冻结事实模块的遍历和匹配，源码头保留原路径、SHA、行范围；未 monkeypatch 冻结函数。
+
+resolve_call 的原成功规则优先，新 fallback 才调用 typed_receiver。call_option 仅分类中间 value/gas，不返回函数目标；未遮蔽 ABI 内置同样不返回目标。未确认的 call_option 不被新增为 HCG not_internal 的快捷排除依据。复杂外层调用、不能绑定的外部返回类型仍保持未知。
+
+### 用户批准的通配修正与保留的失败
+
+首次定向测试发现冻结 `_using_callable` 将 `any_source_type("*")` 与具体类型比较，无法满足文档支持通配的要求。异步问题 `call_982fd66328c84073a4f93e960177fb2d`，用户选择“同意修正通配 source，并单列等价例外（推荐）”。EdgeSem 只对该 AST 类型的星号跳过 source 比较，库函数首参数类型仍精确匹配，方法名唯一性、同文件库唯一性及参数数目不变。
+
+首轮 1 failed/34 passed 的日志与修正前源码留存于 execution/ 和 development/；批准后定向 36 passed，随后完整回归。合成测试明确冻结 None→本地绑定的获批例外，同时测试首参数不匹配仍拒绝；两任务真实语料均无通配例外、无其他等价偏差。冻结源码本身完全不动。
+
+### 预登记分母与实际结果
+
+运行前 `audit_plan.json` 绑定 r7、解析器、候选审计脚本及用户批准 SHA。库候选按可见 using 库中的唯一“同名＋实参加一”函数确定，排除直接库调用，不按 receiver_type 或绑定成功率删候选。对多目标候选另行计数并阻止验收，本次为 0。候选集外绑定限定同文件库扩展调用，不把普通内部调用混进该指标。
+
+重入/访问控制各为 347 个候选、312 个目标匹配、35 个未解析，**89.9135447% < 90%**，候选集外绑定 0。本轮综合准入为 false。没有把结果向上取整通过，没有看结果后改候选集、门槛或匹配规则。
+
+按形状，各任务均为：identifier 114/131，mapping 134/134，array 4/4，parenthesized 11/11，chained 19/33，struct_member 30/30，other 0/4。任务与源 SHA/AST 锚点各自保存，不能因数字一样就合并不同源码身份。
+
+旧 EP0d 已 resolved 的 364/358 条记录完全保留；普通 callee 等价 3,420/3,287，using identifier/原数组接收者等价 439/743，均全通过。调用 unknown→library 各194；5条投影到已有对，189条合并为188个新对。语句级候选 360→548、354→542，新增均为 library。新剖面 kind 数重入 internal196/inherited7/library342/arity3；访问 internal205/inherited6/library328/arity3。只是候选统计，没有生产图新边。
+
+中间 option 实测 353/337，其中地址确认351/334、未确认2/3；ABI builtin30/19。r7 引言粗数不是验收目标。访问控制仍有1条前缀包装 option 未识别，详细 AST 证据已保存；不在看到召回失败后继续扩展此规则。
+
+### 门槛区别与剩余问题
+
+旧 HCG 参照 464/591 条，confirmed259/268，not_internal105/225，rebinding8/8，unknown16/14，无表达式76/76。1,055条边身份及类别不变。投影覆盖257/259、266/268（99.23%、99.25%）；unknown/confirmed6.18%、5.22%，均满足 EP0d ≥80%/≤20%。旧门槛通过不代表独立库候选召回通过。
+
+每任务残留35：18条同名重载（候选可按参数数目唯一，但被冻结方法名唯一规则拒绝）；6条限定结构体类型与短类型字符串不等；11条接收者类型未知，其中外部返回类型4、内层重载影响的链式4、跨布尔的下标 AST2、根声明未绑定1。另有一个访问控制 prefix option 分类缺口。证据按 task/file/source SHA 保存于 residual_evidence.json、gap_review.json 和 ep0d_comparison.json。
+
+有意义的后续建议仅列出、不自行实施：若需要放宽同名库重载，须另行确定唯一性和歧义检查；结构体类型应按声明身份核对，不能简单删除前缀；AST 适配要有真实形状反例。独立候选定义本身是结构过近似，不能据此声称语义精度或模型收益；全语料匿名改名不变性仍留 EP5。
+
+### 回归、封存与实际命令
+
+mando CPU、CUDA_VISIBLE_DEVICES 为空、PYTHONDONTWRITEBYTECODE=1，OMP/MKL各2线程。完整套件：EdgeSem115、NodeSem1353、DFG v2 2653，共4121。沿用：
+`python -B -m pytest -q -p no:cacheprovider scripts/edge_sem/tests`，
+以及 `scripts/node_sem/tests`、`scripts/DFG/dfg_v2/tests`。
+所有执行经 `python -B -m scripts.edge_sem.recon.ep0e_run --name <name> -- -m <module>` 保存 started、日志、退出码和耗时；真实普查使用 `scripts.edge_sem.recon.ep0e_calls --task reentrancy_node` / `access_control_node`，报告与核验分别为 `ep0e_report`、`ep0e_verify`。
+
+只读核验 750冻结源码、354项_code_refs、697输入引用、239旧产物、35其他EdgeSem源码、8H load及图指纹；四份文档前缀字节不变，doc_check --expect-cjk 按追加前字节数验收。summary.gate_pass=false 与 verification.passed=true 不冲突：后者只证明记录完整与重算一致，不证明阶段准入。
+
+本轮到 EP0e 停止，本地提交、不自动push或进入EP1。最终实验会在显存充足的服务器进行，RTX3050 4GiB只是当前本机开发限制；本轮全部CPU，不借此改训练配置。产物写入WSL，不另占C盘大型缓存。
