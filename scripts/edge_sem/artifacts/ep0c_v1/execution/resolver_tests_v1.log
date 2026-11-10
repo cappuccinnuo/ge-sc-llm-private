@@ -1,0 +1,100 @@
+........FF.......FF.                                                     [100%]
+=================================== FAILURES ===================================
+_ test_address_builtins_do_not_bind_same_name_functions[address(owner).delegatecall(1)] _
+
+expr = 'address(owner).delegatecall(1)'
+
+    @pytest.mark.parametrize("expr", [
+        "msg.sender.transfer(1)", "owner.send(1)", "tx.origin.call(1)",
+        "address(owner).delegatecall(1)", "payable(owner).staticcall(1)"])
+    def test_address_builtins_do_not_bind_same_name_functions(expr):
+        sem = semantics("contract C {address payable owner; function transfer(uint a) internal {} "
+            "function send(uint a) internal {} function f() public {"+expr+";}}")
+        row = resolve(sem, expr)
+>       assert row["status"] == "address_builtin"
+E       AssertionError: assert 'unknown' == 'address_builtin'
+E         - address_builtin
+E         + unknown
+
+scripts/edge_sem/tests/test_call_resolve.py:70: AssertionError
+_ test_address_builtins_do_not_bind_same_name_functions[payable(owner).staticcall(1)] _
+
+expr = 'payable(owner).staticcall(1)'
+
+    @pytest.mark.parametrize("expr", [
+        "msg.sender.transfer(1)", "owner.send(1)", "tx.origin.call(1)",
+        "address(owner).delegatecall(1)", "payable(owner).staticcall(1)"])
+    def test_address_builtins_do_not_bind_same_name_functions(expr):
+        sem = semantics("contract C {address payable owner; function transfer(uint a) internal {} "
+            "function send(uint a) internal {} function f() public {"+expr+";}}")
+        row = resolve(sem, expr)
+>       assert row["status"] == "address_builtin"
+E       AssertionError: assert 'unknown' == 'address_builtin'
+E         - address_builtin
+E         + unknown
+
+scripts/edge_sem/tests/test_call_resolve.py:70: AssertionError
+__________________ test_exclusions[Event(a)-event_or_struct] ___________________
+
+expr = 'Event(a)', expected = 'event_or_struct'
+
+    @pytest.mark.parametrize("expr,expected", [
+        ("ERC20Interface(token).transfer(a,b)", "cast_member"),
+        ("token.transfer(a,b)", "external_member"), ("this.f(a,b)", "external_member"),
+        ("new Other()", "new_contract"), ("super.base()", "super"),
+        ("require(a>0)", "builtin"), ("keccak256(data)", "builtin"), ("Event(a)", "event_or_struct")])
+    def test_exclusions(expr, expected):
+        sem = semantics("interface ERC20Interface {function transfer(uint a,uint b) external;} "
+            "contract Base {function base() internal {}} contract Other {} "
+            "contract C is Base {ERC20Interface token; event Event(uint a); "
+            "function f(uint a,uint b) public {bytes memory data; "+("emit " if expr=="Event(a)" else "")+expr+";}}")
+>       row = resolve(sem, expr)
+
+scripts/edge_sem/tests/test_call_resolve.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/tests/test_call_resolve.py:21: in resolve
+    return resolve_call(sem, call(sem, text))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+sem = <scripts.node_sem.facts_ast.AstSemantics object at 0x73430e46b990>
+text = 'Event(a)'
+
+    def call(sem, text):
+        matches = [n for n in sem.nodes if n.type == "call_expression" and sem.text(n) == text]
+>       assert len(matches) == 1, (text, [sem.text(n) for n in matches])
+E       AssertionError: ('Event(a)', [])
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+scripts/edge_sem/tests/test_call_resolve.py:16: AssertionError
+___________ test_unconfirmed_receiver_and_address_prefix_are_unknown ___________
+
+    def test_unconfirmed_receiver_and_address_prefix_are_unknown():
+>       sem = semantics("structUnused(); contract addressBook {function transfer(uint a) public {}} "
+            "contract C {addressBook book; function f(uint x) public {book.transfer(1);x.transfer(1);}}")
+
+scripts/edge_sem/tests/test_call_resolve.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/tests/test_call_resolve.py:11: in semantics
+    return AstSemantics(ProjectionView("pragma solidity ^0.5.11; "+source, "fixture.sol"))
+scripts/DFG/dfg_v2/projection_view.py:25: in __init__
+    self.tree = parse(source)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+source = 'pragma solidity ^0.5.11; structUnused(); contract addressBook {function transfer(uint a) public {}} contract C {addressBook book; function f(uint x) public {book.transfer(1);x.transfer(1);}}'
+
+    def parse(source):
+        parser = Parser()
+        parser.set_language(Language(str(library_path()), "solidity"))
+        tree = parser.parse(source.encode("utf8"))
+        if tree.root_node.has_error or any(n.is_missing for n in walk(tree.root_node)):
+>           raise Unsupported("Solidity parser ERROR/MISSING")
+E           scripts.DFG.models.Unsupported: Solidity parser ERROR/MISSING
+
+scripts/DFG/frontend.py:38: Unsupported
+=========================== short test summary info ============================
+FAILED scripts/edge_sem/tests/test_call_resolve.py::test_address_builtins_do_not_bind_same_name_functions[address(owner).delegatecall(1)]
+FAILED scripts/edge_sem/tests/test_call_resolve.py::test_address_builtins_do_not_bind_same_name_functions[payable(owner).staticcall(1)]
+FAILED scripts/edge_sem/tests/test_call_resolve.py::test_exclusions[Event(a)-event_or_struct]
+FAILED scripts/edge_sem/tests/test_call_resolve.py::test_unconfirmed_receiver_and_address_prefix_are_unknown
+4 failed, 16 passed in 0.18s

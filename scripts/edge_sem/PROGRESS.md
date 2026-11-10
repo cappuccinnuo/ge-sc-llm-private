@@ -35,3 +35,18 @@ list API返回record/invocation/inner_anchor；辅助inspect_modifier_guards供u
 
 实际测试命令记录于execution：CPU pytest -q -p no:cacheprovider分别运行edge_sem/tests、node_sem/tests、DFG/dfg_v2/tests，34+1353+2653=4040通过。doc_check、冻结SHA、_code_refs、8H.load、EP0产物和旧文档前缀验收见verification.json。
 EP0b完成，CALL_SITE门槛未通过，停止后续落地并提交审查，不自行改EP2或启动训练。最终实验在显存充足服务器，本机4GiB只用于开发；本轮本地提交，不自动push。
+
+
+## EP0c：调用解析与类型参照集（Codex，2026-11-10）
+
+依据r5 §4.1/4.2c，输入HEAD 8b5463e6，按既有授权快进同步后仍为最新。新增call_resolve.py、recon/ep0c_common.py、ep0c_run.py、ep0c_calls.py、ep0c_report.py、ep0c_verify.py及tests/test_call_resolve.py。只读产物独立写入ep0c_v1；RECON追加§10，三文档原前缀保留。
+
+解析优先冻结resolve_callable，按定义身份区分internal/inherited/library；裸标识符重载只在实参数量唯一时解析。明确排除address_builtin、external_member、cast_member、new、builtin、event等；super与不能证明者保持unknown。实际address/type_cast、payable_conversion、emit AST适配仅落实模板指定范围，不扩展复合callee内部绑定。
+
+重入/访问控制internal_confirmed=221/229、not_internal=105/225、rebinding=8/8、undetermined=54/53、no_expression=76/76，总数464/591。r5覆盖219/221与227/229，EP0同分母178/221与197/229；unknown比例24.43%/23.14%超过20%，两任务准入均失败，停在EP0c，不进入EP1、不训练。
+
+语句候选322/321，原180/186全部保留；新增库139/132、重载3/3。原HCG无对应函数级internal_call的候选138/125单列。各2个emit中的调用缺精确源端投影。r5粗计数208/329只能复核为181/301，且未提供粗分类逐边身份；本轮保存全部逐边最终分类与原EP0b对照，不伪造历史成员清单。
+
+定向首轮4失败/16通过，来源为新代码对address/payable/emit实际AST接口未适配及无效夹具；初版源码和失败记录保留，修正后20通过，再补5项边界。正式CPU回归：python -B -m pytest -q -p no:cacheprovider scripts/edge_sem/tests、scripts/node_sem/tests、scripts/DFG/dfg_v2/tests，59+1353+2653=4065通过。实际wrapper命令、耗时、SHA见execution；独立验收重算类别/覆盖/差集，并核对冻结代码、输入、旧产物、8H.load、_code_refs、文档前缀和UTF-8。
+
+限制：99%为resolver条件下的投影率，不能当独立语义召回；未改变r5阈值；未实现建议中的callee后缀绑定扩展或更改旧图。最终实验在显存充足服务器另建批次，本机4GiB只限制开发，本轮本地提交不自动push。
