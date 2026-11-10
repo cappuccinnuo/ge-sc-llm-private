@@ -1,7 +1,12 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r2（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r3（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r3 相对 r2 的修改**（对 r2 的独立复核；r2 的 11 项修改与第 6、7 项的实测数字已从封存事实复算确认）：
+1. 端点检验改为“出现 1 时是否恒为 1”：r2 的写法下，几乎处处为 0 的稀疏位（如 def_loop_carried）在每个节点上都“恒定”，会被全部移出核心；只统计至少 2 条同关系边的节点也使合格节点很少。新规则见 3.3，EP4 同步修改。
+2. 无来源关系行的初始化写明界：`xavier_uniform_` 对 `[R, H, d_k, d_k]` 的 fan_out = R·d_k²，界随关系数 R 变化（R=30 时 0.025，R=60 时 0.019）。一律用锚模型（G3R）层的 R 计算界，使新行与复制行同一尺度；PyTorch 1.8.1 的 `xavier_uniform_` 与 `uniform_` 不接受 generator，用 `torch.rand(shape, generator=g)` 线性变换到 [−b, b]。
+3. 更正 r2 第 9 项的数字：0.26 是合约任务（max_lr = 0.01）的值；E-A、E-B 只跑节点任务（max_lr = 0.005），50 步累积步长约 0.12，现行停止点（18–37 轮）约 0.05–0.11。结论不变。
 
 **r2 相对 r1 的修改**（独立复核“Mando-LLM node-augmentation scheme”对话最后一条消息提出的 11 项问题；逐项对照代码或封存数据核实后修改；其中第 6、9 项经实测不成立或被高估，只做记录或缩小范围）：
 1. 共享参数复制：`copy_common_layer_parameters` 要求锚模型的全部关系键都在新模型中，typed 模式下被反射出的 `(B, e, A)` 键会消失并报错；它还把新关系行填 0（`relation_pri` 填 1），与“按名字种子初始化”矛盾。改为 edge_sem 自己的映射复制函数（EP1）。
@@ -12,7 +17,7 @@
 6. GUARDS 扇出：封存事实实测每条语句约 1.0 条守卫记录（reentrancy_node 6956/6635，access_control_node 4537/4664，最多 13），不构成问题；保留“守卫 → 全部被保护语句”，因为只连敏感语句会漏掉受算术边界检查保护的语句。
 7. 增加 5 个未知位（unk_cfg、unk_dfg、unk_order、unk_state、unk_guard）：封存事实中 order 为 unknown 的语句占 5.6–9.6%，dfg 占 6.6–11.4%；规则基线排除 guard_status 为 unknown 的语句并报告数量。
 8. 核心位由 EP4 的端点检验在训练前确定：对每个源节点的全部出边（或每个目标节点的全部入边）恒定的位视为端点事实，移入上下文组。预计调用位与被调函数位会移出。
-9. P2 的理由只保留“完成退火阶段”：按本协议计算，50 步的累积 Adam 步长约 0.26，现行停止点为 0.11–0.24，P2 不会显著改变零初始化参数能移动的幅度，也不是“零初始化必然无效”的补救。EP7 增加一折试点，报告 u、U 的范数。
+9. P2 的理由只保留“完成退火阶段”：按本协议计算，节点任务（max_lr = 0.005）50 步的累积 Adam 步长约 0.12，现行停止点为 0.05–0.11（r3 更正；r2 原写 0.26 与 0.11–0.24，是合约任务 max_lr = 0.01 的值），P2 不会显著改变零初始化参数能移动的幅度，也不是“零初始化必然无效”的补救。EP7 增加一折试点，报告 u、U 的范数。
 10. D1–D3 在 EP7 之前必须有用户确认记录；未确认不得开始训练。
 11. 措辞修正（recursive_method_call 一句）；u 按关系键各一行。
 
@@ -85,7 +90,7 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 
 - **typed 反向**：每个基础关系 `(A, e, B)` 额外生成 `(B, "REV_" + e, A)`，正反向永不合并。模式 `merge` 调用作者 `reflect_graph`，必须与 G3R 逐元素一致；模式 `typed` 是新行为。DFG v2 的四种关系及其 `REV_*` 保持 DFG v2 的处理。
 - **cf_back（可选）**：在 DFG v2 语义 CFG 上用支配关系识别循环回边（目标支配源），把对应的 `next_line` 改为 `cf_back`；不得用行号。EP0 统计数量，少于 50 条/任务则不启用，记录理由。
-- **参数初始化（r2）**：`HGTLayer` 为每个关系键分配一行 `relation_att`/`relation_msg`/`relation_pri`。typed 模型的参数由锚模型（G3R）映射得到：typed 键 `(A, e, B)` 与 `(B, REV_e, A)` 都从 G3R 中承载这些边的合并键复制（同类型两端时是 `(A, e, A)`，不同类型时分别是 `(A, e, B)` 与 `(B, e, A)`）；DFG v2 关系逐键复制；只有 G3R 中没有对应来源的新关系（E1 及其 REV_）才按 sha256(规范键字符串) 派生的种子做与 `HGTLayer` 相同的初始化（att、msg 用 xavier_uniform，pri 为 1）。
+- **参数初始化（r2）**：`HGTLayer` 为每个关系键分配一行 `relation_att`/`relation_msg`/`relation_pri`。typed 模型的参数由锚模型（G3R）映射得到：typed 键 `(A, e, B)` 与 `(B, REV_e, A)` 都从 G3R 中承载这些边的合并键复制（同类型两端时是 `(A, e, A)`，不同类型时分别是 `(A, e, B)` 与 `(B, e, A)`）；DFG v2 关系逐键复制；只有 G3R 中没有对应来源的新关系（E1 及其 REV_）才按 sha256(规范键字符串) 派生的种子初始化：att、msg 取 U(−b, b)，b = sqrt(6 / ((H + R_anchor)·d_k²))，R_anchor 为锚模型该层的关系数（与 `xavier_uniform_` 对锚层的界相同，使新行与复制行同一尺度）；pri 为 1（r3）。
 - **稀疏关系共享**：本地阶段不启用（`min_edges = 0`，每个关系键一行参数）；EP0 报告每关系边数，服务器阶段若需要再单独设计并登记。
 
 ### 3.2 E1：三种新关系（各带 REV_）
@@ -143,7 +148,7 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 
 **未知值规则（r2）**：某一位依赖的事实为 unknown 时，该位写 0，同时对应的 unk 位写 1；不得把 unknown 当作 false 用在规则基线中。规则基线“没有 caller_identity GUARDS 入边的状态写语句”排除 guard_status 为 unknown 的语句，并报告被排除的数量。封存事实中 order 为 unknown 的语句约 5.6–9.6%，dfg 约 6.6–11.4%，guard 为 12 条（每任务）。
 
-**端点检验（r2，EP4 执行，训练前完成）**：对每个核心候选位 b 和每种关系，计算“对每个源节点的全部出边取值恒定”的源节点比例与“对每个目标节点的全部入边取值恒定”的目标节点比例（只统计至少有 2 条该关系边的节点）。任一比例 ≥ 99% 的位判定为端点事实，从核心移入上下文组。阈值 99% 现在登记，不得根据结果调整。预计调用位（37–42）与守卫操作数位（49–54）会被移出；守卫种类位（43–48）不一定，因为同一个修饰器内的 `require` 对修饰器内语句是 require、对被修饰函数的语句是 modifier。未知位（68–72）不参加端点检验：每个未知位进入它所限定的位所在的组（限定的位分属两组时两组都含它）。
+**端点检验（r3，EP4 执行，训练前完成）**：判断一个核心候选位 b 是否只是某个端点的性质。对每种适用关系 r 和每一侧（源侧：每个源节点的 r 出边；目标侧：每个目标节点的 r 入边），合格节点 = 该侧至少有 2 条 r 边、且其中至少一条 b = 1 的节点；恒定节点 = 合格节点中所有 r 边都是 b = 1 的节点。把各关系的合格数与恒定数分别相加（按节点计数合并），得到每侧的恒定比例。某一侧合格节点 ≥ 30 且恒定比例 ≥ 99% 时，b 判定为端点事实，移入上下文组；两侧合格节点都 < 30 时，b 留在核心并标为“未判定”，在报告中列出。阈值 99% 与 30 现在登记，不得根据结果调整。只看“出现 1 时是否恒为 1”，是因为几乎处处为 0 的稀疏位在任何节点上都“恒定”，按 r2 的写法会被全部误判为端点。预计调用位（37–42）与守卫操作数位（49–54）会被移出；守卫种类位（43–48）不一定，因为同一个修饰器内的 `require` 对修饰器内语句是 require、对被修饰函数的语句是 modifier。未知位（68–72）不参加端点检验：每个未知位进入它所限定的位所在的组（限定的位分属两组时两组都含它）。
 
 `recursive_method_call` 边的全部位为 0；其他每种边只填表中“适用边”列包含它的位，其余为 0。名称常量写成 `EDGE_FEATURE_NAMES`（长度 73）；核心位的索引列表 `core_indices` 由端点检验决定，不写成常量。不允许读取任何标识符拼写来计算任何一位。
 
@@ -333,7 +338,7 @@ make_edge_model(task, graph_or_path, profile, device, fold, ...)：
 - 按 runtime_model.make_placebo 的模式派生：深拷贝，用 edge_sem.materialize 的结果建 DGL 图（节点特征 inp 从锚模型复制），重建 etypes_dict 与 edges[c].data["id"]，按新 etypes 重建 gcs（本步一律 HGTLayerSharedProjection）。
 - 参数复制：不要直接用 copy_common_layer_parameters（它要求锚模型的全部关系键都在新模型中，typed 模式下被反射出的 (B, e, A) 键会消失而报错；它还把新关系行填 0/1）。写 edge_sem/init.py::copy_typed_layer_parameters(anchor_layer, new_layer, key_map)，文件头写明参考来源 diagnostics8c/placebo.py 与其 SHA256：
   * key_map 由 materialize 给出：每个新键 → 锚模型中承载这些边的键（typed 正向键 (A,e,B) → G3R 的 (A,e,B)；(B,REV_e,A) → 同类型两端时 G3R 的 (A,e,A)，不同类型时 G3R 的 (B,e,A)；DFG v2 关系 → 同名键；merge 模式 → 同名键）；没有来源的键（E1 及其 REV_）不在 key_map 中。
-  * 非关系参数逐个复制，形状不同就报错；relation_att/msg/pri 按 key_map 逐行复制；无来源的行用 torch.Generator 以 int(sha256(规范键字符串)[:16], 16) 为种子，att、msg 做 xavier_uniform（与 HGTLayer 相同的 fan 计算），pri 置 1。不消耗全局 RNG。
+  * 非关系参数逐个复制，形状不同就报错；relation_att/msg/pri 按 key_map 逐行复制；无来源的行用 torch.Generator 以 int(sha256(规范键字符串)[:16], 16) 为种子，att、msg 取 U(−b, b)，b = sqrt(6 / ((H + R_anchor)·d_k²))，R_anchor 为锚层的关系数（len(anchor_layer.edge_dict)），用 `torch.rand(shape, generator=g) * 2b − b` 生成（PyTorch 1.8.1 的 xavier_uniform_/uniform_ 不接受 generator）；pri 置 1。不消耗全局 RNG。
   * 复制后断言：每个有来源的行与来源逐位相同；锚模型的全部非关系参数逐位相同。
 - model.edge_profile = profile；model.dfg_profile 的取值按 EP0 第 6 节的结论设定，使 checkpoint 绑定可用。
 - validate_registration(model, ...)：edge_profile 为 G3R 时委托 dfg_v2.model.validate_registration；否则复用其中与剖面无关的检查（复制时写明来源与 SHA），并用 edge_sem.materialize 重新计算期望的规范键与端点逐条比较。
@@ -416,7 +421,7 @@ fixtures：
   - 不读取任何标识符拼写。代码审查要求：attrs.py 中不得出现对节点 code/label 文本的字符串匹配；env_kind 只能比较保留环境表达式（与 dfg_v2/env.py 的 14 个键对应）。
 - reverse 边不在这里计算；模型侧复制正向边的向量。
 - explain_edge(vec) -> list[str]；validate_vector(vec, relation) 检查单热组合法、不适用组为 0。
-- endpoint_test(attrs, f4_edges, f3_graph) -> {bit: {relation: (源恒定比例, 目标恒定比例, 节点数)}}，按 3.3 的端点检验规则（阈值 99%，只统计至少 2 条该关系边的节点）给出 core_indices。
+- endpoint_test(attrs, f4_edges, f3_graph) -> {bit: {"source": (合格节点数, 恒定节点数, 比例), "target": (...), "per_relation": {...}, "verdict": core/endpoint/undetermined}}，按 3.3 的端点检验规则（r3：合格节点 = 至少 2 条同关系边且至少一条 b = 1；各关系计数相加；合格 ≥ 30 且比例 ≥ 99% 判为端点；两侧合格都 < 30 为未判定、留在核心）给出 core_indices。
 - write_attributes(task_id, out_dir)：输出 attrs.npz（edge_keys 与 uint8 矩阵）、manifest.json（输入与实现 SHA，以及两个节点任务合并后的端点检验结果与 core_indices；两个任务的检验都在这一步完成，core_indices 取两任务都判定为非端点的位）、stats.json（每一位在每种关系上取 1 的比例，以及在正样本目标节点入边与负样本目标节点入边中的比例——只作描述，读取标签只允许在这个统计函数中，并且该函数的输出不得被任何特征代码 import）。
 
 ## 2. 测试 scripts/edge_sem/tests/test_attrs.py
@@ -429,7 +434,7 @@ fixtures：
   * require(msg.sender == owner) 的 GUARDS 边：guard_kind=require，guard_operands 含 caller_identity。
   * CALL_SITE 到写状态的 helper：call_callee_writes_state=1。
 - 未知值：构造 dfg.status=unknown 的语句，相关位为 0 且 unk_dfg=1；guard_status=unknown 的语句作为目标时 unk_guard=1。
-- 端点检验：构造一个位只依赖目标节点的小图，判定为端点；一个位随边变化的小图，判定为非端点。
+- 端点检验：构造一个位只依赖目标节点的小图，判定为端点；一个位随边变化的小图，判定为非端点；一个几乎处处为 0、只在少数边上为 1 且随边变化的稀疏位，判定为非端点（r3 回归测试）；合格节点不足 30 时判定为未判定。
 - 名字无关性（快速版，正式闸门在 EP5）：把 fixture 中所有非保留标识符改名后重算，向量逐位相同。
 
 ## 验收
