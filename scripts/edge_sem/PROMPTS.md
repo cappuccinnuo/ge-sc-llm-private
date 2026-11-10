@@ -1,7 +1,14 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r7（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r8（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r8 相对 r7 的修改**（审查 EP0e 产出后）：
+1. EP0e 实现已核对并接受：`_using_resolve` 与冻结 `_using_callable` 第 226–244 行一致，唯一差别是已批准的 `using … for *` 例外（冻结代码把字面 `*` 与类型名比较，永远匹配不上；真实语料中该例外为 0 次）；`receiver_type` 只依据括号结构、声明与未遮蔽内置名，不能确认时返回 None；候选集外绑定 0，EP0d 已解析的调用全部不变，1182 次 identifier/数组接收者 using 调用与冻结函数逐个相同；EP0d 两项门槛仍通过。
+2. 全分布复核（不只看门槛）：剩余 unknown 中已没有会产生内部目标的大类。重入任务 353 个 unknown（unsupported_callee_shape）是外层低级调用 `x.call.value(v)()` 本身（callee 是 call_option 调用），只影响分类、不影响 CALL_SITE；其余为外部接口转换调用、数组 push、以及下面 35 个库调用残差。
+3. EP0e 门槛以 312/347 = 89.91% 未通过（差 1 个调用）。Codex 没有四舍五入，也没有扩大规则，这是正确的。35 个残差中 18 个来自我的规格不一致：候选集按“方法名 + 参数个数唯一”定义，而冻结 using 规则要求“方法名唯一”，库中存在同名重载（如带错误信息与不带的 sub）时必然失败。
+4. 决定（建议，待用户确认）：按上一轮提出的停止规则，调用解析不再新增 EP0 轮次。EP0e 记为“门槛以 1 个调用之差未通过，作为已测量的局限接受”，库调用召回 89.91% 写入局限。EP2 中预先规定两项一致性修正并单独报告其效果，不重新声称门槛通过：(a) using-for 匹配与裸调用相同，在方法名不唯一时按参数个数唯一消歧（与已批准的 overload_arity 规则一致）；(b) 外层调用的 callee 为 call_option 调用时，按 call_option 的接收者分类为 address_builtin（低级调用），不产生目标。其余 17 个残差（限定结构体类型名 6、依赖未解析外部返回类型或内层重载 8、语法挂接异常 2、声明无法确认 1）保持 unknown。
+5. EP1 不依赖调用解析，可以开始；第 4 项的用户确认只是 EP2 的前置条件。
 
 **r7 相对 r6 的修改**（审查 EP0d 产出后）：
 1. EP0d 已核对并接受：`_resolve_callee` 与冻结 `resolve_callable` 第 189–205 行逐行一致，6707 次绑定等价；复合 callee 使 40/35 个调用表达式、38/39 条参照边转为已确认；两项门槛通过（覆盖 257/259、266/268；未确定 6.18%、5.22%）。用户批准的接收者适配（只用于 address_builtin 分类）语义正确：`!msg.sender.send(v)` 的含义是 `!(msg.sender.send(v))`。
@@ -49,7 +56,7 @@
 10. D1–D3 在 EP7 之前必须有用户确认记录；未确认不得开始训练。
 11. 措辞修正（recursive_method_call 一句）；u 按关系键各一行。
 
-使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP0c → EP0d → EP0e → EP1 → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
+使用方式：每次开新会话，先贴第 4.1 节共享上下文，再贴一个 Prompt。顺序：EP0 → EP0b → EP0c → EP0d → EP0e → EP1（EP2 之前需要用户确认 r8 第 4 项） → EP2 → EP3 → EP4 → EP5 → EP6 → EP7 → EP8 → EP9。每个 Prompt 结束后先交审查，通过后再进下一个。
 
 ---
 
@@ -538,6 +545,7 @@ fixtures（tests/fixtures/*.sol，自写小合约）：
 - 带两个修饰器的函数（其中一个继承自父合约）→ 两条 MOD_APPLY；修饰器名拼写不存在 → 计入 unresolved，不建边。
 - 语句 `x = helper(a);` 调用同文件 helper → 一条 CALL_SITE 到 helper 定义；`token.transfer(a, b)` 与 `msg.sender.call.value(v)("")` → 不建边，分别计入 external 与 low_level。
 - 同一语句两次调用同一函数 → 一条边。
+- r8 一致性修正（实现于 call_resolve.py，单独报告效果，不改写 EP0e 门槛结论）：(a) `_using_resolve` 在方法名对应多个库函数时，按“参数个数 = 实参 + 1 且首参数规范类型 = 接收者类型”唯一匹配；仍不唯一则不解析；(b) 外层调用的 callee 本身是 call_option 调用（`x.call.value(v)()`、`x.call.gas(g).value(v)()`）时，status = address_builtin（接收者经 _address_receiver 确认）或 call_option（未确认），不产生目标。两项各加测试；在 EP0e 候选集上报告召回从 312/347 的变化、候选集外绑定数（必须为 0）、以及 EP0e 已解析调用是否全部不变。
 - r5：`a.sub(b)`（using SafeMath for uint）→ 一条 CALL_SITE 到 SafeMath.sub，kind = library；`msg.sender.transfer(x)` 与同合约内的 `transfer(address,uint)` 并存时不建边；参数个数不同的两个同名函数各被调用一次 → 各连到对应定义（kind = overload_arity）。
 - 真实文件：reentrancy 数据中的 reentrancy_bonus、access_control 中的 rubixi 与 unprotected0（按 source_file 名在 F3 中查找；找不到就报告），人工核对后把期望边写成测试。
 
