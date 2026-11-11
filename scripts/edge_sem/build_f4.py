@@ -1,4 +1,4 @@
-"""EP2: same-file MOD_APPLY and CALL_SITE evidence, without rewriting F3.
+"""EP3: MOD_APPLY, CALL_SITE and GUARDS evidence, without rewriting F3.
 
 Projection reuses scripts/node_sem/facts.py::_raw_projection
 SHA256 5c6ba7352c902537ec4f80192963fc0c208a7a8b8691324fd122aa9e2d93dca7.
@@ -23,9 +23,10 @@ from scripts.DFG.projection import Projector
 from scripts.DFG.dfg_v2.projection_view import ProjectionView
 from scripts.DFG.dfg_v2.benchmark_v2.feature_view import graph_fingerprint
 from .call_resolve import resolve_call
+from .guard_edges import collect_guards,describe_unresolved_modifiers,task_guard_audit
 from .recon.common import ROOT,ref,write,checked,read
 
-RELATIONS=frozenset(("MOD_APPLY","CALL_SITE"))
+RELATIONS=frozenset(("MOD_APPLY","CALL_SITE","GUARDS"))
 
 
 def anchor(node):
@@ -124,10 +125,12 @@ def inspect_file(file,source,graph):
             events.append(dict(relation="CALL_SITE",anchor=anchor(call),owner_anchor=anchor(statement),
                 target_anchor=anchor(target),status=result["status"],outcome=output,
                 kind=result["kind"],reason=result["reason"]))
-    result=list(edges.values())
+    guard_rows,guard_audit=collect_guards(file,source,sem,raw,analyzer)
+    result=list(edges.values())+guard_rows
     counts.update({"edges:"+r:sum(e["relation"]==r for e in result) for r in RELATIONS})
     return result,dict(file=file,source_sha256=sha,projected_nodes=len(raw),counts=dict(counts),
-                      statuses=dict(statuses),reasons=dict(reasons),events=events)
+                      statuses=dict(statuses),reasons=dict(reasons),events=events,guards=guard_audit,
+                      unresolved_modifier_declarations=describe_unresolved_modifiers(sem,analyzer,events))
 
 
 def add_edges(nx_graph_copy,edges):
@@ -158,8 +161,11 @@ def add_edges(nx_graph_copy,edges):
         if relation=="MOD_APPLY":
             if row["src_anchor"][2] not in ("function_definition","constructor_definition") or row["dst_anchor"][2]!="modifier_definition":
                 raise ValueError("Invalid modifier roles")
-        elif row["src_anchor"][2] not in STATEMENTS or row["dst_anchor"][2]!="function_definition":
-            raise ValueError("Invalid call roles")
+        elif relation=="CALL_SITE":
+            if row["src_anchor"][2] not in STATEMENTS or row["dst_anchor"][2]!="function_definition":
+                raise ValueError("Invalid call roles")
+        elif row["src_anchor"][2] not in STATEMENTS or row["dst_anchor"][2] not in STATEMENTS:
+            raise ValueError("Invalid GUARDS roles")
     graph=copy.deepcopy(nx_graph_copy)
     for row in records:
         graph.add_edge(row["src"],row["dst"],edge_type=row["relation"],edge_sem_provenance=copy.deepcopy(row))
@@ -167,7 +173,7 @@ def add_edges(nx_graph_copy,edges):
 
 
 def implementation_refs():
-    names=("build_f4.py","call_resolve.py","__init__.py")
+    names=("build_f4.py","call_resolve.py","guard_edges.py","guard_source.py","recon/ep3_archive.py","__init__.py")
     own=[ref(ROOT/"scripts/edge_sem"/name) for name in names]
     frozen=["scripts/node_sem/facts.py","scripts/node_sem/facts_ast.py",
             "scripts/node_sem/facts_guards.py","scripts/node_sem/facts_io.py",
@@ -191,20 +197,34 @@ def build_task(task_id,out_dir):
         if index%20==0:print(task_id,index+1,"/",len(context["sources"]),flush=True)
     assert len({(e["relation"],e["src"],e["dst"]) for e in edges})==len(edges)
     assert graph_fingerprint(graph)==before
-    dest=out/"f4_edges.jsonl"
-    with dest.open("x",encoding="utf8") as f:
-        for row in edges:f.write(json.dumps(row,sort_keys=True,ensure_ascii=False)+"\n")
+    from .recon.ep3_archive import load_ep2_edges,EP2
+    prior_rows=load_ep2_edges(EP2/task_id/"manifest.json")
+    old_rows=[r for r in edges if r["relation"] in ("MOD_APPLY","CALL_SITE")]
+    ordered=lambda rows: [json.dumps(r,sort_keys=True,ensure_ascii=False,separators=(",",":"))
+        for r in sorted(rows,key=lambda x:(x["relation"],x["src"],x["dst"]))]
+    old_equal=ordered(old_rows)==ordered(prior_rows)
+    prior_path=ROOT/"scripts/edge_sem/artifacts/ep0_v1"/(task_id+".json")
+    guards=task_guard_audit(graph,files,edges,read(prior_path))
     counts=Counter();statuses=Counter();reasons=Counter()
     for row in files:counts.update(row["counts"]);statuses.update(row["statuses"]);reasons.update(row["reasons"])
+    passed=old_equal and guards["reproduction_pass"] and guards["nonmodifier_mapping_pass"]
     audit=dict(task_id=task_id,files=files,counts=dict(counts),statuses=dict(statuses),reasons=dict(reasons),
+        guards=guards,ep2_rows_equal=old_equal,ep2_manifest=ref(EP2/task_id/"manifest.json"),
+        ep0_census=ref(prior_path),hard_conditions_pass=passed,
         original_graph_unchanged=True,training_executed=False,graphs_written=0,
         label_policy="Only frozen Projector AST identity validation; no targets/predictions in edge decisions")
     write(out/"f4_audit.json",audit)
-    manifest=dict(version="edgesem-f4-ep2-v1",task_id=task_id,
+    if not passed:
+        raise ValueError("EP3 hard condition failed; full identities and audit retained in "+str(out))
+    dest=out/"f4_edges.jsonl"
+    with dest.open("x",encoding="utf8") as f:
+        for row in edges:f.write(json.dumps(row,sort_keys=True,ensure_ascii=False)+"\n")
+    manifest=dict(version="edgesem-f4-ep3-v1",task_id=task_id,
         inputs=context["provenance"],source_refs=context["sources"],implementation=implementation_refs(),
         row_count=len(edges),counts_by_relation=dict(Counter(e["relation"] for e in edges)),
         original_fingerprint=before,edges=ref(dest),audit=ref(out/"f4_audit.json"),
-        source_view="original",graphs_written=0,training_executed=False)
+        prior_ep2_manifest=ref(EP2/task_id/"manifest.json"),source_view="original",
+        graphs_written=0,training_executed=False)
     write(out/"manifest.json",manifest)
     print(task_id,manifest["counts_by_relation"],flush=True)
     return manifest
@@ -214,7 +234,7 @@ def load_edges(manifest_path):
     manifest=read(manifest_path)
     for record in manifest["implementation"]+list(manifest["source_refs"].values()):
         checked(record)
-    if manifest["version"]!="edgesem-f4-ep2-v1":raise ValueError("Unknown F4 manifest")
+    if manifest["version"] not in ("edgesem-f4-ep2-v1","edgesem-f4-ep3-v1"):raise ValueError("Unknown F4 manifest")
     for record in manifest["inputs"]["graphs"].values():checked(record)
     for name in ("plan","store","audit"):checked(manifest["inputs"][name])
     checked(manifest["audit"])

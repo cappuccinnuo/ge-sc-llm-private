@@ -8,7 +8,8 @@ from pathlib import Path
 import pytest
 import torch
 from scripts.edge_sem.tests.test_model_equivalence import real_graph,compare_models
-from scripts.edge_sem.build_f4 import load_edges,add_edges
+from scripts.edge_sem.build_f4 import add_edges
+from scripts.edge_sem.recon.ep3_archive import load_ep2_edges
 from scripts.edge_sem.init import relation_seed,RELATION_PARAMETERS
 from scripts.edge_sem.model import make_edge_model,validate_registration
 from scripts.edge_sem.recon.common import ROOT,ref,checked,read
@@ -17,14 +18,14 @@ from scripts.DFG.dfg_v2.benchmark_v2.feature_view import graph_fingerprint
 OUT=ROOT/"scripts/edge_sem/artifacts/ep2_v1"
 
 
-def verify_banks(base,model):
+def verify_banks(base,model,allowed_new=("MOD_APPLY","CALL_SITE")):
     assert base.ntypes_dict==model.ntypes_dict
     for name,value in base.state_dict().items():
         if name.split(".")[-1] not in RELATION_PARAMETERS:
             assert torch.equal(value,model.state_dict()[name]),name
     new_keys=set(model.etypes_dict)-set(base.etypes_dict)
     assert new_keys
-    assert all(c[1].replace("REV_","") in ("MOD_APPLY","CALL_SITE") for c in new_keys)
+    assert all(c[1].replace("REV_","") in allowed_new for c in new_keys)
     for i,(old,new) in enumerate(zip(base.gcs,model.gcs)):
         for c in base.etypes_dict:
             for name in RELATION_PARAMETERS:
@@ -54,7 +55,7 @@ def test_real_g4r_empty_and_added_edges(task):
     assert torch.equal(a,b)
     empty_seconds=time.monotonic()-start
     del empty,a,b;gc.collect()
-    manifest=OUT/task/"manifest.json";rows=load_edges(manifest)
+    manifest=OUT/task/"manifest.json";rows=load_ep2_edges(manifest)
     assert read(manifest)["task_id"]==task
     enriched=add_edges(original,rows)
     assert graph_fingerprint(original)==before
