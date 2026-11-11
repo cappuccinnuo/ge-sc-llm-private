@@ -1,0 +1,55 @@
+...FFF.............                                                      [100%]
+=================================== FAILURES ===================================
+___________________ test_loop_carried_increment_to_condition ___________________
+
+data = ({'audit': {'layers': {'L1': {'evidence': [{...}, {...}, {...}, {...}, {...}, {...}, ...], 'files': {'integration.sol'...  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0], dtype=uint8), ...})
+
+    def test_loop_carried_increment_to_condition(data):
+        rows=pick(data,"DATA_DEF_USE",src="i++;",dst="while (i < n)")
+>       assert rows and all(v[19] and v[20] for _,v in rows)
+E       AssertionError: assert ([({'data': {'ddg_fact_indices': [8], 'ddg_version': '0.1.1', 'dfg_v2_version': 'dfg-v2', 'edge_type': 'DATA_DEF_USE', ...       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,\n       0, 0, 0, 0, 0, 0, 0, 0], dtype=uint8))] and False)
+E        +  where False = all(<generator object test_loop_carried_increment_to_condition.<locals>.<genexpr> at 0x7b3318b9b350>)
+
+scripts/edge_sem/tests/test_attrs.py:76: AssertionError
+____________________ test_multiplication_and_pre08_context _____________________
+
+data = ({'audit': {'layers': {'L1': {'evidence': [{...}, {...}, {...}, {...}, {...}, {...}, ...], 'files': {'integration.sol'...  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0], dtype=uint8), ...})
+
+    def test_multiplication_and_pre08_context(data):
+        rows=pick(data,"DATA_DEF_USE",dst="uint c = a * b;")
+>       assert rows and all(v[24] and v[28] and v[61] for _,v in rows)
+E       AssertionError: assert ([({'data': {'ddg_fact_indices': [15, 16], 'ddg_version': '0.1.1', 'dfg_v2_version': 'dfg-v2', 'edge_type': 'DATA_DEF_U...       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,\n       0, 0, 0, 0, 0, 0, 0, 0], dtype=uint8))] and False)
+E        +  where False = all(<generator object test_multiplication_and_pre08_context.<locals>.<genexpr> at 0x7b3316dbb950>)
+
+scripts/edge_sem/tests/test_attrs.py:81: AssertionError
+____________________________ test_checked_send_bit _____________________________
+
+data = ({'audit': {'layers': {'L1': {'evidence': [{...}, {...}, {...}, {...}, {...}, {...}, ...], 'files': {'integration.sol'...  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0], dtype=uint8), ...})
+
+    def test_checked_send_bit(data):
+        rows=pick(data,"DATA_DEF_USE",dst="if (!a.send(p))")
+>       assert rows and all(v[23] and v[37] and v[40] for _,v in rows)
+E       AssertionError: assert ([({'data': {'ddg_fact_indices': [20, 21], 'ddg_version': '0.1.1', 'dfg_v2_version': 'dfg-v2', 'edge_type': 'DATA_DEF_U...       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,\n       0, 0, 0, 0, 0, 0, 0, 0], dtype=uint8))] and False)
+E        +  where False = all(<generator object test_checked_send_bit.<locals>.<genexpr> at 0x7b3316d520d0>)
+
+scripts/edge_sem/tests/test_attrs.py:88: AssertionError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/edge_sem/tests/test_attrs.py::test_loop_carried_increment_to_condition
+FAILED scripts/edge_sem/tests/test_attrs.py::test_multiplication_and_pre08_context
+FAILED scripts/edge_sem/tests/test_attrs.py::test_checked_send_bit - Assertio...
+3 failed, 16 passed, 4 warnings in 4.66s

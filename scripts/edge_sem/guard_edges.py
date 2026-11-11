@@ -134,23 +134,24 @@ def describe_unresolved_modifiers(sem,analyzer,events):
     return rows
 
 
-def task_guard_audit(graph,files,edges,prior):
+def task_guard_audit(graph,files,edges,prior=None):
     """Census parity and incoming counts; all nodes, author nodes and targets."""
     import statistics
     counts=Counter();kinds=Counter();mapped=Counter();combinations=Counter();unresolved=[]
-    expected={r["file"]:r for r in prior["files"]};comparisons=[]
+    expected=None if prior is None else {r["file"]:r for r in prior["files"]};comparisons=[]
     for f in files:
         a=f["guards"];counts.update(a["counts"]);kinds.update(a["kind_records"])
         mapped.update(a["kind_mapped"]);combinations.update(a["multi_evidence_kinds"])
-        expected_records=sum(v["records"] for v in expected[f["file"]]["guards"].values())
-        actual=a["counts"].get("records",0)
-        excluded=a["counts"].get("legacy_excluded_records",0)
-        comparisons.append(dict(file=f["file"],source_sha256=f["source_sha256"],
-            ep0_records=expected_records,ep3_records=actual,legacy_excluded_records=excluded,
-            equal=(actual==expected_records),explained_by_target_set=(actual+excluded==expected_records)))
+        if expected is not None:
+            expected_records=sum(v["records"] for v in expected[f["file"]]["guards"].values())
+            actual=a["counts"].get("records",0)
+            excluded=a["counts"].get("legacy_excluded_records",0)
+            comparisons.append(dict(file=f["file"],source_sha256=f["source_sha256"],
+                ep0_records=expected_records,ep3_records=actual,legacy_excluded_records=excluded,
+                equal=(actual==expected_records),explained_by_target_set=(actual+excluded==expected_records)))
         unresolved.extend(dict(file=f["file"],source_sha256=f["source_sha256"],**r)
                           for r in f["unresolved_modifier_declarations"])
-    if set(expected)!={f["file"] for f in files}:
+    if expected is not None and set(expected)!={f["file"] for f in files}:
         raise ValueError("EP0/EP3 file identities differ")
     incoming=Counter(e["dst"] for e in edges if e["relation"]=="GUARDS")
     target_info={r["node"]:dict(file=f["file"],source_sha256=f["source_sha256"],**r)
@@ -167,7 +168,7 @@ def task_guard_audit(graph,files,edges,prior):
     return dict(counts=dict(counts),kind_records=dict(kinds),kind_mapped=dict(mapped),
         multi_evidence_kinds=dict(combinations),unresolved_modifier_declarations=unresolved,
         per_file_reproduction=comparisons,
-        reproduction_pass=all(r["explained_by_target_set"] for r in comparisons),
+        reproduction_pass=None if expected is None else all(r["explained_by_target_set"] for r in comparisons),
         nonmodifier_mapping_pass=counts.get("nonmodifier_unmapped",0)==0,
         incoming_all_f3_nodes=distribution(graph.nodes),
         incoming_author_nodes=distribution(n for n,a in graph.nodes(data=True) if a["node_type"]!="env_source"),

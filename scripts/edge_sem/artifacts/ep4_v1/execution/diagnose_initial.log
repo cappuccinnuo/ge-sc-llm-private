@@ -1,0 +1,24 @@
+Using backend: pytorch
+CASE DATA_DEF_USE i++; while (i < n)
+src function loops(uint n) public {
+        uint i = 0;
+        while (i < n) { i++; }
+        value = i;
+    } dst while (i < n) { i++; } BITS ['var_kind_parameter', 'value_shape_integer', 'def_kind_decl_or_param', 'def_loop_carried', 'ctx_unchecked_arith', 'ctx_fn_externally_visible']
+FROM {} TO {'defs': [], 'uses': [{'var': 'n', 'kind': 'parameter', 'from_offset': None}, {'var': 'i', 'kind': 'local', 'from_offset': -1}, {'var': 'i', 'kind': 'local', 'from_offset': 1}], 'from': [{'node': 'n192', 'offset': None}, {'node': 'n200', 'offset': -1}, {'node': 'n211', 'offset': 1}], 'to': [], 'status': 'supported'} EXTERNAL {'kinds': [], 'value_attached': False, 'uninvoked_call_value': False, 'target_classes': [], 'value_class': 'none', 'data_class': 'none', 'return_handling': 'not_applicable'}
+src i++; dst while (i < n) { i++; } BITS ['var_kind_local', 'value_shape_integer', 'def_kind_incdec_or_delete', 'def_loop_carried', 'use_context_condition', 'ctx_unchecked_arith', 'ctx_fn_externally_visible']
+FROM {'defs': [{'var': 'i', 'kind': 'local', 'from_offset': 0}], 'uses': [{'var': 'i', 'kind': 'local', 'from_offset': -2}], 'from': [{'node': 'n200', 'offset': -2}], 'to': [{'node': 'n206', 'offset': -1, 'sink': 'loop_bound'}, {'node': 'n214', 'offset': 1, 'sink': 'state_write'}], 'status': 'supported'} TO {'defs': [], 'uses': [{'var': 'n', 'kind': 'parameter', 'from_offset': None}, {'var': 'i', 'kind': 'local', 'from_offset': -1}, {'var': 'i', 'kind': 'local', 'from_offset': 1}], 'from': [{'node': 'n192', 'offset': None}, {'node': 'n200', 'offset': -1}, {'node': 'n211', 'offset': 1}], 'to': [], 'status': 'supported'} EXTERNAL {'kinds': [], 'value_attached': False, 'uninvoked_call_value': False, 'target_classes': [], 'value_class': 'none', 'data_class': 'none', 'return_handling': 'not_applicable'}
+CASE DATA_DEF_USE None uint c = a * b;
+src function product(uint a, uint b) public {
+        uint c = a * b;
+        require(a + b >= a);
+        value = c;
+    } dst uint c = a * b; BITS ['var_kind_parameter', 'value_shape_integer', 'def_kind_decl_or_param', 'ctx_unchecked_arith', 'ctx_fn_externally_visible']
+FROM {} TO {'defs': [{'var': 'c', 'kind': 'local', 'from_offset': 0}], 'uses': [{'var': 'a', 'kind': 'parameter', 'from_offset': None}, {'var': 'b', 'kind': 'parameter', 'from_offset': None}], 'from': [{'node': 'n218', 'offset': None}], 'to': [{'node': 'n247', 'offset': 2, 'sink': 'state_write'}], 'status': 'supported'} EXTERNAL {'kinds': [], 'value_attached': False, 'uninvoked_call_value': False, 'target_classes': [], 'value_class': 'none', 'data_class': 'none', 'return_handling': 'not_applicable'}
+CASE DATA_DEF_USE None if (!a.send(p))
+src function checked(address payable a, uint p) public {
+        if (!a.send(p)) revert();
+        value = p;
+    } dst if (!a.send(p)) revert(); BITS ['var_kind_parameter', 'value_shape_address', 'value_shape_integer', 'def_kind_decl_or_param', 'ctx_dst_is_ext_call', 'ctx_unchecked_arith', 'ctx_fn_externally_visible']
+FROM {} TO {'defs': [], 'uses': [{'var': 'a', 'kind': 'parameter', 'from_offset': None}, {'var': 'p', 'kind': 'parameter', 'from_offset': None}], 'from': [{'node': 'n251', 'offset': None}], 'to': [], 'status': 'supported'} EXTERNAL {'kinds': ['send'], 'value_attached': True, 'uninvoked_call_value': False, 'target_classes': ['param'], 'value_class': 'param', 'data_class': 'none', 'return_handling': 'checked_in_if'}
+pre08 True

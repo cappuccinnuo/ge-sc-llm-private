@@ -1,0 +1,18 @@
+reentrancy_node extracting original-view frozen facts
+Using backend: pytorch
+Traceback (most recent call last):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/attr_batch.py", line 140, in <module>
+    args=p.parse_args();write_batch(args.out,args.task)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/attr_batch.py", line 57, in write_batch
+    fact_text=json.dumps(facts,ensure_ascii=False,sort_keys=True,separators=(",",":"))
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/json/encoder.py", line 199, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/json/encoder.py", line 257, in iterencode
+    return _iterencode(o, 0)
+TypeError: '<' not supported between instances of 'str' and 'int'

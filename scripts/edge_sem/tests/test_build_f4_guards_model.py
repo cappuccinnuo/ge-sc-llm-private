@@ -28,7 +28,7 @@ def test_ep3_real_g4r_with_complete_e1(task):
     assert torch.equal(a,b)
     empty_seconds=time.monotonic()-start
     del empty,a,b;gc.collect()
-    manifest=OUT/task/"manifest.json";rows=load_edges(manifest)
+    manifest=ROOT/"scripts/edge_sem/artifacts/f4_v1"/task/"manifest.json";rows=load_edges(manifest)
     assert read(manifest)["task_id"]==task
     enriched=add_edges(original,rows)
     assert graph_fingerprint(original)==before

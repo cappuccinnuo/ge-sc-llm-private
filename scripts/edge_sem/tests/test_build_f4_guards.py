@@ -185,7 +185,7 @@ def test_archived_ep2_is_explicit_and_current_loader_still_rejects(task):
     manifest=EP2/task/"manifest.json"
     rows=load_ep2_edges(manifest)
     assert len(rows)==(748 if task=="reentrancy_node" else 759)
-    with pytest.raises(ValueError,match="SHA mismatch"):load_edges(manifest)
+    with pytest.raises(ValueError,match="manifest version"):load_edges(manifest)
 
 
 def test_archive_snapshot_hash_mismatch_rejected(tmp_path):
