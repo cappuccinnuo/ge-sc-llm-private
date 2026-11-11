@@ -10878,3 +10878,20 @@ EP6详细选择：冻结sem.sink(target,sealed_symbol)补齐缺失记录，不�
 9. 资源规则：GPU探针8个任务，每个1次更新，记录allocated/reserved及整卡状态；peak Torch reserved>3584MiB停止。范数试点50轮，只报告每层u及各U族Frobenius范数；首次更新后encoder梯度有限且非零；最终全部u/U<1e-3停止。OOM/非有限值/输入/checkpoint错误停止，不自动换CPU、降维、改层数、关闭其他程序或重试。每次GPU任务独立进程，使用原DFG训练锁。最终服务器将有足够显存，当前限制仅来自本机。
 
 10. 当前停止位置：CPU实现/准备完成，GPU0/8、范数0/1、正式0/20。D1（匿名主/服务器原名描述性次要）、D2（P2及新G3R基线）、D3（EP9冻结七类复用）待用户确认。本地先提交P2登记，再获得明确执行授权；不将此次报告表述为EP7训练已完成，不自动开展EP8/9或推送GitHub。
+
+
+## 2026-11-11 — EP7改为原名主视图并获顺序训练授权
+
+用户在call_f3878be032dc4782ae2d23b4a5711b9b选择“先调整主视图，再封存执行方案”，同时授权8个GPU探针→1个50轮范数试点→20个G3R正式fit。结合此前明确的原名主视图要求，D1改为original S0；D2的P2与D3的EP9冻结规则保留。匿名接口保留，本轮不执行匿名计划。原始答复与解释见ep7_original_v1/user_decision.json。
+
+新建scripts/edge_sem/artifacts/ep7_original_v1，保留ep7_v1及旧registration/plan/seal/初值不变。原名特征从8H封存source_preparation索引取得，复用冻结assemble；两任务分别12036/7710行，其中11224/7436行向量相对匿名视图改变。图、节点、标签、划分、边属性、配置和种子不变。26项原名准备全部证明新构造参数与旧零步初值逐位一致，直接复用26份旧初值，没有新增权重文件。
+
+原4318项回归保留，本轮26项定向测试通过；封存后G3R和G4R-A真实CPU装配/绑定通过。旧3个匿名计划只读核验通过，299份旧EP7文件、750份冻结源码和1134份更早产物均不变。新runtime共382项（28 EdgeSem+354冻结）。新P2登记提交后另写decisions/执行授权，再实际启动；不需要重复索取本轮顺序训练授权。
+
+报告：scripts/edge_sem/EP7_ORIGINAL_REPORT.md。与8H比较同时涉及视图、初值、停止规则差异，只能描述，不作单因素归因。最终实验在显存充足的服务器运行，当前限制仅来自本机；未自动授权EP8/9或GitHub推送。
+
+详细接入记录：新增feature_views按plan/job显式token_view分派，旧计划默认anonymous；original从已封存索引准确取得manifest及data，拒绝错任务、NPZ、混合视图和登记主视图不符。execution、protocol_p2、runtime和analysis_ep7按新视图绑定，trainer与数值算法未改。新的recon/ep7_original逐项装配并比较state/support/edge binding，重新记录initialization来源，三个新计划仍先保持authorization=false，通过独立执行授权记录启动，旧seal不覆盖。D1替代决定和D2/D3保留的解释与原始选项答复一并保存，不将原回复伪写为“确认匿名”。
+
+CPU检查：新增11项视图测试，连同15项现有核心/执行策略共26项通过；历史完整4318项未重复声称为本轮重跑。重入和访问控制所有26项逐一严格重载，原名装配整图指纹等于输入原图；共享零步文件总550093510字节未复制。原name/token变化行数由两份NPZ按uint32逐位比较，manifest行身份相同。初次只读语法检查使用Python3.7不支持的feature_version参数，未进入计划读取；改用原生ast.parse后通过，保留development_syntax_check.json，不涉及正式fit失败或训练重试。
+
+后续执行界限保持：单模型串行独立进程、原GPU锁；显存探针peak reserved>3584MiB或OOM/非有限值/输入错误即停；范数试点不评分验证/测试集，第一次更新后encoder梯度须有限非零，全部最终u/U范数<1e-3即停。授权范围仅8探针、1范数试点、20原名G3R，完成后独立重算/验收及描述性8H对照，不自动扩展模型、关系、seed或漏洞类别。

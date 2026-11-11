@@ -10,13 +10,22 @@ DECISIONS={
  "D3":"Freeze relationships, attribute layout and hyperparameters after EP9; reuse for seven categories without category tuning",
 }
 
-def require_decisions(path):
+def decisions_for_view(token_view="anonymous"):
+    if token_view not in ("anonymous","original"):
+        raise ValueError("Unknown decision view")
+    result=dict(DECISIONS)
+    if token_view=="original":
+        result["D1"]="Original-name S0 primary; anonymous view retained only as an optional later diagnostic interface, no anonymous fits in this batch"
+    return result
+
+
+def require_decisions(path,token_view="anonymous"):
     data=read(path)
     if read(Path(path).with_suffix(".seal.json")).get("decisions")!=ref(path):
         raise ValueError("Decision seal differs")
     if not data.get("user_request") or not data.get("date"):raise ValueError("Missing explicit user decisions")
     if set(data.get("decisions",{}))!=set(DECISIONS):raise ValueError("D1-D3 missing")
-    for name,text in DECISIONS.items():
+    for name,text in decisions_for_view(token_view).items():
         row=data["decisions"][name]
         if row.get("status")!="confirmed" or row.get("value")!=text:raise ValueError("Decision not confirmed: "+name)
     return data
@@ -28,7 +37,7 @@ def require_registration_commit(reference,commit):
     if hashlib.sha256(blob).hexdigest()!=reference["sha256"]:raise ValueError("P2 registration not committed exactly")
     subprocess.check_call(["git","merge-base","--is-ancestor",commit,"HEAD"],cwd=str(ROOT))
 
-def registration(tasks,source_plan,approvals):
+def registration(tasks,source_plan,approvals,token_view="anonymous"):
     diffs={}
     for tid,t in tasks.items():
         old=t["historical_config"];new=t["config"]
@@ -40,9 +49,10 @@ def registration(tasks,source_plan,approvals):
         maximum_training_epochs=50,patience=51,schedule_epochs=50,best="strict minimum inner_val loss; first tie",
         training_protocol="grouped nested; inner_train supervision only; outer_test scored after training",
         seed=1,initialization="fresh G3R anchor at frozen constructor seed; EP1 semantic typed/new-relation copies",
-        historical_comparison="descriptive only; do not attribute differences uniquely to stopping protocol",
-        feature_policy="N-anon-s S0",label_policy="L-audit",
-        primary_endpoint=dict(task="reentrancy_node",checkpoint="best",metric="Buggy-F1",view="N-anon-s"),
+        historical_comparison="descriptive only; stopping, fresh-anchor initialization and (when original is primary) token view may differ from 8H",
+        feature_policy=("N-original S0" if token_view=="original" else "N-anon-s S0"),label_policy="L-audit",
+        primary_endpoint=dict(task="reentrancy_node",checkpoint="best",metric="Buggy-F1",
+            view="original" if token_view=="original" else "N-anon-s"),
         hypotheses=dict(H1=dict(contrasts=["G4R-G3R-T","G4R-G4R-P"],require_positive_means=True,p="max of both two-sided zsplit Wilcoxon p values"),
                         H2=dict(contrasts=["G4R-A-G4R","G4R-A-G4R-Api"],require_positive_means=True,p="max of both two-sided zsplit Wilcoxon p values")),
         correction=dict(method="Holm",family=["H1","H2"],alpha=.05,compute_after="EP9"),
@@ -50,7 +60,7 @@ def registration(tasks,source_plan,approvals):
         required_reports=["fold BF1/best epoch","non-SolidiFI positive-node TP/FP/FN",
             "persistent cases with source identity","two predefined rule baselines",
             "relation supports and gradients","peak allocated/reserved VRAM","fit time","u/U norms"],
-        decisions={k:dict(status="pending",proposal=v) for k,v in DECISIONS.items()},
+        decisions={k:dict(status="pending",proposal=v) for k,v in decisions_for_view(token_view).items()},
         approved_adaptations=approvals,
         gpu_probe=dict(tasks=list(tasks),profiles=["G3R","G3R-T","G4R","G4R-A"],fold=0,steps=1,
             threshold_mib=3584,measurement="peak Torch reserved; allocated and whole-card observations also reported",

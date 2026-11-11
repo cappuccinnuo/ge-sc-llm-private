@@ -34,6 +34,7 @@ from .checkpoint import build_binding,validate_binding,freeze_binding,edge_field
 from .supervision import make_part
 from .input_guard import FitInputGuard
 from .trainer import fit
+from .feature_views import FEATURE_POLICIES,selected_view,source_feature,validate_view,validate_plan_view
 
 VERSION="edgesem-execution-p2-v1"
 ARTIFACT_ROOT=ROOT/"scripts/edge_sem/artifacts"
@@ -76,7 +77,7 @@ def load_checked(reference,map_location="cpu"):
 
 
 def assemble_model(job):
-    """Frozen anonymous S0 tokens, unchanged structural inputs, fresh G3R anchor."""
+    """Sealed original/anonymous S0 tokens; unchanged structure and fresh G3R anchor."""
     cfg=job["config"];spec=validate_profile(job["edge_profile"])
     original=read_graph(checked(job["graph"]));before=graph_fingerprint(original)
     graph=assemble(original,job["feature_view"])
@@ -90,10 +91,10 @@ def assemble_model(job):
             attributes_manifest=checked(job["attrs_manifest"]),**kwargs)
         # Attribute provenance binds the original graph. Install only the
         # already verified 8H token view on this private model after alignment.
-        if model.original_graph_node_ids!=list(graph):raise ValueError("Anonymous node identity differs")
+        if model.original_graph_node_ids!=list(graph):raise ValueError("Token view node identity differs")
         for i,n in enumerate(model.original_graph_node_ids):
             if model.nx_graph.nodes[i]["source_file"]!=graph.nodes[n]["source_file"]:
-                raise ValueError("Anonymous file identity differs")
+                raise ValueError("Token view file identity differs")
             model.nx_graph.nodes[i]["token"]=copy.deepcopy(graph.nodes[n]["token"])
         from scripts.DFG.dfg_v2.model import _features
         for typ,value in _features(model).items():
@@ -125,15 +126,14 @@ def _validate_job(job,plan=None,check_initial=True):
     validate_parts(job["split"],job["graph_files"])
     if job["config"]!=p2_config(job["historical_config"]):raise ValueError("P2 config drift")
     if job["support"]["profile"]!=job["edge_profile"]:raise ValueError("Support profile differs")
-    view=read(checked(job["feature_view"]))
-    if view["view"]!="anonymous" or view["task_id"]!=job["task_id"] or view["data"]!=job["feature_npz"]:
-        raise ValueError("Expected frozen N-anon-s S0 view")
+    view=validate_view(job,plan)
     if plan is not None:
         source=h8.load(checked(plan["source_h8_plan"]))
         old=dict(task_id=job["task_id"],fold=job["fold"],seed=1,profile="G3R")
         task,info,entry=h8.prepared(source,old)
+        feature_view,feature_npz=source_feature(source,job["task_id"],view)
         expected=dict(graph=entry["graph"],folds=task["record"]["folds"],labels=task["record"]["labels"],
-            label_view=task["label_view"],feature_view=task["feature_view"],feature_npz=task["feature_npz"],
+            label_view=task["label_view"],feature_view=feature_view,feature_npz=feature_npz,
             source_preparation=source["source_preparation"],split=info["split"],
             graph_files=task["record"]["graph_files"],historical_config=task["config"],seeds=info["seeds"])
         if any(job[k]!=v for k,v in expected.items()):raise ValueError("Historical input identity differs")
@@ -143,16 +143,20 @@ def create(batch_dir,matrix):
     batch=Path(batch_dir).resolve()
     if ARTIFACT_ROOT not in batch.parents or batch.exists():raise ValueError("New EdgeSem batch required")
     jobs=copy.deepcopy(matrix["jobs"])
+    view=selected_view(matrix)
+    if any(selected_view(j)!=view for j in jobs):raise ValueError("Mixed plan token views")
     if not jobs or len({job_id(j) for j in jobs})!=len(jobs):raise ValueError("Empty/duplicate jobs")
     batch.mkdir(parents=True,exist_ok=False)
     runtime,snapshots=snapshot_runtime(batch/"runtime")
     plan=dict(version=VERSION,edgesem_version=EDGESEM_VERSION,protocol=PROTOCOL_NAME,
         protocol_version=PROTOCOL_VERSION,training_protocol="P2",jobs=jobs,
         source_h8_plan=matrix["source_h8_plan"],registration=matrix["registration"],scope=matrix.get("scope","formal"),
-        label_policy="L-audit",node_features="N-anon-s S0",reducer="mean",layer_impl="shared_projection",
+        label_policy="L-audit",node_features=FEATURE_POLICIES[view],reducer="mean",layer_impl="shared_projection",
         seeds=[1],resource_policy=LOCAL_DEV_POLICY,runtime=runtime,runtime_snapshots=snapshots,
         authorization=ref(batch/"authorization.json") if (batch/"authorization.json").exists() else None,
         final_server_intent="Final experiments use a server with sufficient VRAM; current constraints are local only.")
+    if view!="anonymous":plan["token_view"]=view
+    if "view_revision" in matrix:plan["view_revision"]=matrix["view_revision"]
     authorization=dict(version=VERSION,execution_authorized=False,scope=plan["scope"],jobs=[job_id(j) for j in jobs],
         matrix_sha256=digest(jobs),user_request=None)
     write(batch/"authorization.json",authorization);plan["authorization"]=ref(batch/"authorization.json")
@@ -169,7 +173,7 @@ def load(path,mode="execute"):
         or plan.get("training_protocol")!="P2" or seal.get("plan")!=ref(path)
         or seal.get("jobs")!=len(plan["jobs"]) or seal.get("matrix_sha256")!=digest(plan["jobs"])):
         raise ValueError("EdgeSem plan/seal differs")
-    if (plan["label_policy"]!="L-audit" or plan["node_features"]!="N-anon-s S0"
+    if (plan["label_policy"]!="L-audit" or plan["node_features"]!=FEATURE_POLICIES[selected_view(plan)]
         or plan["reducer"]!="mean" or plan["layer_impl"]!="shared_projection" or plan["seeds"]!=[1]
         or plan["resource_policy"]!=LOCAL_DEV_POLICY):raise ValueError("Execution protocol differs")
     if plan.get("protocol")!=PROTOCOL_NAME or plan.get("protocol_version")!=PROTOCOL_VERSION or plan.get("scope") not in ("formal","gpu_probes","norm_pilot"):
@@ -179,7 +183,7 @@ def load(path,mode="execute"):
     if auth["jobs"]!=[job_id(j) for j in plan["jobs"]] or auth["matrix_sha256"]!=digest(plan["jobs"]):
         raise ValueError("Authorization matrix differs")
     if len({job_id(j) for j in plan["jobs"]})!=len(plan["jobs"]):raise ValueError("Duplicate jobs")
-    checked(plan["registration"])
+    validate_plan_view(plan)
     for job in plan["jobs"]:_validate_job(job,plan)
     return plan
 
@@ -194,7 +198,7 @@ def authorized(path,plan,scope="formal",archive=False):
         or not approval.get("user_request") or approval.get("jobs")!=[job_id(j) for j in plan["jobs"]]):
         raise PermissionError("Execution approval identity differs")
     from .protocol_p2 import require_decisions,require_registration_commit
-    require_decisions(checked(approval["decisions"]))
+    require_decisions(checked(approval["decisions"]),selected_view(plan))
     if not archive:require_registration_commit(plan["registration"],approval["registration_commit"])
     if plan["scope"]!=scope:raise PermissionError("Execution scope differs")
     prerequisites=approval.get("prerequisites",[])

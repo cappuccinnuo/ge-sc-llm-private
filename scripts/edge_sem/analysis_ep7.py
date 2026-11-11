@@ -67,7 +67,8 @@ def summarize(path,output):
         w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader()
         w.writerows([dict(r,p2_confusion=json_confusion(r["p2_confusion"])) for r in rows])
     result=dict(passed=True,plan=ref(path),fits=20,summary=stats,receipts=accepted,
-        comparisons="descriptive only; stopping and fresh-anchor initialization may both differ from historical 8H",
+        comparisons="descriptive only; stopping, fresh-anchor initialization and token view may differ from historical 8H",
+        primary_token_view=ex.selected_view(plan),historical_token_view="anonymous",
         independent_seed_replicates=False,unit="HCG node",primary_checkpoint="best")
     write(output/"summary.json",result);write(output/"summary.seal.json",dict(summary=ref(output/"summary.json")))
     return result
