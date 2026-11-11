@@ -1,7 +1,12 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r10（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r11（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r11 相对 r10 的修改**（审查 EP3 产出后）：
+1. EP3 已核对并接受。独立复核（不依赖 Codex 的 ep3_verify）：对两个任务全部 6956/4537 条守卫证据按锚点逐条检查——require、early_exit、internal_check 的源语句都在目标之前结束；if_branch 与 loop_cond 的源都严格包含目标；616/715 条修饰器证据全部满足“invocation 位于某函数 F、目标位于 F 内、源位于 F 的某条 MOD_APPLY 指向的修饰器内”；loop_cond 操作数全空；顶层 kind 与证据一致；0 条异常。记录数逐文件复现 RECON（71/71、57/57），非修饰器与修饰器映射 100%，去重 35 条全部是 internal_check。9 个未解析 modifier_invocation 经冻结 resolve_identifier 全部为 contract_declaration（基类构造调用），12 个 unknown 目标都在这些构造函数内。EP2 行逐行相同。新增参数 42/46 行 × 4104 × 2 层 = 344,736/377,568，与探针一致。Codex 记录的两个开发问题（描述性查询改用 resolve_identifier；用户批准的显式 EP2 归档加载）处理正确，不影响任何边。
+2. 新发现的结构缺陷（不影响 EP3 数据）：build_f4.build_task 现在无条件调用 EP2 归档加载器与 ep0_v1 普查，只能对两个节点任务运行；合约任务与服务器阶段的五类都会失败，违背 D3 的七类通用要求，也使 EP9 冻结的构建器无法复用。EP4 的属性产物将绑定 F4 manifest，所以在 EP4 第 0 节先修正，再生成属性。
+3. EP4 补充三处 EP3 之后才能写清的规则：MOD_APPLY 的守卫位来源、unk_guard 的判定、原始 operand_classes 到 49–54 位的映射表。
 
 **r10 相对 r9 的修改**（审查 EP2 产出后）：
 1. EP2 已逐项核对并接受。第 0 节两项修正与规格一致（`_using_resolve` 按“参数个数 = 实参 + 1 且首参数规范类型 = 接收者类型”唯一匹配；外层 call_option 调用分类为 address_builtin/call_option，不产生目标）；EP0e 候选集召回 312→334/347（看到结果后的修正，只作描述），候选集外绑定 0，EP0d 已解析调用 558/552 全部不变。
@@ -617,11 +622,23 @@ fixtures：
 ```text
 # EP4：边属性（uint8[74]）与端点检验
 
+## 0. 构建器通用化（r11；在生成任何属性之前完成）
+- build_f4.build_task(task_id, out_dir) 只做任务无关的工作与不变量：逐文件 inspect_file、(relation, src, dst) 唯一、原 F3 指纹不变、非修饰器守卫映射 100%（否则写审计后报错，同 EP3）、修饰器对应规则（同 EP3）。删除其中对 recon/ep3_archive.load_ep2_edges、EP2 行比较与 ep0_v1 普查的调用；task_guard_audit 的 EP0 对照改为可选参数（None 时不做对照，只给入度分布与计数）。生产模块 build_f4.py 与 guard_edges.py 不得 import scripts.edge_sem.recon 下的任何模块；implementation_refs 去掉 recon/ep3_archive.py。
+- EP3 的历史回归改由 recon/ep4_rebuild.py 执行（只读，不进入生产代码）。
+- manifest 版本改为 "edgesem-f4-v1"；load_edges 只接受该版本（旧批次只能经显式归档入口读取）。
+- 重建：两个节点任务输出到 scripts/edge_sem/artifacts/f4_v1/<task>/。硬条件：f4_edges.jsonl 的 SHA256 与 ep3_v1 对应文件逐字节相同；审计中的 guards 计数、kind 记录数与 ep3_v1 相同。任一不满足就停下报告。
+- 通用性冒烟（只记录，不用于 E-A/E-B）：对 reentrancy_contract 与 access_control_contract 同样运行 build_task，输出到 f4_v1/<task>/。报告各关系边数、守卫记录数与 RECON 第 4 节的对照（GUARDS 记录 10274/8165；MOD_APPLY 绑定 549/528、图端点 549/527），以及非修饰器与修饰器映射率。若合约任务触发硬条件（映射不到、修饰器对应失败），停下报告，不得放宽条件。
+- 测试：静态检查 build_f4.py、guard_edges.py 不 import recon；load_edges 拒绝 ep2/ep3 版本 manifest；ep4_rebuild 的逐字节比较在篡改一行后失败。
+- 之后 EP4–EP9 一律经 build_f4.load_edges 读取 artifacts/f4_v1/<task>/manifest.json；EP3 及以前的产物不再作为输入。
+
 ## 1. scripts/edge_sem/attrs.py
 - EDGE_FEATURE_NAMES（长度 74，顺序与 PROMPTS.md 3.3 表完全一致）；CORE_CANDIDATES（0–14、16–54、68–72 与 73；第 15 位停用，r4）；CONTEXT（55–67）；GROUPS（名称 → 索引列表）；ONE_HOT_GROUPS（var_kind、value_shape、def_kind、write_access、write_op 为单热：适用时恰好一个 1，不适用时全 0）。
 - compute_attributes(context, f3_graph, f4_edges, facts) -> {edge_key: uint8[74]}
   - edge_key = f"{source_file}::{src}->{dst}::{edge_type}::{k}"，k 为同一对节点同一类型的多重边序号（按 nx 的 key 排序编号）。
-  - facts 来自 node_sem.facts.extract(task_id)（原名视图）；守卫字段来自 EP3 的边记录：同一 GUARDS 边的全部 evidence 取并（43–48 按各条 kind 置位，49–54 由各条原始 operand_classes 按 3.3 映射后按位或）（r10）。
+  - facts 来自 node_sem.facts.extract(task_id)（原名视图）；守卫字段来自 F4 边记录：同一 GUARDS 边的全部 evidence 取并（43–48 按各条 kind 置位，49–54 由各条原始 operand_classes 按下表映射后按位或）（r10）。
+  - 原始 operand_classes → 49–54（r11，固定映射，不得读取其他文本）：msg.sender、tx.origin → caller_identity；timestamp、block → block_time（冻结实现把 block.number 也记为 timestamp，保持）；msg.value、balance → amount_balance；external_result → external_result；hash → hash；state → state；param、local、literal 不映射。loop_cond 证据的 operand_classes 恒为空（冻结设计），其 49–54 位为 0，写入局限。
+  - MOD_APPLY(F → M) 的 43–54 位（r11）：用每文件一个 GuardAnalyzer 调用 guard_source.modifier_guard_sources(analyzer, F)，取 inner_anchor 落在 M 的 modifier_definition 跨度内的记录，按同一规则取并。不从 GUARDS 证据反推（函数体为空时没有 GUARDS 证据）。M 内没有守卫记录（例如只做加锁/计数的修饰器）时 43–54 全 0，这不是 unknown。
+  - unk_guard（第 72 位，r11）：GUARDS 边与其他所有边——目标语句在 F4 审计 targets 中 guard_status = unknown 时为 1；MOD_APPLY——F 内存在未解析的 modifier_invocation（F 的 guard_status 为 unknown）时为 1。报告各关系上 unk_guard = 1 的边数（EP3 预期：每任务 12 个 unknown 目标）。
   - 支配、后支配、可达性用 EP0 选定的语义 CFG，按函数缓存。
   - 每一位严格按 3.3 表的来源计算；表中写“若没有就恒为 0”的位按 EP0 结论处理。依赖的事实为 unknown 时按 3.3 的未知值规则写对应 unk 位。
   - 不读取任何标识符拼写。代码审查要求：attrs.py 中不得出现对节点 code/label 文本的字符串匹配；env_kind 只能比较保留环境表达式（与 dfg_v2/env.py 的 14 个键对应）。
@@ -644,8 +661,11 @@ fixtures：
 - 端点检验：构造一个位只依赖目标节点的小图，判定为端点；一个位随边变化的小图，判定为非端点；一个几乎处处为 0、只在少数边上为 1 且随边变化的稀疏位，判定为非端点（r3 回归测试）；合格节点不足 30 时判定为未判定。
 - 名字无关性（快速版，正式闸门在 EP5）：把 fixture 中所有非保留标识符改名后重算，向量逐位相同。
 
+- MOD_APPLY 守卫位：同一函数两个修饰器各含一条 require，两条 MOD_APPLY 的 43–54 位各自只来自对应修饰器；只含 `locked = true; _; locked = false;` 的修饰器 → 43–54 全 0 且 unk_guard = 0。
+- operand 映射：block.number 比较的 GUARDS 边 block_time = 1；require(a + b >= a) 的 GUARDS 边 49–54 中只有与冻结 operand_classes 对应的位为 1，caller_identity = 0。
+
 ## 验收
-两个节点任务的 attrs.npz 生成完成；PROGRESS.md 贴 stats.json 的关键数字（每关系每组的非零比例；全零向量的边占比）。
+第 0 节逐字节重建通过（合约任务冒烟结果单列）；两个节点任务的 attrs.npz 生成完成；PROGRESS.md 贴 stats.json 的关键数字（每关系每组的非零比例；全零向量的边占比；各关系 unk 位为 1 的比例）。
 ```
 
 ### 4.7 EP5：闸门与边统计（只读）
