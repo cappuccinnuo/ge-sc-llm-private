@@ -1,7 +1,18 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r12（2026-11-11）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r13（2026-11-11）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r13 相对 r12 的修改**（逐项复核 EP4 执行中出现的问题及其处理）：
+1. 逐项结论：
+   - (a) 混合 ID 摘要失败（attempt1）：处理正确，只改摘要序列化。
+   - (b) for 头 i++ 目标 dfg 为空（attempt2）：处理正确，44 条全部是 for → update_expression、局部变量，dfg 确为空；其 def_kind 因源为 for 节点而 unknown 并置 unk_dfg，标注诚实。
+   - (c) var_kind/value_shape 多证据取并：正确；实测 var_kind 从未多热，value_shape 在 328/869 条 DATA_DEF_USE 上多热（参数入口一条边携带多个参数），状态边从未多热。
+   - (d) 未覆盖的未知写 0 加逐边记录：正确且影响小（return_handling 22 条，fn_summary 0 条）；唯一较大的是第 61 位（上下文位）因 pragma 无上界而无法判定 0.8 前后，2274/1605 条数据边，要求报告 pragma 分布。
+   - (e) use_context 只取精确 dfg.to：**批准时低估了范围**。实测 DATA_DEF_USE 中 1989/3469（57%）与 3167/3923（81%）没有 dfg.to，其中 1942/3118 条来自参数入口（函数节点没有 dfg 组，冻结 _bind_layers 因而从不记录 to）。这使参数流入调用、条件、算术的数据边全部失去 22–29 与 37–40 位，正是 `withdraw(uint amount) { msg.sender.call.value(amount)(); }` 这类核心模式。冻结 NodeSem 记录的 sink 本来就是 `sem.sink(目标节点, 封存符号)`，只依赖目标语句与封存符号的声明身份；attrs 已为 var_kind 精确重建了同一个符号。对这些边调用同一冻结函数、同一输入，不是发明上下文。EP5 第 0 节补充，并以“已有 dfg.to 的边重算结果必须与记录逐条相同”作为一致性闸门。这一修改改变了用户批准的第 2 项（call_3ed2…）中“参数入口不补”的部分，执行前需向用户说明并取得确认。
+   - (f) 合约任务 MOD_APPLY 528→527：Codex 按 EP2 规格（只限 function/constructor）处理，规格本身有缺陷。冻结守卫分析对 fallback_receive_definition 同样计算修饰器守卫，F4 的 GUARDS 已包含该 fallback 的修饰器守卫（access_control_contract 1 条），MOD_APPLY 却不含，两种关系不一致；0.6 以后的 fallback/receive 带修饰器很常见，七类通用也需要。改为包含 fallback_receive_definition。
+   - (g) 开发中的测试失败（选择器、夹具等）：均为测试代码问题，冻结分析器未改，最终 238 项通过，接受。
+2. 因 (f) 修改 build_f4.py，F4 需重建为 f4_v2；因 (e)、第 20 位与全 0 规则，属性在 ep5_v1 重算。硬条件按允许变化的范围逐项限定（见 EP5 第 0 节）。
 
 **r12 相对 r11 的修改**（审查 EP4 产出后）：
 1. EP4 大部分接受。独立复核：F4 通用化后节点任务边逐字节不变，合约任务冒烟的守卫记录 10274/8165 与 EP0 一致、映射 100%；GUARDS 43–54 位按 F4 证据重算 6921/4502 行 0 差异，CALL_SITE 的 73 位 0 差异；WRITES_STATE 的写入方式与写操作分布自洽（映射类型 1028 与下标写 972 对应，无 other、无混合）；用我自己的实现重算端点检验，核心成员与 selection.json 完全相同（32/35/36 只是合并标签不同：一个任务为 core、另一个为未判定，两者都留在核心）。用户批准的三项调整（var_kind/value_shape 多证据取并、未覆盖的未知来源写 0 并逐边记录、for 头 i++ 目标的 var_kind 来自封存 L1 符号）与两次失败的处理正确，未改冻结事实。
@@ -681,12 +692,16 @@ fixtures：
 ```text
 # EP5：名字不变性、可达性与边统计
 
-## 0. EP4 修正（r12；在本 Prompt 其他各节之前完成）
-- 第 20 位：按 3.3 的 r12 定义重写 attr_sources.carried。自然循环由回边 (a → h) 计算：h 加上在删除 h 后的图中能到达 a 的全部块。前向图 = 语义 CFG 删除全部回边（回边沿用现有定义：目标支配源）。def 或 use 映射到多个块时：只要某对 (def 块, use 块) 同属一个自然循环、且没有任何一对在前向图中可达（同一块视为可达），就为 1。不读取任何名字。
-- 选择规则：select_groups 中全 0 的候选位（15 除外）加入 core_indices，decision 记为 no_local_support；selection.json 另存每个任务各自的端点判定（per_task_verdicts），合并后的 decision 照旧。
-- 重算到新目录 scripts/edge_sem/artifacts/ep5_v1/attributes/（attempt3 不改、不覆盖）。硬条件：(1) edge_keys 与 attempt3 逐行相同；(2) 除第 20 位外，所有列逐行逐位相同；(3) 新第 20 位是旧第 20 位的子集（新定义更严格）；任一不满足就停下报告。报告：各关系第 20 位旧/新计数；新第 20 位 = 1 但目标 ctx_in_loop = 0 的边数（预期为 0，loop.bound 为 unknown 的除外，逐条列出）；第 20 位的新端点检验结果；新旧 core_indices 与 context_indices 的差异（预期新增 6、14、33、38；20 及其限定的 68 的归属按新检验结果）。
-- 测试（tests/test_attrs.py 增加）：(a) `while (i < n) { i++; }` 中 i++ → i < n 为 1（保留）；(b) 循环体内 `x = a; y = x;` 的 x 边为 0；(c) 循环前 `s = 0;`、循环后 `return s;` 的边为 0；(d) 循环内 `s += x;`、循环后 `return s;` 的边为 0；(e) 循环体内 `y = x; x = y + 1;` 中 x 的定义 → `y = x` 为 1；(f) 选择函数：全 0 位进入核心且标 no_local_support，第 15 位仍不进入。
-- 之后 EP6–EP9 一律读取 ep5_v1/attributes 的 manifest；attempt1–3 只作历史记录。
+## 0. EP4 修正（r12/r13；在本 Prompt 其他各节之前完成）
+- 0.0 用户确认（r13）：第 0.2 项修改了用户批准 call_3ed2… 中“参数入口无 dfg.to 时置 0”的处理。先向用户说明理由（冻结 sink 只依赖目标语句与封存符号；57%/81% 的 DATA_DEF_USE 受影响）并取得确认，记录到 artifacts/ep5_v1/decisions.json；未确认就停下。
+- 0.1 MOD_APPLY 包含 fallback（r13）：build_f4 的修饰器循环与 add_edges 的 MOD_APPLY 源角色校验加入 fallback_receive_definition；modifier_target 与冻结 _modifiers 的其余规则不变。重建四个任务到 scripts/edge_sem/artifacts/f4_v2/<task>/（f4_v1 不改）。硬条件：相对 f4_v1，唯一允许的差异是新增源类型为 fallback_receive_definition 的 MOD_APPLY 行，其余行逐行相同；逐条列出新增行（预期 access_control_contract 新增 1 条，文件 0x0d689d1d…，fallback 偏移 3383、modifier 3409–3418；节点任务预期 0 条，若不是 0 逐条列出）。若 fallback 节点投影不到图节点，按 not_in_graph 计数并报告，不得放宽投影。
+- 0.2 use_context 来源（r13）：对每条 DATA_DEF_USE 的每条封存证据，用已重建的封存符号调用冻结 `source.sem.sink(source.raw[dst], symbol)`（与 node_sem/facts.py::_bind_layers 记录 dfg.to.sink 时相同的函数与输入），取所有证据 sink 的并集按 SINK_BITS 置位，27–29、37–40 的条件不变。一致性闸门：源节点 dfg.to 中已有指向 dst 的记录时，重算的 sink 集合必须与记录的集合逐条相同，任何不同就停下报告。逐边记录 sink 来源（recorded 或 frozen_sink_sealed_symbol）。READS_STATE、WRITES_STATE、ENV_FLOW 仍为不适用（3.3 r12）。
+- 0.3 第 20 位：按 3.3 的 r12 定义重写 attr_sources.carried。自然循环由回边 (a → h) 计算：h 加上在删除 h 后的图中能到达 a 的全部块。前向图 = 语义 CFG 删除全部回边（回边沿用现有定义：目标支配源）。def 或 use 映射到多个块时：只要某对 (def 块, use 块) 同属一个自然循环、且没有任何一对在前向图中可达（同一块视为可达），就为 1。不读取任何名字。
+- 0.4 选择规则：select_groups 中全 0 的候选位（15 除外）加入 core_indices，decision 记为 no_local_support；selection.json 另存每个任务各自的端点判定（per_task_verdicts），合并后的 decision 照旧。
+- 0.5 重算：属性基于 f4_v2 输出到 scripts/edge_sem/artifacts/ep5_v1/attributes/（attempt3 不改、不覆盖）。硬条件，相对 attempt3：(1) edge_keys 相同，只允许多出 0.1 新增的 MOD_APPLY 行（节点任务预期没有）；(2) 第 20 位：新值是旧值的子集；(3) 22–29 与 37–40 位：在 attempt3 有 no_exact_dfg_to 缺口的 DATA_DEF_USE 边上只允许 0 → 1，其他所有边逐位相同；(4) 其余所有列逐行逐位相同。任一不满足就停下报告。
+- 0.6 报告：各关系第 20 位旧/新计数，新第 20 位 = 1 但目标 ctx_in_loop = 0 的边（预期 0，loop.bound unknown 除外，逐条列出）；22–29、37–40 各位旧/新计数，以及参数入口边上的新增数；sink 一致性闸门比较的边数；DATA_DEF_USE 中仍无任何 sink 映射位的边数；第 61 位无法判定的文件的 pragma 文本分布与是否有记录编译版本（描述）；新端点检验与新旧 core_indices、context_indices 差异（预期新增 6、14、33、38；20、22–29、37–40 及其限定的 unk 位按新检验结果）。
+- 0.7 测试（tests/test_attrs.py 增加）：(a) `while (i < n) { i++; }` 中 i++ → i < n 为 1；(b) 循环体内 `x = a; y = x;` 的 x 边为 0；(c) 循环前 `s = 0;`、循环后 `return s;` 为 0；(d) 循环内 `s += x;`、循环后 `return s;` 为 0；(e) 循环体内 `y = x; x = y + 1;` 中 x 的定义 → `y = x` 为 1；(f) `function w(uint amount) { msg.sender.call.value(amount)(); }`：参数入口 → 调用语句的边 use_context_call = 1、call_low_level = 1、call_sends_value = 1；(g) 参数在 require 中使用 → use_context_condition = 1；(h) 有 dfg.to 的边：重算 sink 与记录相同；人为篡改记录后闸门报错；(i) fallback 带修饰器 → 一条 MOD_APPLY，且 add_edges 接受该角色；(j) 选择函数：全 0 位进入核心且标 no_local_support，第 15 位仍不进入。
+- 之后 EP6–EP9 一律读取 f4_v2 与 ep5_v1/attributes 的 manifest；f4_v1、attempt1–3 只作历史记录。
 
 ## 1. 名字不变性闸门
 - r12 补充（证据翻译适配器）：封存 L1–L3 证据与 F3 图带原名，extract_source 与 attrs 会核对源码 SHA 并按原名做精确连接，因此匿名源码不能直接配原证据运行。在 scripts/edge_sem/recon/ep5_anon.py 中写只读适配器：用 8G 的 anon_binding.anonymize(source, metadata) 在内存中重建匿名源码与逐出现位置的绑定表；把证据中所有用于连接的名字（L1 symbol 名、L2 state 名、F3 边上的 state_vars 等）只按“出现位置 → 声明 → 新名”的精确绑定翻译，不允许按名字相似或全局替换翻译；证据中的源码 SHA 换成匿名源码 SHA 只在内存副本中进行；extract_source 传入 original_names（新名 → 原名），以保持旧式同名构造函数等依赖原名大小写的冻结判断。anonymize 返回 fallback 的文件是恒等改写，单独计数。任何无法精确翻译的证据项：列出文件、证据与原因，停下报告，不得跳过。冻结代码与封存证据文件都不修改。
