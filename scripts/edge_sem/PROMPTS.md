@@ -1,7 +1,15 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r11（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r12（2026-11-11）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r12 相对 r11 的修改**（审查 EP4 产出后）：
+1. EP4 大部分接受。独立复核：F4 通用化后节点任务边逐字节不变，合约任务冒烟的守卫记录 10274/8165 与 EP0 一致、映射 100%；GUARDS 43–54 位按 F4 证据重算 6921/4502 行 0 差异，CALL_SITE 的 73 位 0 差异；WRITES_STATE 的写入方式与写操作分布自洽（映射类型 1028 与下标写 972 对应，无 other、无混合）；用我自己的实现重算端点检验，核心成员与 selection.json 完全相同（32/35/36 只是合并标签不同：一个任务为 core、另一个为未判定，两者都留在核心）。用户批准的三项调整（var_kind/value_shape 多证据取并、未覆盖的未知来源写 0 并逐边记录、for 头 i++ 目标的 var_kind 来自封存 L1 符号）与两次失败的处理正确，未改冻结事实。
+2. 发现的实现错误：第 20 位 def_loop_carried。attr_sources.carried 只要求“存在一条经过回边的路径”，于是循环体内任何先定义后使用的数据边、以及循环前定义循环后使用的数据边都被置 1。数据核对：两任务目标在循环内的 DATA_DEF_USE 边（204/215 条）全部为 1，另有 107/107 条目标不在循环内的边也为 1；测试只有 i++ → i < n 一个正例。这一位实际等于“靠近循环”，不是“跨迭代携带”。3.3 的原文“路径经过回边”有歧义，r12 改为精确定义（见 3.3），在 EP5 第 0 节修正并重算。
+3. 修订我自己在 r4 写的规则：“两个节点任务上全为 0 的位不进入核心”。被排除的是 6、14、33、38（其中 38 = call_delegatecall），它们在本机两任务上没有样本，但在服务器七类（未检查低级调用、访问控制等）中可能出现；EP9 冻结后核心不能再改，按 r4 规则它们将永远不可用，违背 D3 的七类通用要求。全 0 输入列对编码器输出与梯度都没有影响，所以把它们留在核心不会改变本机任何结果。改为：全 0 的候选位（第 15 位除外）留在核心，标为 no_local_support。这一修改与结果无关（不依赖标签、模型或位的分布形状），只是对通用性要求的修正。
+4. 3.3 第 22–26 位的“适用边”原写“数据边”，但冻结事实只有 DATA_DEF_USE 的 dfg.to 带 sink；READS_STATE、WRITES_STATE、ENV_FLOW 没有 sink 来源。改为只适用于 DATA_DEF_USE；其他数据边上这些位为 0 属于“不适用”，只记 source_gaps，不是 unknown。27–29、37–40 同样只在 DATA_DEF_USE 上可能非 0。
+5. 已知但保留的事项（写入局限，不改规则）：(a) 46、50、51、53 位在源侧合格节点上 100% 恒定，但合格数 < 30，按预登记规则留在核心——它们在本机实际上接近源端点性质，G4R-A 相对 G4R 的增益解释时要考虑，G4R-Aπ 安慰剂对此有控制作用；(b) MOD_APPLY 的 43–48 位只可能是 47（冻结 _modifiers 的记录 kind 恒为 modifier），即该关系上的常量；(c) 语义 CFG 不支持带修饰器的函数与合成节点（end_if 等），因此 unk_cfg 在 end_if 上 100%、在 next_line 上约 16–21%。
+6. EP5 名字不变性闸门在 EP4 代码下有一个可预见的障碍：declaration_shape 与 DATA_DEF_USE 符号查找按封存 L1/L2 证据中的原名做精确连接，extract_source 也核对源码 SHA；直接用匿名源码运行必然失败。EP5 第 1 节增加证据翻译适配器的要求。
 
 **r11 相对 r10 的修改**（审查 EP3 产出后）：
 1. EP3 已核对并接受。独立复核（不依赖 Codex 的 ep3_verify）：对两个任务全部 6956/4537 条守卫证据按锚点逐条检查——require、early_exit、internal_check 的源语句都在目标之前结束；if_branch 与 loop_cond 的源都严格包含目标；616/715 条修饰器证据全部满足“invocation 位于某函数 F、目标位于 F 内、源位于 F 的某条 MOD_APPLY 指向的修饰器内”；loop_cond 操作数全空；顶层 kind 与证据一致；0 条异常。记录数逐文件复现 RECON（71/71、57/57），非修饰器与修饰器映射 100%，去重 35 条全部是 internal_check。9 个未解析 modifier_invocation 经冻结 resolve_identifier 全部为 contract_declaration（基类构造调用），12 个 unknown 目标都在这些构造函数内。EP2 行逐行相同。新增参数 42/46 行 × 4104 × 2 层 = 344,736/377,568，与探针一致。Codex 记录的两个开发问题（描述性查询改用 resolve_identifier；用户批准的显式 EP2 归档加载）处理正确，不影响任何边。
@@ -168,9 +176,9 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 | 7–14 | value_shape {mapping, array, address, integer, bool, bytes_string, struct_contract, other} | DATA_DEF_USE、READS_STATE、WRITES_STATE | r4：在目标语句（WRITES_STATE 为源语句）中找文本等于该变量的标识符，用 `AstSemantics.root_binding` 解析声明，取 `type_name` 后调用 EdgeSem 本地 `shape_safe()`（与 `facts_ast.shape` 相同，但只有类型名恰为 address 或 address payable 时才判为 address）；同一语句中该名字解析到多个声明或无法解析时全 0 并置 unk_dfg |
 | 15 | def_weak_update（停用） | — | EP0：L1 证据没有 strong/weak 字段。此位恒为 0，不进入核心；保留索引只为不改变其他位的编号 |
 | 16–19 | def_kind {assign, compound, decl_or_param, incdec_or_delete} | DATA_DEF_USE | r4：定义节点的 AST 形式与运算符 token：变量声明语句或函数定义（参数）→ decl_or_param；`=` 赋值 → assign；`+=` `-=` `*=` 等 → compound；`++` `--` 或 delete → incdec_or_delete；其他或无法判断 → 全 0 并置 unk_dfg |
-| 20 | def_loop_carried | DATA_DEF_USE | def 到 use 的语义 CFG 路径经过回边 |
+| 20 | def_loop_carried | DATA_DEF_USE | r12 精确定义：存在回边 (a → h)，其自然循环（h 加上不经过 h 能到达 a 的全部块）同时包含 def 与 use 的块，并且在删除全部回边后的语义 CFG 中，use 的任何块都不能从 def 的任何块到达（即 def 只能经由下一次迭代到达 use）。同一语句同时为 def 与 use（自环）且位于循环内时为 1。循环前定义、循环后使用，或循环内定义、循环外使用，都为 0 |
 | 21 | use_path_crosses_ext_call | DATA_DEF_USE | 存在外部调用语句 x：x 从 def 可达且 use 从 x 可达（同一函数）。r4：READS_STATE 的源是状态声明，函数内路径没有定义，不适用（读发生在外部调用之后由上下文位 58 表示） |
-| 22–26 | use_context {condition, call, arithmetic, state_write_value, return} | 数据边 | `dfg.to[].sink`：guard/loop_bound→condition；call_arg/call_target/call_value/value→call；arith→arithmetic；state_write/state→state_write_value；return→return |
+| 22–26 | use_context {condition, call, arithmetic, state_write_value, return} | DATA_DEF_USE（r12：其他数据边没有冻结 sink 来源，为不适用） | `dfg.to[].sink`：guard/loop_bound→condition；call_arg/call_target/call_value/value→call；arith→arithmetic；state_write/state→state_write_value；return→return |
 | 27–29 | arith_op {additive, multiplicative, exponent} | 数据边（use_context 含 arithmetic） | `arith.ops` |
 | 30–33 | write_access {plain, indexed, member, other} | WRITES_STATE | r4：写入左值的 AST 形式：标识符 → plain；数组/映射下标访问 → indexed；成员访问 → member；其他 → other。声明类型由 7–14 表示（`state.writes.shape` 是根声明类型，不是访问方式） |
 | 34–36 | write_op {assign, increase, decrease} | WRITES_STATE | r4：运算符 token：`=` → assign；`+=` 或 `++` → increase；`-=` 或 `--` → decrease；其他复合运算全 0。`x = x + 1` 记为 assign（已知局限，写入报告） |
@@ -201,7 +209,7 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 
 **未知值规则（r2）**：某一位依赖的事实为 unknown 时，该位写 0，同时对应的 unk 位写 1；不得把 unknown 当作 false 用在规则基线中。规则基线“没有 caller_identity GUARDS 入边的状态写语句”排除 guard_status 为 unknown 的语句，并报告被排除的数量。封存事实中 order 为 unknown 的语句约 5.6–9.6%，dfg 约 6.6–11.4%，guard 为 12 条（每任务）。
 
-**端点检验（r3，EP4 执行，训练前完成）**：判断一个核心候选位 b 是否只是某个端点的性质。对每种适用关系 r 和每一侧（源侧：每个源节点的 r 出边；目标侧：每个目标节点的 r 入边），合格节点 = 该侧至少有 2 条 r 边、且其中至少一条 b = 1 的节点；恒定节点 = 合格节点中所有 r 边都是 b = 1 的节点。把各关系的合格数与恒定数分别相加（按节点计数合并），得到每侧的恒定比例。某一侧合格节点 ≥ 30 且恒定比例 ≥ 99% 时，b 判定为端点事实，移入上下文组；两侧合格节点都 < 30 时，b 留在核心并标为“未判定”，在报告中列出。阈值 99% 与 30 现在登记，不得根据结果调整。只看“出现 1 时是否恒为 1”，是因为几乎处处为 0 的稀疏位在任何节点上都“恒定”，按 r2 的写法会被全部误判为端点。预计调用位（37–42）与守卫操作数位（49–54）会被移出；守卫种类位（43–48）不一定，因为同一个修饰器内的 `require` 对修饰器内语句是 require、对被修饰函数的语句是 modifier。未知位（68–72）不参加端点检验：每个未知位进入它所限定的位所在的组（限定的位分属两组时两组都含它）。在两个节点任务的全部边上都为 0 的位（包括第 15 位）不进入核心（r4）。
+**端点检验（r3，EP4 执行，训练前完成）**：判断一个核心候选位 b 是否只是某个端点的性质。对每种适用关系 r 和每一侧（源侧：每个源节点的 r 出边；目标侧：每个目标节点的 r 入边），合格节点 = 该侧至少有 2 条 r 边、且其中至少一条 b = 1 的节点；恒定节点 = 合格节点中所有 r 边都是 b = 1 的节点。把各关系的合格数与恒定数分别相加（按节点计数合并），得到每侧的恒定比例。某一侧合格节点 ≥ 30 且恒定比例 ≥ 99% 时，b 判定为端点事实，移入上下文组；两侧合格节点都 < 30 时，b 留在核心并标为“未判定”，在报告中列出。阈值 99% 与 30 现在登记，不得根据结果调整。只看“出现 1 时是否恒为 1”，是因为几乎处处为 0 的稀疏位在任何节点上都“恒定”，按 r2 的写法会被全部误判为端点。预计调用位（37–42）与守卫操作数位（49–54）会被移出；守卫种类位（43–48）不一定，因为同一个修饰器内的 `require` 对修饰器内语句是 require、对被修饰函数的语句是 modifier。未知位（68–72）不参加端点检验：每个未知位进入它所限定的位所在的组（限定的位分属两组时两组都含它）。第 15 位停用，不进入核心。在两个节点任务的全部边上都为 0 的其他候选位留在核心并标为 no_local_support（r12 修订 r4：这些位在本机不影响任何输出，但必须为服务器七类保留）。
 
 `recursive_method_call` 边的全部位为 0；其他每种边只填表中“适用边”列包含它的位，其余为 0。名称常量写成 `EDGE_FEATURE_NAMES`（长度 74）；核心位的索引列表 `core_indices` 由端点检验决定，不写成常量。不允许读取任何标识符拼写来计算任何一位。
 
@@ -673,7 +681,15 @@ fixtures：
 ```text
 # EP5：名字不变性、可达性与边统计
 
+## 0. EP4 修正（r12；在本 Prompt 其他各节之前完成）
+- 第 20 位：按 3.3 的 r12 定义重写 attr_sources.carried。自然循环由回边 (a → h) 计算：h 加上在删除 h 后的图中能到达 a 的全部块。前向图 = 语义 CFG 删除全部回边（回边沿用现有定义：目标支配源）。def 或 use 映射到多个块时：只要某对 (def 块, use 块) 同属一个自然循环、且没有任何一对在前向图中可达（同一块视为可达），就为 1。不读取任何名字。
+- 选择规则：select_groups 中全 0 的候选位（15 除外）加入 core_indices，decision 记为 no_local_support；selection.json 另存每个任务各自的端点判定（per_task_verdicts），合并后的 decision 照旧。
+- 重算到新目录 scripts/edge_sem/artifacts/ep5_v1/attributes/（attempt3 不改、不覆盖）。硬条件：(1) edge_keys 与 attempt3 逐行相同；(2) 除第 20 位外，所有列逐行逐位相同；(3) 新第 20 位是旧第 20 位的子集（新定义更严格）；任一不满足就停下报告。报告：各关系第 20 位旧/新计数；新第 20 位 = 1 但目标 ctx_in_loop = 0 的边数（预期为 0，loop.bound 为 unknown 的除外，逐条列出）；第 20 位的新端点检验结果；新旧 core_indices 与 context_indices 的差异（预期新增 6、14、33、38；20 及其限定的 68 的归属按新检验结果）。
+- 测试（tests/test_attrs.py 增加）：(a) `while (i < n) { i++; }` 中 i++ → i < n 为 1（保留）；(b) 循环体内 `x = a; y = x;` 的 x 边为 0；(c) 循环前 `s = 0;`、循环后 `return s;` 的边为 0；(d) 循环内 `s += x;`、循环后 `return s;` 的边为 0；(e) 循环体内 `y = x; x = y + 1;` 中 x 的定义 → `y = x` 为 1；(f) 选择函数：全 0 位进入核心且标 no_local_support，第 15 位仍不进入。
+- 之后 EP6–EP9 一律读取 ep5_v1/attributes 的 manifest；attempt1–3 只作历史记录。
+
 ## 1. 名字不变性闸门
+- r12 补充（证据翻译适配器）：封存 L1–L3 证据与 F3 图带原名，extract_source 与 attrs 会核对源码 SHA 并按原名做精确连接，因此匿名源码不能直接配原证据运行。在 scripts/edge_sem/recon/ep5_anon.py 中写只读适配器：用 8G 的 anon_binding.anonymize(source, metadata) 在内存中重建匿名源码与逐出现位置的绑定表；把证据中所有用于连接的名字（L1 symbol 名、L2 state 名、F3 边上的 state_vars 等）只按“出现位置 → 声明 → 新名”的精确绑定翻译，不允许按名字相似或全局替换翻译；证据中的源码 SHA 换成匿名源码 SHA 只在内存副本中进行；extract_source 传入 original_names（新名 → 原名），以保持旧式同名构造函数等依赖原名大小写的冻结判断。anonymize 返回 fallback 的文件是恒等改写，单独计数。任何无法精确翻译的证据项：列出文件、证据与原因，停下报告，不得跳过。冻结代码与封存证据文件都不修改。
 - 对两个节点任务的每个 source_file：用 8G 匿名源码（EP0 第 5 节给出的来源）调用 node_sem.facts.extract_source 与 edge_sem 的构建器（GUARDS、MOD_APPLY、CALL_SITE、attrs），与原名结果比较。比较必须在图节点空间进行：新边集合按 (源图节点, 目标图节点, 关系) 比较，属性向量按同一键比较，逐位相同。不得比较 AST 字节锚点（anon_binding.replace_spans 改变标识符长度，字节偏移必然不同）。匿名源码投影不到同一图节点的文件按 EP0 的结论处理：列出并停下报告。
 - 任何差异：列出文件、边、差异位，停下报告，不得继续 EP6。
 
