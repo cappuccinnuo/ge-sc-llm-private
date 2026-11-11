@@ -1,11 +1,11 @@
-"""EP1 fixed-graph structural adapter. No EdgeAware math or checkpoint bypass.
+"""EP1 structural adapter plus EP6 manifest-bound edge-feature dispatch.
 
 Derivation reference: scripts/DFG/dfg_v2/benchmark_v2/runtime_model.py
 SHA256 b0016a00d2a26e5aca7a7103f9eebc6739aedebe9a67096c601282ab45494c62
 Deep registration adapted from scripts/DFG/dfg_v2/model.py
 SHA256 3f77f5ae056059a1a7f4414bb137b0d300adf51bdd70d1f57a91f296fddf0644
 Only the materializer and profile dispatch differ. Original forward/pooling
-and HGTLayerSharedProjection are reused, not copied or rebound.
+are reused. EP6 forward.py documents its explicit edge-aware forward copies.
 """
 import copy
 from pathlib import Path
@@ -75,10 +75,19 @@ def _derive(anchor, profile, working_graph=None):
 
 
 def make_edge_model(task,graph_or_path,profile="G3R",device="cpu",fold=0,
-                    node_feature="inside_token",hidden_size=128,layers=2,heads=8):
+                    node_feature="inside_token",hidden_size=128,layers=2,heads=8,
+                    attributes_manifest=None):
     spec = validate_profile(profile)
-    if spec["edge_features"]!="none" or spec["placebo"]!="none":
-        raise NotImplementedError("Attribute/placebo models are reserved for later prompts")
+    if spec["edge_features"]!="none":
+        if attributes_manifest is None:
+            raise NotImplementedError("Edge features require a sealed attributes_manifest")
+        from .model_attrs import make_attribute_model
+        return make_attribute_model(task,graph_or_path,profile,attributes_manifest,device,fold,
+                                    node_feature,hidden_size,layers,heads)
+    if attributes_manifest is not None:
+        raise ValueError("Structural profile cannot consume edge attributes")
+    if spec["placebo"]!="none":
+        raise NotImplementedError("Relation placebo construction is reserved for EP7")
     seed_info = seeds(task,fold)
     source = graph_or_path if isinstance(graph_or_path,nx.Graph) else read_graph(Path(graph_or_path))
     if not isinstance(source,nx.MultiDiGraph):
@@ -116,13 +125,21 @@ def validate_registration(model,expected_schema=None,deep=True):
     if profile is None:
         return original_validate(model,expected_schema,deep)
     spec = validate_profile(profile)
-    if spec["edge_features"]!="none" or spec["placebo"]!="none":
-        raise ValueError("This EP1 model cannot claim an attribute/placebo profile")
+    attribute_profile = spec["edge_features"]!="none"
+    if spec["placebo"]=="relations":
+        raise ValueError("Relation placebo model is not implemented until EP7")
+    if attribute_profile:
+        from .hgt_edge import EdgeAwareHGTLayer
+        from .model_attrs import validate_attributes
+        expected_layer=EdgeAwareHGTLayer
+        validate_attributes(model,deep=deep)
+    else:
+        expected_layer=HGTLayerSharedProjection
     if model.edge_version!=VERSION or model.dfg_profile!="G3R":
         raise ValueError("EdgeSem/anchor identity mismatch")
     if model.dfg_layer_impl!="shared_projection" or model.dfg_reducer!="mean":
         raise ValueError("EdgeSem structural layer policy mismatch")
-    if len(model.gcs)!=model.num_layers or any(type(layer) is not HGTLayerSharedProjection for layer in model.gcs):
+    if len(model.gcs)!=model.num_layers or any(type(layer) is not expected_layer for layer in model.gcs):
         raise ValueError("EdgeSem HGT layer classes/count mismatch")
     if profile=="G3R":
         return original_validate(model,expected_schema,deep)

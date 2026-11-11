@@ -85,7 +85,7 @@ def inspect_file(file,source,graph):
         return "duplicate" if len(edges[ident]["evidence"])>1 else "emitted"
 
     for fn in sem.functions:
-        if fn.type not in ("function_definition","constructor_definition"):
+        if fn.type not in ("function_definition","constructor_definition","fallback_receive_definition"):
             continue
         invocations=[n for n in children(fn) if n.type=="modifier_invocation"
             and not (sem.text(n)=="constant" and not sem.members(fn).get("constant"))]
@@ -159,7 +159,7 @@ def add_edges(nx_graph_copy,edges):
                     or type(a[1]) is not int or not 0<=a[0]<a[1] or not isinstance(a[2],str)):
                 raise ValueError("Invalid provenance anchor")
         if relation=="MOD_APPLY":
-            if row["src_anchor"][2] not in ("function_definition","constructor_definition") or row["dst_anchor"][2]!="modifier_definition":
+            if row["src_anchor"][2] not in ("function_definition","constructor_definition","fallback_receive_definition") or row["dst_anchor"][2]!="modifier_definition":
                 raise ValueError("Invalid modifier roles")
         elif relation=="CALL_SITE":
             if row["src_anchor"][2] not in STATEMENTS or row["dst_anchor"][2]!="function_definition":

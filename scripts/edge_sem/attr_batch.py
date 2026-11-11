@@ -14,7 +14,7 @@ from scripts.node_sem.facts import extract, implementation_refs as fact_implemen
 from scripts.DFG.dfg_v2.benchmark_v2.feature_view import graph_fingerprint
 
 TASKS=("reentrancy_node","access_control_node")
-F4=ROOT/"scripts/edge_sem/artifacts/f4_v1"
+F4=ROOT/"scripts/edge_sem/artifacts/f4_v2"
 
 
 def implementation_refs():

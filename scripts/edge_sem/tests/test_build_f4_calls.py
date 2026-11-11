@@ -152,3 +152,41 @@ def test_real_manually_reviewed_files(identity):
     assert sorted(actual_mods)==sorted(mods)
     assert sorted((code(source,r["src_anchor"]),target_name(source,r)) for r in rows
                   if r["relation"]=="CALL_SITE")==sorted(calls)
+
+def test_fallback_modifier_role_and_projection():
+    from scripts.node_sem.tests.test_facts_integration import graph_fixture, FILE
+    source,graph,_=graph_fixture("",source_override="pragma solidity ^0.5.11; contract C { modifier g() { _; } function() external payable g {} }")
+    edges,audit=inspect_file(FILE,source,graph)
+    mods=[r for r in edges if r["relation"]=="MOD_APPLY"]
+    assert len(mods)==1 and mods[0]["src_anchor"][2]=="fallback_receive_definition"
+    assert add_edges(graph,mods).number_of_edges()==graph.number_of_edges()+1
+    graph.remove_node(mods[0]["src"])
+    edges,audit=inspect_file(FILE,source,graph)
+    assert not [r for r in edges if r["relation"]=="MOD_APPLY"]
+    assert audit["statuses"]["MOD_APPLY:not_in_graph"]==1
+
+
+def test_library_names_and_lengths_preserve_ast_edge_identity():
+    template="""pragma solidity ^0.5.11;
+    library LIB { struct STRUCT { uint x; }
+      function METHOD(LIB.STRUCT storage s, uint a) internal returns(uint) { return s.x+a; }
+      function METHOD(LIB.STRUCT storage s) internal returns(uint) { return s.x; }
+    }
+    contract C { using LIB for LIB.STRUCT; LIB.STRUCT REC;
+      function METHOD(uint a) internal returns(uint) { return a; }
+      function f(uint p) public returns(uint) { uint x=REC.METHOD(p); return REC.METHOD()+METHOD(x); }
+    }"""
+    outputs=[]
+    for names in (("Lib","Item","run","obj"),("Box","Data","act","tmp"),
+                  ("DifferentLibrary","StorageRecord","calculateAmount","receiverLong")):
+        source=template
+        for old,new in zip(("LIB","STRUCT","METHOD","REC"),names):source=source.replace(old,new)
+        source,graph=synthetic(source)
+        rows,_=inspect_file("ep2.sol",source,graph)
+        sem=AstSemantics(ProjectionView(source,"ep2.sol"))
+        # Preorder AST positions survive identifier spelling and byte length.
+        identities={key(n):i for i,n in enumerate(sem.nodes)}
+        outputs.append(sorted((identities[tuple(r["src_anchor"])],identities[tuple(r["dst_anchor"])],
+                               r["relation"],r.get("kind")) for r in rows))
+        assert sum(r.get("kind")=="library" for r in rows)==2
+    assert outputs[0]==outputs[1]==outputs[2]

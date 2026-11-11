@@ -15,7 +15,15 @@ EP2 = ROOT / "scripts/edge_sem/artifacts/ep2_v1"
 def _check_source(record, snapshots):
     replacement = snapshots.get(record["path"])
     if replacement is None:
-        return checked(record)
+        try:
+            return checked(record)
+        except ValueError:
+            # EP6 updates the model and required tests. Its immutable baseline
+            # provides exact old bytes, never a substituted current-source hash.
+            # This path is only reachable through the explicit EP2 archive API.
+            from .ep6_common import historical_refs
+            historical_refs([record])
+            return None
     if replacement["sha256"] != record["sha256"]:
         raise ValueError("Archived implementation identity differs")
     return checked(replacement)

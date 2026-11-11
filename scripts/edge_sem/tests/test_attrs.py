@@ -204,15 +204,14 @@ def test_code_text_access_is_only_reserved_environment_key():
                    or isinstance(n.slice,ast.Str) and n.slice.s=="code")]
     assert len(accesses)==1
 
-def test_parameter_entry_sink_gap_is_explicit():
+def test_parameter_entry_sink_is_frozen_and_explicit():
     data=bundle(body="function f(uint a,uint b) public { uint c=a*b; }")
     context,g,edges,facts,_=data
     vectors,diag=a._compute_attributes(context,g,edges,facts)
     rows=pick(data,"DATA_DEF_USE",dst="uint c=a*b;")
-    assert rows and all(not v[22:30].any() for _,v in rows)
+    assert rows and all(v[24] and v[28] for _,v in rows)
     keys={r["key"] for r,_ in rows}
-    assert all("no_exact_dfg_to_for_this_edge" in r["source_gaps"]
-               for r in diag["edges"] if r["edge_key"] in keys)
+    assert keys <= {r["edge_key"] for r in diag["sinks"] if r["source"]=="frozen_sink_sealed_symbol" and r["parameter_entry"]}
 
 def test_control_branch_and_dominance():
     data=bundle(body="address payable owner; uint value; function f(uint p) public { uint x=p; if (p>0) { owner.transfer(p); } else { value=x; } value=p; }")
@@ -372,3 +371,22 @@ def test_carried_multiblock_forward_veto_and_self_exception():
 @pytest.mark.parametrize("rel",["READS_STATE","WRITES_STATE","ENV_FLOW"])
 def test_sink_features_inapplicable_to_other_data_edges(rel):
     assert not (set(range(22,30))|set(range(37,41))) & a.allowed_indices(rel)
+
+def test_parameter_value_call_and_require_sink():
+    data=bundle(body="function w(uint amount) public { msg.sender.call.value(amount)(); require(amount > 0); }")
+    calls=pick(data,"DATA_DEF_USE",dst="msg.sender.call.value(amount)();")
+    guards=pick(data,"DATA_DEF_USE",dst="require(amount > 0);")
+    assert calls and all(v[23] and v[37] and v[39] for _,v in calls)
+    assert guards and all(v[22] for _,v in guards)
+
+
+def test_recorded_sink_gate_rejects_tampering(data):
+    ctx,g,edges,facts,_=data
+    row,_=pick(data,"DATA_DEF_USE",src="uint x = p + 1;",dst="balances[msg.sender] -= x;")[0]
+    changed=copy.deepcopy(facts)
+    entries=[r for r in changed[row["src"]]["dfg"]["to"] if r["node"]==row["dst"]]
+    assert entries
+    a.compute_attributes(ctx,g,edges,changed)
+    entries[0]["sink"]="deliberately_invalid"
+    with pytest.raises(ValueError,match="Recorded/frozen sink mismatch"):
+        a.compute_attributes(ctx,g,edges,changed)

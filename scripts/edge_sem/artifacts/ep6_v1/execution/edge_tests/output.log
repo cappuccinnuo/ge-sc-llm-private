@@ -1,0 +1,148 @@
+........................................................................ [ 24%]
+.......FF...FF.......................................................... [ 49%]
+........................................................................ [ 73%]
+........................................................................ [ 98%]
+....                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_archived_ep2_is_explicit_and_current_loader_still_rejects[reentrancy_node] _
+
+task = 'reentrancy_node'
+
+    @pytest.mark.parametrize("task",["reentrancy_node","access_control_node"])
+    def test_archived_ep2_is_explicit_and_current_loader_still_rejects(task):
+        manifest=EP2/task/"manifest.json"
+>       rows=load_ep2_edges(manifest)
+
+scripts/edge_sem/tests/test_build_f4_guards.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/recon/ep3_archive.py:39: in load_ep2_edges
+    _check_source(record,snapshots)
+scripts/edge_sem/recon/ep3_archive.py:18: in _check_source
+    return checked(record)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+row = {'bytes': 7345, 'path': '/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_build_f4_calls.py', 'sha256': 'a6146a4706cbb87593f2cd6c0516953905beb2cc83aa690afcb8115dccd4c85e'}
+
+    def checked(row):
+        p = Path(row["path"])
+        if ref(p)["sha256"] != row["sha256"]:
+>           raise ValueError("SHA mismatch: " + str(p))
+E           ValueError: SHA mismatch: /home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_build_f4_calls.py
+
+scripts/edge_sem/recon/common.py:25: ValueError
+_ test_archived_ep2_is_explicit_and_current_loader_still_rejects[access_control_node] _
+
+task = 'access_control_node'
+
+    @pytest.mark.parametrize("task",["reentrancy_node","access_control_node"])
+    def test_archived_ep2_is_explicit_and_current_loader_still_rejects(task):
+        manifest=EP2/task/"manifest.json"
+>       rows=load_ep2_edges(manifest)
+
+scripts/edge_sem/tests/test_build_f4_guards.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/recon/ep3_archive.py:39: in load_ep2_edges
+    _check_source(record,snapshots)
+scripts/edge_sem/recon/ep3_archive.py:18: in _check_source
+    return checked(record)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+row = {'bytes': 7345, 'path': '/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_build_f4_calls.py', 'sha256': 'a6146a4706cbb87593f2cd6c0516953905beb2cc83aa690afcb8115dccd4c85e'}
+
+    def checked(row):
+        p = Path(row["path"])
+        if ref(p)["sha256"] != row["sha256"]:
+>           raise ValueError("SHA mismatch: " + str(p))
+E           ValueError: SHA mismatch: /home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_build_f4_calls.py
+
+scripts/edge_sem/recon/common.py:25: ValueError
+_____________ test_real_g4r_empty_and_added_edges[reentrancy_node] _____________
+
+task = 'reentrancy_node'
+
+    @pytest.mark.parametrize("task",["reentrancy_node","access_control_node"])
+    def test_real_g4r_empty_and_added_edges(task):
+        inputs,item,original=real_graph(task)
+        before=graph_fingerprint(original);checked(item["graph_refs"]["F3"])
+        cfg=item["config"];kwargs=dict(fold=0,hidden_size=cfg["hidden_size"],layers=cfg["layers"],heads=cfg["heads"])
+        start=time.monotonic()
+        base=make_edge_model("node",original,"G3R-T",**kwargs)
+        empty=make_edge_model("node",original,"G4R",**kwargs)
+        compare_models(base,empty);base.eval();empty.eval()
+        with torch.no_grad():a,b=base(),empty()
+        assert torch.equal(a,b)
+        empty_seconds=time.monotonic()-start
+        del empty,a,b;gc.collect()
+>       manifest=OUT/task/"manifest.json";rows=load_ep2_edges(manifest)
+
+scripts/edge_sem/tests/test_build_f4_model.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/recon/ep3_archive.py:39: in load_ep2_edges
+    _check_source(record,snapshots)
+scripts/edge_sem/recon/ep3_archive.py:18: in _check_source
+    return checked(record)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+row = {'bytes': 7345, 'path': '/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_build_f4_calls.py', 'sha256': 'a6146a4706cbb87593f2cd6c0516953905beb2cc83aa690afcb8115dccd4c85e'}
+
+    def checked(row):
+        p = Path(row["path"])
+        if ref(p)["sha256"] != row["sha256"]:
+>           raise ValueError("SHA mismatch: " + str(p))
+E           ValueError: SHA mismatch: /home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_build_f4_calls.py
+
+scripts/edge_sem/recon/common.py:25: ValueError
+___________ test_real_g4r_empty_and_added_edges[access_control_node] ___________
+
+task = 'access_control_node'
+
+    @pytest.mark.parametrize("task",["reentrancy_node","access_control_node"])
+    def test_real_g4r_empty_and_added_edges(task):
+        inputs,item,original=real_graph(task)
+        before=graph_fingerprint(original);checked(item["graph_refs"]["F3"])
+        cfg=item["config"];kwargs=dict(fold=0,hidden_size=cfg["hidden_size"],layers=cfg["layers"],heads=cfg["heads"])
+        start=time.monotonic()
+        base=make_edge_model("node",original,"G3R-T",**kwargs)
+        empty=make_edge_model("node",original,"G4R",**kwargs)
+        compare_models(base,empty);base.eval();empty.eval()
+        with torch.no_grad():a,b=base(),empty()
+        assert torch.equal(a,b)
+        empty_seconds=time.monotonic()-start
+        del empty,a,b;gc.collect()
+>       manifest=OUT/task/"manifest.json";rows=load_ep2_edges(manifest)
+
+scripts/edge_sem/tests/test_build_f4_model.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/edge_sem/recon/ep3_archive.py:39: in load_ep2_edges
+    _check_source(record,snapshots)
+scripts/edge_sem/recon/ep3_archive.py:18: in _check_source
+    return checked(record)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+row = {'bytes': 7345, 'path': '/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_build_f4_calls.py', 'sha256': 'a6146a4706cbb87593f2cd6c0516953905beb2cc83aa690afcb8115dccd4c85e'}
+
+    def checked(row):
+        p = Path(row["path"])
+        if ref(p)["sha256"] != row["sha256"]:
+>           raise ValueError("SHA mismatch: " + str(p))
+E           ValueError: SHA mismatch: /home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/tests/test_build_f4_calls.py
+
+scripts/edge_sem/recon/common.py:25: ValueError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/edge_sem/tests/test_build_f4_guards.py::test_archived_ep2_is_explicit_and_current_loader_still_rejects[reentrancy_node]
+FAILED scripts/edge_sem/tests/test_build_f4_guards.py::test_archived_ep2_is_explicit_and_current_loader_still_rejects[access_control_node]
+FAILED scripts/edge_sem/tests/test_build_f4_model.py::test_real_g4r_empty_and_added_edges[reentrancy_node]
+FAILED scripts/edge_sem/tests/test_build_f4_model.py::test_real_g4r_empty_and_added_edges[access_control_node]
+4 failed, 288 passed, 4 warnings in 599.42s (0:09:59)

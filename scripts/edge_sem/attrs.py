@@ -229,6 +229,27 @@ def _fill_guards(vec, records):
             if operand in GUARD_OPERANDS:vec[GUARD_OPERANDS[operand]]=1
 
 
+def sealed_sinks(source, row, audit, source_fact):
+    """The identical sink inputs used by frozen facts._bind_layers (lines 193-201)."""
+    from scripts.node_sem.facts_io import check_layer_edge
+    proof = check_layer_edge(row["src"], row["dst"], row["data"], audit)
+    if not proof:
+        raise ValueError("Missing sealed data evidence for sink")
+    sinks = set()
+    parameter = False
+    for evidence in proof:
+        fn = source.functions[evidence["function"]]
+        symbol = source.cfg.symbol(fn, evidence["analysis_path"], evidence["symbol"])
+        sinks.add(source.sem.sink(source.raw[row["dst"]], symbol))
+        parameter |= symbol.kind == "parameter" and source.raw[row["src"]].type in (
+            "function_definition", "constructor_definition", "fallback_receive_definition", "modifier_definition")
+    recorded = {r["sink"] for r in source_fact["dfg"].get("to", ()) if r["node"] == row["dst"]}
+    if recorded and recorded != sinks:
+        raise ValueError("Recorded/frozen sink mismatch for " + row["key"] + ": " + repr((recorded, sinks)))
+    return sorted(sinks), dict(edge_key=row["key"], source="recorded" if recorded else "frozen_sink_sealed_symbol",
+                              sinks=sorted(sinks), parameter_entry=parameter, evidence_count=len(proof))
+
+
 def _compute_attributes(context, f3_graph, f4_edges, facts):
     from .attr_sources import (AttributeSource, declaration_shape, def_kind,
                               write_access, write_op, dominates, reaches, carried)
@@ -251,7 +272,7 @@ def _compute_attributes(context, f3_graph, f4_edges, facts):
         mapped_facts[nid]=facts[ident]
     by_file=defaultdict(list)
     for row in rows:by_file[row["file"]].append(row)
-    output={};diagnostics=[];cfg_audit={}
+    output={};diagnostics=[];sink_records=[];cfg_audit={}
     for file,subset in sorted(by_file.items()):
         source=AttributeSource(context["source_text"][file],file,f3_graph,
                                context["sources"][file].get("metadata"))
@@ -326,7 +347,11 @@ def _compute_attributes(context, f3_graph, f4_edges, facts):
             if rel in DATA:
                 dfg_unknown=_unknown_group(a,"dfg") or _unknown_group(b,"dfg")
                 v[69]=dfg_unknown
-                sinks=[r["sink"] for r in a["dfg"].get("to",()) if r["node"]==dst]
+                sinks=[]
+                if rel == "DATA_DEF_USE":
+                    sinks, sink_record = sealed_sinks(source, row, context["audit"], a)
+                    sink_record["dfg_unknown"] = dfg_unknown
+                    sink_records.append(sink_record)
                 if rel != "DATA_DEF_USE":
                     gaps.append("use_context_inapplicable_no_frozen_sink")
                 elif dfg_unknown:
@@ -434,7 +459,7 @@ def _compute_attributes(context, f3_graph, f4_edges, facts):
     if graph_fingerprint(f3_graph)!=before:
         raise AssertionError("Original F3 graph mutated")
     if set(output)!={r["key"] for r in rows}:raise ValueError("Incomplete edge attributes")
-    return output,dict(edges=diagnostics,cfg=cfg_audit,original_graph_unchanged=True,
+    return output,dict(edges=diagnostics,sinks=sink_records,cfg=cfg_audit,original_graph_unchanged=True,
         label_used_for_features=False,reverse_edges_computed=False,
         unknown_fields_policy="Unrepresented unknowns remain zero with explicit per-edge reasons; zero does not imply absence")
 
