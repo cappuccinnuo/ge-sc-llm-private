@@ -1,0 +1,73 @@
+"""EP2 r9 bounded call corrections; no graph mutation."""
+import pytest
+from scripts.node_sem.facts_ast import AstSemantics, key, unwrap
+from scripts.DFG.dfg_v2.projection_view import ProjectionView
+from scripts.edge_sem.call_resolve import resolve_call
+from scripts.edge_sem.tests.test_call_resolve import semantics, call, resolve
+
+
+def test_using_overload_arity_binds_each_definition():
+    sem=semantics("library L {function sub(uint x,uint y) internal returns(uint){return x-y;}"
+        "function sub(uint x,uint y,string memory e) internal returns(uint){return x-y;}} "
+        "contract C {using L for uint; function f(uint x,uint y) public {x.sub(y);x.sub(y,\"why\");}}")
+    a,b=resolve(sem,"x.sub(y)"),resolve(sem,'x.sub(y,"why")')
+    assert a["kind"]==b["kind"]=="library" and key(a["target"])!=key(b["target"])
+    assert [len([p for p in r["target"].named_children if p.type=="parameter"]) for r in (a,b)]==[2,3]
+
+
+def test_using_same_arity_distinguishes_only_receiver_type():
+    sem=semantics("library L {function sub(uint x,uint y) internal returns(uint){return x-y;}"
+        "function sub(address x,uint y) internal returns(uint){return y;}} "
+        "contract C {using L for *; function f(uint x,address a,uint y) public {x.sub(y);a.sub(y);}}")
+    for expr,typ in [("x.sub(y)","uint"),("a.sub(y)","address")]:
+        row=resolve(sem,expr)
+        assert row["kind"]=="library"
+        first=next(n for n in row["target"].named_children if n.type=="parameter")
+        assert sem.text(first.child_by_field_name("type"))==typ
+
+
+def test_using_same_receiver_and_arity_remains_ambiguous():
+    sem=semantics("library L {function sub(uint x,uint y) internal returns(uint){return y;}"
+        "function sub(uint x,address y) internal returns(uint){return x;}} "
+        "contract C {using L for uint; function f(uint x,uint y) public {x.sub(y);}}")
+    row=resolve(sem,"x.sub(y)")
+    assert row["status"]=="unknown" and row["target"] is None
+
+
+@pytest.mark.parametrize("expr,status",[
+    ('msg.sender.call.value(v)("")',"address_builtin"),
+    ('msg.sender.call.gas(v).value(v)("")',"address_builtin"),
+    ('a.call.gas(v)("")',"address_builtin"),
+    ('x.call.value(v)("")',"call_option"),
+])
+def test_outer_options_are_not_definition_targets(expr,status):
+    sem=semantics("contract C {function f(address a,uint x,uint v) public {"+expr+";}}")
+    row=resolve(sem,expr)
+    assert row["status"]==status and row["reason"]=="outer_call_option" and row["target"] is None
+
+
+def test_outer_option_does_not_guess_shadowed_msg():
+    sem=semantics("contract C {struct E{uint sender;} E msg;"
+        'function f(uint v) public {msg.sender.call.value(v)("");}}')
+    row=resolve(sem,'msg.sender.call.value(v)("")')
+    assert row["status"]=="call_option" and row["target"] is None
+
+
+def test_using_overload_rename_invariance():
+    source=('library L {function sub(uint x,uint y) internal returns(uint){return x-y;}'
+        'function sub(uint x,uint y,uint z) internal returns(uint){return x-y-z;}} '
+        'contract C {using L for uint; function f(uint a,uint b) public {a.sub(b);a.sub(b,a);}}')
+    first=semantics(source)
+    names=sorted({first.text(n) for n in first.nodes if n.type=="identifier"})
+    changes={s:"symbol_"+str(i) for i,s in enumerate(names)}
+    raw=first.view.raw
+    spans={(n.start_byte,n.end_byte,changes[first.text(n)].encode()) for n in first.nodes
+           if not n.named_children and first.text(n) in changes}
+    for start,end,value in sorted(spans,reverse=True):raw=raw[:start]+value+raw[end:]
+    second=AstSemantics(ProjectionView(raw.decode(),"renamed.sol"))
+    a=[resolve_call(first,n) for n in first.nodes if n.type=="call_expression"]
+    b=[resolve_call(second,n) for n in second.nodes if n.type=="call_expression"]
+    assert len(a)==len(b)==2
+    for old,new in zip(a,b):
+        assert old["kind"]==new["kind"]=="library"
+        assert first.functions.index(old["target"])==second.functions.index(new["target"])

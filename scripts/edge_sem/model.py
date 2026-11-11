@@ -76,8 +76,18 @@ def _derive(anchor, profile, working_graph=None):
 
 def make_edge_model(task,graph_or_path,profile="G3R",device="cpu",fold=0,
                     node_feature="inside_token",hidden_size=128,layers=2,heads=8,
-                    attributes_manifest=None):
+                    attributes_manifest=None,f4_manifest=None):
     spec = validate_profile(profile)
+    if spec["placebo"]=="relations":
+        if f4_manifest is None:
+            raise NotImplementedError("Relation placebo requires a sealed f4_manifest")
+        if attributes_manifest is not None:
+            raise ValueError("Relation placebo cannot consume edge attributes")
+        from .model_relations import make_relation_placebo
+        return make_relation_placebo(task,graph_or_path,f4_manifest,device,fold,
+                                     node_feature,hidden_size,layers,heads)
+    if f4_manifest is not None:
+        raise ValueError("Use f4_manifest only for the relation placebo")
     if spec["edge_features"]!="none":
         if attributes_manifest is None:
             raise NotImplementedError("Edge features require a sealed attributes_manifest")
@@ -86,8 +96,6 @@ def make_edge_model(task,graph_or_path,profile="G3R",device="cpu",fold=0,
                                     node_feature,hidden_size,layers,heads)
     if attributes_manifest is not None:
         raise ValueError("Structural profile cannot consume edge attributes")
-    if spec["placebo"]!="none":
-        raise NotImplementedError("Relation placebo construction is reserved for EP7")
     seed_info = seeds(task,fold)
     source = graph_or_path if isinstance(graph_or_path,nx.Graph) else read_graph(Path(graph_or_path))
     if not isinstance(source,nx.MultiDiGraph):
@@ -127,7 +135,8 @@ def validate_registration(model,expected_schema=None,deep=True):
     spec = validate_profile(profile)
     attribute_profile = spec["edge_features"]!="none"
     if spec["placebo"]=="relations":
-        raise ValueError("Relation placebo model is not implemented until EP7")
+        from .model_relations import validate_relation_placebo
+        validate_relation_placebo(model,deep=deep)
     if attribute_profile:
         from .hgt_edge import EdgeAwareHGTLayer
         from .model_attrs import validate_attributes

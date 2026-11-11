@@ -1,0 +1,229 @@
+{
+  "approved_adaptations": [
+    {
+      "approved": true,
+      "choice": "EdgeSem provenance-headed trainer copy; only validation/audit imports change; CPU numerical parity required",
+      "id": "call_fa9553b4bee0410b8b1dfa2fcc7c490b/0"
+    },
+    {
+      "approved": true,
+      "choice": "Separate train-only norm pilot; same Adam/OneCycle/train masks and 50 steps; no validation/test scoring or best selection",
+      "id": "call_fa9553b4bee0410b8b1dfa2fcc7c490b/1"
+    }
+  ],
+  "best": "strict minimum inner_val loss; first tie",
+  "config_diff": {
+    "access_control_node": {
+      "patience": {
+        "after": 51,
+        "before": 7
+      }
+    },
+    "reentrancy_node": {
+      "patience": {
+        "after": 51,
+        "before": 7
+      }
+    }
+  },
+  "correction": {
+    "alpha": 0.05,
+    "compute_after": "EP9",
+    "family": [
+      "H1",
+      "H2"
+    ],
+    "method": "Holm"
+  },
+  "decisions": {
+    "D1": {
+      "proposal": "N-anon-s primary; original-name view only a descriptive server secondary endpoint",
+      "status": "pending"
+    },
+    "D2": {
+      "proposal": "P2: 50 epochs, strict minimum inner_val loss best; fresh G3R baseline, other 8H configs unchanged",
+      "status": "pending"
+    },
+    "D3": {
+      "proposal": "Freeze relationships, attribute layout and hyperparameters after EP9; reuse for seven categories without category tuning",
+      "status": "pending"
+    }
+  },
+  "effective_config": {
+    "access_control_node": {
+      "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+      "cycle_momentum": true,
+      "delta": 0.001,
+      "device": "cuda:0",
+      "div_factor": 25,
+      "dropout": 0.2,
+      "environment": {
+        "dgl": "0.6.1",
+        "networkx": "2.6.3",
+        "numpy": "1.21.6",
+        "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+        "sklearn": "1.0.2",
+        "torch": "1.8.1+cu111"
+      },
+      "feature": "inside_token",
+      "final_div_factor": 1,
+      "forward_scope": "full_fixed_task_graph",
+      "heads": 8,
+      "hidden_size": 128,
+      "initial_lr": 0.0002,
+      "layer_impl": "shared_projection",
+      "layers": 2,
+      "loss": "unweighted_cross_entropy",
+      "max_lr": 0.005,
+      "maximum_training_epochs": 50,
+      "metric_unit": "HCG node",
+      "mode": "full",
+      "optimizer": "Adam",
+      "partition_policy": "group_disjoint_nested_file_supervision",
+      "patience": 51,
+      "primary_checkpoint": "best",
+      "protocol": "dfg-v2-grouped-nested",
+      "protocol_version": "dfg-v2-grouped-nested-v1",
+      "schedule_epochs": 50,
+      "schema_policy": "registered_schema_allow_train_unseen",
+      "score_role": "outer_test",
+      "secondary_checkpoint": "last",
+      "seed": 1,
+      "selection": "strict minimum inner validation loss; post-update eval forward",
+      "selection_role": "inner_val",
+      "threads": 2,
+      "use_norm": true,
+      "weight_decay": 0.0
+    },
+    "reentrancy_node": {
+      "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+      "cycle_momentum": true,
+      "delta": 0.001,
+      "device": "cuda:0",
+      "div_factor": 25,
+      "dropout": 0.2,
+      "environment": {
+        "dgl": "0.6.1",
+        "networkx": "2.6.3",
+        "numpy": "1.21.6",
+        "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+        "sklearn": "1.0.2",
+        "torch": "1.8.1+cu111"
+      },
+      "feature": "inside_token",
+      "final_div_factor": 1,
+      "forward_scope": "full_fixed_task_graph",
+      "heads": 8,
+      "hidden_size": 128,
+      "initial_lr": 0.0002,
+      "layer_impl": "shared_projection",
+      "layers": 2,
+      "loss": "unweighted_cross_entropy",
+      "max_lr": 0.005,
+      "maximum_training_epochs": 50,
+      "metric_unit": "HCG node",
+      "mode": "full",
+      "optimizer": "Adam",
+      "partition_policy": "group_disjoint_nested_file_supervision",
+      "patience": 51,
+      "primary_checkpoint": "best",
+      "protocol": "dfg-v2-grouped-nested",
+      "protocol_version": "dfg-v2-grouped-nested-v1",
+      "schedule_epochs": 50,
+      "schema_policy": "registered_schema_allow_train_unseen",
+      "score_role": "outer_test",
+      "secondary_checkpoint": "last",
+      "seed": 1,
+      "selection": "strict minimum inner validation loss; post-update eval forward",
+      "selection_role": "inner_val",
+      "threads": 2,
+      "use_norm": true,
+      "weight_decay": 0.0
+    }
+  },
+  "ep7_formal_fits": 20,
+  "execution_authorized": false,
+  "feature_policy": "N-anon-s S0",
+  "final_server_intent": "Final experiments will use a server with sufficient VRAM; current limitation is this local computer.",
+  "gpu_probe": {
+    "comparison_fit": false,
+    "fold": 0,
+    "measurement": "peak Torch reserved; allocated and whole-card observations also reported",
+    "profiles": [
+      "G3R",
+      "G3R-T",
+      "G4R",
+      "G4R-A"
+    ],
+    "steps": 1,
+    "tasks": [
+      "reentrancy_node",
+      "access_control_node"
+    ],
+    "threshold_mib": 3584
+  },
+  "historical_comparison": "descriptive only; do not attribute differences uniquely to stopping protocol",
+  "hypotheses": {
+    "H1": {
+      "contrasts": [
+        "G4R-G3R-T",
+        "G4R-G4R-P"
+      ],
+      "p": "max of both two-sided zsplit Wilcoxon p values",
+      "require_positive_means": true
+    },
+    "H2": {
+      "contrasts": [
+        "G4R-A-G4R",
+        "G4R-A-G4R-Api"
+      ],
+      "p": "max of both two-sided zsplit Wilcoxon p values",
+      "require_positive_means": true
+    }
+  },
+  "initialization": "fresh G3R anchor at frozen constructor seed; EP1 semantic typed/new-relation copies",
+  "label_policy": "L-audit",
+  "maximum_training_epochs": 50,
+  "norm_pilot": {
+    "best_selection": false,
+    "comparison_fit": false,
+    "epochs": 50,
+    "first_post_update_encoder_gradient": "finite and nonzero",
+    "fold": 0,
+    "inner_val_or_outer_test_scoring": false,
+    "profile": "G4R-A",
+    "stop_if": "all final per-layer u and each U family Frobenius norm < 0.001",
+    "task": "reentrancy_node"
+  },
+  "patience": 51,
+  "primary_endpoint": {
+    "checkpoint": "best",
+    "metric": "Buggy-F1",
+    "task": "reentrancy_node",
+    "view": "N-anon-s"
+  },
+  "required_reports": [
+    "fold BF1/best epoch",
+    "non-SolidiFI positive-node TP/FP/FN",
+    "persistent cases with source identity",
+    "two predefined rule baselines",
+    "relation supports and gradients",
+    "peak allocated/reserved VRAM",
+    "fit time",
+    "u/U norms"
+  ],
+  "schedule_epochs": 50,
+  "secondary": [
+    "G3R-T-G3R",
+    "G3R-TA-G3R-T",
+    "access_control_node"
+  ],
+  "seed": 1,
+  "source_h8_plan": {
+    "bytes": 1475193,
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8h_v1/plan.json",
+    "sha256": "cb8daf22ed9fb9cd81fe575548d338408a5420f62e7a6da529d402c148eb8a2c"
+  },
+  "training_protocol": "grouped nested; inner_train supervision only; outer_test scored after training",
+  "version": "edgesem-P2-v1"
+}

@@ -10853,3 +10853,28 @@ EP6详细选择：冻结sem.sink(target,sealed_symbol)补齐缺失记录，不�
 单模型32→16边MLP使用输出dropout0.1，每关系每次前向一次，各层共享。u按规范关系，U按control/call/data/guard/structure五族，全部零初始化；共有参数来自EP1结构装配。Api按同折constructor种子置换完整74位，AC索引去重。零初值等价是eval检查，不宣称任意训练dropout轨迹一致。
 
 接入记录：EP3模型回归按r14改读f4_v2；EP2归档核对修改前的测试/模型源码快照，生产load_edges仍严格拒绝旧实现。首次开发错误、合并收集错误与4项归档失败保留；复用成功产物。新增反例拒绝错误SHA和未登记快照。不改冻结训练，不重训。最终ep6_verify核对源码、旧产物、8H入口、文档前缀及新结果。
+
+
+## 2026-11-11 — EP7：执行器适配、P2及训练前验收（详细）
+
+依据scripts/edge_sem/PROMPTS.md r15，起始HEAD 2cd3dbf339d8de337f7dd05166968b8a8a20569d，edge-sem分支已快进核验。本节仅追加，原记录不改。完整报告EP7_REPORT.md；产物scripts/edge_sem/artifacts/ep7_v1。
+
+1. 已批准选择：call_fa9553b4bee0410b8b1dfa2fcc7c490b/0批准最小trainer适配副本，因为冻结trainer直接导入旧checkpoint及gradient_audit，不能接受EdgeSem且禁止monkeypatch。EdgeSem副本标明来源SHA，只换校验/审计导入；_fit/fit AST相同。/1批准独立仅训练范数试点，因为原fit必读inner_val并最终评分。train_only仅建立inner_train监督，同初值、Adam、OneCycle、50次更新，无best、无验证/测试指标。冻结装配仍核验完整图及标签身份，此项不混称为完全不读取标签。这两项批准不包含GPU启动及D1–D3确认。
+
+2. G4R-P只接受rule=EP5-degree-placebo、semantic_evidence=false的安慰剂行；端点同文件、无自环/重复/已有同关系边，规范逐节点度数精确相等。真实add_edges证据校验未放宽。真实任务fold0：重入改5834/7669边（76.0725%），195/487分组无法交换；访问控制改3487/5261（66.2802%），184/393无法交换。规范关系顺序、边数、参数量、初值与G4R一致；重复确定性、换折变化、原图不变及篡改拒绝通过。实际种子来自constructor，不沿用EP5诊断1729。
+
+3. 新执行接入：execution、checkpoint、support、input_guard、supervision、trainer、pilot、runtime、protocol_p2、analysis_ep7及recon/ep7_*。dfg_profile=G3R仍表示锚来源，edge_profile决定真实关系schema；support/梯度校验走EdgeSem。binding追加key_map摘要、f4/attrs引用、core/实际列、Api与P审计，保留原task/folds/labels/feature/initial/config等。输入guard核验ea和边索引内容。运行版本明确27个EdgeSem模块+354冻结引用=381；只读归档检查当时快照，不要求当前文件等于历史源码。
+
+4. P2登记与8H逐项配置比较只差patience 7→51；maximum_training_epochs与schedule_epochs均50。best取严格最低inner_val loss，同值不替换；outer_test只在训练结束评分。特征为8H的S0 N-anon-s，标签L-audit、分组嵌套折、seed=1。H1/H2及Holm两项族照原文登记，不以EP7结果改假设。
+
+5. 初始化：26份CPU零步状态=20份G3R+两任务各G3R-T/G4R/G4R-A fold0。每份SHA、tensor digest、task/fold/profile、constructor/fit seed、optimizer_steps=0并严格reload；总550093510字节，保存在WSL。按EP1新鲜G3R锚生成，与8H跨剖面配对初值并不相同，initialization.json明确标注。未来8H对照只作描述，不能将变化全部归因于取消早停。探针/范数试点加载对应零步文件，不共享已训练状态。
+
+6. plan/seal：formal20、gpu_probes8、norm_pilot1分别独立封存，原authorization=false。CPU实际重载封存的重入fold0 G3R/G4R-A，输入、support、binding与张量摘要通过（sealed_plan_cpu.json）。授权入口要求用户原始回复、D1–D3决定、已提交registration的真实SHA；无记录不能训练。已成功fit只读验收后复用，失败保留且无自动重试。
+
+7. 验收：EdgeSem312、NodeSem1353、DFG2653，合4318项全部通过，无失败/跳过。小图3轮新旧参数/损失/预测/Adam/OneCycle逐位一致；G3R support/gradient字段一致，typed/绑定/输入篡改拒绝；初始u/U=0导致encoder梯度0是预期，第一次更新后需非零；train_only不调用heldout评分。归档/环境校验收紧后15项核心/策略定向测试再次通过。750份冻结源码、1134份既有产物及8H load未变化，三份文档原字节前缀保留。
+
+8. 开发现场：首次测试辅助函数setup被pytest识别成hook，9项setup error，改为setup_case；随后篡改测试把None又赋None，6通过3失败，改为真正不同值后9通过；扩展后15通过。均为合成测试接入问题，未发生生产训练失败或自动重训。记录development_checks.json。所有正式输出目录排他新建，历史seal不改。
+
+9. 资源规则：GPU探针8个任务，每个1次更新，记录allocated/reserved及整卡状态；peak Torch reserved>3584MiB停止。范数试点50轮，只报告每层u及各U族Frobenius范数；首次更新后encoder梯度有限且非零；最终全部u/U<1e-3停止。OOM/非有限值/输入/checkpoint错误停止，不自动换CPU、降维、改层数、关闭其他程序或重试。每次GPU任务独立进程，使用原DFG训练锁。最终服务器将有足够显存，当前限制仅来自本机。
+
+10. 当前停止位置：CPU实现/准备完成，GPU0/8、范数0/1、正式0/20。D1（匿名主/服务器原名描述性次要）、D2（P2及新G3R基线）、D3（EP9冻结七类复用）待用户确认。本地先提交P2登记，再获得明确执行授权；不将此次报告表述为EP7训练已完成，不自动开展EP8/9或推送GitHub。

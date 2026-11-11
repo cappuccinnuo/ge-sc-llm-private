@@ -99,3 +99,36 @@ def permute_attributes(rows,attrs,seed=DEFAULT_SEED):
             changed_vectors=sum(not np.array_equal(attrs[k],output[k]) for k in group),
             unique_vectors=len(old),multiset_exact=True)
     return {k:output[k] for k in keys},dict(seed=seed,per_relation=audit,source_key_for_target=mapping)
+
+
+def add_placebo_edges(graph_copy, rows, real_rows):
+    """Validate topology-only E1 rows without weakening semantic add_edges."""
+    import networkx as nx
+    if not isinstance(graph_copy, nx.MultiDiGraph):
+        raise TypeError("Expected directed multigraph")
+    if len(rows) != len(real_rows):
+        raise ValueError("Placebo row count differs")
+    seen = set()
+    for row in rows:
+        if set(row) != {"src", "dst", "file", "relation", "rule", "semantic_evidence"}:
+            raise ValueError("Only topology-only placebo fields are accepted")
+        if row["rule"] != "EP5-degree-placebo" or row["semantic_evidence"] is not False:
+            raise ValueError("Expected non-semantic placebo evidence")
+        src, dst, relation = row["src"], row["dst"], row["relation"]
+        if src not in graph_copy or dst not in graph_copy:
+            raise ValueError("Unknown placebo endpoint")
+        if relation not in NEW_RELATIONS or src == dst:
+            raise ValueError("Expected non-self placebo E1 edge")
+        if any(graph_copy.nodes[n]["source_file"] != row["file"] for n in (src, dst)):
+            raise ValueError("Cross-file placebo edge")
+        ident = (src, dst, relation)
+        if ident in seen or any(
+                d.get("edge_type") == relation for d in graph_copy.get_edge_data(src, dst, default={}).values()):
+            raise ValueError("Duplicate placebo relation")
+        seen.add(ident)
+    if degree_signature(graph_copy, rows) != degree_signature(graph_copy, real_rows):
+        raise ValueError("Placebo per-node canonical degrees differ")
+    result = copy.deepcopy(graph_copy)
+    for row in rows:
+        result.add_edge(row["src"], row["dst"], edge_type=row["relation"])
+    return result
