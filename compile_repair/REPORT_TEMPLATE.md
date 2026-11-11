@@ -1,6 +1,6 @@
 # CPn：<标题>（报告模板）
 
-每个 Prompt 结束时按本模板写 `scripts/compile_repair/CPn_REPORT.md`。结构与 EdgeSem 的 EPn_REPORT 一致。每个数字给出来源（命令、产物路径、SHA256 或计数文件）。
+每个 Prompt 结束时按本模板写 `compile_repair/CPn_REPORT.md`。结构与 EdgeSem 的 EPn_REPORT 一致。每个数字给出来源（命令、产物路径、SHA256 或计数文件）。
 
 ## 实现
 - 新增与修改的文件（路径、用途）；复制自冻结模块的文件写明来源路径与原 SHA256。

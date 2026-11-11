@@ -1,6 +1,6 @@
 # cr_pre_v1：方案 r1 的证据（Claude，2026-11-11）
 
-本目录是写 `scripts/compile_repair/PROMPTS.md` r1 之前收集的证据，全部可复现。不是生产代码，CP0–CP2 不导入这里的脚本。
+本目录是写 `PROMPTS.md` r1 之前收集的证据（r1 时目录为 `scripts/compile_repair/`，r2 起为仓库根目录 `compile_repair/`），全部可复现。不是生产代码，任何 Prompt 都不导入这里的脚本。
 
 ## 环境（与用户 `mando` 环境不同，结论须由 CP0 在用户环境复核）
 
