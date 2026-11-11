@@ -1,4 +1,4 @@
-"""Bounded same-file CALL_SITE resolution (EP0c-EP0e, EdgeSem plan r7).
+"""Bounded same-file CALL_SITE resolution (EP0c-EP2, EdgeSem plan r9).
 
 Frozen dependencies, imported without modification:
 scripts/node_sem/facts_ast.py SHA256:
@@ -15,6 +15,8 @@ _using_resolve copies the using traversal/matching in the same frozen file,
 lines 226-244 (scope check at 217-218), using the supplied receiver type.
 Approved EP0e exception: an any_source_type("*") directive imposes no source
 type restriction; the library's first parameter still must match exactly.
+EP2 r9: using overloads filter by arity and canonical first-parameter type;
+outer call-option invocations are classified without targets.
 receiver_type is EdgeSem-local; it does not alter the frozen type/DFG analysis.
 """
 from scripts.node_sem.facts_ast import FUNCTIONS, key, unwrap
@@ -269,14 +271,15 @@ def _using_resolve(sem, call_node, receiver_type, method):
                 continue
             functions = [x for x in libs[0].child_by_field_name("body").named_children
                          if x.type == "function_definition" and sem.text(x.child_by_field_name("name")) == method]
-            if len(functions) != 1:
-                continue
-            fn = functions[0]
-            params = [x for x in fn.named_children if x.type == "parameter"]
-            if (len(params) != len(sem.arguments(call_node))+1
-                    or sem._canonical_type(sem.text(params[0].child_by_field_name("type"))) != receiver_type):
-                continue
-            matches.append(fn)
+            # r9: candidates use the same arity rule as the audited set,
+            # plus the canonical receiver type. All matches across directives
+            # are retained until uniqueness is checked below.
+            for fn in functions:
+                params = [x for x in fn.named_children if x.type == "parameter"]
+                if (len(params) != len(sem.arguments(call_node))+1
+                        or sem._canonical_type(sem.text(params[0].child_by_field_name("type"))) != receiver_type):
+                    continue
+                matches.append(fn)
     unique = {key(fn): fn for fn in matches}
     return next(iter(unique.values())) if len(unique) == 1 else None
 
@@ -345,6 +348,14 @@ def resolve_call(sem, call_node):
             return result("event_or_struct", reason="declared_non_function")
         return result("unknown", reason="unbound_or_unsupported_identifier")
 
+    # The actual outer low-level call has a call_expression as its callee;
+    # the inner .value/.gas expression configures it but is not the target.
+    if diagnostic_callee is not None and diagnostic_callee.type == "call_expression":
+        option = sem._postfix(unwrap(diagnostic_callee.child_by_field_name("function")))
+        receiver = _call_option_receiver(sem, option)
+        if receiver is not None:
+            return result("address_builtin" if _address_receiver(sem, receiver) else "call_option",
+                          reason="outer_call_option")
     if diagnostic_callee is not None and diagnostic_callee.type == "new_expression":
         return result("new_contract", reason="new_expression")
     if diagnostic_callee is not None and diagnostic_callee.type == "member_expression":

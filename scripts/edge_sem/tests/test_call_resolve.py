@@ -474,7 +474,26 @@ def test_ep0e_real_prior_targets_and_legacy_using_equivalence(task):
         resolved={key(n):resolve_call(sem,n) for n in calls}
         audit=audit_file(sem,by_file[file],resolved)
         count+=audit["resolved_unchanged"]
-        assert all(not r["unexpected_mismatch"] for r in audit["using_equivalence"])
-        assert all(r["binding_rules_equal"] or r["approved_wildcard_exception"]
-                   for r in audit["using_equivalence"])
+        # EP2 r9 explicitly permits overload resolution absent in the frozen
+        # using helper. Keep the EP0e equality requirement for all other cases.
+        nodes={key(n):n for n in sem.nodes}
+        for r in audit["using_equivalence"]:
+            if r["equal"] or r["approved_wildcard_exception"]:
+                assert not r["unexpected_mismatch"]
+                continue
+            assert r["frozen_target"] is None and r["adapter_target"] is not None
+            target=nodes[tuple(r["adapter_target"])]
+            library=sem.contract(target)
+            name=sem.text(target.child_by_field_name("name"))
+            named=[n for n in library.child_by_field_name("body").named_children
+                   if n.type=="function_definition" and sem.text(n.child_by_field_name("name"))==name]
+            argc=len(sem.arguments(nodes[tuple(r["call_anchor"])]))+1
+            matches=[]
+            for fn in named:
+                ps=[p for p in fn.named_children if p.type=="parameter"]
+                if len(ps)==argc and sem._canonical_type(sem.text(ps[0].child_by_field_name("type")))==r["inferred_type"]:
+                    matches.append(key(fn))
+            assert len(named)>1 and matches==[key(target)]
+            assert (r["rule_only_target"]==r["adapter_target"] or
+                    (not r["legacy_type"] and r["rule_only_target"] is None))
     assert count==sum(r["status"]=="resolved" for r in old["raw_calls"])
