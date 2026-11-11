@@ -1,7 +1,13 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r8（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r9（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r9 相对 r8 的修改**（审查 EP1 产出后）：
+1. EP1 已逐行核对并接受：typed 正向键 `(A,e,B)` 从 G3R 的 `(A,e,B)` 复制，`(B,REV_e,A)` 从 G3R 中承载这些反射边的 `(B,e,A)`（同类型两端时即 `(A,e,A)`）复制，与 reflect_graph 的实际合并方式一致；新关系行的 Xavier 范围与 `nn.init.xavier_uniform_` 对 `[R,H,d_k,d_k]` 张量的 fan 计算一致（取锚模型 R，使新行与复制行同尺度，已在文件头说明）；relation_pri 为 1；不消耗全局 RNG。G3R 在两折上与冻结实现逐位等价；G3R-T 的关系数（212→220、234）与 EP0 一致；仅 if_true/if_false 别名一处开发修正，合理。三套回归 149/1353/2653 通过；改动只在 scripts/edge_sem 与记录文档。
+2. 用户指示“先完善 EP0”：r8 第 4 项的两项一致性修正提前到 EP2 第 0 节，在任何建边之前完成并单独报告（召回按 EP0e 候选集重算，标注为看到结果后的修正，EP0e 历史门槛结论不改写）。
+3. 新发现的后续缺口（不是 EP1 缺陷）：冻结训练路径中 `benchmark_v2/support.py::support()`（第 40 行）用 `model.dfg_profile` 调用 DFG 的 materialize 生成 registration support 与关系计数，`gradient_audit` 用它与模型核对。typed 模型的 dfg_profile 记作 "G3R"（锚来源），若 EP7 直接用冻结 support，会得到 G3R 的关系表；`validate_registration(deep=False)` 会因 schema 不同报错，所以是显性失败，但 EP7 需要本地 support/gradient_audit 与执行器分派，不只是 checkpoint。已写入 EP7。
+4. EP1 中 model.py 接收 E1 边的路径（working graph）尚未用真实 E1 边运行。EP2 增加闸门：G4R 在 E1 边为空时与 G3R-T 逐位相同；有 E1 边时能构造、深校验，且 E1 关系行全部来自名字种子。
 
 **r8 相对 r7 的修改**（审查 EP0e 产出后）：
 1. EP0e 实现已核对并接受：`_using_resolve` 与冻结 `_using_callable` 第 226–244 行一致，唯一差别是已批准的 `using … for *` 例外（冻结代码把字面 `*` 与类型名比较，永远匹配不上；真实语料中该例外为 0 次）；`receiver_type` 只依据括号结构、声明与未遮蔽内置名，不能确认时返回 None；候选集外绑定 0，EP0d 已解析的调用全部不变，1182 次 identifier/数组接收者 using 调用与冻结函数逐个相同；EP0d 两项门槛仍通过。
@@ -531,6 +537,12 @@ make_edge_model(task, graph_or_path, profile, device, fold, ...)：
 ```text
 # EP2：F4 边构建器——MOD_APPLY 与 CALL_SITE
 
+## 0. 调用解析一致性修正（r9：用户指示先完善 EP0；在任何建边之前完成）
+- 在 scripts/edge_sem/call_resolve.py 实现 r8 第 4 项的两项修正：(a) `_using_resolve` 在同名库函数多于一个时，按“参数个数 = 实参 + 1 且首参数规范类型 = 接收者类型”唯一匹配，仍不唯一则不解析；(b) 外层调用的 callee 是 call_option 调用（`x.call.value(v)()`、`x.call.gas(g).value(v)()`）时，接收者经 `_address_receiver` 确认则 status = address_builtin，否则 call_option；不产生目标。
+- 测试：两个同名 sub（2 参数与 3 参数）各被 using 调用一次，分别绑定；两个同名同参数个数、首参数类型不同的库函数按接收者类型绑定；首参数类型也相同时不解析；外层 `msg.sender.call.value(v)("")` 为 address_builtin；改名用例。
+- 重算（输出 scripts/edge_sem/artifacts/ep2_v1/call_fix/）：在 EP0e 候选集上的召回（相对 312/347 的变化，逐条列出新增绑定）；候选集外绑定数必须为 0；EP0e 已解析调用全部不变（逐调用比较）；EP0d 两项门槛仍通过；unknown 池按 reason 的变化。任一硬条件不满足就停下报告。
+- 报告中写明：这是看到 EP0e 结果后的修正，EP0e 的预登记门槛仍记为未通过，新召回只作描述。
+
 ## 1. scripts/edge_sem/build_f4.py
 build_task(task_id, out_dir) -> manifest
 - 输入：node_sem.facts_io.load_context(task_id) 的 F3 图、源码与证据。只读。
@@ -545,6 +557,7 @@ fixtures（tests/fixtures/*.sol，自写小合约）：
 - 带两个修饰器的函数（其中一个继承自父合约）→ 两条 MOD_APPLY；修饰器名拼写不存在 → 计入 unresolved，不建边。
 - 语句 `x = helper(a);` 调用同文件 helper → 一条 CALL_SITE 到 helper 定义；`token.transfer(a, b)` 与 `msg.sender.call.value(v)("")` → 不建边，分别计入 external 与 low_level。
 - 同一语句两次调用同一函数 → 一条边。
+- r9 模型闸门（真实任务 reentrancy_node 与 access_control_node，fold 0，CPU）：(1) make_edge_model(profile="G4R") 在 E1 边为空时，规范关系、端点、全部参数与 eval 前向输出与 make_edge_model(profile="G3R-T") 逐位相同；(2) 加入本 Prompt 生成的 MOD_APPLY 与 CALL_SITE 边后，G4R 能构造并通过 edge_sem.model.validate_registration；E1 关系行全部由 relation_seed 初始化（与另一次构造逐位相同）；其余行与 G3R-T 相同；一次 forward/backward 有限；(3) 原 F3 图与 F3 文件指纹不变。
 - r8 一致性修正（实现于 call_resolve.py，单独报告效果，不改写 EP0e 门槛结论）：(a) `_using_resolve` 在方法名对应多个库函数时，按“参数个数 = 实参 + 1 且首参数规范类型 = 接收者类型”唯一匹配；仍不唯一则不解析；(b) 外层调用的 callee 本身是 call_option 调用（`x.call.value(v)()`、`x.call.gas(g).value(v)()`）时，status = address_builtin（接收者经 _address_receiver 确认）或 call_option（未确认），不产生目标。两项各加测试；在 EP0e 候选集上报告召回从 312/347 的变化、候选集外绑定数（必须为 0）、以及 EP0e 已解析调用是否全部不变。
 - r5：`a.sub(b)`（using SafeMath for uint）→ 一条 CALL_SITE 到 SafeMath.sub，kind = library；`msg.sender.transfer(x)` 与同合约内的 `transfer(address,uint)` 并存时不建边；参数个数不同的两个同名函数各被调用一次 → 各连到对应定义（kind = overload_arity）。
 - 真实文件：reentrancy 数据中的 reentrancy_bonus、access_control 中的 rubixi 与 unprotected0（按 source_file 名在 F3 中查找；找不到就报告），人工核对后把期望边写成测试。
@@ -668,6 +681,7 @@ fixtures：
 
 ## 1. scripts/edge_sem/execution.py
 参照 scripts/node_sem/execution.py 改写（文件头写明来源与 SHA）：plan/seal/authorization、construct（调用 edge_sem.model.make_edge_model）、binding（新增 edge_profile、f4 manifest SHA、attrs manifest SHA、core_indices、P2 标识）、fit_one、verify_one、controller。训练函数 benchmark_v2.trainer.fit 原样调用；P2 通过配置实现：patience = maximum_training_epochs + 1（StopMonitor 在 patience ≥ 1 时接受任意值，并保存每一个严格的新最小值，所以不会早停，best 仍按 inner_val loss 选择）；不得复制或修改 trainer。
+- registration support 与梯度审计适配（r9）：冻结 `benchmark_v2/support.py::support()` 用 `model.dfg_profile` 调用 DFG materialize（第 40 行），`gradient_audit` 用其结果核对模型；EdgeSem 模型的 dfg_profile 恒为 "G3R"（锚来源），不得把冻结 support 用于 typed 剖面。新建 scripts/edge_sem/support.py：复制 support() 与 gradient_audit()（文件头写明来源与 SHA），把 materialize 换成 edge_sem.materialize(…, model.edge_profile)，validate_registration 换成 edge_sem.model.validate_registration，关系审计范围从 V2_RELATIONS 扩展为 DFG v2 关系加 E1 关系及其 REV_；对 G3R 剖面，新旧 support 与 gradient_audit 的输出逐字段相同（测试）。执行器的 make_model/validate_registration 分派一律走 edge_sem。
 - checkpoint 绑定适配（r4，EP0 D-02）：新建 scripts/edge_sem/checkpoint.py，复制 benchmark_v2/checkpoint.py::validate_binding 及其依赖的检查（文件头写明来源与 SHA），把其中对冻结 runtime_model.validate_registration 的调用改为 edge_sem.model.validate_registration，并在 binding 中加入 edge_profile、key_map 摘要、f4/attrs manifest SHA 与 core_indices；其余比较（task、reducer、layer_impl、canonical、辅助节点、initial SHA、配置、graph/folds/labels/label_view/feature_view/feature_npz 引用）一项不少。测试：G3R 剖面下，新函数对同一 checkpoint 的判定与冻结函数完全相同（接受与拒绝各构造一例）；G3R-T 与 G4R 剖面能通过自身校验，篡改任一绑定字段都被拒绝。
 - 节点特征：N-anon-s 的 S0（8H 匿名 token NPZ），装配方式与 8H 相同。
 - 运行版本：只绑定 scripts/edge_sem 下训练路径上的模块清单（照 NS-P1b 的做法），只读核验已完成 fit 时比较封存记录，不比较当前代码。
