@@ -1,7 +1,21 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r14（2026-11-11）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r15（2026-11-11）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r15 相对 r14 的修改**（审查 EP6 产出后）：
+1. EP6 接受。独立复核：
+   - 层实现与规格逐行一致：只在 edge_softmax 之前加 psi·u_r，消息改为 attn·(v + psi·U_f)，copy_e/sum 与 mean 跨关系聚合、共享投影、残差、dropout、LayerNorm 与父类相同；psi = None 直接调用父类。新增参数 92,784 = 编码器 2,160 + u 274×16×8×2 = 70,144 + U 5×16×128×2 = 20,480，与收据一致。
+   - forward 复制来源正确：DfgV2Node/GraphClassifier 没有覆盖 forward，作者 model_hgt.py 420–432、590–613 就是实际执行的 forward。
+   - 属性对齐：原图多重边按 (src, dst, relation, nx_key) 绑定行，按 EID 顺序核对端点，REV_ 复制正向行；两任务 222/206 组同关系平行边的向量全部相同，Aπ 置换后即使平行边次序互换，对目标节点的求和也不变。
+   - 属性差值：只有 22–28、37–40 列变化，只在 ep5_v1 诊断中带 no_exact_dfg_to 缺口的 DATA_DEF_USE 行上，只有 0 → 1；sink 来源计数 1942 + 47 = 1989、3118 + 49 = 3167 与缺口逐数一致；已有记录的 1480/756 条重算 sink 与记录全部相同；core/context 不变。
+   - fallback：唯一候选（access_control_contract 0x0d689d1d…）修饰器已唯一绑定，但冻结投影没有 fallback 函数节点（其体内语句节点 3678 已投影），按规定计为 not_in_graph，四任务 F4 逐字节不变。处理正确；记为局限，E-C0 服务器移植时按 owner 类型报告 MOD_APPLY 的 not_in_graph 数。
+   - 匿名闸门重跑 128 文件通过；库调用合成测试覆盖库名、结构、重载方法、接收者与三种名字长度，按 AST 位置比较边相同。
+   - EP2 归档加载的放宽只在显式归档接口内、只接受 EP6 之前的逐字节快照，生产加载器仍严格，接受。
+2. EP7 补充三处（否则 EP7/EP8 会卡住或检查失真）：
+   - (a) G4R-P 模型构造从未在任何 Prompt 中规定（model.py 写“reserved for EP7”，EP7 原文没有），而 EP8 要用它；安慰剂行没有锚点，现有 add_edges 会拒绝。EP7 第 0 节规定构造方式与闸门。
+   - (b) u、U 零初始化时编码器的初始梯度按链式法则恰为 0（EP6 已说明）。梯度审计若要求所有参数有非零梯度，会在 G4R-A 上误报；规定预期。
+   - (c) checkpoint 绑定与 support 需要覆盖属性剖面的额外身份（属性 manifest、所选位、Aπ 置换审计）。
 
 **r14 相对 r13 的修改**（审查 EP5 产出后；EP5 按 r12 执行，r13 的 EP5 第 0 节新增项未执行）：
 1. EP5 已执行部分逐项核对并接受：
@@ -770,10 +784,17 @@ fixtures：
 ```text
 # EP7：执行器、P2 协议与 G3R 基线（训练）
 
+## 0. G4R-P 模型构造（r15；在第 1 节之前完成，CPU）
+- make_edge_model 对 placebo = relations 的剖面：用 f4_v2 的真实 E1 行调用 placebo.randomize_edges(去掉 E1 的 F3 图副本, 行, seed = seeds(task, fold)["constructor"])，得到同数量、逐节点规范度数相同的随机 E1 行，再加入图并按 G4R 的 typed 方式物化。
+- 不得放宽 build_f4.add_edges 的锚点与证据校验。新写 placebo.add_placebo_edges(graph_copy, rows, real_rows)：只接受 rule = "EP5-degree-placebo" 且 semantic_evidence = False 的行；端点在图内且同文件；(src, dst, relation) 不重复、不与图中已有同关系边重复、无自环；degree_signature(rows) == degree_signature(real_rows)，否则报错；返回深拷贝并写入 edge_type。
+- 闸门（reentrancy_node 与 access_control_node 各 fold 0）：(1) G4R-P 的规范关系集合、各关系行顺序与参数量都与 G4R 相同，初始参数逐位相同（同一构造器种子）；(2) 两次构造的随机边集合相同，换 fold 时不同；(3) 每个规范关系的边数与 G4R 相同、逐节点规范度数相同；(4) 原 F3 图指纹不变；(5) validate_registration 重算随机边并与模型上的边逐条相同，binding 记录 randomize_edges 审计摘要（seed、changed_edges、zero_switch_partitions）。报告每任务改变的边数比例（EP5 用种子 1729 时为 5805/7669 与相应值，仅作参照）。
+- 测试：篡改一条随机边、换种子、换 fold 都被 validate_registration 拒绝；add_placebo_edges 拒绝真实 E1 行与度数不同的行集。
+
 ## 1. scripts/edge_sem/execution.py
 参照 scripts/node_sem/execution.py 改写（文件头写明来源与 SHA）：plan/seal/authorization、construct（调用 edge_sem.model.make_edge_model）、binding（新增 edge_profile、f4 manifest SHA、attrs manifest SHA、core_indices、P2 标识）、fit_one、verify_one、controller。训练函数 benchmark_v2.trainer.fit 原样调用；P2 通过配置实现：patience = maximum_training_epochs + 1（StopMonitor 在 patience ≥ 1 时接受任意值，并保存每一个严格的新最小值，所以不会早停，best 仍按 inner_val loss 选择）；不得复制或修改 trainer。
 - registration support 与梯度审计适配（r9）：冻结 `benchmark_v2/support.py::support()` 用 `model.dfg_profile` 调用 DFG materialize（第 40 行），`gradient_audit` 用其结果核对模型；EdgeSem 模型的 dfg_profile 恒为 "G3R"（锚来源），不得把冻结 support 用于 typed 剖面。新建 scripts/edge_sem/support.py：复制 support() 与 gradient_audit()（文件头写明来源与 SHA），把 materialize 换成 edge_sem.materialize(…, model.edge_profile)，validate_registration 换成 edge_sem.model.validate_registration，关系审计范围从 V2_RELATIONS 扩展为 DFG v2 关系加 E1 关系及其 REV_；对 G3R 剖面，新旧 support 与 gradient_audit 的输出逐字段相同（测试）。执行器的 make_model/validate_registration 分派一律走 edge_sem。
-- checkpoint 绑定适配（r4，EP0 D-02）：新建 scripts/edge_sem/checkpoint.py，复制 benchmark_v2/checkpoint.py::validate_binding 及其依赖的检查（文件头写明来源与 SHA），把其中对冻结 runtime_model.validate_registration 的调用改为 edge_sem.model.validate_registration，并在 binding 中加入 edge_profile、key_map 摘要、f4/attrs manifest SHA 与 core_indices；其余比较（task、reducer、layer_impl、canonical、辅助节点、initial SHA、配置、graph/folds/labels/label_view/feature_view/feature_npz 引用）一项不少。测试：G3R 剖面下，新函数对同一 checkpoint 的判定与冻结函数完全相同（接受与拒绝各构造一例）；G3R-T 与 G4R 剖面能通过自身校验，篡改任一绑定字段都被拒绝。
+- 属性剖面（G4R-A、G4R-Api、G4R-AC、G3R-TA；r15）：make_edge_model 一律传入 artifacts/ep6_v1/attributes/<task>/manifest.json。gradient_audit 对这些剖面额外列出 edge_encoder、每层 u 与 U：初始化时 u、U 为零，编码器梯度按链式法则恰为 0，这是预期而不是断图；审计要求 u 与 U 在第一次反向时梯度有限且非全零，编码器梯度在初始化时全零并如实记录。第 5 节试点额外报告第一次优化器更新之后编码器梯度的范数（必须有限且非零，否则停下报告）。
+- checkpoint 绑定适配（r4，EP0 D-02）：新建 scripts/edge_sem/checkpoint.py，复制 benchmark_v2/checkpoint.py::validate_binding 及其依赖的检查（文件头写明来源与 SHA），把其中对冻结 runtime_model.validate_registration 的调用改为 edge_sem.model.validate_registration，并在 binding 中加入 edge_profile、key_map 摘要、f4/attrs manifest SHA、core_indices 与实际所选位（edge_indices）、G4R-Api 的置换审计、G4R-P 的随机边审计摘要（r15）；其余比较（task、reducer、layer_impl、canonical、辅助节点、initial SHA、配置、graph/folds/labels/label_view/feature_view/feature_npz 引用）一项不少。测试：G3R 剖面下，新函数对同一 checkpoint 的判定与冻结函数完全相同（接受与拒绝各构造一例）；G3R-T 与 G4R 剖面能通过自身校验，篡改任一绑定字段都被拒绝。
 - 节点特征：N-anon-s 的 S0（8H 匿名 token NPZ），装配方式与 8H 相同。
 - 运行版本：只绑定 scripts/edge_sem 下训练路径上的模块清单（照 NS-P1b 的做法），只读核验已完成 fit 时比较封存记录，不比较当前代码。
 
