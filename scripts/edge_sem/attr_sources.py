@@ -132,9 +132,30 @@ def reaches(result, source, target):
 
 
 def carried(result, source, target):
-    return any(any(a in result["reach"][s] for s in result["blocks"][source])
-               and any(t in result["reach"][b] for t in result["blocks"][target])
-               for a,b in result["back"])
+    """r12: dependence needs a subsequent iteration of a shared natural loop.
+
+    Explicit user-approved exception: a same-node def/use self edge inside a
+    natural loop represents a previous-iteration value. Different graph nodes
+    mapped to the same block remain forward reachable and are not carried.
+    """
+    if "natural_loops" not in result:
+        graph = result["graph"]
+        loops = []
+        for tail, header in result["back"]:
+            without_header = graph.subgraph([n for n in graph if n != header])
+            body = ({tail} | nx.ancestors(without_header, tail)) if tail != header else set()
+            loops.append(body | {header})
+        forward = graph.copy()
+        forward.remove_edges_from(result["back"])
+        result["natural_loops"] = loops
+        result["forward_reach"] = {n: {n} | nx.descendants(forward, n) for n in forward}
+    defs, uses = result["blocks"][source], result["blocks"][target]
+    shared = any(defs & loop and uses & loop for loop in result["natural_loops"])
+    if not shared:
+        return False
+    if source == target:
+        return True
+    return not any(u in result["forward_reach"][d] for d in defs for u in uses)
 
 
 # r4 AST classifications; frozen type helper SHA256: 644ca31a1dd890f67ac850e28fa68b9ae6b585cb0be019a6611aba154fc1d5a5

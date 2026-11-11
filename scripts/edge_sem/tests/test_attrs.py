@@ -288,10 +288,13 @@ def test_environment_reserved_keys_and_structure_all_zero(data):
     assert all(not vectors[r["key"]].any() for r in rows if r["relation"]=="recursive_method_call")
 
 
-def test_zero_unknown_markers_are_excluded_from_core():
+def test_zero_candidates_retained_without_disabling_future_support():
     x=endpoint_fixture("mixed")
     out=a.select_groups({"a":x,"b":copy.deepcopy(x)})
-    assert all(u not in out["core_indices"] for u in range(68,73))
+    assert all(u in out["core_indices"] for u in range(68,73))
+    assert all(out["decisions"][u]=="no_local_support" for u in out["all_zero_candidates"])
+    assert 15 not in out["core_indices"] and 15 not in out["context_indices"]
+    assert out["per_task_verdicts"]["a"][0]==x[0]["verdict"]
 
 
 def test_raw_for_update_uses_exact_sealed_symbol_when_dfg_inapplicable():
@@ -339,3 +342,33 @@ def test_nonempty_dfg_mismatch_remains_rejected(data):
     changed[target]["dfg"]["uses"]=[]
     with pytest.raises(ValueError,match="Frozen dfg uses disagree"):
         a.compute_attributes(context,graph,edges,changed)
+
+
+@pytest.mark.parametrize("body,src,dst,expected", [
+    ("function f(uint a,uint n) public { uint x; uint y; uint i=0; while(i<n) { x=a; y=x; i++; } }", "x=a;", "y=x;", 0),
+    ("function f(uint n) public returns(uint) { uint s=0; uint i=0; while(i<n) { i++; } return s; }", "uint s=0;", "return s;", 0),
+    ("function f(uint x,uint n) public returns(uint) { uint s=0; uint i=0; while(i<n) { s+=x; i++; } return s; }", "s+=x;", "return s;", 0),
+    ("function f(uint n) public { uint x=0; uint y; uint i=0; while(i<n) { y=x; x=y+1; i++; } }", "x=y+1;", "y=x;", 1),
+])
+def test_r12_loop_carried_oracles(body,src,dst,expected):
+    data=bundle(body=body)
+    rows=pick(data,"DATA_DEF_USE",src=src,dst=dst)
+    assert rows and all(int(v[20])==expected for _,v in rows)
+
+
+def test_carried_multiblock_forward_veto_and_self_exception():
+    from scripts.edge_sem.attr_sources import carried
+    graph=nx.DiGraph([(0,1),(1,2),(2,3),(3,1),(1,4),(3,4)])
+    def result(mapping):
+        return dict(graph=graph,back=[(3,1)],blocks=mapping)
+    assert carried(result({"d":{3},"u":{2}}),"d","u")
+    assert not carried(result({"d":{2,3},"u":{2}}),"d","u")
+    assert not carried(result({"d":{3},"u":{2,4}}),"d","u")
+    assert not carried(result({"d":{2},"u":{2}}),"d","u")
+    assert carried(result({"d":{2}}),"d","d")
+    assert not carried(result({"d":{0}}),"d","d")
+
+
+@pytest.mark.parametrize("rel",["READS_STATE","WRITES_STATE","ENV_FLOW"])
+def test_sink_features_inapplicable_to_other_data_edges(rel):
+    assert not (set(range(22,30))|set(range(37,41))) & a.allowed_indices(rel)

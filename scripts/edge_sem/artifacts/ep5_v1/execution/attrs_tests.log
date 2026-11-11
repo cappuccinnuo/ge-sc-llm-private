@@ -1,0 +1,32 @@
+................................F.........                               [100%]
+=================================== FAILURES ===================================
+___________ test_carried_multiblock_forward_veto_and_self_exception ____________
+
+    def test_carried_multiblock_forward_veto_and_self_exception():
+        from scripts.edge_sem.attr_sources import carried
+        graph=nx.DiGraph([(0,1),(1,2),(2,3),(3,1),(1,4)])
+        def result(mapping):
+            return dict(graph=graph,back=[(3,1)],blocks=mapping)
+        assert carried(result({"d":{3},"u":{2}}),"d","u")
+        assert not carried(result({"d":{2,3},"u":{2}}),"d","u")
+>       assert not carried(result({"d":{3},"u":{2,4}}),"d","u")
+E       AssertionError: assert not True
+E        +  where True = <function carried at 0x70ece61854d0>({'back': [(3, 1)], 'blocks': {'d': {3}, 'u': {2, 4}}, 'forward_reach': {0: {0, 1, 2, 3, 4}, 1: {1, 2, 3, 4}, 2: {2, 3}, 3: {3}, ...}, 'graph': <networkx.classes.digraph.DiGraph object at 0x70ece6116890>, ...}, 'd', 'u')
+E        +    where {'back': [(3, 1)], 'blocks': {'d': {3}, 'u': {2, 4}}, 'forward_reach': {0: {0, 1, 2, 3, 4}, 1: {1, 2, 3, 4}, 2: {2, 3}, 3: {3}, ...}, 'graph': <networkx.classes.digraph.DiGraph object at 0x70ece6116890>, ...} = <function test_carried_multiblock_forward_veto_and_self_exception.<locals>.result at 0x70ece7f39830>({'d': {3}, 'u': {2, 4}})
+
+scripts/edge_sem/tests/test_attrs.py:366: AssertionError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/edge_sem/tests/test_attrs.py::test_carried_multiblock_forward_veto_and_self_exception
+1 failed, 41 passed, 4 warnings in 5.54s

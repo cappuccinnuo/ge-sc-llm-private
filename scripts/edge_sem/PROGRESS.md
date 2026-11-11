@@ -967,3 +967,83 @@ stats.json另保存每位在原作者正/负目标节点入边中的比例。正
 
 EP4完成属性准备，不证明检测提升。EP5真实全量改名/可达性闸门、EP6边感知层与EP7以后计划/训练尚未执行；快速fixture改名测试不能替代EP5。
 D1匿名主视图、D2 P2协议、D3七类冻结仍须训练前确认，原名属性计算或历史夹具不构成授权。最终实验将在显存充足服务器另建批次，RTX3050 4GiB仅为当前本机开发限制；本轮未部署服务器、未更改训练配置。产物留WSL，未向C盘另写大型缓存。按共享流程本地提交，停在EP4，不自动push。
+
+
+## 2026-11-11 EdgeSem EP5完成：不变性、可达性与安慰剂（修改AI：Codex）
+
+完成EP5，未训练或用GPU。第20位重入311→61、访问控制322→68；edge_keys及其他73列严格不变。核心46→50，新增全零候选6/14/33/38，上下文26维不变；后续EP6–EP9读取ep5_v1/attributes。
+
+128个实例均检查通过：54个实际改名、74个原文回退；回退不作为非平凡不变性证据。用户批准状态初始化callable和唯一neg_next/AST锚定end_if适配，冻结模块未改。49条循环头上下文例外保留；统计按历史store双摘要修复后在新目录恢复。所有失败、快照和批准记录保留。
+
+21例中，重入modifier_reentrancy.sol节点8498及reentrancy_bonus.sol节点12各增加2个两跳证据节点；其余19个不变，访问控制15个均无增量。仅为路径诊断，不证明检测改善。两种安慰剂分别保持逐节点canonical度数和关系内属性多重集，未变化的分组和向量均披露。
+
+三套CPU回归4274项通过。详见EP5_REPORT.md、训练变更§108及ep5_v1/verification.json。最终实验在显存充足服务器另建批次，RTX3050 4GiB仅为当前本机限制；产物留WSL。停在EP5，本地提交，不自动push。
+
+| 任务 | 正向属性行 | 原第20位=1 | 新第20位=1 | 循环头例外 |
+| --- | --- | --- | --- | --- |
+| 重入节点 | 31372 | 311 | 61 | 24 |
+| 访问控制节点 | 21830 | 322 | 68 | 25 |
+
+| 任务 | 文件实例 | 实际改名通过 | 原文回退通过 |
+| --- | --- | --- | --- |
+| 重入节点 | 71 | 30 | 41 |
+| 访问控制节点 | 57 | 24 | 33 |
+
+| 任务 | 文件 / source SHA前12位 | 图节点ID | G3R | G3R-T | G4R | 增加 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 重入节点 | etherbank.sol / 63d14a7dd1a1 | 15759 | 2 | 2 | 2 | 0 |
+| 重入节点 | modifier_reentrancy.sol / 5675bc25a679 | 8498 | 5 | 5 | 7 | 2 |
+| 重入节点 | reentrancy_bonus.sol / 628f60b16c87 | 12 | 3 | 3 | 5 | 2 |
+| 重入节点 | reentrancy_dao.sol / e507ae792671 | 8315 | 5 | 5 | 5 | 0 |
+| 重入节点 | spank_chain_payment.sol / 15724a9aecd2 | 12958 | 95 | 95 | 95 | 0 |
+| 重入节点 | spank_chain_payment.sol / 15724a9aecd2 | 12961 | 95 | 95 | 95 | 0 |
+| 访问控制节点 | FibonacciBalance.sol / d54dc819f08b | 10581 | 4 | 4 | 4 | 0 |
+| 访问控制节点 | FibonacciBalance.sol / d54dc819f08b | 10583 | 2 | 2 | 2 | 0 |
+| 访问控制节点 | arbitrary_location_write_simple.sol / bbbdb5367463 | 11472 | 5 | 5 | 5 | 0 |
+| 访问控制节点 | mapping_write.sol / a4c6ab0924fe | 12959 | 2 | 2 | 2 | 0 |
+| 访问控制节点 | multiowned_vulnerable.sol / ee0df823e630 | 3174 | 3 | 3 | 3 | 0 |
+| 访问控制节点 | proxy.sol / 3016dcfca805 | 8854 | 0 | 0 | 0 | 0 |
+| 访问控制节点 | rubixi.sol / a4c33aa1b035 | 11356 | 2 | 2 | 2 | 0 |
+| 访问控制节点 | rubixi.sol / a4c33aa1b035 | 11357 | 6 | 6 | 6 | 0 |
+| 访问控制节点 | simple_suicide.sol / 07ab4f0b502c | 12756 | 1 | 1 | 1 | 0 |
+| 访问控制节点 | simple_suicide.sol / 07ab4f0b502c | 12757 | 0 | 0 | 0 | 0 |
+| 访问控制节点 | unprotected0.sol / 8cfc8702a1a0 | 10847 | 2 | 2 | 2 | 0 |
+| 访问控制节点 | wallet_02_refund_nosub.sol / 3bf849eea5a2 | 11913 | 7 | 7 | 7 | 0 |
+| 访问控制节点 | wallet_03_wrong_constructor.sol / 6f5e18f2dbfb | 7893 | 1 | 1 | 1 | 0 |
+| 访问控制节点 | wallet_03_wrong_constructor.sol / 6f5e18f2dbfb | 7894 | 6 | 6 | 6 | 0 |
+| 访问控制节点 | wallet_04_confused_sign.sol / 5ec3d85c76b1 | 9865 | 6 | 6 | 6 | 0 |
+
+| 任务 | 剖面 | 节点数 | 反射后边数 | canonical关系数 | 关系名数 |
+| --- | --- | --- | --- | --- | --- |
+| 重入节点 | G3R | 12223 | 47406 | 212 | 16 |
+| 重入节点 | G3R-T | 12223 | 47406 | 220 | 24 |
+| 重入节点 | G4R | 12223 | 62744 | 274 | 30 |
+| 重入节点 | G4R-P | 12223 | 62744 | 274 | 30 |
+| 访问控制节点 | G3R | 7892 | 33138 | 225 | 16 |
+| 访问控制节点 | G3R-T | 7892 | 33138 | 234 | 24 |
+| 访问控制节点 | G4R | 7892 | 43660 | 292 | 30 |
+| 访问控制节点 | G4R-P | 7892 | 43660 | 292 | 30 |
+
+| 任务 | E1边 | 最终改变的边 | 零次改接分组/全部 | 属性实际变化行/全部 |
+| --- | --- | --- | --- | --- |
+| 重入节点 | 7669 | 5805 | 195/487 | 25679/31372 |
+| 访问控制节点 | 5261 | 3444 | 184/393 | 16309/21830 |
+
+| 套件 | 通过 | 秒 | 收据 |
+| --- | --- | --- | --- |
+| EdgeSem | 268 | 499.83 | edge_tests.json |
+| NodeSem | 1353 | 26.07 | nodesem_tests.json |
+| DFG v2 | 2653 | 163.51 | dfg_tests.json |
+
+实施选择：循环内同节点自依赖例外；最外层循环头保留第59位；初始化callable按精确AST翻译；歧义end_if仅允许唯一neg_next锚点；历史图采用store的双摘要。各次批准、首次失败及新attempt均见ep5_v1记录，完整解释和命令见报告。
+
+文件：attrs.py、attr_sources.py、placebo.py；recon/ep5_common、ep5_run、ep5_delta、ep5_loop_context、ep5_anon、ep5_anon_run、ep5_projection_diagnostic、ep5_topology、ep5_verify、ep5_report；test_attrs.py、test_ep5_anon.py、test_ep5_topology.py、test_placebo.py。逐关系统计/逐类型均入度见报告和topology_attempt2/<task>/graph_statistics.json。
+
+
+### EP5 收尾验收修正与恢复批准（2026-11-11，Codex）
+
+报告写入曾两次遇到自动审批服务超时；经正常审批的短WSL命令及临时文件写入/回读/删除成功，改为分段写入后已恢复。未修改审批、沙箱或代理设置，服务端根因没有证据，不能称审批服务本身已修复。
+
+最终验收首次因逐文件数字摘要的行顺序不同而停止：原闸门使用文件子图遍历顺序，验收器错误使用整图过滤顺序。只读核对发现80/128个文件顺序不同；恢复原生成顺序后128/128份封存摘要全部匹配，边身份和向量不变。新增3项定向回归通过，覆盖顺序差异、向量篡改/缺失及空文件。原三套回归4274项通过记录保留。
+
+用户批准保留首次验收收据、旧验收器及诊断，在verify_attempt2收据下继续最终验收和本地提交。批准见ep5_v1/verification_resume1.json；最终结果见execution/verify_attempt2.json和verification.json。未重算属性、未重跑匿名闸门、未训练。EP5_REPORT.md及initial summary保持写入时字节；本段补充其后发生的验收修正。

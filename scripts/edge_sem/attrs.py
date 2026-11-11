@@ -64,11 +64,11 @@ def allowed_indices(relation):
     if relation in ("pos_next","neg_next"):
         allowed.add(2)
     if relation in DATA:
-        allowed.update(list(range(22,30))+list(range(37,41))+[61,69])
+        allowed.update((61,69))
     if relation in STATE:
         allowed.update(list(range(7,15))+[71])
     if relation == "DATA_DEF_USE":
-        allowed.update(list(range(3,15))+list(range(16,22))+[68])
+        allowed.update(list(range(3,15))+list(range(16,30))+list(range(37,41))+[68])
     if relation == "WRITES_STATE":
         allowed.update(range(30,37))
     if relation in ("CALL_SITE","internal_call","external_call"):
@@ -194,7 +194,7 @@ def select_groups(results):
         if 68<=b<=72:continue
         entries=[r[b] for r in results.values()]
         if not sum(e["positives"] for e in entries):
-            zero.append(b);decision="all_zero"
+            zero.append(b);core.add(b);decision="no_local_support"
         elif any(e["verdict"]=="endpoint" for e in entries):
             context.add(b);decision="endpoint"
         else:
@@ -202,14 +202,15 @@ def select_groups(results):
         decisions[b]=decision
     for unknown,fields in UNKNOWN_DEPENDENCIES.items():
         if not sum(r[unknown]["positives"] for r in results.values()):
-            zero.append(unknown);decisions[unknown]="all_zero"
+            zero.append(unknown);core.add(unknown);decisions[unknown]="no_local_support"
             continue
         if set(fields)&core:core.add(unknown)
         if set(fields)&context:context.add(unknown)
     return dict(core_indices=sorted(core),context_indices=sorted(context),
                 disabled_indices=[15],all_zero_candidates=sorted(zero),decisions=decisions,
                 thresholds=dict(minimum_eligible_nodes=30,endpoint_ratio=.99),
-                task_rule="endpoint in either task moves to context; all-zero in both excluded")
+                per_task_verdicts={t:{b:e["verdict"] for b,e in r.items()} for t,r in results.items()},
+                task_rule="endpoint in either task moves to context; all-zero candidates retained as no_local_support")
 
 def _unknown_group(fact, group):
     value=fact.get(group,{})
@@ -326,7 +327,9 @@ def _compute_attributes(context, f3_graph, f4_edges, facts):
                 dfg_unknown=_unknown_group(a,"dfg") or _unknown_group(b,"dfg")
                 v[69]=dfg_unknown
                 sinks=[r["sink"] for r in a["dfg"].get("to",()) if r["node"]==dst]
-                if dfg_unknown:
+                if rel != "DATA_DEF_USE":
+                    gaps.append("use_context_inapplicable_no_frozen_sink")
+                elif dfg_unknown:
                     unknown(list(range(22,30))+list(range(37,41)),"dfg.status=unknown",69)
                 elif not sinks:
                     gaps.append("no_exact_dfg_to_for_this_edge")

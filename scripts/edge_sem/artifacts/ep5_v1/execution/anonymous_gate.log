@@ -1,0 +1,21 @@
+Using backend: pytorch
+Traceback (most recent call last):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep5_anon_run.py", line 77, in <module>
+    if __name__=="__main__":main()
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep5_anon_run.py", line 41, in main
+    temp,proof,result,adapter=translate(source,file,sub,ctx["audit"],ctx["sources"][file].get("metadata"))
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep5_anon.py", line 193, in translate
+    if field in rec:new["files"][file][field]=tx.record(rec[field])
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep5_anon.py", line 143, in record
+    if isinstance(value,list):return [self.record(x,translate_names) for x in value]
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep5_anon.py", line 143, in <listcomp>
+    if isinstance(value,list):return [self.record(x,translate_names) for x in value]
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep5_anon.py", line 153, in record
+    out[target]=self.identity(item)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/recon/ep5_anon.py", line 102, in identity
+    raise TranslationError("Unknown callable/event identity: "+value)
+scripts.edge_sem.recon.ep5_anon.TranslationError: Unknown callable/event identity: 0x01f8c4e3fa3edeb29e514cba738d87ce8c091d3f.sol:225
