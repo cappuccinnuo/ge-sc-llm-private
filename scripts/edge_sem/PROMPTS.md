@@ -1,7 +1,13 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r9（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r10（2026-11-10）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r10 相对 r9 的修改**（审查 EP2 产出后）：
+1. EP2 已逐项核对并接受。第 0 节两项修正与规格一致（`_using_resolve` 按“参数个数 = 实参 + 1 且首参数规范类型 = 接收者类型”唯一匹配；外层 call_option 调用分类为 address_builtin/call_option，不产生目标）；EP0e 候选集召回 312→334/347（看到结果后的修正，只作描述），候选集外绑定 0，EP0d 已解析调用 558/552 全部不变。
+2. 建边逐条复核（不只看汇总）：CALL_SITE 所属语句在冻结 `regions()` 下互不重叠（if/while/do_while 只拥有条件，for 只拥有 init/cond/update），3830/3332 个调用事件的所属语句全部包含该调用；不在任何语句内的 4/10 个调用是状态变量初始化器与修饰器实参（`LogFile(0x…)`、`sha3(msg.data)` 等），都不会产生内部目标。EP0d 的 360/354 条投影调用边全部保留，新增 210/210 条全部是库调用。8/8 条多证据边是同一语句对同一定义的重复调用（如 `a.add(b).add(c)`、递归 `fib(n-1)+fib(n-2)`），证据 kind 一致。2/2 条 not_in_graph 都是 emit 语句实参中的调用（emit 语句不是图节点）。MOD_APPLY 178/195 与 EP0 第 4 节逐数一致；9/9 个未解析都在构造函数头，跨度含实参，应为基类构造调用，EP3 补充描述。各规范关系边数与 jsonl 逐数一致（各任务新增 12 行）。builder_tests.log 的 3 个失败是 MultiDiGraph 修正前的记录，修正后 builder_tests_multigraph 17/17 通过，manifest 中 build_f4.py 与 call_resolve.py 的 SHA 与提交版本相同。
+3. EP3 规格按冻结代码收紧：目标限定为 STATEMENTS 类型的图节点；修饰器记录与 guard_source 的对应规则写成可检查的形式；同一边保留全部证据（internal_check 的多条 require 共享同一 _anchor）；operand_classes 在 EP3 保留冻结原始取值（如 msg.sender，不是 caller_identity），映射留给 EP4；增加 add_edges 的 GUARDS 角色校验、EP2 行的逐行回归、RECON 记录数复现与 EP2 同款模型闸门。
+4. EP4 测试中 `len(EDGE_FEATURE_NAMES) == 68` 是 r5 之前的残留，更正为 74；EP4 写明对同一 GUARDS 边的多条证据取并。
 
 **r9 相对 r8 的修改**（审查 EP1 产出后）：
 1. EP1 已逐行核对并接受：typed 正向键 `(A,e,B)` 从 G3R 的 `(A,e,B)` 复制，`(B,REV_e,A)` 从 G3R 中承载这些反射边的 `(B,e,A)`（同类型两端时即 `(A,e,A)`）复制，与 reflect_graph 的实际合并方式一致；新关系行的 Xavier 范围与 `nn.init.xavier_uniform_` 对 `[R,H,d_k,d_k]` 张量的 fan 计算一致（取锚模型 R，使新行与复制行同尺度，已在文件头说明）；relation_pri 为 1；不消耗全局 RNG。G3R 在两折上与冻结实现逐位等价；G3R-T 的关系数（212→220、234）与 EP0 一致；仅 if_true/if_false 别名一处开发修正，合理。三套回归 149/1353/2653 通过；改动只在 scripts/edge_sem 与记录文档。
@@ -572,24 +578,38 @@ fixtures（tests/fixtures/*.sol，自写小合约）：
 # EP3：GUARDS
 
 ## 1. build_f4.py 增加 GUARDS
-- 对每个语句与条件节点，调用 node_sem.facts_guards.GuardAnalyzer(semantics).for_node(ast_node)。非修饰器守卫：取 _anchor，按 AST 身份精确映射到图节点；映射不到就丢弃并按 kind 计数（不做“最小包含语句”回退）。修饰器守卫（kind = modifier）：不使用其 _anchor（那是 modifier_invocation），改用 EP0b 的 scripts/edge_sem/guard_source.py::modifier_guard_sources 给出的 inner_anchor；同一函数的 for_node 修饰器记录与 modifier_guard_sources 的记录按顺序一一对应，对应失败就停下报告。
-- 建边：守卫节点 → 被保护语句节点，edge_type = GUARDS。修饰器守卫的源节点位于修饰器体内，目标是被修饰函数内的语句，不经过 MOD_APPLY。
-- 同一 (守卫节点, 语句) 只保留一条边；边记录中保留该守卫的 kind、operand_classes、is_sender_guard（供 EP4 计算属性），以及 rule 编号。
-- loop_cond 守卫也建边（覆盖拒绝服务与循环），kind 记为 loop_cond。
-- 守卫节点自身不连自己。
+- 目标集合（r10 明确）：与 EP2 相同的投影映射下，类型属于 node_sem.facts.STATEMENTS 且映射到图节点的 AST 语句（含修饰器体内语句、if/循环语句本身）。函数/构造函数/修饰器定义节点不作为 GUARDS 目标（函数到修饰器由 MOD_APPLY 表示）。对每个目标调用同一文件内唯一的 GuardAnalyzer(semantics).for_node(ast_node)（每文件一个实例，与冻结管线相同）。
+- 非修饰器守卫（kind ∈ require、if_branch、early_exit、loop_cond、internal_check）：取 _anchor，按 AST 身份精确映射到图节点；映射不到就丢弃并按 kind 计数（不做“最小包含语句”回退）。EP0 实测非修饰器记录 100% 可映射；本步若出现映射不到，逐条列出后停下报告。
+- 修饰器守卫（kind = modifier）：不使用其 _anchor（那是函数头的 modifier_invocation），改用 scripts/edge_sem/guard_source.py::modifier_guard_sources(analyzer, function) 的 inner_anchor（function = semantics.owner(目标语句)）。对应规则：for_node 结果中 kind == "modifier" 的记录（_lexical 不会产生该 kind，所以它们恰是 _modifiers 的输出，且在列表末尾）与 modifier_guard_sources 的列表等长，且逐项 public_record 相等；任一函数不满足就停下报告。inner_anchor 映射不到图节点时丢弃并单列计数（EP0b 实测 100%）。
+- 建边：守卫节点 → 被保护语句节点，edge_type = GUARDS，rule 编号 E1-GUARD-1。修饰器守卫的源节点位于修饰器体内（可能在同文件的父合约中），目标是被修饰函数内的语句，不经过 MOD_APPLY。
+- 去重与证据（r10 明确）：同一 (守卫节点, 目标) 只保留一条边，但 evidence 列表按 for_node 顺序保留全部记录，每条为 guard_source.public_record 的字段（rule、kind、polarity、operand_classes、eq_pairs、is_sender_guard、disjunctive）加 source ∈ {lexical, modifier}，修饰器记录另加 invocation_anchor。internal_check 时被调检查函数内的每个 require/提前退出各产生一条记录且 _anchor 相同（都是调用语句），因此一条边可有多条证据；EP4 对同一边的证据取并（kind 位与操作数位按位或）。边记录的顶层 kind 写为证据中 kind 的去重排序列表。报告证据数 > 1 的边数及其 kind 组合。
+- operand_classes 保留 facts_ast.operand_classes 的原始取值（msg.sender、tx.origin、msg.value、timestamp、block、balance、state、param、local、literal、hash、external_result），不在本步映射到 3.3 的 49–54 位；映射在 EP4 完成。
+- loop_cond 守卫也建边（覆盖拒绝服务与循环），kind 记为 loop_cond（冻结实现中其 operand_classes 恒为空，这是已知设计，不修改）。
+- 守卫节点与目标相同的记录不建边，计数（预期为 0）。
+- guard_status 为 unknown 的目标（函数含无法解析的 modifier_invocation）照常为已解析的守卫建边，并单独计数这些目标（EP4 的 unk_guard 用）。EP2 的 9 个未解析 MOD_APPLY 都在构造函数上：对这 9 个 modifier_invocation，报告其首个标识符在作用域中解析到的声明类型（预期为 contract_declaration，即基类构造函数调用），只作描述，不新增边、不改冻结行为。
+- add_edges：增加 GUARDS 的角色校验：src_anchor 与 dst_anchor 的类型都必须属于 STATEMENTS；MOD_APPLY 与 CALL_SITE 的校验不变。
+- 回归：输出到 scripts/edge_sem/artifacts/ep3_v1/<task>/。f4_edges.jsonl 中 MOD_APPLY 与 CALL_SITE 的行必须与 ep2_v1 的对应行逐行相同（按 (relation, src, dst) 排序后比较 JSON 规范化文本）；不相同就停下报告。
+- 计数对照（不是新门槛，是复现检查）：全部目标上的 GUARDS 记录总数应等于 RECON 第 4 节的记录数（reentrancy_node 6956，access_control_node 4537）。不相等时按文件列出差异与原因；原因若不是“目标节点集合定义不同”，停下报告。
 
 ## 2. 测试 scripts/edge_sem/tests/test_build_f4_guards.py
 fixtures：
-- require(msg.sender == owner); owner = n; → GUARDS(require 语句 → 赋值)，kind=require，operands 含 caller_identity。
-- if (now > deadline) { x = 1; } → GUARDS(if → x=1)，kind=if_branch，operands 含 block_time。
+- require(msg.sender == owner); owner = n; → GUARDS(require 语句 → 赋值)，kind=require，operand_classes 含 msg.sender，is_sender_guard 为 true。
+- if (now > deadline) { x = 1; } → GUARDS(if → x=1)，kind=if_branch，polarity = 1，operand_classes 含 timestamp 或 block（按冻结 operand_classes 的实际输出断言并在测试注释中写明）。
+- if (c) { x = 1; } else { y = 2; } → y=2 的证据 polarity = -1。
+- 检查函数 _check() 内有两条 require，语句 `_check(); z = 1;` → 一条 GUARDS(`_check();` → z=1)，两条 internal_check 证据。
+- 同一函数应用两个修饰器，各含一条 require → 每条函数体语句各有两条来自不同修饰器内 require 的 GUARDS 边。
+- 构造函数头的基类构造调用（`constructor() Base(1) public`）→ 不产生 GUARDS/MOD_APPLY，目标计入 guard_status unknown。
 - if (!ok) revert(); y = 2; → early_exit 守卫连到 y=2。
 - 修饰器 onlyOwner 内 require(msg.sender == owner); _; 应用于函数 f → 修饰器内 require 语句节点（不是 f 头部的 modifier_invocation）→ f 内每条语句各一条 GUARDS，kind=modifier。
 - 内部检查函数 _check() 中的 require 被调用 → kind=internal_check 的记录能映射时建边；映射不到时计数。
 - require(a + b >= a) → operands 不含 caller_identity。
 - for (i = 0; i < arr.length; i++) { arr[i].transfer(1); } → loop_cond 守卫连到循环体语句。
+- add_edges：GUARDS 的源或目标不是语句类型时拒绝，且不修改输入。
+
+模型闸门（与 EP2 相同的方式，真实任务两个节点任务 fold 0，CPU）：(1) E1 边为空时 G4R 与 G3R-T 仍逐位相同；(2) 加入 MOD_APPLY、CALL_SITE、GUARDS 后 G4R 能构造并通过 edge_sem.model.validate_registration，新增规范关系（含 REV_GUARDS）全部按 relation_seed 初始化且两次构造逐位相同，其余行与 G3R-T 相同；一次 forward/backward 有限；(3) 原 F3 图与文件指纹不变。报告新增规范关系清单与每关系边数（边数 < 20 的单列）。
 
 ## 验收
-两个节点任务全部完成；PROGRESS.md 记录每种 kind 的记录数、映射率（修饰器单列）、GUARDS 边数，以及每个原节点的入边 GUARDS 数分布。
+两个节点任务全部完成；第 1 节的停止条件均未触发；PROGRESS.md 记录每种 kind 的记录数、映射率（修饰器单列）、GUARDS 边数、证据数 > 1 的边数、guard_status unknown 的目标数，以及每个原节点的入边 GUARDS 数分布（均值、中位数、最大值、最大值所在文件与函数）。
 ```
 
 ### 4.6 EP4：E2 边属性
@@ -601,7 +621,7 @@ fixtures：
 - EDGE_FEATURE_NAMES（长度 74，顺序与 PROMPTS.md 3.3 表完全一致）；CORE_CANDIDATES（0–14、16–54、68–72 与 73；第 15 位停用，r4）；CONTEXT（55–67）；GROUPS（名称 → 索引列表）；ONE_HOT_GROUPS（var_kind、value_shape、def_kind、write_access、write_op 为单热：适用时恰好一个 1，不适用时全 0）。
 - compute_attributes(context, f3_graph, f4_edges, facts) -> {edge_key: uint8[74]}
   - edge_key = f"{source_file}::{src}->{dst}::{edge_type}::{k}"，k 为同一对节点同一类型的多重边序号（按 nx 的 key 排序编号）。
-  - facts 来自 node_sem.facts.extract(task_id)（原名视图）；守卫字段来自 EP3 的边记录。
+  - facts 来自 node_sem.facts.extract(task_id)（原名视图）；守卫字段来自 EP3 的边记录：同一 GUARDS 边的全部 evidence 取并（43–48 按各条 kind 置位，49–54 由各条原始 operand_classes 按 3.3 映射后按位或）（r10）。
   - 支配、后支配、可达性用 EP0 选定的语义 CFG，按函数缓存。
   - 每一位严格按 3.3 表的来源计算；表中写“若没有就恒为 0”的位按 EP0 结论处理。依赖的事实为 unknown 时按 3.3 的未知值规则写对应 unk 位。
   - 不读取任何标识符拼写。代码审查要求：attrs.py 中不得出现对节点 code/label 文本的字符串匹配；env_kind 只能比较保留环境表达式（与 dfg_v2/env.py 的 14 个键对应）。
@@ -611,7 +631,7 @@ fixtures：
 - write_attributes(task_id, out_dir)：输出 attrs.npz（edge_keys 与 uint8 矩阵）、manifest.json（输入与实现 SHA，以及两个节点任务合并后的端点检验结果与 core_indices；两个任务的检验都在这一步完成，core_indices 取两任务都判定为非端点的位）、stats.json（每一位在每种关系上取 1 的比例，以及在正样本目标节点入边与负样本目标节点入边中的比例——只作描述，读取标签只允许在这个统计函数中，并且该函数的输出不得被任何特征代码 import）。
 
 ## 2. 测试 scripts/edge_sem/tests/test_attrs.py
-- len(EDGE_FEATURE_NAMES) == 68；单热组校验对合法/非法向量判断正确；explain_edge 往返一致。
+- len(EDGE_FEATURE_NAMES) == 74（r10 更正：r5 起为 74）；单热组校验对合法/非法向量判断正确；explain_edge 往返一致。
 - 每个核心组至少一个 fixture 用例：
   * 重入样例 var acc = Acc[msg.sender]; if (acc.balance >= _am) { if (msg.sender.call.value(_am)()) { acc.balance -= _am; } }：从读取 acc.balance 的语句到 acc.balance -= _am 的数据边 use_path_crosses_ext_call=1；WRITES_STATE 边 write_op=decrease；指向 call 语句的数据边 call_low_level=1、call_sends_value=1、use_context=call。
   * 循环 i++ 到 i < n 的数据边 def_loop_carried=1。
