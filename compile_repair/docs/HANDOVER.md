@@ -1,28 +1,30 @@
 # CompileRepair 交接文档
 
-> 新接手请先读本文第 0–5 节、PROMPTS.md r2.1、DECISIONS.md 和 CHANGE_LOG 最新节。第 6 节只追加；记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.2、DECISIONS 和 CHANGE_LOG §6。第 6 节保留历史，只追加；记录规则见 README.md。
 
 ## 0. 一句话
 
-CompileRepair 在 MANDO-LLM 上实现可审计的 Solidity 编译修复；当前已完成 CP0 前置调查与工具封装，因缺少必需 solc 0.4.17 停止，尚未完成全量 CP0，不可进入 CP1。
+CP0 获准的工具与 MANDO 基线调查已完成：846/846 输入通过 D3；当前 Slither 0.8.0 不支持实测自定义错误，停在 D16，等待用户审查后才能进入 CP1。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案 | PROMPTS r2.1（2026-11-12） | 起始 HEAD 068433d0 |
-| 模块代码 | 9 个生产 Python 文件，3 个测试文件、1 个 fixture | CP0_REPORT.md |
-| 已完成的 Prompt | 无；CP0 完成前置核验，完整验收未完成 | cp0_v1/recon.json |
-| 当前阻塞 | 精确 pragma 0.4.17 的 1 份合约无已安装可信候选 | RECON.md §4 |
-| 下一步 | 用户批准后补齐 0.4.17，并新增独立信任清单；继续 CP0 矩阵编排与全量验收 | compiler_installation_request.json |
-| 测试 | CP0 21 passed；DFG v2 2653 passed、9 warnings | 开发产物测试日志 |
-| 待确认决策 | D5、D6 阈值、D9、D10、D16；待定 D12、D13 | DECISIONS.md |
+| 方案 | 上游 PROMPTS r2.2 原样合并 | 54ecc927；freeze_audit_v1 |
+| 模块 | 9 个生产 Python 文件、3 个测试文件、7 个 fixture | CP0_REPORT 续作实现 |
+| CP0 | 正式调查完成，状态 awaiting_d16，用户审查未完成 | cp0_v2/recon.json |
+| MANDO | 846/846 D3；678 份双端 key4/IR 一致，28 份 length 不同 | matrix_summary |
+| 编译器 | 总安装 37；目标范围 33/92 已安装，59 未安装 | release_coverage、两份追加清单 |
+| 当前阻塞 | 0.8.4/0.8.38 自定义错误使 Slither 报 ErrorDefinition | compatibility.results |
+| 测试 | CP0 32 passed；DFG v2 2653 passed、9 warnings | cp0_continue_v1 测试日志 |
+| 下一步 | 审查 CP0 并决定 D16；同时审查 D4/CP2 节点标识及 D5 边界 | RECON §9–10、DECISIONS |
+| 其他决策 | D5/D9/D10 待确认，D12/D13 待定；D6 旧频率阈值已由 r2.2 撤销 | DECISIONS |
 
 ## 2. 分支与工作树
 
-- 独立工作树已存在：`/home/zhao/SmartContract/ge-sc-llm-compile`，分支 `compile-repair`。不要重复创建或在 EdgeSem 中执行 git 操作。
-- 起始 HEAD 为 `068433d0cfa3367fe09cd1f94f78319eeff3c6d0`。本轮 pull 因 WSL DNS 失败，已通过连接的 GitHub 工具核对远端 HEAD 相同；未修改网络配置。
-- 本分支改动只在 compile_repair/；根目录交接/训练改变文档、scripts/**、输入语料、旧产物保持原样。本地检查点提交后不 push。
+- 工作树 `/home/zhao/SmartContract/ge-sc-llm-compile`，分支 `compile-repair`；不要重复创建或在 EdgeSem 工作树执行 git。
+- 本轮起点为本地 CP0 检查点 `8fb81ed91a189405df8e8ee7a06a2c3eb3249e47`。`pull --ff-only` 获取上游 `54ecc927c6b277ffcca962c13838cbadcdfa1192` 后因分叉不能快进，已合并双方历史并解释四份记录冲突的解决方法。最终本地提交用 `git log -1` 定位，提交信息以 CP0 开头；未 push。
+- 仅本模块代码、文档和新证据变更。scripts/**、原作者代码、输入、6c 文件、旧产物及仓库根目录记录文档保持不变。
 
 ## 3. 环境
 
@@ -33,30 +35,32 @@ export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
 export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
 ```
 
-Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4、solc-select 1.0.4。26 个现有编译器已核验；新工作树没有 tree-sitter 动态库，使用上面的既有库路径，不复制或编译库。Windows 侧以明确的 `wsl.exe -d Ubuntu-22.04 --cd ... --exec ...` 执行；Python 脚本含中文时设置 PowerShell `$OutputEncoding = [System.Text.UTF8Encoding]::new()`。安装、下载或升级需独立授权；本轮读取授权不包含安装。
+Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4、solc-select 1.0.4 未更改。新增 11 个获批 solc 已安装并双哈希校验，始终使用明确二进制路径，全局选择仍未设置。不要将安装成功或基线特征通过解释成完整语法支持。新包、编译器或语料获取仍需具体授权；本轮授权只覆盖已完成的 11 个版本。
+
+Windows 侧使用 `wsl.exe -d Ubuntu-22.04 --cd ... --exec ...`；含中文的 Python 管道设置 PowerShell `$OutputEncoding = [System.Text.UTF8Encoding]::new()`。需要联网时沿用已验证代理并禁止直连回退，不修改网络配置。
 
 ## 4. 必读事项
 
-1. 6c 的报告、seal 和可信编译器清单只在 EdgeSem 工作树，按固定 SHA256 先验证再只读。用户已额外批准两份 contract sources.json 及 metadata 引用的来源源码/CSV；精确范围见 `artifacts/cp0_development_v1/metadata_read_authorization.json`，不含标签/图/模型。
-2. 43 metadata 实际全部来自 SmartBugs versions.csv，PROMPTS §1.2 的 SolidiFI 描述有误；更正在 RECON，未改原文。
-3. solc 编译成功不足以满足 D3。真实测试中 0.4.11 的 5 个节点全部缺 filename，0.4.13 正常。
-4. `denial_of_service/source_files/0xea68d87ae3a55ba91c1a8e6488627a175be81588.sol` 精确要求 0.4.17；这是唯一无候选输入。不能用其他版本或改 pragma 绕过；安装请求尚待批准。
-5. 当前 survey 仅完成前置编排与停止归档，工具封装已测；缺口消除后仍要实现全量矩阵/选版/跨版本统计。已有 cp0_v1 不得覆盖或重跑，后续用新批次。
-6. 6c occurrence 没有 node.type/原始 SlithIR，不能直接作为完整 CFG/CG 基线；CP2 的回归键建议见 RECON §6，待审查。
-7. `.gitignore` 忽略 JSON/TXT。只显式暂存要提交的证据；开发 pytest 临时目录含大量回归样本，不要整体 git add。首轮失败日志保留，不覆盖历史。
-8. 记录只写本模块 docs/，中文文档用 Python UTF-8 写入并通过 doc_check。没有 HGT 训练、GPU 锁、下载或 LLM 调用。
+1. 6c 固定报告/seal/可信清单先核验 SHA256 再只读。用户另批准两份冻结 source manifests 及 metadata 引用源码/CSV，范围见 `cp0_development_v1/metadata_read_authorization.json`，不含标签/图/模型。
+2. 43 metadata 实为 SmartBugs versions.csv，PROMPTS 的 SolidiFI 误称已在 RECON 更正。四份 ≤0.4.11 metadata 跳过，不绕过 D3。
+3. 0.4.17 缺口已消除；`cp0_v1` 是历史停止现场，不再代表当前阻塞。正式续作在 `cp0_v2`，所有已存在产物目录禁止覆盖。
+4. D16 具体证据：0.8.4 与 0.8.38 的基线/try/catch/unchecked 通过，但自定义错误 solc rc0、Slither ParsingError。保持旧环境并限定能力，或独立评估新 Slither，都必须先由用户决定；本轮未升级。
+5. 55 份输入含重复 key4，本次用多重集合保留重数。6c occurrence 缺 node.type/原始 SlithIR，不能从它证明完整 CFG/CG 相等。CP2 存储主键与比较契约待审，不能直接去重。
+6. D5 的实验性升降序结果已记录；通用无 pragma 推断、精确 pragma 覆盖与不越区间的冲突未在 CP0 实现或裁决。
+7. `.gitignore` 忽略 JSON/TXT；仅显式暂存列出的证据。pytest 临时目录包含大量样本，不要整体 git add。开发失败与修正分别保留，正式调查不自动重跑。
+8. 文档只写本模块 docs/，按 NodeSem 五段式变更与四段式交接记录，UTF-8 写入并通过 doc_check。没有 HGT 训练、GPU 锁操作、LLM 调用或图存储写入。
 
 ## 5. 关键路径
 
 | 内容 | 路径 |
 |---|---|
-| 完整要求 | compile_repair/PROMPTS.md |
-| CP0 当前报告 | compile_repair/CP0_REPORT.md、RECON.md |
-| 正式停止现场 | compile_repair/artifacts/cp0_v1/recon.json、seal.json |
-| 开发基线、测试、授权范围 | compile_repair/artifacts/cp0_development_v1/ |
-| 待批准安装请求 | compile_repair/artifacts/cp0_development_v1/compiler_installation_request.json |
-| 旧证据 | compile_repair/artifacts/cr_pre_v1/、cr_pre_v2/ |
-| 记录规范 | compile_repair/docs/README.md |
+| 要求与完整报告 | PROMPTS.md、CP0_REPORT.md 续作、RECON.md §8–11 |
+| 正式结果与全部差异 | artifacts/cp0_v2/recon.json、invocations.jsonl、cross_version.jsonl、seal.json |
+| 授权及二进制身份 | artifacts/cp0_compiler_install_v1/、cp0_compatibility_install_v1/ |
+| 续作开发、测试、审计 | artifacts/cp0_continue_v1/ |
+| 小样本首轮失败与修正后验证 | artifacts/cp0_matrix_smoke_v1/、cp0_matrix_smoke_v2/ |
+| 原停止现场 | artifacts/cp0_v1/（只读） |
+| 记录规范与最新详细记录 | docs/README.md、docs/CHANGE_LOG.md §6 |
 
 ---
 
@@ -100,3 +104,27 @@ cp0_v1 正式调查一次：846 输入集合核对、256 份 6c SHA256 对应、
 用户已批准读取两份冻结 sources.json 及 metadata 引用的原始源码/CSV，D15 更新为明确授权，未读取标签/图/模型。43 份来源都是 SmartBugs versions.csv，更正了 PROMPTS 的 SolidiFI 描述。待批准 D16 只请求补齐必需 0.4.17，不包括可选端点；CP2 完整图比较的证据不足和精确 pragma 覆盖边界只登记建议，未改设计。停止位置是 CP0 前置门槛，矩阵编排尚未完成，不能进入 CP1。
 
 CP0 测试第二轮 21 passed，首轮 1 failed/20 passed 是测试路径假设错误，已修正并保留日志；冻结 DFG v2 一轮 2653 passed、9 warnings。354 份 code refs 不变，9 个生产文件满足上限和分层；文档/最终审计结果见 CHANGE_LOG §4.5。本轮准备保存本地 CP0 检查点，不 push；实际提交号可由 git log 查询。没有下载、安装、全局 solc 切换、语料修复、图存储、HGT 训练、GPU 锁操作或 LLM 调用。
+
+
+> 上游交接导入说明：下文来自 54ecc927；其中 CHANGE_LOG §4 指上游 r2.2 记录，在本地合并文档中编号为 §5。上文 CP0 的本地安装决策 D16 已映射为 D17；r2.2 D16 指 Slither 兼容性。
+
+### 2026-11-12 CompileRepair 方案 r2.2：面向检测时任意输入，去除对训练数据集的依赖（修改 AI：Claude）
+
+用户说明本方案不只修复当前训练数据集中的问题，还要修复将来模型检测时输入的任意损坏合约，不应只针对当前数据集设计。据此把 `PROMPTS.md` 从 r2.1 改为 r2.2，只修改该文件；同时按记录规则更新本文件、`CHANGE_LOG.md`、`DECISIONS.md` 与 `PROGRESS.md`。
+
+主要修改：0 节新增“适用范围”（检测时的任意输入，0.4.12–0.8.x）；D6 取消“占剩余失败 ≥ 1% 或 ≥ 20 个编译单元”的频率门槛，改为按与语料无关的失败分类表逐类判定（有可确定性实施并能机械验证的修复就实现，否则交给代理，频率只排顺序）；分类表来源限定为 solc 文档的 13 种错误类型（已核对 v0.7.6 文档“Error types”一节）与 0.5–0.8 各版本 breaking changes 等有文档依据的内容；版本策略中“metadata”改为调用方可选提供的已知版本，无 pragma 时按文档有出处的版本特征推断区间，MANDO 的 0.4.25 默认值只作回归配置；入口统一为 `cli repair <路径>`；CP0 增加全版本范围编译器清单与 Slither 可用性探针，CP2 改为 MANDO 回归运行，CP3 先建分类表，CP4 破坏算子覆盖分类表中每个可构造类别。
+
+新增 D16：Slither 0.8.0（6c 使用的版本）能否处理较新 0.8.x 编译器的输出未验证，由 CP0 测出后用户决定。顺带更正：本文件第 1 节状态表在 r2.1 提交中仍写着 r2，本轮改为 r2.2；第 0、1、4 节（一句话、状态表、必读事项第 8–10 条）均已更新。
+
+本轮没有模块代码、没有编译或 LLM 运行，所有文档通过 `doc_check`。下一步仍为 CP0。详见 `CHANGE_LOG.md` §4。
+
+
+### 2026-11-12 CompileRepair CP0 续作调查完成，停在 D16（修改 AI：Codex）
+
+本轮位于独立 compile-repair 工作树，起始 HEAD 8fb81ed9，先阅读 PROMPTS 共享上下文及 CP0，并同步上游 r2.2。因本地检查点与 54ecc927 分叉，保留双方历史合并，原安装 D16 改编号为 D17，Slither 兼容性沿用上游 D16。扩展 solc、survey 和 CLI，补测试及六个版本特征 fixture，仍是 9 个生产文件。本文第 0–5 节已更新当前阻塞、版本覆盖、测试、分支、路径与下一步，旧交接记录全部保留。
+
+cp0_v2 在 846/846 输入上找到 D3 合格版本，旧 6c 的 17 个异常全部通过。678 份双版本的 key4 和有序 SlithIR 一致，28 份 source length 不同；55 份有重复 key4，保留重数而不去重。官方快照目标范围 92 版，33 版已装，另有四个历史负对照，总 37 版；39 组探针全部编译成功，但六组 D3 失败。四组早期负对照缺映射，另两组为 0.8.4/0.8.38 自定义错误解析失败，正式状态 awaiting_d16、CLI rc2，依据见 RECON §9–10 与封存结果。
+
+用户“可以下载”批准 0.4.17，随后“批准这 10 个探针版本（推荐）”追加批准十个明确版本，授权、官方索引和二进制双哈希全部落盘。未把该授权扩展为安装全部补丁或升级 Python/Slither；原 26 份信任记录、全局版本选择保持原样。当前停在 PROMPTS CP0 §5b 要求的 D16，建议独立评估新版工具链但尚未实施。D4/CP2 的重复节点及报告可观察范围、D5 的精确 pragma 边界均列为审查项，没有自行更换设计。
+
+CP0 最终 32 passed，冻结 DFG v2 为 2653 passed、9 warnings；开发首轮区间反序列化错误已在新小样本和新增测试中验证修复，失败现场保留。354 个冻结引用与 846 份输入不变，正式运行后不改实现，文档检查与最终审计结果见 CHANGE_LOG §6.5。全部验收后本地提交，以 CP0 开头，提交号由 git log -1 与最终答复给出，不 push。没有通用 repair、源码修复、图存储、外部语料获取、HGT 训练、GPU 锁或 LLM 调用。

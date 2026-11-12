@@ -72,3 +72,31 @@ def test_evidence_binding_and_no_overwrite(tmp_path):
     with pytest.raises(FileExistsError):
         survey(ROOT / "compile_repair/artifacts/cr_pre_v1", path)
     assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
+
+
+@pytest.mark.parametrize("known,expected", [
+    ("0.4.17", "0.4.17"), ("0.4.11", None), ("0.5.17", None), (None, None)])
+def test_regression_known_version_priority_is_bounded(known, expected):
+    from compile_repair.evaluation.survey import selection_priority
+    row = {"interval": ((0, 4, 12), (0, 5, 0)),
+           "metadata": {"version": known} if known else None}
+    assert selection_priority(row, ["0.4.11", "0.4.17", "0.5.17"]) == expected
+    assert selection_priority(dict(row, metadata=None, interval=None), ["0.4.17", "0.4.25"]) == "0.4.25"
+    assert selection_priority(dict(row, metadata={"version": "0.4.18"}), ["0.4.17"]) is None
+
+
+def test_endpoints_continue_after_mapping_failure_and_keep_order():
+    from compile_repair.evaluation.survey import d3_endpoints
+    seen = []
+    def probe(v):
+        seen.append(v)
+        return {"d3": v in {"0.4.13", "0.4.24"}}
+    assert d3_endpoints(["0.4.12", "0.4.13", "0.4.24", "0.4.26"], probe) == ("0.4.13", "0.4.24")
+    assert seen == ["0.4.12", "0.4.13", "0.4.26", "0.4.24"]
+    assert d3_endpoints(["0.4.12"], probe) == (None, None)
+
+
+def test_candidates_accept_json_interval_roundtrip():
+    original = ((0, 4, 17), (0, 4, 18))
+    versions = ["0.4.12", "0.4.17", "0.4.26"]
+    assert candidate_versions(json.loads(json.dumps(original)), versions) == candidate_versions(original, versions)

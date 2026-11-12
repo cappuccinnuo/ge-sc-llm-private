@@ -35,3 +35,22 @@
 测试：`python -B -m pytest -q -p no:cacheprovider compile_repair/tests` 第二轮 21 passed；首轮测试路径假设错误造成 1 failed/20 passed，已修正并保留记录。`python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests` 一轮 2653 passed、9 warnings。实际命令带新的 --basetemp 以保存现场。0.4.11/0.4.13 真实探针均 rc0，但前者 5 个节点缺 filename 被 D3 拒绝，后者通过。354 份 code refs 不变、9 个生产文件合规。
 
 与方案有关的待确认事项：6c 保存 occurrence 而非完整 CFG/原始 IR，CP2 应先审定可观察比较范围；精确 pragma 无可用版本时的覆盖与禁止越界条款须在 CP1 前澄清。本轮只提出建议，没有改设计。未下载、未训练、未调用 LLM，未 push；后续先获准补齐 0.4.17，再完成 CP0 并审查，不能直接进入 CP1。
+
+## 方案 r2.2（Claude，2026-11-12）
+
+- 用户说明模块要修复检测时输入的任意损坏合约，不只针对当前训练数据集。`PROMPTS.md` 改为 r2.2：新增适用范围；D6 取消频率门槛，改为按与语料无关的失败分类表逐类判定；版本策略中已知版本改为可选输入、无 pragma 按文档出处推断；入口统一为 `cli repair <路径>`；CP0 增加全版本范围检查与 Slither 可用性探针（新增 D16）；CP2 改为 MANDO 回归运行；CP3 先建分类表；CP4、CP6 覆盖分类表全部类别。
+- 记录：`docs/CHANGE_LOG.md` §4、`docs/HANDOVER.md`、`docs/DECISIONS.md`。
+- 没有模块代码，没有运行。下一步仍为 CP0。
+
+
+## 2026-11-12 CP0 续作：全量基线完成，停在 Slither 兼容性 D16（修改 AI：Codex）
+
+依据 PROMPTS r2.2 §4.1/CP0；从本地 `8fb81ed9` 合并上游 `54ecc927`，保留原 CP0 停止记录及 r2.2 原文。用户批准 0.4.17 和额外十个探针版本，已完成官方双哈希校验和独立信任清单，总安装 37；范围内 33/92 个发布版本，未安装 59，不声称覆盖全部补丁。
+
+修改文件：`cli.py`、`toolchain/solc.py`、`evaluation/survey.py`、`tests/test_survey.py`、`tests/test_toolchain.py`；新增 `tests/fixtures/compat_04.sol` 至 `compat_08.sol` 及 `compat_08_errors.sol`。文档采用上游 PROMPTS，追加 RECON、CP0_REPORT、PROGRESS、CHANGE_LOG，更新 HANDOVER/DECISIONS；新增 `cp0_continue_v1/README.md`。生产文件仍为目录表内 9 个，冻结源码与语料不变。
+
+正式 `artifacts/cp0_v2`：846/846 找到 D3 合格版本，0 个缺 filename 节点，原 6c 的 17 个异常现在均通过；规则 A 821 通过、22 失败、3 未安装。升降序不同 617，moved 44，crossed_minor 0。678 份双版本 key4/SlithIR 相同，28 份 length 不同；55 份存在重复 key4，保留多重集合而非去重。39 组兼容探针全部 solc rc0；D3 33 通过，4 组 ≤0.4.11 缺映射负对照、2 组 0.8.4/0.8.38 自定义错误因 `Unknown contract item: ErrorDefinition` 失败。CLI 退出码 2、状态 awaiting_d16，932.935 秒，单次运行、费用 0。
+
+测试：`python -B -m pytest -q -p no:cacheprovider compile_repair/tests` 最终 32 passed（0.83 秒）；`python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests` 为 2653 passed、9 warnings（174.88 秒）。实际命令均用独立 basetemp，日志在 `cp0_continue_v1`。开发小样本首次 JSON 区间类型失败已修复并加测试，六份边界样本在新目录全部通过；安装旧客户端 HTTP 403 等问题与解决保存在 development_issues 和 CHANGE_LOG §6。
+
+正式 seal SHA256 `16dfb47bb17cbcb9da0a1a11b3c02a9cc7e4cfae39717e1d38ed8a3294284a9b`。354 冻结引用与 846 输入不变，原 cp0_v1 保留；文档检查结果见 CHANGE_LOG §6.5。与原文差异：metadata 实为 SmartBugs，已按证据更正；新批次避免覆盖；key4 重复和 6c 缺原始节点类型/IR 的边界列入待审；现代语法缺口触发原文 D16 停止条件。没有自行改方案、升级包、写图存储、训练或调用 LLM。CP0 等待用户审查与 D16 决定，不能进入 CP1。

@@ -14,10 +14,11 @@ def main(argv=None):
     cp0.add_argument("--output", type=Path, required=True)
     cp0.add_argument("--metadata-authorization", type=Path, required=True)
     cp0.add_argument("--inventory-only", action="store_true")
+    cp0.add_argument("--trusted-addition", type=Path, action="append", default=[])
     args = parser.parse_args(argv)
     if args.command != "survey":
         parser.error("a subcommand is required")
-    result = survey(args.output, args.metadata_authorization, args.inventory_only)
+    result = survey(args.output, args.metadata_authorization, args.inventory_only, args.trusted_addition)
     print(json.dumps({"status": result["status"], "summary": result.get("summary"),
                       "blockers": result.get("blockers", [])}, indent=2))
     return 0 if result["status"] in ("complete", "inventory_only") else 2

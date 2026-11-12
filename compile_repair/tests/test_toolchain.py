@@ -75,3 +75,39 @@ def test_real_compiler_success_is_not_d3_success(tmp_path):
     assert not results[0]["d3"] and results[0]["counts"]["missing_filename"] > 0
     assert results[1]["d3"] and results[1]["counts"]["missing_filename"] == 0
     assert hashlib.sha256(FIXTURE.read_bytes()).hexdigest() == before
+
+
+@pytest.mark.parametrize("failure", ["authorization", "linked_hash", "override", "official_hash"])
+def test_addition_trust_chain_rejects_unapproved_or_changed_refs(tmp_path, failure):
+    from compile_repair.toolchain.solc import load_additions
+    root = Path(__file__).resolve().parents[1]
+    manifest = json.loads((root / "artifacts/cp0_compiler_install_v1/trusted_compilers_addition.json").read_text())
+    base = {}
+    if failure == "authorization":
+        auth = json.loads(Path(manifest["authorization"]["path"]).read_text())
+        auth["versions"] = ["0.4.18"]
+        auth_path = tmp_path / "authorization.json"
+        auth_path.write_text(json.dumps(auth))
+        manifest["authorization"] = {"path": str(auth_path), "sha256": hashlib.sha256(auth_path.read_bytes()).hexdigest()}
+    elif failure == "linked_hash":
+        manifest["official_release_index"]["sha256"] = "0" * 64
+    elif failure == "override":
+        base["0.4.17"] = manifest["compilers"]["0.4.17"]
+    else:
+        manifest["compilers"]["0.4.17"]["sha256"] = "0" * 64
+    path = tmp_path / "addition.json"
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError):
+        load_additions(base, [path])
+
+
+def test_release_coverage_uses_observed_catalog_only():
+    from compile_repair.toolchain.solc import release_coverage
+    index = {"latestRelease": "0.8.4", "releases": {
+        "0.4.11": "old", "0.4.12": "floor", "0.8.0": "early", "0.8.4": "late"}}
+    report = release_coverage(index, ["0.4.12", "0.8.0"])
+    assert report["series"]["0.4"]["published"] == ["0.4.12"]
+    assert report["series"]["0.8"]["not_installed"] == ["0.8.4"]
+    assert report["series"]["0.6"]["published"] == []
+    assert not report["all_patch_versions_verified"]
+    assert release_coverage(None, ["0.4.12"])["status"] == "not_obtained"

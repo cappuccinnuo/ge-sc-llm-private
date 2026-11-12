@@ -230,3 +230,114 @@ survey 使用冻结 frontend.parse、versioning.interval/recorded_version、auto
 最终检查补记：doc_check_v1 对 6 份中文文档全部 passed=True、退出码 0；CHANGE_LOG 从原 18,665 字节、PROGRESS 从原 2,817 字节起检查追加部分，HANDOVER/DECISIONS 因当前状态表更新检查全文。另核对 CHANGE_LOG/PROGRESS 的旧字节前缀及 HANDOVER §6/DECISIONS §3 的历史前缀完全保留。final_audit.json 确认 846 原始输入、6c 三份引用文件、354 冻结代码引用不变，9 个生产模块哈希与正式调查快照一致，已跟踪改动仅在 compile_repair/。本补记加入后再次 doc_check，全通过才提交；最终命令和结果归档为 doc_check_v2。
 
 暂存检查补记：`git diff --cached --check` 首次指出新建 RECON.md 末尾多一个空行，已移除；不涉及历史文档或代码。对最终 6 份文档再次运行 doc_check（doc_check_v3），全部 passed=True 后重新执行 diff --check；此前 v1/v2 文档检查日志保留。
+
+
+> 合并说明（修改 AI：Codex）：以下 r2.2 记录来自上游 54ecc927 的 §4。为避免与本地既有 CP0 §4 重号，导入时仅将标题编号改为 §5/§5.x；正文保留。上游原文可由该提交核对。
+
+---
+
+## 5. 2026-11-12 CompileRepair 方案 r2.2：面向检测时任意输入，去除对训练数据集的依赖（修改 AI：Claude）
+
+### 5.1 任务、依据与范围
+
+用户说明（2026-11-12）：本方案不只修复当前训练数据集中的问题，还要修复将来用模型检测时输入的损坏合约，因此不必只针对当前数据集中的问题，方案不限于该数据集。
+
+起始：`compile-repair@068433d0`，工作区干净。逐项检查 `PROMPTS.md` r2.1 中依赖某个数据集的设计（`grep` 关键词：阈值、metadata、0.4.25、--corpus、按 CP3 观察、846），找到以下几处：D6 用语料出现频率（≥ 1% 或 ≥ 20 个编译单元）决定是否实现规则；版本策略第 2 条只读取 DFG v2 的 SolidiFI metadata；第 4 条无 pragma 时以 MANDO 的 0.4.25 为默认；CLI 只有 `--files` 与 `--corpus mando`；CP0 只检查 846 个文件需要的编译器；CP3 的分类类别与 CP4 的破坏算子只来自已观察到的失败；CP6 只实现“达到阈值”的规则。
+
+修改：`compile_repair/PROMPTS.md`（r2.1 → r2.2）。记录：本节、`docs/HANDOVER.md`（第 0、1、4 节更新与第 6 节新记录）、`docs/DECISIONS.md`（D2、D5、D6 更新，新增 D16，历史 4 行）、`PROGRESS.md`。没有修改其他文件。
+
+### 5.2 实施方式和重要选择
+
+- 适用范围：0 节新增一段，写明面向检测时的任意输入（单文件、扁平化文件、多文件项目、片段），版本 0.4.12–0.8.x；语料只用于测试、评估与排列实现顺序。下限 0.4.12 来自证据 5（Slither 0.8.0 在 solc 0.4.11 时节点缺文件名）。
+- D6：覆盖范围改为由与语料无关的失败分类表决定。分类表的来源限定为有文档依据的内容。为此核对了 Solidity 文档“Using the compiler”页（docs.soliditylang.org v0.7.6；latest 版本页面不在本会话的抓取允许列表中，因此使用 v0.7.6）的“Error types”一节：13 种类型为 JSONError、IOError、ParserError、DocstringParsingError、SyntaxError、DeclarationError、TypeError、UnimplementedFeatureError、InternalCompilerError、Exception、CompilerError、FatalError、Warning；standard JSON 错误对象中 type、component、severity、message 为必有字段，sourceLocation、errorCode、formattedMessage 为可选字段。因此分类以错误类型与消息模板为主，errorCode 有则记录。
+- 判定准则：某类失败只要存在可确定性实施、且能被 D3 与 D7 机械检查验证的修复，就实现为规则；否则交给代理。出现频率只决定实现顺序。这比频率门槛更符合“检测时任意输入”的目标：门槛会让在训练或评估语料中少见、但在检测输入中可能出现的类别永远只能交给代理。代价是 CP6 的工作量可能增加，由 CP3 的分类表给出具体规模。分类表这种做法由 Claude 提出，用户可以调整。
+- 版本策略：第 2 条改为调用方可选提供的已知版本（Etherscan 验证记录、构建配置、MANDO 回归中的 SolidiFI metadata 都是实例），标志名改为 `known_version_below_slither_floor`。第 4 条无 pragma 时先用同一编译单元其他文件的 pragma，再按版本特征语法推断区间；特征只能来自官方 changelog 与 breaking changes 文档并逐条注明出处，举例中的 0.5.0（显式可见性与数据位置、移除 `throw`/`var`）与 0.8.0（默认检查算术）是这些文档中的条目。0.4.25 默认值保留为 MANDO 回归配置，以便与 6c 对照。
+- D16（新增）：6c 使用 Slither 0.8.0。它对较新 0.8.x 编译器输出的支持没有在本项目中验证过，所以不在方案中假定可用或不可用；CP0 第 5b 节用每个版本系列的小型手写合约测出，结果交用户决定（升级会使结果与 6c 不能直接对照）。
+- 入口：`cli repair <路径>...`，`--snippet`、`--known-version`、`--regression mando`；检测与评估同一入口，语料名只作统计标签与回归配置。这与 D1（一条流水线、不分模式）一致：`--regression mando` 只改变已知版本来源与无 pragma 默认值，不改变流程。
+- Prompt：CP0 改为“工具基线（全版本范围）与 MANDO 回归基线”，新增 5b 节；CP1 前提加入 D16，测试加入已知版本与版本特征推断；CP2 改为 MANDO 回归运行；CP3 新增第 0 节“失败分类表”，并要求不得删除有文档依据但语料中未出现的类别；CP4 破坏算子覆盖分类表中每个可构造的类别；CP6 实现分类表中判定为可确定性修复的全部类别。
+- D10 与共享上下文不变量中的“已校验的版本 metadata”统一改为“调用方提供的已知编译器版本（可选）”。
+- 更正：`HANDOVER.md` 第 1 节状态表在 r2.1 提交（068433d0）中仍写 r2，未随修订更新；本轮改为 r2.2，并在交接记录中写明。
+
+### 5.3 实测与数据结论
+
+本轮没有编译、Slither 或 LLM 运行。只做了文档核对：
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| solc 错误类型 | 13 种，名称见 4.2 | docs.soliditylang.org/en/v0.7.6/using-the-compiler.html |
+| standard JSON 错误字段 | 必有 type、component、severity、message；可选 sourceLocation、errorCode、formattedMessage | 同上 |
+| `PROMPTS.md` 中剩余“阈值”“--corpus”“已校验的版本 metadata” | 0 处 | `grep` |
+
+未证明：Slither 0.8.0 在 0.6–0.8 各版本上的可用性（D16，留给 CP0）；各类失败在检测输入中的真实分布（只能用评估语料近似）。
+
+### 5.4 用户批准、原文差异与待确认设计
+
+- 用户 2026-11-12 的说明是本轮修改的依据：D2 改为语料只用于测试与评估；D6 原则（不只针对当前数据集）视为用户决定，分类表方式与判定准则由 Claude 提出，用户可调整。
+- 仍待确认：D5（版本策略细节，本轮内容有更新）、D9、D10。待定：D12、D13、D16。原 D6 的阈值问题随本轮取消，不再需要确认。
+- 设计中其他部分（修复循环、两阶段代理、RAG、改动记录、代码结构）不变。
+
+### 5.5 验收、资源、未执行事项与停止
+
+- `python3 -B -m scripts.node_sem.doc_check --expect-cjk compile_repair/PROMPTS.md compile_repair/docs/HANDOVER.md compile_repair/docs/DECISIONS.md compile_repair/docs/CHANGE_LOG.md:18665 compile_repair/PROGRESS.md:2817`：5 个文件全部 passed=True（`HANDOVER.md`、`DECISIONS.md` 本轮既有更新也有追加，按整文件检查；`CHANGE_LOG.md`、`PROGRESS.md` 只追加，按追加前字节数检查）。写入本条后再次运行，结果相同才提交。
+- `PROMPTS.md` 中“阈值”“--corpus”“已校验的版本 metadata” 剩余 0 处。
+- 未执行：模块代码；任何运行。
+- 本轮提交并 push 到 `compile-repair`；不修改其他分支。下一步仍为 CP0。
+
+
+## 6. 2026-11-12 CompileRepair CP0 续作：授权补齐编译器并完成 r2.2 基线调查（修改 AI：Codex）
+
+### 6.1 任务、依据与范围
+
+用户批准原 0.4.17 下载请求，并询问是否覆盖所有 solc；同步 PROMPTS r2.2 后，另批准十个系列边界探针版本。先阅读共享上下文 §4.1、CP0 §4.2、版本策略 §3.3、docs/README 和当前交接；起始 `compile-repair@8fb81ed91a189405df8e8ee7a06a2c3eb3249e47`。本轮只补完 CP0，不实施 CP1、通用 repair、语料修复、图存储或 Slither 升级。`pull --ff-only` 拉取到上游 `54ecc927c6b277ffcca962c13838cbadcdfa1192`，因双方各有提交而不能快进；随后合并并保留历史，详见 `cp0_continue_v1/pull.json`、`merge_start.json`、`merge_resolution.json`。
+
+生产代码修改完整清单：`compile_repair/cli.py`、`toolchain/solc.py`、`evaluation/survey.py`。测试修改：`tests/test_survey.py`、`tests/test_toolchain.py`。新增 fixture：`tests/fixtures/compat_04.sol`、`compat_05.sol`、`compat_06.sol`、`compat_07.sol`、`compat_08.sol`、`compat_08_errors.sol`。记录文件：`PROMPTS.md`（完整采用上游 r2.2）、`PROGRESS.md`、`RECON.md`、`CP0_REPORT.md`、`docs/CHANGE_LOG.md`、`docs/HANDOVER.md`、`docs/DECISIONS.md`、`artifacts/cp0_continue_v1/README.md`。新增产物目录为 `cp0_compiler_install_v1`、`cp0_compatibility_install_v1`、`cp0_continue_v1`、`cp0_matrix_smoke_v1`、`cp0_matrix_smoke_v2`、`cp0_v2`，均位于本模块 artifacts。没有修改 scripts/**、原作者代码、输入语料、6c 文件、旧封存产物或仓库根目录两份记录文档。
+
+### 6.2 实施方式和重要选择
+
+1. 信任链：原 26 个 6c 编译器身份原样保留，11 个获批版本使用官方 Linux amd64 索引中精确发布路径，下载后先核验 SHA256/Keccak256，再安装至既有 solc-select 目录并执行 `--version`。不切换全局选择。独立追加清单绑定授权、发布快照及二进制身份，加载器拒绝覆盖旧身份、版本与授权不符或哈希异常。所有网络请求强制走已有代理，无直连回退；未改网络配置。
+2. 编译与 D3：复用冻结函数和 crytic-compile 的参数生成，不复制冻结代码。每份源码仅在原路径只读编译，记录实际 solc rc、命令、SHA、首条错误与耗时，再经 Slither API 构造并检查全部声明函数/修饰器节点。每文件/版本观测只运行一次后复用；预期候选失败记入矩阵，全部候选无成功或基础设施异常停止。日志逐调用 flush，最终 seal 绑定全部正式结果文件；不写图存储。
+3. 选版对照：先验证 metadata（本语料实际来自 SmartBugs），有效且 ≥0.4.12 时两种顺序均优先；MANDO 无 pragma 保留 0.4.25 优先。初始候选按 lower-bound 系列，后续系列仅在本系列全部 D3 失败后启用。同时找最低/最高 D3 端点，避免 metadata 优先版本被误称为数值最低版本。D5 只作 CP0 实验性调查，通用推断留在 CP1。
+4. 兼容性：每个已安装版本都运行适用的手写 fixture；0.4 四个低于支持下限的历史版本作为负对照。common 特征包括状态读写、内部调用、修饰器、事件、外部调用、继承；try/catch 从 0.6 起、unchecked 从 0.8 起、自定义错误单独从 0.8.4 起测试。版本语法出处保存在正式报告 feature_sources 及 RECON §8，只核对官方网页，未下载文档语料。
+5. 开发问题与处理：solc-select 旧客户端访问索引返回 HTTP 403，确认尚未创建二进制后，改用已成功读取同一官方索引的显式代理 requests 客户端完成同一已授权安装，保留失败日志；Python 3.7 的 `Path.write_text(newline=...)` 不可用，使用 `Path.open`；开发小样本首次从 JSON 读回区间时出现 list/tuple 比较 TypeError，在 `candidate_versions` 统一端点类型并补测试，首轮现场保留、另建 v2 验证。上游文档合并冲突用追加与编号说明解决，没有抹除本地停止记录；一次只读定位脚本使用错误标题字符串后，改按实际编号章节读取。细节集中在 `cp0_continue_v1/development_issues.json`。
+
+冻结函数的来源与 SHA256 沿用 CP0_REPORT 首轮来源表，并由本轮 `_code_refs()` 再次核对。没有新增生产模块，仍为目录表内 9 个文件；层次检查包含在 CP0 测试中。
+
+
+### 6.3 实测与数据结论
+
+正式输入身份、环境与每条结论均绑定到 `artifacts/cp0_v2/recon.json`，SHA256 `bddbeaa256192b567525370f8b27335a3d2bdcf3ccb48e22086150718414ffb6`。seal SHA256 `16dfb47bb17cbcb9da0a1a11b3c02a9cc7e4cfae39717e1d38ed8a3294284a9b` 同时绑定全部调用日志与跨版本差异。正式运行只一次，内部 928.330 秒，CLI 总 932.935 秒，退出码 2、状态 `awaiting_d16`；不是测试崩溃或自动重试。
+
+| 事项 | 数量与结论 | 来源 |
+|---|---|---|
+| 已授权编译器 | 新装 11（4,600,648 + 94,225,936 字节），总 37；原 26 身份不变 | 两份追加清单、verified JSON |
+| 目标范围发布/安装/未安装 | 92 / 33 / 59；另 4 个低于下限历史版本 | 官方索引 SHA `b44c1d0e598ed0bcbf4ee49c86c5ae85b63718c1591689b02d12d7a11d45a2ac`；release_coverage |
+| 身份 | 输入 846、metadata 43、6c 对应 256，全部通过 | recon inputs/metadata/historical_comparison |
+| MANDO 调用 | solc 5,391 次（5,254 rc0、137 rc1）；Slither 1,546 次全 D3 通过 | invocations.jsonl、final_findings.json |
+| 输入级 D3 | 846/846，缺 filename 节点 0、空 CFG 文件 0；旧 6c 异常 17/17 通过 | matrix_summary、inputs |
+| 规则 A | 821 passed、22 failed、3 unavailable；合取区间外 2 | matrix_summary；旧环境转移计数在 final_findings |
+| 选版差异 | 升降序不同 617，moved 44，crossed_minor 0 | matrix_summary |
+| 双端比较 | 678 个双 D3 输入，key4/IR 678/678 相同，length 650/678 相同；其余 168 不在分母 | cross_version.jsonl |
+| key4 重复 | 55 份输入存在重复，已保留重数，没有去重 | invocations.jsonl；selected_duplicate_key4_files |
+| 兼容性探针 | 37 版共 39 组，solc 全 rc0，D3 33 passed/6 failed | compatibility.results |
+| 兼容性失败 | ≤0.4.11 四组各缺 10 filename；0.8.4 和 0.8.38 自定义错误两组 ErrorDefinition 解析失败 | compatibility；slither_failure_diagnosis/final_findings |
+| CP2 时间依据 | 所选 solc 80.853 秒 + Slither 228.587 秒，约 309.440 秒 | cp2_runtime_estimate |
+
+这些数字不证明所有补丁、所有语法或任意项目可修复，也不证明图边及行为语义相等。CP2 时间只覆盖编译/分析，未包含未来存储、序列化和比较。范围内 33 个已装版本都通过基线特征，但其中 0.8.4 与 0.8.38 未通过全部适用语法，不能用一个连续版本上界概括能力。
+
+### 6.4 用户批准、原文差异与待确认设计
+
+- 2026-11-12 用户“可以下载”批准原单个 0.4.17 清单；用户“批准这 10 个探针版本（推荐）”追加批准 0.4.12、0.4.26、0.5.17、0.6.0、0.6.12、0.7.0、0.7.6、0.8.0、0.8.4、0.8.38。授权落盘后才获取对应二进制；范围不含升级 Slither、下载全部补丁或其他包。D17 更新为安装完成，D16 保留兼容性决策含义。
+- r2.2 已由上游提供，本轮完整采用而未自行重设计。早期 metadata 的 SolidiFI 误称继续以实际 SmartBugs 证据更正；两份额外清单及其 metadata 引用读取沿用既有 D15 用户批准。原 `cp0_v1` 不可覆盖，因此使用 `cp0_v2`；追加记录解释历史状态，没有抹去第一次停止。
+- D16 实质结论：当前 Slither 0.8.0 不处理 ErrorDefinition，两个已测自定义错误合约不能通过 D3；依据 CP0 §5b 停止。建议独立环境评估新 Slither 并保留 6c 环境，是待用户确认的后续方案；没有选择或安装新版本。若用户选择保留现有工具链，声明的支持范围必须包含语法限制，不能只写 0.8.x。
+- D4/CP2：55 份 key4 重复要求保留节点重数；不直接用 key4 去重作唯一主键。6c 报告的可观察 occurrence 多重集合与本次 key4/IR 的证明范围不同。可考虑独立图内节点编号并保留 key4 作比较属性，但此建议未实施，需用户审查。
+- D5：本步只调查既有建议；通用无 pragma 推断、精确 pragma 覆盖与声明区间边界仍留 CP1，不自行解决原文冲突。原 D6 频率阈值问题已由 r2.2 撤销，本轮不再作为待确认项。
+
+
+### 6.5 验收、资源、未执行事项与停止
+
+- CP0 测试最终 **32 passed、0 failed、0 skipped**（pytest 0.83 秒），初轮 31 passed。DFG v2 **2653 passed、9 warnings**（174.88 秒），仅既有 dgl/networkx 弃用提示。命令为 `python -B -m pytest -q -p no:cacheprovider compile_repair/tests` 及 `python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests`，实际另带独立 basetemp；精确命令、退出码与进程耗时见 `cp0_continue_v1/tests_cp0_v1.json`、`tests_cp0_v2.json`、`tests_dfg_v2_v1.json` 及对应日志。
+- 六份开发边界输入在 `cp0_matrix_smoke_v2` 全通过（6.970 秒），第一轮 JSON 区间 TypeError 的现场保留。正式 cp0_v2 只执行一次，CLI rc2 是 D16 触发的受控停止；允许范围内的全部调查已运行，不把 D16 或用户审查写成已通过。
+- 最终不变量审计：`_code_refs()` 354/354 未变，846/846 源码未变，9 个生产文件 ≤30、layering 通过；实现与七个 fixture 哈希仍与正式运行一致，正式 seal 校验通过，原 cp0_v1 report/seal 不变；Slither 0.8.0、crytic-compile 0.2.4、solc-select 1.0.4 与全局选择状态不变。`git diff --check HEAD` 无错误，未解决冲突 0，已跟踪变更全部在 compile_repair/；证据 `final_audit.json`。六份记录文档的历史保留检查全部为 true，PROMPTS 与上游 r2.2 字节相同。
+- 文档检查 v1：八份文件 **8/8 passed=True**、UTF-8 有效、中文检查通过，日志和命令在 `cp0_continue_v1/doc_check_v1.log/json`。追加检查偏移为 PROGRESS:5062、RECON:12137、CP0_REPORT:7686、CHANGE_LOG:28237；PROMPTS、HANDOVER、DECISIONS 和新 README 全文检查。命令使用 `python -B -m scripts.node_sem.doc_check --expect-cjk`。写入本段后用同参数再次检查，v2 机器记录保存在 `doc_check_v2.log/json`，仅在八项仍全通过时提交。
+- 本轮只使用 CPU，OMP_NUM_THREADS=2、MKL_NUM_THREADS=2；未启动 HGT 训练，未读写 GPU 锁。下载费用上限及 LLM 费用均为 0 美元，LLM 调用 0 次。没有升级包、切换全局 solc、下载其余版本/外部语料/文档包、修改语料、写图存储或进入 CP1。
+- 提交范围只包含本模块代码、文档与显式证据清单，不整体添加 pytest 临时目录。正式结果及失败现场均保留；全部检查后在 compile-repair 本地提交，信息为 `CP0 complete regression and compatibility survey; await D16`，提交号可用 `git log -1 --format=%H` 定位，并在最终答复给出；不 push。该提交保留本地 8fb81ed9 与上游 54ecc927 两个父历史。停止位置为 CP0 审查和 D16，未获得后续工具链变更批准。

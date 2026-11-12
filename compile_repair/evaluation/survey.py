@@ -1,10 +1,11 @@
 """CP0 read-only identity, metadata and compiler reconnaissance.
 
-The missing-compiler gate precedes the expensive matrix. This first CP0
-checkpoint implements reconnaissance and tool wrappers; matrix orchestration
-is deferred at that gate, rather than silently omitting uncovered inputs.
+The missing-compiler gate precedes the expensive matrix. Evidence is written
+once, with a flushed invocation journal; expected candidate failures are data,
+while uncovered inputs, timeouts and integrity failures stop the survey.
 """
 import ast
+import gc
 import hashlib
 import json
 import re
@@ -14,7 +15,9 @@ from collections import Counter, defaultdict
 from dataclasses import asdict
 from pathlib import Path
 
-from compile_repair.toolchain.solc import inventory, version_tuple, error_first_line
+from compile_repair.toolchain.solc import (inventory, version_tuple, error_first_line,
+    load_additions, release_coverage, compile_file)
+from compile_repair.toolchain.slither import run_slither, compare_nodes
 
 ROOT = Path(__file__).resolve().parents[2]
 SIX_C = Path("/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1")
@@ -49,6 +52,7 @@ def candidate_versions(interval, versions):
     """
     primary, fallback = [], []
     lo, hi = interval or ((0, 4, 12), (0, 4, 27))
+    lo, hi = tuple(lo), tuple(hi)
     for value in sorted(set(versions), key=version_tuple):
         version = version_tuple(value)
         if version >= (0, 4, 12) and lo <= version < hi:
@@ -189,24 +193,220 @@ def write_json(path, value):
         stream.write("\n")
 
 
-def survey(output, metadata_authorization, inventory_only=False):
-    """Run CP0 preflight and archive the first blocking condition without retry.
 
-    This checkpoint stops before matrix orchestration. An absent eligible
-    compiler is never handled by silently reducing the corpus or changing pragma.
+def selection_priority(row, available):
+    """CP0 regression priorities; does not implement general CP1 inference."""
+    metadata = row.get("metadata")
+    known = metadata["version"] if metadata else None
+    iv = row["interval"]
+    if known and known in available and version_tuple(known) >= (0, 4, 12):
+        if iv is None or tuple(iv[0]) <= version_tuple(known) < tuple(iv[1]):
+            return known
+    if iv is None and "0.4.25" in available:
+        return "0.4.25"
+    return None
+
+
+def d3_endpoints(versions, probe):
+    """Find true D3 endpoints, including compile-success/mapping-failure cases.
+
+    Interior versions need not be analyzed unless an endpoint fails. A caller's
+    memoized probe reuses observations; this is not an automatic failure retry.
     """
+    ordered = sorted(versions, key=version_tuple)
+    low = next((v for v in ordered if probe(v)["d3"]), None)
+    high = next((v for v in reversed(ordered) if probe(v)["d3"]), None) if low else None
+    return low, high
+
+
+class Observations:
+    """One read-only source, memoized results and a flushed command journal."""
+
+    def __init__(self, path, compilers, journal, scope):
+        self.path, self.compilers, self.journal, self.scope = path, compilers, journal, scope
+        self.compiled, self.analyzed = {}, {}
+
+    def emit(self, kind, observation):
+        item = dict(observation)
+        if "nodes" in item:
+            nodes = item.pop("nodes")
+            item["node_facts_sha256"] = hashlib.sha256(
+                json.dumps(nodes, sort_keys=True).encode("utf8")).hexdigest()
+        if "stderr" in item:
+            stderr = item.pop("stderr")
+            item["stderr_sha256"] = hashlib.sha256(stderr.encode("utf8")).hexdigest()
+            item["stderr_bytes"] = len(stderr.encode("utf8"))
+            item["stderr_excerpt"] = stderr[:8192]
+            item["stderr_truncated"] = len(stderr) > 8192
+        self.journal.write(json.dumps(dict(kind=kind, scope=self.scope, **item), sort_keys=True) + "\n")
+        self.journal.flush()
+
+    def compile(self, version):
+        if version not in self.compiled:
+            item = compile_file(self.path, self.compilers[version])
+            self.compiled[version] = item
+            self.emit("solc", asdict(item))
+            if item.timed_out:
+                raise RuntimeError("solc timeout; no retry: " + str(self.path) + " @ " + version)
+        return self.compiled[version]
+
+    def probe(self, version):
+        if version not in self.analyzed:
+            compiled = self.compile(version)
+            if compiled.returncode == 0:
+                item = run_slither(compiled)
+                self.emit("slither", item)
+            else:
+                item = {"d3": False, "constructed": False, "not_run": "solc_failed",
+                        "error_first_line": compiled.error_first_line, "nodes": []}
+            self.analyzed[version] = item
+        return self.analyzed[version]
+
+
+def matrix_file(row, compilers, journal, comparisons):
+    """Record the candidate matrix, rule A and two experimental D5 orders."""
+    obs = Observations(ROOT / row["path"], compilers, journal, "mando")
+    candidate = row["installed_candidates"]
+    groups = [candidate["primary"]]
+    later = defaultdict(list)
+    for version in candidate["later_series_only_after_primary_failure"]:
+        later[version_tuple(version)[:2]].append(version)
+    groups += [later[k] for k in sorted(later)]
+    priority = selection_priority(row, compilers)
+    preferred = obs.probe(priority) if priority else None
+    low, high, active = None, None, []
+    for group in groups:
+        active += group
+        for version in group:
+            obs.compile(version)
+        low, high = d3_endpoints(group, obs.probe)
+        if low:
+            break
+    a_version = row["rule_a_version"]
+    a = obs.compile(a_version) if a_version in compilers else None
+    row["matrix"] = {v: {"returncode": c.returncode, "error_first_line": c.error_first_line,
+                         "elapsed_seconds": c.elapsed_seconds} for v, c in obs.compiled.items()}
+    row["activated_candidates"] = active
+    row["rule_a_result"] = {"status": "unavailable" if a is None else "passed" if a.returncode == 0 else "failed",
+                            "returncode": a.returncode if a else None,
+                            "error_first_line": a.error_first_line if a else "not installed/trusted"}
+    if not low:
+        row["failure"] = "no_d3_candidate" if any(obs.compiled[v].returncode == 0 for v in active) else "no_compiling_candidate"
+        return False
+    selected = priority if preferred and preferred["d3"] else low
+    descending = priority if preferred and preferred["d3"] else high
+    selected_result = obs.probe(selected)
+    base_minor = tuple(row["interval"][0][:2]) if row["interval"] else (0, 4)
+    row["selection"] = {"ascending": selected, "descending": descending,
+        "priority": priority, "priority_passed": bool(preferred and preferred["d3"]),
+        "lowest_d3": low, "highest_d3": high,
+        "moved_from_rule_version": selected != a_version,
+        "crossed_minor": version_tuple(selected)[:2] != base_minor,
+        "known_version_below_slither_floor": row.get("metadata_below_slither_floor", False),
+        "ascending_descending_differ": selected != descending,
+        "observed_d3_versions": sorted([v for v, r in obs.analyzed.items() if r["d3"]], key=version_tuple)}
+    row["selected_slither"] = {k: v for k, v in selected_result.items() if k not in ("nodes", "duplicate_key4")}
+    row["selected_duplicate_key4_count"] = len(selected_result["duplicate_key4"])
+    row["cross_version"] = None
+    if low != high:
+        comparison = compare_nodes(obs.probe(low)["nodes"], obs.probe(high)["nodes"])
+        selected_comparison = compare_nodes(selected_result["nodes"], obs.probe(high)["nodes"])
+        row["cross_version"] = {"low": low, "high": high,
+            "lowest_highest": {k: v["equal"] for k, v in comparison.items()},
+            "selected_highest": {k: v["equal"] for k, v in selected_comparison.items()}}
+        comparisons.write(json.dumps({"path": row["path"], "sha256": row["sha256"],
+            "low": low, "selected": selected, "high": high,
+            "lowest_highest": comparison, "selected_highest": selected_comparison}, sort_keys=True) + "\n")
+        comparisons.flush()
+    return True
+
+
+def corpus_matrix(rows, compilers, output, journal, result):
+    """Run the regression once; a no-success input leaves a sealed partial run."""
+    started = time.monotonic()
+    with (output / "cross_version.jsonl").open("x", encoding="utf8") as comparisons:
+        for i, row in enumerate(rows, 1):
+            result["compilation_executed"] = True
+            result["slither_executed"] = True
+            if not matrix_file(row, compilers, journal, comparisons):
+                result["blockers"].append({"kind": row["failure"], "path": row["path"]})
+                return False
+            if i % 20 == 0 or i == len(rows):
+                print("CP0 matrix {}/{}; {:.1f}s".format(i, len(rows), time.monotonic() - started), flush=True)
+                gc.collect()
+    cross = [r["cross_version"] for r in rows if r["cross_version"]]
+    result["matrix_summary"] = {
+        "files": len(rows), "rule_a": dict(Counter(r["rule_a_result"]["status"] for r in rows)),
+        "selected_d3_pass": sum(r["selected_slither"]["d3"] for r in rows),
+        "selected_missing_filename_nodes": sum(r["selected_slither"]["counts"]["missing_filename"] for r in rows),
+        "selected_empty_cfg_files": sum(r["selected_slither"]["empty_cfg"] for r in rows),
+        "selected_duplicate_key4_files": sum(r["selected_duplicate_key4_count"] > 0 for r in rows),
+        "ascending_versions": dict(Counter(r["selection"]["ascending"] for r in rows)),
+        "descending_versions": dict(Counter(r["selection"]["descending"] for r in rows)),
+        "ascending_descending_differ": sum(r["selection"]["ascending_descending_differ"] for r in rows),
+        "moved_from_rule_version": sum(r["selection"]["moved_from_rule_version"] for r in rows),
+        "crossed_minor": sum(r["selection"]["crossed_minor"] for r in rows),
+        "two_d3_versions": len(cross), "cross_version_equal": {
+            pair: {k: sum(r[pair][k] for r in cross) for k in ("key4", "slithir", "source_length")}
+            for pair in ("lowest_highest", "selected_highest")},
+        "elapsed_seconds": time.monotonic() - started}
+    result["cp2_runtime_estimate"] = {
+        "observed_selected_slither_seconds": sum(r["selected_slither"]["elapsed_seconds"] for r in rows),
+        "observed_selected_solc_seconds": sum(r["matrix"][r["selection"]["ascending"]]["elapsed_seconds"] for r in rows),
+        "basis": "Serial CPU, observed solc + Slither times for 846 selected versions; excludes storage, regression and serialization",
+        "not_a_complete_cp2_wall_time_prediction": True}
+    return True
+
+
+def compatibility(compilers, journal):
+    """Probe every installed version, with pre-floor releases as controls."""
+    fixture_root = ROOT / "compile_repair/tests/fixtures"
+    results = []
+    common = ["state_read_write", "internal_call", "modifier", "event", "external_call", "inheritance"]
+    for version in sorted(compilers, key=version_tuple):
+        minor = version_tuple(version)[1]
+        names = ["compat_04.sol" if minor == 4 else "compat_05.sol" if minor == 5 else
+                 "compat_06.sol" if minor == 6 else "compat_07.sol" if minor == 7 else "compat_08.sol"]
+        if version_tuple(version) >= (0, 8, 4):
+            names.append("compat_08_errors.sol")
+        for name in names:
+            path = fixture_root / name
+            obs = Observations(path, compilers, journal, "compatibility")
+            compiled = obs.compile(version)
+            analysis = obs.probe(version)
+            features = ["custom_error"] if name.endswith("errors.sol") else common + (
+                ["try_catch"] if minor >= 6 else []) + (["unchecked"] if minor >= 8 else [])
+            results.append({"version": version, "fixture": str(path.relative_to(ROOT)),
+                "source_sha256": compiled.source_sha256, "features": features,
+                "below_supported_floor": version_tuple(version) < (0, 4, 12),
+                "solc_returncode": compiled.returncode,
+                "slither": {k: v for k, v in analysis.items() if k != "nodes"}})
+            print("CP0 compatibility {} {}: solc={} D3={}".format(version, name, compiled.returncode, analysis["d3"]), flush=True)
+        gc.collect()
+    by_version = {v: all(r["slither"]["d3"] for r in results if r["version"] == v) for v in compilers}
+    return {"results": results, "all_applicable_probes_pass_by_version": by_version,
+        "supported_range_failures": [r for r in results if not r["below_supported_floor"] and not r["slither"]["d3"]],
+        "scope": "Handwritten feature probes only; not all syntax, all patches or arbitrary projects",
+        "feature_sources": {
+            "try_catch": "https://docs.soliditylang.org/en/v0.6.0/060-breaking-changes.html",
+            "unchecked": "https://docs.soliditylang.org/en/v0.8.0/080-breaking-changes.html",
+            "custom_error_since_0_8_4": "https://www.soliditylang.org/blog/2021/04/21/solidity-0.8.4-release-announcement/"}}
+
+
+def survey(output, metadata_authorization, inventory_only=False, trusted_additions=()):
+    """Run CP0 once, preserving the first blocker and every prior observation."""
     output = Path(output).resolve()
     artifact_root = (ROOT / "compile_repair/artifacts").resolve()
     if artifact_root not in output.parents:
         raise ValueError("Survey output must be a new compile_repair/artifacts subdirectory")
     output.mkdir(parents=True, exist_ok=False)
     started = time.monotonic()
-    result = {"schema": "compile-repair-cp0-recon-v1", "status": "running", "blockers": [],
+    result = {"schema": "compile-repair-cp0-recon-v2", "status": "running", "blockers": [],
               "compilation_executed": False, "slither_executed": False,
               "training_executed": False, "llm_calls": 0, "cost_usd": 0,
               "root": str(ROOT), "command": {"module": "compile_repair.cli", "subcommand": "survey",
                   "output": str(output), "metadata_authorization": str(Path(metadata_authorization).resolve()),
-                  "inventory_only": inventory_only},
+                  "inventory_only": inventory_only, "trusted_additions": [str(Path(p).resolve()) for p in trusted_additions]},
               "head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=str(ROOT), universal_newlines=True).strip()}
     try:
         report = checked_json(SIX_C / "slither_full/report.json", REPORT_SHA)
@@ -232,15 +432,19 @@ def survey(output, metadata_authorization, inventory_only=False):
         result["evidence"]["metadata_authorization"] = {"path": str(auth_path.resolve()),
                     "sha256": hashlib.sha256(auth_path.read_bytes()).hexdigest()}
         result["historical_comparison"] = compare_six_c(rows, report)
-        compilers, environment, missing_trusted = inventory(trusted["compilers"])
+        del report
+        merged, addition_refs, release_index = load_additions(trusted["compilers"], trusted_additions)
+        result["evidence"]["trusted_additions"] = addition_refs
+        compilers, environment, missing_trusted = inventory(merged)
         result["environment"] = environment
         result["compilers"] = {v: asdict(c) for v, c in compilers.items()}
         result["missing_trusted_versions"] = missing_trusted
+        result["release_coverage"] = release_coverage(release_index, compilers)
         sums = ROOT / "compile_repair/artifacts/cr_pre_v1/solc_github_static_SHA256SUMS"
-        known = set(re.findall(r"solc-(\d+\.\d+\.\d+)", sums.read_text())) | set(trusted["compilers"])
-        result["evidence"]["known_release_window"] = {"path": str(sums),
-                    "sha256": hashlib.sha256(sums.read_bytes()).hexdigest(),
-                    "note": "Missing-release counts use this finite observed release list, not an online catalog."}
+        known = set(release_index["releases"]) if release_index else (
+            set(re.findall(r"solc-(\d+\.\d+\.\d+)", sums.read_text())) | set(merged))
+        result["evidence"]["known_release_window"] = {"source": "verified official index" if release_index else str(sums),
+            "note": "Missing counts are relative to an observed release snapshot, never guessed."}
         missing = defaultdict(list)
         for row in rows:
             candidates = candidate_versions(row["interval"], compilers)
@@ -265,16 +469,29 @@ def survey(output, metadata_authorization, inventory_only=False):
             "rule_version_outside_interval": sum(r["rule_version_outside_interval"] for r in rows),
             "trusted_installed_count": len(compilers), "uncovered_files": len(result["blockers"]),
             "historical_status_counts": result["historical_comparison"]["status_counts"]}
-        result["status"] = "blocked_missing_compilers" if result["blockers"] else (
-            "inventory_only" if inventory_only else "stopped_after_preflight")
-        result["not_run"] = ["full compiler matrix", "ascending/descending D3 version selection",
-                             "full Slither survey", "cross-version corpus comparison", "CP2 runtime estimate"]
+        result["status"] = "blocked_missing_compilers" if result["blockers"] else "inventory_only"
+        if not result["blockers"] and not inventory_only:
+            with (output / "invocations.jsonl").open("x", encoding="utf8") as journal:
+                if corpus_matrix(rows, compilers, output, journal, result):
+                    result["compatibility"] = compatibility(compilers, journal)
+                    failures = result["compatibility"]["supported_range_failures"]
+                    result["status"] = "awaiting_d16" if failures else "complete"
+                    if failures:
+                        result["blockers"].append({"kind": "d16_slither_compatibility", "failed_probes": len(failures)})
+                else:
+                    result["status"] = "blocked_regression"
+        result["not_run"] = [] if "compatibility" in result else [
+            "full compiler/Slither survey or compatibility probes incomplete; see per-file observations"]
+        if any(hashlib.sha256((ROOT / r["path"]).read_bytes()).hexdigest() != r["sha256"] for r in rows):
+            raise ValueError("Corpus bytes changed during survey")
     except Exception as exc:
         result.update({"status": "failed", "error_type": type(exc).__name__, "error": str(exc)})
     result["elapsed_seconds"] = time.monotonic() - started
     result["implementation_sha256"] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
         for p in sorted((ROOT / "compile_repair").rglob("*.py")) if "artifacts" not in p.parts and "tests" not in p.parts}
+    result["fixture_sha256"] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted((ROOT / "compile_repair/tests/fixtures").glob("*.sol"))}
     write_json(output / "recon.json", result)
-    write_json(output / "seal.json", {"schema": "compile-repair-cp0-seal-v1", "files": {
-        "recon.json": hashlib.sha256((output / "recon.json").read_bytes()).hexdigest()}})
+    write_json(output / "seal.json", {"schema": "compile-repair-cp0-seal-v2", "files": {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.iterdir()) if p.is_file()}})
     return result

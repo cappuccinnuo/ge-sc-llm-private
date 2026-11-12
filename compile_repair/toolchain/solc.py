@@ -4,6 +4,7 @@ Reuse frozen inventory/trust checks and crytic-compile 0.2.4 output options.
 No installation, PATH modification, global solc selection or source writes.
 """
 import hashlib
+import json
 import os
 import re
 import subprocess
@@ -30,6 +31,75 @@ def verify_binary(compiler):
     if not os.access(str(path), os.X_OK):
         raise ValueError("Compiler is not executable: " + str(path))
     return str(path)
+
+
+
+def load_additions(base, manifests):
+    """Extend sealed 6c trust with separately authorized official releases.
+
+    This reads local evidence only. Both binary digests are recomputed; neither
+    existing identities nor the frozen 6c manifest can be replaced by additions.
+    """
+    from Crypto.Hash import keccak
+
+    def linked_json(ref):
+        raw = Path(ref["path"]).read_bytes()
+        if hashlib.sha256(raw).hexdigest() != ref["sha256"]:
+            raise ValueError("Linked evidence SHA256 mismatch: " + ref["path"])
+        return json.loads(raw.decode("utf8"))
+
+    trusted, references, release_index = dict(base), [], None
+    for path in manifests:
+        path = Path(path).resolve()
+        raw = path.read_bytes()
+        addition = json.loads(raw.decode("utf8"))
+        if addition.get("schema") != "compile-repair-trusted-addition-v1":
+            raise ValueError("Unsupported compiler addition schema")
+        auth = linked_json(addition["authorization"])
+        if auth.get("status") != "approved" or set(auth.get("versions", [])) != set(addition["compilers"]):
+            raise ValueError("Compiler additions differ from approved exact versions")
+        index = linked_json(addition["official_release_index"])
+        if release_index is not None and release_index != index:
+            raise ValueError("Compiler additions use different release snapshots")
+        builds = {b["path"]: b for b in index["builds"]}
+        for version, ref in addition["compilers"].items():
+            version_tuple(version)
+            if version in trusted:
+                raise ValueError("Cannot replace an existing trusted compiler: " + version)
+            build = builds[index["releases"][version]]
+            expected_path = Path.home() / ".solc-select/artifacts" / ("solc-" + version) / ("solc-" + version)
+            if (ref["version"] != version or build["version"] != version or
+                    Path(ref["path"]) != expected_path or ref["sha256"] != build["sha256"][2:] or
+                    ref["keccak256"] != build["keccak256"][2:] or
+                    ref["url"] != "https://binaries.soliditylang.org/linux-amd64/" + build["path"]):
+                raise ValueError("Compiler addition disagrees with official release: " + version)
+            verify_binary(Compiler(version, ref["path"], ref["sha256"]))
+            binary = expected_path.read_bytes()
+            if len(binary) != ref["bytes"] or keccak.new(digest_bits=256, data=binary).hexdigest() != ref["keccak256"]:
+                raise ValueError("Compiler Keccak256/size mismatch: " + version)
+            trusted[version] = ref
+        release_index = index
+        references.append({"path": str(path), "sha256": hashlib.sha256(raw).hexdigest(),
+                           "authorization": addition["authorization"],
+                           "official_release_index": addition["official_release_index"]})
+    return trusted, references, release_index
+
+
+def release_coverage(index, installed):
+    """Report observed official releases, without extrapolating missing patches."""
+    if index is None:
+        return {"status": "not_obtained", "series": {}, "all_patch_versions_verified": False}
+    series = {}
+    for minor in range(4, 9):
+        releases = sorted([v for v in index["releases"] if
+            (0, 4, 12) <= version_tuple(v) < (0, 9, 0) and version_tuple(v)[:2] == (0, minor)],
+            key=version_tuple)
+        series["0." + str(minor)] = {"published": releases,
+            "installed": [v for v in releases if v in installed],
+            "not_installed": [v for v in releases if v not in installed]}
+    return {"status": "official_snapshot", "source": "https://binaries.soliditylang.org/linux-amd64/list.json",
+            "latest_release_in_snapshot": index["latestRelease"], "series": series,
+            "all_patch_versions_verified": False}
 
 
 def inventory(trusted):

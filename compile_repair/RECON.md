@@ -114,3 +114,96 @@ python -B -m compile_repair.cli survey   --output compile_repair/artifacts/cp0_v
 ```
 
 该命令只供批准后的下一轮使用，不在本轮重跑。当前实现遇到缺失版本返回 2 并封存现场；若无版本缺口，非 `--inventory-only` 模式仍返回 `stopped_after_preflight`，因为全量矩阵编排尚未实施，不能把前置通过当作 CP0 完成。`cp0_v1` 已存在，禁止使用它重跑。补齐编译器后还需实现独立追加信任清单的接入、编译矩阵及 D3 选版调查，再使用新批次。
+
+
+## 8. 2026-11-12 续作：安装授权与 r2.2 版本范围（修改 AI：Codex）
+
+以下追加内容是本轮状态，前七节保留先前检查点，不回写历史。用户先以“可以下载，当前的编译模块是涵盖所有的版本的solc吗”批准原单个 0.4.17 请求；同步 r2.2 后，再以“批准这 10 个探针版本（推荐）”批准 0.4.12、0.4.26、0.5.17、0.6.0、0.6.12、0.7.0、0.7.6、0.8.0、0.8.4、0.8.38。两份授权分别保存在 `artifacts/cp0_compiler_install_v1/authorization.json` 与 `artifacts/cp0_compatibility_install_v1/authorization.json`，均限定官方 Linux amd64、费用上限 0 美元、不改包与全局 solc 选择。没有从该批准推导下载所有版本的授权。
+
+11 个新增二进制均以官方 SHA256 和 Keccak256 校验，旧 26 项可信清单保持不变；两个 `trusted_compilers_addition.json` 记录授权引用、发布索引哈希、二进制路径、双哈希与真实 `--version` 输出。工具入口显式加载追加清单，核验链路后再加入清单，拒绝替换原有可信版本。`solc-select 1.0.4 install 0.4.17` 首次因上游索引请求 HTTP 403 退出且未创建目标文件；同一官方索引通过已有显式代理的 requests 客户端可读，因此使用该客户端获取已授权二进制，校验后写入既有 solc-select 目录。失败日志保留，没有升级客户端或切换全局版本。
+
+官方发布索引来自 `https://binaries.soliditylang.org/linux-amd64/list.json`，缓存 SHA256 `b44c1d0e598ed0bcbf4ee49c86c5ae85b63718c1591689b02d12d7a11d45a2ac`；快照 latestRelease 为 0.8.38。下表来源为 `cp0_matrix_smoke_v2/report.json.coverage`，正式调查再次核验同一快照；范围内共 92 个正式版本，安装 33 个，未安装 59 个。另有 0.4.0、0.4.2、0.4.9、0.4.11 四个历史对照版本，所以总安装数为 37。
+
+| 系列 | 快照发布数 | 已安装数 | 未安装版本 |
+|---|---:|---:|---|
+| 0.4（从 0.4.12） | 15 | 14 | 0.4.14 |
+| 0.5 | 18 | 12 | 0.5.5、0.5.12–0.5.16 |
+| 0.6 | 13 | 2 | 0.6.1–0.6.11 |
+| 0.7 | 7 | 2 | 0.7.1–0.7.5 |
+| 0.8 | 39 | 3 | 0.8.1–0.8.3、0.8.5–0.8.37 |
+
+因此，“目标范围为 0.4.12–0.8.x”“某版本已经安装”“本次特征探针通过”“任意输入均受支持”是不同结论。本轮只测已安装版本的小型特征探针和 MANDO 回归，不证明所有补丁版本或所有 Solidity 语法可用。CP0 仍是基线调查，通用 repair 入口和后续修复方法未在此步实现。
+
+本轮代码在 9 个既有生产模块内扩展，无新增生产模块。`survey` 为每份合约编译初始候选集全部已安装可信版本；只有本系列全部 D3 失败才激活后续系列。规则 A 单独作为对照，不因落在区间外而成为有效修复候选。实验性升序/降序都保留已验证 metadata 的优先级；无 pragma 的 MANDO 回归先试 0.4.25。每份输入另找真正通过 D3 的最低与最高候选，因此既记录“选定版本对最高版本”，也记录“最低版本对最高版本”的多重集合差异。内层没有重新尝试已观察过的失败，同一文件/版本结果复用；通用无 pragma 语法推断仍属 CP1。
+
+六个新手写 fixture 覆盖各系列的状态读写、内部调用、修饰器、事件、外部调用和继承；0.6 起使用 try/catch，0.8 起使用 unchecked。自定义错误另放在 `compat_08_errors.sol`，只交给 0.8.4 及以上探针，避免把未引入语法误判为工具失败。语法依据为 [0.6.0 breaking changes](https://docs.soliditylang.org/en/v0.6.0/060-breaking-changes.html)、[0.8.0 breaking changes](https://docs.soliditylang.org/en/v0.8.0/080-breaking-changes.html) 和 [0.8.4 release announcement](https://www.soliditylang.org/blog/2021/04/21/solidity-0.8.4-release-announcement/)；本轮只核对网页，未下载文档语料。
+
+
+## 9. 正式 MANDO 回归结果与差异边界
+
+来源：`artifacts/cp0_v2/recon.json`（SHA256 `bddbeaa256192b567525370f8b27335a3d2bdcf3ccb48e22086150718414ffb6`）、`invocations.jsonl`、`cross_version.jsonl`；补充汇总在 `cp0_continue_v1/final_findings.json`。正式运行只执行一次；内部调查耗时 928.330 秒，CLI 包含启动共 932.935 秒，退出码 2，受控停止状态为 `awaiting_d16`。
+
+| 验收项 | 结果 |
+|---|---:|
+| 输入 / metadata / 6c 匹配 | 846 / 43 / 256，全部重新核验 |
+| 无已安装可信候选 | 0 |
+| 至少一个候选通过编译与 D3 | 846/846 |
+| 选定节点缺 filename / 空 CFG 文件 | 0 / 0 |
+| 规则 A：通过 / 失败 / 未安装 | 821 / 22 / 3 |
+| 规则 A 在 pragma 合取区间外 | 2 |
+| 升序与降序选定版本不同 | 617 |
+| 相对规则 A 移动版本 / 跨小版本系列 | 44 / 0 |
+| 至少两种版本通过 D3，可做端点比较 | 678 |
+| 最低/最高 key4 相同 / 有序 SlithIR 相同 | 678 / 678 |
+| 最低/最高 source length 相同 / 不同 | 650 / 28 |
+| 升序选定/最高版本的三项比较 | 同为 678 / 678 / 650 |
+| 选定版本存在重复 key4 的文件 | 55 |
+| 原 6c 的 17 个异常文件现在通过 D3 | 17/17 |
+
+MANDO 直接 solc 调用 5,391 次（rc0 5,254、rc1 137），Slither 调用 1,546 次（D3 全通过）。候选中的预期编译失败是矩阵数据，未把它们静默丢弃或当作基础设施重试。每次调用均有可执行文件 SHA、命令、结果与时间。原始源码 SHA 在编译前后及全量结束时校验，没有源码修复或 pragma 覆盖。
+
+规则 A 不可用的三份明细：`unchecked_low_level_calls/0x0cbe050f75bc8f8c2d6c0d249fea125fd6e1acc9.sol` 选 0.4.10；`unchecked_low_level_calls/0x366cf49c6bc3986b20ecf4fd7c05f0c617332e8c.sol` 选 0.5.5；`unchecked_low_level_calls/0x388b2f93e822d39d45ce748f2b827aa1df657c39.sol` 选 0.4.6。这三份都已用合法区间内其他版本通过 D3，不需要为旧对照规则额外安装它们。对照旧云端记录：旧 ok 中 806 份本机 passed、1 份因缺 0.5.5 unavailable；旧 fail 的 10 份仍 failed；旧 unavailable 的 29 份中 15 passed、12 failed、2 仍 unavailable。由此解释原 807/10/29 与本机 821/22/3 的差异，不把环境不同当成源码改变。
+
+尚缺的初始候选版本为 0.4.14（62 份区间包含它）、0.5.5（226）、0.5.12–0.5.16（每个 422）。这是候选区间覆盖计数，不是必需安装清单：本轮没有零候选或零 D3 成功输入。全支持范围的 59 个未安装补丁仍按 §8 清单登记，未申请或擅自安装。
+
+**D4 的边界**：key4 在 55 份输入中有重复，不能直接作为唯一图节点主键。例如 `access_control/0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol` 的 `(C10Token, min(uint256,uint256), RETURN, 33685)` 出现两次。本步比较使用多重集合，保留每次出现及有序 IR，没有去重；完整重复键在 `invocations.jsonl`。678 份的相等结论只覆盖本次节点字段和 IR，不等于证明控制流边、调用图边或行为语义相等。其余 168 份没有两个 D3 端点，不进入跨版本分母。CP2 的存储节点标识及 6c occurrence 比较范围仍需审查，未自行更换方案。
+
+CP2 时间依据：846 个升序选定版本的直接 solc 时间合计 80.853 秒，Slither API 合计 228.587 秒，共约 309.440 秒（5.16 分钟）。这是同一 CPU 环境下编译与分析部分的实测合计，未包含未来图序列化、存储、比较与额外候选重试，不是完整 CP2 总耗时承诺。
+
+## 10. Slither 兼容性：在 D16 停止
+
+共 37 个安装版本、39 组适用探针；solc 均 rc0，Slither D3 33 组通过、6 组失败。四个低于下限的历史版本各缺 10 个 CFG 节点文件名；范围内另有两组自定义错误失败。基线特征探针在目标范围内全部 33 个安装版本通过；31 个版本的全部适用探针通过，0.8.4 和 0.8.38 的自定义错误探针未通过。
+
+| 实测版本 | 特征与 D3 结果 |
+|---|---|
+| 0.4.0、0.4.2、0.4.9、0.4.11 | 编译和 Slither 构造成功；每个缺 10 个 filename，D3 失败，支持下限负对照 |
+| 0.4.12–0.4.26 中已安装的 14 个版本 | 基线特征全部通过；0.4.14 未测试 |
+| 0.5 系列已安装的 12 个版本 | 基线特征全部通过；缺失补丁见 §8 |
+| 0.6.0、0.6.12 | 基线特征与 try/catch 通过 |
+| 0.7.0、0.7.6 | 基线特征与 try/catch 通过 |
+| 0.8.0 | 基线特征、try/catch、unchecked 通过；自定义错误尚未在此版本引入，不运行该项 |
+| 0.8.4、0.8.38 | 基线特征、try/catch、unchecked 通过；自定义错误编译成功但 Slither 构造失败 |
+
+失败输入为 `tests/fixtures/compat_08_errors.sol`，SHA256 `62f0b3f19b8dedb126661f34439296387569fd1e2a63b7ae1294ed6b40315e54`。两版均抛 `ParsingError: Unknown contract item: ErrorDefinition`。安装中的 `slither/solc_parsing/declarations/contract.py:250` 拒绝此 AST 项，文件 SHA256 `4c80abf3a0fae5d33c674de5f28ab798d8d5f9b2921b619deeb19b4bbc73f88d`。诊断来源见 `cp0_continue_v1/slither_failure_diagnosis.json`；其中初记行号 252 已在 `final_findings.json.diagnosis_corrections` 更正为 250，原记录保留。
+
+证据说明这是 Slither 对自定义错误 AST 的解析缺口，不是 solc 0.8.38 的所有合约都不可用。机制同样值得关注产生 ErrorDefinition 的其他版本，但未安装的 0.8.5–0.8.37 没有逐版实测，不标成“全部测试失败”。同理，三个 0.8 探针版本不能外推成完整 0.8.x 支持。
+
+依据 PROMPTS CP0 §5b“若较新版本失败……作为 D16 的输入后停下”，正式状态 `awaiting_d16`。需要用户在保留当前工具链并限定可声明支持范围、或评估新版 Slither 的方案之间作出决定；如选择升级，建议先在独立环境验证并保留 6c 环境作历史回归，这只是待确认建议，尚未实施。没有擅自安装或升级 Slither/crytic-compile/Python，也没有进入 CP1。
+
+## 11. 正式归档与复现
+
+`cp0_v2/seal.json` SHA256 为 `16dfb47bb17cbcb9da0a1a11b3c02a9cc7e4cfae39717e1d38ed8a3294284a9b`，绑定 recon、调用日志和全部跨版本差异。源码及 9 个实现模块的 SHA、fixture SHA、工具包版本都在 recon。命令已经运行一次，不能再次使用同一输出目录；下面只供未来经审查后在**另一个尚不存在的目录**复现，不在本轮重跑。
+
+```bash
+conda activate mando
+cd /home/zhao/SmartContract/ge-sc-llm-compile
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+python -B -m compile_repair.cli survey \
+  --output compile_repair/artifacts/cp0_review_reproduction_v1 \
+  --metadata-authorization compile_repair/artifacts/cp0_development_v1/metadata_read_authorization.json \
+  --trusted-addition compile_repair/artifacts/cp0_compiler_install_v1/trusted_compilers_addition.json \
+  --trusted-addition compile_repair/artifacts/cp0_compatibility_install_v1/trusted_compilers_addition.json
+```
+
+旧 §7 的无追加清单示例属于首轮停止现场，续作需要上面两个参数。测试与文档验收、冻结审计及提交说明见 CP0_REPORT 的续作小节、CHANGE_LOG §6.5；当前允许的 CP0 调查已完成，审查与 D16 决定尚未完成。
