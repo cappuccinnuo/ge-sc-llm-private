@@ -54,3 +54,12 @@
 测试：`python -B -m pytest -q -p no:cacheprovider compile_repair/tests` 最终 32 passed（0.83 秒）；`python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests` 为 2653 passed、9 warnings（174.88 秒）。实际命令均用独立 basetemp，日志在 `cp0_continue_v1`。开发小样本首次 JSON 区间类型失败已修复并加测试，六份边界样本在新目录全部通过；安装旧客户端 HTTP 403 等问题与解决保存在 development_issues 和 CHANGE_LOG §6。
 
 正式 seal SHA256 `16dfb47bb17cbcb9da0a1a11b3c02a9cc7e4cfae39717e1d38ed8a3294284a9b`。354 冻结引用与 846 输入不变，原 cp0_v1 保留；文档检查结果见 CHANGE_LOG §6.5。与原文差异：metadata 实为 SmartBugs，已按证据更正；新批次避免覆盖；key4 重复和 6c 缺原始节点类型/IR 的边界列入待审；现代语法缺口触发原文 D16 停止条件。没有自行改方案、升级包、写图存储、训练或调用 LLM。CP0 等待用户审查与 D16 决定，不能进入 CP1。
+
+
+## CP0 审查与方案 r2.3（Claude，2026-11-12）
+
+- 独立复核 CP0：全部数字可复现（846 输入 0 SHA 差异；规则 A 821/22/3；1,692 个选定版本 0 违例；678 对 key4/IR 678/678；Slither 0.8.0 指纹 743/743 与 Codex 相同）。证据 `artifacts/cp0_review_v1/`。
+- 方案问题与更正（PROMPTS r2.3）：D3 加入顶层函数与合约覆盖；D4 改 key5（序号身份 678/678 稳定）；pragma 覆盖两处规定的矛盾已消除；1.2 节 metadata 来源更正；新增 1.6 节 CP0 结果、D18 与 CP0.1（4.2b 节）；CP1 前提与 CP2 回归方法更新。
+- D16 补测 Slither 0.8.3/0.9.6/0.10.4/0.11.6，推荐 0.9.6 独立环境做生产、0.8.0 只做 6c 重放，待用户决定。
+- 记录：`docs/CHANGE_LOG.md` §7、`docs/HANDOVER.md`、`docs/DECISIONS.md`。旧文中指向 r2.2 的 “§4” 应为 §5（见 CHANGE_LOG §7.4）。
+- 没有模块代码改动与用户环境运行。下一步：用户决定 D5、D16、D18，Codex 执行 CP0.1。

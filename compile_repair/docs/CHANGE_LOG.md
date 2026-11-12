@@ -341,3 +341,68 @@ survey 使用冻结 frontend.parse、versioning.interval/recorded_version、auto
 - 文档检查 v1：八份文件 **8/8 passed=True**、UTF-8 有效、中文检查通过，日志和命令在 `cp0_continue_v1/doc_check_v1.log/json`。追加检查偏移为 PROGRESS:5062、RECON:12137、CP0_REPORT:7686、CHANGE_LOG:28237；PROMPTS、HANDOVER、DECISIONS 和新 README 全文检查。命令使用 `python -B -m scripts.node_sem.doc_check --expect-cjk`。写入本段后用同参数再次检查，v2 机器记录保存在 `doc_check_v2.log/json`，仅在八项仍全通过时提交。
 - 本轮只使用 CPU，OMP_NUM_THREADS=2、MKL_NUM_THREADS=2；未启动 HGT 训练，未读写 GPU 锁。下载费用上限及 LLM 费用均为 0 美元，LLM 调用 0 次。没有升级包、切换全局 solc、下载其余版本/外部语料/文档包、修改语料、写图存储或进入 CP1。
 - 提交范围只包含本模块代码、文档与显式证据清单，不整体添加 pytest 临时目录。正式结果及失败现场均保留；全部检查后在 compile-repair 本地提交，信息为 `CP0 complete regression and compatibility survey; await D16`，提交号可用 `git log -1 --format=%H` 定位，并在最终答复给出；不 push。该提交保留本地 8fb81ed9 与上游 54ecc927 两个父历史。停止位置为 CP0 审查和 D16，未获得后续工具链变更批准。
+
+
+## 7. 2026-11-12 CompileRepair CP0 审查与方案 r2.3（修改 AI：Claude）
+
+### 7.1 任务、依据与范围
+
+用户要求（2026-11-12）：Codex 已完成 CP0 并推送；执行中出现的问题记录在交接文档及 CP0_REPORT、RECON、PROGRESS、CHANGE_LOG 中，部分由 Codex 处理（是否正确待核实），部分未解决。审查方案、代码与产物，核实数据，判断处理是否正确；对错误或未解决的问题制定计划交给 Codex；全部核实后才进入 CP1。要求独立、以证据为依据，不猜测。
+
+起点 `compile-repair@ac2b3465`（Codex 的 8fb81ed9 与合并后的续作）。审查对象：9 个生产文件（`cli.py`、`core/model.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py` 等）、32 个测试、`artifacts/cp0_v2/` 的 recon.json、invocations.jsonl、cross_version.jsonl、seal.json，以及 CP0_REPORT、RECON §1–11、PROGRESS、CHANGE_LOG §4、§6、HANDOVER、DECISIONS。
+
+修改：`PROMPTS.md`（r2.2 → r2.3）；新增 `artifacts/cp0_review_v1/`；记录：本节、`docs/HANDOVER.md`（第 0、1、4、5 节重写与第 6 节新记录）、`docs/DECISIONS.md`（D3、D4、D5、D16 更新，新增 D18，历史 6 行）、`PROGRESS.md`。没有修改模块代码与 CP0 产物。
+
+### 7.2 实施方式和重要选择
+
+- 复核方式：不复用 Codex 的代码，另写 `verify_cp0.py` 从 `cp0_v2` 的原始调用日志重算所有汇总数字，并逐条检查 1,692 个选定版本（升序与降序）是否有 rc0 编译记录与 D3 通过记录、是否在合取区间内、是否与下界同一小版本系列、是否 ≥ 0.4.12。另在云端用 GitHub 静态 solc 与 Slither 0.8.0 重跑 846 个文件（743 个不同源文件），用 `node_dump.py` 按 CP0 口径计算指纹，与 `invocations.jsonl` 的 `node_facts_sha256` 比较。本环境 30 个编译器中 29 个与 cp0_v2 可信清单逐字节相同，24 个升序选定版本全在其中。
+- D3：CP0 的 `node_facts` 只遍历 `functions_and_modifiers_declared`。用 0.7.1 起的自由函数探针确认顶层函数在 `compilation_unit.functions_top_level` 中（0.8.0、0.8.3、0.11.6），不在上述集合中；且合约漏解析时节点为空也会“通过”。这是 r2.2 方案的缺口，不是 Codex 的实现错误。r2.3 加入顶层函数与“Slither 合约名称集合 = solc AST ContractDefinition 名称集合”。
+- D4：key4 在 55 个文件中重复；以 `access_control/0x000c1000…sol` 的 `min`（`return a < b ? a : b;`）确认原因是 Slither 把三元表达式拆成两个共享起始偏移的 RETURN 节点。可选方案是加入 source length（会被跨版本长度变化破坏，28 对不同）或加入节点在 Slither 顺序中的序号；测得序号身份 678/678 稳定，选后者为 key5。
+- pragma 覆盖：r2.2 的 3.2 第 6 行写“越过声明区间禁止”，3.3 第 6 条却规定在区间内无可用编译器时使用，这时必然越过区间，两处自相矛盾（Claude 的错误）。r2.3 改为：这是唯一允许离开区间的情形，只在下界所在小版本系列内、按与下界的距离从近到远，记 rewrite。
+- D16：CP0 只测了 Slither 0.8.0。补测 0.8.3、0.9.6、0.10.4、0.11.6 在相同编译器上的语料结构与 6 个特征探针，节点类型按各版本 `NodeType` 枚举名归一后比较。由于冻结的 `validate_slither._mapping` 只认 dict，新版 Slither 不能直接用冻结代码抽取，所以 6c 回归改为在 0.8.0 下精确重放，生产工具链单独选择。
+- 新增 D18：补齐编译器后，pragma 覆盖只剩官方没有构建或低于 0.4.12 的精确 pragma 会用到。
+- CP1：要求版本策略只实现在 `rules/environment.py`，CP0 中 `evaluation/survey.py` 的选版代码改为调用它，避免两份实现；验收为复现 cp0_v2 的 846 个升序选定版本。
+- 新增 CP0.1（4.2b 节），分 A（代码与 mando 重验，无需授权）、B（D16 环境，需授权）、C（D18 编译器，需授权）三部分，缺授权时做到前一部分停下。
+
+### 7.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 输入 SHA256 与 git 语料 | 846 个，0 差异 | verify_cp0.json |
+| 规则 A | 821 通过、22 失败、3 未安装 | 同上 |
+| 升降序 / 移动 / 跨系列 | 617 / 44 / 0 | 同上 |
+| 1,692 个选定版本检查 | 违例 0 | 同上 |
+| 跨版本 678 对 | key4 678、IR 678、length 650 相同 | 同上 |
+| 168 个无第二端点文件 | 全部是精确 pragma | 同上 |
+| 与 cr_pre_v1 对账 | ok→passed 806、ok→unavailable 1、fail→failed 10、unavailable→passed 15 / failed 12 / unavailable 2；与 RECON §9 一致 | 同上 |
+| 6c 的 17 个异常 | 集合相同，全部在升序选定版本上通过 D3 | 同上 |
+| Slither 0.8.0 指纹 | 743/743 与 Codex 相同 | ordinal_and_s083_analysis.json |
+| 序号身份 | 678/678 稳定（含 IR）；含重复节点的 31 对全部稳定 | 同上 |
+| 6c 版本 | 239 个已比较文件中 238 个与当前升序选定相同；239 个版本全部已安装 | recon.json 与 6c 报告对照 |
+
+Slither 版本（743 个不同源文件；slither_versions_corpus.json、feature_probes.jsonl）：
+
+| Slither | 结构与 0.8.0 相同 | 结构差异 | 有序 IR 相同 | 失败 | 特征探针 |
+|---|---:|---|---:|---:|---|
+| 0.8.3 | 743 | 无 | 482 | 0 | 4/6 |
+| 0.9.6 | 721 | 只缺合成的 slitherConstructorConstantVariables() 的 47 个入口节点 | 62 | 0 | 6/6 |
+| 0.10.4 | 369 | 多 1,999、少 47 | — | 3 | 6/6 |
+| 0.11.6 | 369 | 多 1,999、少 50 | 51 | 3 | 6/6 |
+
+0.8.0 自身 6 个特征中失败 4 个（自定义错误、UDVT、顶层 using、全局运算符）；Codex 测得的 `ErrorDefinition` 失败与此一致。transient 探针在所有版本都构造成功，不说明正确建模。Slither 的使用者只有 `scripts/DFG/dfg_v2/` 的验证脚本。
+
+未证明：以上 0.8.3 及更新版本的数字在用户环境（Python 3.7/3.8、solc-select 安装的编译器）是否相同，由 CP0.1 B 部分复核；0.9.6 在新环境中导入冻结 `versioning.py`（依赖 tree_sitter）是否可行。
+
+### 7.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确的部分：metadata 来源更正为 SmartBugs `versions.csv`（核对 `recorded_version` 读取的列）；重复 key4 保留多重集合而不去重；D16 未决时停下；安装只限用户批准的 11 个版本；把本地安装请求改编号为 D17。
+- 方案中的错误（Claude）：1.2 节 metadata 来源；D3 缺顶层函数与合约覆盖；D4 key4 不唯一；3.2 第 6 行与 3.3 第 6 条矛盾。均已在 r2.3 更正。
+- 合并遗留：`DECISIONS.md` “合并 r2.2 的上游历史”表中 D2、D5、D6、D16 四行引用 “CHANGE_LOG §4”，以及 `HANDOVER.md` r2.2 交接记录末尾与 `PROGRESS.md` r2.2 一节中的 “§4”，合并改号后应为 §5；记录只追加，在 DECISIONS 历史中加一行更正，不改旧文。`HANDOVER.md` 第 4 节在合并时丢失的条目已在本轮重写中恢复。
+- 待用户决定：D5（建议确认升序）、D16（推荐 0.9.6 独立环境，0.8.0 只做 6c 重放）、D18（建议补齐 59 个编译器）。D9、D10 待确认，D12、D13 待定。
+
+### 7.5 验收、资源、未执行事项与停止
+
+- `python3 -B -m scripts.node_sem.doc_check --expect-cjk compile_repair/PROMPTS.md compile_repair/docs/HANDOVER.md compile_repair/docs/DECISIONS.md compile_repair/docs/CHANGE_LOG.md:46726 compile_repair/PROGRESS.md:8269 compile_repair/artifacts/cp0_review_v1/README.md`：6 个文件全部 passed=True（HANDOVER、DECISIONS 本轮有重写，按整文件检查；CHANGE_LOG、PROGRESS 只追加，按追加前字节数检查）。
+- 资源：云端 CPU；5 个 Python 虚拟环境（只在本会话临时目录）；没有 LLM 调用，费用 0。
+- 未执行：模块代码修改；用户环境中的任何运行；编译器或包安装（用户环境）。
+- 停止：CP1 不能开始。顺序为用户决定 D5、D16、D18 → Codex 执行 CP0.1 → Claude 审查 → CP1。本轮提交并 push 到 `compile-repair`。

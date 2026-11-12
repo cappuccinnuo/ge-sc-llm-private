@@ -1,24 +1,24 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.2、DECISIONS 和 CHANGE_LOG §6。第 6 节保留历史，只追加；记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.3（尤其 1.6 节与 4.2b 节）、DECISIONS 和 CHANGE_LOG §7。第 6 节保留历史，只追加；记录规则见 README.md。
 
 ## 0. 一句话
 
-CP0 获准的工具与 MANDO 基线调查已完成：846/846 输入通过 D3；当前 Slither 0.8.0 不支持实测自定义错误，停在 D16，等待用户审查后才能进入 CP1。
+CP0 已由 Claude 独立复核，全部数字可复现；审查发现 D3 漏顶层函数与合约覆盖、key4 不唯一、pragma 覆盖规则自相矛盾、Slither 版本未定四个问题，方案改为 r2.3。下一步是 CP0.1（4.2b 节）；CP1 必须等 CP0.1 通过且用户决定 D5、D16、D18。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案 | 上游 PROMPTS r2.2 原样合并 | 54ecc927；freeze_audit_v1 |
-| 模块 | 9 个生产 Python 文件、3 个测试文件、7 个 fixture | CP0_REPORT 续作实现 |
-| CP0 | 正式调查完成，状态 awaiting_d16，用户审查未完成 | cp0_v2/recon.json |
-| MANDO | 846/846 D3；678 份双端 key4/IR 一致，28 份 length 不同 | matrix_summary |
-| 编译器 | 总安装 37；目标范围 33/92 已安装，59 未安装 | release_coverage、两份追加清单 |
-| 当前阻塞 | 0.8.4/0.8.38 自定义错误使 Slither 报 ErrorDefinition | compatibility.results |
-| 测试 | CP0 32 passed；DFG v2 2653 passed、9 warnings | cp0_continue_v1 测试日志 |
-| 下一步 | 审查 CP0 并决定 D16；同时审查 D4/CP2 节点标识及 D5 边界 | RECON §9–10、DECISIONS |
-| 其他决策 | D5/D9/D10 待确认，D12/D13 待定；D6 旧频率阈值已由 r2.2 撤销 | DECISIONS |
+| 方案 | PROMPTS r2.3（CP0 审查后修订） | CHANGE_LOG §7 |
+| 模块 | 9 个生产 Python 文件、3 个测试文件、7 个 fixture（CP0） | CP0_REPORT |
+| CP0 | 已审查：数字全部复现（846 输入、规则 A 821/22/3、1,692 个选定版本 0 违例、678 对 key4/IR 678/678）；调查结论成立 | artifacts/cp0_review_v1/README.md、verify_cp0.json |
+| 审查发现的问题 | D3 未覆盖顶层函数、可空通过；key4 在 55 个文件中重复（改 key5，序号 678/678 稳定）；3.2 第 6 行与 3.3 第 6 条矛盾；CP0 的 toolchain 只认 dict 形式 source_mapping | PROMPTS 1.6 节、r2.3 修改说明 |
+| D16 | 已测 Slither 0.8.0/0.8.3/0.9.6/0.10.4/0.11.6；推荐 0.9.6 独立环境做生产、0.8.0 只做 6c 重放；待用户决定 | PROMPTS 1.6 节、slither_versions_corpus.json、feature_probes.jsonl |
+| 编译器 | 总安装 37；0.4.12–0.8.38 正式版本 33/92 已安装；D18 建议补齐其余 59 个，待用户决定 | cp0_v2 release_coverage；DECISIONS D18 |
+| 测试 | CP0 32 passed；DFG v2 2653 passed、9 warnings（Codex 环境） | cp0_continue_v1 测试日志 |
+| 下一步 | 用户决定 D5、D16、D18 → Codex 执行 CP0.1（A 部分无需授权，可先做）→ Claude 审查 → CP1 | PROMPTS 4.2b 节 |
+| 其他决策 | D9/D10 待确认，D12/D13 待定 | DECISIONS |
 
 ## 2. 分支与工作树
 
@@ -39,16 +39,22 @@ Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4、solc-select 1.0.4 未更�
 
 Windows 侧使用 `wsl.exe -d Ubuntu-22.04 --cd ... --exec ...`；含中文的 Python 管道设置 PowerShell `$OutputEncoding = [System.Text.UTF8Encoding]::new()`。需要联网时沿用已验证代理并禁止直连回退，不修改网络配置。
 
-## 4. 必读事项
+## 4. 必读事项（已知的坑）
 
-1. 6c 固定报告/seal/可信清单先核验 SHA256 再只读。用户另批准两份冻结 source manifests 及 metadata 引用源码/CSV，范围见 `cp0_development_v1/metadata_read_authorization.json`，不含标签/图/模型。
-2. 43 metadata 实为 SmartBugs versions.csv，PROMPTS 的 SolidiFI 误称已在 RECON 更正。四份 ≤0.4.11 metadata 跳过，不绕过 D3。
-3. 0.4.17 缺口已消除；`cp0_v1` 是历史停止现场，不再代表当前阻塞。正式续作在 `cp0_v2`，所有已存在产物目录禁止覆盖。
-4. D16 具体证据：0.8.4 与 0.8.38 的基线/try/catch/unchecked 通过，但自定义错误 solc rc0、Slither ParsingError。保持旧环境并限定能力，或独立评估新 Slither，都必须先由用户决定；本轮未升级。
-5. 55 份输入含重复 key4，本次用多重集合保留重数。6c occurrence 缺 node.type/原始 SlithIR，不能从它证明完整 CFG/CG 相等。CP2 存储主键与比较契约待审，不能直接去重。
-6. D5 的实验性升降序结果已记录；通用无 pragma 推断、精确 pragma 覆盖与不越区间的冲突未在 CP0 实现或裁决。
-7. `.gitignore` 忽略 JSON/TXT；仅显式暂存列出的证据。pytest 临时目录包含大量样本，不要整体 git add。开发失败与修正分别保留，正式调查不自动重跑。
-8. 文档只写本模块 docs/，按 NodeSem 五段式变更与四段式交接记录，UTF-8 写入并通过 doc_check。没有 HGT 训练、GPU 锁操作、LLM 调用或图存储写入。
+1. **6c 的本地结果只在 EdgeSem 工作树中。** `prompt6c_v1/` 下的 report、seal、可信编译器清单被 `.gitignore` 忽略；用绝对路径 `/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/...` 只读读取，先核对 SHA256，不复制、不修改。用户另批准两份冻结 source manifests 及 metadata 引用源码/CSV，范围见 `cp0_development_v1/metadata_read_authorization.json`，不含标签/图/模型。
+2. **`.gitignore` 忽略 `*.json` 与 `*.txt`。** 需要提交的产物用 `git add -f` 逐个暂存；pytest 临时目录不要整体 add。
+3. **solc ≤ 0.4.11 时 Slither 0.8.0 的节点没有文件名**，编译成功不等于可用；成功判据是 D3（r2.3 加入顶层函数与合约覆盖）。0.4.10 及更早在 GitHub 发布页没有静态 Linux 二进制。
+4. **43 份 metadata 来自 SmartBugs `versions.csv`**（不是 SolidiFI BugLog；r2.3 已更正）。4 份 ≤ 0.4.11，跳过，不绕过 D3。
+5. **key4 不唯一。** Slither 把三元表达式等拆成共享起始偏移的同类节点（55 个文件）；节点身份用 key5（带序号），不得去重。6c 报告的 occurrence 行没有节点类型与原始 SlithIR，CP2 的 6c 回归用冻结抽取代码精确重放后比较（r2.3 的 CP2 第 2 节）。
+6. **Slither 0.9 起 source_mapping 是对象，不是 dict。** 冻结的 `validate_slither._mapping` 遇到对象返回 `{}`，所以冻结的 6c 抽取只能在 Slither 0.8.0 下使用；本模块的 toolchain 必须两种都支持（CP0.1）。顶层函数在 `compilation_unit.functions_top_level`，不在 `functions_and_modifiers_declared`。
+7. **`scripts/DFG/state/stage_f/versioning.py` 经 `frontend.py` 依赖 tree_sitter 与 `TREE_SITTER_LIB_DIR`。** 新建 Slither 环境时必须装同一版本并验证区间计算逐文件相同（CP0.1 B 部分）。
+8. **仓库默认规则 `auto_version_solc.py` 只取 pragma 中第一个版本号、只试一次**；在 846 个文件上 22 个失败、3 个编译器未安装（cp0_v2）。
+9. **pragma 覆盖是唯一允许离开声明区间的情形**，只在区间内没有可用编译器时、在下界所在小版本系列内使用，记为 rewrite（PROMPTS 3.2 第 6 行、3.3 第 6 条，r2.3）。
+10. **证据环境不同。** `cr_pre_v1`、`cr_pre_v2`、`cp0_review_v1` 是 Claude 在云端环境（GitHub 静态 solc、Python 3.8/3.12）得到的证据；`cp0_review_v1` 的 Slither 0.8.0 结果与 Codex 在用户环境的指纹 743/743 相同，其余版本的数字须由 CP0.1 在用户环境复核。
+11. **外部语料仓库（DAppSCAN、SOChecker、Trace）都没有 LICENSE 文件。** 使用范围由用户决定；语料放在仓库之外，不提交。
+12. **模块面向检测时的任意输入，不只修复训练数据中的问题。** 覆盖范围由与语料无关的失败分类表决定（D6）；MANDO 846 个文件只是与 6c 对照的回归基线（PROMPTS 0 节“适用范围”）。
+13. **记录只写在 `compile_repair/docs/` 与模块目录**，按 NodeSem 五段式变更与四段式交接，UTF-8 写入并通过 doc_check；不修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`。没有 HGT 训练、GPU 锁操作、LLM 调用或图存储写入。
+14. **记录只追加。** CHANGE_LOG 合并时编号曾变化（r2.2 记录现为 §5，Codex 的 CP0 为 §4、§6）；旧文中引用 “§4” 指 r2.2 的地方是笔误，见 CHANGE_LOG §7.4，不回改旧文。
 
 ## 5. 关键路径
 
@@ -60,7 +66,8 @@ Windows 侧使用 `wsl.exe -d Ubuntu-22.04 --cd ... --exec ...`；含中文的 P
 | 续作开发、测试、审计 | artifacts/cp0_continue_v1/ |
 | 小样本首轮失败与修正后验证 | artifacts/cp0_matrix_smoke_v1/、cp0_matrix_smoke_v2/ |
 | 原停止现场 | artifacts/cp0_v1/（只读） |
-| 记录规范与最新详细记录 | docs/README.md、docs/CHANGE_LOG.md §6 |
+| CP0 审查证据（Claude） | artifacts/cp0_review_v1/README.md 及其中脚本与 JSON |
+| 记录规范与最新详细记录 | docs/README.md、docs/CHANGE_LOG.md §7 |
 
 ---
 
@@ -128,3 +135,14 @@ cp0_v2 在 846/846 输入上找到 D3 合格版本，旧 6c 的 17 个异常全�
 用户“可以下载”批准 0.4.17，随后“批准这 10 个探针版本（推荐）”追加批准十个明确版本，授权、官方索引和二进制双哈希全部落盘。未把该授权扩展为安装全部补丁或升级 Python/Slither；原 26 份信任记录、全局版本选择保持原样。当前停在 PROMPTS CP0 §5b 要求的 D16，建议独立评估新版工具链但尚未实施。D4/CP2 的重复节点及报告可观察范围、D5 的精确 pragma 边界均列为审查项，没有自行更换设计。
 
 CP0 最终 32 passed，冻结 DFG v2 为 2653 passed、9 warnings；开发首轮区间反序列化错误已在新小样本和新增测试中验证修复，失败现场保留。354 个冻结引用与 846 份输入不变，正式运行后不改实现，文档检查与最终审计结果见 CHANGE_LOG §6.5。全部验收后本地提交，以 CP0 开头，提交号由 git log -1 与最终答复给出，不 push。没有通用 repair、源码修复、图存储、外部语料获取、HGT 训练、GPU 锁或 LLM 调用。
+
+
+### 2026-11-12 CompileRepair CP0 审查与方案 r2.3（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP0（提交 8fb81ed9、ac2b3465）：核对方案、代码、产物与四份记录中的问题，判断 Codex 的处理是否正确，对错误或未解决的问题给 Codex 写计划；全部核实后才能进入 CP1。起点 `compile-repair@ac2b3465`。新增证据目录 `artifacts/cp0_review_v1/`（独立复核脚本、5 个 Slither 版本的语料与特征对照），修改 `PROMPTS.md`（r2.2 → r2.3）。本文第 0、1、4、5 节已重写：一句话与状态表换成审查结论；第 4 节恢复 r2.2 中被合并丢失的条目（证据环境不同、外部语料无许可证、检测时任意输入、0.4.10 无静态二进制），并加入 key5、source_mapping 两种形式、tree_sitter 依赖、pragma 覆盖边界与编号笔误；第 5 节加入审查证据路径。
+
+结论：CP0 的数字全部可复现，SHA256、规则 A、升降序、1,692 个选定版本的区间与 D3 记录、678 对跨版本比较都与 Codex 一致；本环境 Slither 0.8.0 的节点指纹与 Codex 743/743 相同。Codex 的处理中，metadata 来源的更正、按多重集合保留重复 key4、停在 D16 都正确。问题在方案本身：D3 漏了顶层函数且没有合约覆盖检查；key4 不唯一（序号身份 678/678 稳定，改为 key5）；pragma 覆盖两处规定互相矛盾；CP0 的 toolchain 只能读 dict 形式 source_mapping，新版 Slither 下会报错。
+
+D16 补测：0.8.3 结构与 0.8.0 完全相同但不支持顶层 using 与全局运算符；0.9.6 六个特征全部通过、MANDO 无失败、只缺合成的常量构造函数节点；0.10.4/0.11.6 在 3 个 0.4.24 重入合约上崩溃且结构大幅变化。推荐 0.9.6 独立环境做生产，0.8.0 只做 6c 精确重放。新增 D18（补齐其余 59 个官方编译器）。
+
+下一步：用户决定 D5、D16、D18；Codex 执行 CP0.1（A 部分不需要授权，可先做）；Claude 审查后再进入 CP1。本轮没有模块代码改动、安装或 LLM 调用。详见 CHANGE_LOG §7。
