@@ -160,3 +160,52 @@
 - 路径核对：`PROMPTS.md` 与 `docs/` 中剩余的 `scripts/compile_repair` 只出现在描述 r1 的历史记录中。
 - 未执行：模块代码；任何运行。
 - 本轮提交并 push 到 `compile-repair`；不修改其他分支。停在文档建立完成，下一步仍为 CP0。
+
+---
+
+## 4. 2026-11-12 CompileRepair 方案 r2.2：面向检测时任意输入，去除对训练数据集的依赖（修改 AI：Claude）
+
+### 4.1 任务、依据与范围
+
+用户说明（2026-11-12）：本方案不只修复当前训练数据集中的问题，还要修复将来用模型检测时输入的损坏合约，因此不必只针对当前数据集中的问题，方案不限于该数据集。
+
+起始：`compile-repair@068433d0`，工作区干净。逐项检查 `PROMPTS.md` r2.1 中依赖某个数据集的设计（`grep` 关键词：阈值、metadata、0.4.25、--corpus、按 CP3 观察、846），找到以下几处：D6 用语料出现频率（≥ 1% 或 ≥ 20 个编译单元）决定是否实现规则；版本策略第 2 条只读取 DFG v2 的 SolidiFI metadata；第 4 条无 pragma 时以 MANDO 的 0.4.25 为默认；CLI 只有 `--files` 与 `--corpus mando`；CP0 只检查 846 个文件需要的编译器；CP3 的分类类别与 CP4 的破坏算子只来自已观察到的失败；CP6 只实现“达到阈值”的规则。
+
+修改：`compile_repair/PROMPTS.md`（r2.1 → r2.2）。记录：本节、`docs/HANDOVER.md`（第 0、1、4 节更新与第 6 节新记录）、`docs/DECISIONS.md`（D2、D5、D6 更新，新增 D16，历史 4 行）、`PROGRESS.md`。没有修改其他文件。
+
+### 4.2 实施方式和重要选择
+
+- 适用范围：0 节新增一段，写明面向检测时的任意输入（单文件、扁平化文件、多文件项目、片段），版本 0.4.12–0.8.x；语料只用于测试、评估与排列实现顺序。下限 0.4.12 来自证据 5（Slither 0.8.0 在 solc 0.4.11 时节点缺文件名）。
+- D6：覆盖范围改为由与语料无关的失败分类表决定。分类表的来源限定为有文档依据的内容。为此核对了 Solidity 文档“Using the compiler”页（docs.soliditylang.org v0.7.6；latest 版本页面不在本会话的抓取允许列表中，因此使用 v0.7.6）的“Error types”一节：13 种类型为 JSONError、IOError、ParserError、DocstringParsingError、SyntaxError、DeclarationError、TypeError、UnimplementedFeatureError、InternalCompilerError、Exception、CompilerError、FatalError、Warning；standard JSON 错误对象中 type、component、severity、message 为必有字段，sourceLocation、errorCode、formattedMessage 为可选字段。因此分类以错误类型与消息模板为主，errorCode 有则记录。
+- 判定准则：某类失败只要存在可确定性实施、且能被 D3 与 D7 机械检查验证的修复，就实现为规则；否则交给代理。出现频率只决定实现顺序。这比频率门槛更符合“检测时任意输入”的目标：门槛会让在训练或评估语料中少见、但在检测输入中可能出现的类别永远只能交给代理。代价是 CP6 的工作量可能增加，由 CP3 的分类表给出具体规模。分类表这种做法由 Claude 提出，用户可以调整。
+- 版本策略：第 2 条改为调用方可选提供的已知版本（Etherscan 验证记录、构建配置、MANDO 回归中的 SolidiFI metadata 都是实例），标志名改为 `known_version_below_slither_floor`。第 4 条无 pragma 时先用同一编译单元其他文件的 pragma，再按版本特征语法推断区间；特征只能来自官方 changelog 与 breaking changes 文档并逐条注明出处，举例中的 0.5.0（显式可见性与数据位置、移除 `throw`/`var`）与 0.8.0（默认检查算术）是这些文档中的条目。0.4.25 默认值保留为 MANDO 回归配置，以便与 6c 对照。
+- D16（新增）：6c 使用 Slither 0.8.0。它对较新 0.8.x 编译器输出的支持没有在本项目中验证过，所以不在方案中假定可用或不可用；CP0 第 5b 节用每个版本系列的小型手写合约测出，结果交用户决定（升级会使结果与 6c 不能直接对照）。
+- 入口：`cli repair <路径>...`，`--snippet`、`--known-version`、`--regression mando`；检测与评估同一入口，语料名只作统计标签与回归配置。这与 D1（一条流水线、不分模式）一致：`--regression mando` 只改变已知版本来源与无 pragma 默认值，不改变流程。
+- Prompt：CP0 改为“工具基线（全版本范围）与 MANDO 回归基线”，新增 5b 节；CP1 前提加入 D16，测试加入已知版本与版本特征推断；CP2 改为 MANDO 回归运行；CP3 新增第 0 节“失败分类表”，并要求不得删除有文档依据但语料中未出现的类别；CP4 破坏算子覆盖分类表中每个可构造的类别；CP6 实现分类表中判定为可确定性修复的全部类别。
+- D10 与共享上下文不变量中的“已校验的版本 metadata”统一改为“调用方提供的已知编译器版本（可选）”。
+- 更正：`HANDOVER.md` 第 1 节状态表在 r2.1 提交（068433d0）中仍写 r2，未随修订更新；本轮改为 r2.2，并在交接记录中写明。
+
+### 4.3 实测与数据结论
+
+本轮没有编译、Slither 或 LLM 运行。只做了文档核对：
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| solc 错误类型 | 13 种，名称见 4.2 | docs.soliditylang.org/en/v0.7.6/using-the-compiler.html |
+| standard JSON 错误字段 | 必有 type、component、severity、message；可选 sourceLocation、errorCode、formattedMessage | 同上 |
+| `PROMPTS.md` 中剩余“阈值”“--corpus”“已校验的版本 metadata” | 0 处 | `grep` |
+
+未证明：Slither 0.8.0 在 0.6–0.8 各版本上的可用性（D16，留给 CP0）；各类失败在检测输入中的真实分布（只能用评估语料近似）。
+
+### 4.4 用户批准、原文差异与待确认设计
+
+- 用户 2026-11-12 的说明是本轮修改的依据：D2 改为语料只用于测试与评估；D6 原则（不只针对当前数据集）视为用户决定，分类表方式与判定准则由 Claude 提出，用户可调整。
+- 仍待确认：D5（版本策略细节，本轮内容有更新）、D9、D10。待定：D12、D13、D16。原 D6 的阈值问题随本轮取消，不再需要确认。
+- 设计中其他部分（修复循环、两阶段代理、RAG、改动记录、代码结构）不变。
+
+### 4.5 验收、资源、未执行事项与停止
+
+- `python3 -B -m scripts.node_sem.doc_check --expect-cjk compile_repair/PROMPTS.md compile_repair/docs/HANDOVER.md compile_repair/docs/DECISIONS.md compile_repair/docs/CHANGE_LOG.md:18665 compile_repair/PROGRESS.md:2817`：5 个文件全部 passed=True（`HANDOVER.md`、`DECISIONS.md` 本轮既有更新也有追加，按整文件检查；`CHANGE_LOG.md`、`PROGRESS.md` 只追加，按追加前字节数检查）。写入本条后再次运行，结果相同才提交。
+- `PROMPTS.md` 中“阈值”“--corpus”“已校验的版本 metadata” 剩余 0 处。
+- 未执行：模块代码；任何运行。
+- 本轮提交并 push 到 `compile-repair`；不修改其他分支。下一步仍为 CP0。

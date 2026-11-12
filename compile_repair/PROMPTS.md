@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.1（2026-11-12；r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.2（2026-11-12；r2.1 同日，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -20,11 +20,20 @@
 2. 每个编码任务结束时必须按 `docs/README.md` 完成记录；记录只写在 `compile_repair/docs/`，禁止修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`（与 EdgeSem 并行追加会在合并时冲突；决策 D14）。
 3. 6c 的本地结果被 `.gitignore` 忽略，只存在于 EdgeSem 工作树；CP0/CP2 以绝对路径只读读取（决策 D15）。
 
+**r2.2 相对 r2.1 的修改**（用户 2026-11-12：模块不只修复当前训练数据中的问题，还要修复将来检测时输入的任意损坏合约，不应只针对当前数据集的问题设计）：
+1. 设计目标改为检测时的任意输入；所有语料（MANDO、DAppSCAN、SOChecker、Trace）只用于测试与评估，不决定模块覆盖哪些问题。MANDO 846 个文件降为与 6c 对照的回归基线（0 节“适用范围”、D2）。
+2. D6 改写：确定性方法覆盖的范围由与语料无关的失败分类表决定（solc 文档列出的 13 种错误类型 × 有文档依据的原因），某类失败只要存在可确定性实施且能被机械检查验证的修复就实现，不再以某个语料中的出现频率为门槛；频率只决定实现顺序（3.2 节、CP3）。
+3. 版本策略一般化（3.3 节）：“已知编译器版本”改为可选输入（MANDO 的 SolidiFI metadata 只是其中一种）；无 pragma 时按有文档依据的版本特征语法推断区间，MANDO 的 0.4.25 默认值只在回归运行中使用；支持范围为 0.4.12 至 0.8.x。
+4. 新增 D16：Slither 0.8.0 能否处理较新的 0.8.x 编译器输出尚未验证，由 CP0 探针测出；需要升级 Slither 时须用户决定（升级会使结果与 6c 不可直接对照）。
+5. 输入接口一般化：`cli repair <路径>` 接受单个文件、项目目录或片段文本（3.1 节、CP1）。CP0 增加全版本范围的编译器与 Slither 基线检查；CP2 改称 MANDO 回归运行；CP3 建立分类表；CP4 的破坏算子来自分类表而非只来自已观察到的失败。
+
 ---
 
 ## 0. 方案概述
 
-输入：一个 Solidity 文件，或一个项目中的一个编译单元（一个 `.sol` 文件及其传递导入闭包）。
+适用范围：模型检测阶段用户提供的任意 Solidity 合约，形式可以是单个文件、扁平化文件、多文件项目（有或没有 Hardhat/Truffle/Foundry 配置）或代码片段，版本 0.4.12 至 0.8.x。训练语料只是输入之一。模块的覆盖范围按与语料无关的失败分类表设计（D6）；各语料用于测试、评估与确定实现顺序。
+
+输入：一个 Solidity 文件，或一个项目中的一个编译单元（一个 `.sol` 文件及其传递导入闭包），或一段片段文本（作为单文件处理）。
 输出：能被 solc 编译且 Slither 0.8.0 能生成完整 CFG/CG/SlithIR 的源码集合（原文件不修改，改动作用在副本上）；逐字节的改动记录；每个文件的改动等级（无改动 / 只增加 / 改写）；Slither 图中来自新增或改写代码的节点标记；一条清单记录。
 
 流程（3.1 节）是一个循环：编译并读取错误 → 先试确定性方法（换编译器、补依赖、规范化、规则桩、结构补全）→ 仍失败时调用第一阶段代理（单模板 + RAG + 多个候选 + 以编译结果择优）→ 预算用尽仍失败时调用第二阶段多代理 → 每接受一个改动都重新进入循环（确定性方法会再跑一遍）→ 成功后用 Slither 判定（D3）并记录。
@@ -107,18 +116,19 @@
 | 编号 | 决策 | 状态 |
 |---|---|---|
 | D1 | 一条流水线处理所有输入，不分训练/检测模式；所有改动记录并标记，由下游决定使用方式 | 已定（用户） |
-| D2 | 语料：DAppSCAN 为主要评估语料；SOChecker 片段、Trace（on-chain、repo-level、CVEs）、MANDO 846 个文件与破坏-修复基准为辅 | 已定（用户） |
+| D2 | 语料：DAppSCAN 为主要评估语料；SOChecker 片段、Trace（on-chain、repo-level、CVEs）与破坏-修复基准为辅；MANDO 846 个文件是与 6c 对照的回归基线。所有语料只用于测试与评估，不决定覆盖范围 | 已定（用户；2026-11-12 明确语料不决定范围） |
 | D3 | 成功判据：编译单元在选定 solc 下退出码 0；Slither 构造成功；所有声明的函数与修饰器的每个 CFG 节点 source_mapping 的文件名属于该编译单元的输入文件、start 不为 None | 已定（证据 5） |
 | D4 | 跨版本节点身份用 key4；source length 只记录 | 已定（证据 6） |
-| D5 | 版本策略细节（3.3 节）：区间内升序；无 pragma 文件的处理 | 建议，待用户确认 |
-| D6 | 确定性方法先于代理；某类规则只有在 CP3 显示该失败类别达到阈值时才实现（建议阈值：占环境层后剩余失败的 ≥ 1%，或 ≥ 20 个编译单元；未达阈值的类别交给代理） | 原则已定（用户），阈值待确认 |
+| D5 | 版本策略细节（3.3 节）：区间内升序；已知版本作为可选输入；无 pragma 时按版本特征语法推断区间 | 建议，待用户确认 |
+| D6 | 确定性方法先于代理。覆盖范围由与语料无关的失败分类表决定（CP3 建立：solc 文档的 13 种错误类型 × 有文档依据的原因，来源为 Solidity 各版本 breaking changes 文档、导入解析规则、项目结构与截断）；某类失败只要存在可确定性实施、且能被 D3 与 D7 机械检查验证的修复，就实现为规则，否则交给代理。语料中的出现频率只决定实现顺序，不作门槛 | 原则已定（用户）；2026-11-12 起取消频率门槛（用户：不只针对当前数据集）；分类表方式由 Claude 提出，用户可调整 |
 | D7 | 允许新增与改写；改写只允许出现在编译错误定位到的行；每个文件记录改动等级（none / additive / rewrite），图中标记来自新增或改写字节的节点 | 已定 |
 | D8 | 第一阶段：单代理、一个模板、RAG、带原文校验的补丁格式、多候选、编译择优；第二阶段：失败分析、上下文扩展、2–3 个异构模型独立提议、工具裁决、至多一轮基于编译结果的交流 | 已定（用户） |
 | D9 | 审查代理（判断改写是否保持原行为）：不进入主流程，只作为 CP10 的消融项 | 建议，待用户确认 |
-| D10 | 决策输入：确定性方法只读源码文本、编译器与 Slither 结果、已校验的版本 metadata；LLM 输入中文件路径与文件名替换为匿名编号，注释在 LLM 视图中遮蔽（不改文件） | 建议，待用户确认 |
+| D10 | 决策输入：确定性方法只读源码文本、编译器与 Slither 结果、调用方提供的已知编译器版本（3.3 节第 2 条，可选）；LLM 输入中文件路径与文件名替换为匿名编号，注释在 LLM 视图中遮蔽（不改文件） | 建议，待用户确认 |
 | D11 | 代码结构规范（3.10 节） | 已定（用户） |
 | D12 | LLM 模型、API 与费用上限 | 待定，CP8 之前由用户指定 |
 | D13 | 哪个创新点使用这些图，以及是否存数据依赖 | 待定，CP10 之后再议 |
+| D16 | Slither 版本：6c 使用 0.8.0（2021 年发布），能否处理较新 0.8.x 编译器的输出未验证。CP0 用小型探针在每个已安装的小版本系列上测出；若较新版本不被支持，由用户决定升级 Slither（结果与 6c 不可直接对照）或把支持范围限定在测得可用的版本 | 待定，CP0 之后 |
 
 ---
 
@@ -141,6 +151,7 @@
 - 接受一个改动的条件：通过补丁校验（3.5 节）与 D7 规则，且编译错误数严格减少，或错误全部消失。错误数不再减少的轮次计入预算。
 - 所有改动作用在工作副本上；原文件只读。每个改动记录为（文件、原字节区间、新字节、来源步骤、轮次）。
 - Slither 判定失败（编译成功但节点缺文件名或偏移）视为失败，继续循环（通常由第 1 步换版本解决，证据 5）。
+- 输入形式：单个 `.sol` 文件；目录（按项目处理，由第 2 步确定编译单元）；片段文本（写入工作副本后按单文件处理）。检测时与评估时走同一入口 `cli repair <路径>`，不按语料分支；语料名只作为可选的统计标签与回归配置（例如 MANDO 回归使用 6c 的无 pragma 默认值）。
 
 ### 3.2 确定性方法
 
@@ -156,14 +167,14 @@
 | 8 | 结构补全：括号不平衡时在文件末尾补齐 | additive | SOChecker 使用 | rules/stubs.py |
 | 9 | 只在代码生成阶段出现的失败（例如 Stack too deep） | none | 未验证：Slither 能否只用 AST，或编译设置能否避免 | rules/environment.py |
 
-第 2–9 步按 D6 门槛决定是否实现；第 1、6 步在 CP1 实现。
+第 1、6 步在 CP1 实现。第 2–9 步以及表中没有列出的其他失败类别，按 CP3 建立的分类表（D6）逐类判定：有可确定性实施并能机械验证的修复就实现，否则交给代理；表中“证据状态”只表示已有的验证，不表示只处理已观察到的问题。
 
 ### 3.3 版本策略（第 1、6 步，D5）
 
 1. 合取区间 I：编译单元内所有文件的所有 `pragma solidity` 取交集，语义与 `scripts/DFG/state/stage_f/versioning.py::interval` 相同（`||` 与无法解析的表达式视为不支持）。实现时先 import 复用；不能复用时按共享上下文规则复制并做等价测试。
-2. metadata：若 DFG v2 输入记录中该文件有已校验的 recorded version 且在 I 内，作为第一候选；≤ 0.4.11 时记 `metadata_below_slither_floor` 并继续。
-3. 候选 C = 已安装可信版本 ∩ I ∩ [0.4.12, ∞) ∩ [lo, (lo 主版本, lo 小版本 + 1, 0))，lo 为 I 的下界。按升序尝试，第一个满足 D3 的版本为选定版本。
-4. 无 pragma：MANDO 语料沿用 0.4.25（6c 已获用户批准），失败再按 0.4.12–0.4.26 升序；其他语料若同一编译单元内其他文件有 pragma，按它们的区间；否则按已安装版本升序，记 `no_pragma_guess`。
+2. 已知版本（可选输入）：调用方可以为输入提供已知的编译器版本（例如 Etherscan 验证记录、构建配置中的版本、MANDO 回归中经 `versioning.py::recorded_version` 校验的 SolidiFI metadata）。在 I 内时作为第一候选；≤ 0.4.11 时记 `known_version_below_slither_floor` 并继续。没有已知版本时跳过此步。
+3. 候选 C = 已安装可信版本 ∩ I ∩ [0.4.12, ∞) ∩ [lo, (lo 主版本, lo 小版本 + 1, 0))，lo 为 I 的下界。按升序尝试，第一个满足 D3 的版本为选定版本。支持范围 0.4.12 至 0.8.x 的最新补丁版本；实际可用范围受 D16 约束。
+4. 无 pragma：先看同一编译单元内其他文件的 pragma，有则用它们的区间；否则按版本特征语法推断区间：特征与其引入或移除的版本只取自 Solidity 官方 changelog 与 breaking changes 文档（例如 0.5.0 起要求显式可见性与数据位置、移除 `throw`/`var`；0.8.0 起默认检查算术），推断规则与文档出处写在 rules/environment.py 并逐条测试；推断不出时按已安装版本升序。记 `no_pragma_inferred` 或 `no_pragma_guess`。MANDO 回归运行中按 6c 的已批准做法先试 0.4.25（回归配置，不是一般规则）。
 5. 下界所在系列全部失败且 I 跨越下一系列时，才在 I 内下一系列升序尝试，记 `crossed_minor`（与 `versioning.py::mode_for` 拒绝跨 0.5.0 的口径一致）。
 6. I 内没有可用编译器（例如精确 pragma 指向未安装、无法获取的版本）时，才使用第 6 步 pragma 覆盖，且只用同一小版本系列的版本，记 `pragma_overridden`。
 
@@ -213,7 +224,7 @@
 ### 3.9 评估（evaluation/）
 
 - 每一步的贡献：确定性方法逐步、第一阶段、第二阶段各修复多少编译单元（按语料、按失败类别）。
-- 破坏-修复基准：从可编译的编译单元中按 CP3 观察到的失败类别构造破坏（删除库、基类、接口、事件、括号等），修复后与原图按 key4、CFG 边、调用与 SlithIR 比较，并检查 added 标记是否只落在被删除的内容对应的节点上。
+- 破坏-修复基准：从可编译的编译单元中按 CP3 分类表的每一类构造破坏（删除库、基类、接口、事件、括号等；包括在现有语料中没有观察到、但分类表中列出的类别），修复后与原图按 key4、CFG 边、调用与 SlithIR 比较，并检查 added 标记是否只落在被删除的内容对应的节点上。
 - 外部语料：每个语料的修复率、改动等级分布、费用。
 - 消融：无 RAG / 去掉各个知识来源；候选数 N；单模型与异构模型；第二阶段与“给第一阶段同样额外预算”的对照；无失败分析；无交流轮；加入审查代理（D9）；LLM 视图中注释可见（D10）。
 - 下游检测结果（D13 之后）按改动等级分开报告。
@@ -326,7 +337,7 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 
 ## 不变量
 - 原始输入文件只读；所有改动作用在工作副本上，副本与原文件的差异必须与改动记录完全一致（测试检查）。
-- 确定性方法只读源码文本、编译器与 Slither 的运行结果、已校验的版本 metadata；不读文件名、目录名、任何标签或预测文件来做决定。类别目录与项目名只用于统计分组。
+- 确定性方法只读源码文本、编译器与 Slither 的运行结果、调用方提供的已知编译器版本（3.3 节第 2 条，可选）；不读文件名、目录名、任何标签或预测文件来做决定。类别目录与项目名只用于统计分组。
 - LLM 输入中的文件路径与文件名替换为匿名编号，注释在 LLM 视图中遮蔽（不改文件）。此条为 D10，待用户确认；CP8 之前确定，确定前不涉及 LLM。
 - 成功判据（D3）：编译单元在选定 solc 下退出码 0；Slither 构造成功；所有 functions_and_modifiers_declared 的每个节点 source_mapping 的文件名属于该编译单元的输入文件、start 不为 None。
 - 跨版本节点身份用 key4 =（合约名、函数 full_name、节点类型、起始字节偏移）；source length 只记录。
@@ -350,10 +361,12 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 失败就停，保留现场，不自动重试。
 ```
 
-### 4.2 CP0：MANDO 语料侦察与核对（只读）
+### 4.2 CP0：工具基线与 MANDO 回归基线（只读）
 
 ```text
-# CP0：MANDO 语料侦察与核对（只读：不改语料、不写存储）
+# CP0：工具基线（全版本范围）与 MANDO 回归基线（只读：不改语料、不写存储）
+
+说明：模块面向检测时的任意输入（PROMPTS.md 0 节“适用范围”）。本步第 3、5b 节检查整个支持范围（0.4.12–0.8.x）的编译器与 Slither；第 1、2、4、5 节用 MANDO 846 个文件建立与 6c 对照的回归基线，不用于决定模块覆盖范围。
 
 本步新建：compile_repair/__init__.py、toolchain/__init__.py、toolchain/solc.py（编译器清单、校验、调用、错误首行解析）、toolchain/slither.py（运行与 D3 判定）、evaluation/__init__.py、evaluation/survey.py（本步的调查函数）、core/__init__.py 与 core/model.py（只放本步需要的数据结构）、cli.py（survey 子命令）、tests/test_layering.py 及本步的测试。
 产出 compile_repair/RECON.md、compile_repair/artifacts/cp0_v1/recon.json 与 compile_repair/CP0_REPORT.md。每条结论附命令、路径、SHA 或计数。
@@ -370,7 +383,9 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 
 ## 3. 编译器清单
 - ~/.solc-select/artifacts 中已安装的版本与 SHA256，与 trusted_compilers_complete.json（EdgeSem 工作树，只读）的对应。
-- 按 PROMPTS.md 3.3 节的候选集合，列出 846 个文件需要但未安装的版本及涉及的文件数。不要安装；需要时停下报告。
+- 支持范围 0.4.12–0.8.x：按小版本系列（0.4、0.5、0.6、0.7、0.8）列出已安装与未安装的版本。已发布版本清单的来源写明（例如 solc-select 的版本列表或 ethereum/solidity 发布页）；无法在不联网的情况下取得时记为“未取得”，不猜测。
+- 按 PROMPTS.md 3.3 节的候选集合，另列出 846 个文件（回归基线）需要但未安装的版本及涉及的文件数。
+- 不要安装；把需要安装的版本清单与理由写入报告后停下，请求授权。
 
 ## 4. 编译矩阵（只用已安装可信版本）
 - 每个文件、候选集合中每个已安装版本：solc 退出码与错误首行。说明调用方式（是否经 crytic-compile）及与 validate_slither 的一致性。
@@ -381,9 +396,14 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 至少有两个版本通过 D3 的文件，再用最高版本跑一次，比较 key4、SlithIR 与 source length。
 - 记录每次运行耗时，估计 CP2 全量运行时间。
 
+## 5b. Slither 0.8.0 在各版本系列上的可用性（D16 的证据）
+- 在 compile_repair/tests/fixtures/ 写小型手写合约，每个小版本系列一组，覆盖：状态读写、函数调用、修饰器、事件、外部调用、继承；0.6 起加 try/catch，0.8 起加 unchecked 块与自定义错误（只用该系列文档中存在的语法）。
+- 对每个已安装版本编译并运行 Slither 0.8.0，按 D3 判定；记录失败版本、失败位置与错误信息。
+- 不升级、不安装 Slither。若较新版本失败，在报告中列出受影响的版本范围，作为 D16 的输入后停下。
+
 ## 6. 结论
 - 与第 0–3 节及 cr_pre_v1 证据不一致之处，逐一说明是否影响方案；影响方案的，停下报告。
-- 给出 CP1 的参数：需要授权安装的编译器（如有）、升序与降序的差异数、回归比较键。
+- 给出 CP1 的参数：需要授权安装的编译器（支持范围与回归基线分别列出）、Slither 0.8.0 可用的版本范围（D16）、升序与降序的差异数、回归比较键。
 - 列出本步新建的文件，确认都在 3.10 节目录表中，test_layering 通过。
 ```
 
@@ -392,7 +412,9 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 ```text
 # CP1：core 层、版本策略、修复循环骨架（只含第 1、6 步）
 
-前提：CP0 已通过审查；需要的编译器已由用户授权安装并核验（否则停下）。
+前提：CP0 已通过审查；需要的编译器已由用户授权安装并核验（否则停下）；D16 已由用户决定。
+
+本步实现的是一般输入的修复入口，不针对任何语料；MANDO 只作为第 5 节的回归样本。
 
 ## 1. core/
 - model.py：编译单元、编译结果、补丁、改动、清单记录的数据结构（只放数据，不放流程）。
@@ -400,17 +422,17 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - store.py：产物目录（拒绝覆盖）、清单写入、seal（全部产物 SHA256、工具版本、代码提交号）。
 
 ## 2. rules/environment.py
-- 第 1 步：3.3 节第 1–5 条；区间计算先 import versioning.interval 复用，不能复用时复制并对 846 个文件逐一做等价测试。
+- 第 1 步：3.3 节第 1–5 条；区间计算先 import versioning.interval 复用，不能复用时复制并对 846 个文件逐一做等价测试。第 4 条的版本特征推断：每条规则注明 Solidity 官方 changelog 或 breaking changes 文档中的出处（版本与条目），没有出处的特征不得加入。
 - 第 6 步：3.3 节第 6 条（等长空格替换，同一小版本系列；改动记录为 rewrite）。
 - 不读文件名、目录名、注释或标签（测试：同一源码以不同文件名与目录调用，候选列表相同）。
 
 ## 3. pipeline.py 与 cli.py
 - pipeline：3.1 节循环，本步只接入第 1、6 步；没有其他方法时直接记为未修复。
-- cli：repair 子命令（--files 或 --corpus mando，--output 产物目录，--order ascending|descending）。
+- cli：`repair <路径>...`（一个或多个 .sol 文件；`--snippet <文本文件>` 把文本作为单文件处理；目录输入在 CP3 实现 toolchain/project.py 之前报告“暂不支持”并以非零退出）；`--known-version <x.y.z>`（可选，3.3 节第 2 条）；`--output <产物目录>`；`--order ascending|descending`；`--regression mando`（回归配置：读取经校验的 SolidiFI metadata 作为已知版本，无 pragma 先试 0.4.25；只在回归运行中使用）。检测时与评估时都走这一入口。
 
 ## 4. 测试
 - 区间：`^`、`~`、`=`、`>=`/`<` 组合、两条 pragma、无 pragma、`||`、空交集。
-- 候选：metadata 在区间内/外/≤ 0.4.11；下界 < 0.4.12；开放上界限制在下界系列；crossed_minor 只在本系列全部失败时出现；pragma 覆盖只在区间内无可用编译器时出现且保持字节偏移。
+- 候选：已知版本在区间内/外/≤ 0.4.11/未提供；无 pragma 时每条版本特征推断规则至少一个正例与一个反例；`--regression mando` 与一般入口只在回归配置项上不同；下界 < 0.4.12；开放上界限制在下界系列；crossed_minor 只在本系列全部失败时出现；pragma 覆盖只在区间内无可用编译器时出现且保持字节偏移。
 - D3：用 cr_pre_v1/probes 与一个能被 0.4.11 编译的小合约构造“编译成功但缺文件名”的情形，断言判为失败并继续下一个候选（0.4.11 未安装则该测试 skip 并记录）。
 - provenance：副本与原文件的差异与改动记录一致；additive 检查能发现被改动的原字节。
 - test_layering。
@@ -420,15 +442,15 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 验收：样本中 D3 失败数为 0；每个文件的选定版本与 CP0 第 4 节预测相同。
 ```
 
-### 4.4 CP2：MANDO 全量运行、存储与检查
+### 4.4 CP2：MANDO 回归运行、存储与检查
 
 ```text
-# CP2：MANDO 全量运行、存储、回归与审计
+# CP2：MANDO 回归运行、存储与检查（与 6c 对照的回归基线，不决定模块覆盖范围）
 
 前提：CP1 已通过审查。
 
 ## 1. 全量运行
-- cli repair --corpus mando，产物 compile_repair/artifacts/cr_store_mando_v1/：清单、每个编译单元的存储（3.8 节，报告中给出 schema）、seal。toolchain/slither.py 增加图序列化。
+- cli repair --regression mando（输入为 846 个 source_files），产物 compile_repair/artifacts/cr_store_mando_v1/：清单、每个编译单元的存储（3.8 节，报告中给出 schema）、seal。toolchain/slither.py 增加图序列化。
 - 失败文件只进清单，不进存储；若失败数不为 0，停下报告。
 
 ## 2. 回归（6c 已比较的 239 个文件）
@@ -441,10 +463,16 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 按类别目录统计版本来源、选定版本系列、各标志的数量。不读标签。
 ```
 
-### 4.5 CP3：外部语料获取与失败分类
+### 4.5 CP3：失败分类表、外部语料获取与分类
 
 ```text
-# CP3：外部语料获取与失败分类（只读：不修复）
+# CP3：与语料无关的失败分类表；外部语料获取与分类（只读：不修复）
+
+## 0. 失败分类表（先于语料统计建立）
+- 来源只限有文档依据的内容：solc 文档“Error types”一节列出的 13 种类型（JSONError、IOError、ParserError、DocstringParsingError、SyntaxError、DeclarationError、TypeError、UnimplementedFeatureError、InternalCompilerError、Exception、CompilerError、FatalError、Warning）；Solidity 0.5.0、0.6.0、0.7.0、0.8.0 的 breaking changes 文档逐条；solc 的导入路径解析与 remapping 规则；项目结构（多文件、闭包内版本冲突）；源码截断与扁平化产物。文档需要下载时，列出版本标签与路径写入 authorization 请求后停下。
+- 表的每一行：类别名、对应的 solc 错误类型与消息模板（有 errorCode 时一并记录；errorCode 在 standard JSON 中是可选字段）、原因、文档出处、候选修复方式（确定性 / 代理）、确定性修复的验证方式（D3、D7 中哪几项）。
+- 下文第 3 节的类别名是初始集合；分类表可以增加类别，不得删除有文档依据但在语料中未出现的类别。
+- 表写入 compile_repair/artifacts/cp3_v1/taxonomy.json 与 CP3_REPORT.md；分类规则写在 toolchain/solc.py，测试覆盖每一类（用 tests/fixtures 中的手写合约，不依赖语料中是否出现）。
 
 ## 1. 获取（需要授权）
 - 列出要获取的语料、仓库与提交（PROMPTS.md 1.4 节：DAppSCAN 66a56619…、SOChecker 5e56d754…、Trace 4260215b…）、预计大小与存放路径，写入 authorization 请求后停下。用户授权后获取，记录每个文件的 SHA256，并核对 cr_pre_v2/README.md 中的计数（项目数、文件数、import 统计、版本分布）；不一致时报告。
@@ -457,7 +485,7 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 编译单元数量过大使运行时间超过用户批准的上限时，按项目分层、文件 SHA256 排序后 Random(0) 抽样，记录抽样比例。
 
 ## 3. 只跑第 1、6 步之后的失败分类
-- 每个编译单元：第 1、6 步后是否满足 D3；不满足的，按 solc 错误类型与消息模板分类到：unresolved_package_import、missing_relative_file、undeclared_identifier、missing_base_contract、duplicate_definition、multiple_license_or_pragma、encoding、unbalanced_structure、parser_error_other、type_error_other、codegen_only（例如 Stack too deep）、closure_version_conflict（闭包内各文件区间交集为空）、slither_incomplete、other。分类规则写在 toolchain/solc.py，测试覆盖每一类。
+- 每个编译单元：第 1、6 步后是否满足 D3；不满足的，按第 0 节分类表分类（初始类别：unresolved_package_import、missing_relative_file、undeclared_identifier、missing_base_contract、duplicate_definition、multiple_license_or_pragma、encoding、unbalanced_structure、parser_error_other、type_error_other、codegen_only（例如 Stack too deep）、closure_version_conflict（闭包内各文件区间交集为空）、slither_incomplete、other）。落入 other 的消息模板逐一列出，作为扩充分类表的依据。
 - 每类给出：编译单元数、占剩余失败的比例、各语料分布、3 个以 SHA256 标识的示例（不贴源码）。
 - 包导入：按包名与导入路径统计，作为第 3 步库索引的范围依据。
 - 缺失的相对导入：在同一项目内按文件名查找候选，统计可唯一找到、多个候选、找不到的数量（只统计，不修改）。
@@ -467,17 +495,17 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 第 9 步：codegen_only 类别中，Slither 能否在只生成 AST 的设置下工作，或编译设置能否避免该错误。
 
 ## 5. 结论
-- 按 D6 阈值（用户确认后的值）列出应实现与不实现的第 2–9 步；未达阈值的类别交给代理。
-- 给出 CP4 基准的破坏算子清单（每个算子对应一个达到阈值的失败类别）。
+- 按 D6 对分类表逐类判定：有可确定性实施、且能被 D3 与 D7 机械检查验证的修复，列为规则（写明修复方式、改动等级与验证方式）；否则交给代理。语料中的出现频率只用于排列实现顺序，不作为是否实现的条件。
+- 给出 CP4 基准的破坏算子清单：分类表中每一个能由删除或修改可编译代码构造出来的类别都要有算子，包括语料中未观察到的类别。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）
 
 | Prompt | 范围 | 代码位置 | 验收要点 |
 |---|---|---|---|
-| CP4 破坏-修复基准 | 按 CP3 的算子清单，从 MANDO 846 与 DAppSCAN 可编译单元构造破坏样本，保存原图作为真值 | evaluation/benchmark.py | 每个算子的样本数与构造规则；真值图与 CP2 存储一致 |
+| CP4 破坏-修复基准 | 按 CP3 的算子清单（覆盖分类表中每个可构造的类别），从 DAppSCAN、Trace 与 MANDO 846 的可编译单元构造破坏样本，保存原图作为真值 | evaluation/benchmark.py | 每个算子的样本数与构造规则；真值图与 CP2 存储一致 |
 | CP5 项目组装与依赖 | 第 2–4 步：离线库索引（需授权下载库发布版并记录校验和）、DAI 两步兼容检查扩展到 0.4 与 CP3 统计的包、缺失文件搜索 | toolchain/project.py、rules/dependencies.py | 外部语料与基准上每步修复数；additive 检查全部通过 |
-| CP6 规范化、规则桩、结构补全、codegen 设置 | 第 5、7、8、9 步中达到阈值的部分 | rules/normalize.py、rules/stubs.py、rules/environment.py | 同上；规则桩只加声明，不加函数体 |
+| CP6 规范化、规则桩、结构补全、codegen 设置及分类表新增的确定性规则 | CP3 分类表中判定为可确定性修复的全部类别（第 5、7、8、9 步及新增类别） | rules/normalize.py、rules/stubs.py、rules/environment.py | 同上；规则桩只加声明，不加函数体 |
 | CP7 RAG 知识库 | K1（需授权下载对应版本文档）、K2（复用 CP5 索引）、K3（留一项目）；精确键与 BM25 检索 | rag/knowledge.py、rag/retrieve.py | 基准上正确知识进入前 k 的比例；K3 留一检查 |
 | CP8 第一阶段代理 | 3.5 节；先用模拟 LLM 完成全部测试，再在用户授权的模型与费用上限内小样本运行 | agents/llm.py、prompt.py、patch.py、stage1.py；pipeline 接入 | 补丁原文校验拒绝不匹配的改动；匿名化与注释遮蔽测试；基准与外部语料修复率、费用 |
 | CP9 第二阶段多代理 | 3.6 节 | agents/stage2.py | 与“第一阶段同等额外预算”的对照；交流轮只在全部失败时出现 |

@@ -22,3 +22,9 @@
 - `PROMPTS.md` 改为 r2.1：每个编码任务结束时必须按 `docs/README.md` 完成记录；记录只写在 `compile_repair/docs/`，禁止修改根目录两份记录文档（D14）；6c 被忽略的本地结果从 EdgeSem 工作树以绝对路径只读读取（D15）。设计不变。
 - `REPORT_TEMPLATE.md` 增加指向记录规则的说明。
 - 没有模块代码，没有运行。下一步仍为 CP0。详见 `docs/CHANGE_LOG.md` §3。
+
+## 方案 r2.2（Claude，2026-11-12）
+
+- 用户说明模块要修复检测时输入的任意损坏合约，不只针对当前训练数据集。`PROMPTS.md` 改为 r2.2：新增适用范围；D6 取消频率门槛，改为按与语料无关的失败分类表逐类判定；版本策略中已知版本改为可选输入、无 pragma 按文档出处推断；入口统一为 `cli repair <路径>`；CP0 增加全版本范围检查与 Slither 可用性探针（新增 D16）；CP2 改为 MANDO 回归运行；CP3 先建分类表；CP4、CP6 覆盖分类表全部类别。
+- 记录：`docs/CHANGE_LOG.md` §4、`docs/HANDOVER.md`、`docs/DECISIONS.md`。
+- 没有模块代码，没有运行。下一步仍为 CP0。

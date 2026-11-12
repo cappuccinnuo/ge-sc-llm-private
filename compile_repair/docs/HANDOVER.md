@@ -7,18 +7,18 @@
 
 ## 0. 一句话
 
-CompileRepair 是 MANDO-LLM 私有仓库中的编译修复模块：对任意 Solidity 合约（单文件或项目中的编译单元），先用确定性方法、仍失败时用 LLM 代理，使 solc 可编译、Slither 0.8.0 能生成完整的 CFG/CG/SlithIR，并记录每一处改动、在图中标记来自改动的节点。当前（2026-11-12）只有方案与证据，没有任何模块代码。
+CompileRepair 是 MANDO-LLM 私有仓库中的编译修复模块：对模型检测时用户提供的任意 Solidity 合约（单文件、扁平化文件、多文件项目或片段；不限于训练数据集），先用确定性方法、仍失败时用 LLM 代理，使 solc 可编译、Slither 0.8.0 能生成完整的 CFG/CG/SlithIR，并记录每一处改动、在图中标记来自改动的节点。当前（2026-11-12）只有方案与证据，没有任何模块代码。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案 | `PROMPTS.md` r2（2026-11-11） | 提交 bfd23e83 |
+| 方案 | `PROMPTS.md` r2.2（2026-11-12） | 本轮提交；r2 为 bfd23e83，r2.1 为 068433d0 |
 | 模块代码 | 0 个文件（3.10 节计划 29 个非测试 `.py`，上限 30） | `git ls-tree` |
 | 已完成的 Prompt | 无 | `PROGRESS.md` |
-| 下一步 | CP0（MANDO 语料侦察与核对，只读） | `PROMPTS.md` 4.2 节 |
-| 待确认决策 | D5、D6 阈值、D9、D10；待定 D12、D13 | `DECISIONS.md` |
-| CP0 是否被待确认决策阻塞 | 否 | CP0 不涉及版本策略细节、规则阈值与 LLM |
+| 下一步 | CP0（工具基线与 MANDO 回归基线，只读） | `PROMPTS.md` 4.2 节 |
+| 待确认决策 | D5、D9、D10；待定 D12、D13、D16 | `DECISIONS.md` |
+| CP0 是否被待确认决策阻塞 | 否 | CP0 不涉及版本策略细节与 LLM；D16 由 CP0 提供证据 |
 
 ## 2. 分支与工作树
 
@@ -55,7 +55,9 @@ export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
 5. **仓库默认规则 `auto_version_solc.py` 只取 pragma 中第一个版本号、只试一次。** 在 MANDO 846 个文件上它导致 39 个文件不通过；在区间内换版本后 39/39 可编译（`artifacts/cr_pre_v1` 证据 2、3）。
 6. **证据环境与用户环境不同**（GitHub 静态 solc、Python 3.8、直接调用 solc）。`artifacts/cr_pre_v1`、`cr_pre_v2` 的数字都须由 CP0/CP3 在用户环境复核。
 7. **外部语料仓库（DAppSCAN、SOChecker、Trace）都没有 LICENSE 文件。** 使用范围由用户决定；语料放在仓库之外，不提交。
-8. **记录只写在 `compile_repair/docs/`。** 不修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`（避免与 EdgeSem 合并冲突，见 `README.md`）。
+8. **模块面向检测时的任意输入，不只修复训练数据中的问题。** 覆盖范围由与语料无关的失败分类表决定（D6），语料只用于测试与评估；MANDO 846 个文件是与 6c 对照的回归基线（`PROMPTS.md` 0 节“适用范围”）。
+9. **Slither 0.8.0 对较新 0.8.x 编译器的支持未验证**（D16），CP0 第 5b 节测出。
+10. **记录只写在 `compile_repair/docs/`。** 不修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`（避免与 EdgeSem 合并冲突，见 `README.md`）。
 
 ## 5. 关键路径
 
@@ -99,3 +101,13 @@ r2 的设计：一条流水线处理所有输入；九步确定性方法先于�
 同时修订 `PROMPTS.md` r2 的共享上下文与 CP0：记录改写到 `compile_repair/docs/`，并禁止修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`（与 EdgeSem 并行追加会在合并时冲突）；写明 6c 被 git 忽略的本地结果只在 EdgeSem 工作树中，CP0 以绝对路径只读读取。修订记为 r2.1，设计内容不变。
 
 本轮没有模块代码、没有运行编译或 LLM。全部新文档通过 `doc_check`。详见 `CHANGE_LOG.md` §3。
+
+### 2026-11-12 CompileRepair 方案 r2.2：面向检测时任意输入，去除对训练数据集的依赖（修改 AI：Claude）
+
+用户说明本方案不只修复当前训练数据集中的问题，还要修复将来模型检测时输入的任意损坏合约，不应只针对当前数据集设计。据此把 `PROMPTS.md` 从 r2.1 改为 r2.2，只修改该文件；同时按记录规则更新本文件、`CHANGE_LOG.md`、`DECISIONS.md` 与 `PROGRESS.md`。
+
+主要修改：0 节新增“适用范围”（检测时的任意输入，0.4.12–0.8.x）；D6 取消“占剩余失败 ≥ 1% 或 ≥ 20 个编译单元”的频率门槛，改为按与语料无关的失败分类表逐类判定（有可确定性实施并能机械验证的修复就实现，否则交给代理，频率只排顺序）；分类表来源限定为 solc 文档的 13 种错误类型（已核对 v0.7.6 文档“Error types”一节）与 0.5–0.8 各版本 breaking changes 等有文档依据的内容；版本策略中“metadata”改为调用方可选提供的已知版本，无 pragma 时按文档有出处的版本特征推断区间，MANDO 的 0.4.25 默认值只作回归配置；入口统一为 `cli repair <路径>`；CP0 增加全版本范围编译器清单与 Slither 可用性探针，CP2 改为 MANDO 回归运行，CP3 先建分类表，CP4 破坏算子覆盖分类表中每个可构造类别。
+
+新增 D16：Slither 0.8.0（6c 使用的版本）能否处理较新 0.8.x 编译器的输出未验证，由 CP0 测出后用户决定。顺带更正：本文件第 1 节状态表在 r2.1 提交中仍写着 r2，本轮改为 r2.2；第 0、1、4 节（一句话、状态表、必读事项第 8–10 条）均已更新。
+
+本轮没有模块代码、没有编译或 LLM 运行，所有文档通过 `doc_check`。下一步仍为 CP0。详见 `CHANGE_LOG.md` §4。
