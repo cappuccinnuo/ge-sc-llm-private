@@ -2926,3 +2926,19 @@ EP0e 312/347的历史库召回门槛仍未通过；r8允许独立EP1，本轮没
 8/8显存探针、1/1 G4R-A 50轮范数试点、20/20正式G3R全部完成验收。正式各50轮，共1000轮，无训练失败/重试。原名S0主视图，匿名接口备用。best BF1十折均值±样本SD：重入99.729±0.206%、访问控制99.203±1.080%；last分别99.788±0.171%、99.568±0.269%，主结果仍取best。
 
 报告：scripts/edge_sem/EP7_ORIGINAL_REPORT.md；逐折/OOF：scripts/edge_sem/artifacts/ep7_original_v1/results/；资源、独立复算和完整性收据：同批次completion_attempt2/。当前是后续边增强需要的新G3R基线，尚未证明边增强分类收益。与8H差值同时受原名/匿名、初值和停止规则影响，仅描述。最终实验上显存充足的服务器，本机限制仅属本地试验。未启动EP8/EP9，未推送GitHub。
+
+
+## 2026-11-11 — EP8 原名主批与匿名敏感性批：登记及准备恢复
+
+按用户更新的 PROMPTS r16 继续 EP8。原名是唯一主终点：2个节点任务×3个剖面（G3R-T、G4R、G4R-P）×10折，新增60次；复用EP7原名G3R的20次。N-anon-s为描述性敏感性批：2×4剖面×10折，新增80次，不进入Holm族。先主批再敏感性批，独立plan/seal/authorization，不自动进入EP9。选择原文“Original + anonymized check”及来源已写入ep8_v1/decisions.json，新登记在protocol_p2/registration.json，历史EP7文件不改。
+
+用户已批准两项接入：call_068df1e5a5b44c43930a9e7fb1018a34允许显式区分E-A主批/敏感性批，保留旧EP7校验分支；call_545e729cd68640a39272d166dc807d0e允许仅在CPU准备中从未训练原名模型安装封存匿名token，每个任务/剖面先对比完整装配，逐位核对参数、特征、边张量、图指纹、绑定及support。正式训练仍独立进程、使用原完整装配和冻结数值路径。
+
+当前已验收EP7的20个原名基线，三套CPU回归通过：EdgeSem 340、NodeSem 1353、DFG 2653；优化后的定向测试37项通过。初始准备目录保留16份完整job记录，其中6对双视图已完成；经用户批准停止旧CPU准备，在preparation_attempt2继续，绝不覆盖旧产物。首个重入G3R-T真实装配一致性已通过，其余证明及140项准备仍在运行，尚无EP8正式fit结果。
+
+恢复入口：python -B -m scripts.edge_sem.recon.ep8_run prepare --root scripts/edge_sem/artifacts/ep8_v1 --preparation-name preparation_attempt2。该命令已在独立后台进程运行，勿重复启动；查preparation_attempt2_process.json与同名log。完成后将写preparation_index.json指向验收通过的新索引，再封存两批计划。任何失败保留现场并停止，不自动重试。
+
+最终实验将使用显存充足的服务器；当前显存限制仅来自本机RTX3050 4GiB。本批只做两个节点先导任务，不自动扩展合约任务、其余类别、seed或模型。当前未推送GitHub。
+
+
+EP8恢复补记：同一recon入口增加finish-preparation后台衔接，等待已批准的CPU准备结束；只有六组逐位证明、80份唯一零步初值、三套回归、39项最终定向检查和冻结文件核验通过，才封存并按本轮“实现EP8、继续中断任务”的指令生成独立执行授权。登记提交在授权之前。衔接直接调用既有seal/authorize/run与执行器，不另造训练路径；失败与重复启动反例通过。全部初值及准备记录完成前不启动GPU拟合。此处记录的是执行顺序，不是结果已完成。

@@ -42,6 +42,31 @@ def validate_view(job,plan=None):
 def validate_plan_view(plan):
     view=selected_view(plan)
     registration=read(checked(plan["registration"]))
+    if plan.get("experiment_stage") is not None:
+        if plan["experiment_stage"] != "E-A" or registration.get("experiment_stage") != "E-A":
+            raise ValueError("Unknown experiment stage")
+        if plan.get("scope","formal") != "formal":
+            raise ValueError("E-A only permits formal-fit scope")
+        role=plan.get("analysis_role")
+        expected={"primary":("original",("G3R-T","G4R","G4R-P")),
+                  "sensitivity":("anonymous",("G3R","G3R-T","G4R","G4R-P"))}
+        if role not in expected or view != expected[role][0]:
+            raise ValueError("E-A batch role/view differs")
+        batch=registration.get("batches",{}).get(role,{})
+        if (registration.get("primary_endpoint",{}).get("view") != "original"
+                or batch.get("view") != view or batch.get("profiles") != list(expected[role][1])
+                or batch.get("holm_member") is not (role=="primary")):
+            raise ValueError("E-A endpoint/registration differs")
+        keys=[(j["task_id"],j["fold"],j["edge_profile"]) for j in plan["jobs"]]
+        required={(t,f,p) for t in ("reentrancy_node","access_control_node")
+                  for f in range(10) for p in expected[role][1]}
+        if len(keys)!=len(required) or set(keys)!=required:
+            raise ValueError("E-A requires the exact complete batch matrix")
+        if role=="sensitivity" and not plan.get("prior_main_plan"):
+            raise ValueError("Sensitivity requires its primary predecessor")
+        if not plan.get("baseline_plan"):
+            raise ValueError("E-A historical baseline binding missing")
+        return view
     expected_endpoint="original" if view=="original" else "N-anon-s"
     if (registration.get("feature_policy")!=FEATURE_POLICIES[view]
             or registration.get("primary_endpoint",{}).get("view")!=expected_endpoint):

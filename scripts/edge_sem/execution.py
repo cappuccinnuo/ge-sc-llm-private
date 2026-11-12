@@ -157,6 +157,9 @@ def create(batch_dir,matrix):
         final_server_intent="Final experiments use a server with sufficient VRAM; current constraints are local only.")
     if view!="anonymous":plan["token_view"]=view
     if "view_revision" in matrix:plan["view_revision"]=matrix["view_revision"]
+    for field in ("experiment_stage","analysis_role","baseline_plan","prior_main_plan"):
+        if field in matrix:plan[field]=matrix[field]
+    validate_plan_view(plan)
     authorization=dict(version=VERSION,execution_authorized=False,scope=plan["scope"],jobs=[job_id(j) for j in jobs],
         matrix_sha256=digest(jobs),user_request=None)
     write(batch/"authorization.json",authorization);plan["authorization"]=ref(batch/"authorization.json")
@@ -198,9 +201,37 @@ def authorized(path,plan,scope="formal",archive=False):
         or not approval.get("user_request") or approval.get("jobs")!=[job_id(j) for j in plan["jobs"]]):
         raise PermissionError("Execution approval identity differs")
     from .protocol_p2 import require_decisions,require_registration_commit
-    require_decisions(checked(approval["decisions"]),selected_view(plan))
+    require_decisions(checked(approval["decisions"]),selected_view(plan),plan.get("experiment_stage"))
     if not archive:require_registration_commit(plan["registration"],approval["registration_commit"])
     if plan["scope"]!=scope:raise PermissionError("Execution scope differs")
+    if plan.get("experiment_stage")=="E-A":
+        if approval.get("analysis_role")!=plan["analysis_role"]:
+            raise PermissionError("E-A approval batch role differs")
+        if approval.get("baseline_plan")!=plan["baseline_plan"]:
+            raise PermissionError("E-A approval baseline differs")
+        checked(plan["baseline_plan"])
+        if plan["analysis_role"]=="sensitivity":
+            previous=checked(plan["prior_main_plan"])
+            prior=read(previous)
+            if (prior.get("experiment_stage")!="E-A" or prior.get("analysis_role")!="primary"
+                    or prior.get("registration")!=plan["registration"]):
+                raise PermissionError("Sensitivity predecessor identity differs")
+            completed=previous.parent/"complete.json"
+            if not completed.is_file():raise PermissionError("Primary batch must complete first")
+            data=read(completed)
+            if (data.get("plan")!=plan["prior_main_plan"] or data.get("passed") is not True
+                    or len(data.get("receipts",[]))!=60):
+                raise PermissionError("Primary batch completion differs")
+            if read(completed.with_suffix(".seal.json")).get("complete")!=ref(completed):
+                raise ValueError("Primary batch completion seal differs")
+            for prior_job, item in zip(prior["jobs"], data["receipts"]):
+                receipt_path=checked(item["receipt"])
+                receipt=read(receipt_path)
+                if (item.get("job")!=prior_job or receipt.get("job")!=prior_job
+                        or receipt.get("plan")!=plan["prior_main_plan"]
+                        or receipt.get("status")!="complete"
+                        or read(receipt_path.with_name("receipt.seal.json")).get("receipt")!=ref(receipt_path)):
+                    raise ValueError("Primary result receipt differs")
     prerequisites=approval.get("prerequisites",[])
     required_scopes={"gpu_probes":set(),"norm_pilot":{"gpu_probes"},"formal":{"gpu_probes","norm_pilot"}}[scope]
     if len(prerequisites)!=len(required_scopes) or {read(checked(p)).get("scope") for p in prerequisites}!=required_scopes:
@@ -572,6 +603,12 @@ def controller(path):
                 raise ValueError("Existing completion differs")
         else:
             write(complete, payload)
+        if plan.get("experiment_stage")=="E-A":
+            seal=complete.with_suffix(".seal.json")
+            value=dict(complete=ref(complete),plan=ref(path))
+            if seal.exists():
+                if read(seal)!=value:raise ValueError("Completion seal differs")
+            else:write(seal,value)
     return accepted
 
 

@@ -1102,3 +1102,21 @@ D1匿名主视图、D2 P2协议、D3七类冻结仍须训练前确认，原名�
 - 报告附加脚本曾将正式状态写成success，实际为complete；completion/保留失败和旧源码，completion_attempt2/按真实接口通过。没有改正式验收器或重训。
 - 既有4318项回归和原名修订26项定向测试保留，本次未重复运行。新增工作是结果独立复算、归档核验和文档UTF-8/CJK检查。
 - 训练命令：python -u -B -m scripts.edge_sem.recon.ep7_run --root scripts/edge_sem/artifacts/ep7_original_v1。CPU历史核验：python -B -m scripts.edge_sem.recon.ep7_original frozen。
+
+
+## 2026-11-11 — EP8 登记与CPU准备恢复（尚未完成正式拟合）
+
+范围按PROMPTS r16：原名60新fit+复用EP7原名G3R20份，匿名敏感性80新fit，主批先行，匿名不进Holm。只新增analysis_ea.py与recon/ep8_run.py；修改execution/feature_views/protocol_p2/runtime接入角色登记，旧训练数值函数AST不变，冻结目录不改。
+
+已完成：用户选择及双视图登记写入ep8_v1；20份EP7基线checkpoint/预测/指标只读核验通过。全CPU回归340+1353+2653通过；稀疏diagnostics接口修正35项定向通过，准备优化37项定向通过。首个重入G3R-T快/完整装配逐位证明通过。
+
+已批准选择：call_068df1e5a5b44c43930a9e7fb1018a34显式区分主批与敏感性批；call_545e729cd68640a39272d166dc807d0e仅准备阶段安装封存匿名token，须每任务/剖面先与完整构建证明一致。后者保留旧准备16份完整记录及初值，停自有CPU进程，新preparation_attempt2继续；正式训练仍独立进程完整装配。新索引通过独立preparation_index.json/seal引用，保留旧目录及源码。
+
+开发差异：属性诊断是稀疏异常清单，首个分析检查错误假设其全覆盖；已保留旧脚本/失败、改成子集合法且外来/重复拒绝，第二次只读检查通过，未改任何旧属性。规则预测不等于漏洞标签，L-audit仍是冻结诊断标签。
+
+当前恢复进程：preparation_attempt2_process.json；命令python -B -m scripts.edge_sem.recon.ep8_run prepare --root scripts/edge_sem/artifacts/ep8_v1 --preparation-name preparation_attempt2，勿重复运行。后续全部准备验收→封存两个计划→登记提交后授权→原名60→匿名80→160结果核验与EP8报告。任何失败停止，不自动重试。此处不宣称训练已完成。
+
+最终实验在显存充足的服务器运行；本机RTX3050 4GiB仅用于先导。不启动EP9、更多seed、类别或合约任务。三份历史文档前缀保留，暂未推送。
+
+
+EP8恢复补记：同一recon入口增加finish-preparation后台衔接，等待已批准的CPU准备结束；只有六组逐位证明、80份唯一零步初值、三套回归、39项最终定向检查和冻结文件核验通过，才封存并按本轮“实现EP8、继续中断任务”的指令生成独立执行授权。登记提交在授权之前。衔接直接调用既有seal/authorize/run与执行器，不另造训练路径；失败与重复启动反例通过。全部初值及准备记录完成前不启动GPU拟合。此处记录的是执行顺序，不是结果已完成。

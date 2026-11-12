@@ -10915,3 +10915,23 @@ CPU检查：新增11项视图测试，连同15项现有核心/执行策略共26�
 - 报告附加脚本曾将正式状态写成success，实际为complete；completion/保留失败和旧源码，completion_attempt2/按真实接口通过。没有改正式验收器或重训。
 - 既有4318项回归和原名修订26项定向测试保留，本次未重复运行。新增工作是结果独立复算、归档核验和文档UTF-8/CJK检查。
 - 训练命令：python -u -B -m scripts.edge_sem.recon.ep7_run --root scripts/edge_sem/artifacts/ep7_original_v1。CPU历史核验：python -B -m scripts.edge_sem.recon.ep7_original frozen。
+
+
+## 2026-11-11 — EP8 / E-A：双视图登记、准备优化与核验细节（执行中）
+
+起点HEAD为6053886d4b8eb2d7e6d42e1882367dcc40f8f114，分支edge-sem，已快进核对远程并读r16。新增生产文件仅analysis_ea.py与recon/ep8_run.py；现有execution.py、feature_views.py、protocol_p2.py、runtime.py作最小接入。未复制训练器、评分器或另建执行器。assemble_model、construct、binding_parts、fit_one、_verify_result的函数AST与EP8前快照相同；trainer.py未改。
+
+1. 原名主终点仍为reentrancy_node best BF1。60个新主批fit；匿名敏感性80个新fit。各自plan/seal/authorization，主批完整验收后才能启动敏感性批。G3R原名基线20份只读核验通过；匿名G3R直接引用EP7未训练初值。不改变50轮、patience51、最低inner_val loss选best、最后一轮last、fold/seed/标签/优化器/OneCycle。
+2. 按r16记录用户选择“Original + anonymized check”，明确来源于用户提供的文档§4.10及EP7原名决定。用户call_068df1e5a5b44c43930a9e7fb1018a34选择“同意显式区分主批与敏感性批（推荐）”：E-A增加experiment_stage/analysis_role，匿名不再被强制登记为主视图；旧EP7登记、D1、校验分支仍保留。敏感性前置条件绑定主计划、完成seal及60个收据，不把旧EP7授权冒充本批授权。
+3. 首次CPU准备每次完整装配约80–140秒，双视图重复开销大。用户call_545e729cd68640a39272d166dc807d0e选择“同意先证明一致，再省去重复装配（推荐）”。只停止自有准备PID1419978，保留preparation/、16份已完成job与全部初值；在preparation_revision_v2保留批准记录和修改前后源码，在preparation_attempt2继续。保留的完整记录先核对SHA、零步身份、模板字段和视图来源；完整双视图对可直接引用，不重训。
+4. 优化仅用于准备：深拷贝未训练CPU原名模型，使用冻结assemble核验匿名token来源与行身份，重建inp；G4R-P的源图token和source_fingerprint同步变更，随机边及其审计不变。每任务×派生剖面的首个实例仍执行完整匿名装配，对所有参数、节点/边张量、NX图指纹、checkpoint绑定和support逐项相等后才允许后续使用。已训练、有梯度、非CPU模型被拒绝；原模型与磁盘图不变。正式worker不调用这个快捷方法。
+5. 新旧初值必须对应同折同剖面参数逐位一致；两视图直接引用同一文件。G4R/G4R-P同折初值摘要也必须相同。140项准备共引用80份唯一初值，其中24份来自EP7，其余56份在EP8各attempt产生；重试保留的孤立文件不计入已验收索引。preparation_index.json/seal仅在全部验收后指向成功attempt，旧目录不覆盖。
+6. 分析直接import冻结diagnostics8c.scoring与experiment.stats：按身份对齐，best主、last辅；报告逐折均值/SD、差值、零差折、错误数/减少率、pooled计数、SolidiFI/非SolidiFI分层、Wilson P/R、冻结名称规则、两条F4/attrs无学习规则、困难案例与资源。H1取G4R−G3R-T及G4R−G4R-P两项原始p的较大者，Holm待EP9，匿名在族外。零错误分母记null，未知规则来源不当不存在；名称规则是原名审计参照，两视图同值，不称匿名输入的预测器。
+7. 开发时发现属性diagnostics只列异常/缺口，并非每条边一行。首次只读分析检查保存在analysis_input_check_attempt1；修正为拒绝重复/外来key、允许诊断为属性行子集，attempt2通过。未修改属性、事实、模型或训练结果。两任务只读规则检查的state-write节点数2254/766，无caller guard正例1185/441，跨调用路径至写入正例368/183；这些是规则预测数，不能解释为真实漏洞个数。
+8. CPU全回归：EdgeSem340、NodeSem1353、DFG2653均通过（cpu_tests_v1/results.json）；后续稀疏诊断修正35项定向通过，准备优化后37项定向通过。快/完整装配真实六组证明另写preparation_attempt2/equivalence，目前仍在推进。旧750份源码、2302份历史文件、8H load及_code_refs进行只读核验；三份文档只追加。
+9. 本节记录的是准备与接入，不是140次fit已完成。独立准备进程启动记录preparation_attempt2_process.json；seal/authorize/run由同一ep8_run入口提供，授权记录须在登记提交后生成。失败停止、不自动重试、不降配、不自动进入EP9，最终服务器实验另建批次，显存充足；当前限制仅因本机。
+
+实际CPU命令：CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64 /home/zhao/miniconda3/envs/mando/bin/python -B -m scripts.edge_sem.recon.ep8_run prepare --root scripts/edge_sem/artifacts/ep8_v1 --preparation-name preparation_attempt2。
+
+
+EP8恢复补记：同一recon入口增加finish-preparation后台衔接，等待已批准的CPU准备结束；只有六组逐位证明、80份唯一零步初值、三套回归、39项最终定向检查和冻结文件核验通过，才封存并按本轮“实现EP8、继续中断任务”的指令生成独立执行授权。登记提交在授权之前。衔接直接调用既有seal/authorize/run与执行器，不另造训练路径；失败与重复启动反例通过。全部初值及准备记录完成前不启动GPU拟合。此处记录的是执行顺序，不是结果已完成。

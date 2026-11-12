@@ -19,13 +19,23 @@ def decisions_for_view(token_view="anonymous"):
     return result
 
 
-def require_decisions(path,token_view="anonymous"):
+EA_D1 = "Original-name S0 is the sole primary endpoint; N-anon-s is a preregistered descriptive sensitivity check outside the Holm family"
+
+
+def require_decisions(path,token_view="anonymous",experiment_stage=None):
     data=read(path)
     if read(Path(path).with_suffix(".seal.json")).get("decisions")!=ref(path):
         raise ValueError("Decision seal differs")
     if not data.get("user_request") or not data.get("date"):raise ValueError("Missing explicit user decisions")
     if set(data.get("decisions",{}))!=set(DECISIONS):raise ValueError("D1-D3 missing")
-    for name,text in decisions_for_view(token_view).items():
+    expected = decisions_for_view(token_view)
+    if experiment_stage is not None:
+        if experiment_stage != "E-A" or data.get("experiment_stage") != experiment_stage:
+            raise ValueError("Decision experiment stage differs")
+        expected["D1"] = EA_D1
+    elif data.get("experiment_stage") is not None:
+        raise ValueError("Stage-specific decisions cannot authorize a legacy plan")
+    for name,text in expected.items():
         row=data["decisions"][name]
         if row.get("status")!="confirmed" or row.get("value")!=text:raise ValueError("Decision not confirmed: "+name)
     return data
