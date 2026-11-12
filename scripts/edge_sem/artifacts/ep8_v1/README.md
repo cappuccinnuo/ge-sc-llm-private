@@ -51,3 +51,12 @@ run会自动汇总；analyze只用于尚不存在results目录时的独立汇总
     python -B -m scripts.edge_sem.recon.ep8_run finish-preparation --root scripts/edge_sem/artifacts/ep8_v1 --registration-commit COMMIT --request-file APPROVAL_JSON
 
 该入口等待准备进程结束，验收后封存和授权，再调用原run路径。followup_started/failure/complete记录可定位状态；不得重复运行。
+
+
+## EP8 GitHub 同步快照（2026-11-12 06:01 UTC）
+
+140项初值准备及CPU验收已完成，6组真实任务/剖面的快捷装配与完整装配逐位一致。两个计划分别封存为原名主批60次和匿名敏感性批80次。后台当前正在执行原名主批；本次固定快照收录11个已完成正式拟合，匿名批为0个。该数量仅表示快照时刻，不是EP8完成结论；最终报告尚未生成。
+
+同步范围包括已提交的EP8实现、测试及文档，以及准备索引、初值身份摘要、独立计划/seal、执行授权和上述11次的完整文本收据、预测、指标与资源记录。逐份核对收据/seal、任务归属和所有收据产物SHA（含仅留本地的权重）；没有重训或修改运行代码。未完成attempt、活动日志和锁不纳入快照；pt权重/初值张量仍保留本地，不上传。明细见 scripts/edge_sem/artifacts/ep8_v1/github_sync_20261112T060127Z.json。
+
+后台仍按原名60次验收后再执行匿名80次的既定顺序运行，失败停止，不自动重试。最终实验将在显存充足的服务器运行；当前资源限制仅来自本机，本次未更改模型、训练设置或批次身份。
