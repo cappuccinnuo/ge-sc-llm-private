@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2（2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.1（2026-11-12；r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -14,6 +14,11 @@
 5. 文献核对结论写入设计：被核对的 8 个 LLM 编译修复系统都没有按错误类别设计不同提示模板（1.5 节），所以只用一个修复模板，差异来自检索内容与定位到的代码；多代理第二阶段不采用“提议后讨论投票”，而采用失败分析、上下文扩展、异构模型独立提议、由编译器裁决（1.5 节）。
 6. 新增代码结构规范（3.10 节）：功能内聚、分层目录、适度模块化、非测试代码文件数受控。
 7. Prompt 重新编号：CP0–CP2 沿用 r1 内容（路径更新、按 3.10 节组织代码）；新增 CP3（外部语料获取与失败分类）至 CP10。
+
+**r2.1 相对 r2 的修改**（设计不变）：
+1. 新增 `compile_repair/docs/`：`README.md`（记录规则与模板）、`HANDOVER.md`（交接文档）、`CHANGE_LOG.md`（运行与改动记录）、`DECISIONS.md`（决策记录）。格式沿用 NodeSem 在仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md` 中的写法。
+2. 每个编码任务结束时必须按 `docs/README.md` 完成记录；记录只写在 `compile_repair/docs/`，禁止修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`（与 EdgeSem 并行追加会在合并时冲突；决策 D14）。
+3. 6c 的本地结果被 `.gitignore` 忽略，只存在于 EdgeSem 工作树；CP0/CP2 以绝对路径只读读取（决策 D15）。
 
 ---
 
@@ -54,6 +59,7 @@
 - 结果：重入 131 可比较 / 8 solc 失败 / 3 映射不可比；访问控制 108 / 3 / 3。11 个 solc 失败全部是 pragma_derived；6 个不可比文件使用 0.4.0/0.4.2/0.4.9，Slither 输出缺 CFG filename（含 simple_dao、parity_wallet_bug_2）。Slither 分析失败 0。
 - 完整报告只在用户本地：`scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/slither_full/report.json`（151,967,233 字节，SHA256 `db56b7066430813540e468c900283414bf49c5e7c1f519cded8a874a760fd2a6`），seal `report.seal.json`（SHA256 `91e054c9cdd2331b7f21bc48e195a394d6034ffe85f878daa8fb013c9431e49c`）。数字来自 `edge-sem` 分支 `scripts/edge_sem/artifacts/ep6_v1/compiler_history.json`。
 - 可信编译器清单：`scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/trusted_compilers_complete.json`（本地）；`validate_slither.py::inspect_environment` 读取 `~/.solc-select/artifacts`。
+- 以上 `report.json`、`report.seal.json`、`trusted_compilers_complete.json` 在 `edge-sem` 分支中都未被跟踪（`.gitignore` 第 24 行 `*.json`），新建的 `compile-repair` 工作树中不存在；只能从 EdgeSem 工作树 `/home/zhao/SmartContract/ge-sc-llm-ddg-v11/` 下的同一相对路径只读读取（D15）。
 
 ### 1.3 MANDO 语料的编译复现（证据：`cr_pre_v1/`；环境与 6c 不同：GitHub 静态 solc 0.4.11–0.5.17、Python 3.8、直接 `solc <文件>`，须由 CP0 在用户环境复核）
 
@@ -256,6 +262,7 @@ compile_repair/
     benchmark.py         # 破坏-修复基准
     report.py            # 指标、消融表、报告
   tests/                 # 不计入文件上限
+  docs/                  # 交接、运行与改动记录、决策记录（只放 .md）
   artifacts/             # 数据与证据，不计入文件上限（cr_pre_v1、cr_pre_v2 中的证据脚本也不计入）
 ```
 
@@ -300,12 +307,21 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 代码：compile_repair/（3.10 节的目录）
 - 测试：compile_repair/tests/（fixtures 在 compile_repair/tests/fixtures/）
 - 产物：compile_repair/artifacts/<批次名>/，拒绝覆盖已存在目录。cr_pre_v1、cr_pre_v2 是 Claude 的证据目录，只读，不导入其中脚本。
-- 进度：compile_repair/PROGRESS.md 每个 Prompt 结束追加一节（做了什么、文件清单、测试命令与结果、验收数字、遗留问题、与 PROMPTS.md 不一致之处及处理）。每个 Prompt 另写 compile_repair/CPn_REPORT.md，格式见 compile_repair/REPORT_TEMPLATE.md。同时在 HANDOVER.md 与 docs/training_changes_2026-10-07.md 末尾追加简短记录。三份记录文件只追加，不改旧文。
+- 记录（强制）：每个编码任务（执行任何 CPn，含中途停下；Prompt 之外的修复或补测；产生新产物的运行）结束时、提交之前，按 compile_repair/docs/README.md 完成全部记录，缺一项不得提交：
+  1. compile_repair/docs/CHANGE_LOG.md 追加一个编号小节，五段写全（任务、依据与范围 / 实施方式和重要选择 / 实测与数据结论 / 用户批准、原文差异与待确认设计 / 验收、资源、未执行事项与停止）；
+  2. compile_repair/docs/HANDOVER.md 第 6 节追加交接记录；当前状态、下一步或必读事项有变化时同时更新第 0–5 节，并在交接记录中写明改了哪几条；
+  3. compile_repair/PROGRESS.md 追加一节（做了什么、文件清单、测试命令与结果、验收数字、遗留问题、与 PROMPTS.md 不一致之处及处理），并写 compile_repair/CPn_REPORT.md（格式见 compile_repair/REPORT_TEMPLATE.md）；
+  4. 决策状态有变化时更新 compile_repair/docs/DECISIONS.md；
+  5. 对所有新建或追加的文档运行 doc_check，结果写进 CHANGE_LOG 第 5 段。
+  记录只追加，不改旧文；每个数字给出来源；没运行的写“未运行”；写明修改者（修改 AI：Codex）。不得修改仓库根目录 HANDOVER.md 与 docs/training_changes_2026-10-07.md。
+- 开始每个 Prompt 前先读 compile_repair/docs/HANDOVER.md 第 0–5 节与 CHANGE_LOG.md 最新一节。
 
 ## 禁止修改（以及禁止新增）
 1. scripts/** 下的任何文件，也不得在其中新增文件（包括 scripts/DFG、scripts/node_sem；本分支没有 scripts/edge_sem，也不得新建）。
 2. 原作者代码：process_graphs/**、sco_models/**、node_classifier.py、graph_classifier.py、infer_smart_contract.py、experiments/*.py、auto_version_solc.py。
 3. 语料 experiments/ge-sc-data/**（只读）与外部语料目录（只读）；所有已有产物、图、标签、折、特征、checkpoint、plan/seal。
+4. 仓库根目录 HANDOVER.md 与 docs/training_changes_2026-10-07.md（本模块的记录写在 compile_repair/docs/）。
+5. EdgeSem 工作树 /home/zhao/SmartContract/ge-sc-llm-ddg-v11 中的任何文件：只能读取 PROMPTS.md 1.2 节列出的 6c 本地结果，先核对 SHA256，不复制、不移动、不修改，不在其中执行 git 命令。
 复用时用 import、子类化或组合。必须改变冻结函数的行为时，复制到 compile_repair 的对应模块，函数旁注明来源路径与原文件 SHA256，并加测试证明在旧输入上与原函数输出相同。禁止 monkeypatch。
 
 ## 不变量
@@ -324,11 +340,11 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - auto_version_solc.py（规则 A，只作对照，不修改）
 
 ## 工作方式
-- 每个 Prompt 只做它的范围。代码事实与本文不一致时以代码为准，在 PROGRESS.md 记录；如果影响方案，停下来报告，不自行换方案。
+- 每个 Prompt 只做它的范围。代码事实与本文不一致时以代码为准，在 PROGRESS.md 与 docs/CHANGE_LOG.md 记录；如果影响方案，停下来报告，不自行换方案。中途停下时同样按“记录（强制）”完成记录后再提交。
 - 每个 Prompt 结束时运行（CPU）：
   python -B -m pytest -q -p no:cacheprovider compile_repair/tests
   python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
-  并核对：git status 中除 compile_repair/ 与两份记录文档外没有已跟踪文件改动；scripts/DFG 下的 experiment.run._code_refs() 未变化；非测试 .py 文件数 ≤ 30。
+  并核对：git status 中除 compile_repair/ 外没有已跟踪文件改动；scripts/DFG 下的 experiment.run._code_refs() 未变化；非测试 .py 文件数 ≤ 30；“记录（强制）”五项已完成且 doc_check 通过。
   全部通过后 git commit，提交信息以 CPn 开头。
 - 不启动任何 HGT 训练，不读写 GPU 锁。
 - 失败就停，保留现场，不自动重试。
@@ -344,7 +360,7 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 
 ## 1. 输入身份
 - 846 个 source_files 的路径与 SHA256 清单；与 cr_pre_v1/compile_repro.json 的文件集合逐一对照。
-- 6c 报告与 seal 的 SHA256 是否与 PROMPTS.md 1.2 节一致；6c 的 256 个文件与本清单的对应关系（按 SHA256）。
+- 6c 报告与 seal（从 EdgeSem 工作树以绝对路径只读读取，见 1.2 节与共享上下文禁止修改第 5 条）的 SHA256 是否与 PROMPTS.md 1.2 节一致；6c 的 256 个文件与本清单的对应关系（按 SHA256）。
 - 6c 的 43 个 metadata 文件：来源记录在哪里（文件与字段），recorded version 的取值分布，其中 ≤ 0.4.11 的数量。
 
 ## 2. 与 6c 逐文件核对
@@ -353,7 +369,7 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 读取 6c 报告的结构，提出 CP2 回归比较所用的键（只描述，不预设），说明它能否不依赖 source length 区分节点。
 
 ## 3. 编译器清单
-- ~/.solc-select/artifacts 中已安装的版本与 SHA256，与 trusted_compilers_complete.json 的对应。
+- ~/.solc-select/artifacts 中已安装的版本与 SHA256，与 trusted_compilers_complete.json（EdgeSem 工作树，只读）的对应。
 - 按 PROMPTS.md 3.3 节的候选集合，列出 846 个文件需要但未安装的版本及涉及的文件数。不要安装；需要时停下报告。
 
 ## 4. 编译矩阵（只用已安装可信版本）
@@ -471,5 +487,5 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 
 ## 5. 与其他分支的关系
 
-- 本分支只新增 compile_repair/ 与两份记录文档的追加内容，与 edge-sem 没有文件交集。
+- 本分支只新增 compile_repair/，与 edge-sem 没有文件交集（记录写在 compile_repair/docs/，不追加仓库根目录的记录文档）。合并到集成分支时，在根目录 HANDOVER.md 追加一段指向 compile_repair/docs/ 的说明。
 - 接入某个创新点（D13）在 EdgeSem 完成并冻结结果之后进行：新建集成分支，图来源作为配置开关；EdgeSem 在旧存储上的结果作为基线。
