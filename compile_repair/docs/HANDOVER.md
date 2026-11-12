@@ -1,72 +1,62 @@
 # CompileRepair 交接文档
 
-> 新接手（包括新的 Codex 或 Claude 会话）请先读本文第 0–5 节，再读 `../PROMPTS.md`（方案与 Prompt）、`DECISIONS.md`（决策状态）和 `CHANGE_LOG.md` 的最新一节。记录规则与模板见 `README.md`。
-> 第 0–5 节描述当前状态，状态变化时更新；第 6 节“交接记录”只追加。
-
----
+> 新接手请先读本文第 0–5 节、PROMPTS.md r2.1、DECISIONS.md 和 CHANGE_LOG 最新节。第 6 节只追加；记录规则见 README.md。
 
 ## 0. 一句话
 
-CompileRepair 是 MANDO-LLM 私有仓库中的编译修复模块：对任意 Solidity 合约（单文件或项目中的编译单元），先用确定性方法、仍失败时用 LLM 代理，使 solc 可编译、Slither 0.8.0 能生成完整的 CFG/CG/SlithIR，并记录每一处改动、在图中标记来自改动的节点。当前（2026-11-12）只有方案与证据，没有任何模块代码。
+CompileRepair 在 MANDO-LLM 上实现可审计的 Solidity 编译修复；当前已完成 CP0 前置调查与工具封装，因缺少必需 solc 0.4.17 停止，尚未完成全量 CP0，不可进入 CP1。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案 | `PROMPTS.md` r2（2026-11-11） | 提交 bfd23e83 |
-| 模块代码 | 0 个文件（3.10 节计划 29 个非测试 `.py`，上限 30） | `git ls-tree` |
-| 已完成的 Prompt | 无 | `PROGRESS.md` |
-| 下一步 | CP0（MANDO 语料侦察与核对，只读） | `PROMPTS.md` 4.2 节 |
-| 待确认决策 | D5、D6 阈值、D9、D10；待定 D12、D13 | `DECISIONS.md` |
-| CP0 是否被待确认决策阻塞 | 否 | CP0 不涉及版本策略细节、规则阈值与 LLM |
+| 方案 | PROMPTS r2.1（2026-11-12） | 起始 HEAD 068433d0 |
+| 模块代码 | 9 个生产 Python 文件，3 个测试文件、1 个 fixture | CP0_REPORT.md |
+| 已完成的 Prompt | 无；CP0 完成前置核验，完整验收未完成 | cp0_v1/recon.json |
+| 当前阻塞 | 精确 pragma 0.4.17 的 1 份合约无已安装可信候选 | RECON.md §4 |
+| 下一步 | 用户批准后补齐 0.4.17，并新增独立信任清单；继续 CP0 矩阵编排与全量验收 | compiler_installation_request.json |
+| 测试 | CP0 21 passed；DFG v2 2653 passed、9 warnings | 开发产物测试日志 |
+| 待确认决策 | D5、D6 阈值、D9、D10、D16；待定 D12、D13 | DECISIONS.md |
 
 ## 2. 分支与工作树
 
-- 分支 `compile-repair`，从 `node-sem@306c135b` 切出，与 `edge-sem` 起点相同，不含 EdgeSem 代码。本分支只新增 `compile_repair/`，与其他分支没有文件交集。
-- 用户的 EdgeSem 工作树：`/home/zhao/SmartContract/ge-sc-llm-ddg-v11`（来源：`edge-sem` 分支 `scripts/edge_sem/PROMPTS.md` 共享上下文）。不得在其中切换分支。
-- 本模块的工作树（建议）：`/home/zhao/SmartContract/ge-sc-llm-compile`。在 EdgeSem 工作树中执行一次：
-
-```bash
-cd /home/zhao/SmartContract/ge-sc-llm-ddg-v11
-git fetch origin compile-repair
-git worktree add /home/zhao/SmartContract/ge-sc-llm-compile -b compile-repair origin/compile-repair
-git worktree list
-```
+- 独立工作树已存在：`/home/zhao/SmartContract/ge-sc-llm-compile`，分支 `compile-repair`。不要重复创建或在 EdgeSem 中执行 git 操作。
+- 起始 HEAD 为 `068433d0cfa3367fe09cd1f94f78319eeff3c6d0`。本轮 pull 因 WSL DNS 失败，已通过连接的 GitHub 工具核对远端 HEAD 相同；未修改网络配置。
+- 本分支改动只在 compile_repair/；根目录交接/训练改变文档、scripts/**、输入语料、旧产物保持原样。本地检查点提交后不 push。
 
 ## 3. 环境
 
 ```bash
-conda activate mando          # Python 3.7.12（与 EdgeSem/NodeSem 相同环境）
+conda activate mando
 cd /home/zhao/SmartContract/ge-sc-llm-compile
 export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
 ```
 
-- solc：用 solc-select 安装在 `~/.solc-select/artifacts`，两个工作树共用；6c 已安装并核验 26 个版本（SHA256 与 Keccak256）。不得切换全局版本，一律传可执行文件路径。
-- Slither 0.8.0、crytic-compile 0.2.4（6c 记录的版本）。
-- 不得安装、升级、下载任何东西，除非用户在 `compile_repair/artifacts/<批次>/authorization.json` 中授权。
-- CP0–CP7 只用 CPU；CP0 运行 846 个文件 × 多个编译器版本的 solc 与 Slither，会与 EdgeSem 训练争用 CPU，时间敏感时在两次训练之间运行。
+Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4、solc-select 1.0.4。26 个现有编译器已核验；新工作树没有 tree-sitter 动态库，使用上面的既有库路径，不复制或编译库。Windows 侧以明确的 `wsl.exe -d Ubuntu-22.04 --cd ... --exec ...` 执行；Python 脚本含中文时设置 PowerShell `$OutputEncoding = [System.Text.UTF8Encoding]::new()`。安装、下载或升级需独立授权；本轮读取授权不包含安装。
 
-## 4. 必读事项（已知的坑）
+## 4. 必读事项
 
-1. **6c 的本地结果只在 EdgeSem 工作树中。** `scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/` 下的 `slither_full/report.json`、`slither_full/report.seal.json`、`trusted_compilers_complete.json` 被 `.gitignore` 的 `*.json` 规则忽略，新工作树中不存在。CP0/CP2 必须用绝对路径 `/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1/...` 只读读取，并先核对 `PROMPTS.md` 1.2 节记录的 SHA256；不得复制、移动或修改。
-2. **`.gitignore` 忽略 `*.json` 与 `*.txt`。** 需要提交的 JSON/TXT 产物要用 `git add -f`（EdgeSem 与本模块证据目录都是这样提交的）。
-3. **solc ≤ 0.4.11 时 Slither 0.8.0 的节点没有文件名。** 编译成功不等于可用；成功判据是 D3（`PROMPTS.md` 第 2 节）。这是 6c 中 6 个“映射不可比”文件的原因（`artifacts/cr_pre_v1` 证据 5）。
-4. **0.4.10 及更早版本在 GitHub 发布页没有静态 Linux 二进制**（0.4.10 返回 404）。用户本机的 solc-select 来源不同，CP0 需在本机核实可得性。
-5. **仓库默认规则 `auto_version_solc.py` 只取 pragma 中第一个版本号、只试一次。** 在 MANDO 846 个文件上它导致 39 个文件不通过；在区间内换版本后 39/39 可编译（`artifacts/cr_pre_v1` 证据 2、3）。
-6. **证据环境与用户环境不同**（GitHub 静态 solc、Python 3.8、直接调用 solc）。`artifacts/cr_pre_v1`、`cr_pre_v2` 的数字都须由 CP0/CP3 在用户环境复核。
-7. **外部语料仓库（DAppSCAN、SOChecker、Trace）都没有 LICENSE 文件。** 使用范围由用户决定；语料放在仓库之外，不提交。
-8. **记录只写在 `compile_repair/docs/`。** 不修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`（避免与 EdgeSem 合并冲突，见 `README.md`）。
+1. 6c 的报告、seal 和可信编译器清单只在 EdgeSem 工作树，按固定 SHA256 先验证再只读。用户已额外批准两份 contract sources.json 及 metadata 引用的来源源码/CSV；精确范围见 `artifacts/cp0_development_v1/metadata_read_authorization.json`，不含标签/图/模型。
+2. 43 metadata 实际全部来自 SmartBugs versions.csv，PROMPTS §1.2 的 SolidiFI 描述有误；更正在 RECON，未改原文。
+3. solc 编译成功不足以满足 D3。真实测试中 0.4.11 的 5 个节点全部缺 filename，0.4.13 正常。
+4. `denial_of_service/source_files/0xea68d87ae3a55ba91c1a8e6488627a175be81588.sol` 精确要求 0.4.17；这是唯一无候选输入。不能用其他版本或改 pragma 绕过；安装请求尚待批准。
+5. 当前 survey 仅完成前置编排与停止归档，工具封装已测；缺口消除后仍要实现全量矩阵/选版/跨版本统计。已有 cp0_v1 不得覆盖或重跑，后续用新批次。
+6. 6c occurrence 没有 node.type/原始 SlithIR，不能直接作为完整 CFG/CG 基线；CP2 的回归键建议见 RECON §6，待审查。
+7. `.gitignore` 忽略 JSON/TXT。只显式暂存要提交的证据；开发 pytest 临时目录含大量回归样本，不要整体 git add。首轮失败日志保留，不覆盖历史。
+8. 记录只写本模块 docs/，中文文档用 Python UTF-8 写入并通过 doc_check。没有 HGT 训练、GPU 锁、下载或 LLM 调用。
 
 ## 5. 关键路径
 
 | 内容 | 路径 |
 |---|---|
-| 方案与 Prompt | `compile_repair/PROMPTS.md` |
-| 证据（MANDO 编译与 Slither） | `compile_repair/artifacts/cr_pre_v1/README.md` |
-| 证据（外部语料结构） | `compile_repair/artifacts/cr_pre_v2/README.md` |
-| 报告模板 | `compile_repair/REPORT_TEMPLATE.md` |
-| 可复用的冻结模块 | `scripts/DFG/state/stage_f/versioning.py`、`scripts/DFG/dfg_v2/validate_slither.py`、`scripts/DFG/dfg_v2/inputs.py` |
-| 文档检查工具 | `python -B -m scripts.node_sem.doc_check` |
+| 完整要求 | compile_repair/PROMPTS.md |
+| CP0 当前报告 | compile_repair/CP0_REPORT.md、RECON.md |
+| 正式停止现场 | compile_repair/artifacts/cp0_v1/recon.json、seal.json |
+| 开发基线、测试、授权范围 | compile_repair/artifacts/cp0_development_v1/ |
+| 待批准安装请求 | compile_repair/artifacts/cp0_development_v1/compiler_installation_request.json |
+| 旧证据 | compile_repair/artifacts/cr_pre_v1/、cr_pre_v2/ |
+| 记录规范 | compile_repair/docs/README.md |
 
 ---
 
@@ -99,3 +89,14 @@ r2 的设计：一条流水线处理所有输入；九步确定性方法先于�
 同时修订 `PROMPTS.md` r2 的共享上下文与 CP0：记录改写到 `compile_repair/docs/`，并禁止修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`（与 EdgeSem 并行追加会在合并时冲突）；写明 6c 被 git 忽略的本地结果只在 EdgeSem 工作树中，CP0 以绝对路径只读读取。修订记为 r2.1，设计内容不变。
 
 本轮没有模块代码、没有运行编译或 LLM。全部新文档通过 `doc_check`。详见 `CHANGE_LOG.md` §3。
+
+
+### 2026-11-12 CompileRepair CP0 前置核验检查点（修改 AI：Codex）
+
+在独立 compile-repair 工作树、起始 HEAD 068433d0 上，先读 PROMPTS r2.1 §4.1 与 docs 当前交接/最新变更，再实现 CP0 前置调查和 solc/Slither 封装。新增 9 个生产模块、3 个测试和 1 个 fixture，完整清单见 CP0_REPORT。根目录记录、冻结 scripts、源码语料、旧证据和 EdgeSem 文件未修改。本次更新本文第 0–5 节的当前状态、工作树、环境、已知问题与关键路径；第 6 节此前记录逐字保留。
+
+cp0_v1 正式调查一次：846 输入集合核对、256 份 6c SHA256 对应、43 metadata 来源校验、26 安装编译器 SHA256 核验通过，耗时 5.684 秒。6c 的 17 个异常文件与旧规则 A 异常集合完全相同。发现唯一精确要求 0.4.17 的输入没有本地候选，调查以退出码 2 停止；其他 845 份仅证明有候选，未证明能编译。真实 fixture 测试中 0.4.11 和 0.4.13 都 rc0，但前者 5 个缺 filename 节点被 D3 拒绝，后者通过。
+
+用户已批准读取两份冻结 sources.json 及 metadata 引用的原始源码/CSV，D15 更新为明确授权，未读取标签/图/模型。43 份来源都是 SmartBugs versions.csv，更正了 PROMPTS 的 SolidiFI 描述。待批准 D16 只请求补齐必需 0.4.17，不包括可选端点；CP2 完整图比较的证据不足和精确 pragma 覆盖边界只登记建议，未改设计。停止位置是 CP0 前置门槛，矩阵编排尚未完成，不能进入 CP1。
+
+CP0 测试第二轮 21 passed，首轮 1 failed/20 passed 是测试路径假设错误，已修正并保留日志；冻结 DFG v2 一轮 2653 passed、9 warnings。354 份 code refs 不变，9 个生产文件满足上限和分层；文档/最终审计结果见 CHANGE_LOG §4.5。本轮准备保存本地 CP0 检查点，不 push；实际提交号可由 git log 查询。没有下载、安装、全局 solc 切换、语料修复、图存储、HGT 训练、GPU 锁操作或 LLM 调用。

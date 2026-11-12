@@ -160,3 +160,73 @@
 - 路径核对：`PROMPTS.md` 与 `docs/` 中剩余的 `scripts/compile_repair` 只出现在描述 r1 的历史记录中。
 - 未执行：模块代码；任何运行。
 - 本轮提交并 push 到 `compile-repair`；不修改其他分支。停在文档建立完成，下一步仍为 CP0。
+
+
+## 4. 2026-11-12 CompileRepair CP0：前置核验与工具封装，按必需版本缺口停止（修改 AI：Codex）
+
+### 4.1 任务、依据与范围
+
+按用户要求先读更新的 PROMPTS r2.1，特别是 §4.1 共享上下文，再从 CP0 开始；读 docs/HANDOVER §0–5、CHANGE_LOG 最新 §3、记录模板与决策表。独立工作树 `/home/zhao/SmartContract/ge-sc-llm-compile`，分支 compile-repair，起始 HEAD `068433d0cfa3367fe09cd1f94f78319eeff3c6d0`。`git pull --ff-only origin compile-repair` 退出 1（Could not resolve host: github.com）；通过连接的 GitHub 工具核对远端分支 SHA 与本地相同，未改网络配置，不把替代核验记为 pull 成功。
+
+新增代码与测试完整清单：
+
+- `compile_repair/__init__.py`
+- `compile_repair/cli.py`
+- `compile_repair/core/__init__.py`
+- `compile_repair/core/model.py`
+- `compile_repair/evaluation/__init__.py`
+- `compile_repair/evaluation/survey.py`
+- `compile_repair/toolchain/__init__.py`
+- `compile_repair/toolchain/slither.py`
+- `compile_repair/toolchain/solc.py`
+- `compile_repair/tests/test_layering.py`
+- `compile_repair/tests/test_survey.py`
+- `compile_repair/tests/test_toolchain.py`
+- `compile_repair/tests/fixtures/counter.sol`
+
+新增 `compile_repair/RECON.md`、`CP0_REPORT.md`；追加 `PROGRESS.md` 和本节；更新 docs/HANDOVER 第 0–5 节并在第 6 节追加四段交接，更新 docs/DECISIONS 的 D15 与待批准 D16。产物为 `artifacts/cp0_v1/` 和 `artifacts/cp0_development_v1/`，选定的可复核文件逐项归档；pytest 临时回归样本不整体提交。未修改 scripts/**、作者代码、原始语料、根目录 HANDOVER/training_changes、旧产物或 EdgeSem。
+
+### 4.2 实施方式和重要选择
+
+core/model 仅使用 Python 3.7 兼容 dataclass。toolchain/solc 复用冻结 inspect_environment/compiler_for_selection 验证本地可信二进制，复用 crytic-compile 0.2.4 `_build_options` 并匹配默认单文件 argv，直接 subprocess 记录真实退出码、首条错误、耗时与 0 美元费用；不调用安装或全局选择。toolchain/slither 复用冻结 `_compile`，先绑定前一次成功 solc 与输入/编译器 SHA，再检查所有声明函数和修饰器的所有 CFG 节点。记录 API 构造结果，不声称观测到了 crytic 内部子进程退出码；比较器保留节点重复次数和 IR 顺序，length 只作独立诊断。
+
+survey 使用冻结 frontend.parse、versioning.interval/recorded_version、auto_version_solc.get_solc_version；只从 tasks.py AST 读取两个 source manifest 引用，不导入标签/图加载流程。先核对 6c 报告与 seal，再按报告绑定读取 trusted manifest；用户批准后核对 sources.json 哈希并校验全部 metadata。候选只按源码区间和可信安装版本统计，类别/路径只用于证据对应与统计。发现必要版本缺口后停止编译矩阵，封存 recon/seal；完整矩阵和选版编排尚未实施，不静默跳过无候选文件。
+
+没有复制或修改冻结函数，没有 monkeypatch。冻结来源路径与 SHA256、crytic 源文件哈希及既有 tree-sitter 库哈希保存在 source_provenance.json；354 份 `_code_refs()` 基线在 baseline.json。新工作树缺少动态库时使用 TREE_SITTER_LIB_DIR 指向既有原工作树库，不下载/编译/复制。
+
+开发问题与处理：默认 PowerShell 相对目录/UNC 访问不适用，改用显式 WSL --cd；WSL 未安装 rg，使用 git/Python 枚举。一次探索误以为 6c 顶层有 files，改读 tasks[*].files；一次写基线时 PowerShell 默认管道编码损坏中文分隔符造成 IndexError，显式 UTF-8 后解决。第一次 CP0 pytest 的“外部目录拒绝”测试误把 artifacts 内的归档 tmp_path 当成外部目录，20 passed/1 failed；仅修正测试路径，第二轮通过。首轮文档辅助脚本误用了 Python 3.7 不支持的 Path.write_text(newline=...)，在写 HANDOVER 前报 TypeError；确认已写/未写边界后，只继续未执行的文件，使用 Path.open，未重复追加 PROGRESS。旧日志和额外测试调查现场均保留，没有自动重跑正式 cp0_v1。详情见 development_context.json、development_issues.json、development_test_fix_v1.json、document_writer_fix.json。
+
+### 4.3 实测与数据结论
+
+正式调查耗时 5.684 秒，命令/退出码见 survey_cp0_v1.json（退出 2，状态 blocked_missing_compilers）。输入身份、所有逐文件历史差异和缺失版本明细见 cp0_v1/recon.json，SHA256 `e4dfe405a16ca90c962b54996f117e76eb1a17656197062be17196200906bca1`；seal SHA256 `eed04a53213e62a9b1b0fc41cdbd827a6073d4451f093b4de44134b7d5c8b1d0`。
+
+| 项目 | 实际结果 | 来源 |
+|---|---|---|
+| MANDO 清单 | 846；22 无 pragma；2 个旧 A 版本在合取区间外 | recon.inputs / summary |
+| 6c 映射 | 256 按源码 SHA256 对应 | historical_comparison.files |
+| 6c 状态 | 239 compared / 11 compile_failed / 6 not_comparable | historical_comparison.status_counts |
+| 旧 A 对应 256 份 | 239 ok / 6 fail / 11 unavailable_here；异常 17 个文件完全相同 | inputs.pre_rule_a / RECON §3 |
+| metadata | 43 校验通过；4 个 ≤0.4.11；全部来自 SmartBugs versions.csv | recon.metadata |
+| 安装编译器 | 26/26 哈希匹配 | recon.environment / compilers |
+| 无候选输入 | 1，精确 pragma 0.4.17；其他 845 仅证明有候选 | recon.blockers |
+| D3 实验 | 0.4.11：rc0，5/5 节点缺 filename，失败；0.4.13：rc0，0/5 缺失，通过 | pytest_cp0_tmp_v2 下真实 probe JSON |
+
+不能由上述结果推出本机 846/846 编译成功。旧 cr_pre JSON 不含源码哈希，只能逐项对照文件集合；6c 才提供当前匹配的 256 份输入字节身份。旧 A 的早期版本不可得、6c 的 D3 映射检查解释了其异常状态差别，未进行新的全量调用方式因果对照。未来全量 key4 相同也不能单独证明 CFG/CG 边或语义等价。
+
+### 4.4 用户批准、原文差异与待确认设计
+
+1. 用户于 2026-11-12 明确回复“允许这些必要的只读校验（推荐）”：只扩展读取两份冻结 contract sources.json 及 metadata 引用来源源码/CSV。先验证已登记 SHA256，不读取标签、图存储或模型产物，不修改 EdgeSem。精确授权写入 metadata_read_authorization.json；D15 更新为已定（用户）。
+2. 更正 PROMPTS §1.2：43 metadata 来源均为 SmartBugs versions.csv，不是 SolidiFI BugLog。按“代码/证据优先”追加更正，不改 PROMPTS 原文，不改变验证规则。
+3. CP0 §4.2.3 要求缺少必要版本时停下。本机缺少 0.4.17，唯一精确版本合约无候选。D16 只登记待批准请求：官方下载单个 0.4.17，SHA256/Keccak256 核验、独立追加信任清单、费用 0 美元、不切换全局 solc；未下载/安装。未申请其他可选缺失版本。读权限批准不包含安装。
+4. 建议、未实施：6c occurrence 报告缺少 node.type 与原始 IR，CP2 的“与 6c 一致”应先明确可观察比较对象。RECON §6 提出不依赖 length 的 occurrence 多重集合键，不能声称它区分所有 CFG 节点；待 CP2 前用户审定。D4 未改。
+5. 建议、未实施：精确 pragma 无可用版本时覆盖，与禁止越过原区间不能同时满足；本轮用待批准安装请求处理具体缺口，CP1 的一般规则仍需确认。D5/D6/D9/D10/D12/D13 状态未变。
+
+### 4.5 验收、资源、未执行事项与停止
+
+`python -B -m pytest -q -p no:cacheprovider compile_repair/tests`：第二轮 21 passed、0 failed、0 skipped，0.42 秒；首轮 20 passed、1 failed 保留。`python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests`：2653 passed、0 failed、0 skipped，9 条既有依赖弃用警告，182.50 秒。实际命令额外传新建 --basetemp 以保存现场，完整 argv/耗时见 tests_*_v*.json。测试与调查使用 mando Python 3.7.12、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2，仅 CPU；生产 .py 共 9 个，test_layering 通过，354 个冻结 refs 与 baseline 完全相同。
+
+未执行：编译矩阵编排、全量规则 A/升降序 D3 选版、moved/crossed_minor 全量统计、全量 Slither、跨版本语料回归、CP2 时间估计；源码修复、图存储、下载/安装/升级、全局 solc 切换、HGT 训练、GPU 锁、LLM 调用。费用 0 美元。CP0 在缺少必需 0.4.17 处停止，CP1 前提未满足；待用户批准后以新批次继续。文档与最终冻结审计通过后保存本地 CP0 检查点，不 push；提交号由 git log 中对应 CP0 提交给出，避免提交自引用。
+
+最终检查补记：doc_check_v1 对 6 份中文文档全部 passed=True、退出码 0；CHANGE_LOG 从原 18,665 字节、PROGRESS 从原 2,817 字节起检查追加部分，HANDOVER/DECISIONS 因当前状态表更新检查全文。另核对 CHANGE_LOG/PROGRESS 的旧字节前缀及 HANDOVER §6/DECISIONS §3 的历史前缀完全保留。final_audit.json 确认 846 原始输入、6c 三份引用文件、354 冻结代码引用不变，9 个生产模块哈希与正式调查快照一致，已跟踪改动仅在 compile_repair/。本补记加入后再次 doc_check，全通过才提交；最终命令和结果归档为 doc_check_v2。
+
+暂存检查补记：`git diff --cached --check` 首次指出新建 RECON.md 末尾多一个空行，已移除；不涉及历史文档或代码。对最终 6 份文档再次运行 doc_check（doc_check_v3），全部 passed=True 后重新执行 diff --check；此前 v1/v2 文档检查日志保留。

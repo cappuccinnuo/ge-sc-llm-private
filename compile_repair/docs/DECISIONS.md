@@ -22,7 +22,8 @@
 | D12 | LLM 模型、API 与费用上限 | 待定（CP8 前） | 2026-11-11 |
 | D13 | 哪个创新点使用这些图、是否存数据依赖 | 待定（CP10 后） | 2026-11-11 |
 | D14 | 记录只写在 `compile_repair/docs/`，不修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md` | 已定（Claude 提出，用户可撤销） | 2026-11-12 |
-| D15 | 6c 被 git 忽略的本地结果从 EdgeSem 工作树以绝对路径只读读取 | 已定（Claude 提出，用户可撤销） | 2026-11-12 |
+| D15 | 6c 固定报告/seal/可信清单只读；用户另批准两个冻结 contract sources.json 及其 metadata 引用源码/CSV，先校验哈希 | 已定（用户；精确范围见 metadata_read_authorization.json） | 2026-11-12 |
+| D16 | 仅补齐必需 solc 0.4.17，双校验后建立独立追加信任清单，不切换全局版本 | 建议，待用户批准；未执行 | 2026-11-12 |
 
 ## 2. r1 的决策编号（已被 r2 重新编号，只作历史对照）
 
@@ -49,3 +50,8 @@
 | 2026-11-11 | D11 | 已定（用户）：代码结构四项原则 | 对话；CHANGE_LOG §2.1 | Claude |
 | 2026-11-11 | D1–D13 | 按 r2 重新编号建立 | 提交 bfd23e83 | Claude |
 | 2026-11-12 | D14、D15 | 新增 | CHANGE_LOG §3.2、§3.4 | Claude |
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-12 | D15 | 用户回复“允许这些必要的只读校验（推荐）”；范围扩至两份冻结 source manifests 及 metadata 引用源码/CSV，不含标签/图/模型 | 对话；CHANGE_LOG §4.4；metadata_read_authorization.json | Codex |
+| 2026-11-12 | D16 | 登记必需 0.4.17 安装请求，尚未批准；不能从 D15 推导安装授权 | cp0_v1/recon.json；compiler_installation_request.json | Codex |
