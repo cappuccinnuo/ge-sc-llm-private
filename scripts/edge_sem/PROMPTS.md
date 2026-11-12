@@ -1,7 +1,17 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r15（2026-11-11）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r16（2026-11-11）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r16 相对 r15 的修改**（审查 EP7 产出后）：
+1. EP7 接受。独立复核：
+   - 结果：从 folds.csv 的逐折混淆矩阵重算 40 行 BF1、折均值与标准差、pooled OOF 与 8H 差值，0 处不一致（重入 best 99.729 ± 0.206，pooled TN/FP/FN/TP 4997/26/10/6773；访问控制 best 99.203 ± 1.080，4184/32/19/3054）。
+   - trainer 副本：与冻结 trainer 的全部函数 AST 相同，唯一差异是 _validate_fit_inputs 中两条导入改为绝对路径、模块级 .support/.checkpoint 解析到 EdgeSem 适配（用户批准的路由），数值路径未改。
+   - G4R-P：经 make_edge_model(…, "G4R") 构造，规范关系、参数量与初值按构造即与 G4R 相同；真实行仍过严格 add_edges，安慰剂行走独立校验（字段、同文件、无重复、度数签名），校验时从种子重算并比对。
+   - D1 由用户改为原名主视图（ep7_original_v1/user_decision.json，含此前“后面的实验用原来的”要求），执行器按显式视图分派，零步初值逐位相同、复用原 26 份文件，处理正确。两项开发失败（报告字段 complete/success、Python 3.7 ast 参数）只涉及检查脚本，未改训练或结果。
+   - 范数试点：首次更新后编码器梯度有限非零，u、U 最终范数远高于 1e-3；显存探针最高 reserved 1696 MiB（G4R，重入）。
+2. 对 EP8 的实质性发现：原名视图下 G3R 已接近上限。best 检查点在 11806/7289 个节点上只有 36/51 个错误；8B 复核（REVIEW_8B_LABELS_AND_LEAKAGE.md）已证明 SolidiFI 注入的标识符（re_ent、txorigin）泄漏标签，一条不学习的“节点位于名字含 re_ent/txorigin 的函数内”规则即达 99.44/98.97 BF1。H1 在原名视图下最多只有约 0.27/0.8 个百分点的空间，且主要是名字识别。用户 2026-11-11 选择：H1/H2 仍在原名视图上按登记进行；同时预先登记匿名视图（N-anon-s）上的同一组剖面作为描述性敏感性检验，不进入 Holm 族。3.6 与 EP8 已按此修改。
+3. 代码组织（用户要求：功能内聚、分层目录、适度模块化、受控文件数）：EP8 只新增一个生产模块 analysis_ea.py 和一个 recon 驱动脚本；执行沿用 execution.py、feature_views.py、trainer.py，不得复制执行器、训练器或评分器。
 
 **r15 相对 r14 的修改**（审查 EP6 产出后）：
 1. EP6 接受。独立复核：
@@ -174,7 +184,7 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 
 | 编号 | 决策 | 状态 |
 |---|---|---|
-| D1 | 主终点视图：N-anon-s（与 DFG 8H 一致），原名视图仅在服务器阶段作描述性次要终点。注意：这与 NodeSem 阶段用户选定的“原名为主视图”不同 | 建议；EP7 之前必须有用户确认记录，未确认不得训练 |
+| D1 | 主终点视图：原名（用户 2026-11-11 确定）；N-anon-s 作为预先登记的描述性敏感性检验（r16，用户 2026-11-11 选择） | 已确认 |
 | D2 | 训练协议 P2：跑满 50 轮，保留 inner_val loss 最好的 checkpoint；其他配置与 8H 相同；G3R 基线在 P2 下重跑，不复用 8H 结果。理由只是完成退火阶段、不在学习率峰值附近选模型 | 建议；EP7 之前必须有用户确认记录 |
 | D3 | 通用性规则：EP9 结束后冻结关系列表、属性布局和超参数，原样用于七类，不做按类别的特征选择或调参 | 建议；EP7 之前必须有用户确认记录 |
 | D4 | 节点特征：主比较用 S0（8H 的匿名 token 特征），NodeSem 特征不进入本阶段；服务器阶段加 S2 臂 | 已定 |
@@ -285,11 +295,12 @@ DFG v2 图存储、benchmark v2（分组折、L-audit、匿名化）与 NodeSem 
 | E-C | 服务器 | G3R、G3R-T、G4R、G4R-A、两种安慰剂；S0 与 S2 | 七类，节点与合约，5 个种子 | E-B 后定 |
 | E-D | 服务器 | G4R−r、G4R-A−g、G4R-AC、门控与解释 | 七类 | E-C 后定 |
 
-主假设（reentrancy_node，L-audit，best，BF1，N-anon-s；逐折配对，使用 `experiment/stats.py` 现有的双侧、zsplit Wilcoxon，与 8H 相同）：
+主假设（reentrancy_node，L-audit，best，BF1，原名视图——D1 由用户于 2026-11-11 确定；逐折配对，使用 `experiment/stats.py` 现有的双侧、zsplit Wilcoxon，与 8H 相同）：
 - H1（新关系）：G4R − G3R-T 与 G4R − G4R-P 两项的均值差都为正。H1 的 p 值取两项检验 p 值中的较大者。
 - H2（边属性）：G4R-A − G4R 与 G4R-A − G4R-Aπ 两项的均值差都为正。H2 的 p 值取两项中的较大者。
 - 对 H1、H2 两个 p 值做 Holm 校正（α = 0.05）。
 - G3R-T − G3R（方向修正）与 G3R-TA − G3R-T（只加属性）为次要对比，作为描述报告。
+- 匿名视图敏感性检验（r16，用户 2026-11-11 选择）：原名视图下 SolidiFI 标识符泄漏标签（8B 复核：无学习名字规则 99.44/98.97 BF1），G3R 已接近上限。E-A 与 E-B 的每个剖面在 N-anon-s 视图上同样训练（同折、同种子、同初值、同 P2），按相同的配对统计报告 H1/H2 对应差值与未校正 p 值，明确标为描述性敏感性检验，不进入 Holm 族，也不替换主结论。两视图结论不一致时如实并列报告。
 
 必报（描述性）：access_control_node 结果；两类任务的非 SolidiFI 正例逐节点表（TP/FP/FN）；scripts/node_sem/artifacts/summary_NS_v1/cases_attempt2/persistent_cases.json 中的持续漏报节点逐案例表（涉及修饰器、语句级调用或无保护状态写的案例单独标出）；规则基线（“没有任何 caller_identity GUARDS 入边的状态写语句”；“带 use_path_crosses_ext_call 的边指向状态写”）；每关系边数；峰值显存；每 fit 时间；E3 的 u_r、U 训练后范数。
 
@@ -795,7 +806,7 @@ fixtures：
 - registration support 与梯度审计适配（r9）：冻结 `benchmark_v2/support.py::support()` 用 `model.dfg_profile` 调用 DFG materialize（第 40 行），`gradient_audit` 用其结果核对模型；EdgeSem 模型的 dfg_profile 恒为 "G3R"（锚来源），不得把冻结 support 用于 typed 剖面。新建 scripts/edge_sem/support.py：复制 support() 与 gradient_audit()（文件头写明来源与 SHA），把 materialize 换成 edge_sem.materialize(…, model.edge_profile)，validate_registration 换成 edge_sem.model.validate_registration，关系审计范围从 V2_RELATIONS 扩展为 DFG v2 关系加 E1 关系及其 REV_；对 G3R 剖面，新旧 support 与 gradient_audit 的输出逐字段相同（测试）。执行器的 make_model/validate_registration 分派一律走 edge_sem。
 - 属性剖面（G4R-A、G4R-Api、G4R-AC、G3R-TA；r15）：make_edge_model 一律传入 artifacts/ep6_v1/attributes/<task>/manifest.json。gradient_audit 对这些剖面额外列出 edge_encoder、每层 u 与 U：初始化时 u、U 为零，编码器梯度按链式法则恰为 0，这是预期而不是断图；审计要求 u 与 U 在第一次反向时梯度有限且非全零，编码器梯度在初始化时全零并如实记录。第 5 节试点额外报告第一次优化器更新之后编码器梯度的范数（必须有限且非零，否则停下报告）。
 - checkpoint 绑定适配（r4，EP0 D-02）：新建 scripts/edge_sem/checkpoint.py，复制 benchmark_v2/checkpoint.py::validate_binding 及其依赖的检查（文件头写明来源与 SHA），把其中对冻结 runtime_model.validate_registration 的调用改为 edge_sem.model.validate_registration，并在 binding 中加入 edge_profile、key_map 摘要、f4/attrs manifest SHA、core_indices 与实际所选位（edge_indices）、G4R-Api 的置换审计、G4R-P 的随机边审计摘要（r15）；其余比较（task、reducer、layer_impl、canonical、辅助节点、initial SHA、配置、graph/folds/labels/label_view/feature_view/feature_npz 引用）一项不少。测试：G3R 剖面下，新函数对同一 checkpoint 的判定与冻结函数完全相同（接受与拒绝各构造一例）；G3R-T 与 G4R 剖面能通过自身校验，篡改任一绑定字段都被拒绝。
-- 节点特征：N-anon-s 的 S0（8H 匿名 token NPZ），装配方式与 8H 相同。
+- 节点特征：N-anon-s 的 S0（8H 匿名 token NPZ），装配方式与 8H 相同。（r16 注：EP7 执行时 D1 已由用户改为原名主视图，见 ep7_original_v1。）
 - 运行版本：只绑定 scripts/edge_sem 下训练路径上的模块清单（照 NS-P1b 的做法），只读核验已完成 fit 时比较封存记录，不比较当前代码。
 
 ## 2. P2 登记
@@ -822,12 +833,26 @@ G3R × 2 个节点任务 × 10 折 = 20 fits（P2）。授权文件就绪后执�
 ```text
 # EP8：阶段 E-A（G3R-T、G4R、G4R-P；训练）
 
-- 2 个节点任务 × 3 个剖面 × 10 折 = 60 fits，P2，授权后执行。G4R-P 的随机边种子 = 构造器种子。
-- 分析脚本 scripts/edge_sem/analysis_ea.py：按 3.6 计算 H1（G4R − G3R-T 与 G4R − G4R-P，reentrancy_node；r14 更正），G3R-T − G3R 次要对比，access_control_node 描述性结果；逐折错误数与相对错误减少率；非 SolidiFI 正例逐节点表；持续漏报案例逐案例表；两条规则基线（只用 F4 边与 attrs，无学习）的 BF1。
-- 输出 scripts/edge_sem/EP8_REPORT.md。Holm 校正时 H2 尚无结果，按登记的两项族在 EP9 统一校正；这里先报告未校正 p 值。
+## 0. 决策与登记（r16；训练前完成）
+- 把用户 2026-11-11 的选择原文（“Original + anonymized check”：H1/H2 仍在原名视图；匿名视图同组剖面作为预先登记的描述性敏感性检验）写入 scripts/edge_sem/artifacts/ep8_v1/decisions.json，引用 EP7 的 ep7_original_v1/user_decision.json。
+- 在 ep8_v1/protocol_p2/registration.json 追加登记（不改 EP7 已提交的登记）：主视图 = 原名；敏感性视图 = N-anon-s；敏感性结果不进入 Holm 族；必报项见第 2 节。提交该登记后才能生成授权、开始训练。
+
+## 1. 训练（P2，授权后执行，单 GPU 串行）
+- 主批（原名视图）：2 个节点任务 × {G3R-T, G4R, G4R-P} × 10 折 = 60 fits；G3R 基线复用 ep7_original_v1 的 20 个结果（只读核验，不重训）。
+- 敏感性批（N-anon-s 视图）：2 个节点任务 × {G3R, G3R-T, G4R, G4R-P} × 10 折 = 80 fits。G3R 用 EP7 已封存但未执行的匿名准备（ep7_v1）所对应的零步初值；EP7 已证明初值与视图无关、逐位相同，直接引用原文件，不复制权重。
+- 先完成主批，再执行敏感性批；两批是独立 plan/seal/authorization，结果不混合。G4R-P 的随机边种子 = 构造器种子。任何失败停止，不自动重试、不降配。
+
+## 2. 分析（scripts/edge_sem/analysis_ea.py）
+- 主分析（原名）：按 3.6 计算 H1（G4R − G3R-T 与 G4R − G4R-P，reentrancy_node；r14 更正），H1 的 p 取两项较大者；Holm 在 EP9 与 H2 一起做，这里报告未校正 p。G3R-T − G3R 次要对比；access_control_node 描述性结果。逐折差值同时报告 0 差值折数（并列处理按 stats.py 的 zsplit）。
+- 敏感性分析（N-anon-s）：与主分析相同的配对差值与未校正 p，逐项与主分析并列，标为描述性。
+- 必报描述（两视图都做）：逐折错误数与相对错误减少率；pooled 混淆矩阵；按 SolidiFI/非 SolidiFI 分层的 pooled 计数与 Wilson 区间——直接调用冻结 scripts/DFG/dfg_v2/diagnostics8c/scoring.py 的 confusion、metric_counts、wilson 与分层定义，不复制；同一分层上冻结 8C 的 lexical_identifier_rule 规则基线；非 SolidiFI 正例逐节点表；持续漏报案例逐案例表；两条 F4/attrs 规则基线（只用 F4 边与属性，无学习）的 BF1。
+- 输出 scripts/edge_sem/EP8_REPORT.md。
+
+## 3. 代码组织（r16，用户要求）
+只新增 scripts/edge_sem/analysis_ea.py（分析与报告表格，功能内聚）与 scripts/edge_sem/recon/ep8_run.py（准备、封存、授权、调度的单一入口）；执行沿用 execution.py、feature_views.py、trainer.py，评分沿用冻结实现。不得新增执行器、训练器或评分器副本；测试文件不受此限。
 
 ## 验收
-60 个 fit 成功并核验；报告完成。不论结果如何，都不修改已登记的假设与剖面。
+主批 60 与敏感性批 80 个 fit 全部成功并核验；报告完成。不论结果如何，都不修改已登记的假设与剖面。EP9 的视图安排（E-B 是否同样做匿名敏感性批）在 EP8 报告后由用户确认。
 ```
 
 ### 4.11 EP9：阶段 E-B 与冻结（训练）
