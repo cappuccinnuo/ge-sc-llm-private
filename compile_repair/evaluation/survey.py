@@ -1,4 +1,4 @@
-"""CP0 read-only identity, metadata and compiler reconnaissance.
+"""CP0 reconnaissance and CP0.1 revalidation of fixed CP0 versions.
 
 The missing-compiler gate precedes the expensive matrix. Evidence is written
 once, with a flushed invocation journal; expected candidate failures are data,
@@ -222,16 +222,24 @@ def d3_endpoints(versions, probe):
 class Observations:
     """One read-only source, memoized results and a flushed command journal."""
 
-    def __init__(self, path, compilers, journal, scope):
+    def __init__(self, path, compilers, journal, scope, cp0_projection=False, nodes_journal=None):
         self.path, self.compilers, self.journal, self.scope = path, compilers, journal, scope
         self.compiled, self.analyzed = {}, {}
+        self.cp0_projection, self.nodes_journal = cp0_projection, nodes_journal
 
     def emit(self, kind, observation):
         item = dict(observation)
         if "nodes" in item:
             nodes = item.pop("nodes")
-            item["node_facts_sha256"] = hashlib.sha256(
+            item["node_facts_v2_sha256"] = hashlib.sha256(
                 json.dumps(nodes, sort_keys=True).encode("utf8")).hexdigest()
+            if self.nodes_journal is not None:
+                self.nodes_journal.write(json.dumps({
+                    "schema": "node_facts_v2", "source_path": item["source_path"],
+                    "source_sha256": item["source_sha256"], "version": item["version"],
+                    "profile": item["profile"], "nodes": nodes,
+                    "node_facts_v2_sha256": item["node_facts_v2_sha256"]}, sort_keys=True) + "\n")
+                self.nodes_journal.flush()
         if "stderr" in item:
             stderr = item.pop("stderr")
             item["stderr_sha256"] = hashlib.sha256(stderr.encode("utf8")).hexdigest()
@@ -254,7 +262,7 @@ class Observations:
         if version not in self.analyzed:
             compiled = self.compile(version)
             if compiled.returncode == 0:
-                item = run_slither(compiled)
+                item = run_slither(compiled, cp0_projection=self.cp0_projection)
                 self.emit("slither", item)
             else:
                 item = {"d3": False, "constructed": False, "not_run": "solc_failed",
@@ -347,7 +355,7 @@ def corpus_matrix(rows, compilers, output, journal, result):
         "moved_from_rule_version": sum(r["selection"]["moved_from_rule_version"] for r in rows),
         "crossed_minor": sum(r["selection"]["crossed_minor"] for r in rows),
         "two_d3_versions": len(cross), "cross_version_equal": {
-            pair: {k: sum(r[pair][k] for r in cross) for k in ("key4", "slithir", "source_length")}
+            pair: {k: sum(r[pair][k] for r in cross) for k in ("key5", "slithir", "source_length")}
             for pair in ("lowest_highest", "selected_highest")},
         "elapsed_seconds": time.monotonic() - started}
     result["cp2_runtime_estimate"] = {
@@ -401,7 +409,7 @@ def survey(output, metadata_authorization, inventory_only=False, trusted_additio
         raise ValueError("Survey output must be a new compile_repair/artifacts subdirectory")
     output.mkdir(parents=True, exist_ok=False)
     started = time.monotonic()
-    result = {"schema": "compile-repair-cp0-recon-v2", "status": "running", "blockers": [],
+    result = {"schema": "compile-repair-survey-v3", "status": "running", "blockers": [],
               "compilation_executed": False, "slither_executed": False,
               "training_executed": False, "llm_calls": 0, "cost_usd": 0,
               "root": str(ROOT), "command": {"module": "compile_repair.cli", "subcommand": "survey",
@@ -492,6 +500,163 @@ def survey(output, metadata_authorization, inventory_only=False, trusted_additio
     result["fixture_sha256"] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
         for p in sorted((ROOT / "compile_repair/tests/fixtures").glob("*.sol"))}
     write_json(output / "recon.json", result)
-    write_json(output / "seal.json", {"schema": "compile-repair-cp0-seal-v2", "files": {
+    write_json(output / "seal.json", {"schema": "compile-repair-survey-seal-v3", "files": {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.iterdir()) if p.is_file()}})
+    return result
+
+
+def load_cp0_baseline():
+    """Verify the frozen cp0_v2 seal and return inputs plus old fingerprints.
+
+    This compares evidence only; it never reruns CP0's selection or matrix.
+    Conflicting fingerprints for the same source bytes/version are rejected.
+    """
+    base = ROOT / "compile_repair/artifacts/cp0_v2"
+    seal = checked_json(base / "seal.json",
+        "16dfb47bb17cbcb9da0a1a11b3c02a9cc7e4cfae39717e1d38ed8a3294284a9b")
+    for name, expected in seal["files"].items():
+        if hashlib.sha256((base / name).read_bytes()).hexdigest() != expected:
+            raise ValueError("CP0 evidence changed: " + name)
+    recon = checked_json(base / "recon.json", seal["files"]["recon.json"])
+    fingerprints = {}
+    with (base / "invocations.jsonl").open(encoding="utf8") as stream:
+        for line in stream:
+            item = json.loads(line)
+            if item["kind"] == "slither" and item["scope"] == "mando":
+                key = (item["source_sha256"], item["version"])
+                value = item["node_facts_sha256"]
+                if key in fingerprints and fingerprints[key] != value:
+                    raise ValueError("Conflicting CP0 fingerprints: " + repr(key))
+                fingerprints[key] = value
+    return recon, fingerprints, seal
+
+
+def revalidate_cp0(output):
+    """CP0.1 A3: replay fixed selected/end-point versions exactly once per file.
+
+    Archive full node_facts_v2 in gzip for subsequent B comparisons, every
+    invocation and all mismatches. A failed audit never relaxes D3 or retries.
+    New evidence is exclusive; old CP0 reports/artifacts remain untouched.
+    """
+    import gzip
+    import io
+    from compile_repair.core.model import Compiler
+    from compile_repair.toolchain.solc import verify_binary
+    from compile_repair.toolchain.slither import check_profile
+
+    output = Path(output).resolve()
+    if (ROOT / "compile_repair/artifacts").resolve() not in output.parents:
+        raise ValueError("Revalidation output must be a new compile_repair/artifacts subdirectory")
+    output.mkdir(parents=True, exist_ok=False)
+    started = time.monotonic()
+    result = {"schema": "compile-repair-cp0-1-a-v1", "status": "running",
+        "command": {"module": "compile_repair.cli", "subcommand": "revalidate-cp0", "output": str(output)},
+        "head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=str(ROOT), universal_newlines=True).strip(),
+        "files": [], "mismatches": [], "cost_usd": 0, "llm_calls": 0, "training_executed": False,
+        "not_run": {"B": "D16 and environment installation authorization pending",
+                    "C": "D18 and compiler installation authorization pending"}}
+    try:
+        result["toolchain"] = check_profile("regression_6c")
+        cp0, fingerprints, seal = load_cp0_baseline()
+        result["cp0_evidence"] = seal
+        compilers = {v: Compiler(**c) for v, c in cp0["compilers"].items()}
+        for compiler in compilers.values():
+            verify_binary(compiler)
+        result["compilers"] = cp0["compilers"]
+        result["release_coverage"] = cp0["release_coverage"]
+        rows = cp0["inputs"]
+        if len(rows) != 846 or len({r["path"] for r in rows}) != 846:
+            raise ValueError("Expected exactly 846 distinct CP0 input paths")
+        corpus = (ROOT / "experiments/ge-sc-data/source_code").resolve()
+        for row in rows:
+            path = (ROOT / row["path"]).resolve()
+            if corpus not in path.parents or hashlib.sha256(path.read_bytes()).hexdigest() != row["sha256"]:
+                raise ValueError("CP0 input identity changed: " + row["path"])
+        totals = Counter()
+        with (output / "invocations.jsonl").open("x", encoding="utf8") as journal, \
+                (output / "cross_version.jsonl").open("x", encoding="utf8") as cross, \
+                (output / "node_facts_v2.jsonl.gz").open("xb") as raw_nodes:
+            with gzip.GzipFile(filename="", mode="wb", fileobj=raw_nodes, mtime=0) as compressed:
+                with io.TextIOWrapper(compressed, encoding="utf8", newline="\n") as nodes:
+                    for index, row in enumerate(rows, 1):
+                        selection = row["selection"]
+                        selected, low, high = (selection[k] for k in ("ascending", "lowest_d3", "highest_d3"))
+                        obs = Observations(ROOT / row["path"], compilers, journal, "cp0_1_a3",
+                                           cp0_projection=True, nodes_journal=nodes)
+                        analysis = obs.probe(selected)
+                        expected = fingerprints[(row["sha256"], selected)]
+                        record = {"path": row["path"], "source_sha256": row["sha256"], "version": selected,
+                            "d3": analysis["d3"], "d3_a": analysis.get("d3_a", False), "d3_b": analysis.get("d3_b", False),
+                            "counts": analysis.get("counts", {}), "error_first_line": analysis.get("error_first_line"),
+                            "expected_cp0_projection_sha256": expected,
+                            "cp0_projection_sha256": analysis.get("cp0_projection_sha256"),
+                            "cp0_projection_equal": expected == analysis.get("cp0_projection_sha256"),
+                            "duplicate_key4_count": len(analysis.get("duplicate_key4", {})), "cross_version": None,
+                            "selected_solc_seconds": obs.compiled[selected].elapsed_seconds,
+                            "selected_slither_seconds": analysis.get("elapsed_seconds", 0)}
+                        problems = []
+                        if not record["d3"]:
+                            problems.append("new_d3_failed")
+                        if not record["cp0_projection_equal"]:
+                            problems.append("cp0_projection_changed")
+                        if record["counts"].get("top_level_functions", 0):
+                            problems.append("unexpected_top_level_functions")
+                        if low != high:
+                            a, b = obs.probe(low), obs.probe(high)
+                            comparison = compare_nodes(a["nodes"], b["nodes"])
+                            cross_record = {"path": row["path"], "source_sha256": row["sha256"],
+                                "low": low, "high": high, "low_d3": a["d3"], "high_d3": b["d3"],
+                                "duplicate_key4": bool(a.get("duplicate_key4") or b.get("duplicate_key4")),
+                                "comparison": comparison}
+                            cross.write(json.dumps(cross_record, sort_keys=True) + "\n")
+                            cross.flush()
+                            record["cross_version"] = {k: v for k, v in cross_record.items() if k != "comparison"}
+                            record["cross_version"]["equal"] = {k: v["equal"] for k, v in comparison.items()}
+                            if not (a["d3"] and b["d3"] and comparison["key5"]["equal"] and comparison["slithir"]["equal"]):
+                                problems.append("cross_version_d3_key5_or_ir_changed")
+                        if problems:
+                            result["mismatches"].append({"path": row["path"], "source_sha256": row["sha256"],
+                                "reasons": problems, "details": "See invocation and cross_version records; no criterion relaxed"})
+                        totals["solc_invocations"] += len(obs.compiled)
+                        totals["slither_invocations"] += sum("profile" in v for v in obs.analyzed.values())
+                        result["files"].append(record)
+                        if index % 20 == 0 or index == len(rows):
+                            print("CP0.1 A3 {}/{}; {:.1f}s; mismatches={}".format(
+                                index, len(rows), time.monotonic() - started, len(result["mismatches"])), flush=True)
+                            gc.collect()
+        files = result["files"]
+        comparisons = [r["cross_version"] for r in files if r["cross_version"]]
+        summary = {"files": len(files), "d3_pass": sum(r["d3"] for r in files),
+            "d3_a_fail": sum(not r["d3_a"] for r in files), "d3_b_fail": sum(not r["d3_b"] for r in files),
+            "top_level_functions": sum(r["counts"].get("top_level_functions", 0) for r in files),
+            "cp0_projection_equal": sum(r["cp0_projection_equal"] for r in files),
+            "duplicate_key4_files": sum(r["duplicate_key4_count"] > 0 for r in files),
+            "cross_version_files": len(comparisons),
+            "cross_version_equal": {k: sum(r["equal"][k] for r in comparisons) for k in ("key5", "slithir", "source_length")},
+            "cross_version_duplicate_key4_files": sum(r["duplicate_key4"] for r in comparisons),
+            "cross_version_duplicate_key4_equal": sum(r["duplicate_key4"] and r["equal"]["key5"] and r["equal"]["slithir"] for r in comparisons),
+            "invocations": dict(totals)}
+        result["summary"] = summary
+        result["expected"] = {"files": 846, "d3_pass": 846, "d3_a_fail": 0, "d3_b_fail": 0,
+            "top_level_functions": 0, "cp0_projection_equal": 846, "duplicate_key4_files": 55,
+            "cross_version_files": 678, "cross_version_equal": {"key5": 678, "slithir": 678, "source_length": 650},
+            "cross_version_duplicate_key4_files": 31, "cross_version_duplicate_key4_equal": 31}
+        for key, value in result["expected"].items():
+            if summary[key] != value:
+                result["mismatches"].append({"metric": key, "expected": value, "actual": summary[key]})
+        for row in rows:
+            if hashlib.sha256((ROOT / row["path"]).read_bytes()).hexdigest() != row["sha256"]:
+                raise ValueError("Input changed during revalidation: " + row["path"])
+        result["runtime"] = {"selected_solc_seconds": sum(r["selected_solc_seconds"] for r in files),
+                             "selected_slither_seconds": sum(r["selected_slither_seconds"] for r in files),
+                             "scope": "regression_6c only; production/CP2 not measured"}
+        result["status"] = "blocked_regression" if result["mismatches"] else "complete_a_awaiting_b_authorization"
+    except Exception as exc:
+        result.update({"status": "failed", "error_type": type(exc).__name__, "error": str(exc)})
+    result["elapsed_seconds"] = time.monotonic() - started
+    result["implementation_sha256"] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted((ROOT / "compile_repair").rglob("*.py")) if "artifacts" not in p.parts and "tests" not in p.parts}
+    write_json(output / "revalidation.json", result)
+    write_json(output / "seal.json", {"schema": "compile-repair-cp0-1-seal-v1", "files": {
         p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.iterdir()) if p.is_file()}})
     return result

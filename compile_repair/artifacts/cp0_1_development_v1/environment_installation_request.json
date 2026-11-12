@@ -1,0 +1,54 @@
+{
+  "constraints": [
+    "no modifications to mando or nodesem",
+    "no global solc selection",
+    "no corpus/model/LLM downloads or calls",
+    "no unapproved alternative design",
+    "no network direct fallback"
+  ],
+  "cost_limit_usd": 0,
+  "decision": "D16",
+  "environment_prefix": "/home/zhao/miniconda3/envs/compile-repair-production",
+  "evidence_destination": "compile_repair/artifacts/cp0_1_env_v1",
+  "existing_tree_sitter_library": {
+    "path": "/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64/my-languages.so",
+    "sha256": "f424e0d52ebcdda4932a973af5357874fedd0348c78d87b1575bf15ee539d967"
+  },
+  "official_feature_documentation_read_scope": {
+    "purpose": "Verify feature syntax and minimum versions, including the transient 0.8.24 vs review fixture 0.8.28 boundary",
+    "source": "https://docs.soliditylang.org/en/ and https://www.soliditylang.org/blog/",
+    "versions": [
+      "0.7.1",
+      "0.8.4",
+      "0.8.8",
+      "0.8.13",
+      "0.8.19",
+      "0.8.24",
+      "0.8.28"
+    ]
+  },
+  "packages": {
+    "crytic-compile": "0.3.11",
+    "importlib-metadata": "4.13.0",
+    "pycryptodome": "3.20.0",
+    "pytest": "7.4.4",
+    "slither-analyzer": "0.9.6",
+    "solc-select": "1.0.4",
+    "tree-sitter": "0.20.4"
+  },
+  "pip_index": "https://pypi.org/simple",
+  "prompt": "CP0.1 B",
+  "python_source": "https://conda.anaconda.org/conda-forge",
+  "python_version": "3.8.20",
+  "reason": "Use the PROMPTS r2.3 recommended Slither 0.9.6 profile for modern syntax while retaining mando for exact 6c replay",
+  "required_transitive_dependencies": "Resolve only dependencies needed by these pinned packages and the isolated interpreter; archive exact resolved versions, download sources and pip freeze before validation",
+  "schema": "compile-repair-environment-request-v1",
+  "status": "pending_user_approval",
+  "validation": [
+    "846 frozen versioning.interval equivalence",
+    "CompileRepair tests",
+    "846 selected-version D3 checks and key5 comparison with A",
+    "modern feature probes",
+    "three explicit 0.4.24 reentrancy regressions"
+  ]
+}

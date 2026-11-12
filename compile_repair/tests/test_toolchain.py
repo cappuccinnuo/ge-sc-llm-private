@@ -43,17 +43,17 @@ def test_command_matches_crytic_version_boundaries():
 def test_d3_rejects_incomplete_mapping(mapping, reason):
     node = Item(source_mapping=mapping, type="EXPRESSION", irs=[])
     function = Item(full_name="f()", nodes=[node])
-    slither = Item(contracts=[Item(name="C", functions_and_modifiers_declared=[function])])
+    slither = Item(contracts=[Item(name="C", functions_and_modifiers_declared=[function])], compilation_units=[])
     result = node_facts(slither, [FIXTURE])
     assert not result["mapping_complete"] and result["counts"][reason] == 1
 
 
 def test_comparison_preserves_multiplicity_ir_order_and_ignores_length_in_identity():
-    first = {"key4": ["C", "f()", "EXPRESSION", 0], "ir": ["read", "write"], "length": 2}
+    first = {"key5": ["C", "f()", "EXPRESSION", 0, 1], "ir": ["read", "write"], "length": 2}
     other = dict(first, length=9)
-    assert compare_nodes([first], [other])["key4"]["equal"]
+    assert compare_nodes([first], [other])["key5"]["equal"]
     assert not compare_nodes([first], [other])["source_length"]["equal"]
-    assert not compare_nodes([first, first], [first])["key4"]["equal"]
+    assert not compare_nodes([first, first], [first])["key5"]["equal"]
     assert not compare_nodes([first], [dict(first, ir=["write", "read"])])["slithir"]["equal"]
 
 

@@ -1,9 +1,9 @@
-"""CompileRepair command line; CP0 dispatch only (PROMPTS 3.10)."""
+"""CompileRepair command line; CP0 survey and CP0.1 revalidation (PROMPTS 3.10)."""
 import argparse
 import json
 from pathlib import Path
 
-from compile_repair.evaluation.survey import survey
+from compile_repair.evaluation.survey import survey, revalidate_cp0
 
 
 def main(argv=None):
@@ -15,13 +15,18 @@ def main(argv=None):
     cp0.add_argument("--metadata-authorization", type=Path, required=True)
     cp0.add_argument("--inventory-only", action="store_true")
     cp0.add_argument("--trusted-addition", type=Path, action="append", default=[])
+    cp01 = sub.add_parser("revalidate-cp0", help="CP0.1 A3 replay of fixed CP0 versions")
+    cp01.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
-    if args.command != "survey":
+    if args.command == "survey":
+        result = survey(args.output, args.metadata_authorization, args.inventory_only, args.trusted_addition)
+    elif args.command == "revalidate-cp0":
+        result = revalidate_cp0(args.output)
+    else:
         parser.error("a subcommand is required")
-    result = survey(args.output, args.metadata_authorization, args.inventory_only, args.trusted_addition)
     print(json.dumps({"status": result["status"], "summary": result.get("summary"),
                       "blockers": result.get("blockers", [])}, indent=2))
-    return 0 if result["status"] in ("complete", "inventory_only") else 2
+    return 0 if result["status"] in ("complete", "inventory_only", "complete_a_awaiting_b_authorization") else 2
 
 
 if __name__ == "__main__":

@@ -406,3 +406,67 @@ Slither 版本（743 个不同源文件；slither_versions_corpus.json、feature
 - 资源：云端 CPU；5 个 Python 虚拟环境（只在本会话临时目录）；没有 LLM 调用，费用 0。
 - 未执行：模块代码修改；用户环境中的任何运行；编译器或包安装（用户环境）。
 - 停止：CP1 不能开始。顺序为用户决定 D5、D16、D18 → Codex 执行 CP0.1 → Claude 审查 → CP1。本轮提交并 push 到 `compile-repair`。
+
+## 8. 2026-11-12 CompileRepair CP0.1 A：D3 加强、key5 与固定版本重验（修改 AI：Codex）
+
+### 8.1 任务、依据与范围
+
+用户要求先细读更新的 PROMPTS §4.1 与全文，在既有实现上执行 CP0.1，重要不合理处登记，替代方案先咨询，并持续写交接和训练/运行改变文档。按 r2.3 §4.2b 完成无需新授权的 A1/A2/A3；B/C 缺 D16/D18 授权，未执行。起点 compile-repair@61a3cb6a944140108763442999bbfd4199f53ca3，pull --ff-only 返回 Already up to date，工作树 /home/zhao/SmartContract/ge-sc-llm-compile。
+
+文件完整清单（相对 compile_repair/）：修改 toolchain/slither.py、evaluation/survey.py、cli.py、tests/test_toolchain.py；新增 tests/test_slither_v2.py、tests/fixtures/ternary.sol、free_function.sol、CP0_1_REPORT.md；更新本节、docs/HANDOVER.md 当前区与交接、docs/DECISIONS.md 当前表与历史、PROGRESS.md。新增证据 cp0_1_v1/、cp0_1_development_v1/，逐文件清单见 seal 和 artifact_index.json。生产文件 9、测试文件 4、fixture 9，无表外生产模块。
+
+模块面向未来任意合约，MANDO 回归不决定覆盖范围。scripts/**、原作者代码、原始输入、EdgeSem 文件、旧 CP0 产物/报告、PROMPTS、根目录交接/训练文档均未修改。未读取新的标签/图/模型，没有图存储或训练。
+
+### 8.2 实施方式和重要选择
+
+- read_mapping 统一 dict/对象形式；不支持的映射显式失败，缺 filename/start 使 D3(a) 失败。检查声明函数/修饰器与 compilation_units.functions_top_level。原始 nodes 顺序内编号后再排序，key5 使用 NodeType 枚举名，保留重数与有序 IR；node_facts_v2 写明声明种类，length 只诊断。
+- D3(b) 从 crytic-compile 已保存 AST 读取合约、接口、库名称重数，支持旧式 ContractDefinition/attributes.name 与 compact nodeType/name；缺输入 AST 或非法结构拒绝。与 D3(a) 独立记录。使用保存 AST 而不另跑 solc 是 A1 允许的选择，直接绑定本次解析输入且减少一次调用，不是替代方案。
+- 先用真实 0.4.12/0.8.0 检查本机 API：Slither.compilation_units 与 unit.functions_top_level 均为 list；crytic unit.asts 键为绝对路径字符串。0.7.6 自由函数正例验证真实遍历，未导入审查证据脚本。
+- profile 仅配置 regression_6c 0.8.0/0.2.4，实际版本不符或 production 未配置则拒绝。CP0 投影保留旧 key4、str(node.type)、IR、length、排序与 JSON 编码，仅用于 cp0_v2；新指纹另写 node_facts_v2_sha256。
+- import 复用 validate_slither._compile，冻结文件 SHA256 为 4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8；没有复制/monkeypatch。versioning.py、frontend.py 未变，SHA 分别为 130251d6a9e46ec176ba183a0a66fa5a30210b43c1ab8faa2bfcf5a676d2ed18、cfe6ee2a975abeb374e2ce17f0f7c47c400e823cfa8ca05c96d3e4657d161207。
+- 新重验先校验 CP0 seal/绑定文件和全部输入 SHA，只跑原选定版本与两端点，相同文件/版本缓存，不失败重试。gzip 保留完整节点供 B 使用；每次调用和全部差异归档。旧调查入口的后续输出标为 v3，避免 key5 内容冒用 CP0 v2 schema。
+- 编辑过程：同目标 delete/add patch 被拒绝，两次 JavaScript 模板分隔符错误发生在执行前，Windows apply_patch 又因 WSL reparse point 无法读目标。改用显式 wsl.exe Python UTF-8 写入及安全模板解决，均未修改冻结文件；见 development_notes.json、document_write_note.json。无测试失败或正式运行失败，无自动重试。
+
+### 8.3 实测与数据结论
+
+输入为已核验 cp0_v2/recon.json（SHA256 bddbeaa256192b567525370f8b27335a3d2bdcf3ccb48e22086150718414ffb6），旧 seal 为 16dfb47bb17cbcb9da0a1a11b3c02a9cc7e4cfae39717e1d38ed8a3294284a9b。846 个源文件 SHA 一致，使用原 ascending/lowest_d3/highest_d3，不重新选版。环境 mando Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4，37 个编译器身份再次核验。
+
+| 指标 | 实测 | 来源 |
+|---|---:|---|
+| 新 D3 / 旧投影相同 | 846/846、846/846 | cp0_1_v1/revalidation.json |
+| D3(a)/(b) 失败、顶层函数 | 0/0、0 | summary |
+| 跨版本 key5 / 有序 IR | 678/678、678/678 | cross_version.jsonl |
+| 重复 key4 双端文件 / 相同 | 31/31 | 跨版本记录 |
+| 选定版本重复 key4 文件 | 55 | 逐文件记录 |
+| length 相同/不同 | 650/28 | 仅诊断 |
+| 直接 solc / Slither | 各 1,546 次均成功 | invocations.jsonl；独立重新计数 |
+| 归档节点 / 重复 key5 组数 | 201,044 / 0 | revalidation_audit.json |
+| 正式 / 外层进程耗时 | 609.965 / 616.665 秒 | revalidation.json、a3_run.json |
+| 所选 solc / Slither 累计 | 81.413 / 236.891 秒 | runtime |
+| B / C | 未执行 | 缺授权 |
+
+新 seal SHA256 为 c28b7c7bc5269d2892027542c14724b1063a043c6d3322996a88f0146d186ff2；revalidation.json 为 97876bfd95e931058efa2c45f5675e6158bf551594a35ee150ae56adc5283ff3。节点 gzip 3,635,155 字节，1,546 组指纹全部与调用 journal 一致。DFG 测试与 A3 部分重叠，耗时只描述本次观测；生产/CP2 时间、全部语法、图边与任意项目语义未证明。
+
+真实 fixture：三元 RETURN 共用 start=127、序号 1/2；0.7.6 有 1 个自由函数且 D3 通过；0.4.12 旧式和 0.8.0 compact AST 都通过并复现旧探针投影。0.4.11 虽编译/构造成功，但 5 个节点缺 filename，D3(a)/(b) 均失败；0.4.13 同输入通过。见 fixture_results.json。
+
+### 8.4 用户批准、原文差异与待确认设计
+
+用户明确要求执行 CP0.1；按原文 A 无需新授权。此前两次批准只覆盖已装的 11 个 solc，不扩张解释为新环境或其余 59 个版本。D3 更新本机 A 验证完成，D4 补入本机 key5 证据；D16/D18 仍待用户决定，没有伪造 approved 的 authorization.json。
+
+具体请求已列：environment_installation_request.json 为独立 Python 3.8.20、Slither 0.9.6、crytic-compile 0.3.11、tree-sitter 0.20.4 环境，含工具版本、来源与传递依赖留档要求；compiler_installation_request.json 为缓存官方快照 0.4.12–0.8.38 缺少的 59 个精确版本，含 URL、SHA256、Keccak256。两者费用上限 0 美元，C 只在 B 通过后执行。支持范围内当前 33/92，另 4 个旧负对照不算覆盖；未联网刷新目录。
+
+待核对：B 原文“0.8.24 transient”与审查 f0828_transient.sol 的 >=0.8.28 高级变量语法边界不同，执行 B 前核对官方文档；如需拆探针或改原文，先咨询用户。这里仅登记差异，未实施替代，未修改 PROMPTS，也未因此阻碍 A。A 无偏离原文的验收项。
+
+CP1 仍需 D5/D16/D18 决定与 CP0.1 审查。精确 pragma 指向缺失版本、官方无构建或低于 0.4.12 等情形仍可能触发未来第 6 步；本次 846 文件已有区间内成功版本，未做 rewrite。不从回归集成功推导任意输入均可修复。
+
+### 8.5 验收、资源、未执行事项与停止
+
+- A1/A2/A3 预期与实测全部相同，0 个差异；B/C 未执行。正式运行一次，CLI rc0 仅代表 A 完成；状态为 complete_a_awaiting_b_authorization，不等于整个 CP0.1 完成。
+- python -B -m pytest -q -p no:cacheprovider compile_repair/tests：55 passed、0 failed、0 skipped，4.79 秒；同参数运行 scripts/DFG/dfg_v2/tests：2653 passed、0 failed、0 skipped、9 warnings，188.01 秒。先行工具链测试 37 passed、1.02 秒。实际另带新 basetemp，完整命令/日志在 pytest_*.json/log；layering 通过，生产文件 9 个，未超过 30。
+- 最终不变量与文档检查在提交前完成，结果追加在本段末尾；依据 final_audit.json、doc_check_v*.json/log。追加区间使用 baseline.json 的原始字节数，不能只看 doc_check 进程退出码。
+- 仅 CPU，OMP_NUM_THREADS=2、MKL_NUM_THREADS=2。无包/编译器安装升级卸载、LLM 调用、HGT 训练、GPU 锁操作、源码改写、外部语料获取或图存储；成本 0 美元。mando 和全局 solc 状态不变。
+- 全部检查通过后本地提交，标题 CP0.1 complete A revalidation; await D16/D18 authorization，提交号由包含本节的提交确定并在最终答复给出；不 push。旧 CP0 ac2b3465 已按此前用户要求推送，本轮从上游 61a3cb6a 开始，HANDOVER §2 当前状态已更正，旧历史不回写。停止在 B/C 授权前。
+
+- 终审补记：第一次历史保留审计因 PowerShell 默认 OutputEncoding 损坏中文标题字面量，在查找标题时抛 ValueError，未生成审计结果、未改文档。保留 audit_attempt_v1_failure.json；改为 ASCII 标题前缀定位原始字节后完成核对，不放宽判据，也未重跑 A3。此为检查脚本编码问题，不是代码/语料验收差异。
+- 最终审计通过：354/354 冻结代码引用、846/846 输入、37/37 编译器不变；全部旧模块证据未漂移，4 份记录历史逐字保留；生产代码与 A3 SHA 一致，9 个生产文件，未解决冲突 0，git diff --check 通过，跟踪变更均在 compile_repair/。包版本及未设置的全局 solc 状态不变。依据 final_audit.json。
+- 文档检查 v1 的 6/6 项 passed=True、UTF-8/中文全部通过。检查命令为 python -B -m scripts.node_sem.doc_check --expect-cjk，目标为 CP0_1_REPORT、HANDOVER、DECISIONS、开发 README 全文，以及 CHANGE_LOG:54883、PROGRESS:9269 追加区间。写入本补记后按同参数执行 v2，逐项检查 passed；日志与精确命令保存在 doc_check_v2.log/json，仅在 6 项仍全通过时提交。

@@ -63,3 +63,15 @@
 - D16 补测 Slither 0.8.3/0.9.6/0.10.4/0.11.6，推荐 0.9.6 独立环境做生产、0.8.0 只做 6c 重放，待用户决定。
 - 记录：`docs/CHANGE_LOG.md` §7、`docs/HANDOVER.md`、`docs/DECISIONS.md`。旧文中指向 r2.2 的 “§4” 应为 §5（见 CHANGE_LOG §7.4）。
 - 没有模块代码改动与用户环境运行。下一步：用户决定 D5、D16、D18，Codex 执行 CP0.1。
+
+## CP0.1 A：审查修正与 mando 全量重验（2026-11-12，修改 AI：Codex）
+
+依据 PROMPTS r2.3 §4.1、§4.2b，从 61a3cb6a944140108763442999bbfd4199f53ca3 开始，pull 已同步。A1/A2/A3 完成，B/C 未执行。模块面向未来任意输入，846 文件只作回归。
+
+修改 toolchain/slither.py、evaluation/survey.py、cli.py、tests/test_toolchain.py；新增 tests/test_slither_v2.py、tests/fixtures/ternary.sol、free_function.sol。实现统一映射、顶层函数、保留重数的 key5、旧式/compact AST 合约名称多重集合校验、显式 regression_6c 版本门禁。旧投影仅对照 cp0_v2，新 schema 为 node_facts_v2。生产 Python 文件仍为 9 个，冻结代码与旧证据未改。
+
+正式 cp0_1_v1：新 D3 846/846，(a)/(b) 失败均 0，顶层函数 0，CP0 投影 846/846 一致；678 组 key5 与有序 IR 全同，含重复 key4 的 31 组也全同。solc/Slither 各 1,546 次均成功，201,044 条节点、重复 key5 组数 0。length 650 同、28 异，仅诊断。正式耗时 609.965 秒，seal 为 c28b7c7bc5269d2892027542c14724b1063a043c6d3322996a88f0146d186ff2。
+
+python -B -m pytest -q -p no:cacheprovider compile_repair/tests：55 passed；同参数运行 scripts/DFG/dfg_v2/tests：2653 passed、9 个既有 warnings。实际另带独立 basetemp，日志/命令在 cp0_1_development_v1/pytest_*.log/json。CP0_1_REPORT、CHANGE_LOG §8、HANDOVER 和 DECISIONS 记录本次工作；文档和不变量结果见 §8.5。
+
+WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，过程保留。B 的 transient 0.8.24 文案与审查 >=0.8.28 fixture 待核对语法边界，如需调整先咨询用户，没有自行改方案。D16/B 与 D18/C 的来源、版本、0 美元上限分别列在两份 installation_request.json，仍为 pending。按原文停在授权前，未安装、未进入 CP1，仅本地提交、不 push。
