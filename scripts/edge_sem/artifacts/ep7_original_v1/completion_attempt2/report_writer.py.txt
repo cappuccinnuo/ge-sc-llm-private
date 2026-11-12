@@ -1,0 +1,106 @@
+from pathlib import Path
+import json,csv,statistics,hashlib,datetime
+R=Path("scripts/edge_sem/artifacts/ep7_original_v1"); C=R/"completion_attempt2"
+def read(p):return json.loads(Path(p).read_text(encoding="utf8"))
+s=read(R/"results/summary.json"); rows=read(R/"results/folds.json");v=read(C/"verification.json")
+assert v["passed"] and s["passed"]
+def csvread(p):
+    with p.open(encoding="utf8") as f:return list(csv.DictReader(f))
+resources=csvread(C/"formal_resources.csv");probes=csvread(C/"gpu_probe_resources.csv")
+norm=read(next((R/"norm_pilot/runs").rglob("result.json")))
+names={"reentrancy_node":"重入节点","access_control_node":"访问控制节点"}
+time=datetime.datetime.now(datetime.timezone.utc).isoformat()
+parts=["\n## 实际执行完成与结果\n",
+"记录时间（UTC）："+time+"。原名主视图批次完成，pipeline_complete.json 的 passed=true。训练提交为 "+v["training_commit"]+"。\n",
+"8/8 GPU单轮探针、1/1 G4R-A范数试点、20/20正式G3R拟合均通过原执行器验收。试点及所有正式fit各50轮，共1000个正式epoch。无训练失败、OOM、自动重试或降配。后台控制器已正常退出。\n",
+"### 主结果与 last 对照\n",
+"分数单位为百分比，±为10折样本标准差；折等权。best严格按最低inner_val loss选择，last为第50轮。last较高也不替换预登记best主结果。\n",
+"| 任务 | checkpoint | Buggy-F1均值 ± SD | Macro-F1均值 ± SD | Precision均值 ± SD | Recall均值 ± SD |",
+"|---|---|---:|---:|---:|---:|"]
+for task in names:
+    for ck in ("best","last"):
+        subset=[x for x in rows if (x["task_id"],x["checkpoint"])==(task,ck)]
+        cells=["%.3f ± %.3f"%(statistics.mean(x[k] for x in subset),statistics.stdev(x[k] for x in subset)) for k in ("p2_bf1","p2_macro_f1","p2_precision","p2_recall")]
+        parts.append("| "+" | ".join([names[task],ck]+cells)+" |")
+parts+=["\n### pooled OOF（与等权折均值分开）\n",
+"按task/file/original_graph_node_id对齐，跨折身份无重复。OOF不是独立测试集；检测单位是HCG节点，不等同于源码行数或独立漏洞实例。\n",
+"| 任务 | checkpoint | n / 正例 | BF1 | Macro-F1 | Precision | Recall | TN / FP / FN / TP |",
+"|---|---|---:|---:|---:|---:|---:|---|"]
+for task in names:
+    for ck in ("best","last"):
+        x=s["summary"][task][ck]["pooled_oof"]
+        parts.append("| "+" | ".join([names[task],ck,"%d / %d"%(x["n"],x["positive"])]+["%.3f"%x[k] for k in ("buggy_f1","macro_f1","precision","recall")]+[" / ".join(map(str,x["tn_fp_fn_tp"]))])+" |")
+parts+=["\n### 逐折 BF1、best轮数与资源\n",
+"轮数从1开始，秒数为fit内部耗时；显存为PyTorch分配器峰值reserved。完整best/last指标及混淆矩阵见 artifacts/ep7_original_v1/results/folds.csv。\n",
+"| 任务 | fold | best BF1 | last BF1 | best epoch | fit秒 | 峰值reserved MiB |",
+"|---|---:|---:|---:|---:|---:|---:|"]
+for task in names:
+    for fold in range(10):
+        b=next(x for x in rows if (x["task_id"],x["fold"],x["checkpoint"])==(task,fold,"best"))
+        l=next(x for x in rows if (x["task_id"],x["fold"],x["checkpoint"])==(task,fold,"last"))
+        parts.append("| %s | %d | %.3f | %.3f | %d | %.2f | %.1f |"%(names[task],fold,b["p2_bf1"],l["p2_bf1"],b["p2_best_epoch_1based"],b["seconds"],b["peak_reserved_mib"]))
+for task in names:
+    dist=s["summary"][task]["best"]["best_epoch_distribution"]
+    parts.append("\n%s的best分布：%s。"%(names[task],"、".join("%s轮×%d"%(k,dist[k]) for k in sorted(dist,key=int))))
+parts+=["\n### 历史8H描述性对照\n",
+"8H使用匿名token和历史配对初值；本批使用原名token、新鲜G3R锚初值、P2跑满50轮。以下包含三种差异，不能解释成任一因素的独立收益。按封存身份核对了图、折和评分标签。\n",
+"| 任务 | checkpoint | 8H BF1均值 | 本批均值 | 差值均值 ± SD（百分点） | 提升 / 持平 / 下降折 |",
+"|---|---|---:|---:|---:|---|"]
+for task in names:
+    for ck in ("best","last"):
+        x=s["summary"][task][ck]
+        old=statistics.mean(q["old_8h_bf1"] for q in rows if (q["task_id"],q["checkpoint"])==(task,ck))
+        parts.append("| %s | %s | %.3f | %.3f | %+.3f ± %.3f | %d / %d / %d |"%(names[task],ck,old,x["mean_bf1"],x["mean_delta_bf1_pp"],x["sample_sd_delta_pp"],x["improved"],x["tied"],x["declined"]))
+parts+=["\n访问控制fold1的best BF1为96.206%，last为99.218%；不能据此改选last。best遵循该折最低inner_val loss。均值改善不代表每折改善。折间标准差不是独立seed重复实验的方差。\n",
+"### 显存探针与范数试点\n",
+"| 任务 | 剖面 | 峰值allocated MiB | 峰值reserved MiB | 整卡最小空闲 MiB |",
+"|---|---|---:|---:|---:|"]
+for x in probes:
+    parts.append("| %s | %s | %.1f | %.1f | %.1f |"%(names[x["task_id"]],x["edge_profile"],float(x["peak_allocated_mib"]),float(x["peak_reserved_mib"]),float(x["minimum_free_mib"])))
+parts+=["\n八个探针均低于3584MiB门槛。范数试点首次参数更新后，编码器梯度L1=%.12g（有限且非零）；未构造验证/测试监督、未评分、未选best，不进入分类比较。"%norm["first_post_update_encoder_gradient_l1"],
+"\n| 层（从0开始） | u Frobenius | U_call | U_control | U_data | U_guard | U_structure |",
+"|---|---:|---:|---:|---:|---:|---:|"]
+for x in norm["final_norms"]:
+    parts.append("| %d | %.6f | "%(x["layer"],x["u_frobenius"])+" | ".join("%.6f"%x["U_frobenius"][k] for k in ("call","control","data","guard","structure"))+" |")
+maxres=max(float(x["peak_reserved_mib"]) for x in resources);minfree=min(float(x["minimum_free_mib"]) for x in resources)
+tight=sum(x["memory_tight"]=="True" for x in resources);spill=sum(x["possible_memory_spill"]=="True" for x in resources)
+parts+=["\n完整50轮轨迹见 completion_attempt2/norms_by_epoch.csv。非零范数说明参数获得更新，不证明分类收益。\n",
+"正式fit内部耗时合计%.2f秒（%.2f小时）；从后台启动到完成收据落盘约%.2f秒（%.2f小时），后者还含探针、试点、构造、验收。正式fit最大reserved为%.1fMiB，整卡最小空闲%.1fMiB；memory_tight标记%d折，possible_memory_spill耗时提示%d折。耗时提示不能证明发生显存换页。"%(v["formal_fit_seconds_sum"],v["formal_fit_seconds_sum"]/3600,v["wall_seconds_until_completion_record"],v["wall_seconds_until_completion_record"]/3600,maxres,minfree,tight,spill),
+"\n范数试点峰值reserved1820MiB、整卡最低空闲52MiB，按继承local_dev_v1只记录memory_tight；无OOM。整卡占用与PyTorch占用口径不同，差值不能全部归给其他程序。最终实验将使用显存充足的服务器，本机4GiB限制仅属本地试验。\n",
+"### 完整性与报告字段修正\n",
+"原执行器核验全部20个正式fit及其历史8H收据。补充核验503个文件哈希（含40份best/last权重），从导出预测独立重算逐折/pooled OOF指标，检查50轮、最低验证损失、checkpoint回读、OOF身份无重复，全部通过。\n",
+"旧EP7的299份文件、750份冻结源码、1134份更早产物未变。完整回归4318项及原名修订26项定向测试的原收据继续有效，本次补结果验收，未声称重新执行全部测试。\n",
+"报告检查首次误将正式receipt.status判作success，真实执行器使用complete；在报告字段处停止。completion/保留首次脚本及失败。按真实接口修正后在completion_attempt2/通过，没有改变正式验收器、plan/seal、结果或训练计算，也没有重训。\n",
+"证据：completion_attempt2/verification.json及seal，formal_resources.csv、gpu_probe_resources.csv、norms_by_epoch.csv；正式汇总results/summary.json及seal、results/folds.csv。\n",
+"### 结束位置\n",
+"EP7原名G3R基线与工程接入完成。EP8/EP9正式边增强对照尚未运行；99%以上分数是当前数据、标签协议下的基线表现，不能声称EdgeSem已经提升分类或已验证七类漏洞。后续对照需沿用本批原名主视图、P2、G3R基线。\n",
+"本地保留全部产物，本轮不推送GitHub。\n"]
+short=("8/8显存探针、1/1 G4R-A 50轮范数试点、20/20正式G3R全部完成验收。正式各50轮，共1000轮，无训练失败/重试。"
+"原名S0主视图，匿名接口备用。best BF1十折均值±样本SD：重入99.729±0.206%、访问控制99.203±1.080%；"
+"last分别99.788±0.171%、99.568±0.269%，主结果仍取best。\n\n"
+"报告：scripts/edge_sem/EP7_ORIGINAL_REPORT.md；逐折/OOF：scripts/edge_sem/artifacts/ep7_original_v1/results/；"
+"资源、独立复算和完整性收据：同批次completion_attempt2/。当前是后续边增强需要的新G3R基线，尚未证明边增强分类收益。"
+"与8H差值同时受原名/匿名、初值和停止规则影响，仅描述。最终实验上显存充足的服务器，本机限制仅属本地试验。"
+"未启动EP8/EP9，未推送GitHub。\n")
+detail=("\n详细实施记录：\n\n"
+"- 训练提交6f634746ca655d6ba7e2a6d31a503e4d466faea9。原名选择和用户原始答复在user_decision.json/view_revision.json；旧匿名计划和seal未改。\n"
+"- 先8探针，再范数试点，再重入fold0–9和访问控制fold0–9；每任务独立进程，GPU串行。26份准备初值按SHA复用；未复制权重。\n"
+"- P2的patience=51，50轮不早停，其余优化器/OneCycle/监督不变；按严格最低inner_val loss选best，未因last更高改选。\n"
+"- 范数试点不读验证/测试评分；首次更新后编码器梯度L1=0.000921278304304，最终两层u范数0.032152813/0.846325636，所有U族超过1e-3。\n"
+"- 单轮探针最大reserved1696MiB；范数试点1820MiB，最低整卡空闲52MiB按local_dev_v1记memory_tight。无OOM、降配、CPU替代或关闭其他程序。\n"
+"- 相对历史8H，best均值差重入+0.604845、访问控制+0.849090个百分点；提升/持平/下降折数分别10/0/0、3/3/4。不是单因素因果证据。\n"
+"- 原执行器验收20/20；补充独立核验503文件（40份checkpoint），逐折/OOF重算一致；历史299份EP7文件、750份源码、1134份旧产物未变。\n"
+"- 报告附加脚本曾将正式状态写成success，实际为complete；completion/保留失败和旧源码，completion_attempt2/按真实接口通过。没有改正式验收器或重训。\n"
+"- 既有4318项回归和原名修订26项定向测试保留，本次未重复运行。新增工作是结果独立复算、归档核验和文档UTF-8/CJK检查。\n"
+"- 训练命令：python -u -B -m scripts.edge_sem.recon.ep7_run --root scripts/edge_sem/artifacts/ep7_original_v1。CPU历史核验：python -B -m scripts.edge_sem.recon.ep7_original frozen。\n")
+section="\n\n## EP7 原名主视图执行完成（2026-11-11）\n\n"
+contents={"scripts/edge_sem/EP7_ORIGINAL_REPORT.md":"\n".join(parts),"HANDOVER.md":section+short,
+"docs/training_changes_2026-10-07.md":section+short+detail,"scripts/edge_sem/PROGRESS.md":section+short+detail}
+before={}
+for n in contents:
+    b=Path(n).read_bytes();before[n]={"bytes":len(b),"sha256":hashlib.sha256(b).hexdigest()}
+with (C/"document_append_before.json").open("x",encoding="utf8") as f:json.dump(before,f,ensure_ascii=False,indent=2);f.write("\n")
+for n,t in contents.items():
+    with Path(n).open("a",encoding="utf8") as f:f.write(t)
+    assert hashlib.sha256(Path(n).read_bytes()[:before[n]["bytes"]]).hexdigest()==before[n]["sha256"]
+print(json.dumps({"appended":before,"max_reserved":maxres,"min_free":minfree,"memory_tight":tight,"possible_memory_spill":spill},ensure_ascii=False))

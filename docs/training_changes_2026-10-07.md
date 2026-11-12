@@ -10895,3 +10895,23 @@ EP6详细选择：冻结sem.sink(target,sealed_symbol)补齐缺失记录，不�
 CPU检查：新增11项视图测试，连同15项现有核心/执行策略共26项通过；历史完整4318项未重复声称为本轮重跑。重入和访问控制所有26项逐一严格重载，原名装配整图指纹等于输入原图；共享零步文件总550093510字节未复制。原name/token变化行数由两份NPZ按uint32逐位比较，manifest行身份相同。初次只读语法检查使用Python3.7不支持的feature_version参数，未进入计划读取；改用原生ast.parse后通过，保留development_syntax_check.json，不涉及正式fit失败或训练重试。
 
 后续执行界限保持：单模型串行独立进程、原GPU锁；显存探针peak reserved>3584MiB或OOM/非有限值/输入错误即停；范数试点不评分验证/测试集，第一次更新后encoder梯度须有限非零，全部最终u/U范数<1e-3即停。授权范围仅8探针、1范数试点、20原名G3R，完成后独立重算/验收及描述性8H对照，不自动扩展模型、关系、seed或漏洞类别。
+
+
+## EP7 原名主视图执行完成（2026-11-11）
+
+8/8显存探针、1/1 G4R-A 50轮范数试点、20/20正式G3R全部完成验收。正式各50轮，共1000轮，无训练失败/重试。原名S0主视图，匿名接口备用。best BF1十折均值±样本SD：重入99.729±0.206%、访问控制99.203±1.080%；last分别99.788±0.171%、99.568±0.269%，主结果仍取best。
+
+报告：scripts/edge_sem/EP7_ORIGINAL_REPORT.md；逐折/OOF：scripts/edge_sem/artifacts/ep7_original_v1/results/；资源、独立复算和完整性收据：同批次completion_attempt2/。当前是后续边增强需要的新G3R基线，尚未证明边增强分类收益。与8H差值同时受原名/匿名、初值和停止规则影响，仅描述。最终实验上显存充足的服务器，本机限制仅属本地试验。未启动EP8/EP9，未推送GitHub。
+
+详细实施记录：
+
+- 训练提交6f634746ca655d6ba7e2a6d31a503e4d466faea9。原名选择和用户原始答复在user_decision.json/view_revision.json；旧匿名计划和seal未改。
+- 先8探针，再范数试点，再重入fold0–9和访问控制fold0–9；每任务独立进程，GPU串行。26份准备初值按SHA复用；未复制权重。
+- P2的patience=51，50轮不早停，其余优化器/OneCycle/监督不变；按严格最低inner_val loss选best，未因last更高改选。
+- 范数试点不读验证/测试评分；首次更新后编码器梯度L1=0.000921278304304，最终两层u范数0.032152813/0.846325636，所有U族超过1e-3。
+- 单轮探针最大reserved1696MiB；范数试点1820MiB，最低整卡空闲52MiB按local_dev_v1记memory_tight。无OOM、降配、CPU替代或关闭其他程序。
+- 相对历史8H，best均值差重入+0.604845、访问控制+0.849090个百分点；提升/持平/下降折数分别10/0/0、3/3/4。不是单因素因果证据。
+- 原执行器验收20/20；补充独立核验503文件（40份checkpoint），逐折/OOF重算一致；历史299份EP7文件、750份源码、1134份旧产物未变。
+- 报告附加脚本曾将正式状态写成success，实际为complete；completion/保留失败和旧源码，completion_attempt2/按真实接口通过。没有改正式验收器或重训。
+- 既有4318项回归和原名修订26项定向测试保留，本次未重复运行。新增工作是结果独立复算、归档核验和文档UTF-8/CJK检查。
+- 训练命令：python -u -B -m scripts.edge_sem.recon.ep7_run --root scripts/edge_sem/artifacts/ep7_original_v1。CPU历史核验：python -B -m scripts.edge_sem.recon.ep7_original frozen。

@@ -1082,3 +1082,23 @@ D1匿名主视图、D2 P2协议、D3七类冻结仍须训练前确认，原名�
 原4318项回归保留，本轮26项定向测试通过；封存后G3R和G4R-A真实CPU装配/绑定通过。旧3个匿名计划只读核验通过，299份旧EP7文件、750份冻结源码和1134份更早产物均不变。新runtime共382项（28 EdgeSem+354冻结）。新P2登记提交后另写decisions/执行授权，再实际启动；不需要重复索取本轮顺序训练授权。
 
 报告：scripts/edge_sem/EP7_ORIGINAL_REPORT.md。与8H比较同时涉及视图、初值、停止规则差异，只能描述，不作单因素归因。最终实验在显存充足的服务器运行，当前限制仅来自本机；未自动授权EP8/9或GitHub推送。
+
+
+## EP7 原名主视图执行完成（2026-11-11）
+
+8/8显存探针、1/1 G4R-A 50轮范数试点、20/20正式G3R全部完成验收。正式各50轮，共1000轮，无训练失败/重试。原名S0主视图，匿名接口备用。best BF1十折均值±样本SD：重入99.729±0.206%、访问控制99.203±1.080%；last分别99.788±0.171%、99.568±0.269%，主结果仍取best。
+
+报告：scripts/edge_sem/EP7_ORIGINAL_REPORT.md；逐折/OOF：scripts/edge_sem/artifacts/ep7_original_v1/results/；资源、独立复算和完整性收据：同批次completion_attempt2/。当前是后续边增强需要的新G3R基线，尚未证明边增强分类收益。与8H差值同时受原名/匿名、初值和停止规则影响，仅描述。最终实验上显存充足的服务器，本机限制仅属本地试验。未启动EP8/EP9，未推送GitHub。
+
+详细实施记录：
+
+- 训练提交6f634746ca655d6ba7e2a6d31a503e4d466faea9。原名选择和用户原始答复在user_decision.json/view_revision.json；旧匿名计划和seal未改。
+- 先8探针，再范数试点，再重入fold0–9和访问控制fold0–9；每任务独立进程，GPU串行。26份准备初值按SHA复用；未复制权重。
+- P2的patience=51，50轮不早停，其余优化器/OneCycle/监督不变；按严格最低inner_val loss选best，未因last更高改选。
+- 范数试点不读验证/测试评分；首次更新后编码器梯度L1=0.000921278304304，最终两层u范数0.032152813/0.846325636，所有U族超过1e-3。
+- 单轮探针最大reserved1696MiB；范数试点1820MiB，最低整卡空闲52MiB按local_dev_v1记memory_tight。无OOM、降配、CPU替代或关闭其他程序。
+- 相对历史8H，best均值差重入+0.604845、访问控制+0.849090个百分点；提升/持平/下降折数分别10/0/0、3/3/4。不是单因素因果证据。
+- 原执行器验收20/20；补充独立核验503文件（40份checkpoint），逐折/OOF重算一致；历史299份EP7文件、750份源码、1134份旧产物未变。
+- 报告附加脚本曾将正式状态写成success，实际为complete；completion/保留失败和旧源码，completion_attempt2/按真实接口通过。没有改正式验收器或重训。
+- 既有4318项回归和原名修订26项定向测试保留，本次未重复运行。新增工作是结果独立复算、归档核验和文档UTF-8/CJK检查。
+- 训练命令：python -u -B -m scripts.edge_sem.recon.ep7_run --root scripts/edge_sem/artifacts/ep7_original_v1。CPU历史核验：python -B -m scripts.edge_sem.recon.ep7_original frozen。
