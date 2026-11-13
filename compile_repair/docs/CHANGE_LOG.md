@@ -552,3 +552,65 @@ CP1 仍需 D5/D16/D18 决定与 CP0.1 审查。精确 pragma 指向缺失版本�
 ### 10.5 验收、资源、未执行事项与停止
 
 doc_check 全部 passed 后提交并 push。下一步 Codex 执行 CP0.1 B、C。
+
+
+## 11. 2026-11-13 CompileRepair CP0.1 B 完成；C 安装完成、兼容性失配停止（修改 AI：Codex）
+
+### 11.1 任务、依据与范围
+
+用户要求先 pull --ff-only，再阅读 PROMPTS r2.4 全文、共享上下文、HANDOVER §0–5、DECISIONS 与本文件 §9/§10，只执行 CP0.1 B、C，不重做 A。起始 compile-repair@897fbd03116040ddbc8d106db1b844624f512091，pull 返回 Already up to date；D5、D16、D18 已由用户于 2026-11-13 明确批准。授权在 cp0_1_env_v1/authorization.json、cp0_1_compilers_v1/authorization.json 先行记录，C 另以全部 B 门槛通过为前提。
+
+文件清单：生产代码仅 toolchain/slither.py；修改 tests/test_slither_v2.py 与 tests/test_toolchain.py，新增 tests/test_production.py；tests/fixtures/features/ 原字节新增以下 19 个文件：f0807_free_function.sol, f0813_using_global.sol, f0819_user_operator.sol, f0828_transient.sol, f084_custom_error.sol, f088_udvt.sol, h0811_encodecall.sol, h0815_event_selector.sol, h0818_prevrandao.sol, h0822_file_event.sol, h0824_blob.sol, h0826_require_error.sol, h0829_layout_at.sol, h084_error_selector.sol, y0818_prevrandao_asm.sol, y0824_blob_asm.sol, y0824_mcopy.sol, y0824_tstore_asm.sol, y087_basefee.sol。文档追加 CP0_1_REPORT.md 的 B/C（A 不变）、PROGRESS.md、本节，更新 docs/HANDOVER.md §0–5 并追加 §6 四段交接，更新 docs/DECISIONS.md 当前状态并追加历史。新证据仅 cp0_1_env_v1/ 与 cp0_1_compilers_v1/，各自 README 与 cp0_1_env_v1/file_inventory.json 提供完整文件清单。未修改 PROMPTS、scripts/**、原作者代码、任何原输入、旧产物、根目录交接/训练改变文档；未实现 CP1 或 CP6 第 10 行规则。
+
+### 11.2 实施方式和重要选择
+
+toolchain/slither.py 增加 production=(0.11.6,0.4.2)，保留显式版本拒绝；check_profile 在 Python 3.10 使用标准库 importlib.metadata，在 3.7 回退 importlib_metadata，两条路径由各自真实环境验证。production 采用公开 CryticCompile 与 Slither 组合，传入与原调用相同的 solc 绝对路径和 solc_disable_warnings，以便 Slither 解析失败时仍保留实际平台；其余 D3/key5 实现未改。regression_6c 继续复用冻结 _compile，原文件 validate_slither.py SHA256 为 4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8；没有复制或 monkeypatch，真实构造等价测试按 key5、有序 IR、length 一致。
+
+独立环境采用获批 Python 3.10.x 中的 3.10.21，复用并校验缓存的 32 个 conda 包，--offline --copy 安装，不改 mando。六个直接包精确固定为 slither-analyzer 0.11.6、crytic-compile 0.4.2、solc-select 1.0.4、tree-sitter 0.20.4、pycryptodome 3.20.0、pytest 7.4.4；必要依赖经 PyPI 解析后锁定 URL/版本/SHA，再按 --no-deps --require-hashes 安装，全部包与来源见 environment.json、pip_freeze.txt 和锁文件。第一次只解析时发现用户 site-packages 混入，尚未安装，改为仅新环境设置 PYTHONNOUSERSITE=1 后重新解析，未修改用户包；isolation_adjustment.json 与两份原始解析均保留。生产环境 57 个 Python distribution 均来自新 prefix，pip check 通过。
+
+19 个 probe 从审查目录原字节复制，按源码 pragma 下界选择适用版本；f0807_free_function 实际 >=0.7.1，h0811_encodecall 实际 >=0.8.12，未按简写文件名推断。冻结 frontend.parse/versioning.interval 在两套环境分别处理 846 个输入，不重新编译 A；语言库路径与 SHA 完全相同。三个 reentrancy 工作副本仅在新 artifacts/rewrite/ 试验单处 bool 标量改写，按原要求记录前后 SHA、字节位置与节点差异，不形成生产规则。
+
+B 门槛写入 B_acceptance.json 后才下载 C 的 59 个官方二进制；先核官方 SHA256/Keccak256，再排他创建新目录/文件并检查 --version，独立追加信任清单，复用 load_additions 再验链。全程不运行 solc-select install/use，不改已有 ~/.solc-select 文件或全局选择，不改网络配置，联网只经既有代理。开发中一次新测试 regex 双转义导致收集错误，修正转义后通过，失败日志保留，未改变验收条件；初始受限 WSL 读调用 E_ACCESSDENIED 改为获审显式 WSL 调用解决，未遇到无法绕开的自动审批拒绝。正式 B 无非预期结果，C 在首个非预期结果停止，均未自动重试。
+
+### 11.3 实测与数据结论
+
+| 测量 | 结果 | 证据 |
+|---|---|---|
+| 输入/选版身份 | cp0_v2 的 846 文件与 selection.ascending；逐次绑定源码/二进制 SHA | production_invocations.jsonl |
+| 区间等价 | 846/846；tree-sitter 0.20.4；库 SHA f424e0d52ebcdda4932a973af5357874fedd0348c78d87b1575bf15ee539d967 | interval_equivalence.json |
+| B 直接 solc / D3 | 846 rc0；843 D3；三个指定 0.4.24 AssertionError | production_comparison.json |
+| B 实际平台 | 846/846 solc，含三次解析断言失败 | production_invocations.jsonl |
+| B 结构 | 435 文件不同；+2182 RETURN、+128 ENDASSEMBLY、−48 合成入口、−6 EXPRESSION；均符合审查 | structure_differences.json |
+| B 有序 IR | key5+IR 全同 56；共有 key5 上 783 文件、24823 节点不同；列前 20 例，仅统计 | ir_differences.json |
+| B 特征 | 19 特征、当前 23 组合全通过 | feature_probes_B.json |
+| B 工作副本 | 两套环境各 3/3 D3；节点 11→10、11→10、6→5 | rewrite_production.json、rewrite_regression_6c.json |
+| B 耗时 | wall 292.588 秒；solc 75.771 秒、Slither 189.683 秒 | production_comparison.json |
+| C 安装 | 59/59 双哈希和版本通过；722168656 字节；335.193 秒 | installation_summary.json |
+| C 安装覆盖 | 支持快照 92/92；总 96 含 4 个历史负对照 | coverage.json |
+| C 验证 | 计划 496，执行 225：224 过、1 失败、271 未运行；wall 12.224 秒 | compatibility.json |
+| C 完整版本矩阵 | 45 版全过；0.8.24 部分失败；13 版未开始 | compatibility.json.per_version |
+| 不变量 | 模块外 27845 文件、旧产物 204、旧 solc 37、mando 元数据 205 差异 0；code_refs 354 项不变 | cp0_1_env_v1/frozen_audit.json |
+
+C 失败为 h0824_blob.sol 在 solc 0.8.24 下 rc1，Error: Undeclared identifier. Did you mean "blockhash"? 指向 blobhash(0)，因此未运行 Slither。源码 SHA c9e90c95e2aa4ff6fca95636caf80ceca31c2ba40cdefdfcfa204b18de141cf2，二进制 SHA fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f；完整命令与 stderr 见 compatibility_invocations.jsonl。成功编译和 D3 不证明 transient 或全部图边的语义正确，安装 92/92 也不证明整个特征矩阵通过。CP2 可参考固定版本编译/D3 265.454 秒的本次观测，不包含选版、修复、存储、跨版本或 6c 重放。
+
+### 11.4 用户批准、原文差异与待确认设计
+
+用户 2026-11-13 原话“I have followed the approach you recommended.”对应 r2.4 三项推荐，本轮又明确指定版本、环境路径、59 版清单、B 通过再 C、0 美元上限及禁止操作。本次执行完全在该授权范围内；D5 升序仍留给 CP1 实现，D16 的旧 0.9.6 请求作废但保留未改，D18 的安装已完成。没有增设新模型、LLM、外部语料、文档下载、包升级或全局 solc 操作。
+
+与原文不一致的验收只有 C 的首个 0.8.24+h0824_blob 结果。按用户“与预期不符时按原文停下报告，不要放宽判据或自行换方案”以及 §4.1“失败就停，保留现场，不自动重试”，余下 271 组停止，未改源码、probe、版本下界、EVM 参数或成功标准。当前异常发生在 solc 阶段，不是 Slither 的 D3 映射失败；不能用后者的已知 3 份断言例外掩盖。
+
+待审查建议（未实施）：核对 h0824_blob 高级语法引入版本与 EVM 配置，以及同类 probe 下界证据；需要任何参数或下界修订时先向用户确认，确认后以新批次验证剩余及受影响组合。不能仅凭该错误断言“加 EVM 参数即可解决”。B 通过、C 安装完成、C 兼容性未通过的状态分别保留，CP0.1 整体未通过，CP1 不开始。
+
+### 11.5 验收、资源、未执行事项与停止
+
+B 的 profile、冻结导入/846 区间等价、固定版本 846 对照、23 特征组合、3 个工作副本、实际 solc 平台和环境不变检查均通过 B_acceptance.json 门槛。C 安装验收全部通过，兼容性验收失败后停止；未执行 271 组，未重跑 A/CP0 或改写原源码，未实现 CP1/CP6。所有命令为 CPU，OMP/MKL=2，无训练、GPU 锁、图存储、LLM，费用 0 美元。
+
+B 阶段的模块测试命令为各环境 python -B -m pytest -q -ra -p no:cacheprovider compile_repair/tests，实际另带新批次专属 basetemp，生产运行还带 -x；production 77 passed/6 skipped（8.31 秒），mando 58 passed/25 skipped（1.96 秒）。production 跳过一项 Python 3.7 路径及五项 0.8.0 专属检查，mando 跳过一项标准库路径及 24 项 production 检查；与 profile 无关测试均通过。mando 的 scripts/DFG/dfg_v2/tests 同参数为 2653 passed/9 warnings（193.29 秒），均为既有弃用警告，test_layering 通过。上述测试在 C 新装 59 版之前执行；C 停止后没有把未执行的扩大矩阵或后续重测记为通过。
+
+强制文档共七份：CP0_1_REPORT、PROGRESS、CHANGE_LOG 按原字节偏移检查新增区；HANDOVER/DECISIONS 因当前表更新检查整文件；两个新 README 检查整文件。doc_check 的实际结果及最后检查在本节后续追加，不凭进程退出码单独判定。仅 compile_repair/ 允许变更，生产 Python 仍 9/30；全部记录与最终审计后以 CP0.1 开头本地提交，不 push，提交号在最终答复给出。
+
+
+文档检查实测：doc_check_v1.jsonl 的七行均为 passed=true，逐行解析确认（进程 rc0），追加前偏移分别为 CP0_1_REPORT 10942、PROGRESS 12241、CHANGE_LOG 73084 字节；HANDOVER、DECISIONS 和两个 README 检查整文件。写入本段后再按相同目标执行 doc_check_v2，并保留完整输出与逐行判定；最终结果见 final_audit.json。git diff --check 已通过，A 前缀及历史保留检查通过后再封存和本地提交。
+
+
+暂存检查补记：全部 112 个初始清单文件暂存后，git diff --cached --check 在 production_batch.stderr.log 的 554、562、571 行报告三处“space before tab in indent”。它们是 Slither 三个已知 AssertionError 诊断打印的原始 Solidity 行，不是本轮源码格式错误；为保持证据字节，日志不裁剪、不改写。保留完整检查 rc2 和三条诊断，另对除该单一原始日志之外的全部暂存文件运行同一检查，rc0，见 final_staging_audit.json；未改变 D3、C 的停止标准或编译参数。该补记与最终清单写入后再做七份 doc_check_v3；最终封存为两批 seal_v2.json，原 seal.json 保留为第一次封存快照，完整提交清单为 file_inventory_v2.json。

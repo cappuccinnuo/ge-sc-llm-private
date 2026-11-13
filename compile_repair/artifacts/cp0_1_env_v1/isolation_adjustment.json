@@ -1,0 +1,16 @@
+{
+  "problem": "Conda Python initially exposed existing ~/.local/lib/python3.10/site-packages, including typing_extensions, to pip resolution. No packages were installed from this first resolution.",
+  "resolution": "Disable user-site only in the new environment via conda activation variable and explicit invocation environment; preserve first resolution, recompute isolated dependency plan.",
+  "command": [
+    "/home/zhao/miniconda3/bin/conda",
+    "env",
+    "config",
+    "vars",
+    "set",
+    "-p",
+    "/home/zhao/miniconda3/envs/compile-repair-production",
+    "PYTHONNOUSERSITE=1"
+  ],
+  "returncode": 0,
+  "existing_user_site_modified": false
+}

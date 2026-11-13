@@ -91,3 +91,115 @@ A 达到预期，**整个 CP0.1 尚未完成，CP1 不开始**。PROMPTS §4.2b 
 待核对项，未实施变更：B 文案写“0.8.24 transient”，审查 fixture cp0_review_v1/features/f0828_transient.sol 却写 pragma >=0.8.28，使用高级瞬态变量声明。进入 B 前须核对官方语法边界，不能直接把该 fixture 套到所有 >=0.8.24 版本；如果需要拆分探针或修改文案，先咨询用户并登记。A 没有不一致验收项，没有实施其他替代方案。
 
 本轮仅本地提交，标题以 CP0.1 complete A 开头，提交号由包含本报告的提交确定并在最终答复给出。没有 push、新下载/安装、LLM 调用、HGT 训练、GPU 锁操作、输入改写或图存储。
+
+
+## B. 2026-11-13 生产环境续作：已达到 r2.4 预期（修改 AI：Codex）
+
+本节及随后 C 节是对上文 A 报告的追加；上文的历史状态与 A 结果原样保留。执行依据为完整 PROMPTS r2.4（尤其 §1.7、§4.1、§4.2b）、HANDOVER §0–5、DECISIONS 与 CHANGE_LOG §9、§10。起始 HEAD 为 897fbd03116040ddbc8d106db1b844624f512091，git pull --ff-only origin compile-repair 返回 Already up to date。没有重跑 A 或 cp0_v2。
+
+### B.1 授权与环境身份
+
+用户 2026-11-13 明确授权 D5 区间升序、D16 独立生产环境与 D18 在 B 全通过后安装 59 个编译器；此前原话为“I have followed the approach you recommended.”。两份 authorization.json 在任何安装之前创建，分别位于 artifacts/cp0_1_env_v1/ 和 cp0_1_compilers_v1/，包含精确版本、来源、用户原话、日期、0 美元上限和限制。旧 cp0_1_development_v1/environment_installation_request.json（0.9.6）已作废但未修改；替代请求位于 cp0_1_env_v1/environment_installation_request.json。
+
+新环境 /home/zhao/miniconda3/envs/compile-repair-production 使用 Python 3.10.21、Slither 0.11.6、crytic-compile 0.4.2、solc-select 1.0.4、tree-sitter 0.20.4、pycryptodome 3.20.0、pytest 7.4.4。Python 与 31 个必要 conda 包全部来自已有缓存，逐项核对官方 repo.anaconda.com/pkgs/main 元数据 SHA256 后以 --offline --copy 建立；未下载 conda 包。PyPI 的 53 个包（含六个直接指定包和必要传递依赖）先解析精确版本、URL 与 SHA256，再用 --no-deps --require-hashes 按锁文件安装。全部 57 个 Python distribution 的路径均属于新环境，pip check 通过；完整版本见 pip_freeze.txt、environment.json，来源见 conda_packages.lock.json、conda_downloads.jsonl、pip_resolution_isolated.json、pip_install_report.json。
+
+安装前发现 conda 默认读取 ~/.local/lib/python3.10/site-packages，最初解析会借用已有 typing_extensions。未使用这份解析安装；仅在新环境设置 PYTHONNOUSERSITE=1，并在每次直接调用显式传入，重新解析完整依赖。原始解析保留，处理见 isolation_adjustment.json；用户目录和其他环境未修改。所有联网经既有代理，不设置直连回退；未运行 solc-select install/use。
+
+### B.2 限定实现与测试方式
+
+仅修改生产代码 toolchain/slither.py：配置 production 的确切版本对；check_profile 优先标准库 importlib.metadata、Python 3.7 下回退 importlib_metadata；记录 crytic_compile_platform 及实际平台类。为了在 Slither 的已知 AssertionError 下仍保留实际平台，production 使用公开 API 组合 CryticCompile(target, 原 kwargs) 与 Slither(crytic, 原 kwargs)，未改变编译参数；regression_6c 仍调用冻结 _compile。真实三元表达式测试与冻结 _compile 的输出按 key5、有序 IR、length 全部相同，没有复制或 monkeypatch 冻结代码。
+
+新增 tests/test_production.py，标准库与 backport 路径分别在生产 Python 3.10 和 mando Python 3.7 中实测。tests/test_slither_v2.py、test_toolchain.py 只对依赖 0.8.0 指纹/节点数的五个既有真实测试增加 profile 限定跳过；与 profile 无关的原有测试继续执行。19 个审查探针原字节复制到 tests/fixtures/features/，文件名均未改变；SHA256、来源与最低版本见 feature_probes_B.json。两处历史文件名并不等于源码下界：f0807_free_function.sol 的 pragma 为 >=0.7.1，h0811_encodecall.sol 为 >=0.8.12；适用范围按实际 pragma，未改探针。
+
+语言库仍为 /home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64/my-languages.so，SHA256 f424e0d52ebcdda4932a973af5357874fedd0348c78d87b1575bf15ee539d967。使用冻结 frontend.parse 与 versioning.interval 在两个环境各计算 846 份源码，逐条区间、源码 SHA、tree-sitter 版本和库 SHA 全同，见 intervals_mando.json、intervals_production.json、interval_equivalence.json。该检查未编译 A 的矩阵，不构成重做 A。
+
+### B.3 固定版本真实验收
+
+输入仍为 cp0_v2/recon.json 的 846 个文件与 selection.ascending。原归档 cp0_1_v1/node_facts_v2.jsonl.gz 的 SHA256 5202a8754e8452af387a80e43c6b7d23aa796074273cfdaf8882af9c304a319b 在读取前核对，只读使用；比较完整 key5 多重集合，不按 source length 判定结构。
+
+| 项目 | r2.4 预期 | 本机实测 | 结论 |
+|---|---:|---:|---|
+| 直接 solc rc0 | 846 | 846 | 通过 |
+| production D3 | 843/846 | 843/846 | 通过 |
+| 0.4.24 AssertionError | 指定 3 份 | 同 3 份 | 通过 |
+| 构造成功后的 D3(a)/(b) 失败 | 0/0 | 0/0 | 通过 |
+| 实际 crytic 平台 | solc | 846/846 为 solc，含三次断言失败 | 通过 |
+| 结构不同文件 | 435 | 435 | 通过 |
+| 新增隐式 RETURN / ENDASSEMBLY | 2182 / 128 | 2182 / 128 | 通过 |
+| 减少合成 OTHER_ENTRYPOINT / 重数 EXPRESSION | 48 / 6 | 48 / 6 | 通过 |
+| 全部 key5 相同文件 | 审查为 408 | 408 | 通过 |
+| 19 特征、当前适用 0.8.x 组合 | 全通过 | 23/23 | 通过 |
+| tree-sitter 区间等价 | 846/846 | 846/846 | 通过 |
+
+完整 435 份 key5 差异列在 structure_differences.json。843 个成功文件共 110996 个节点，顶层函数数为 0。key5 与有序 IR 全部相同的文件为 56；在两边共有 key5 上，783 个文件、24823 个节点的有序 IR 不同，前 20 个例子见 ir_differences.json；按原文仅统计，不作为失败。正式运行未出现非预期项、未重试，详见 production_comparison.json 与逐次 production_invocations.jsonl；节点归档为 production_node_facts_v2.jsonl.gz。
+
+已知失败单列：reentrancy_bonus.sol（628f60b16c87…）、reentrancy_cross_function.sol（583b8636921a…）、reentrancy_insecure.sol（97bb37ef327f…），均使用 0.4.24、solc rc0、实际 solc 平台、Slither AssertionError。没有把构造失败当成 D3 通过。
+
+### B.4 工作副本试验与能力边界
+
+仅在 cp0_1_env_v1/rewrite/ 写三个工作副本，把各自唯一的“(bool success, ) =”改为“bool success =”；原始语料未修改，精确字节位置与前后 SHA 见 rewrite_manifest.json。三个副本在 production 与 regression_6c 下均 solc rc0、D3 通过；相对原 A 节点数分别为 11→10、11→10、6→5。逐节点 key5/IR/length 差异见 rewrite_production.json 与 rewrite_regression_6c.json，偏移随较短改写而变化，不能忽略。
+
+此处仅是 B 指定的试验，没有实现 §3.2 第 10 行改写规则；规则仍属 CP6。探针通过只说明当前编译与 D3 构造成立，尤其 transient 未证明语义建模正确，也未证明全部 CFG/CG 边或任意合约行为等价。
+
+### B.5 测试、耗时与进入 C 的门槛
+
+生产环境：python -B -m pytest -q -ra -x -p no:cacheprovider --basetemp compile_repair/artifacts/cp0_1_env_v1/pytest_production_v2 compile_repair/tests，77 passed、6 skipped、8.31 秒。跳过的是 Python 3.7 backport 路径一项和 regression_6c 专属五项。mando 同模块测试 58 passed、25 skipped、1.96 秒，跳过 Python 3.10 路径一项及生产环境专属 24 项。mando 的 scripts/DFG/dfg_v2/tests 为 2653 passed、9 个既有警告、193.29 秒；test_layering 通过，非测试生产 Python 文件仍为 9 个。
+
+开发期一次测试收集失败来自新测试正则的双重转义，尚未运行任何探针即报错；修正转义后重新测试，未改变特征、D3 或验收数字。pytest_production_v1.log 与 development_corrections.json 保留该现场。另有初次受限 WSL 只读调用被 sandbox 拒绝，改用显式 WSL 的获审升级调用成功；没有修改权限或绕过自动审查。
+
+正式 B 比较耗时 292.588 秒；直接 solc 合计 75.771 秒，Slither 合计 189.683 秒。因此 CP2 固定版本 846 文件的编译与 D3 部分观测约 265.454 秒；这不含候选搜索、修复、图存储、跨版本或 6c 重放，不是 CP2 总时间保证。B_acceptance.json 于 2026-11-13 12:55:58 UTC（07:55:58 EST）记录全部门槛通过，包含包、区间、探针、三副本、两套测试、mando 元数据与已有 37 个 solc 文件不变、全局选择不变；只有此后才开始 C 下载。
+
+复现命令源码作为只读执行证据保存在 production_batch_command.txt、interval_command.txt、rewrite_command.txt，并非新增模块入口。获准重新测量时应先改为新产物目录，不能覆盖本轮文件。当前结论为 B 通过；C 的安装与兼容性结果以下节为准。
+
+
+## C. 2026-11-13 编译器补齐完成；兼容性失配后停止（修改 AI：Codex）
+
+### C.1 安装与信任链
+
+B_acceptance.json 全部通过后，才执行 cp0_1_compilers_v1/authorization.json 绑定的原始 59 版清单。每个版本从清单中的 https://binaries.soliditylang.org/linux-amd64/ 官方 URL 下载，先在内存中核对官方 SHA256 与 Keccak256，再排他创建此前不存在的 solc-VERSION 目录和二进制，设置执行权限并检查 --version 的精确版本及 rc0。没有运行 solc-select install/use，没有改已有 ~/.solc-select 文件、全局选择、旧可信清单或原安装请求。
+
+59/59 安装与双哈希/版本校验通过，下载总字节 722168656，耗时 335.193 秒，见 installation_summary.json、installation_invocations.jsonl。独立新增 trusted_compilers_addition.json 绑定本批授权、B 门槛和原官方索引；调用现有 load_additions 再核验完整信任链通过。索引 SHA256 仍为 b44c1d0e598ed0bcbf4ee49c86c5ae85b63718c1591689b02d12d7a11d45a2ac，未刷新快照。
+
+| 支持系列 | 已安装 / 快照正式版本 | 缺少 |
+|---|---:|---:|
+| 0.4.12–0.4.26 | 15/15 | 0 |
+| 0.5 | 18/18 | 0 |
+| 0.6 | 13/13 | 0 |
+| 0.7 | 7/7 | 0 |
+| 0.8.0–0.8.38 | 39/39 | 0 |
+| 支持范围内合计 | 92/92 | 0 |
+
+总安装 96 个，含原有 4 个低于支持下限的负对照。coverage.json 记录的是安装完成时的快照，compatibility_validation_status 当时为 pending；最终兼容性状态以 compatibility.json、final_status.json 为准。92/92 不是所有语法或图建模全部验证通过。
+
+### C.2 真实兼容性验收与停止现场
+
+安装后按预先记录的 compatibility_plan.json 执行：版本升序，每版先跑原 CP0 §5b 系列 fixture，0.8.4 起加 custom errors，再跑适用的 19 个审查特征。自由函数 probe 也适用于新装的 0.7.1–0.7.5；没有改源码、默认编译选项或特征下界。计划 496 组，遇首个非预期项即停，不自动重试。
+
+| 类别 | 计划 | 已执行 | 通过 | 失败 | 未执行 |
+|---|---:|---:|---:|---:|---:|
+| CP0 §5b 系列 fixture | 59 | 46 | 46 | 0 | 13 |
+| CP0 custom errors | 33 | 20 | 20 | 0 | 13 |
+| 19 个审查特征的适用组合 | 404 | 159 | 158 | 1 | 245 |
+| 合计 | 496 | 225 | 224 | 1 | 271 |
+
+45 个新版本的全部适用组合通过；0.8.24 已执行 12/18（11 过、1 失败）；0.8.25–0.8.37 共 13 个新版本未开始兼容性验证。已执行部分 wall time 12.224 秒，直接 solc 合计 1.455 秒、Slither 合计 3.562 秒，逐次命令、退出码、诊断、平台与耗时见 compatibility_invocations.jsonl，节点见 compatibility_node_facts_v2.jsonl.gz。
+
+首个非预期项：solc 0.8.24 + tests/fixtures/features/h0824_blob.sol，文件 SHA256 c9e90c95e2aa4ff6fca95636caf80ceca31c2ba40cdefdfcfa204b18de141cf2，编译器 SHA256 fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f。实际 solc 退出码为 1，错误首行为 Error: Undeclared identifier. Did you mean "blockhash"?，指向 blobhash(0)；Slither 未运行。实际命令如下（仅记录，不代表获准重跑）：
+
+~~~bash
+/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24 /home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/features/h0824_blob.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes --allow-paths . compile_repair/tests/fixtures/features/h0824_blob.sol
+~~~
+
+### C.3 与原文的差异、未实施建议及后续边界
+
+本结果不符合 r2.4 对 production 特征探针全部通过的预期，因此 C 未通过，CP0.1 整体仍未完成，CP1 不开始。按用户要求及 §4.1“失败就停，保留现场，不自动重试”，停止余下 271 组，不通过降低判据、改变编译参数、改写 probe 或忽略失败使其通过。19 个审查 probe 在 0.8.38 上的成功，不能单独证明其在声明的最低版本及当前默认编译配置上也成立。
+
+只登记、未实施的后续建议：先核对 h0824_blob 的高级语法引入版本与适用 EVM 设置，并审查同类特征下界的证据；若需调整 fixture 下界或编译配置，先请用户确认，再以新批次验证剩余矩阵及受影响组合。当前失败消息不足以证明仅修改 EVM 参数即可解决，本轮没有做这类试验，也没有下载文档或引入其他方案。
+
+CP1 的已知参数：D5 升序；production 为 0.11.6/0.4.2；上述 92 个支持范围内编译器均安装并可信，具体绝对路径及 SHA 见原 recon 与独立 addition。pragma 覆盖不再因 0.4.12–0.8.38 快照内缺少补丁版本而触发，但低于支持下限、超出快照或无官方构建导致区间内没有可用编译器的情形仍需区分；区间内编译失败或 Slither 失败本身不满足“没有可用编译器”的覆盖前提。C 的未通过状态及后续审查仍阻止 CP1。
+
+### C.4 冻结检查与提交边界
+
+frozen_audit.json 核对 27845 个模块外已跟踪文件、204 个已有产物、37 个旧 solc 文件、205 个 mando 包元数据文件，差异均为 0；experiment.run._code_refs() 的 354 项一致。A 报告旧字节前缀与原 0.9.6 请求哈希不变，生产代码仍为 §3.10 内的 9 个文件。源码原件、EdgeSem、原 CP0/A 产物与仓库根目录记录均未改。
+
+本轮费用 0 美元，LLM 调用 0；无训练、GPU 锁或图存储操作，没有实现 CP1/CP6。已完成的 B 测试结果见上节；C 失败后未继续生产探针或重复正式运行。按强制记录完成 CHANGE_LOG §11、HANDOVER 当前状态与四段交接、PROGRESS、DECISIONS、两批 README、doc_check 后本地提交，不 push。

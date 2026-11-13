@@ -89,3 +89,17 @@ WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，�
 ## 用户决定 D5、D16、D18（Claude，2026-11-13）
 
 - 用户采纳 r2.4 推荐：D5 升序；D16 生产 Slither 0.11.6（Python 3.10 独立环境）；D18 安装 59 个编译器。记录见 `docs/CHANGE_LOG.md` §10。下一步 Codex 执行 CP0.1 B、C。
+
+
+## CP0.1 B 完成；C 安装完成、兼容性失配停止（2026-11-13，修改 AI：Codex）
+
+- 起点 897fbd03116040ddbc8d106db1b844624f512091，pull --ff-only 已同步；依 PROMPTS r2.4 与用户明确 D5/D16/D18 授权，只执行 B/C，未重做 A。
+- 实现与文件：toolchain/slither.py 的 production、metadata 回退和实际平台；tests/test_production.py、两个既有测试的 profile 跳过；19 个原字节 features fixture。文档与完整产物清单见 CHANGE_LOG §11.1、cp0_1_env_v1/file_inventory.json，两批 README 含复现方式。
+- B：Python 3.10.21、Slither 0.11.6/crytic 0.4.2 独立环境已建立；区间 846/846 一致；D3 843/846、指定 3 份断言失败；结构 435 份差异及 +2182 RETURN/+128 ENDASSEMBLY/−48 合成入口/−6 EXPRESSION 全吻合。23 组特征全过，三份工作副本两环境全过；详见 B_acceptance.json、production_comparison.json。
+- C：B 全通过后才安装 59 版，全部官方双哈希/版本校验；快照范围 92/92。496 组计划仅执行 225：224 过、0.8.24+h0824_blob 的 blobhash 未声明导致 1 个 rc1、271 组未运行；Slither 未进入，已按原文停止，详见 final_status.json。
+- 测试命令：python -B -m pytest -q -ra -p no:cacheprovider compile_repair/tests，另带独立 basetemp；B production 77 passed/6 skipped，mando 58 passed/25 skipped。同参数 scripts/DFG/dfg_v2/tests 为 2653 passed/9 warnings；C 停止后未扩大或重测矩阵。初次新测试正则收集错误已修正并保留；初次包解析 user-site 混入在安装前隔离解决。
+- 不变量：frozen_audit.json 核对模块外文件 27845、旧产物 204、已有编译器 37、mando 元数据 205、code_refs 354 项不变；A 报告前缀及旧 0.9.6 请求未改。生产文件仍 9 个，分层通过，费用 0，无 LLM/训练/全局选择。
+- 与 PROMPTS 不一致：仅 C 首个特征结果未达预期；未放宽判据、换参数、改下界或自动重试。建议先审查语法最低版本与 EVM 设置，任何修订先咨询用户，再用新批次续验；C 与 CP0.1 未通过，CP1 不开始。
+- 强制记录、doc_check 与本地提交边界见 CHANGE_LOG §11.5；本轮不 push。第 10 行改写只做工作副本试验，规则未实现。
+
+最终记录补充：原始 Slither 日志的三处空白格式诊断按原字节保留；除该日志外的暂存检查通过。见 CHANGE_LOG §11.5、final_staging_audit.json；最终提交清单为 file_inventory_v2.json，最终封存为两批 seal_v2.json，第一次清单/封存不覆盖。

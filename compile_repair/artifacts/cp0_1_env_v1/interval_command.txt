@@ -1,0 +1,26 @@
+import json,hashlib,sys,time
+from pathlib import Path
+from scripts.DFG.frontend import parse,library_path
+from scripts.DFG.state.stage_f.versioning import interval
+try:
+ from importlib.metadata import version
+except ImportError:
+ from importlib_metadata import version
+out=Path('compile_repair/artifacts/cp0_1_env_v1')
+recon=json.loads(Path('compile_repair/artifacts/cp0_v2/recon.json').read_text())
+start=time.monotonic();rows=[]
+for item in recon['inputs']:
+ p=Path(item['path']);raw=p.read_bytes();digest=hashlib.sha256(raw).hexdigest()
+ assert digest==item['sha256']
+ source=raw.decode('utf8');value=interval(source,parse(source).root_node)
+ rows.append({'path':item['path'],'sha256':digest,'interval':value})
+profile='production' if sys.version_info[:2]==(3,10) else 'mando'
+result={'python':sys.version,'tree_sitter_version':version('tree-sitter'),'library_path':str(library_path()),'library_sha256':hashlib.sha256(library_path().read_bytes()).hexdigest(),'rows':rows,'elapsed_seconds':time.monotonic()-start}
+with (out/('intervals_'+profile+'.json')).open('x') as f:json.dump(result,f,indent=2)
+if profile=='production':
+ previous=json.loads((out/'intervals_mando.json').read_text())
+ diffs=[{'mando':a,'production':b} for a,b in zip(previous['rows'],json.loads(json.dumps(rows))) if a!=b]
+ equal=len(rows)==len(previous['rows'])==846 and not diffs and result['library_sha256']==previous['library_sha256'] and result['tree_sitter_version']==previous['tree_sitter_version']=='0.20.4'
+ with (out/'interval_equivalence.json').open('x') as f:json.dump({'passed':equal,'files':len(rows),'differences':diffs,'library_sha256':result['library_sha256']},f,indent=2)
+ assert equal
+print(profile,len(rows),'intervals computed',result['elapsed_seconds'])

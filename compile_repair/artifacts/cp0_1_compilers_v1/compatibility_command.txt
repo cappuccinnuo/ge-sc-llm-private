@@ -1,0 +1,43 @@
+import json,hashlib,gzip,time,logging
+from pathlib import Path
+from dataclasses import asdict
+from collections import Counter
+from compile_repair.core.model import Compiler
+from compile_repair.toolchain.solc import compile_file,load_additions
+from compile_repair.toolchain.slither import run_slither
+out=Path('compile_repair/artifacts/cp0_1_compilers_v1')
+logging.basicConfig(filename=str(out/'compatibility.stderr.log'),level=logging.WARNING)
+assert json.loads((out/'installation_summary.json').read_text())['status']=='passed'
+base=json.loads(Path('compile_repair/artifacts/cp0_v2/recon.json').read_text())['compilers']
+trusted,refs,index=load_additions(base,[out/'trusted_compilers_addition.json'])
+plan=json.loads((out/'compatibility_plan.json').read_text());jobs=plan['jobs']
+journal=(out/'compatibility_invocations.jsonl').open('x')
+archive=gzip.open(str(out/'compatibility_node_facts_v2.jsonl.gz'),'xb')
+start=time.monotonic();results=[];failures=[];seconds=Counter()
+for i,job in enumerate(jobs):
+ ref=trusted[job['version']];compiler=Compiler(ref['version'],ref['path'],ref['sha256'])
+ compilation=compile_file(job['fixture'],compiler)
+ journal.write(json.dumps(dict(asdict(compilation),kind='solc',scope='C.compatibility',probe_kind=job['kind']))+'\n');journal.flush()
+ seconds['solc']+=compilation.elapsed_seconds
+ result=None
+ if compilation.returncode==0 and not compilation.timed_out:
+  result=run_slither(compilation,profile='production');nodes=result.pop('nodes')
+  archive.write((json.dumps({'schema':'node_facts_v2','source_path':result['source_path'],'source_sha256':result['source_sha256'],'version':job['version'],'profile':'production','nodes':nodes})+'\n').encode())
+  result['node_facts_v2_sha256']=hashlib.sha256(json.dumps(nodes,sort_keys=True).encode()).hexdigest()
+  journal.write(json.dumps(dict(result,kind='slither',scope='C.compatibility',probe_kind=job['kind']))+'\n');journal.flush()
+  seconds['slither']+=result['elapsed_seconds']
+ passed=compilation.returncode==0 and result is not None and result['d3'] and result['crytic_compile_platform']=='solc'
+ row=dict(job,source_sha256=compilation.source_sha256,compiler_sha256=compiler.sha256,solc_returncode=compilation.returncode,solc_error_first_line=compilation.error_first_line,slither=result,passed=passed)
+ results.append(row)
+ if not passed:
+  failures.append(dict(job,solc=asdict(compilation),slither=result,reason='Unexpected applicable probe failure; stop without changing flags, source, or criteria.'))
+  print('C STOP',json.dumps(failures[-1]),flush=True);break
+ if (i+1)%50==0:print('C probes',i+1,'/',len(jobs),'passed',flush=True)
+journal.close();archive.close()
+states={}
+for v in json.loads((out/'authorization.json').read_text())['versions']:
+ planned=[j for j in jobs if j['version']==v];done=[r for r in results if r['version']==v]
+ states[v]={'planned':len(planned),'executed':len(done),'passed':sum(bool(r['passed']) for r in done),'status':'passed' if len(done)==len(planned) and all(r['passed'] for r in done) else 'failed_or_partial' if done else 'not_run'}
+summary={'status':'passed' if not failures and len(results)==len(jobs) else 'stopped_unexpected_result','planned':len(jobs),'executed':len(results),'passed':sum(bool(r['passed']) for r in results),'failed':len(failures),'not_run':len(jobs)-len(results),'failures':failures,'per_version':states,'results':results,'remaining_jobs':jobs[len(results):],'wall_seconds':time.monotonic()-start,'invocation_seconds':dict(seconds),'automatic_retry':False,'criteria_relaxed':False,'llm_calls':0,'cost_usd':0}
+with (out/'compatibility.json').open('x') as f:json.dump(summary,f,indent=2)
+print(json.dumps({k:v for k,v in summary.items() if k not in ['results','remaining_jobs','per_version','failures']},indent=2),flush=True)

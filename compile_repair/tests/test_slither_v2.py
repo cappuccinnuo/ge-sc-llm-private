@@ -113,6 +113,10 @@ def test_unconfigured_versions_are_rejected(profile, installed):
 
 
 def installed_probe(version, fixture, tmp_path):
+    try:
+        check_profile("regression_6c")
+    except ValueError:
+        pytest.skip("CP0 projection/0.8.0 node-count test requires regression_6c")
     # Use sealed CP0 identities, never trust-on-first-use of the local binary.
     recon_path = ROOT / "artifacts/cp0_v2/recon.json"
     assert hashlib.sha256(recon_path.read_bytes()).hexdigest() == "bddbeaa256192b567525370f8b27335a3d2bdcf3ccb48e22086150718414ffb6"

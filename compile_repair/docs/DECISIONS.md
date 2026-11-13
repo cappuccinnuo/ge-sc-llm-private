@@ -23,9 +23,9 @@
 | D13 | 哪个创新点使用这些图、是否存数据依赖 | 待定（CP10 后） | 2026-11-11 |
 | D14 | 记录只写在 `compile_repair/docs/`，不修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md` | 已定（Claude 提出，用户可撤销） | 2026-11-12 |
 | D15 | 6c 固定报告/seal/可信清单只读；用户另批准两个冻结 contract sources.json 及其 metadata 引用源码/CSV，先校验哈希 | 已定（用户；精确范围见 metadata_read_authorization.json） | 2026-11-12 |
-| D16 | 生产工具链：Slither 0.11.6 + crytic-compile 0.4.2，独立环境（Python 3.10.x、solc-select 1.0.4、tree-sitter 0.20.4），不改 mando；Slither 0.8.0（mando）只做 6c 精确重放；0.4.x 元组 call 写法按 3.2 节第 10 行处理 | 已定（用户 2026-11-13）；环境待 CP0.1 B 建立 | 2026-11-13 |
+| D16 | 生产工具链：Slither 0.11.6 + crytic-compile 0.4.2，独立环境（Python 3.10.x、solc-select 1.0.4、tree-sitter 0.20.4），不改 mando；Slither 0.8.0（mando）只做 6c 精确重放；0.4.x 元组 call 写法按 3.2 节第 10 行处理 | 已定（用户 2026-11-13）；B 已通过，独立环境已建立并验证 | 2026-11-13 |
 | D17 | 按两次明确批准安装 0.4.17 及十个系列探针版本；独立追加信任、双哈希，不切换全局版本（原本地 D16） | 已定（用户），11 版已安装并校验 | 2026-11-12 |
-| D18 | 编译器获取：补齐 0.4.12–0.8.38 其余 59 个官方正式版本（Codex 请求清单），双哈希、独立追加信任清单；检测时不自动下载 | 已定（用户 2026-11-13）；在 CP0.1 B 通过后安装 | 2026-11-13 |
+| D18 | 编译器获取：补齐 0.4.12–0.8.38 其余 59 个官方正式版本（Codex 请求清单），双哈希、独立追加信任清单；检测时不自动下载 | 已定（用户 2026-11-13）；B 后已安装 59/59；C 兼容性首个失配后停止 | 2026-11-13 |
 
 ## 2. r1 的决策编号（已被 r2 重新编号，只作历史对照）
 
@@ -121,3 +121,15 @@
 | 2026-11-13 | D5 | 已定：区间内升序 | 用户 2026-11-13：“I have followed the approach you recommended.” 对应 r2.4 推荐 | Claude |
 | 2026-11-13 | D16 | 已定：生产 Slither 0.11.6（crytic-compile 0.4.2，Python 3.10）；0.8.0 只做 6c 重放 | 同上 | Claude |
 | 2026-11-13 | D18 | 已定：安装 59 个编译器，B 通过后执行 | 同上 | Claude |
+
+
+### CP0.1 B/C 本机执行与停止（修改 AI：Codex）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-13 | D5 | 区间升序沿用已批准决定；本轮只用冻结选定版本，不提前实现 CP1 | 用户明确指令；production_comparison.json | Codex |
+| 2026-11-13 | D16 | 生产 0.11.6/0.4.2、Python 3.10.21 独立环境已建立，全部 B 门槛通过；mando 不变 | cp0_1_env_v1/authorization.json、B_acceptance.json | Codex |
+| 2026-11-13 | D16 旧请求 | 0.9.6/0.3.11 请求作废并保留原字节；由本次 0.11.6 请求与明确授权替代 | environment_installation_request.json、frozen_audit.json | Codex |
+| 2026-11-13 | D18 | B 全通过后，59 个官方 solc 全部下载、双哈希与版本校验通过；独立追加信任，支持快照 92/92 | cp0_1_compilers_v1/trusted_compilers_addition.json、installation_summary.json | Codex |
+| 2026-11-13 | C 停止边界 | 0.8.24+h0824_blob 默认编译 rc1，blobhash 未声明；224 过、1 失败、271 未运行；不改标准、不自动重试 | compatibility.json、final_status.json；用户要求与 PROMPTS §4.1 | Codex |
+| 2026-11-13 | 待审查，未变更方案 | 需审查该 probe 的最低语法版本及 EVM 设置；任何下界/参数调整先咨询用户，在新批次续验；CP1 不开始 | CP0_1_REPORT C.3；CHANGE_LOG §11.4 | Codex |

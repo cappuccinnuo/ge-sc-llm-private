@@ -58,6 +58,11 @@ def test_comparison_preserves_multiplicity_ir_order_and_ignores_length_in_identi
 
 
 def test_real_compiler_success_is_not_d3_success(tmp_path):
+    from compile_repair.toolchain.slither import check_profile
+    try:
+        check_profile("regression_6c")
+    except ValueError:
+        pytest.skip("The solc 0.4.11 negative control requires regression_6c")
     # Hashes are the frozen 6c trusted binary identities, not trust-on-first-use.
     hashes = {"0.4.11": "0a8d138ee245039e6f8312edc024ba3c4739cc3c013b47dc7fc9196a2e327fea",
               "0.4.13": "791ee3a20adf6c5ab76cc889f13cca102f76eb0b7cf0da4a0b5b11dc46edf349"}

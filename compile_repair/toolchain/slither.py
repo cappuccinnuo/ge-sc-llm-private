@@ -1,4 +1,4 @@
-"""PROMPTS CP0.1 A1: explicit profiles, complete D3 checks and node_facts_v2.
+"""PROMPTS CP0.1 A1/B: explicit profiles, complete D3 checks and node_facts_v2.
 
 Read crytic-compile's saved AST, never deduplicate nodes, and treat lengths as
 diagnostics. The CP0 projection exists solely to verify frozen cp0_v2 evidence.
@@ -12,8 +12,9 @@ from pathlib import Path
 from compile_repair.toolchain.solc import verify_binary
 
 
-# D16 has not been authorized: production must not silently use another pair.
-PROFILES = {"regression_6c": ("0.8.0", "0.2.4")}
+# D16 approved 2026-11-13; reject every pair outside these explicit profiles.
+PROFILES = {"regression_6c": ("0.8.0", "0.2.4"),
+            "production": ("0.11.6", "0.4.2")}
 
 
 def check_profile(name="regression_6c", installed=None):
@@ -25,7 +26,10 @@ def check_profile(name="regression_6c", installed=None):
     if name not in PROFILES:
         raise ValueError("Unconfigured Slither profile: " + name)
     if installed is None:
-        from importlib_metadata import version
+        try:
+            from importlib.metadata import version
+        except ImportError:  # Python 3.7 regression environment
+            from importlib_metadata import version
         installed = (version("slither-analyzer"), version("crytic-compile"))
     if tuple(installed) != PROFILES[name]:
         raise ValueError("Slither profile {} requires {}, installed {}".format(
@@ -188,7 +192,9 @@ def compare_nodes(left, right):
 def run_slither(compilation, profile="regression_6c", cp0_projection=False):
     """Construct Slither after observed solc rc=0; report D3(a) and D3(b).
 
-    Reuse frozen _compile unchanged. Slither/crytic subprocess return codes are
+    Regression reuses frozen _compile unchanged. Production retains its
+    CryticCompile object to observe the platform even if Slither parsing fails.
+    Slither/crytic subprocess return codes are
     not exposed: bind the observed preceding solc result, never invent a code.
     Profile and integrity failures raise; analysis failures return diagnostics.
     """
@@ -209,11 +215,27 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
                   equivalent_solc_argv=compilation.command,
                   preceding_observed_solc_returncode=compilation.returncode,
                   api_subprocess_returncodes_observed=False, cost_usd=0.0,
+                  crytic_compile_platform=None, crytic_compile_platform_class=None,
                   constructed=False, d3=False, d3_a=False, d3_b=False, nodes=[],
                   node_facts_schema="node_facts_v2")
     start = time.monotonic()
     try:
-        slither = _compile(path, compiler.path)
+        if profile == "production":
+            # Compose the same public constructors/kwargs as Slither(str(path)).
+            # Retain the compiled object so a known parser AssertionError does
+            # not erase evidence of the platform actually used.
+            from crytic_compile import CryticCompile
+            from slither import Slither
+            kwargs = {"solc": compiler.path, "solc_disable_warnings": True}
+            crytic = CryticCompile(str(path), **kwargs)
+            result["crytic_compile_platform"] = crytic.platform.NAME
+            result["crytic_compile_platform_class"] = type(crytic.platform).__module__ + "." + type(crytic.platform).__name__
+            result["command"]["construction"] = "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)"
+            slither = Slither(crytic, **kwargs)
+        else:
+            slither = _compile(path, compiler.path)
+            result["crytic_compile_platform"] = slither.crytic_compile.platform.NAME
+            result["crytic_compile_platform_class"] = type(slither.crytic_compile.platform).__module__ + "." + type(slither.crytic_compile.platform).__name__
         result["constructed"] = True
         # Check both clauses independently, retaining either diagnostic even
         # when the other cannot be inspected (e.g. an unreadable node mapping).

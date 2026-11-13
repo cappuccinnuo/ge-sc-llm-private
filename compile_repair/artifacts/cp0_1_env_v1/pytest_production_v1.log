@@ -1,0 +1,12 @@
+
+==================================== ERRORS ====================================
+___________ ERROR collecting compile_repair/tests/test_production.py ___________
+compile_repair/tests/test_production.py:80: in <module>
+    @pytest.mark.parametrize("fixture,version", feature_pairs())
+compile_repair/tests/test_production.py:46: in feature_pairs
+    start = re.search(r"pragma solidity >=(\\d+\\.\\d+\\.\\d+)", path.read_text()).group(1)
+E   AttributeError: 'NoneType' object has no attribute 'group'
+=========================== short test summary info ============================
+ERROR compile_repair/tests/test_production.py - AttributeError: 'NoneType' ob...
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 error in 0.09s
