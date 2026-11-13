@@ -10955,3 +10955,10 @@ EP8恢复补记：同一recon入口增加finish-preparation后台衔接，等待
 交付：scripts/edge_sem/EP8_REPORT.md；ep8_v1/results/内的逐折、均值、配对、零差折、错误变化、pooled混淆矩阵、SolidiFI分层及Wilson P/R区间、词法与两条无学习边规则、非SolidiFI逐节点、持续案例与资源表（JSON/CSV），以及封存summary。新增最终复核记录保存本轮完成链和报告SHA；已核验160份收据/seal、汇总表及分析/评分源码SHA。CPU执行 ep8_run frozen 成功，冻结源码、历史产物、旧_code_refs及文档前缀仍保持。此前340项EdgeSem、1353项NodeSem、2653项DFG回归及39项最终定向测试的证据保留；本次收尾只追加文档和验收记录，没有改变训练代码或重复拟合。
 
 保留所有历史attempt和已批准调整。此处停止在EP8，不自动启动EP9；EP9视图安排等待用户确认。最终七类实验将另建显存充足的服务器批次，当前资源限制仅属于本机。权重保留本地，完成报告与收尾记录本地提交，尚未进行新的GitHub推送。
+
+
+## EP8 最终同步与 r17 记录更正（2026-11-13 UTC）
+
+已合并远端PROMPTS r17审查更新。按其要求新增 github_sync_20261112T060127Z.correction.json，逐一核验并更正早期11条同步索引的剖面身份：原profile字段是DFG基础剖面job.profile，实际EdgeSem剖面为job.edge_profile。原快照字节保持不变，正式收据和分析本来即使用正确的edge_profile，因此训练与结果均不受影响。最终同步清单统一明确记录edge_profile与base_profile。
+
+本次补齐此前未同步的129次完整文本结果，覆盖原名60次和匿名80次全部完成训练；2800份收据绑定的文本产物SHA核验通过。最终清单见 ep8_v1/github_sync_final_20261113T010949Z.json，包含剩余预测、best/last指标、审计、history、资源记录及上述更正。权重、零步张量、锁和空进程日志仍留本地；没有启动训练或修改已有计划/seal。此次仅记录层更新，不重复运行训练回归。
