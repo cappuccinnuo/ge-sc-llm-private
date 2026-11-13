@@ -43,13 +43,16 @@ def validate_plan_view(plan):
     view=selected_view(plan)
     registration=read(checked(plan["registration"]))
     if plan.get("experiment_stage") is not None:
-        if plan["experiment_stage"] != "E-A" or registration.get("experiment_stage") != "E-A":
+        if plan["experiment_stage"] not in ("E-A","E-B") or registration.get("experiment_stage") != plan["experiment_stage"]:
             raise ValueError("Unknown experiment stage")
         if plan.get("scope","formal") != "formal":
             raise ValueError("E-A only permits formal-fit scope")
         role=plan.get("analysis_role")
         expected={"primary":("original",("G3R-T","G4R","G4R-P")),
                   "sensitivity":("anonymous",("G3R","G3R-T","G4R","G4R-P"))}
+        if plan["experiment_stage"]=="E-B":
+            profiles=("G4R-A","G4R-Api","G3R-TA")
+            expected={"primary":("original",profiles),"sensitivity":("anonymous",profiles)}
         if role not in expected or view != expected[role][0]:
             raise ValueError("E-A batch role/view differs")
         batch=registration.get("batches",{}).get(role,{})

@@ -30,7 +30,7 @@ def require_decisions(path,token_view="anonymous",experiment_stage=None):
     if set(data.get("decisions",{}))!=set(DECISIONS):raise ValueError("D1-D3 missing")
     expected = decisions_for_view(token_view)
     if experiment_stage is not None:
-        if experiment_stage != "E-A" or data.get("experiment_stage") != experiment_stage:
+        if experiment_stage not in ("E-A","E-B") or data.get("experiment_stage") != experiment_stage:
             raise ValueError("Decision experiment stage differs")
         expected["D1"] = EA_D1
     elif data.get("experiment_stage") is not None:

@@ -10,6 +10,7 @@ MODULES=(
  "io.py","support.py","checkpoint.py","input_guard.py","supervision.py","trainer.py",
  "execution.py","runtime.py","protocol_p2.py","pilot.py","feature_views.py",
  "analysis_ea.py","recon/ep8_run.py",
+ "analysis_eb.py","recon/ep9_run.py",
 )
 
 def runtime_refs():

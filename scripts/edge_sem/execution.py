@@ -204,7 +204,7 @@ def authorized(path,plan,scope="formal",archive=False):
     require_decisions(checked(approval["decisions"]),selected_view(plan),plan.get("experiment_stage"))
     if not archive:require_registration_commit(plan["registration"],approval["registration_commit"])
     if plan["scope"]!=scope:raise PermissionError("Execution scope differs")
-    if plan.get("experiment_stage")=="E-A":
+    if plan.get("experiment_stage") in ("E-A","E-B"):
         if approval.get("analysis_role")!=plan["analysis_role"]:
             raise PermissionError("E-A approval batch role differs")
         if approval.get("baseline_plan")!=plan["baseline_plan"]:
@@ -213,7 +213,7 @@ def authorized(path,plan,scope="formal",archive=False):
         if plan["analysis_role"]=="sensitivity":
             previous=checked(plan["prior_main_plan"])
             prior=read(previous)
-            if (prior.get("experiment_stage")!="E-A" or prior.get("analysis_role")!="primary"
+            if (prior.get("experiment_stage")!=plan["experiment_stage"] or prior.get("analysis_role")!="primary"
                     or prior.get("registration")!=plan["registration"]):
                 raise PermissionError("Sensitivity predecessor identity differs")
             completed=previous.parent/"complete.json"
@@ -603,7 +603,7 @@ def controller(path):
                 raise ValueError("Existing completion differs")
         else:
             write(complete, payload)
-        if plan.get("experiment_stage")=="E-A":
+        if plan.get("experiment_stage") in ("E-A","E-B"):
             seal=complete.with_suffix(".seal.json")
             value=dict(complete=ref(complete),plan=ref(path))
             if seal.exists():
