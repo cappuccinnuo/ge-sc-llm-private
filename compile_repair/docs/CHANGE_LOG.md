@@ -470,3 +470,61 @@ CP1 仍需 D5/D16/D18 决定与 CP0.1 审查。精确 pragma 指向缺失版本�
 - 终审补记：第一次历史保留审计因 PowerShell 默认 OutputEncoding 损坏中文标题字面量，在查找标题时抛 ValueError，未生成审计结果、未改文档。保留 audit_attempt_v1_failure.json；改为 ASCII 标题前缀定位原始字节后完成核对，不放宽判据，也未重跑 A3。此为检查脚本编码问题，不是代码/语料验收差异。
 - 最终审计通过：354/354 冻结代码引用、846/846 输入、37/37 编译器不变；全部旧模块证据未漂移，4 份记录历史逐字保留；生产代码与 A3 SHA 一致，9 个生产文件，未解决冲突 0，git diff --check 通过，跟踪变更均在 compile_repair/。包版本及未设置的全局 solc 状态不变。依据 final_audit.json。
 - 文档检查 v1 的 6/6 项 passed=True、UTF-8/中文全部通过。检查命令为 python -B -m scripts.node_sem.doc_check --expect-cjk，目标为 CP0_1_REPORT、HANDOVER、DECISIONS、开发 README 全文，以及 CHANGE_LOG:54883、PROGRESS:9269 追加区间。写入本补记后按同参数执行 v2，逐项检查 passed；日志与精确命令保存在 doc_check_v2.log/json，仅在 6 项仍全通过时提交。
+
+
+## 9. 2026-11-13 CompileRepair CP0.1 A 审查与方案 r2.4（修改 AI：Claude）
+
+### 9.1 任务、依据与范围
+
+用户要求（2026-11-13）：Codex 已完成 CP0.1 并推送；执行中的问题记录在交接文档与 CP0_1_REPORT、PROGRESS、CHANGE_LOG、DECISIONS 中，部分已处理（是否正确待核实），部分未解决。审查方案、代码与产物，核实数据，判断处理是否正确；对错误或未解决的问题制定计划交给 Codex；全部核实后才进入 CP1。要求独立、以证据为依据，不猜测。
+
+起点 `compile-repair@18940a8a`。审查对象：`toolchain/slither.py`（248 行）、`evaluation/survey.py` 的 `load_cp0_baseline`、`revalidate_cp0`、`cli.py` 的 `revalidate-cp0`、`tests/test_slither_v2.py` 与两个新 fixture；`artifacts/cp0_1_v1/`（seal、invocations、cross_version、revalidation、node_facts_v2.jsonl.gz）与 `cp0_1_development_v1/`（两份安装请求、baseline、final_audit）；CP0_1_REPORT 与 CHANGE_LOG §8。
+
+修改：`PROMPTS.md`（r2.3 → r2.4）；新增 `artifacts/cp0_1_review_v1/`；记录：本节、`docs/HANDOVER.md`（第 0、1 节重写，第 4 节第 15 条改写、新增第 16 条，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（D16、D18 更新，历史 4 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 9.2 实施方式和重要选择
+
+- 复核方式：另写 `verify_cp01.py`，从 seal、journal 与 gzip 归档重算全部验收数字，并把 1,546 组节点与 Claude 在 CP0 审查时用 `node_dump.py` 独立导出的 Slither 0.8.0 节点（按 Slither 节点顺序自行编序号，节点类型按枚举名归一）逐组比较。两边代码互不依赖，结果相同才能说明 key5 的实现与归档正确。
+- 代码兼容性：用 `port_probe.py` 在 0.8.0、0.8.3、0.9.6、0.11.6 下直接调用 Codex 的 `node_facts` 与 `contract_coverage`，检查对象形式 source_mapping 与 crytic-compile 0.3.11、0.4.2 的 AST 接口，为 B 部分提前排除接口问题。
+- transient：查官方 0.8.24 与 0.8.28 发布说明核实 Codex 登记的边界问题，确认是方案错误。
+- D16 重新测量：r2.3 的推荐只依据 6 个探针。为核实 B 部分的预期，把探针扩展到 19 个（0.7.1–0.8.29 的有文档的语法，含 Yul 内置函数、文件级 event、selector、require 自定义错误、layout at），并用 Codex 的 D3 代码在 0.9.6、0.11.6 下重跑 846 个文件。结果改变了推荐：0.9.6 不能分析 6 种 0.8.7 起的合法写法，且不会再更新；0.11.6 的失败只在 0.4.x 的一种写法上，这类代码不会再新增。模块目标是检测时的任意输入，因此推荐 0.11.6；由于代价（3 个 MANDO 文件、图结构变化、Python ≥ 3.10）真实存在，保留 0.9.6 作为备选，由用户决定。
+- 失败频率：用文本启发式统计 DAppSCAN、Trace、MANDO 中两类失败写法的出现次数，作为决定的参考；这只是上界，不是编译结果。
+- 0.11.6 的失败写法：在工作副本上试验语义等价改写，确认可行但会改变节点数，因此在 3.2 节新增第 10 行（rewrite 等级、只在 D16 选 0.11.6 时适用，CP6 实现），CP3 分类表增加“Slither 侧失败”一类；B 部分只试验、不实现规则。
+- B 部分：按 D16 的两种选择分别给出环境、预期与停止条件；增加 production profile、`importlib.metadata` 回退与 crytic-compile 平台记录；固定 solc-select 1.0.4，不在新环境运行 install/use，避免影响 mando 共用的 `~/.solc-select`。
+- D18 请求：从 GitHub 上的官方 solc-bin 仓库取得 `linux-amd64/list.json`（binaries.soliditylang.org 在审查环境中不可达），其 SHA256 与 Codex 缓存的官方索引逐字节相同，再逐项比较 59 个版本。
+
+### 9.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| cp0_1_v1 seal | 4 个文件哈希一致 | verify_cp01.json |
+| 归档自身指纹 | 1,546/1,546 | 同上 |
+| key5 + 有序 IR 与独立导出 | 1,546/1,546 相同 | 同上 |
+| 组内重复 key5 | 0 | 同上 |
+| solc rc0 / Slither 构造 / D3 / D3(b) | 1,546 / 1,546 / 1,546 / 1,546 | 同上 |
+| 所用（源文件, 版本）对 | 1,369，与 cp0_v2 选定与端点集合缺 0、多 0 | 同上 |
+| CP0 投影 | 1,546/1,546 与 cp0_v2 相同 | 同上 |
+| 节点总数 | 201,044 | 归档 |
+| AST 格式 | compact 1,500、legacy 46 | verify_cp01.json |
+| 19 个探针通过数 | 0.8.0 4、0.8.3 9、0.9.6 13、0.10.4 18、0.11.6 19 | extended_probes.jsonl |
+| 846 个文件 D3（0.9.6 / 0.11.6） | 846 / 843（3 个 0.4.24 AssertionError） | compare_prod.json |
+| 与 0.8.0 结构差异（0.9.6） | 23 个文件，只少 48 个合成入口节点 | 同上 |
+| 与 0.8.0 结构差异（0.11.6） | 435 个文件：多隐式 RETURN 2,182、ENDASSEMBLY 128；少合成入口节点 48、重数变化 EXPRESSION 6 | 同上 |
+| D18 请求 | 59 个版本 URL、SHA256、Keccak256 与官方索引 0 差异；加已装 33 个 = 92 | check_install_request.json |
+| 文本频率（上界） | DAppSCAN：0.9.6 失败类 1、0.11.6 失败类 6；Trace：0.9.6 失败类至多 5 | prev_*.json |
+
+未证明：用户环境（Python 3.10、solc-select 安装的编译器）中的上述数字，由 CP0.1 B 复核；0.11.6 改写规则的语义等价性须在 CP6 逐类论证；Codex 环境中 55 个测试在 Claude 环境只复现了不依赖 tree_sitter 与 pycryptodome 的 30 个（4 个失败是本环境缺 pycryptodome）。
+
+### 9.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确的部分：A 的实现与验收；对 A1 中“AST 取得方式由你决定”的选择（使用 crytic-compile 已保存的 AST，不额外调用 solc）合理，并有两种 AST 格式的实证；缺授权时停在 B、C 之前；把 transient 边界问题登记为待核对而不自行改方案；两份安装请求内容正确。
+- 方案中的错误（Claude）：4.2b B 的“0.8.24 transient”；D16 推荐依据的探针太窄。均在 r2.4 更正。
+- 记录小问题：Codex 的交接记录与 CHANGE_LOG §8.5 写“不 push”，实际提交已推送到远端；以本节为准，不改旧文。
+- 待用户决定：D5（建议确认升序）、D16（推荐 0.11.6，备选 0.9.6）、D18（建议补齐 59 个）。选 0.11.6 时，Codex 已提交的环境请求须改写后再授权。
+
+### 9.5 验收、资源、未执行事项与停止
+
+- `python3 -B -m scripts.node_sem.doc_check --expect-cjk compile_repair/PROMPTS.md compile_repair/docs/HANDOVER.md compile_repair/docs/DECISIONS.md compile_repair/docs/CHANGE_LOG.md:64515 compile_repair/PROGRESS.md:11189 compile_repair/artifacts/cp0_1_review_v1/README.md`：6 个文件全部 passed=True（HANDOVER、DECISIONS 有重写，按整文件检查；CHANGE_LOG、PROGRESS 只追加，按追加前字节数检查）。
+- 资源：云端 CPU，沿用 5 个 Python 虚拟环境；只读访问 PyPI 与 GitHub 上的官方 solc-bin 索引；没有 LLM 调用，费用 0。
+- 未执行：模块代码修改；用户环境中的任何运行；任何安装。
+- 停止：CP1 不能开始。顺序为用户决定 D5、D16、D18 并授权 → Codex 执行 CP0.1 B、C → Claude 审查 → CP1。本轮提交并 push 到 `compile-repair`。

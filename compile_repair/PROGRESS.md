@@ -75,3 +75,12 @@
 python -B -m pytest -q -p no:cacheprovider compile_repair/tests：55 passed；同参数运行 scripts/DFG/dfg_v2/tests：2653 passed、9 个既有 warnings。实际另带独立 basetemp，日志/命令在 cp0_1_development_v1/pytest_*.log/json。CP0_1_REPORT、CHANGE_LOG §8、HANDOVER 和 DECISIONS 记录本次工作；文档和不变量结果见 §8.5。
 
 WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，过程保留。B 的 transient 0.8.24 文案与审查 >=0.8.28 fixture 待核对语法边界，如需调整先咨询用户，没有自行改方案。D16/B 与 D18/C 的来源、版本、0 美元上限分别列在两份 installation_request.json，仍为 pending。按原文停在授权前，未安装、未进入 CP1，仅本地提交、不 push。
+
+
+## CP0.1 A 审查与方案 r2.4（Claude，2026-11-13）
+
+- 独立复核 CP0.1 A：验收数字全部可复现；1,546 组节点的 key5 + 有序 IR 与 Claude 独立导出逐组相同；CP0 投影 1,546/1,546。证据 `artifacts/cp0_1_review_v1/`。
+- Codex 登记的 transient 问题成立，r2.4 更正 B 部分探针。D18 的 59 个编译器请求与官方 solc-bin 索引一致。
+- D16 扩展测量（19 个探针、846 个文件）后推荐改为 Slither 0.11.6，备选 0.9.6；3.2 节新增第 10 行 Slither 兼容改写；CP3 分类表增加 Slither 侧失败。
+- 记录：`docs/CHANGE_LOG.md` §9、`docs/HANDOVER.md`、`docs/DECISIONS.md`。
+- 没有模块代码改动与用户环境运行。下一步：用户决定 D5、D16、D18 并授权，Codex 执行 CP0.1 B、C。

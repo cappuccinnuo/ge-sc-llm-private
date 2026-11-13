@@ -1,23 +1,24 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.3（尤其 1.6 节与 4.2b 节）、DECISIONS 和 CP0_1_REPORT、CHANGE_LOG §8。第 6 节保留历史，只追加；记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.4（尤其 1.7 节与 4.2b 节 B、C）、DECISIONS、CP0_1_REPORT 和 CHANGE_LOG §9。第 6 节保留历史，只追加；记录规则见 README.md。
 
 ## 0. 一句话
 
-CP0.1 A 已完成：新 D3 846/846、旧投影 846/846、跨版本 key5 与有序 IR 678/678 相同。下一步为批准 D16/B 独立环境与 D18/C 其余 59 个 solc；没有授权就停在 A。CP1 仍须完整 CP0.1 审查及 D5/D16/D18 用户决定。
+CP0.1 A 已由 Claude 独立复核通过（1,546 组节点与独立导出逐组相同）。扩展探针后 D16 推荐改为 Slither 0.11.6（原推荐 0.9.6 依据的探针太窄）。下一步：用户决定 D5、D16、D18 并授权 → Codex 执行 CP0.1 B、C → Claude 审查 → CP1。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案 | PROMPTS r2.3（CP0 审查后修订） | CHANGE_LOG §7 |
+| 方案 | PROMPTS r2.4（CP0.1 A 审查后修订） | CHANGE_LOG §9 |
 | 模块 | 9 个生产 Python 文件、4 个测试文件、9 个 fixture（CP0.1 A） | CP0_1_REPORT |
-| CP0 | 已审查：数字全部复现（846 输入、规则 A 821/22/3、1,692 个选定版本 0 违例、678 对 key4/IR 678/678）；调查结论成立 | artifacts/cp0_review_v1/README.md、verify_cp0.json |
-| CP0.1 A | 统一映射、顶层函数、AST 覆盖、key5 与显式 profile 已实现；846/846、678/678 通过 | CP0_1_REPORT；cp0_1_v1 |
-| D16 | 已测 Slither 0.8.0/0.8.3/0.9.6/0.10.4/0.11.6；推荐 0.9.6 独立环境做生产、0.8.0 只做 6c 重放；待用户决定 | PROMPTS 1.6 节、slither_versions_corpus.json、feature_probes.jsonl |
-| 编译器 | 总安装 37；0.4.12–0.8.38 正式版本 33/92 已安装；D18 建议补齐其余 59 个，待用户决定 | cp0_v2 release_coverage；DECISIONS D18 |
-| 测试 | 模块 55 passed；DFG v2 2653 passed、9 warnings；0 failed/0 skipped | cp0_1_development_v1 测试日志 |
-| 下一步 | B/C 授权 → 顺序完成 CP0.1 → 审查与 D5 决定 → CP1 | PROMPTS 4.2b；两份 installation_request.json |
+| CP0 | 已审查通过 | artifacts/cp0_review_v1/README.md |
+| CP0.1 A | 已审查通过：新 D3 846/846；CP0 投影 1,546/1,546；key5 + 有序 IR 与 Claude 独立导出 1,546/1,546 相同；跨版本 678/678 | artifacts/cp0_1_review_v1/README.md、verify_cp01.json |
+| CP0.1 B、C | 未执行，等待 D16、D18 决定与授权 | PROMPTS 4.2b |
+| D16 | 19 个探针：0.9.6 通过 13、0.11.6 通过 19；846 个文件：0.9.6 全部通过、0.11.6 有 3 个 0.4.24 文件崩溃。推荐 0.11.6，备选 0.9.6；待用户决定 | PROMPTS 1.7 节；compare_prod.json、extended_probes.jsonl |
+| D18 | Codex 的 59 个编译器请求与官方 solc-bin 索引逐项一致；待用户决定 | check_install_request.json |
+| 测试 | 模块 55 passed；DFG v2 2653 passed、9 warnings（Codex 环境） | cp0_1_development_v1 测试日志 |
+| 下一步 | 用户决定 D5、D16、D18 并授权 → CP0.1 B、C → 审查 → CP1 | PROMPTS 4.2b、4.3 |
 | 其他决策 | D9/D10 待确认，D12/D13 待定 | DECISIONS |
 
 ## 2. 分支与工作树
@@ -56,7 +57,8 @@ Windows 侧使用 `wsl.exe -d Ubuntu-22.04 --cd ... --exec ...`；含中文的 P
 13. **记录只写在 `compile_repair/docs/` 与模块目录**，按 NodeSem 五段式变更与四段式交接，UTF-8 写入并通过 doc_check；不修改仓库根目录 `HANDOVER.md` 与 `docs/training_changes_2026-10-07.md`。没有 HGT 训练、GPU 锁操作、LLM 调用或图存储写入。
 14. **记录只追加。** CHANGE_LOG 合并时编号曾变化（r2.2 记录现为 §5，Codex 的 CP0 为 §4、§6）；旧文中引用 “§4” 指 r2.2 的地方是笔误，见 CHANGE_LOG §7.4，不回改旧文。
 
-15. **WSL 文件编辑**：Windows apply_patch 无法访问此 reparse-point 路径，本轮使用显式 wsl.exe Python UTF-8 写入。B 的 transient 0.8.24 文案与审查 >=0.8.28 高级变量 fixture 仍待核对，如调整先咨询用户。
+15. **WSL 文件编辑**：Windows apply_patch 无法访问此 reparse-point 路径，Codex 使用显式 wsl.exe Python UTF-8 写入。**transient 边界已核实**（r2.4）：0.8.24 只有 Yul tload/tstore，transient 状态变量 0.8.28 起；B 用 1.7 节的 19 个探针。
+16. **生产 Slither 未定前不要假定 0.9.6。** r2.4 推荐 0.11.6（Python ≥ 3.10），Codex 已提交的环境请求是按 0.9.6 写的，用户选 0.11.6 时须改写后再授权。新环境中固定 solc-select 1.0.4，不运行 solc-select install/use。
 
 ## 5. 关键路径
 
@@ -71,7 +73,8 @@ Windows 侧使用 `wsl.exe -d Ubuntu-22.04 --cd ... --exec ...`；含中文的 P
 | 小样本首轮失败与修正后验证 | artifacts/cp0_matrix_smoke_v1/、cp0_matrix_smoke_v2/ |
 | 原停止现场 | artifacts/cp0_v1/（只读） |
 | CP0 审查证据（Claude） | artifacts/cp0_review_v1/README.md 及其中脚本与 JSON |
-| 记录规范与最新详细记录 | docs/README.md、docs/CHANGE_LOG.md §8 |
+| CP0.1 A 审查与 D16 补测证据（Claude） | artifacts/cp0_1_review_v1/README.md 及其中脚本、探针与 JSON |
+| 记录规范与最新详细记录 | docs/README.md、docs/CHANGE_LOG.md §9 |
 
 ---
 
@@ -161,3 +164,14 @@ D16 补测：0.8.3 结构与 0.8.0 完全相同但不支持顶层 using 与全�
 
 模块 CPU 测试 55 passed，冻结 DFG v2 测试 2653 passed、9 个既有警告，无失败/跳过；文档和最终审计见 CHANGE_LOG §8.5。编辑工具的 WSL 路径与模板问题已解决并保留说明，无正式运行重试。本轮检查通过后只作本地提交，标题以 CP0.1 complete A 开头、不 push；旧 CP0 ac2b3465 在此前已按用户要求推送，当前区据此更正。没有新增下载/安装、LLM、HGT 训练、GPU 锁操作、输入改写或图存储。
 终审首轮因 PowerShell 中文字面量编码导致标题定位失败，已保留现场并改用 ASCII 前缀；最终确认 354 个冻结代码引用、846 个输入、37 个编译器与四份历史记录均未改变，文档 6/6 通过后提交。
+
+
+### 2026-11-13 CompileRepair CP0.1 A 审查与方案 r2.4（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP0.1（提交 18940a8a）：核对方案、代码、产物与记录中的问题，判断处理是否正确，对错误或未解决的问题给 Codex 写计划；全部核实后才能进入 CP1。新增证据目录 `artifacts/cp0_1_review_v1/`，修改 `PROMPTS.md`（r2.3 → r2.4）。本文第 0、1 节换成审查结论，第 4 节第 15 条改写（transient 待核对项已核实），第 5 节加入审查证据路径。
+
+结论：CP0.1 A 正确。验收数字全部可复现；1,546 组（源文件, 版本）节点的 key5 与有序 IR 和 Claude 用独立脚本按 Slither 节点顺序导出的结果逐组相同；所用版本与 cp0_v2 的选定和端点集合完全一致；CP0 投影 1,546/1,546。Codex 的代码在 Slither 0.9.6、0.11.6 下也能正确处理对象形式的 source_mapping 与 AST。Codex 登记的 transient 问题成立：0.8.24 只有 Yul tload/tstore，transient 状态变量从 0.8.28 起才能编译，r2.3 写错了。D18 的 59 个编译器请求与官方 solc-bin 索引逐项一致。
+
+新发现：r2.3 推荐 Slither 0.9.6 只依据 6 个探针。扩展到 19 个后，0.9.6 有 6 种 0.8.7 起的合法写法无法分析，0.11.6 全部通过；846 个文件上 0.9.6 全部通过，0.11.6 有 3 个 0.4.24 文件崩溃，可用语义等价改写处理。推荐改为 0.11.6，备选 0.9.6；若选 0.11.6，Codex 已提交的 0.9.6 环境请求需要改写。
+
+下一步：用户决定 D5、D16、D18 并授权；Codex 执行 CP0.1 B、C（4.2b 节 r2.4 版）；Claude 审查后再进入 CP1。本轮没有模块代码改动、安装或 LLM 调用。详见 CHANGE_LOG §9。

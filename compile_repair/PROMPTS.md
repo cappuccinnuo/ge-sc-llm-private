@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.3（2026-11-12；r2.2、r2.1 同日，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.4（2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -36,6 +36,13 @@
 6. D16 有了完整测量（1.6 节）：Slither 0.8.0 不能处理 0.8.4 起的多种语法；给出 0.8.3、0.9.6、0.10.4、0.11.6 的对照与推荐方案，等待用户决定。
 7. CP2 的 6c 回归改为“精确重放”：在 `mando` 环境用冻结的 6c 抽取代码在 6c 使用的版本上重跑 239 个文件，与 6c 报告逐文件比较（238/239 的版本与当前选定相同，239 个版本全部已安装）。
 8. CP1 前提增加：CP0.1 通过；D5、D16、D18 已决定。版本策略只实现在 `rules/environment.py`，`evaluation/survey.py` 中 CP0 的选版代码改为调用它；验收为在 846 个文件上复现 `cp0_v2` 的升序选定版本。
+
+**r2.4 相对 r2.3 的修改**（CP0.1 A 审查；证据 `artifacts/cp0_1_review_v1/README.md`）：
+1. CP0.1 A（提交 18940a8a）审查通过：全部验收数字可复现，1,546 组节点的 key5 + 有序 IR 与 Claude 独立导出逐组相同（新增 1.7 节）。Codex 的代码在 Slither 0.9.6 与 0.11.6 下也能正确读取对象形式的 source_mapping 与 AST。
+2. 更正 4.2b 节 B 部分的 transient 探针（Codex 登记的待核对项成立）：0.8.24 只有 Yul 内置函数 `tload`/`tstore`，transient 状态变量 0.8.28 才能生成字节码。B 部分的探针改为 1.7 节的 19 个。
+3. D16 推荐由 0.9.6 改为 0.11.6（r2.3 的推荐依据 6 个探针，范围太窄，是 Claude 的错误）。扩展到 19 个探针后 0.9.6 失败 6 个合法写法（0.8.7 起的 Yul `basefee`、0.8.15 的 event.selector、0.8.22 的文件级 event、0.8.24 的 Yul `tload`/`tstore`/`mcopy`/`blobhash`），0.11.6 全部通过；代价是 3 个 MANDO 0.4.24 文件崩溃与图结构变化（1.7 节）。仍由用户决定。
+4. 3.2 节新增第 10 行“Slither 兼容改写”（只在 D16 选 0.11.6 时适用）；CP3 分类表加入“Slither 侧失败（solc 可编译）”一类。
+5. 4.2b 节 B 部分按 D16 的两种选择分别写出环境、预期与停止条件；CP2 第 2 节的结构差异预期同步更新。
 
 ---
 
@@ -133,6 +140,28 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 - 冻结的 6c 抽取（`validate_slither._mapping`）假定 source_mapping 是 dict；Slither 0.9 起是对象，冻结抽取在新版下会静默丢失映射。因此 6c 回归只能在 Slither 0.8.0 下做。
 - 当前只有 `scripts/DFG/dfg_v2/` 的验证脚本使用 Slither；NodeSem、EdgeSem 模型不读取 Slither 图。版本选择影响的是 6c 回归与本模块存储的未来使用者（D13）。
 
+### 1.7 CP0.1 A 结果与 D16 补测（2026-11-13 审查；证据 `artifacts/cp0_1_v1/`、`artifacts/cp0_1_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 新 D3（mando，Slither 0.8.0） | 846/846 通过，D3(a)、D3(b) 失败均 0；语料中顶层函数 0；AST compact 1,500 组、legacy 46 组 |
+| CP0 投影 | 1,546/1,546 与 cp0_v2 的节点指纹相同 |
+| key5 | 1,546 组 201,044 个节点；与 Claude 独立导出的 key5 + 有序 IR 1,546/1,546 相同；组内无重复 key5；跨版本 678/678 相同（含重复 key4 的 31/31） |
+| 代码兼容性 | Codex 的 `node_facts`、`contract_coverage` 在 0.8.0/0.8.3/0.9.6/0.11.6 下结果一致；`check_profile` 依赖第三方包 `importlib_metadata` |
+
+19 个语法探针（solc 0.8.38 均 rc0；用 Codex 的 D3 代码判定；`extended_probes.jsonl`）：0.8.0 通过 4、0.8.3 通过 9、0.9.6 通过 13、0.10.4 通过 18、0.11.6 通过 19。0.9.6 失败的 6 个：Yul `basefee`（0.8.7）、event.selector（0.8.15）、文件级 event（0.8.22）、Yul `tload`/`tstore`、`mcopy`、`blobhash`/`blobbasefee`（0.8.24）。0.10.4 只失败 event.selector。
+
+846 个文件（cp0_v2 升序选定版本，Codex 的 D3 代码；`compare_prod.json`）：
+
+| Slither | D3 通过 | 失败 | 与 0.8.0 的 key5 结构差异 |
+|---|---:|---|---|
+| 0.9.6 | 846 | 0 | 23 个文件，只少合成的 slitherConstructorConstantVariables()/slitherConstructorVariables() 入口节点 48 个 |
+| 0.11.6 | 843 | 3（0.4.24，`AssertionError`） | 435 个文件：多 2,182 个隐式 RETURN 与 128 个 ENDASSEMBLY，少 48 个合成入口节点与 6 个重数变化的 EXPRESSION |
+
+- 0.11.6 的 3 个失败都是 0.4.x 的 `(bool success, ) = x.call.value(v)("")`（0.4 中 `.call` 只返回 bool）。改写为 `bool success = x.call.value(v)("");` 后 solc 0.4.24 rc0、0.11.6 D3 通过，但图的节点数也变化（0.8.0 下 11 → 10），只能作为 rewrite 记录与标记。
+- 语料文本统计（上界）：DAppSCAN 15,485 个不同文件中 0.9.6 失败类写法 1 个、0.11.6 失败类写法 6 个（2,189 个 0.4 文件中）；Trace 7,407 个文件中 0.9.6 失败类写法至多 5 个（Yul tload/tstore 2、mcopy 1、文件级 event 2）。
+- PyPI 上 Slither 最新版本为 0.11.6（2026-07-28，要求 Python ≥ 3.10、crytic-compile ≥ 0.4.2、web3 7.x）；0.9.6 不再更新。
+
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
 **确定性方法与编译环境**
@@ -168,7 +197,7 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | D11 | 代码结构规范（3.10 节） | 已定（用户） |
 | D12 | LLM 模型、API 与费用上限 | 待定，CP8 之前由用户指定 |
 | D13 | 哪个创新点使用这些图，以及是否存数据依赖 | 待定，CP10 之后再议 |
-| D16 | Slither 版本（测量见 1.6 节）。推荐：生产工具链用 Slither 0.9.6，放在独立环境（Python ≥ 3.8，不改 `mando`）；Slither 0.8.0（`mando`）只用于 6c 精确重放回归。理由：0.9.6 通过全部 6 个特征探针，在 MANDO 上无失败，用户代码的图结构与 0.8.0 相同（只差合成的常量构造函数）；0.8.3 不支持 0.8.13 起的顶层 using 与全局运算符；0.10.4、0.11.6 在 3 个旧合约上崩溃并大幅改变图结构。代价：新环境需要授权；toolchain 须同时支持 dict 与对象两种 source_mapping；0.9.6 的 SlithIR 文本与 0.8.0 不同（训练与检测用同一版本即可） | 证据已齐，待用户决定 |
+| D16 | Slither 版本（测量见 1.6、1.7 节）。Slither 0.8.0（`mando`）只用于 6c 精确重放回归；生产工具链放在独立环境，不改 `mando`。r2.4 推荐 0.11.6（Python ≥ 3.10、crytic-compile 0.4.2）：19 个语法探针全部通过，是仍在维护的最新版本；代价是 3 个 0.4.24 MANDO 文件崩溃（同类写法在 DAppSCAN 的 2,189 个 0.4 文件中 6 个；可用 3.2 节第 10 行的语义等价改写处理，记为 rewrite）、图结构增加隐式 RETURN 与 ENDASSEMBLY 节点。备选 0.9.6（Python ≥ 3.8、crytic-compile 0.3.11）：846/846 通过、结构与 0.8.0 几乎相同，但 0.8.7 起的 6 种合法写法无法分析，且不会再修复。r2.3 曾推荐 0.9.6，依据的探针集太窄。训练与检测必须使用同一版本 | 证据已齐，待用户决定 |
 | D18 | 编译器获取：推荐一次性安装 0.4.12 至官方快照最新版本（当前 0.8.38）的全部正式版本（尚缺 59 个），双哈希校验，独立追加信任清单；之后的新发布按授权追加。检测时不自动下载。安装后 3.3 节第 6 条 pragma 覆盖只用于官方没有可用构建或低于 0.4.12 的精确 pragma（例如 `pragma solidity 0.4.10;`） | 建议，待用户决定 |
 
 ---
@@ -207,6 +236,7 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | 7 | 规则桩：未声明的接口、合约、事件、结构体、修饰器，签名能从使用处推出；缺失基类 | additive | 已验证无函数体声明可编译、基类须先定义（证据 8） | rules/stubs.py |
 | 8 | 结构补全：括号不平衡时在文件末尾补齐 | additive | SOChecker 使用 | rules/stubs.py |
 | 9 | 只在代码生成阶段出现的失败（例如 Stack too deep） | none | 未验证：Slither 能否只用 AST，或编译设置能否避免 | rules/environment.py |
+| 10 | Slither 兼容改写：solc rc0、源码合法，但生产 Slither 在已知写法上崩溃（例如 0.4.x 的 `(bool s, ) = a.call.value(v)("")` 在 Slither 0.10 起触发 AssertionError）；改写为逐类论证过语义等价的写法。只在 D16 选 0.11.6 时适用 | rewrite（只改触发行） | 1 个文件验证 solc 0.4.24 rc0 与 0.11.6 D3 通过（1.7 节）；等价性须逐类论证并测试 | rules/normalize.py |
 
 第 1、6 步在 CP1 实现。第 2–9 步以及表中没有列出的其他失败类别，按 CP3 建立的分类表（D6）逐类判定：有可确定性实施并能机械验证的修复就实现，否则交给代理；表中“证据状态”只表示已有的验证，不表示只处理已观察到的问题。
 
@@ -454,6 +484,8 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 ```text
 # CP0.1：D3 加强、key5、source_mapping 兼容、生产 Slither 环境与重验
 
+r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_review_v1/README.md），不要重做；下面的 B、C 以 r2.4 为准。
+
 依据：PROMPTS.md r2.3 的修改说明与 1.6 节；审查证据 compile_repair/artifacts/cp0_review_v1/README.md（只读，不导入其中脚本，可参考其做法）。CP0 的产物（cp0_v1、cp0_v2 等）与报告一律不改、不重跑。
 产物：compile_repair/artifacts/cp0_1_v1/（A 部分）、cp0_1_env_v1/（B 部分）、cp0_1_compilers_v1/（C 部分，只在授权后）。报告 compile_repair/CP0_1_REPORT.md。
 分三部分。A 不需要任何授权，先做；B 需要 DECISIONS.md 中 D16 已由用户决定且 authorization.json 授权建环境；C 需要 D18 已决定且授权安装。缺哪一项就做到前一部分，按“记录（强制）”完成记录后停下。
@@ -484,12 +516,19 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 
 ## B. 生产 Slither 环境（需要 D16 已决定与授权）
 
-- 按 D16 的决定建立独立 conda 环境（例如 Python 3.8 + slither-analyzer 0.9.6 + crytic-compile 0.3.11，以 DECISIONS.md 与 authorization.json 为准），不修改 mando 环境。记录全部包版本（pip freeze）与安装来源。
+- 按 D16 的决定建立独立 conda 环境，不修改 mando 环境，以 DECISIONS.md 与 authorization.json 为准：
+  - 选 0.11.6：Python 3.10.x、slither-analyzer 0.11.6、crytic-compile 0.4.2、solc-select 1.0.4（与 mando 相同，避免改变 ~/.solc-select 的布局）、tree-sitter 0.20.4、pycryptodome、pytest；
+  - 选 0.9.6：沿用 cp0_1_development_v1/environment_installation_request.json（Python 3.8.20、0.9.6、0.3.11、tree-sitter 0.20.4、importlib-metadata 4.13.0）。
+  已提交的请求是按 0.9.6 写的；若用户选 0.11.6，先按上面改写请求并取得授权。记录全部包版本（pip freeze）与安装来源。环境中不得运行 solc-select 的 install/use，不得改变全局 solc。
+- 代码：在 toolchain/slither.py 的 PROFILES 中加入 production = D16 的确切版本对；check_profile 先用标准库 importlib.metadata，取不到时再用 importlib_metadata（两种都有测试）；每条 Slither 记录写入 crytic-compile 实际使用的平台名称，证明是 solc 平台（0.4.2 会提示检测到多个平台）。
 - 冻结模块的导入：scripts/DFG/state/stage_f/versioning.py 经 scripts/DFG/frontend.py 依赖 tree_sitter。先在 mando 中读取 tree_sitter 的版本与所用语言库文件的路径和 SHA256，在新环境中安装同一版本，确认 import 成功，并用新环境对 846 个文件计算 versioning.interval，与 mando 中的结果逐一相同。不同或无法导入时停下报告。
 - 在新环境运行 compile_repair/tests（与 profile 无关的测试必须全部通过）。
-- 846 个文件在同一批选定版本上：D3 通过数（预期 846）；与 A3 的 0.8.0 结果按 key5 比较节点结构，列出全部差异。审查测得的预期是只有 Slither 合成的 slitherConstructorConstantVariables() 的节点（审查在 743 个不同源文件上测得 22 个源文件、47 个节点；846 个文件含跨类别逐字节重复，按 source_sha256 去重后应得到相同数字），其他任何差异列出并停下。有序 IR 的差异只统计并给出前 20 个示例，不作为失败。
-- 特征探针：在 tests/fixtures 中为 0.7.1 起的自由函数、0.8.4 自定义错误、0.8.8 UDVT、0.8.13 顶层 using for、0.8.19 全局用户定义运算符、0.8.24 transient 各写一个小合约（只用该版本文档中存在的语法），对每个已安装且不低于该特征起始版本的 0.8.x 编译器运行，按新 D3 判定。transient 的结果只记录“构造成功与否”，在报告中写明它不证明正确建模。
-- 0.4.24 的 reentrancy_bonus.sol、reentrancy_cross_function.sol、reentrancy_insecure.sol 单独列出结果（0.10、0.11 在这 3 个文件上崩溃；0.9.6 预期通过）。
+- 846 个文件在同一批选定版本上运行 D3，并与 A3 的 0.8.0 归档（cp0_1_v1/node_facts_v2.jsonl.gz）按 key5 比较节点结构，列出全部差异。审查测得的预期（compare_prod.json）：
+  - 0.9.6：D3 846/846；结构差异只在 23 个文件，只少合成的 slitherConstructorConstantVariables()/slitherConstructorVariables() 入口节点 48 个；
+  - 0.11.6：D3 843/846，3 个 0.4.24 文件 AssertionError；结构差异只有多出的隐式 RETURN（2,182）与 ENDASSEMBLY（128）、少 48 个合成入口节点与 6 个重数变化的 EXPRESSION。
+  与预期不符的差异逐条列出并停下。有序 IR 的差异只统计并给出前 20 个示例，不作为失败。
+- 特征探针：把 artifacts/cp0_1_review_v1/probes/ 的 19 个合约复制到 tests/fixtures/features/（保留文件名中的起始版本；可改名但须在报告中列出对应关系），对每个已安装且不低于该特征起始版本的 0.8.x 编译器运行，按新 D3 判定。预期：0.11.6 全部通过；0.9.6 在 y087_basefee、h0815_event_selector、h0822_file_event、y0824_tstore_asm、y0824_mcopy、y0824_blob_asm 上失败、其余通过。0.8.24 的探针是 Yul tload/tstore（y0824_tstore_asm），0.8.28 的探针是 transient 状态变量（f0828_transient），不要混用；transient 的结果只说明构造成功与否，不证明正确建模。与预期不符的逐条列出。
+- 0.4.24 的 reentrancy_bonus.sol、reentrancy_cross_function.sol、reentrancy_insecure.sol 单独列出结果（0.9.6 预期通过；0.11.6 预期 AssertionError）。选 0.11.6 时，另在 artifacts 中用这 3 个文件的工作副本试验 3.2 节第 10 行的改写（不改语料，不实现规则），记录 solc 退出码、D3 与改写前后的节点差异；规则本身在 CP6 实现。
 - 记录每次运行耗时，估计 CP2 在生产环境的全量时间。
 
 ## C. 编译器补齐（需要 D18 已决定与授权）
@@ -555,7 +594,7 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 ## 2. 回归（6c 已比较的 239 个文件）
 - 精确重放：在 mando 环境（Slither 0.8.0、crytic-compile 0.2.4）只 import、不修改冻结的 scripts/DFG/dfg_v2/validate_slither.py 中 6c 使用的编译与抽取函数，在 6c 记录的版本上对 239 个文件重跑，按 CP0 提出的 occurrence 多重集合键（cp0_v2/recon.json 中 cp2 键的提议，路径规范化后）与 6c 报告逐文件比较。预期 239/239 相同；不同的逐条列出并归因，不得放宽键。
 - 6c 版本与当前升序选定不同的 1 个文件：另在选定版本上重跑，差异单列。
-- 生产工具链（D16 决定的版本）构建的存储另与 Slither 0.8.0 按 key5 比较节点结构；若 D16 选 0.9.6，预期差异只有合成的 slitherConstructorConstantVariables()，其余差异逐条归因。不按 source length 判定差异。
+- 生产工具链（D16 决定的版本）构建的存储另与 Slither 0.8.0 按 key5 比较节点结构；预期差异见 1.7 节（0.9.6：只少合成入口节点；0.11.6：另有隐式 RETURN、ENDASSEMBLY 与 3 个 0.4.24 文件失败），其余差异逐条归因。不按 source length 判定差异。
 
 ## 3. 跨版本不变性
 - 所有至少两个版本满足 D3 的文件：最低与最高版本按 key5 与有序 SlithIR 比较；报告相同数、不同数与全部不同条目。
@@ -573,6 +612,7 @@ Python 3.7.12。代码必须兼容 Python 3.7：不要用 :=、list[str]/dict[st
 - 来源只限有文档依据的内容：solc 文档“Error types”一节列出的 13 种类型（JSONError、IOError、ParserError、DocstringParsingError、SyntaxError、DeclarationError、TypeError、UnimplementedFeatureError、InternalCompilerError、Exception、CompilerError、FatalError、Warning）；Solidity 0.5.0、0.6.0、0.7.0、0.8.0 的 breaking changes 文档逐条；solc 的导入路径解析与 remapping 规则；项目结构（多文件、闭包内版本冲突）；源码截断与扁平化产物。文档需要下载时，列出版本标签与路径写入 authorization 请求后停下。
 - 表的每一行：类别名、对应的 solc 错误类型与消息模板（有 errorCode 时一并记录；errorCode 在 standard JSON 中是可选字段）、原因、文档出处、候选修复方式（确定性 / 代理）、确定性修复的验证方式（D3、D7 中哪几项）。
 - 下文第 3 节的类别名是初始集合；分类表可以增加类别，不得删除有文档依据但在语料中未出现的类别。
+- 另设“Slither 侧失败”一类：solc rc0 而生产 Slither 构造或 D3 失败（例如 1.7 节的 0.4.x 元组 call 写法、生产版本不支持的新语法）。按 Slither 错误信息分子类；能用 3.2 节第 10 行语义等价改写处理的标为确定性，否则记为工具限制，不交给代理改写合法源码。
 - 表写入 compile_repair/artifacts/cp3_v1/taxonomy.json 与 CP3_REPORT.md；分类规则写在 toolchain/solc.py，测试覆盖每一类（用 tests/fixtures 中的手写合约，不依赖语料中是否出现）。
 
 ## 1. 获取（需要授权）
