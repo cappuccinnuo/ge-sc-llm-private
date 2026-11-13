@@ -133,3 +133,13 @@
 | 2026-11-13 | D18 | B 全通过后，59 个官方 solc 全部下载、双哈希与版本校验通过；独立追加信任，支持快照 92/92 | cp0_1_compilers_v1/trusted_compilers_addition.json、installation_summary.json | Codex |
 | 2026-11-13 | C 停止边界 | 0.8.24+h0824_blob 默认编译 rc1，blobhash 未声明；224 过、1 失败、271 未运行；不改标准、不自动重试 | compatibility.json、final_status.json；用户要求与 PROMPTS §4.1 | Codex |
 | 2026-11-13 | 待审查，未变更方案 | 需审查该 probe 的最低语法版本及 EVM 设置；任何下界/参数调整先咨询用户，在新批次续验；CP1 不开始 | CP0_1_REPORT C.3；CHANGE_LOG §11.4 | Codex |
+
+
+### CP0.1 B、C 审查与 r2.5（修改 AI：Claude）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-13 | D16 | 生产环境与 B 验收经独立复核成立；新增要求：IR 文本中的对象内存地址必须规范化 | CHANGE_LOG §12.3；ir_object_repr.json | Claude |
+| 2026-11-13 | D18 | 59 个编译器经复核与官方索引 0 差异，92/92 | CHANGE_LOG §12.3 | Claude |
+| 2026-11-13 | D5 | 版本策略加入编译设置（3.3 节第 3a 条）：同一版本先默认设置，再按有文档依据的设置表重试，然后才换版本；不改源码 | CHANGE_LOG §12.2；floor_matrix.jsonl | Claude |
+| 2026-11-13 | 更正 | r2.4 的特征探针下界未考虑默认编译设置：Cancun 探针默认下界 0.8.25、h0826 默认下界 0.8.27 | CHANGE_LOG §12.4 | Claude |

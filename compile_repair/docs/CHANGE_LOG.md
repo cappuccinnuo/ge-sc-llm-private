@@ -614,3 +614,50 @@ B 阶段的模块测试命令为各环境 python -B -m pytest -q -ra -p no:cache
 
 
 暂存检查补记：全部 112 个初始清单文件暂存后，git diff --cached --check 在 production_batch.stderr.log 的 554、562、571 行报告三处“space before tab in indent”。它们是 Slither 三个已知 AssertionError 诊断打印的原始 Solidity 行，不是本轮源码格式错误；为保持证据字节，日志不裁剪、不改写。保留完整检查 rc2 和三条诊断，另对除该单一原始日志之外的全部暂存文件运行同一检查，rc0，见 final_staging_audit.json；未改变 D3、C 的停止标准或编译参数。该补记与最终清单写入后再做七份 doc_check_v3；最终封存为两批 seal_v2.json，原 seal.json 保留为第一次封存快照，完整提交清单为 file_inventory_v2.json。
+
+
+## 12. 2026-11-13 CompileRepair CP0.1 B、C 审查与方案 r2.5（修改 AI：Claude）
+
+### 12.1 任务、依据与范围
+
+用户要求（2026-11-13）：Codex 已按推荐方案完成修改；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后才进入 CP1。起点 `compile-repair@33c23a3b`。审查对象：`toolchain/slither.py` 的 production 改动、`tests/test_production.py`、19 个特征 fixture、`artifacts/cp0_1_env_v1/`、`cp0_1_compilers_v1/`，CP0_1_REPORT 的 B、C 节与 CHANGE_LOG §11。
+
+修改：`PROMPTS.md`（r2.4 → r2.5）；新增 `artifacts/cp0_1bc_review_v1/`；记录：本节、`docs/HANDOVER.md`（第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 4 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 12.2 实施方式和重要选择
+
+- B 复核：重算 production_invocations 与 seal_v2；把 production 归档与 Claude 在上一轮审查中用 Slither 0.11.6 独立运行的 846 个文件逐组比较；核对两环境区间文件逐条相同。
+- C 复核：59 个新编译器的可信清单与官方 solc-bin 索引逐项比较；从 GitHub 发布页取得 solc 0.8.24–0.8.27（哈希与官方索引一致，0.8.24 与 Codex 失败记录的编译器相同），在默认设置与 `--evm-version cancun`、`--via-ir` 下编译全部适用探针，并用 Slither 0.11.6 判定 D3。官方 0.8.25、0.8.26、0.8.27 发布说明分别确认默认 EVM 改为 cancun、require 自定义错误只在 IR 管线支持、0.8.27 起旧管线支持。
+- 处理方式：探针下界改为“默认设置可编译的最低版本”，原下界版本上的默认设置组合改为负对照，另加带设置的正对照，这样既不放宽判据，也保留了设置依赖的证据。
+- 设计：精确 pragma 的真实输入可能只能在非默认设置下编译，换版本无效，因此版本策略加入编译设置（3.3 节第 3a 条）。只在有文档依据的错误出现时触发，同一版本先试设置再换版本（与 D5 取最低版本一致），只允许两种选项，不改源码，Slither 用相同设置。放在 CP1 实现，CP0.1 C 续只做 toolchain 支持与验证。
+- IR 文本：发现 4 个文件的 IR 含对象内存地址后，统计两个归档（0.8.0 归档 0 处），要求在 node_facts 中规范化并用两次完整运行验证确定性。CP0 投影不改，以保持与 cp0_v2 的对照。
+
+### 12.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| production 调用 | solc 846、Slither 846；profile 0.11.6 / 0.4.2；平台 solc 846 | production_invocations.jsonl |
+| production D3 | 843；失败 3 个 0.4.24 文件，AssertionError | 同上 |
+| production 节点 | 110,996 | production_node_facts_v2.jsonl.gz |
+| seal_v2 | 74 个文件哈希一致 | seal_v2.json |
+| 区间 | 两环境 846 行完全相同 | intervals_*.json |
+| 与 Claude 独立 0.11.6 运行 | 839/843 key5 + 有序 IR 相同；4 个只差 1 行 IR（对象内存地址） | ir_object_repr.json |
+| 59 个编译器 | SHA256、Keccak256 与官方索引 0 差异 | trusted_compilers_addition.json |
+| 0.8.24 默认设置 | 4 个 Cancun 探针 solc 失败；加 `--evm-version cancun` 后 rc 0、D3 通过 | floor_matrix.jsonl、slither_settings_0116.jsonl |
+| 0.8.26 默认设置 | h0826 solc rc 2（UnimplementedFeatureError）；加 `--via-ir` 后 rc 0、D3 通过 | 同上 |
+| 0.8.25、0.8.27 默认设置 | 适用探针 16、17 组全部 solc rc 0、D3 通过 | 同上 |
+
+未证明：0.8.28–0.8.37 上探针的结果（C 续中运行）；设置表在真实语料上的触发频率（CP3）。
+
+### 12.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：B 全部门槛、平台记录方式（公开 API 组合，结果与 `Slither(path)` 一致）、安装与信任链、C 遇首个失配即停、不改参数与探针、只登记建议。
+- 方案错误（Claude）：r2.4 的探针下界未考虑默认编译设置，且只在 0.8.38 上验证过。
+- 新增设计：3.3 节第 3a 条编译设置；IR 文本规范化。均按用户已批准的“先确定性环境方法”原则，不需要新的决策编号；记在 D5、D16 的历史中。
+- 无需用户新授权：C 续不安装、不下载。
+
+### 12.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp0_1bc_review_v1/README 全文，CHANGE_LOG:84141、PROGRESS:14829 追加区间，6 个文件全部 passed=True 后提交。
+- 资源：云端 CPU；从 GitHub 下载 4 个官方 solc 到会话临时目录（只用于审查）；没有 LLM 调用，费用 0。
+- 停止：CP1 不能开始。顺序为 Codex 执行 4.2c 节 → Claude 审查 → CP1。本轮提交并 push 到 `compile-repair`。

@@ -103,3 +103,11 @@ WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，�
 - 强制记录、doc_check 与本地提交边界见 CHANGE_LOG §11.5；本轮不 push。第 10 行改写只做工作副本试验，规则未实现。
 
 最终记录补充：原始 Slither 日志的三处空白格式诊断按原字节保留；除该日志外的暂存检查通过。见 CHANGE_LOG §11.5、final_staging_audit.json；最终提交清单为 file_inventory_v2.json，最终封存为两批 seal_v2.json，第一次清单/封存不覆盖。
+
+
+## CP0.1 B、C 审查与方案 r2.5（Claude，2026-11-13）
+
+- B 审查通过；59 个编译器与官方索引一致。C 的停止源于方案中探针下界错误（未考虑默认编译设置），Codex 处理正确。
+- 新发现：Slither 0.11.6 的 IR 文本含对象内存地址（4 个文件），须规范化。
+- PROMPTS r2.5：新增 1.8 节、3.3 节第 3a 条（编译设置，CP1 实现）、4.2c 节 CP0.1 C 续。证据 `artifacts/cp0_1bc_review_v1/`；记录 `docs/CHANGE_LOG.md` §12。
+- 下一步：Codex 执行 4.2c 节，不需要新授权。

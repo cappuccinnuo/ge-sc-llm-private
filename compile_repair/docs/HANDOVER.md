@@ -1,25 +1,24 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.4（§1.7、§4.2b B/C）、DECISIONS、CP0_1_REPORT 追加的 B/C 节与 CHANGE_LOG §11。第 6 节保留历史，只追加；记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.5（尤其 1.8 节、3.3 节第 3a 条、4.2c 节）、DECISIONS、CP0_1_REPORT 和 CHANGE_LOG §12。第 6 节保留历史，只追加；记录规则见 README.md。
 
 ## 0. 一句话
 
-CP0.1 B 已按预期完成；C 的 59 个 solc 安装校验完成，但在 0.8.24 的 h0824_blob 探针首次失配后停止（224 过、1 失败、271 未运行）。先审查该边界并由用户确认任何方案调整；C 与 CP0.1 整体未通过，CP1 不开始。
+CP0.1 B 与 C 的安装已由 Claude 复核通过。C 的停止是方案错误：探针下界没有考虑默认编译设置（Cancun 探针默认从 0.8.25、require 自定义错误默认从 0.8.27 起可编译）。另发现 Slither 0.11.6 的 IR 文本含内存地址。下一步：Codex 执行 4.2c 节 CP0.1 C 续 → Claude 审查 → CP1。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案与用户决定 | PROMPTS r2.4；D5 升序、D16 0.11.6/0.4.2、D18 安装 59 版均已批准 | DECISIONS；2026-11-13 用户明确指令 |
-| 模块 | 9 个生产 Python 文件、5 个测试文件、28 个 Solidity fixture | CP0_1_REPORT B.2；file_inventory.json |
-| CP0 / CP0.1 A | 既有审查通过；本轮未重跑、旧产物未改 | cp0_1_review_v1/README.md；frozen_audit.json |
-| CP0.1 B | 全部原定门槛通过：D3 843/846、仅指定 3 份断言失败，435 份结构差异及各类型计数吻合 | cp0_1_env_v1/B_acceptance.json、production_comparison.json |
-| B 区间 / 特征 | 冻结 interval 846/846 一致；19 特征的当前 23 组组合通过 | interval_equivalence.json、feature_probes_B.json |
-| CP0.1 C 安装 | 59/59 双哈希与精确版本通过；官方快照支持范围 92/92，总安装 96 含 4 个旧负对照 | cp0_1_compilers_v1/installation_summary.json、coverage.json |
-| CP0.1 C 兼容性 | 496 组计划中 225 已执行：224 过、1 失败、271 未运行；已停止 | compatibility.json、final_status.json |
-| 首个非预期结果 | 0.8.24 编译 h0824_blob.sol 的 blobhash(0) 报未声明标识符，rc1；Slither 未运行 | compatibility_invocations.jsonl |
-| 测试 | production 77 passed/6 skipped；mando 58 passed/25 skipped；DFG 2653 passed/9 warnings | cp0_1_env_v1/pytest_*.json/log |
-| 下一步 | 审查 probe 最低语法版本与 EVM 设置；涉及方案调整先向用户确认，新批次验证后再审查 CP0.1 | CP0_1_REPORT C.3 |
+| 方案 | PROMPTS r2.5 | CHANGE_LOG §12 |
+| 决策 | D5 升序、D16 Slither 0.11.6 / crytic-compile 0.4.2、D18 安装 59 个，均已由用户决定 | DECISIONS |
+| 模块 | 9 个生产 Python 文件、5 个测试文件、28 个 Solidity fixture | CP0_1_REPORT B.2 |
+| CP0、CP0.1 A | 已审查通过 | cp0_review_v1、cp0_1_review_v1 |
+| CP0.1 B | 已审查通过：生产 D3 843/846（3 个 0.4.24 AssertionError）；与 Claude 独立运行 839/843 完全相同，其余 4 个只差含内存地址的 1 行 IR | cp0_1bc_review_v1/README.md |
+| CP0.1 C 安装 | 已审查通过：59 个与官方索引 0 差异，92/92 | 同上 |
+| CP0.1 C 兼容性 | 停在 0.8.24 + h0824_blob（225/496）；原因是探针下界错误，不是工具问题 | 同上；PROMPTS 1.8 节 |
+| 待处理 | 编译设置支持、IR 文本规范化、生产确定性验证、按 501 组计划重跑兼容性 | PROMPTS 4.2c 节 |
+| 下一步 | Codex 执行 CP0.1 C 续（不需要新授权）→ 审查 → CP1 | PROMPTS 4.2c、4.3 |
 | 其他决策 | D9/D10 待确认，D12/D13 待定 | DECISIONS |
 
 ## 2. 分支与工作树
@@ -71,7 +70,8 @@ Windows 侧使用 wsl.exe -d Ubuntu-22.04 --cd ... --exec ...；中文 Python �
 
 | 内容 | 路径 |
 |---|---|
-| 方案、最新报告与详细记录 | PROMPTS r2.4；CP0_1_REPORT B/C；docs/CHANGE_LOG §11 |
+| CP0.1 B、C 审查证据（Claude） | artifacts/cp0_1bc_review_v1/README.md 及 floor_matrix、slither_settings_0116、ir_object_repr |
+| 方案、最新报告与详细记录 | PROMPTS r2.5；CP0_1_REPORT B/C；docs/CHANGE_LOG §11（Codex）、§12（审查） |
 | B 授权、环境与门槛 | artifacts/cp0_1_env_v1/authorization.json、environment.json、B_acceptance.json |
 | B 846 固定版本比较 | production_comparison.json、structure_differences.json、ir_differences.json、production_invocations.jsonl、production_node_facts_v2.jsonl.gz |
 | B 区间、探针与副本 | interval_equivalence.json、feature_probes_B.json、rewrite_manifest.json、rewrite_*.json |
@@ -199,3 +199,14 @@ B 的 846 份区间与 mando 全同，固定版本 D3 为 843/846，指定的三
 用户本轮明确批准 D5 升序、D16 0.11.6/0.4.2 独立环境与 D18 的 59 版下载，费用上限 0 美元，授权在两个批次中先行写入。C 首个失配为 0.8.24 编译 h0824_blob.sol 时 blobhash 未声明，rc1 且未运行 Slither，已按原文停止并保留现场。没有放宽判据、变更编译参数、修改 probe 或自动重试；后续应先审查最低语法版本及 EVM 设置，任何方案调整须先咨询用户。C 与 CP0.1 整体尚未通过，CP1 不开始，第 10 行改写规则仍留给 CP6。
 
 生产模块测试 77 passed/6 skipped，mando 模块 58 passed/25 skipped，冻结 DFG 2653 passed/9 warnings；两套 metadata 路径和平台组合等价均验证。初始 user-site 依赖混入在安装前用新环境专属隔离解决，开发正则收集错误已修正并保留失败日志，均未改变验收判据。frozen_audit 核对模块外 27845 文件、旧产物 204、旧编译器 37、mando 元数据 205 以及 code_refs 354 项不变，doc_check 与最终审计见 CHANGE_LOG §11.5。本轮在全部强制记录之后本地提交，不 push；无 LLM、训练、GPU 锁、图存储或范围外安装。
+
+
+### 2026-11-13 CompileRepair CP0.1 B、C 审查与方案 r2.5（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP0.1 B、C（提交 33c23a3b）。新增证据目录 `artifacts/cp0_1bc_review_v1/`，修改 `PROMPTS.md`（r2.4 → r2.5）。本文第 0、1 节换成审查结论，第 5 节加入证据路径；第 4 节 Codex 写的 18 条保留（第 16、17 条的待处理事项由 4.2c 节处理）。
+
+结论：B 正确。生产运行的 846 次调用、843 个 D3 通过、3 个 0.4.24 失败、435 个结构差异文件都与审查预期相同；与 Claude 独立的 0.11.6 运行比较，839/843 个文件的 key5 与有序 IR 完全相同。59 个编译器的哈希与官方索引 0 差异。C 停在 0.8.24 + h0824_blob 是方案错误：r2.4 写的探针下界是语法引入版本，审查时只在 0.8.38 上运行过；实测默认设置下 4 个 Cancun 探针从 0.8.25 起可编译（0.8.24 需要 `--evm-version cancun`），h0826 从 0.8.27 起可编译（0.8.26 需要 `--via-ir`），加设置后 Slither 0.11.6 D3 通过。Codex 不改参数、停下报告是正确的。
+
+新发现：其余 4 个文件的差异来自 Slither 0.11.6 在 IR 文本中输出 Python 对象内存地址，指纹不能复现，CP2 前必须规范化。设计缺口：精确 pragma 0.8.24 或 0.8.26 的真实合约只能靠编译设置编译，r2.5 在 3.3 节加入第 3a 条（设置表、同一版本重试、Slither 使用相同设置），在 CP1 实现。
+
+下一步：Codex 执行 4.2c 节（不需要新的安装或授权）；Claude 审查后进入 CP1。本轮没有模块代码改动或安装。详见 CHANGE_LOG §12。

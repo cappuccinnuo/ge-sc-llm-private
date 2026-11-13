@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.4（2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.5（2026-11-13；r2.4 同日；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -43,6 +43,13 @@
 3. D16 推荐由 0.9.6 改为 0.11.6（r2.3 的推荐依据 6 个探针，范围太窄，是 Claude 的错误）。扩展到 19 个探针后 0.9.6 失败 6 个合法写法（0.8.7 起的 Yul `basefee`、0.8.15 的 event.selector、0.8.22 的文件级 event、0.8.24 的 Yul `tload`/`tstore`/`mcopy`/`blobhash`），0.11.6 全部通过；代价是 3 个 MANDO 0.4.24 文件崩溃与图结构变化（1.7 节）。仍由用户决定。
 4. 3.2 节新增第 10 行“Slither 兼容改写”（只在 D16 选 0.11.6 时适用）；CP3 分类表加入“Slither 侧失败（solc 可编译）”一类。
 5. 4.2b 节 B 部分按 D16 的两种选择分别写出环境、预期与停止条件；CP2 第 2 节的结构差异预期同步更新。
+
+**r2.5 相对 r2.4 的修改**（CP0.1 B、C 审查；证据 `artifacts/cp0_1bc_review_v1/README.md`）：
+1. CP0.1 B 审查通过，C 的 59 个编译器安装正确（新增 1.8 节）。
+2. C 在 0.8.24 + h0824_blob 停止是方案错误（Claude）：r2.4 给特征探针写的起始版本是语法引入版本，没有考虑默认编译设置。实测默认设置下 4 个 Cancun 探针从 0.8.25 起可编译（0.8.24 需要 `--evm-version cancun`），h0826_require_error 从 0.8.27 起可编译（0.8.26 需要 `--via-ir`）。Codex 停下而不改参数是正确的。
+3. 新发现：Slither 0.11.6 在 4 个文件的 IR 文本中输出 Python 对象内存地址，使 node_facts_v2 指纹不能复现。toolchain 须规范化这种文本。
+4. 版本策略加入“编译设置”一维（3.3 节第 3a 条，3.2 节第 1 行）：只在有文档依据的错误出现时，在同一版本上改用对应设置（`--evm-version`、`--via-ir`），不改源码；Slither 使用相同设置。CP1 实现。
+5. 新增 4.2c 节 CP0.1 C 续：编译设置支持、IR 文本规范化、生产重跑两次验证确定性、按修正后的计划重跑兼容性矩阵。CP1 前提改为 CP0.1 C 续通过审查。
 
 ---
 
@@ -162,6 +169,26 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 - 语料文本统计（上界）：DAppSCAN 15,485 个不同文件中 0.9.6 失败类写法 1 个、0.11.6 失败类写法 6 个（2,189 个 0.4 文件中）；Trace 7,407 个文件中 0.9.6 失败类写法至多 5 个（Yul tload/tstore 2、mcopy 1、文件级 event 2）。
 - PyPI 上 Slither 最新版本为 0.11.6（2026-07-28，要求 Python ≥ 3.10、crytic-compile ≥ 0.4.2、web3 7.x）；0.9.6 不再更新。
 
+### 1.8 CP0.1 B、C 结果（2026-11-13 审查；证据 `artifacts/cp0_1_env_v1/`、`cp0_1_compilers_v1/`、`cp0_1bc_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 生产环境 | Python 3.10.21、Slither 0.11.6、crytic-compile 0.4.2、solc-select 1.0.4、tree-sitter 0.20.4；mando 不变 |
+| 区间等价 | 两环境 846 个文件逐条相同 |
+| 生产 D3 | 843/846（3 个 0.4.24 文件 AssertionError）；平台 846/846 为 solc；结构差异 435 个文件，各类计数与 1.7 节相同 |
+| 独立复核 | 843 个成功文件中 839 个 key5 + 有序 IR 与 Claude 的独立运行完全相同；其余 4 个只差 1 行含对象内存地址的 IR 文本 |
+| 编译器 | 新装 59 个，SHA256、Keccak256 与官方索引 0 差异；0.4.12–0.8.38 共 92/92 |
+| C 兼容性 | 计划 496 组，执行 225：224 通过，0.8.24 + h0824_blob 失败后停止 |
+
+默认编译设置下的探针下界（`floor_matrix.jsonl`、`slither_settings_0116.jsonl`；solc 与 Slither 0.11.6 都已实测）：
+
+| 探针 | 语法引入版本 | 默认设置可编译的最低版本 | 更低版本需要的设置 | 依据 |
+|---|---|---|---|---|
+| h0824_blob、y0824_blob_asm、y0824_mcopy、y0824_tstore_asm | 0.8.24 | 0.8.25 | 0.8.24 加 `--evm-version cancun` | 0.8.25 起默认 EVM 为 cancun（官方 0.8.25 发布说明） |
+| h0826_require_error | 0.8.26 | 0.8.27 | 0.8.26 加 `--via-ir` | 0.8.26 只在 IR 管线支持；0.8.27 起旧管线也支持（官方 0.8.26、0.8.27 发布说明） |
+
+0.8.24 默认设置下的 solc 错误：`Undeclared identifier. Did you mean "blockhash"?`（blobhash）、`Function "blobbasefee" not found.`、`Function "mcopy" not found.`、`Function "tload" not found.`；0.8.26 默认设置下 rc 2，`std::exception::what: Require with a custom error is only available using the via-ir pipeline.`（第一行是 `Unimplemented feature:`，错误解析必须读取 what 行）。0.8.25、0.8.27 默认设置下所有适用探针 solc rc 0、D3 通过；0.8.28–0.8.37 未在审查中验证。
+
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
 **确定性方法与编译环境**
@@ -227,7 +254,7 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 
 | 步骤 | 处理的问题 | 改动等级 | 证据状态 | 代码位置 |
 |---|---|---|---|---|
-| 1 | 编译器版本：按 3.3 节在声明区间内选择；Slither 需要 ≥ 0.4.12 | none | 已验证（证据 2、3、5） | rules/environment.py |
+| 1 | 编译器版本与编译设置：按 3.3 节在声明区间内选择版本；只在有文档依据的错误出现时，在同一版本上改用对应编译设置（`--evm-version`、`--via-ir`，3.3 节第 3a 条）；Slither 需要 ≥ 0.4.12 | none | 版本已验证（证据 2、3、5）；设置已在 0.8.24、0.8.26 上验证（1.8 节） | rules/environment.py |
 | 2 | 项目组装：为编译单元构造导入闭包、remapping 与 solc standard-json 输入 | none | 需要（1.4：几乎没有构建配置）；算法待 CP3 数据 | toolchain/project.py |
 | 3 | 依赖补全：包导入映射到兼容的库发布版（DAI 两步检查，扩展到 0.4 与更多包），离线库索引 | additive | 需要（1.4：405 个项目有无法解析的 import） | rules/dependencies.py |
 | 4 | 缺失文件搜索：相对导入目标在项目内其他位置（移动、改名、大小写） | rewrite（只改导入路径） | 未测量；1,094 条相对导入缺失 | rules/dependencies.py |
@@ -245,6 +272,7 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 1. 合取区间 I：编译单元内所有文件的所有 `pragma solidity` 取交集，语义与 `scripts/DFG/state/stage_f/versioning.py::interval` 相同（`||` 与无法解析的表达式视为不支持）。实现时先 import 复用；不能复用时按共享上下文规则复制并做等价测试。
 2. 已知版本（可选输入）：调用方可以为输入提供已知的编译器版本（例如 Etherscan 验证记录、构建配置中的版本、MANDO 回归中经 `versioning.py::recorded_version` 校验的 SmartBugs `versions.csv` metadata）。在 I 内时作为第一候选；≤ 0.4.11 时记 `known_version_below_slither_floor` 并继续。没有已知版本时跳过此步。
 3. 候选 C = 已安装可信版本 ∩ I ∩ [0.4.12, ∞) ∩ [lo, (lo 主版本, lo 小版本 + 1, 0))，lo 为 I 的下界。按升序尝试，第一个满足 D3 的版本为选定版本。支持范围 0.4.12 至 0.8.x 的最新补丁版本；实际可用范围受 D16 约束。
+3a. 编译设置：每个候选版本先用默认设置。solc 失败且错误与 rules/environment.py 中的设置表匹配时，在同一版本上改用表中的设置再试一次，然后才进入下一个版本。设置表每一行写明：触发的错误模板（错误类型与消息；崩溃类错误读取 `std::exception::what:` 行）、适用的编译器版本范围、要加的设置、文档出处。初始两行来自 1.8 节：Cancun 内置函数或全局量（tload、tstore、mcopy、blobhash、blobbasefee、block.blobbasefee）未找到或未声明，且编译器版本支持 cancun 但默认不是 cancun（0.8.24）→ `--evm-version cancun`；`Require with a custom error is only available using the via-ir pipeline.` → `--via-ir`。只允许这两种选项，不改源码；Slither 构造时传入完全相同的设置；清单记录所用设置（默认为空）与触发它的错误。其他设置类问题（例如 Stack too deep，3.2 节第 9 行）由 CP3 分类表决定是否加入。
 4. 无 pragma：先看同一编译单元内其他文件的 pragma，有则用它们的区间；否则按版本特征语法推断区间：特征与其引入或移除的版本只取自 Solidity 官方 changelog 与 breaking changes 文档（例如 0.5.0 起要求显式可见性与数据位置、移除 `throw`/`var`；0.8.0 起默认检查算术），推断规则与文档出处写在 rules/environment.py 并逐条测试；推断不出时按已安装版本升序。记 `no_pragma_inferred` 或 `no_pragma_guess`。MANDO 回归运行中按 6c 的已批准做法先试 0.4.25（回归配置，不是一般规则）。
 5. 下界所在系列全部失败且 I 跨越下一系列时，才在 I 内下一系列升序尝试，记 `crossed_minor`（与 `versioning.py::mode_for` 拒绝跨 0.5.0 的口径一致）。
 6. I 内没有可用编译器时（例如精确 pragma 指向未安装或官方没有构建的版本，或低于 0.4.12），才使用 3.2 节第 6 行 pragma 覆盖：候选为下界所在小版本系列中 ≥ 0.4.12 的已安装版本，按与下界的距离从近到远尝试；记 `pragma_overridden`，改动等级 rewrite，清单保留原 pragma 文本与所用版本。这是唯一允许离开声明区间的情形；不得跨小版本系列（越过系列会改变语言语义，证据 8）。
@@ -543,12 +571,46 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 列出新建或修改的文件，确认都在 3.10 节目录表中。
 ```
 
+### 4.2c CP0.1 C 续：编译设置、IR 文本规范化与兼容性重跑（r2.5 新增；CP1 之前必须完成）
+
+```text
+# CP0.1 C 续：编译设置支持、IR 文本规范化、生产确定性与兼容性矩阵重跑
+
+依据：PROMPTS r2.5 的修改说明、1.8 节、3.3 节第 3a 条；审查证据 compile_repair/artifacts/cp0_1bc_review_v1/README.md（只读，不导入其中脚本）。A、B 的结论保留，cp0_1_v1、cp0_1_env_v1、cp0_1_compilers_v1 一律不改。本步不需要新的安装或下载；需要时停下。
+产物：compile_repair/artifacts/cp0_1_env_v2/（第 2 节）、cp0_1_compilers_v2/（第 3 节）。在 CP0_1_REPORT.md 追加“C 续”一节。
+
+## 1. 代码（只改 3.10 节表内文件）
+- core/model.py：Compilation 增加 settings（有序元组，默认空）。
+- toolchain/solc.py：compile_file 接受 settings，追加到命令末尾并写入调用记录；只允许 `--evm-version <名称>` 与 `--via-ir`，其他选项抛错。error_first_line 对崩溃类输出（第一行为 `Unimplemented feature:` 等）另记录 `std::exception::what:` 行的消息；测试用 1.8 节的真实输出文本。
+- toolchain/slither.py：
+  - run_slither 把 compilation.settings 原样传给 CryticCompile 与 Slither（solc_args，空设置时不传），并写入记录；regression_6c 遇到非空设置抛错（冻结 _compile 不接受设置）。
+  - node_facts 中的 IR 文本规范化：把 `<模块.类 object at 0x十六进制>` 替换为 `<模块.类>`，counts 记录替换次数；规范化之后若仍有 ` object at 0x`，D3(a) 判失败并给出诊断。cp0_projection_sha256 不改（只用于 0.8.0 对照，0.8.0 归档中 0 处）。
+- 测试：设置的白名单、命令与记录；regression_6c 拒绝设置；IR 替身对象的 __str__ 含内存地址时规范化结果确定且计数正确；1.8 节两种 solc 错误文本的解析。非测试 .py 文件数不变。
+
+## 2. 生产确定性（cp0_1_env_v2，production 环境）
+- 846 个文件、cp0_v2 的 selection.ascending、默认设置，用改后的代码完整运行两次，各自写归档。
+- 预期：两次逐文件 node_facts_v2_sha256 相同（843/843）；归档中 ` object at 0x` 为 0；与 cp0_1_env_v1 的归档比较，只有 cp0_1bc_review_v1/ir_object_repr.json 列出的 4 个文件、各 1 行 IR 不同，其余逐组相同；D3 843、失败仍为同 3 个文件。任何偏差逐条列出并停下。
+- 在 mando 中用 regression_6c 对同一批次抽 20 个文件（按 SHA256 排序后 Random(0)）重跑，node_facts_v2_sha256 与 cp0_1_v1 相同。
+
+## 3. 兼容性矩阵重跑（cp0_1_compilers_v2，production 环境）
+- 计划：在 cp0_1_compilers_v1/compatibility_plan.json 的 496 组基础上：
+  - 下界按 1.8 节修正：h0824_blob、y0824_blob_asm、y0824_mcopy、y0824_tstore_asm 在 0.8.24 默认设置下、h0826_require_error 在 0.8.26 默认设置下改为负对照，预期 solc 失败且错误与 1.8 节记录相同（共 5 组）；
+  - 新增 5 组设置对照：上述 4 个探针在 0.8.24 加 `--evm-version cancun`、h0826 在 0.8.26 加 `--via-ir`，预期 solc rc 0、D3 通过；
+  - 合计 501 组。先写出计划并核对数目，不一致时说明原因后停下。
+- 从头执行全部 501 组，版本升序，遇首个非预期结果停下，不自动重试。cp0_1_compilers_v1 中已通过的 224 组，结果与节点指纹必须相同（逐组比较）。0.8.28–0.8.37 审查中没有验证，出现非预期结果时按原规则停下报告，不改探针或参数。
+- 全部通过后，更新支持范围的兼容性结论（92 个版本、默认设置与设置对照分别统计）。
+
+## 结论
+- 逐项给出预期与实测；列出新增或修改的文件，确认都在 3.10 节目录表中，test_layering 通过；两个环境的模块测试与 mando 的 scripts/DFG/dfg_v2/tests 都运行。
+- 给出 CP1 所需参数：production profile、92 个编译器、设置表的两行及其验证结果。
+```
+
 ### 4.3 CP1：核心层与环境方法
 
 ```text
 # CP1：core 层、版本策略、修复循环骨架（只含第 1、6 步）
 
-前提：CP0.1 已通过审查；D5、D16、D18 已由用户决定；需要的编译器与环境已按授权安装并核验（否则停下）。
+前提：CP0.1（含 4.2c 节 C 续）已通过审查；D5、D16、D18 已由用户决定；需要的编译器与环境已按授权安装并核验（否则停下）。CP1 的 Slither 运行使用 production profile（D16）；6c 回归另用 regression_6c。
 
 版本策略只实现一份，放在 rules/environment.py；evaluation/survey.py 中 CP0 的 candidate_versions、selection_priority 等选版代码改为调用它（CP0 的产物与报告保持不变，不重跑 cp0_v2）。测试证明：以 cp0_v2 的矩阵结果作为编译结果输入（不重新编译），新实现在 846 个文件上的升序选定版本与 cp0_v2/recon.json 的 selection.ascending 逐一相同。
 
@@ -561,6 +623,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 
 ## 2. rules/environment.py
 - 第 1 步：3.3 节第 1–5 条；区间计算先 import versioning.interval 复用，不能复用时复制并对 846 个文件逐一做等价测试。第 4 条的版本特征推断：每条规则注明 Solidity 官方 changelog 或 breaking changes 文档中的出处（版本与条目），没有出处的特征不得加入。
+- 第 1 步的编译设置：3.3 节第 3a 条（设置表、同一版本重试、Slither 使用相同设置、清单记录）。
 - 第 6 步：3.3 节第 6 条（只在区间内无可用编译器时；等长空格替换，下界所在小版本系列，距离从近到远；改动记录为 rewrite）。
 - 不读文件名、目录名、注释或标签（测试：同一源码以不同文件名与目录调用，候选列表相同）。
 
@@ -570,7 +633,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 
 ## 4. 测试
 - 区间：`^`、`~`、`=`、`>=`/`<` 组合、两条 pragma、无 pragma、`||`、空交集。
-- 候选：已知版本在区间内/外/≤ 0.4.11/未提供；无 pragma 时每条版本特征推断规则至少一个正例与一个反例；`--regression mando` 与一般入口只在回归配置项上不同；下界 < 0.4.12；开放上界限制在下界系列；crossed_minor 只在本系列全部失败时出现；pragma 覆盖只在区间内无可用编译器时出现且保持字节偏移。
+- 候选：已知版本在区间内/外/≤ 0.4.11/未提供；无 pragma 时每条版本特征推断规则至少一个正例与一个反例；`--regression mando` 与一般入口只在回归配置项上不同；下界 < 0.4.12；开放上界限制在下界系列；crossed_minor 只在本系列全部失败时出现；pragma 覆盖只在区间内无可用编译器时出现且保持字节偏移。编译设置：tests/fixtures/features 中 4 个 Cancun 探针用精确 `pragma solidity 0.8.24;` 的副本选到 0.8.24 + `--evm-version cancun`，h0826 用精确 0.8.26 的副本选到 0.8.26 + `--via-ir`，用 `^0.8.24` 的副本选到 0.8.24 + cancun（同一版本先试设置，再进入下一个版本）；不匹配设置表的错误不触发重试。
 - D3：用 cr_pre_v1/probes 与一个能被 0.4.11 编译的小合约构造“编译成功但缺文件名”的情形，断言判为失败并继续下一个候选（0.4.11 未安装则该测试 skip 并记录）。
 - provenance：副本与原文件的差异与改动记录一致；additive 检查能发现被改动的原字节。
 - test_layering。
