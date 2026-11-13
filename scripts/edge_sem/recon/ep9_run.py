@@ -425,14 +425,16 @@ def finish_documents(root,schema):
           "原名为唯一主终点，匿名只作预登记描述性敏感性分析。"
           "H2采用两项配对p的较大者，与封存H1组成两项Holm族；H1原始p约0.1997，仍不显著。\n\n"
           "所有初值共享参数逐位核验，A/Api全部初值相同，u/U为零；8项真实fold0零步输出与6项跨视图装配核验通过。"
-          "运行核心不变；新增 analysis_eb.py 和 recon/ep9_run.py，现有入口仅增加E-B身份与矩阵校验。"
+          "训练计算不变；新增 analysis_eb.py 和 recon/ep9_run.py，现有入口增加E-B身份、矩阵核验及显式监控恢复修订。"
           "三套CPU回归和全部收据核验见 ep9_v1/cpu_tests 与 cpu_tests_delivery1、cpu_acceptance.json 与 results/summary.json。\n\n"
           "结果报告：scripts/edge_sem/EP9_REPORT.md；综合报告：scripts/edge_sem/EDGESEM_REPORT.md；"
           "冻结：scripts/edge_sem/artifacts/frozen_schema/schema.json。机制描述只读取best权重，按outer_test目标入边汇总，"
           "不把节点/边当作独立实验。原图、标签、折、旧产物及冻结DFG/NodeSem均保持原SHA。\n\n"
           "最终七类实验将在显存充足的服务器另建批次；当前限制仅因本机，不自动启动服务器阶段。"
           "已批准的交付调整：大于等于1MiB的JSON以确定性gzip副本交付，原文件、SHA、恢复入口完整保留；本地训练继续读取原JSON，plan/seal与计算不变。Windows长命令写入改用base64标准输入，仅为文件传输方式。\n\n"
-          "实际命令：python -B -m scripts.edge_sem.recon.ep9_run run；"
+          "采样恢复修订见 ep9_v1/recovery_sampling_v2：原计划不变，已完成4次结果复用，第5次从封存初值重跑；"
+          "查询失败保存原异常，最多3次查询，持续失败停止；修订后三套回归在 recovery_sampling_v2/cpu_tests。"
+          "实际恢复命令：python -B -m scripts.edge_sem.recon.ep9_run run --recovery scripts/edge_sem/artifacts/ep9_v1/recovery_sampling_v2；"
           "初值 prepare，登记 register，验收 accept，封存 seal，授权 authorize，各在独立记录中。\n")
     documents=read(root/"before.json")["documents"]
     offsets=[]
@@ -447,30 +449,118 @@ def finish_documents(root,schema):
         reports=[ref(ROOT/"scripts/edge_sem"/n) for n in ("EP9_REPORT.md","EDGESEM_REPORT.md")])
 
 
-def run(root):
+
+def seal_sampling_recovery(root, folder):
+    """Reuse prepared jobs and completed fits; record one approved fresh attempt."""
+    from ..runtime import (REVISION_VERSION, REVISION_FILES, SAMPLING_RETRY_POLICY,
+                           snapshot_runtime, verify_execution_revision)
+    root, folder = Path(root).resolve(), Path(folder).resolve()
+    if folder.parent != root:
+        raise ValueError("Recovery must be a new EP9 subdirectory")
+    request_path = folder/"request.json"
+    request = sealed_json(request_path, "request")
+    if (request.get("execution_authorized") is not True or not request.get("user_request")
+            or request.get("automatic_fit_retry") is not False
+            or request.get("restart_failed_job_from_sealed_initial") is not True
+            or request.get("pipeline_failure") != ref(root/"pipeline_failure.json")):
+        raise PermissionError("Current EP9 failure recovery approval required")
+    plans = {role: ex.load(root/role/"plan.json", mode="verify")
+             for role in ("primary", "sensitivity")}
+    refs = {role: ref(root/role/"plan.json") for role in plans}
+    if refs != request["prior_plans"] or any(p["runtime"] != request["old_runtime"] for p in plans.values()):
+        raise ValueError("Recovery original plans differ")
+    regression = sealed_json(folder/"cpu_tests/results.json", "results")
+    if regression["runtime"] != ex.runtime_refs():
+        raise ValueError("Recovery tests do not cover current code")
+    observed = []
+    for role, plan in plans.items():
+        for job in plan["jobs"]:
+            attempt = ex._successful(ex.job_directory(root/role, job))
+            if attempt is not None:
+                ex.verify_one(root/role/"plan.json", plan, job, attempt)
+                observed.append(ref(attempt/"receipt.json"))
+    observed.sort(key=lambda r: r["path"])
+    if observed != sorted(request["completed_receipts"], key=lambda r: r["path"]):
+        raise ValueError("Recovery completed population changed")
+    verification = folder/"verified_successes.json"
+    write(verification, dict(passed=True, receipts=request["completed_receipts"],
+                             count=len(observed), no_retraining_successes=True))
+    write(verification.with_suffix(".seal.json"), dict(verification=ref(verification)))
+    frozen_evidence = frozen(root)
+    runtime, snapshots = snapshot_runtime(folder/"runtime")
+    revision = dict(version=REVISION_VERSION, plans=refs, request=ref(request_path),
+        old_runtime=request["old_runtime"], runtime=runtime, runtime_snapshots=snapshots,
+        changed_files=sorted(REVISION_FILES), sampling_policy=SAMPLING_RETRY_POLICY,
+        tests=ref(folder/"cpu_tests/results.json"), verified_successes=ref(verification),
+        frozen=frozen_evidence, training_calculations_unchanged=True)
+    path = folder/"runtime_revision.json"
+    write(path, revision)
+    write(path.with_suffix(".seal.json"), dict(revision=ref(path)))
+    failure_path = checked(request["failure"])
+    failed = read(failure_path)
+    job = failed["job"]
+    if (job not in plans["primary"]["jobs"]
+            or failure_path.parent != ex.job_directory(root/"primary", job)
+            or ex._successful(failure_path.parent) is not None):
+        raise ValueError("Recovery failure identity differs")
+    retry = root/"primary"/("retry_"+ex.digest(job)+".json")
+    write(retry, dict(approved=True, plan=refs["primary"], job=job,
+        user_request=request["user_request"], user_approval=ref(request_path),
+        automatic_retry=False, restart_from_sealed_initial=True,
+        failure=ref(failure_path), attempt="attempt_002", execution_revision=ref(path)))
+    write(retry.with_suffix(".seal.json"), dict(approval=ref(retry)))
+    for role, plan in plans.items():
+        verify_execution_revision(root/role/"plan.json", plan, path, execute=True)
+    if ex._next_attempt(root/"primary/plan.json", job, failure_path.parent).name != "attempt_002":
+        raise ValueError("Recovery fresh attempt differs")
+    print("EP9 recovery sealed: reuse %d fits; one approved fresh attempt; remaining jobs unchanged" % len(observed),
+          flush=True)
+    return ref(path)
+
+
+def run(root,recovery=None):
     root=Path(root)
     from ..analysis_eb import summarize
     with ex._Lock(root/".pipeline.lock"):
         if (root/"pipeline_complete.json").exists():raise FileExistsError("EP9 already complete")
-        if (root/"pipeline_failure.json").exists():raise RuntimeError("Retained failure; no automatic retry")
+        recovery_folder = root if recovery is None else Path(recovery).resolve()
+        revision = None
+        if recovery is None:
+            if (root/"pipeline_failure.json").exists():raise RuntimeError("Retained failure; no automatic retry")
+        else:
+            if recovery_folder.parent != root.resolve():raise ValueError("Recovery folder outside EP9")
+            if (recovery_folder/"pipeline_started.json").exists():
+                raise RuntimeError("Recovery already attempted; no automatic retry")
+            from ..runtime import verify_execution_revision
+            revision = recovery_folder/"runtime_revision.json"
+            for role in ("primary","sensitivity"):
+                path=root/role/"plan.json"
+                verify_execution_revision(path,ex.load(path,mode="verify"),revision,execute=True)
+            request=read(checked(read(revision)["request"]))
+            if request["pipeline_failure"]!=ref(root/"pipeline_failure.json"):
+                raise ValueError("Recovery failure identity changed")
+            write(recovery_folder/"pipeline_started.json",dict(revision=ref(revision),started_unix=time.time()))
         try:
             for role in ("primary","sensitivity"):
-                subprocess.run([sys.executable,"-B","-m","scripts.edge_sem.execution","all",
-                    "--plan",str(root/role/"plan.json")],check=True,cwd=str(ROOT))
+                command=[sys.executable,"-B","-m","scripts.edge_sem.execution","all",
+                    "--plan",str(root/role/"plan.json")]
+                if revision is not None:command += ["--execution-revision",str(revision)]
+                subprocess.run(command,check=True,cwd=str(ROOT))
             summary=summarize(root,root/"results")
             schema=freeze_schema(root)
             docs=finish_documents(root,schema)
             evidence=frozen(root)
             write(root/"pipeline_complete.json",dict(passed=True,new_fits=120,reused_fits=120,
                 summary=ref(root/"results/summary.json"),schema=schema,documentation=docs,
-                frozen=evidence,automatic_server_stage=False))
+                frozen=evidence,automatic_server_stage=False,
+                execution_recovery=None if revision is None else ref(revision)))
             write(root/"pipeline_complete.seal.json",dict(complete=ref(root/"pipeline_complete.json")))
             followup=followup_folder(root)
             if (followup/"followup_started.json").exists():
                 write(followup/"followup_complete.json",dict(passed=True,pipeline=ref(root/"pipeline_complete.json")))
             commit_delivery(root,"EP9 complete E-B comparisons and freeze EdgeSem v1")
         except Exception as error:
-            write(root/"pipeline_failure.json",dict(error=repr(error),traceback=traceback.format_exc(),automatic_retry=False))
+            write(recovery_folder/"pipeline_failure.json",dict(error=repr(error),traceback=traceback.format_exc(),automatic_retry=False))
             raise
 
 
@@ -640,8 +730,8 @@ def regression_folder(root):
     return root/("cpu_tests_delivery1" if followup_folder(root)!=root else "cpu_tests")
 
 
-def tests(root):
-    root=Path(root);folder=regression_folder(root)
+def tests(root,recovery=None):
+    root=Path(root);folder=regression_folder(root) if recovery is None else Path(recovery)/"cpu_tests"
     folder.mkdir(exist_ok=False)
     import os
     runtime=ex.runtime_refs();results=[]
@@ -701,21 +791,23 @@ def finish_preparation(root,request_file):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("command",choices=("register","prepare","frozen","tests","accept","seal","authorize","run",
-                                          "analyze","freeze","finish-preparation","restore-delivery"))
+                                          "analyze","freeze","finish-preparation","restore-delivery","seal-recovery"))
     parser.add_argument("--root",default=str(DEFAULT_ROOT))
     parser.add_argument("--commit")
     parser.add_argument("--request")
     parser.add_argument("--manifest")
+    parser.add_argument("--recovery")
     args=parser.parse_args()
     if args.command=="restore-delivery":print(restore_delivery(args.manifest))
     elif args.command=="register":registration(args.root)
     elif args.command=="prepare":prepare(args.root)
     elif args.command=="frozen":print(frozen(args.root))
-    elif args.command=="tests":tests(args.root)
+    elif args.command=="tests":tests(args.root,args.recovery)
     elif args.command=="accept":accept(args.root)
     elif args.command=="seal":seal(args.root)
     elif args.command=="authorize":authorize(args.root,args.commit,args.request)
-    elif args.command=="run":run(args.root)
+    elif args.command=="run":run(args.root,args.recovery)
+    elif args.command=="seal-recovery":seal_sampling_recovery(args.root,args.recovery)
     elif args.command=="freeze":freeze_schema(args.root)
     elif args.command=="finish-preparation":finish_preparation(args.root,args.request)
     else:

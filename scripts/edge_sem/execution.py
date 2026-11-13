@@ -26,7 +26,8 @@ from scripts.DFG.experiments.common import seed_all,tensor_digest,digest,metrics
 from scripts.labeling_v2.safe_graph import read_graph
 from . import VERSION as EDGESEM_VERSION,validate_profile
 from .io import ROOT,read,write,ref,checked
-from .runtime import runtime_refs,snapshot_runtime,verify_snapshot
+from .runtime import (runtime_refs,snapshot_runtime,verify_snapshot,
+                      verify_execution_revision,SAMPLING_RETRY_POLICY)
 from .model import make_edge_model,validate_registration
 from .build_f4 import load_edges,add_edges
 from .support import model_support
@@ -169,7 +170,7 @@ def create(batch_dir,matrix):
     return plan
 
 
-def load(path,mode="execute"):
+def load(path,mode="execute",revision=None):
     if mode not in ("execute","verify"):raise ValueError("Unknown load mode")
     path=Path(path);plan=read(path);seal=read(path.with_name("plan.seal.json"))
     if (plan.get("version")!=VERSION or plan.get("edgesem_version")!=EDGESEM_VERSION
@@ -181,7 +182,10 @@ def load(path,mode="execute"):
         or plan["resource_policy"]!=LOCAL_DEV_POLICY):raise ValueError("Execution protocol differs")
     if plan.get("protocol")!=PROTOCOL_NAME or plan.get("protocol_version")!=PROTOCOL_VERSION or plan.get("scope") not in ("formal","gpu_probes","norm_pilot"):
         raise ValueError("Protocol or execution scope differs")
-    verify_snapshot(plan,mode=="execute")
+    if revision is None:
+        verify_snapshot(plan,mode=="execute")
+    else:
+        verify_execution_revision(path,plan,revision,execute=mode=="execute")
     auth=read(checked(plan["authorization"]))
     if auth["jobs"]!=[job_id(j) for j in plan["jobs"]] or auth["matrix_sha256"]!=digest(plan["jobs"]):
         raise ValueError("Authorization matrix differs")
@@ -336,8 +340,197 @@ def _next_attempt(path, job, folder):
     return folder / name
 
 
-def fit_one(path, job):
-    plan = load(path)
+
+def make_retrying_resources(device, baseline, context, samples_path, history_path,
+                            policy, events_path, query=None):
+    """EP9-only telemetry adaptation, without changing training calculations.
+
+    Copied observed sample/summary: experiment/preflight.py
+    SHA256 ceb41bb1a679c011247b7f4badcbcf31575d01222836618fe4aaffc23ac59663.
+    Uses frozen Resources eb6c2cf33ac99d7837fbf141a00ef0471135f3cbdff31479b35e6c0d48e5287b
+    and local_resource_class 652c144a9d7832aed64bf0e33a6743cba50c8da921f46e7d58fb4b03091505d5.
+    Only query-command failures are retried; invalid readings and file I/O fail.
+    """
+    import threading
+    from scripts.DFG.dfg_v2.experiment.resources import Resources, MemoryGateError
+    from scripts.DFG.dfg_v2.experiment.preflight import (
+        query_baseline, _same_device, validate_policy, CAVEATS)
+    from scripts.DFG.dfg_v2.experiment.local_dev import local_resource_class
+    if validate_policy(policy) != LOCAL_DEV_POLICY or str(device) not in ("cuda", "cuda:0"):
+        raise ValueError("Sampling recovery requires the sealed local CUDA policy")
+    _same_device(baseline, context["after_initialization"])
+    if context["baseline"] != baseline:
+        raise ValueError("Context observation belongs to another baseline")
+    query = query_baseline if query is None else query
+    samples_path, events_path = Path(samples_path), Path(events_path)
+    for p in (samples_path, events_path):
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("x", encoding="utf8"):
+            pass
+
+    class RetryingObservedResources(Resources):
+        def __init__(self):
+            super().__init__(device, minimum_free_mib=100)
+            self.observations = []
+            self.observation_lock = threading.Lock()
+            self.sample_cycles = 0
+            self.terminal_sampling_failure = None
+
+        def event(self, value):
+            value = dict(value, unix_seconds=time.time(), monotonic_seconds=time.monotonic())
+            try:
+                with events_path.open("a", encoding="utf8") as handle:
+                    handle.write(json.dumps(value, sort_keys=True) + "\n")
+            except Exception as error:
+                self.terminal_sampling_failure = dict(kind="error", error_type=type(error).__name__,
+                    error=str(error), stage="sampling_event_persistence", retryable=False)
+                self.errors.append(str(error))
+                raise
+
+        def sample(self):
+            with self.observation_lock:
+                if self.terminal_sampling_failure is not None:
+                    return False
+                self.sample_cycles += 1
+                cycle = self.sample_cycles
+                for attempt_number in range(1, SAMPLING_RETRY_POLICY["max_attempts"] + 1):
+                    try:
+                        reading = query()
+                    except Exception as error:
+                        retryable = isinstance(error, (subprocess.TimeoutExpired,
+                                                        subprocess.CalledProcessError))
+                        detail = dict(cycle=cycle, attempt=attempt_number, kind="error",
+                            error_type=type(error).__name__, error=str(error),
+                            error_repr=repr(error), retryable=retryable)
+                        for name in ("cmd", "timeout", "returncode", "stdout", "stderr"):
+                            value = getattr(error, name, None)
+                            if isinstance(value, bytes):
+                                value = value.decode("utf8", errors="replace")
+                            if value is not None:
+                                detail[name] = value
+                        self.errors.append(str(error))
+                        self.event(detail)
+                        if retryable and attempt_number < SAMPLING_RETRY_POLICY["max_attempts"]:
+                            time.sleep(SAMPLING_RETRY_POLICY["backoff_seconds"][attempt_number - 1])
+                            continue
+                        self.terminal_sampling_failure = detail
+                        return False
+                    # Identity, allocator and log failures are not transient command errors.
+                    try:
+                        _same_device(baseline, reading)
+                        reading["torch_allocated_mib"] = float(torch.cuda.memory_allocated(device))/1024**2
+                        reading["torch_reserved_mib"] = float(torch.cuda.memory_reserved(device))/1024**2
+                        reading["pairing_completed_unix_seconds"] = time.time()
+                        reading["pairing_window_seconds"] = time.monotonic()-reading["monotonic_seconds"]
+                        reading["non_torch_residual_estimate_mib"] = (
+                            reading["total_mib"]-reading["free_mib"]-reading["torch_reserved_mib"])
+                        reading["context_adjusted_residual_estimate_mib"] = (
+                            reading["non_torch_residual_estimate_mib"]-context["free_decrease_mib"])
+                        reading["index"] = len(self.observations)
+                        with samples_path.open("a", encoding="utf8") as handle:
+                            handle.write(json.dumps(reading, sort_keys=True) + "\n")
+                        self.observations.append(reading)
+                        self.samples.append(reading["free_mib"])
+                        if attempt_number > 1:
+                            self.event(dict(cycle=cycle, attempt=attempt_number, kind="recovered",
+                                sample_index=reading["index"], sample_unix_seconds=reading["unix_seconds"]))
+                        return True
+                    except Exception as error:
+                        detail = dict(cycle=cycle, attempt=attempt_number, kind="error",
+                            error_type=type(error).__name__, error=str(error),
+                            error_repr=repr(error), retryable=False)
+                        self.errors.append(str(error))
+                        self.terminal_sampling_failure = detail
+                        self.event(detail)
+                        return False
+
+        def _watch(self):
+            while not self.done.wait(.5):
+                try:
+                    if not self.sample():
+                        return
+                except Exception as error:
+                    # Never lose a logging/allocator failure in a background
+                    # thread. The next training boundary must stop as well.
+                    if self.terminal_sampling_failure is None:
+                        self.terminal_sampling_failure = dict(kind="error", error_type=type(error).__name__,
+                            error=str(error), stage="sampling_watch", retryable=False)
+                        self.errors.append(str(error))
+                    return
+
+        def __exit__(self, *args):
+            self.done.set()
+            # Each command has the original five-second timeout; a retry cycle
+            # is bounded. Join it before sealing logs (the old four-second join
+            # could otherwise leave a sampling thread writing after the seal).
+            if self.thread:
+                self.thread.join()
+            if args[0] is None:
+                self.check()
+
+        def summary(self):
+            with self.observation_lock:
+                result = super().summary()
+                peak, free = result["peak_reserved_mib"], result["minimum_free_mib"]
+                residual = None if free is None else baseline["total_mib"]-free-peak
+                result.update(baseline=copy.deepcopy(baseline),
+                    context_observation=copy.deepcopy(context), total_mib=baseline["total_mib"],
+                    non_torch_residual_estimate_mib=residual,
+                    context_adjusted_residual_estimate_mib=(
+                        None if residual is None else residual-context["free_decrease_mib"]),
+                    residual_formula="total - minimum_free - peak_reserved",
+                    context_adjusted_formula="non_torch_residual_estimate - observed_context_free_decrease",
+                    residual_attribution="unattributed; not an identified external process",
+                    raw_samples_path=str(samples_path.resolve()), raw_samples_sha256=ref(samples_path)["sha256"],
+                    paired_sample_count=len(self.observations), caveats=list(CAVEATS),
+                    sampling_retry_policy=copy.deepcopy(SAMPLING_RETRY_POLICY),
+                    sampling_events=ref(events_path),
+                    terminal_sampling_failure=self.terminal_sampling_failure)
+                return result
+
+    return local_resource_class(RetryingObservedResources, history_path)()
+
+
+def validate_sampling_recovery(resources, samples):
+    """Every tolerated query error must have a later fresh, indexed reading."""
+    if (resources.get("sampling_retry_policy") != SAMPLING_RETRY_POLICY
+            or resources.get("terminal_sampling_failure") is not None):
+        raise ValueError("Sampling recovery policy/final state differs")
+    events = [json.loads(line) for line in checked(resources["sampling_events"]).read_text().splitlines()]
+    errors = [e for e in events if e["kind"] == "error"]
+    if resources.get("sampling_errors") != [e["error"] for e in errors]:
+        raise ValueError("Raw sampling failures differ from the summary")
+    groups = {}
+    previous_cycle = 0
+    for e in events:
+        if type(e["cycle"]) is not int or e["cycle"] < 1 or e["cycle"] < previous_cycle:
+            raise ValueError("Sampling event cycle order differs")
+        previous_cycle = e["cycle"]
+        groups.setdefault(e["cycle"], []).append(e)
+    previous_index = -1
+    for rows in groups.values():
+        if (len(rows) not in (2, 3) or rows[-1]["kind"] != "recovered"
+                or [e["attempt"] for e in rows] != list(range(1, len(rows)+1))
+                or any(e["kind"] != "error" or not e["retryable"]
+                       or e["error_type"] not in SAMPLING_RETRY_POLICY["retry_exceptions"]
+                       for e in rows[:-1])):
+            raise ValueError("Unresolved or nonretryable sampling failure")
+        recovery = rows[-1]
+        index = recovery["sample_index"]
+        if type(index) is not int or not previous_index < index < len(samples):
+            raise ValueError("Recovered reading index invalid or reused")
+        sample = samples[index]
+        if (sample["index"] != index or sample["unix_seconds"] != recovery["sample_unix_seconds"]
+                or sample["unix_seconds"] < rows[-2]["unix_seconds"]
+                or recovery["unix_seconds"] < sample["unix_seconds"]
+                or any(a["unix_seconds"] > b["unix_seconds"] for a, b in zip(rows, rows[1:]))):
+            raise ValueError("Recovered reading is not fresh")
+        previous_index = index
+    return dict(query_failures=len(errors), recovered_cycles=len(groups))
+
+
+def fit_one(path, job, revision=None):
+    plan = load(path) if revision is None else load(path, revision=revision)
     _member(plan, job)
     approval = authorized(path,plan)
     folder = job_directory(Path(path).parent, job)
@@ -350,8 +543,11 @@ def fit_one(path, job):
     start = dict(job=job, plan=ref(path), execution_authorization=approval,
                  runtime=plan["runtime"], started_unix=time.time(), pid=os.getpid(),
                  automatic_retry=False)
+    if revision is not None:
+        start.update(runtime=runtime_refs(), execution_revision=ref(revision))
     write(attempt.with_suffix(".started.json"), start)
     cfg = job["config"]
+    resources = None
     try:
         # Preserve the historical environment and resource gates.
         import dgl, sklearn, numpy, networkx
@@ -362,9 +558,14 @@ def fit_one(path, job):
         pre = run_preflight(job, ref(path)["sha256"], folder, plan["resource_policy"])
         context = initialize_context(pre["baseline"], cfg["device"])
         write(attempt.with_suffix(".context.json"), context)
-        resources = make_observed_resources(cfg["device"], pre["baseline"], context,
-            attempt.with_suffix(".memory_samples.jsonl"), minimum_free_mib=100,
-            policy=plan["resource_policy"], history_path=attempt / "history.jsonl")
+        if revision is None:
+            resources = make_observed_resources(cfg["device"], pre["baseline"], context,
+                attempt.with_suffix(".memory_samples.jsonl"), minimum_free_mib=100,
+                policy=plan["resource_policy"], history_path=attempt / "history.jsonl")
+        else:
+            resources = make_retrying_resources(cfg["device"], pre["baseline"], context,
+                attempt.with_suffix(".memory_samples.jsonl"), attempt / "history.jsonl",
+                plan["resource_policy"], attempt.with_suffix(".sampling_events.jsonl"))
         torch.set_num_threads(cfg["threads"])
         with resources:
             model = construct(plan, job, cfg["device"])
@@ -393,8 +594,17 @@ def fit_one(path, job):
         write(attempt / "receipt.seal.json", dict(
             version=VERSION, receipt=ref(attempt / "receipt.json"), plan=ref(path)))
     except Exception as error:
-        write(attempt.with_suffix(".failure.json"), dict(job=job, error=repr(error),
-            traceback=traceback.format_exc(), automatic_retry=False, stop_batch=True))
+        failure = dict(job=job, error=repr(error), traceback=traceback.format_exc(),
+                       automatic_retry=False, stop_batch=True)
+        if revision is not None:
+            failure["execution_revision"] = ref(revision)
+            if resources is not None:
+                failure["sampling_errors"] = list(resources.errors)
+                failure["terminal_sampling_failure"] = resources.terminal_sampling_failure
+                for suffix in (".memory_samples.jsonl", ".sampling_events.jsonl"):
+                    p = attempt.with_suffix(suffix)
+                    if p.is_file(): failure[suffix] = ref(p)
+        write(attempt.with_suffix(".failure.json"), failure)
         raise
     verify_one(path, plan, job, attempt)
     return "complete"
@@ -426,9 +636,13 @@ def _verify_execution_records(path, plan, job, attempt):
             or receipt.get("plan") != ref(path) or receipt.get("status") != "complete"):
         raise ValueError("Receipt identity/version differs")
     start = read(checked(receipt["execution_start"]))
+    expected_runtime = plan["runtime"]
+    if "execution_revision" in start:
+        revised = verify_execution_revision(path, plan, checked(start["execution_revision"]), execute=False)
+        expected_runtime = revised["runtime"]
     if (start.get("job") != job or start.get("plan") != ref(path)
             or start.get("execution_authorization") != ref(Path(path).parent/"execution_authorization.json")
-            or start.get("runtime") != plan["runtime"]):
+            or start.get("runtime") != expected_runtime):
         raise ValueError("EdgeSem started runtime/authorization differs")
     # v1's entire recorded runtime (including diagnostics/recon) is compared
     # above, never reduced to the newer RUNTIME_MODULES subset.
@@ -530,6 +744,10 @@ def _verify_result(path, plan, job, attempt, historical=False):
         raise ValueError("Preflight occurred after CUDA initialization")
     samples = [json.loads(x) for x in Path(resources["raw_samples_path"]).read_text().splitlines()]
     validate_local_resource_summary(resources, plan["resource_policy"], attempt / "history.jsonl", samples)
+    if "execution_revision" in start:
+        validate_sampling_recovery(resources, samples)
+    elif "sampling_retry_policy" in resources:
+        raise ValueError("Sampling retries lack an approved runtime revision")
     rows = read(checked(task["label_view"]))[job["task_id"]]
     node = task["granularity"] == "node"
     key = lambda x: (x["file"], x["original_graph_node_id"]) if node else x["file"]
@@ -563,18 +781,18 @@ def verify_one(path, plan, job, attempt=None):
     return _verify_result(path, plan, job, attempt)
 
 
-def execute(path, only):
-    plan = load(path)
+def execute(path, only, revision=None):
+    plan = load(path) if revision is None else load(path, revision=revision)
     selected = [j for j in plan["jobs"] if job_id(j) == only]
     if len(selected) != 1:
         raise ValueError("Select exactly one sealed EdgeSem job")
     with _Lock(GPU_LOCK):
-        return fit_one(path, selected[0])
+        return fit_one(path, selected[0], revision=revision)
 
 
-def controller(path):
+def controller(path, revision=None):
     """One worker per job, in order; never silently restart a failed attempt."""
-    plan = load(path)
+    plan = load(path) if revision is None else load(path, revision=revision)
     authorized(path,plan)
     root = Path(path).parent
     accepted = []
@@ -588,9 +806,11 @@ def controller(path):
                 folder.mkdir(parents=True, exist_ok=True)
                 # Exclusive mode keeps prior failures and their logs intact.
                 with log.open("x", encoding="utf8") as stream:
-                    subprocess.run([sys.executable, "-B", "-m", "scripts.edge_sem.execution",
-                        "worker", "--plan", str(path), "--only", job_id(job)],
-                        check=True, stdout=stream, stderr=subprocess.STDOUT, cwd=str(ROOT))
+                    command = [sys.executable, "-B", "-m", "scripts.edge_sem.execution",
+                        "worker", "--plan", str(path), "--only", job_id(job)]
+                    if revision is not None:
+                        command += ["--execution-revision", str(revision)]
+                    subprocess.run(command, check=True, stdout=stream, stderr=subprocess.STDOUT, cwd=str(ROOT))
                 found = _successful(folder)
             if found is None:
                 raise RuntimeError("Worker produced no success receipt")
@@ -617,11 +837,12 @@ def main():
     parser.add_argument("command", choices=("worker", "all", "verify"))
     parser.add_argument("--plan", required=True)
     parser.add_argument("--only")
+    parser.add_argument("--execution-revision")
     args = parser.parse_args()
     if args.command == "worker":
-        execute(args.plan, args.only)
+        execute(args.plan, args.only, revision=args.execution_revision)
     elif args.command == "all":
-        controller(args.plan)
+        controller(args.plan, revision=args.execution_revision)
     else:
         plan = load(args.plan, mode="verify")
         for job in plan["jobs"]:

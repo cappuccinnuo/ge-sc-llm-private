@@ -1,0 +1,44 @@
+........................................................................ [ 17%]
+........................................................................ [ 35%]
+........................................................................ [ 52%]
+..........................F............................................. [ 70%]
+........................................................................ [ 87%]
+..................................................                       [100%]
+=================================== FAILURES ===================================
+_______ test_protocol_additions_do_not_change_numeric_training_functions _______
+
+    def test_protocol_additions_do_not_change_numeric_training_functions():
+        import ast
+        before=Path(__file__).resolve().parents[1]/"artifacts/ep8_v1/baseline/scripts__edge_sem__execution.py.txt"
+        if not before.is_file():pytest.skip("Local EP8 baseline snapshot absent")
+        current=Path(ex.__file__)
+        old={n.name:ast.dump(n) for n in ast.parse(before.read_text()).body if isinstance(n,ast.FunctionDef)}
+        new={n.name:ast.dump(n) for n in ast.parse(current.read_text()).body if isinstance(n,ast.FunctionDef)}
+        for name in ("assemble_model","construct","binding_parts","fit_one","_verify_result"):
+>           assert old[name]==new[name]
+E           AssertionError: assert 'FunctionDef(...returns=None)' == 'FunctionDef(...returns=None)'
+E             Skipping 104 identical leading characters in diff, use -v to show
+E             - tion=None), arg(arg='revision', annotation=None)], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[NameConstant(value=None)]), body=[Assign(targets=[Name(id='plan', ctx=Store())], value=IfExp(test=Compare(left=Name(id='revision', ctx=Load()), ops=[Is()], comparators=[NameConstant(value=None)]), body=Call(func=Name(id='load', ctx=Load()), args=[Name(id='path', ctx=Load())], keywords=[]), orelse=Call(func=Name(id='load', ctx=Load()), args=[Name(id='path', ctx=Load())], keywords=[keyword(a...
+E             
+E             ...Full output truncated (2 lines hidden), use '-vv' to show
+
+scripts/edge_sem/tests/test_ep8.py:188: AssertionError
+=============================== warnings summary ===============================
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/tensor.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) < LooseVersion("1.5.0"):
+
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+../../miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/dgl/backend/pytorch/sparse.py:6: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(th.__version__) >= LooseVersion("1.6.0"):
+
+scripts/edge_sem/tests/test_ep8.py::test_preparation_view_installation_matches_fresh_model_and_rejects_training
+  /home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/networkx/utils/decorators.py:5: DeprecationWarning: write_gpickle is deprecated and will be removed in 3.0.Use ``pickle.dump(G, path, protocol)``
+    import warnings
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED scripts/edge_sem/tests/test_ep8.py::test_protocol_additions_do_not_change_numeric_training_functions
+1 failed, 409 passed, 5 warnings in 923.15s (0:15:23)

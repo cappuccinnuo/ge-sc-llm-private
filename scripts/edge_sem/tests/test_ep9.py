@@ -201,8 +201,26 @@ def test_numeric_training_and_ep8_sources_unchanged():
                   and "/recon/" not in r["source"]["path"])
     old={n.name:ast.dump(n) for n in ast.parse(checked(snapshot).read_text()).body if isinstance(n,ast.FunctionDef)}
     new={n.name:ast.dump(n) for n in ast.parse(Path(ex.__file__).read_text()).body if isinstance(n,ast.FunctionDef)}
-    for name in ("assemble_model","construct","binding_parts","fit_one","_verify_result"):
+    for name in ("assemble_model","construct","binding_parts"):
         assert new[name]==old[name]
+    # Approved EP9 telemetry recovery changes only fit orchestration. The
+    # guarded training call and every old result-validation statement remain.
+    old_tree=ast.parse(checked(snapshot).read_text())
+    new_tree=ast.parse(Path(ex.__file__).read_text())
+    fit_blocks=[]
+    for tree in (old_tree,new_tree):
+        function=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=="fit_one")
+        block=next(n for n in ast.walk(function) if isinstance(n,ast.With) and
+                   any(isinstance(x.context_expr,ast.Call) and isinstance(x.context_expr.func,ast.Name)
+                       and x.context_expr.func.id=="FitInputGuard" for x in n.items))
+        fit_blocks.append(ast.dump(block))
+    assert fit_blocks[0]==fit_blocks[1]
+    statements=[]
+    for tree in (old_tree,new_tree):
+        f=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=="_verify_result")
+        statements.append([ast.dump(n) for n in f.body])
+    cursor=iter(statements[1])
+    assert all(any(n==old_statement for n in cursor) for old_statement in statements[0])
 
 def test_followup_never_runs_tests_or_training_after_retained_preparation_failure(tmp_path,monkeypatch):
     put(tmp_path/"preparation_process.json",{"pid":2147483647})

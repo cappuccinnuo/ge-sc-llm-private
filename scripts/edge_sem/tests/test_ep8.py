@@ -184,8 +184,23 @@ def test_protocol_additions_do_not_change_numeric_training_functions():
     current=Path(ex.__file__)
     old={n.name:ast.dump(n) for n in ast.parse(before.read_text()).body if isinstance(n,ast.FunctionDef)}
     new={n.name:ast.dump(n) for n in ast.parse(current.read_text()).body if isinstance(n,ast.FunctionDef)}
-    for name in ("assemble_model","construct","binding_parts","fit_one","_verify_result"):
+    for name in ("assemble_model","construct","binding_parts"):
         assert old[name]==new[name]
+    # EP9 explicitly revises telemetry orchestration; the training block and
+    # every old result-validation statement must remain identical and ordered.
+    old_tree=ast.parse(before.read_text());new_tree=ast.parse(current.read_text())
+    blocks=[];validation=[]
+    for tree in (old_tree,new_tree):
+        f=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=="fit_one")
+        block=next(n for n in ast.walk(f) if isinstance(n,ast.With) and
+                   any(isinstance(x.context_expr,ast.Call) and isinstance(x.context_expr.func,ast.Name)
+                       and x.context_expr.func.id=="FitInputGuard" for x in n.items))
+        blocks.append(ast.dump(block))
+        check=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=="_verify_result")
+        validation.append([ast.dump(n) for n in check.body])
+    assert blocks[0]==blocks[1]
+    cursor=iter(validation[1])
+    assert all(any(n==old_statement for n in cursor) for old_statement in validation[0])
 
 
 def test_sparse_attribute_diagnostics_are_not_missing_edges():

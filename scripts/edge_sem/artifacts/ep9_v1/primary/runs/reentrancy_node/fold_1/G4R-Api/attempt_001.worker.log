@@ -1,0 +1,35 @@
+attempt_001 epoch 1/50 complete; patience=0/51
+attempt_001 epoch 2/50 complete; patience=0/51
+attempt_001 epoch 3/50 complete; patience=0/51
+attempt_001 epoch 4/50 complete; patience=0/51
+attempt_001 epoch 5/50 complete; patience=0/51
+attempt_001 epoch 6/50 complete; patience=0/51
+attempt_001 epoch 7/50 complete; patience=0/51
+attempt_001 epoch 8/50 complete; patience=0/51
+attempt_001 epoch 9/50 complete; patience=0/51
+attempt_001 epoch 10/50 complete; patience=0/51
+attempt_001 epoch 11/50 complete; patience=0/51
+attempt_001 epoch 12/50 complete; patience=0/51
+attempt_001 epoch 13/50 complete; patience=1/51
+attempt_001 epoch 14/50 complete; patience=2/51
+Using backend: pytorch
+Traceback (most recent call last):
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/zhao/miniconda3/envs/mando/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/execution.py", line 634, in <module>
+    main()
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/execution.py", line 622, in main
+    execute(args.plan, args.only)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/execution.py", line 572, in execute
+    return fit_one(path, selected[0])
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/execution.py", line 377, in fit_one
+    binding, model.original_graph_node_ids, job["support"], memory_guard=resources)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/trainer.py", line 253, in fit
+    original_ids, support, memory_guard)
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/trainer.py", line 114, in _fit
+    memory_guard.check()
+  File "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/experiment/local_dev.py", line 68, in check
+    raise MemoryGateError("Current whole-card memory measurement failed; refusing stale sample")
+scripts.DFG.dfg_v2.experiment.resources.MemoryGateError: Current whole-card memory measurement failed; refusing stale sample

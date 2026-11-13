@@ -1184,3 +1184,42 @@ CPU准备已完成120个任务；8项真实fold0零步logits与6项跨视图完�
 修正仅增加本批 artifacts/ep9_v1/.gitattributes，对明确列出的10份文件设置 whitespace=-blank-at-eof。9份封存快照均与引用SHA、原源码及暂存内容完全一致；实现草稿也与当前实现中的完整片段一致，所有归档字节保持不变。其余文件仍接受完整Git空白检查。独立临时仓库的3项验证通过：普通源码末尾空行仍被拒绝、归档行尾空格仍被拒绝、精确归档的末尾空行可提交。当前暂存内容检查已通过。
 
 未修改模型、训练器、运行版本、初值、plan/seal或数值规则；此前完整回归结果仍对应当前运行版本，不重建初值、不重复训练。原失败收据与日志保留于 delivery_revision1，修正证据及恢复就绪检查见 delivery_revision2。按 PROMPTS.md §4.1“失败就停，保留现场，不自动重试”，本条记录时正式训练仍停止，待用户确认后从已有计划继续。最终服务器实验显存充足的安排不变；不自动进入服务器阶段，不推送GitHub。
+
+
+## EP9 明确授权恢复（2026-11-13）
+
+用户在 call_fe100bc6a54f421ca3bcc890d744e8b9 明确选择“同意保留现场，恢复原计划（推荐）”。旧交付失败、计划、初值及既有CPU验收全部保留；恢复记录见 ep9_v1/delivery_revision2/resume1/authorization.json。登记与修正已本地提交 0aa2327564a444ebd7c185642a175315b68b1145。
+
+已使用原 recon/ep9_run.py 的 authorize 入口生成原名与匿名两批各60项的独立执行授权，绑定本次确认及原登记提交。随后启动独立后台 run 进程（记录见同目录 pipeline_process.json）：原名60次全部验收后再运行匿名60次，之后执行配对统计、机制描述、报告与版本冻结。本条只表示已恢复调度，不表示训练完成。运行版本SHA保持 a90a8ea587964eff8a6682217cfc31d638405693692059491449107e3d84ef19，未重复初值准备或改变模型/训练参数。任何新的失败仍停止，不自动重试。
+
+实际命令：
+python -B -m scripts.edge_sem.recon.ep9_run authorize --commit 0aa2327564a444ebd7c185642a175315b68b1145 --request scripts/edge_sem/artifacts/ep9_v1/delivery_revision2/resume1/authorization.json
+python -B -m scripts.edge_sem.recon.ep9_run run
+
+执行前GPU检查：RTX3050 Laptop，整卡4096MiB，空闲3480MiB；正式worker仍执行自己的资源采样与闸门。最终七类实验仍在显存充足的服务器另建批次；当前限制仅来自本机，不自动启动服务器阶段。
+
+
+
+## EP9：显存采样故障修复与恢复登记（2026-11-13）
+
+用户明确要求：“当前的训练是在EP9的任务中吗，如果不是就停止，如果是就修复失败完成EP9”。核对确认当前为 EP9 / E-B，原名60次后匿名60次；本轮按该授权修复并恢复，未切换实验。恢复前已有4份正式成功收据，第5项为原名 reentrancy_node / fold1 / G4R-Api，完成14轮后在下一轮开始前的显存监控检查停止。
+
+已知原因仅为监控没有取得当次有效读数；此前170条成功采样最低185 MiB、最后191 MiB。旧采样器将底层错误只保存在进程内存，失败文件没有保存该列表，因此不能确证为超时，也没有 OOM 证据。查询变慢支持“可能超时”的推测，不作为已证实根因。
+
+修复限于 EdgeSem 的 execution.py、runtime.py、recon/ep9_run.py，冻结 DFG / NodeSem / 原作者代码不改。仅对 nvidia-smi 查询的 TimeoutExpired / CalledProcessError 最多尝试3次，保留原5秒查询超时，间隔0.5/1秒；错误类型、原始异常、stderr及恢复事件即时落盘。格式或GPU身份错误、日志写入错误不重试，连续查询失败停止。监控线程退出后才封存日志，防止后台线程继续写入已封存文件。训练、OOM、非有限值及输入错误仍停止，不自动重跑 fit。
+
+旧 plan/seal、初值和失败产物不变；独立恢复记录在 scripts/edge_sem/artifacts/ep9_v1/recovery_sampling_v1。显式运行修订绑定两个原计划、仅允许上述3个源码变更、三套回归和旧成功收据。4份成功结果核验后复用；仅已失败的第5项使用新的 attempt_002，从同一封存零步初值重跑50轮，不从中途 best.pt 续训；其余任务按原顺序。原名批60次通过后才启动匿名60次，最后执行分析、两份报告与版本冻结。本轮未授权自动启动其他阶段或推送GitHub。
+
+针对性CPU测试80项已通过，三套完整回归及恢复封存仍在执行，最终状态以 recovery_sampling_v1/cpu_tests、runtime_revision.json 和 pipeline记录为准。本节不宣称120次训练已完成。最终七类实验仍将在显存充足的服务器另建批次，当前显存约束仅来自本机。
+
+
+## EP9：监控修复验收通过并恢复原批次（2026-11-13）
+
+recovery_sampling_v1 的完整回归保留为失败现场：409项通过，唯一失败是旧EP8测试要求监控包装函数也完全不变。按本轮已授权的监控修复更新该测试边界，训练块、模型构造与所有旧结果校验继续严格比对；修正后相关31项定向检查通过。自动审批曾将第二个CPU验收目录误判为另需授权，补充用户本轮原文和只读证据后已放行，未绕过审批。
+
+最终采用 recovery_sampling_v2。完整CPU回归：{"scripts/edge_sem/tests": 411, "scripts/node_sem/tests": 1353, "scripts/DFG/dfg_v2/tests": 2653}；4份成功fit的收据、权重、预测及指标已复核并复用；冻结源码、旧产物和文档前缀核验通过。独立 runtime_revision.json / seal 绑定新的监控实现与原120个任务，只有失败的第5项登记 attempt_002，从同一零步初值重跑。本地提交后按原名60次→匿名60次执行；不重跑已成功项，不修改模型、初值、图、标签、折或P2训练规则。此处是恢复记录，完整完成以 ep9_v1/pipeline_complete.json、EP9_REPORT.md 和 EDGESEM_REPORT.md 为准。
+
+实际命令：python -B -m scripts.edge_sem.recon.ep9_run tests --recovery scripts/edge_sem/artifacts/ep9_v1/recovery_sampling_v2；seal-recovery 同 --recovery；run 同 --recovery。最终实验仍在显存充足的服务器另建批次，本轮仅本机EP9。
+
+
+EP9 恢复封存后，本地交付检查因3份冻结源码副本的既有末尾空行、首次失败pytest日志的既有行尾空格而停止（尚未重启GPU）。核对SHA确认归档与原文件完全相同，仅在 ep9_v1/.gitattributes 为这4个精确归档路径登记对应空白例外，保留全部原始字节和失败记录。运行源码、plan/seal、零步初值、4417项回归及4份成功结果的验收均未变化；继续执行同一已批准的 recovery_sampling_v2，不新增训练任务。
