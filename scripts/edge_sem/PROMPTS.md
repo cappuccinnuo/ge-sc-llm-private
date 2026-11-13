@@ -1,7 +1,15 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r16（2026-11-11）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r17（2026-11-12）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r17 相对 r16 的修改**（审查 EP8 进行中快照 db61b86d：140 项准备完成，主批 11/60 已完成，敏感性批 0/80）：
+1. 已完成部分接受，后台训练不需要中断或修改：
+   - 11 个 fit 逐个从原始文件复核：history 均为 50 轮；best 轮次等于 inner_val loss 最小者（相同取最早）；outer_test 预测身份无重复；由逐节点预测重算的 BF1 与 result.json 相同；同折 G4R 与 G4R-P 初值 state_sha256 相同。
+   - 两项用户批准的接入处理正确：主批/敏感性批显式分角色；“准备阶段快捷装配”只在 recon/ep8_run.py::prepare 中调用（第 379 行），正式 worker 不调用，且 2 任务 × 3 派生剖面共 6 组与完整装配逐位相同的证明齐全；正式训练仍完整装配并核验初值摘要，快捷方式即使有误也会在训练时被拒绝。
+   - 稀疏 diagnostics 的修正正确：属性诊断本来只列异常/缺口行，按子集校验并拒绝重复/外来 key 是对的。
+   - analysis_ea.py 与登记一致：按 edge_profile 分组；H1 = 原名 reentrancy best BF1 的两项对比，p 取较大者并要求两项均值差为正；直接调用冻结 stats.paired_comparison 与 diagnostics8c.scoring；匿名结果标为族外；跨视图总体不一致即报错。
+2. 唯一缺陷（记录层面）：github_sync_20261112T060127Z.json 的 completed_receipts 把每条的 profile 写成 job.profile（EdgeSem 保留的 DFG 基础剖面 "G3R"），实际剖面在 job.edge_profile（G3R-T/G4R/G4R-P）。收据本身正确，分析也使用 edge_profile，不影响结果。EP8 结束时追加一份更正记录（不覆盖原快照），此后所有同步与汇总一律写 edge_profile。
 
 **r16 相对 r15 的修改**（审查 EP7 产出后）：
 1. EP7 接受。独立复核：
@@ -852,7 +860,7 @@ G3R × 2 个节点任务 × 10 折 = 20 fits（P2）。授权文件就绪后执�
 只新增 scripts/edge_sem/analysis_ea.py（分析与报告表格，功能内聚）与 scripts/edge_sem/recon/ep8_run.py（准备、封存、授权、调度的单一入口）；执行沿用 execution.py、feature_views.py、trainer.py，评分沿用冻结实现。不得新增执行器、训练器或评分器副本；测试文件不受此限。
 
 ## 验收
-主批 60 与敏感性批 80 个 fit 全部成功并核验；报告完成。不论结果如何，都不修改已登记的假设与剖面。EP9 的视图安排（E-B 是否同样做匿名敏感性批）在 EP8 报告后由用户确认。
+主批 60 与敏感性批 80 个 fit 全部成功并核验；报告完成。r17：为 github_sync_20261112T060127Z.json 追加更正记录 github_sync_20261112T060127Z.correction.json（列出 11 条收据的 edge_profile，说明原 profile 字段为 DFG 基础剖面；原文件不改），之后的同步记录一律写 edge_profile。不论结果如何，都不修改已登记的假设与剖面。EP9 的视图安排（E-B 是否同样做匿名敏感性批）在 EP8 报告后由用户确认。
 ```
 
 ### 4.11 EP9：阶段 E-B 与冻结（训练）
