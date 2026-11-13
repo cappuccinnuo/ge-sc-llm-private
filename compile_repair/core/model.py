@@ -1,6 +1,6 @@
 """CP0 data records; no selection, execution or persistence logic."""
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -24,3 +24,4 @@ class Compilation:
     elapsed_seconds: float
     timed_out: bool
     cost_usd: float = 0.0
+    settings: Tuple[str, ...] = ()

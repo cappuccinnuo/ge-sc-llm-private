@@ -1,0 +1,153 @@
+{
+  "status": "passed",
+  "mode": "production_run2",
+  "profile": {
+    "profile": "production",
+    "slither_version": "0.11.6",
+    "crytic_compile_version": "0.4.2"
+  },
+  "checks": {
+    "all_inputs_executed": true,
+    "no_unexpected": true,
+    "d3_843": true,
+    "exact_three_failures": true,
+    "exactly_four_reviewed_changes": true,
+    "exactly_four_replacements": true,
+    "unchanged_839": true,
+    "stable_843_fingerprints": true
+  },
+  "counts": {
+    "solc_invocations": 846,
+    "slither_invocations": 846,
+    "d3_pass": 843,
+    "nodes": 110996,
+    "ir_object_repr_replacements": 4,
+    "unchanged_from_B": 839,
+    "reference_fingerprints_equal": 843
+  },
+  "known_failures": [
+    {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-compile/experiments/ge-sc-data/source_code/reentrancy/source_files/reentrancy_bonus.sol",
+      "sha256": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332",
+      "version": "0.4.24",
+      "exception_type": "AssertionError"
+    },
+    {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-compile/experiments/ge-sc-data/source_code/reentrancy/source_files/reentrancy_cross_function.sol",
+      "sha256": "583b8636921a488beecd71ba8ae8037562c36a781cee299f03ea662efdc2a3ff",
+      "version": "0.4.24",
+      "exception_type": "AssertionError"
+    },
+    {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-compile/experiments/ge-sc-data/source_code/reentrancy/source_files/reentrancy_insecure.sol",
+      "sha256": "97bb37ef327f8e6b2eafad19ea357dac94d81fbee16d5189ad587c53920e4540",
+      "version": "0.4.24",
+      "exception_type": "AssertionError"
+    }
+  ],
+  "changed": [
+    {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-compile/experiments/ge-sc-data/source_code/time_manipulation/source_files/governmental_survey.sol",
+      "version": "0.4.12",
+      "sha256": "290568dbb9906178725fada7e522a98d0c353753c4873ab14d8cad26a42bdbb3",
+      "changes": [
+        {
+          "key5": [
+            "Governmental",
+            "resetInvestment()",
+            "EXPRESSION",
+            821,
+            1
+          ],
+          "ir_index": 1,
+          "before": "TMP_7([<slither.core.solidity_types.elementary_type.ElementaryType object at 0x782f43b9df90>]) = REF_2 - 1000000000000000000",
+          "after": "TMP_7([<slither.core.solidity_types.elementary_type.ElementaryType>]) = REF_2 - 1000000000000000000",
+          "replacements": 1
+        }
+      ]
+    },
+    {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-compile/experiments/ge-sc-data/source_code/unchecked_low_level_calls/source_files/0x19cf8481ea15427a98ba3cdd6d9e14690011ab10.sol",
+      "version": "0.4.12",
+      "sha256": "fe2fb0a0e173f241ce33e07f3e01a4b0c8c2f8501e506c360af16648fa47b024",
+      "changes": [
+        {
+          "key5": [
+            "daoPOLSKAtokens",
+            "PartialFundsTransfer(uint256)",
+            "EXPRESSION",
+            13531,
+            1
+          ],
+          "ir_index": 1,
+          "before": "TMP_126([<slither.core.solidity_types.elementary_type.ElementaryType object at 0x782f41769ea0>]) = REF_61 - SubX",
+          "after": "TMP_126([<slither.core.solidity_types.elementary_type.ElementaryType>]) = REF_61 - SubX",
+          "replacements": 1
+        }
+      ]
+    },
+    {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-compile/experiments/ge-sc-data/source_code/unchecked_low_level_calls/source_files/0x3e013fc32a54c4c5b6991ba539dcd0ec4355c859.sol",
+      "version": "0.4.18",
+      "sha256": "9d63f8963eb9a187583b0f0306d0c2022699f43ed3afd37ae4863be99abea01b",
+      "changes": [
+        {
+          "key5": [
+            "MultiplicatorX4",
+            "multiplicate(address)",
+            "EXPRESSION",
+            692,
+            1
+          ],
+          "ir_index": 1,
+          "before": "TMP_8([<slither.core.solidity_types.elementary_type.ElementaryType object at 0x782f428e9810>]) = REF_6 + msg.value",
+          "after": "TMP_8([<slither.core.solidity_types.elementary_type.ElementaryType>]) = REF_6 + msg.value",
+          "replacements": 1
+        }
+      ]
+    },
+    {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-compile/experiments/ge-sc-data/source_code/unchecked_low_level_calls/source_files/0x5aa88d2901c68fda244f1d0584400368d2c8e739.sol",
+      "version": "0.4.18",
+      "sha256": "84a947d088b94ebf65eef9e8830a9eb07516c75a209ccbd8309f141b2ee2ea24",
+      "changes": [
+        {
+          "key5": [
+            "MultiplicatorX3",
+            "multiplicate(address)",
+            "EXPRESSION",
+            691,
+            1
+          ],
+          "ir_index": 1,
+          "before": "TMP_8([<slither.core.solidity_types.elementary_type.ElementaryType object at 0x782f41f52e00>]) = REF_6 + msg.value",
+          "after": "TMP_8([<slither.core.solidity_types.elementary_type.ElementaryType>]) = REF_6 + msg.value",
+          "replacements": 1
+        }
+      ]
+    }
+  ],
+  "unexpected": [],
+  "timing": {
+    "solc_seconds": 72.57176983903628,
+    "slither_seconds": 192.02677024545847
+  },
+  "wall_seconds": 282.3917705900385,
+  "finished_utc": "2026-11-13T14:04:44.718006+00:00",
+  "python": "3.10.21 (main, Aug 27 2026, 14:42:07) [GCC 14.3.0]",
+  "executable": "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+  "code_sha256": {
+    "compile_repair/__init__.py": "bfe04fb6eacb683848bd6a27f8502103afe2f3e4cb3f8d08b0aa4f118b7ab7fb",
+    "compile_repair/cli.py": "5c0623fc5d0d12d207c829ecd0f00c6d0051dadaf10984b17b69494e05769259",
+    "compile_repair/core/__init__.py": "2aad1f27fa5ba9ea5eb04593899b8c2b662b4e92e739cebc1d10a85f7c39028f",
+    "compile_repair/core/model.py": "bc72c52c1999414a80cb9beba9ca51c7aa472b22428dcf048d4b12dfccad9877",
+    "compile_repair/toolchain/__init__.py": "fa5336dddc722b0b49326ab44ee117f228c15f90cfe915573e2dc267b3f18c88",
+    "compile_repair/toolchain/solc.py": "0c510550166c01fd1740637ce04caddfc76df4f8e640ba28aae35bdf3fc7a487",
+    "compile_repair/toolchain/slither.py": "49da80f295ec3aaf7db30a3943c0ee73829e4d8bce6ee2448d9c8c74cea0cd5b",
+    "compile_repair/evaluation/__init__.py": "e72b23446c6010cbdb9ca03c39629a6fc06b1e849dabbec4e44e558fbd4a27b4",
+    "compile_repair/evaluation/survey.py": "d2f8d15bc2038a23b02a2dd2b8b4c8e622403a37ae63f3b0c295ee14fbb3b08e"
+  },
+  "automatic_retry": false,
+  "cost_usd": 0,
+  "llm_calls": 0
+}

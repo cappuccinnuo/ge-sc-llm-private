@@ -1,20 +1,24 @@
-"""PROMPTS CP0.1 A1/B: explicit profiles, complete D3 checks and node_facts_v2.
+"""PROMPTS CP0.1 A1/B/C continuation: profiles, settings and stable node_facts_v2.
 
 Read crytic-compile's saved AST, never deduplicate nodes, and treat lengths as
 diagnostics. The CP0 projection exists solely to verify frozen cp0_v2 evidence.
 """
 import hashlib
 import json
+import re
 import time
 from collections import Counter
 from pathlib import Path
 
-from compile_repair.toolchain.solc import verify_binary
+from compile_repair.toolchain.solc import validate_settings, verify_binary
 
 
 # D16 approved 2026-11-13; reject every pair outside these explicit profiles.
 PROFILES = {"regression_6c": ("0.8.0", "0.2.4"),
             "production": ("0.11.6", "0.4.2")}
+
+# Only Python's qualified object repr is unstable; keep ordinary hex literals.
+_OBJECT_REPR = re.compile(r"<([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+) object at 0x[0-9a-fA-F]+>")
 
 
 def check_profile(name="regression_6c", installed=None):
@@ -78,10 +82,11 @@ def node_facts(slither, inputs):
 
     Assign ordinals in original function.nodes order before sorting records.
     NodeType.name is stable across supported API styles; str(NodeType) is not.
-    Unsupported mappings raise, while missing mapping values fail D3(a).
+    Unsupported mappings raise. Missing mappings or residual object addresses
+    fail D3(a); normalized object repr counts and diagnostics are retained.
     """
     allowed = {str(Path(p).resolve()) for p in inputs}
-    rows, counts = [], Counter()
+    rows, counts, ir_diagnostics = [], Counter(), []
     for owner, function, kind in _declarations(slither):
         counts["declarations"] += 1
         counts[kind + "s"] += 1
@@ -100,17 +105,29 @@ def node_facts(slither, inputs):
                 counts["missing_start"] += 1
             node_type = getattr(node.type, "name", str(node.type))
             ordinals[(node_type, start)] += 1
-            rows.append({"key5": [owner, function.full_name, node_type, start,
-                                  ordinals[(node_type, start)]],
-                         "ir": [str(ir) for ir in node.irs],
+            key5 = [owner, function.full_name, node_type, start, ordinals[(node_type, start)]]
+            ir_lines = []
+            for index, ir in enumerate(node.irs):
+                text, replacements = _OBJECT_REPR.subn(r"<\1>", str(ir))
+                counts["ir_object_repr_replacements"] += replacements
+                residual = text.count(" object at 0x")
+                counts["ir_object_repr_unresolved"] += residual
+                if residual:
+                    ir_diagnostics.append({"key5": key5, "ir_index": index,
+                                           "reason": "Residual object address in IR", "ir": text})
+                ir_lines.append(text)
+            rows.append({"key5": key5, "ir": ir_lines,
                          "length": mapping["length"], "declaration_kind": kind})
     for key in ["nodes", "declarations", "functions", "modifiers", "top_level_functions",
-                "missing_filename", "invalid_filename", "foreign_filename", "missing_start"]:
+                "missing_filename", "invalid_filename", "foreign_filename", "missing_start",
+                "ir_object_repr_replacements", "ir_object_repr_unresolved"]:
         counts.setdefault(key, 0)
     key_counts = Counter(json.dumps(r["key5"][:4]) for r in rows)
     return {"node_facts_schema": "node_facts_v2",
             "mapping_complete": not any(counts[k] for k in [
-                "missing_filename", "invalid_filename", "foreign_filename", "missing_start"]),
+                "missing_filename", "invalid_filename", "foreign_filename", "missing_start",
+                "ir_object_repr_unresolved"]),
+            "ir_diagnostics": ir_diagnostics,
             "counts": dict(counts), "empty_cfg": counts["nodes"] == 0,
             "duplicate_key4": {k: v for k, v in key_counts.items() if v > 1},
             "nodes": sorted(rows, key=lambda r: json.dumps(r, sort_keys=True))}
@@ -198,6 +215,9 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
     not exposed: bind the observed preceding solc result, never invent a code.
     Profile and integrity failures raise; analysis failures return diagnostics.
     """
+    settings = validate_settings(compilation.settings)
+    if profile == "regression_6c" and settings:
+        raise ValueError("regression_6c does not accept compiler settings")
     versions = check_profile(profile)
     if cp0_projection and profile != "regression_6c":
         raise ValueError("CP0 projection requires regression_6c")
@@ -209,7 +229,7 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
         raise ValueError("Slither input differs from compiled source")
     verify_binary(compiler)
     result = dict(versions, source_path=str(path), source_sha256=compilation.source_sha256,
-                  version=compiler.version, compiler_sha256=compiler.sha256,
+                  version=compiler.version, compiler_sha256=compiler.sha256, settings=settings,
                   command={"api": "Slither", "target": str(path),
                            "solc": compiler.path, "solc_disable_warnings": True},
                   equivalent_solc_argv=compilation.command,
@@ -218,6 +238,8 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
                   crytic_compile_platform=None, crytic_compile_platform_class=None,
                   constructed=False, d3=False, d3_a=False, d3_b=False, nodes=[],
                   node_facts_schema="node_facts_v2")
+    if settings:
+        result["command"]["solc_args"] = " ".join(settings)
     start = time.monotonic()
     try:
         if profile == "production":
@@ -227,6 +249,8 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
             from crytic_compile import CryticCompile
             from slither import Slither
             kwargs = {"solc": compiler.path, "solc_disable_warnings": True}
+            if settings:
+                kwargs["solc_args"] = result["command"]["solc_args"]
             crytic = CryticCompile(str(path), **kwargs)
             result["crytic_compile_platform"] = crytic.platform.NAME
             result["crytic_compile_platform_class"] = type(crytic.platform).__module__ + "." + type(crytic.platform).__name__
@@ -252,6 +276,8 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
                     result["d3_b"] = facts["complete"]
                 if not result["d3_" + clause]:
                     errors.append("D3(" + clause + ") incomplete")
+                    if clause == "a" and facts["ir_diagnostics"]:
+                        errors.append("D3(a): residual object address in IR; see ir_diagnostics")
             except (ValueError, AttributeError, TypeError) as exc:
                 errors.append("D3({}): {}: {}".format(clause, type(exc).__name__, str(exc)))
         if cp0_projection and result["d3_a"]:

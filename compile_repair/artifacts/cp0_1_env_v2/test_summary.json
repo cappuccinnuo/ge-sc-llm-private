@@ -1,0 +1,89 @@
+{
+  "unit_production": {
+    "command": [
+      "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "-x",
+      "-p",
+      "no:cacheprovider",
+      "compile_repair/tests/test_settings.py",
+      "compile_repair/tests/test_layering.py",
+      "--basetemp=/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v2/unit_production_tmp"
+    ],
+    "summary": "27 passed in 5.79s",
+    "seconds": 6.279380535997916
+  },
+  "unit_mando": {
+    "command": [
+      "/home/zhao/miniconda3/envs/mando/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "-x",
+      "-p",
+      "no:cacheprovider",
+      "compile_repair/tests/test_settings.py",
+      "compile_repair/tests/test_layering.py",
+      "--basetemp=/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v2/unit_mando_tmp"
+    ],
+    "summary": "27 passed in 8.79s",
+    "seconds": 9.072138940973673
+  },
+  "pytest_production": {
+    "command": [
+      "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "-x",
+      "-p",
+      "no:cacheprovider",
+      "compile_repair/tests",
+      "--basetemp=/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v2/pytest_production_tmp"
+    ],
+    "summary": "506 passed, 6 skipped in 28.69s",
+    "seconds": 29.090735514997505
+  },
+  "pytest_mando": {
+    "command": [
+      "/home/zhao/miniconda3/envs/mando/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "-x",
+      "-p",
+      "no:cacheprovider",
+      "compile_repair/tests",
+      "--basetemp=/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v2/pytest_mando_tmp"
+    ],
+    "summary": "83 passed, 429 skipped in 6.60s",
+    "seconds": 6.908764544001315
+  },
+  "pytest_dfg": {
+    "command": [
+      "/home/zhao/miniconda3/envs/mando/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "-x",
+      "-p",
+      "no:cacheprovider",
+      "scripts/DFG/dfg_v2/tests",
+      "--basetemp=/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v2/pytest_dfg_tmp"
+    ],
+    "summary": "2653 passed, 9 warnings in 181.50s (0:03:01)",
+    "seconds": 184.48429164802656
+  }
+}

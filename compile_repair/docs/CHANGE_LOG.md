@@ -661,3 +661,66 @@ B 阶段的模块测试命令为各环境 python -B -m pytest -q -ra -p no:cache
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp0_1bc_review_v1/README 全文，CHANGE_LOG:84141、PROGRESS:14829 追加区间，6 个文件全部 passed=True 后提交。
 - 资源：云端 CPU；从 GitHub 下载 4 个官方 solc 到会话临时目录（只用于审查）；没有 LLM 调用，费用 0。
 - 停止：CP1 不能开始。顺序为 Codex 执行 4.2c 节 → Claude 审查 → CP1。本轮提交并 push 到 `compile-repair`。
+
+
+## 13. 2026-11-13 CompileRepair CP0.1 C 续：设置支持、指纹稳定与 501 组验收完成（修改 AI：Codex）
+
+### 13.1 任务、依据与范围
+
+用户要求执行 PROMPTS r2.5 §4.2c，先快进同步，逐项验收、遇非预期或需下载安装即停。起始 compile-repair@3742fb75e535b5517ded58659e78737a01b51000，pull 为 Already up to date；已读 r2.5 全文、共享上下文、HANDOVER §0–5、DECISIONS、§11/§12 和审查 README。修改文件为 core/model.py、toolchain/solc.py、toolchain/slither.py、tests/test_production.py，新增 tests/test_settings.py；文档为 CP0_1_REPORT、PROGRESS、本节、HANDOVER、DECISIONS 以及两批新 README。新证据仅 cp0_1_env_v2 与 cp0_1_compilers_v2；完整文件及 SHA 清单见 file_inventory.json。未改 PROMPTS、scripts/**、原作者代码、语料、任何旧 artifacts、原可信清单和根目录交接/训练记录。
+
+### 13.2 实施方式和重要选择
+
+生产代码只修改 `core/model.py`、`toolchain/solc.py`、`toolchain/slither.py`。Compilation 增加默认空的有序 settings 元组，保留原有位置参数兼容性。compile_file/command 仅允许 --evm-version 后跟单个名称和 --via-ir，保持调用方顺序并追加到命令末尾；拒绝未知选项、重复选项与包含空白的名称。错误首行解析在崩溃时把原 banner 与 std::exception::what 消息一起记录，完整 stderr 仍原样保存，因而不会丢失 0.8.26 的 via-ir 原因。
+
+production 把同一个 settings 通过 solc_args 同时传给公开 CryticCompile 与 Slither 构造器，空设置不传；regression_6c 对非空设置显式抛错，冻结 _compile 不改。node_facts 把限定形式的 Python 对象 repr 规范化为模块/类名，counts 增加 ir_object_repr_replacements 与 ir_object_repr_unresolved；仍有对象地址时 D3(a) 失败，并给出 key5、IR 行号和原文诊断。只处理该 repr 模式，普通十六进制字面量保留，CP0 投影函数 AST 与起始提交完全相同。
+
+测试修改 `tests/test_production.py`，新增 `tests/test_settings.py`。既有 feature 参数化保留全部原组合，把 r2.5 指定的 5 个默认失败组合改为严格负对照，并加入对应设置正对照，没有 xfail 或放宽 D3；另测试参数白名单、命令及记录、regression 拒绝、真实错误文本、替身 IR 的稳定结果/替换次数/残留失败。28 个 Solidity fixture（包括 19 个特征探针）未改字节。生产 Python 仍为 9 个，测试文件现为 6 个；文件表与分层遵守 §3.10。
+
+复用冻结 validate_slither._compile 的原 SHA 为 4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8；沿用公开 CryticCompile/Slither 组合与既有 load_additions 信任校验，不复制或 monkeypatch 冻结函数。生产命令默认参数保持一致，新增参数只使用文档白名单；旧成功组必须逐组比较，不能仅比较总数。
+
+本轮没有非预期验收结果，没有测试失败后重跑，也没有方案外算法变更。读取阶段 WSL 未安装 rg，按现有 Python/sed 完成只读检查；ir_object_repr.json 实际是两个连续 JSON 对象，首次单对象 json.loads 报 Extra data 后按原格式分别 raw_decode，原文件不改。这属于证据格式适配，不改变 4 文件/4 行预期。生产原始诊断保留已知断言的源码缩进，以无损 gzip 提交并逐字节回读校验，原日志留在本地，SHA 与压缩对应关系见 log_compression.json。
+
+### 13.3 实测与数据结论
+
+| 验收项 | 预期与实测 | 证据（artifacts 下） |
+|---|---|---|
+| 两次生产编译/D3 | 各 846 次 solc rc0；各 843 D3，通过同一组文件；另 3 个 0.4.24 AssertionError 与 B 完全相同 | cp0_1_env_v2/production_run1.json、production_run2.json |
+| 两次指纹 | 843/843 逐文件 node_facts_v2_sha256 相同；各 110,996 个成功节点 | production_run2.json counts |
+| 与 B 归档比较 | 839 个成功文件逐组相同；另 4 个审查指定文件各只变 1 行 IR，类型/偏移/序号/length/声明种类不变 | 两次 production_run*.json 的 changed；cp0_1bc_review_v1/ir_object_repr.json |
+| 地址残留/归档哈希 | 四份新归档共 2,208 组，残留 object at 0x 为 0；重算指纹与归档记录差异 0 | cp0_1_env_v2/archive_audit.json |
+| mando 抽样回归 | 按 SHA256 排序后 Random(0).sample(...,20)；20/20 D3 且指纹与 A 归档相同，3,267 节点，规范化替换 0 次 | regression_sample_plan.json、regression_sample.json |
+| 兼容性计划与执行 | 496 原组合 + 5 设置正对照 = 501；501/501 符合预期，未运行 0；按版本升序，未自动重试 | cp0_1_compilers_v2/compatibility_plan.json、compatibility.json |
+| 默认设置正例 | 491/491 solc rc0、production D3 通过 | compatibility.json counts |
+| 默认设置负对照 | 4 个 0.8.24 Cancun 探针 rc1、1 个 0.8.26 require 自定义错误探针 rc2，诊断与 r2.5 一致；均未运行 Slither | compatibility_invocations.jsonl、archive_audit.json |
+| 设置正对照 | 四组 0.8.24 + --evm-version cancun、一组 0.8.26 + --via-ir，5/5 rc0、D3；Slither 记录同样的设置 | compatibility.json results |
+| 上次成功组 | 原 C 的 224/224 结果、输入/编译器身份、节点内容与指纹全部相同 | compatibility.json previous_224_equal |
+| 覆盖口径 | 可信支持快照 0.4.12–0.8.38 已安装 92/92；本次矩阵覆盖新增的 59 版，59/59 版计划完成 | cp0_1_compilers_v2/coverage.json、compatibility.json per_version |
+
+输入为 cp0_v2 的 846 个源码 SHA 和 selection.ascending；每次运行绑定可信二进制 SHA。两次生产耗时 309.983 / 282.392 秒，回归样本 12.248 秒，兼容性 28.131 秒。时间来自 production_run*.json、regression_sample.json、compatibility.json；未把旧产物当成本轮新运行。两个环境与固定源码均为 CPU 工作，OMP/MKL=2。
+
+### 13.4 用户批准、原文差异与待确认设计
+
+用户本轮明确要求执行 r2.5 §4.2c，并规定需要安装/下载或验收不符即停。本次未发生上述停止条件；没有新增授权请求，没有安装、下载编译器/语料/文档、LLM 调用、全局 solc 切换或 HGT 训练，费用 0 美元。A、B 结论、旧产物和既有 C 失败现场均保留。本步只完成工具链接口与验证：按错误自动触发设置、版本升序选择和两行设置表属于 CP1；第 10 行源码改写属于 CP6，均未实现。CP0.1 C 续已完成本机验收，仍须审查通过后才能开始 CP1。
+
+CP1 输入参数：production 固定 Python 3.10.21 / Slither 0.11.6 / crytic-compile 0.4.2；regression_6c 固定 mando 0.8.0 / 0.2.4。可信编译器沿用 cp0_v2/recon.json 中 37 个身份与 cp0_1_compilers_v1/trusted_compilers_addition.json 中 59 个新增身份，其中 92 个在支持区间、4 个历史负对照低于下限，必须经原信任链校验。设置表第 1 行是 0.8.24 中 Cancun 内置函数/全局量未找到或未声明时加 --evm-version cancun（4/4 正负对照验证）；第 2 行是 Require with a custom error is only available using the via-ir pipeline. 时加 --via-ir（0.8.26 的 1/1 正负对照验证）。依据仍为 PROMPTS §1.8、§3.3 第 3a 条和审查中已核对的官方发布说明，本步不额外下载文档。
+
+口径限制：501 组是明确批准的 59 个新增版本矩阵，不是对 92 个版本、每一种语法或完整 CFG/CG 语义的穷举证明。另 33 个先前安装版本的原证据保留在 cp0_v2 与 cp0_1_env_v1，不为扩大结论而重跑 A/B。三个合法旧合约的 Slither AssertionError 仍是已知问题；没有把它们写成已修复。
+
+本轮没有需要替代原方案的设计调整或新增待批准事项；设置参数支持与 IR 规范化均是 r2.5 已明确要求的内容。D5 的自动设置表与尝试顺序尚未实现，不把手工指定的 5 个验证对照说成自动修复模块已完成。
+
+### 13.5 验收、资源、未执行事项与停止
+
+| 检查 | 实测 | 原始日志 |
+|---|---|---|
+| 新逻辑与分层（production / mando） | 各 27 passed | unit_production.log、unit_mando.log |
+| 完整模块（production） | 506 passed，6 skipped，28.69 秒 | pytest_production.log |
+| 完整模块（mando） | 83 passed，429 skipped，6.60 秒 | pytest_mando.log |
+| 冻结 DFG v2（mando） | 2653 passed，9 warnings，181.50 秒 | pytest_dfg.log |
+
+各日志位于 cp0_1_env_v2，完整 argv、解释器、环境变量、rc 与日志 SHA 在同名 json 中。两个模块测试使用 -m pytest -q -ra -x -p no:cacheprovider compile_repair/tests；冻结测试使用同样参数运行 scripts/DFG/dfg_v2/tests；均使用各自新的 --basetemp。test_layering 通过，CP0 投影未改、Python 3.7 语法和 9/30 文件检查通过（implementation_audit.json）。
+
+强制文档为 7 份：CP0_1_REPORT、PROGRESS、CHANGE_LOG 检查本轮追加区，HANDOVER、DECISIONS 因当前状态更新检查全文，两个 README 检查全文。提交前执行冻结审计、doc_check 与暂存格式检查，实测结果在本节末尾追加；任何失败都不得提交。只作以 CP0.1 开头的本地提交，本任务不 push。停止于等待审查，CP1 未开始。
+
+
+验收补记（修改 AI：Codex）：冻结审计已实测通过：模块外 27,845 个已跟踪文件、302 个旧产物、28 个 Solidity fixture、205 个 mando 元数据文件、88 个 production 元数据文件与 96 个 solc 文件均 0 差异；code_refs 354 项不变，未新增/删除 solc 文件，全局选择环境不变；报告/进度/变更记录旧前缀与交接/决策历史保持原字节（frozen_audit.json）。首轮 doc_check_v1 的 7 行均 passed=true，rc0；追加前偏移为 CP0_1_REPORT 25224、PROGRESS 15396、CHANGE_LOG 88986 字节，另外四份检查全文。初次精确暂存 54 个文件后，git diff --cached --check 返回 0，没有排除任何已暂存文件；原始 stderr 以无损 gzip 提交并回读核验，未删改诊断文本（staging_check.json、log_compression.json）。本补记追加后按相同目标执行 doc_check_v2 作为最终检查，实际七行结果和命令保存在 doc_check_v2.jsonl 与 doc_check_v2_invocation.json；全部通过后再封存、核对最终清单和暂存格式并本地提交。

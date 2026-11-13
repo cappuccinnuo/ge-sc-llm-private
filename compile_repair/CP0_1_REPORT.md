@@ -203,3 +203,76 @@ CP1 的已知参数：D5 升序；production 为 0.11.6/0.4.2；上述 92 个支
 frozen_audit.json 核对 27845 个模块外已跟踪文件、204 个已有产物、37 个旧 solc 文件、205 个 mando 包元数据文件，差异均为 0；experiment.run._code_refs() 的 354 项一致。A 报告旧字节前缀与原 0.9.6 请求哈希不变，生产代码仍为 §3.10 内的 9 个文件。源码原件、EdgeSem、原 CP0/A 产物与仓库根目录记录均未改。
 
 本轮费用 0 美元，LLM 调用 0；无训练、GPU 锁或图存储操作，没有实现 CP1/CP6。已完成的 B 测试结果见上节；C 失败后未继续生产探针或重复正式运行。按强制记录完成 CHANGE_LOG §11、HANDOVER 当前状态与四段交接、PROGRESS、DECISIONS、两批 README、doc_check 后本地提交，不 push。
+
+
+## C 续：编译设置、IR 确定性与兼容性续验（2026-11-13，修改 AI：Codex）
+
+### C 续.1 范围与实现
+
+起始提交 3742fb75e535b5517ded58659e78737a01b51000，按用户要求先 pull --ff-only，结果 Already up to date；完整阅读 PROMPTS r2.5（含 §4.1）、HANDOVER §0–5、DECISIONS、CHANGE_LOG §11/§12 和 cp0_1bc_review_v1/README。A、B 与原 C 报告前缀保持原字节，只在此追加。
+
+生产代码只修改 `core/model.py`、`toolchain/solc.py`、`toolchain/slither.py`。Compilation 增加默认空的有序 settings 元组，保留原有位置参数兼容性。compile_file/command 仅允许 --evm-version 后跟单个名称和 --via-ir，保持调用方顺序并追加到命令末尾；拒绝未知选项、重复选项与包含空白的名称。错误首行解析在崩溃时把原 banner 与 std::exception::what 消息一起记录，完整 stderr 仍原样保存，因而不会丢失 0.8.26 的 via-ir 原因。
+
+production 把同一个 settings 通过 solc_args 同时传给公开 CryticCompile 与 Slither 构造器，空设置不传；regression_6c 对非空设置显式抛错，冻结 _compile 不改。node_facts 把限定形式的 Python 对象 repr 规范化为模块/类名，counts 增加 ir_object_repr_replacements 与 ir_object_repr_unresolved；仍有对象地址时 D3(a) 失败，并给出 key5、IR 行号和原文诊断。只处理该 repr 模式，普通十六进制字面量保留，CP0 投影函数 AST 与起始提交完全相同。
+
+测试修改 `tests/test_production.py`，新增 `tests/test_settings.py`。既有 feature 参数化保留全部原组合，把 r2.5 指定的 5 个默认失败组合改为严格负对照，并加入对应设置正对照，没有 xfail 或放宽 D3；另测试参数白名单、命令及记录、regression 拒绝、真实错误文本、替身 IR 的稳定结果/替换次数/残留失败。28 个 Solidity fixture（包括 19 个特征探针）未改字节。生产 Python 仍为 9 个，测试文件现为 6 个；文件表与分层遵守 §3.10。
+
+### C 续.2 真实验收
+
+| 验收项 | 预期与实测 | 证据（artifacts 下） |
+|---|---|---|
+| 两次生产编译/D3 | 各 846 次 solc rc0；各 843 D3，通过同一组文件；另 3 个 0.4.24 AssertionError 与 B 完全相同 | cp0_1_env_v2/production_run1.json、production_run2.json |
+| 两次指纹 | 843/843 逐文件 node_facts_v2_sha256 相同；各 110,996 个成功节点 | production_run2.json counts |
+| 与 B 归档比较 | 839 个成功文件逐组相同；另 4 个审查指定文件各只变 1 行 IR，类型/偏移/序号/length/声明种类不变 | 两次 production_run*.json 的 changed；cp0_1bc_review_v1/ir_object_repr.json |
+| 地址残留/归档哈希 | 四份新归档共 2,208 组，残留 object at 0x 为 0；重算指纹与归档记录差异 0 | cp0_1_env_v2/archive_audit.json |
+| mando 抽样回归 | 按 SHA256 排序后 Random(0).sample(...,20)；20/20 D3 且指纹与 A 归档相同，3,267 节点，规范化替换 0 次 | regression_sample_plan.json、regression_sample.json |
+| 兼容性计划与执行 | 496 原组合 + 5 设置正对照 = 501；501/501 符合预期，未运行 0；按版本升序，未自动重试 | cp0_1_compilers_v2/compatibility_plan.json、compatibility.json |
+| 默认设置正例 | 491/491 solc rc0、production D3 通过 | compatibility.json counts |
+| 默认设置负对照 | 4 个 0.8.24 Cancun 探针 rc1、1 个 0.8.26 require 自定义错误探针 rc2，诊断与 r2.5 一致；均未运行 Slither | compatibility_invocations.jsonl、archive_audit.json |
+| 设置正对照 | 四组 0.8.24 + --evm-version cancun、一组 0.8.26 + --via-ir，5/5 rc0、D3；Slither 记录同样的设置 | compatibility.json results |
+| 上次成功组 | 原 C 的 224/224 结果、输入/编译器身份、节点内容与指纹全部相同 | compatibility.json previous_224_equal |
+| 覆盖口径 | 可信支持快照 0.4.12–0.8.38 已安装 92/92；本次矩阵覆盖新增的 59 版，59/59 版计划完成 | cp0_1_compilers_v2/coverage.json、compatibility.json per_version |
+
+两次生产 wall 分别 309.983、282.392 秒；20 文件回归 12.248 秒；501 组兼容性 28.131 秒，均为各自 json 中 monotonic 实测。兼容性全部 59 版通过，包括审查未覆盖的 0.8.28–0.8.37（逐版结果见 compatibility.json）。
+
+### C 续.3 测试与开发记录
+
+| 检查 | 实测 | 原始日志 |
+|---|---|---|
+| 新逻辑与分层（production / mando） | 各 27 passed | unit_production.log、unit_mando.log |
+| 完整模块（production） | 506 passed，6 skipped，28.69 秒 | pytest_production.log |
+| 完整模块（mando） | 83 passed，429 skipped，6.60 秒 | pytest_mando.log |
+| 冻结 DFG v2（mando） | 2653 passed，9 warnings，181.50 秒 | pytest_dfg.log |
+
+完整命令含 -x、-p no:cacheprovider 和新批次 basetemp，见 test_summary.json 与各 pytest_*.json。production 跳过 1 项 Python 3.7 backport 路径及 5 项 regression 专用检查；mando 跳过 1 项标准库路径及 428 项 production 专用检查。与 profile 无关的测试均通过，DFG 的 9 条均为既有 distutils/networkx 弃用警告。
+
+本轮没有非预期验收结果，没有测试失败后重跑，也没有方案外算法变更。读取阶段 WSL 未安装 rg，按现有 Python/sed 完成只读检查；ir_object_repr.json 实际是两个连续 JSON 对象，首次单对象 json.loads 报 Extra data 后按原格式分别 raw_decode，原文件不改。这属于证据格式适配，不改变 4 文件/4 行预期。生产原始诊断保留已知断言的源码缩进，以无损 gzip 提交并逐字节回读校验，原日志留在本地，SHA 与压缩对应关系见 log_compression.json。
+
+### C 续.4 归档与复现
+
+新产物只在 artifacts/cp0_1_env_v2/ 与 cp0_1_compilers_v2/。完整提交文件清单见 cp0_1_env_v2/file_inventory.json；各目录 seal.json 的 SHA256 见 cp0_1_env_v2/seal_hashes.json。invocations 逐次保留源码/编译器 SHA、实际命令、settings、退出码或 D3、错误与耗时，节点归档独立重算指纹通过；baseline 与 frozen_audit 记录冻结检查。未提交二进制、下载缓存或 pytest 临时树。
+
+```bash
+cd /home/zhao/SmartContract/ge-sc-llm-compile
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+# 下列是实际等价命令；所有输出采用 x/xb 创建，已存在时拒绝覆盖。
+env PYTHONNOUSERSITE=1 /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B -c 'exec(compile(open("compile_repair/artifacts/cp0_1_env_v2/production_command.txt").read(), "production_command.txt", "exec"))' production_run1
+env PYTHONNOUSERSITE=1 /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B -c 'exec(compile(open("compile_repair/artifacts/cp0_1_env_v2/production_command.txt").read(), "production_command.txt", "exec"))' production_run2
+/home/zhao/miniconda3/envs/mando/bin/python -B -c 'exec(compile(open("compile_repair/artifacts/cp0_1_env_v2/production_command.txt").read(), "production_command.txt", "exec"))' regression_sample
+env PYTHONNOUSERSITE=1 /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B -c 'exec(compile(open("compile_repair/artifacts/cp0_1_compilers_v2/compatibility_command.txt").read(), "compatibility_command.txt", "exec"))'
+# run_checks 会使用对应的已安装解释器、-x 和独立 --basetemp；完整 argv 在同名 json 中。
+/home/zhao/miniconda3/envs/mando/bin/python -B -c 'exec(compile(open("compile_repair/artifacts/cp0_1_env_v2/run_checks.txt").read(), "run_checks.txt", "exec"))' pytest_production
+/home/zhao/miniconda3/envs/mando/bin/python -B -c 'exec(compile(open("compile_repair/artifacts/cp0_1_env_v2/run_checks.txt").read(), "run_checks.txt", "exec"))' pytest_mando
+/home/zhao/miniconda3/envs/mando/bin/python -B -c 'exec(compile(open("compile_repair/artifacts/cp0_1_env_v2/run_checks.txt").read(), "run_checks.txt", "exec"))' pytest_dfg
+```
+
+复现时须使用新的空批次目录并相应设置脚本的 out/envout 路径，不能原地重跑已封存批次。实际 Windows 调用为 UTF-8 PowerShell here-string 经 wsl.exe --cd 进入本工作树，执行相同脚本文本；没有 shell 字符串拼接 solc 参数。
+
+### C 续.5 CP1 参数与停止边界
+
+CP1 输入参数：production 固定 Python 3.10.21 / Slither 0.11.6 / crytic-compile 0.4.2；regression_6c 固定 mando 0.8.0 / 0.2.4。可信编译器沿用 cp0_v2/recon.json 中 37 个身份与 cp0_1_compilers_v1/trusted_compilers_addition.json 中 59 个新增身份，其中 92 个在支持区间、4 个历史负对照低于下限，必须经原信任链校验。设置表第 1 行是 0.8.24 中 Cancun 内置函数/全局量未找到或未声明时加 --evm-version cancun（4/4 正负对照验证）；第 2 行是 Require with a custom error is only available using the via-ir pipeline. 时加 --via-ir（0.8.26 的 1/1 正负对照验证）。依据仍为 PROMPTS §1.8、§3.3 第 3a 条和审查中已核对的官方发布说明，本步不额外下载文档。
+
+口径限制：501 组是明确批准的 59 个新增版本矩阵，不是对 92 个版本、每一种语法或完整 CFG/CG 语义的穷举证明。另 33 个先前安装版本的原证据保留在 cp0_v2 与 cp0_1_env_v1，不为扩大结论而重跑 A/B。三个合法旧合约的 Slither AssertionError 仍是已知问题；没有把它们写成已修复。
+
+用户本轮明确要求执行 r2.5 §4.2c，并规定需要安装/下载或验收不符即停。本次未发生上述停止条件；没有新增授权请求，没有安装、下载编译器/语料/文档、LLM 调用、全局 solc 切换或 HGT 训练，费用 0 美元。A、B 结论、旧产物和既有 C 失败现场均保留。本步只完成工具链接口与验证：按错误自动触发设置、版本升序选择和两行设置表属于 CP1；第 10 行源码改写属于 CP6，均未实现。CP0.1 C 续已完成本机验收，仍须审查通过后才能开始 CP1。

@@ -1,4 +1,4 @@
-"""CP0 compiler inventory and invocation (PROMPTS 4.2.3-4).
+"""CP0 compiler inventory and CP0.1 C continuation settings (PROMPTS 4.2c).
 
 Reuse frozen inventory/trust checks and crytic-compile 0.2.4 output options.
 No installation, PATH modification, global solc selection or source writes.
@@ -132,12 +132,38 @@ def inventory(trusted):
     return compilers, environment, missing
 
 
-def command(source, compiler, cwd=None):
+def validate_settings(settings):
+    """Return ordered option tokens as a tuple; reject all non-whitelisted argv.
+
+    Accept only --via-ir and --evm-version followed by one name token. The
+    compiler validates EVM names for its release; whitespace, extra switches,
+    repeated options and arbitrary command fragments are rejected here.
+    """
+    if not isinstance(settings, (tuple, list)) or not all(isinstance(s, str) for s in settings):
+        raise ValueError("settings must be an ordered sequence of string tokens")
+    settings = tuple(settings)
+    seen, index = set(), 0
+    while index < len(settings):
+        option = settings[index]
+        if option not in ("--evm-version", "--via-ir") or option in seen:
+            raise ValueError("Unsupported or repeated compiler setting: " + option)
+        seen.add(option)
+        index += 1
+        if option == "--evm-version":
+            if index == len(settings) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", settings[index]):
+                raise ValueError("--evm-version requires one name token")
+            index += 1
+    return settings
+
+
+def command(source, compiler, cwd=None, settings=()):
     """Build crytic-compile 0.2.4's default single-file solc argv.
 
     Uses its original _build_options; matches _run_solc's allow-paths handling.
-    No optimizer, remappings, legacy override or project/package manager.
+    Append only validated settings, preserving token order. No optimizer,
+    remappings, legacy override or project/package manager.
     """
+    settings = validate_settings(settings)
     from crytic_compile.platform.solc import _build_options, CompilerVersion
     source = str(Path(source).resolve())
     cwd = str(Path(cwd or Path.cwd()).resolve())
@@ -146,26 +172,34 @@ def command(source, compiler, cwd=None):
     if version_tuple(compiler.version) not in [(0, 4, i) for i in range(11)]:
         relative = source[len(cwd) + 1:] if source.startswith(cwd) else source
         argv += ["--allow-paths", ".", relative]
-    return argv
+    return argv + list(settings)
 
 
 def error_first_line(stderr):
-    """Prefer the first diagnostic Error line over banners and warnings."""
+    """Prefer Error diagnostics; retain crash banners and their what() message.
+
+    solc 0.8.26's via-IR requirement is in std::exception::what, not in the
+    leading Unimplemented feature banner. Join both onto one diagnostic line;
+    Compilation.stderr still preserves the complete original output.
+    """
     lines = [s.strip() for s in stderr.splitlines() if s.strip()]
-    return next((s for s in lines if re.search(r"\b(?:[A-Za-z]*Error|error):", s)),
-                lines[0] if lines else None)
+    first = next((s for s in lines if re.search(r"\b(?:[A-Za-z]*Error|error):", s)),
+                 lines[0] if lines else None)
+    what = next((s for s in lines if s.startswith("std::exception::what:")), None)
+    return first + " " + what if what and first != what else first
 
 
-def compile_file(source, compiler, timeout=120):
+def compile_file(source, compiler, timeout=120, settings=()):
     """Compile one unchanged file and capture its actual process exit code.
 
     Timeout is a recorded result, never retried; trust or IO failures raise.
     The command emits JSON to memory and writes no compiler output files.
     """
+    settings = validate_settings(settings)
     source = Path(source).resolve()
     before = hashlib.sha256(source.read_bytes()).hexdigest()
     verify_binary(compiler)
-    argv, cwd = command(source, compiler), str(Path.cwd())
+    argv, cwd = command(source, compiler, settings=settings), str(Path.cwd())
     start = time.monotonic()
     try:
         result = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -181,4 +215,5 @@ def compile_file(source, compiler, timeout=120):
     diagnostic = stderr.decode("utf8", errors="replace")
     first = "timeout" if timed_out else error_first_line(diagnostic) if rc != 0 else None
     return Compilation(str(source), before, compiler, argv, cwd, rc, first,
-                       diagnostic, hashlib.sha256(stdout).hexdigest(), elapsed, timed_out)
+                       diagnostic, hashlib.sha256(stdout).hexdigest(), elapsed, timed_out,
+                       settings=settings)

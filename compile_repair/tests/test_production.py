@@ -1,4 +1,4 @@
-"""CP0.1 B: exact profiles, metadata providers and reviewed feature probes."""
+"""CP0.1 B/C continuation: exact profiles and reviewed setting controls."""
 import hashlib
 import json
 import re
@@ -15,6 +15,20 @@ from compile_repair.toolchain.slither import check_profile, run_slither, node_fa
 
 ROOT = Path(__file__).resolve().parents[1]
 FEATURES = ROOT / "tests/fixtures/features"
+
+# PROMPTS r2.5 1.8/4.2c: default-setting negatives plus explicit positives.
+FEATURE_CONTROLS = {
+    ("h0824_blob.sol", "0.8.24"): (("--evm-version", "cancun"), 1,
+        'Error: Undeclared identifier. Did you mean "blockhash"?'),
+    ("y0824_blob_asm.sol", "0.8.24"): (("--evm-version", "cancun"), 1,
+        'Error: Function "blobbasefee" not found.'),
+    ("y0824_mcopy.sol", "0.8.24"): (("--evm-version", "cancun"), 1,
+        'Error: Function "mcopy" not found.'),
+    ("y0824_tstore_asm.sol", "0.8.24"): (("--evm-version", "cancun"), 1,
+        'Error: Function "tload" not found.'),
+    ("h0826_require_error.sol", "0.8.26"): (("--via-ir",), 2,
+        'Require with a custom error is only available using the via-ir pipeline.'),
+}
 
 
 def production_required():
@@ -39,14 +53,16 @@ def trusted_compilers():
 
 
 def feature_pairs():
-    """Use the source pragma lower bound; two historical filenames are shorthand."""
+    """Keep syntax floors and add the five reviewed settings controls."""
     versions = trusted_compilers()
     pairs = []
     for path in sorted(FEATURES.glob("*.sol")):
         start = re.search(r"pragma solidity >=(\d+\.\d+\.\d+)", path.read_text()).group(1)
         for version in sorted(versions, key=version_tuple):
             if version_tuple(version)[:2] == (0, 8) and version_tuple(version) >= version_tuple(start):
-                pairs.append((path.name, version))
+                pairs.append((path.name, version, ()))
+                if (path.name, version) in FEATURE_CONTROLS:
+                    pairs.append((path.name, version, FEATURE_CONTROLS[(path.name, version)][0]))
     return pairs
 
 
@@ -77,15 +93,28 @@ def test_feature_fixtures_preserve_all_reviewed_bytes():
         assert (FEATURES / source.name).read_bytes() == source.read_bytes()
 
 
-@pytest.mark.parametrize("fixture,version", feature_pairs())
-def test_production_feature_d3(fixture, version, tmp_path):
+@pytest.mark.parametrize("fixture,version,settings", feature_pairs())
+def test_production_feature_d3(fixture, version, settings, tmp_path):
     production_required()
     compiler = trusted_compilers()[version]
-    compilation = compile_file(FEATURES / fixture, compiler)
+    compilation = compile_file(FEATURES / fixture, compiler, settings=settings)
     result = run_slither(compilation, profile="production") if compilation.returncode == 0 else None
     (tmp_path / "invocation.json").write_text(json.dumps(
         {"solc": asdict(compilation), "slither": result}, indent=2))
+    assert compilation.settings == settings
+    control = FEATURE_CONTROLS.get((fixture, version))
+    if control and not settings:
+        assert compilation.returncode == control[1]
+        assert control[2] in compilation.error_first_line
+        assert result is None and not compilation.timed_out
+        return
     assert compilation.returncode == 0, compilation.error_first_line
+    assert result["settings"] == settings
+    if settings:
+        assert compilation.command[-len(settings):] == list(settings)
+        assert result["command"]["solc_args"] == " ".join(settings)
+    else:
+        assert "solc_args" not in result["command"]
     assert result["d3"], result.get("error_first_line")
     assert result["crytic_compile_platform"] == "solc"
 
