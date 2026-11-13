@@ -84,3 +84,8 @@ WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，�
 - D16 扩展测量（19 个探针、846 个文件）后推荐改为 Slither 0.11.6，备选 0.9.6；3.2 节新增第 10 行 Slither 兼容改写；CP3 分类表增加 Slither 侧失败。
 - 记录：`docs/CHANGE_LOG.md` §9、`docs/HANDOVER.md`、`docs/DECISIONS.md`。
 - 没有模块代码改动与用户环境运行。下一步：用户决定 D5、D16、D18 并授权，Codex 执行 CP0.1 B、C。
+
+
+## 用户决定 D5、D16、D18（Claude，2026-11-13）
+
+- 用户采纳 r2.4 推荐：D5 升序；D16 生产 Slither 0.11.6（Python 3.10 独立环境）；D18 安装 59 个编译器。记录见 `docs/CHANGE_LOG.md` §10。下一步 Codex 执行 CP0.1 B、C。

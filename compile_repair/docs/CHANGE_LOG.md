@@ -528,3 +528,27 @@ CP1 仍需 D5/D16/D18 决定与 CP0.1 审查。精确 pragma 指向缺失版本�
 - 资源：云端 CPU，沿用 5 个 Python 虚拟环境；只读访问 PyPI 与 GitHub 上的官方 solc-bin 索引；没有 LLM 调用，费用 0。
 - 未执行：模块代码修改；用户环境中的任何运行；任何安装。
 - 停止：CP1 不能开始。顺序为用户决定 D5、D16、D18 并授权 → Codex 执行 CP0.1 B、C → Claude 审查 → CP1。本轮提交并 push 到 `compile-repair`。
+
+
+## 10. 2026-11-13 CompileRepair 用户决定 D5、D16、D18（修改 AI：Claude）
+
+### 10.1 任务、依据与范围
+
+用户 2026-11-13：“I have followed the approach you recommended.”（针对 r2.4 的三项推荐）。只修改记录：`docs/DECISIONS.md`（当前表 D5、D16、D18 与历史 3 行）、`docs/HANDOVER.md`（第 0、1 节与第 6 节新记录）、本节、`PROGRESS.md`。
+
+### 10.2 实施方式和重要选择
+
+- D5：区间内升序。D16：生产 Slither 0.11.6 + crytic-compile 0.4.2，Python 3.10.x、solc-select 1.0.4、tree-sitter 0.20.4 独立环境；mando 中的 0.8.0 只做 6c 精确重放。D18：安装 59 个编译器，B 通过后执行（C 的原有前提）。
+- Codex 在 `cp0_1_development_v1/environment_installation_request.json` 中的 0.9.6 请求不再适用；按 4.2b 节 B 部分，Codex 先写 0.11.6 的请求与授权文件再安装。
+
+### 10.3 实测与数据结论
+
+本轮没有运行；依据的数字见 §9.3。
+
+### 10.4 用户批准、原文差异与待确认设计
+
+用户批准上述三项。D9、D10 仍待确认，D12、D13 待定。
+
+### 10.5 验收、资源、未执行事项与停止
+
+doc_check 全部 passed 后提交并 push。下一步 Codex 执行 CP0.1 B、C。

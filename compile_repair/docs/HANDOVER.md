@@ -4,7 +4,7 @@
 
 ## 0. 一句话
 
-CP0.1 A 已由 Claude 独立复核通过（1,546 组节点与独立导出逐组相同）。扩展探针后 D16 推荐改为 Slither 0.11.6（原推荐 0.9.6 依据的探针太窄）。下一步：用户决定 D5、D16、D18 并授权 → Codex 执行 CP0.1 B、C → Claude 审查 → CP1。
+用户已决定 D5（升序）、D16（生产 Slither 0.11.6）、D18（安装 59 个编译器）。下一步：Codex 按 PROMPTS r2.4 执行 CP0.1 B、C（不重做 A）→ Claude 审查 → CP1。
 
 ## 1. 当前状态
 
@@ -14,11 +14,11 @@ CP0.1 A 已由 Claude 独立复核通过（1,546 组节点与独立导出逐组�
 | 模块 | 9 个生产 Python 文件、4 个测试文件、9 个 fixture（CP0.1 A） | CP0_1_REPORT |
 | CP0 | 已审查通过 | artifacts/cp0_review_v1/README.md |
 | CP0.1 A | 已审查通过：新 D3 846/846；CP0 投影 1,546/1,546；key5 + 有序 IR 与 Claude 独立导出 1,546/1,546 相同；跨版本 678/678 | artifacts/cp0_1_review_v1/README.md、verify_cp01.json |
-| CP0.1 B、C | 未执行，等待 D16、D18 决定与授权 | PROMPTS 4.2b |
-| D16 | 19 个探针：0.9.6 通过 13、0.11.6 通过 19；846 个文件：0.9.6 全部通过、0.11.6 有 3 个 0.4.24 文件崩溃。推荐 0.11.6，备选 0.9.6；待用户决定 | PROMPTS 1.7 节；compare_prod.json、extended_probes.jsonl |
-| D18 | Codex 的 59 个编译器请求与官方 solc-bin 索引逐项一致；待用户决定 | check_install_request.json |
+| CP0.1 B、C | 待 Codex 执行；用户已决定 D16=0.11.6、D18=安装 59 个 | PROMPTS 4.2b；DECISIONS |
+| D16 | 已定（用户 2026-11-13）：Slither 0.11.6 + crytic-compile 0.4.2，Python 3.10 独立环境 | DECISIONS |
+| D18 | 已定（用户 2026-11-13）：安装 59 个，B 通过后执行 | DECISIONS |
 | 测试 | 模块 55 passed；DFG v2 2653 passed、9 warnings（Codex 环境） | cp0_1_development_v1 测试日志 |
-| 下一步 | 用户决定 D5、D16、D18 并授权 → CP0.1 B、C → 审查 → CP1 | PROMPTS 4.2b、4.3 |
+| 下一步 | Codex 执行 CP0.1 B、C → 审查 → CP1 | PROMPTS 4.2b、4.3 |
 | 其他决策 | D9/D10 待确认，D12/D13 待定 | DECISIONS |
 
 ## 2. 分支与工作树
@@ -175,3 +175,8 @@ D16 补测：0.8.3 结构与 0.8.0 完全相同但不支持顶层 using 与全�
 新发现：r2.3 推荐 Slither 0.9.6 只依据 6 个探针。扩展到 19 个后，0.9.6 有 6 种 0.8.7 起的合法写法无法分析，0.11.6 全部通过；846 个文件上 0.9.6 全部通过，0.11.6 有 3 个 0.4.24 文件崩溃，可用语义等价改写处理。推荐改为 0.11.6，备选 0.9.6；若选 0.11.6，Codex 已提交的 0.9.6 环境请求需要改写。
 
 下一步：用户决定 D5、D16、D18 并授权；Codex 执行 CP0.1 B、C（4.2b 节 r2.4 版）；Claude 审查后再进入 CP1。本轮没有模块代码改动、安装或 LLM 调用。详见 CHANGE_LOG §9。
+
+
+### 2026-11-13 用户决定 D5、D16、D18（修改 AI：Claude）
+
+用户采纳 r2.4 的推荐：D5 区间内升序；D16 生产工具链用 Slither 0.11.6 + crytic-compile 0.4.2（Python 3.10 独立环境，0.8.0 只做 6c 重放）；D18 安装其余 59 个官方编译器。已更新本文第 0、1 节与 DECISIONS。Codex 的 0.9.6 环境请求作废，B 开始时按 4.2b 节重写为 0.11.6 版本并落盘授权。没有代码改动或运行。详见 CHANGE_LOG §10。
