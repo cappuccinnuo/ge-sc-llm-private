@@ -1,7 +1,16 @@
 # EdgeSem v1：MANDO-LLM 第三个创新点（边语义增强）方案与 Codex Prompts
 
-版本：r17（2026-11-12）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
+版本：r18（2026-11-12）。分支：`edge-sem`，从 `node-sem@306c135b` 切出。
 设计文档（可评论）：MANDO-LLM Edge Semantic Enhancement — Design v3（https://claude.ai/artifact/DoZLiFncW2mrxWJwWfKaFn）。本文第 1–3 节是该设计在代码层面的落地版本；两者不一致时以本文为准，并在 PROGRESS.md 记录。
+
+**r18 相对 r17 的修改**（审查 EP8 最终产出 2968735c 后）：
+1. EP8 接受。独立复核（自写脚本，不调用 Codex 的分析代码）：
+   - 160 份结果（EP7 原名 G3R 20 + 主批 60 + 敏感性批 80）全部 50 轮；best 轮次等于 inner_val loss 最小者（相同取最早）；预测身份无重复；由逐节点预测重算的 BF1 与结果文件相同；同一任务同一折上，所有剖面与两个视图的测试节点集合及标签完全相同。
+   - 24 项配对对比（2 视图 × 2 任务 × 3 对照 × best/last）的均值差与 p 值，用自写的 Wilcoxon（无 0 差与并列时精确分布，否则 zsplit 正态近似、并列方差修正、无连续性校正）全部重现到 1e-6 以内；H1 原名 p = max(0.199677, 0.038867) = 0.199677，匿名描述性 p = max(0.048828, 0.160156) = 0.160156。
+   - pooled 与 SolidiFI/非 SolidiFI 分层的 96 个混淆矩阵按冻结 8C 的文件名规则重算，0 处不同。
+   - r17 的快照更正按要求追加，原快照字节不变。
+2. 解释要点（不是错误）：冻结名字规则在本节点集合上 BF1 为 99.74/99.64，原名视图所有模型 best 都不超过它（G4R 99.74/99.59），在 SolidiFI 层名字规则 99.98/99.97 高于全部模型；原名视图的差异基本落在名字识别范围内。H1 原始 p = 0.1997 已大于 0.05，Holm 校正只会更大，H1 在登记的标准下不成立，这一点不因 H2 结果改变。
+3. 用户 2026-11-12 选择：E-B 同样做匿名视图敏感性批（“Original + anonymized”）。EP9 按实际执行结构重写：复用 EP8 的 G4R、G3R-T 与 G3R，不重训；初值与零步等价闸门；Holm 族 = {H1（EP8 原名）, H2（EP9 原名）}；EP8 的全部必报描述；冻结内容与已知局限清单。
 
 **r17 相对 r16 的修改**（审查 EP8 进行中快照 db61b86d：140 项准备完成，主批 11/60 已完成，敏感性批 0/80）：
 1. 已完成部分接受，后台训练不需要中断或修改：
@@ -866,13 +875,41 @@ G3R × 2 个节点任务 × 10 折 = 20 fits（P2）。授权文件就绪后执�
 ### 4.11 EP9：阶段 E-B 与冻结（训练）
 
 ```text
-# EP9：阶段 E-B（G4R-A、G4R-Aπ、G3R-TA；训练）与方案冻结
+# EP9：阶段 E-B（G4R-A、G4R-Aπ、G3R-TA；训练）与方案冻结（r18 重写）
 
-- 2 个节点任务 × 3 个剖面 × 10 折 = 60 fits，P2，授权后执行。
-- 分析：H2（G4R-A − G4R 与 G4R-A − G4R-Aπ，取较大 p 值），H1/H2 两项 Holm 校正；G3R-TA − G3R-T；训练后 u_r 与 U 的范数（按关系与族）；注意力偏置 u_rᵀφ_e 在正负样本目标节点入边上的分布（描述）。
-- 输出 scripts/edge_sem/EP9_REPORT.md 与 scripts/edge_sem/EDGESEM_REPORT.md（汇总 E-A 与 E-B）。
-- 冻结：写 scripts/edge_sem/artifacts/frozen_schema/schema.json，包含关系列表、EDGE_FEATURE_NAMES、core_indices、E3 超参数、P2 定义，以及所有实现文件的 SHA。服务器阶段（E-C0、E-C、E-D）只能使用这份冻结内容；任何改动都要新版本号与理由。
+## 0. 决策与登记（训练前完成）
+- 把用户 2026-11-12 的选择原文（“Original + anonymized (Recommended)”：H2 与 Holm 在原名视图按登记进行；匿名视图同组剖面作为预先登记的描述性敏感性检验）写入 scripts/edge_sem/artifacts/ep9_v1/decisions.json，引用 ep8_v1/decisions.json。
+- 在 ep9_v1/protocol_p2/registration.json 追加登记（不改 EP7、EP8 已提交的登记）：H2 = reentrancy_node、原名、best、BF1 上 G4R-A − G4R 与 G4R-A − G4R-Aπ，两项均值差都为正，p 取两项未校正 p 的较大者；Holm 族 = {H1（取 ep8_v1/results/summary.json 中封存的原名 H1 原始 p，只读）, H2}；匿名结果在族外；必报项见第 2 节。提交该登记后才能生成授权、开始训练。
+
+## 1. 训练（P2，授权后执行，单 GPU 串行；原名批完成并验收后才启动匿名批）
+- 原名批：2 个节点任务 × {G4R-A, G4R-Api, G3R-TA} × 10 折 = 60 fits。
+- 匿名批（N-anon-s）：同样 60 fits。
+- 复用、不重训：两视图的 G4R、G3R-T 来自 ep8_v1（原名 primary、匿名 sensitivity），原名 G3R 来自 ep7_original_v1，匿名 G3R 来自 ep8_v1 sensitivity；只读核验收据与封存后引用。
+- 属性一律取 artifacts/ep6_v1/attributes/<task>/manifest.json，F4 取 f4_v2；G4R-Api 的置换按 placebo.py 以构造器种子生成。
+- 初值闸门（准备阶段，CPU，每任务每折）：(1) G4R-A 与 G4R-Api 中与 G4R 同名的参数，与 EP8 同折 G4R 的零步初值逐位相同；新增的 u、U 全为 0，编码器按构造器种子初始化；G4R-Api 与 G4R-A 的全部初值逐位相同。(2) G3R-TA 中与 G3R-T 同名的参数与 EP8 同折 G3R-T 初值逐位相同。(3) 每任务 fold 0：在 CPU、eval 模式下，G4R-A 与 G4R 的初始 logits 逐位相同（u = U = 0 时边项为 0），G3R-TA 与 G3R-T 同理。任一不满足就停下报告。
+- 两视图的初值与视图无关时直接引用同一文件（同 EP8）；EP8 已批准的准备快捷装配可以沿用，但仍须每任务 × 剖面先与完整装配逐位证明一致；正式 worker 一律完整装配。
+- 任何失败停止，不自动重试、不降配。
+
+## 2. 分析与报告
+- 主分析（原名）：H2 按第 0 节登记计算；Holm（两项族）给出 H1、H2 校正后 p 与结论。如实写明：H1 原始 p = 0.1997 已不显著，Holm 不改变这一点。G3R-TA − G3R-T（只加属性、不加 E1 边）为次要对比。
+- 敏感性分析（匿名）：与主分析相同的配对差值与未校正 p，逐项并列，标为描述性、族外。
+- 必报描述（两视图都做，与 EP8 相同口径）：逐折差值与 0 差值折数；逐折错误数与相对错误减少率；pooled 混淆矩阵；SolidiFI/非 SolidiFI 分层计数与 Wilson 区间、冻结 8C 名字规则基线（直接调用 diagnostics8c.scoring）；非 SolidiFI 正例逐节点表；持续漏报案例表；两条 F4/attrs 无学习规则基线。
+- 机制描述：从各 fit 的 best 检查点读取每层 u_r（按关系）与 U_f（按族）的范数；在 outer_test 目标节点的入边上，比较正例与负例目标的注意力偏置 u_rᵀφ_e 分布（按关系族汇总，描述性，不做检验）。权重只在本地读取，报告只写汇总数。
+- 输出 scripts/edge_sem/EP9_REPORT.md；scripts/edge_sem/EDGESEM_REPORT.md 汇总 E-A 与 E-B：两视图的全部登记对比、Holm 结论、名字规则对照、非 SolidiFI 层结果，以及第 4 节的局限清单。
+
+## 3. 代码组织（用户要求：功能内聚、分层目录、适度模块化、受控文件数）
+- 只新增 scripts/edge_sem/analysis_eb.py（E-B 分析、Holm 与 EDGESEM 汇总；通过 import 复用 analysis_ea 的函数，不复制）与 scripts/edge_sem/recon/ep9_run.py（准备、封存、授权、调度、冻结的单一入口；可 import ep8_run 的辅助函数）。
+- 不修改 analysis_ea.py 与 recon/ep8_run.py（EP8 的冻结核验绑定其 SHA）；如必须改动共享函数，先停下说明原因。执行沿用 execution.py、feature_views.py、trainer.py；不得新增执行器、训练器或评分器副本；测试文件不受此限。
+
+## 4. 冻结
+写 scripts/edge_sem/artifacts/frozen_schema/schema.json（及 seal），内容：
+- 版本号 edgesem-v1；关系列表（RELATION_FAMILY、NEW_RELATIONS、PROFILES）、EDGE_FEATURE_NAMES、core_indices、context_indices、E3 超参数（编码器维度 16、隐藏 32、u/U 零初始化）、P2 定义、种子规则；
+- 产物引用：f4_v2 与 ep6_v1/attributes 的 manifest SHA、anon_binding/8G 版本；
+- 视图决定：D1 原名为主、匿名为预登记描述性敏感性检验（EP8、EP9）；
+- 所有生产实现文件（scripts/edge_sem 下非 tests、非 recon 的 .py）的 SHA；
+- 已知局限清单（服务器阶段必须继续报告）：fallback/receive 函数节点不在冻结投影中，MOD_APPLY 计为 not_in_graph（E-C0 按 owner 类型报告）；匿名闸门实际覆盖约 16%/14% 属性行、库调用 3 条/任务；第 61 位因 pragma 无上界而无法判定的比例；46/50/51/53 位源侧近端点；MOD_APPLY 守卫类型位恒为 47；带修饰器函数与合成节点无语义 CFG（unk_cfg）；ENV/状态边无 use_context 来源；原名视图名字泄漏（名字规则 ≥ 模型）。
+服务器阶段（E-C0、E-C、E-D）只能使用这份冻结内容；任何改动都要新版本号与理由。
 
 ## 验收
-60 个 fit 成功并核验；两份报告完成；冻结文件提交。
+原名 60 与匿名 60 个 fit 全部成功并核验；两份报告完成；冻结文件提交。不论结果如何，都不修改已登记的假设与剖面。不自动进入服务器阶段。
 ```
