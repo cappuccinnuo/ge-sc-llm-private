@@ -35,6 +35,7 @@ def run_fake(tmp_path, raw, solc_ok, d3_ok, versions=('0.4.12','0.4.17','0.5.0')
         ok=d3_ok(compilation.compiler.version)
         return {'d3':ok,'profile':profile,'d3_a':ok,'d3_b':ok,'error_first_line':None if ok else error,
                 'exception_type':None if ok else 'FixtureD3Failure',
+                'graph':{'schema':'compile-repair-graph-v1','declarations':[],'nodes':[], 'cfg_edges':[], 'calls':[]},
                 'nodes':[{'key5':['C','f()','ENTRYPOINT',0,1],'length':1,'ir':[],'declaration_kind':'function'}] if ok else []}
     store=ArtifactStore(tmp_path/'run')
     record=repair_unit(unit_for(raw),compilers,store,io.StringIO(),compile_fn=compile_fn,slither_fn=slither_fn)

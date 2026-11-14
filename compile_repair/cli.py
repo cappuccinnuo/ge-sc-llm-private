@@ -7,8 +7,8 @@ from compile_repair.evaluation.survey import survey, revalidate_cp0
 from compile_repair.pipeline import repair
 
 
-def main(argv=None):
-    """Run a survey; exit 2 on an archived stop, never retry or overwrite."""
+def main(argv=None, result_check=None):
+    """Parse CLI arguments; an optional per-input audit may stop/seal repair."""
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command")
     cp0 = sub.add_parser("survey", help="CP0 inventory, compiler matrix and D3 survey")
@@ -28,7 +28,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.command == "repair":
         try:
-            result = repair(args.paths, args.output, args.snippet, args.known_version, args.order, args.regression)
+            result = repair(args.paths, args.output, args.snippet, args.known_version, args.order, args.regression,
+                            result_check=result_check)
         except (ValueError, OSError) as exc:
             parser.error(str(exc))
     elif args.command == "survey":

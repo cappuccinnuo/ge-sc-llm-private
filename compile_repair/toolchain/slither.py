@@ -1,4 +1,4 @@
-"""PROMPTS CP0.1 A1/B/C continuation: profiles, settings and stable node_facts_v2.
+"""PROMPTS 3.8/4.4: profiles, stable D3 facts and deterministic CFG/call storage.
 
 Read crytic-compile's saved AST, never deduplicate nodes, and treat lengths as
 diagnostics. The CP0 projection exists solely to verify frozen cp0_v2 evidence.
@@ -206,6 +206,78 @@ def compare_nodes(left, right):
     return output
 
 
+
+def _graph_text(value):
+    """Normalize object reprs in graph text; fail on unresolved addresses."""
+    text = _OBJECT_REPR.sub(r"<\1>", str(value))
+    if " object at 0x" in text:
+        raise ValueError("Residual object address in graph text")
+    return text
+
+
+def _callee(ir):
+    from slither.core.declarations.function import Function
+    function = getattr(ir, "function", None)
+    if isinstance(function, Function):
+        owner = getattr(function, "contract_declarer", None)
+        return {"contract": owner.name if owner is not None else "<top-level>",
+                "function": function.full_name}
+    # Dynamic calls, builtins, events, public getters, and contract creation
+    # need not resolve to a declared Function. Preserve their normalized IR.
+    return {"text": _graph_text(ir)}
+
+
+def graph_facts(slither):
+    """Serialize declared CFGs and every Call in original Slither order.
+
+    Keys use D4 occurrence ordinals. Edges retain sons order and branch kind;
+    calls retain node/IR order. Missing endpoints or duplicate identities raise
+    rather than producing an incomplete graph. Paths and timings live outside
+    this payload, in invocation/manifest records.
+    """
+    from slither.slithir.operations import (
+        Call, InternalCall, LibraryCall, HighLevelCall, LowLevelCall)
+    call_kinds = {LibraryCall: "library", InternalCall: "internal",
+                  HighLevelCall: "high-level", LowLevelCall: "low-level"}
+    result = {"schema": "compile-repair-graph-v1", "declarations": [],
+              "nodes": [], "cfg_edges": [], "calls": []}
+    seen = set()
+    for owner, function, kind in _declarations(slither):
+        result["declarations"].append({"contract": owner, "function": function.full_name,
+                                       "declaration_kind": kind})
+        ordinals, keys = Counter(), {}
+        for node in function.nodes:
+            mapping = read_mapping(node.source_mapping)
+            node_type = getattr(node.type, "name", str(node.type))
+            start = mapping["start"]
+            ordinals[(node_type, start)] += 1
+            key = [owner, function.full_name, node_type, start, ordinals[(node_type, start)]]
+            if tuple(key) in seen:
+                raise ValueError("Duplicate graph key5: " + repr(key))
+            seen.add(tuple(key))
+            keys[id(node)] = key
+            result["nodes"].append({"key5": key, "node_type": node_type,
+                "length": mapping["length"], "ir": [_graph_text(ir) for ir in node.irs],
+                "declaration_kind": kind})
+        for node in function.nodes:
+            key = keys[id(node)]
+            for son in node.sons:
+                if id(son) not in keys:
+                    raise ValueError("CFG endpoint outside its declared function")
+                edge_kind = ("true" if son is node.son_true else
+                             "false" if son is node.son_false else "next")
+                result["cfg_edges"].append({"source": key, "target": keys[id(son)], "kind": edge_kind})
+            for index, ir in enumerate(node.irs):
+                if isinstance(ir, Call):
+                    # Exact type lookup intentionally prevents LibraryCall's
+                    # HighLevelCall parent from swallowing library calls.
+                    cls = type(ir)
+                    result["calls"].append({"node": key, "ir_index": index,
+                        "kind": call_kinds.get(cls, cls.__name__),
+                        "operation": cls.__name__, "callee": _callee(ir)})
+    return result
+
+
 def run_slither(compilation, profile="regression_6c", cp0_projection=False):
     """Construct Slither after observed solc rc=0; report D3(a) and D3(b).
 
@@ -298,6 +370,8 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
         result.update({"d3": False, "exception_type": type(exc).__name__,
                        "error_first_line": str(exc).splitlines()[0] if str(exc) else type(exc).__name__,
                        "detail": str(exc)})
+    if profile == "production" and result["d3"]:
+        result["graph"] = graph_facts(slither)
     result["elapsed_seconds"] = time.monotonic() - start
     if hashlib.sha256(path.read_bytes()).hexdigest() != compilation.source_sha256:
         raise ValueError("Source changed during Slither analysis")

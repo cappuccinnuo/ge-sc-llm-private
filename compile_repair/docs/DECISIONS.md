@@ -4,7 +4,7 @@
 
 状态：已定（用户）＝用户明确决定；已定（证据）＝由证据确定，用户未反对；建议＝待用户确认；待定＝尚未讨论到；撤销。
 
-## 1. 当前决策（PROMPTS r2.7）
+## 1. 当前决策（PROMPTS r2.8）
 
 | 编号 | 内容（摘要） | 状态 | 最近变化 |
 |---|---|---|---|
@@ -198,3 +198,15 @@
 |---|---|---|---|---|
 | 2026-11-14 | 缺陷 | `command()` 路径缺陷已修复并经独立复核；仓库根下 argv 1,347/1,347 不变 | CHANGE_LOG §18.3；argv_equality.jsonl、cwd_equivalence.json | Claude |
 | 2026-11-14 | 存储 | CP2 存储格式补充：CFG 边种类、调用按确切类型分类（LibraryCall 先于 HighLevelCall）、其他 Call 子类不丢弃 | CHANGE_LOG §18.2 | Claude |
+
+
+### CP2 既有下限差异的归因授权（2026-11-14，修改 AI：Codex）
+
+用户回复“允许单列既有下限差异，记录后继续”。只在 CP2 与 6c 的选定版本比较中，单列 SHA256 5ec2ee307684c021492194d5e63593834e164bcf878d1cddb48a0b1e1ad13237 已有的 0.4.11 → 0.4.12 下限差异；CP2 与 cp0_v2 的三类归因、D3 与 239/239 occurrence 精确重放标准不变。没有修改 PROMPTS 原文、版本策略或下限。证据与授权分别在 cp2_development_v1/attribution_review_request.json、attribution_existing_production.json、attribution_authorization.json；该请求的编译器计数字段名称另由 compiler_count_clarification.json 澄清为 96 个可信安装、92 个支持版本、4 个历史对照。正式运行在获得本授权之后开始。
+
+
+### CP2 实测停止与既有决定保持（2026-11-14，修改 AI：Codex）
+
+两次 production 各 843 成功 / 3 预期未修复，843 图字节相同、842 同版生产归档相同；但 regression_6c 第 87 个 buggy_43.sol 的原始 occurrence 多重集合不一致（86 同 / 1 差），已停止。剩余 152 与降序未运行，CP2 未通过，CP3 前提未满足。下一步仅建议独立审查，新探针、重放或方案改变先提出具体范围并咨询用户。证据 CP2_REPORT、CHANGE_LOG §19、cp2_6c_v1、replay_discrepancy_analysis.json。
+
+没有新增或放宽 D3/D5/D16/D18/D19；当前表仅把滞留的 r2.7 标题同步为实际 r2.8。上面的批准只改单项版本归因，不能据此改变 239/239 或下限。本轮无安装、下载、LLM 或全局 solc 变更；旧决策历史字节保留。

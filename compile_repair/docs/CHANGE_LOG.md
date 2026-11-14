@@ -975,3 +975,69 @@ CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp1_1_review_v1/README 全文，CHANGE_LOG:128713、PROGRESS:28555 追加区间，6 个文件全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP1.1 审查通过；下一步 Codex 执行 CP2。本轮提交并 push 到 `compile-repair`。
+
+
+## 19. 2026-11-14 CompileRepair CP2：生产图确定性通过，6c 精确重放首差停止（修改 AI：Codex）
+
+### 19.1 任务、依据与范围
+
+用户要求执行 PROMPTS r2.8 §4.4 CP2。已通读全文与共享上下文 §4.1、HANDOVER §0–5、DECISIONS、CHANGE_LOG §17/18、cp1_review_v1 和 cp1_1_review_v1 的 README。在 /home/zhao/SmartContract/ge-sc-llm-compile 的 compile-repair 分支执行 git pull --ff-only origin compile-repair，从 27aa46fe 快进至 d56c6e0874bd30a004d7a5c7b4ce9e361d28ed18。
+
+生产仅修改 toolchain/slither.py、pipeline.py、cli.py；测试修改 tests/test_pipeline.py，新增 tests/test_graph.py、tests/fixtures/graph_calls.sol。仍为 14 个生产 .py，11 个测试、29 个 fixture（原 28 个保留）。新增 CP2_REPORT；PROGRESS 追加；HANDOVER 更新 §0–5 且 §6 追加；DECISIONS 同步 r2.8 标题并追加授权和停止状态。新增产物仅 cp2_development_v1、cr_store_mando_v1、cr_store_mando_v2、cp2_6c_v1；全部交付文件见 delivery_inventory.json。本节沿用 NodeSem 五段式训练改变记录，没有实际训练改动。
+
+旧 CP0–CP1.1 报告/产物与结论、PROMPTS、原 fixture、scripts/**、语料、模型、根交接/训练文档、EdgeSem、环境和编译器不改。生产使用 production profile 与既有 92 支持版本；6c 只在 mando 中从本仓库根运行冻结函数。不实施 CP3/CP6/LLM，不安装或下载。
+
+### 19.2 实施方式和重要选择
+
+graph_facts 按 Slither 的声明/节点/sons/IR 顺序保存 key5、length、类型、规范化 IR、CFG true/false/next 与调用点/目标。用确切操作类映射，LibraryCall 不会归为 HighLevelCall；其他 Call 子类按类名全部保留。目标能解析成 Function 时记录声明合约与 full_name，否则存规范化文本；重复 key5、跨函数端点或残留对象地址直接抛错。旧 node_facts、D3、CP0 投影函数不变，只有 production D3 通过才增加图，regression_6c 不走此新路径。
+
+pipeline 写 graph.json、应用既有 provenance 标记、保存图 SHA，nodes.json 保持旧投影；日志避免重复整图。cli 仅传可选 result_check 回调，在单输入清单 flush 后验收，异常由现有停止/封存处理；回调不参与选版。正式 runner 使用共同 cli.main 的 repair --regression mando，已知失败与归因只用于验收。手写探针覆盖 10 类调用、modifier/自由函数；测试验证重复节点序号、sons 顺序、真实两次图及首差后不启动第二输入。
+
+6c 直接 import 冻结 validate_slither._compile / slither_full_facts，文件 SHA256 4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8，无复制或 monkeypatch。唯一重放前已核对 239 个原报告目标路径，均位于 ge-sc-llm/experiments/ge-sc-data/source_code，SHA 与当前副本一致；保留旧 target 以符合既有 0.4.11 路径敏感结论，从本仓库根调用。这是运行前选择，不是失败后换路径重试。
+
+开发工具问题及处理：UNC 读被拒后使用 scoped WSL；两次只读 Python 引号错误在写文件前改用 base64；WSL 无 rg，用已有 grep/sed/Python；基线 code_refs 在 production 缺 torch，在基线创建前改由已有 mando 导入，无安装。停止后的文档读取一次自动审批超时，工具允许的一次只读重试成功。一次合并文档写命令超过 Windows 长度上限（os error 206），进程未创建、文件未写，改为分文档短命令；详见 baseline、post_stop_tool_issue、documentation_write_issue。没有因这些辅助问题重试正式验收。
+
+沿用旧任务的无损 tar 交付：三个 store.tar.gz 的 4,229/4,229/93 成员（均含原 seal）逐个回读 SHA 相同，原散文件保留不改；日志压缩保留原字节 SHA。开发阶段 evidence_seal 的 awaiting_attribution_review 保持原时点含义，授权和正式结果另追加，最终交付由 delivery_seal/inventory 绑定。
+
+### 19.3 实测与数据结论
+
+| 项目 | 实测 | 证据（cp2_development_v1 下，另注明除外） |
+|---|---|---|
+| 两次生产 | 各 846 输入，843 success / 3 规定 unrepaired | ascending1/2_receipt、invocation |
+| 确定性 | 843/843 图字节相同；846/846 状态/版本相同 | ascending2_acceptance |
+| 规模 | 每轮 110,996 节点、87,645 CFG 边、45,565 调用，全 original | cp2_summary |
+| CP0 对照 | 842 同版、1 项 (a)；同版生产归档 key5+IR 842/842 相同 | ascending1_acceptance |
+| 与 6c 选版 | 238 同、1 已批准的既有下限差异 | cp2_summary、attribution_authorization |
+| 6c 精确重放 | 87 已运行：86 同、1 差后停止；152 未运行 | cp2_6c_v1 的 summary/comparison |
+| 降序跨版本 | 未运行 | cp2_summary.descending |
+| 手写调用探针 | 7 声明、41 节点、36 边、15 调用，全部 10 类 | test_evidence_production.json.gz |
+| 归档 | 4,229/4,229/93 成员均无损 | *_archive_audit |
+
+规定失败均为 reentrancy_bonus.sol、reentrancy_cross_function.sol、reentrancy_insecure.sol，没有节点/图产物。两次生产 CLI 返回 2 表示三个 unrepaired，验收 wrapper 确认预期集合后返回 0；6c 则返回 2 且 stopped，未转换为通过。生产主阶段 275.856/276.572 秒、完整命令 276.722/277.496 秒；这是实测，未证明与方案 50–60 分钟估计差异的原因。首次 948 次前置 solc、852 次 Slither，累计 70.651/170.138 秒，版本/SHA/参数/结果齐全。
+
+CP0 唯一变动为 unchecked_low_level_calls/source_files/0x366cf49c6bc3986b20ecf4fd7c05f0c617332e8c.sol（SHA f0028ebd798334727aa07d9857bc3996563b8dc250b899882cb1346fc5d24014），0.5.6 → 0.5.5；后者在 CP0.1 已安装、CP0 的 37 版中没有，本轮 rc0、D3=true，符合 (a)。842 个同版本只比 key5+规范化 IR，不按 length 判差。按目录的来源、系列、flags 全表在 CP2_REPORT / cp2_summary，不读标签。
+
+6c 停止文件 buggy_43.sol 的 SHA 为 7e0232977cf6d105598c2b137ffa185bd4bac95da9cf4e40925957c4744f77f2，solc 0.5.0 的 SHA 为 c1bb15b520f5076aebd7aa9ef4ce5fa245b6f210a91cbd2064b9e383e6510e08，均与旧身份相同；编译 rc0、构造成功、两边 325 CFG 节点、46 重复上下文且 comparable。旧 252 occurrence、本次 251，仅旧报告多 Post 继承上下文的 L1 [162,out,DEF]，canonical_name=MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).out，函数/节点/声明起点为 4887/5154/4989，tags=[inheritance]，重数 1；节点原文为循环条件 i < 32。
+
+停止后独立离线核对包含 filename/end/context_index 的完整原始行，251 行全相同，仍仅这一条旧记录；函数表只 Post 的 occurrences 从 15 变 14，其余摘要相同。冻结代码直接从 local_variables_written 生成 L1 DEF，故可定位到旧原始提取层；本次键投影与 CP2 图不是造成这条差异的环节。SSA/继承写集合构造只是未证实假设，归档未含所需 SSA 状态，底层根因未证明；replay_discrepancy_analysis 保存所有差异。未再次编译、删除事实或改旧提取器。
+
+### 19.4 用户批准、原文差异与待确认设计
+
+2026-11-14 用户回复“允许单列既有下限差异，记录后继续”。授权仅在 CP2 对 6c 的选版归因中单列 SHA 5ec2ee307684c021492194d5e63593834e164bcf878d1cddb48a0b1e1ad13237 的旧 0.4.11 → CP0/本轮 0.4.12；这不是新装低版本、Slither 升级或设置重试。正式运行前已写 attribution_authorization、DECISIONS 和报告。CP2 对 CP0 三类、D3、239/239 精确重放及 0.4.12 下限保持，PROMPTS 未改。
+
+请求字段曾把 96 个可信安装标为 supported，保留原记录并通过 compiler_count_clarification 澄清 92 支持 + 4 历史。需要处理的实质事项为：旧下限归因已批准；新 6c 抽取差异未解决，不能把前项批准扩大成放宽重放。D5/D16/D18 不变，D19 仍为建议；没有替代方案实施。
+
+建议下一步先独立审查 Post 局部写差异；如需新探针、再次运行或方案改变，先提出具体可审查范围并咨询用户，再建新批次。本轮未执行该建议；CP3 的前提不满足。
+
+### 19.5 验收、资源、未执行事项与停止
+
+production 模块 567 passed/6 skipped（pytest 54.56 秒；整命令 54.988 秒），mando 模块 130/443（12.85/13.063 秒），mando DFG v2 2653 passed/9 个既有 warnings（159.05/159.806 秒）。各环境 python -B -m pytest -q -ra -x -p no:cacheprovider 加 compile_repair/tests 或 scripts/DFG/dfg_v2/tests 与新 /tmp basetemp，完整 argv/环境/日志在 pytest_*.json。三轮首次通过；production 专属 skip 不能算 mando 通过，测试后实现未改并用封存 SHA 核对。
+
+真实验收停在 §4.4 第 2 节：两次全量、同版归档、版本归因与分布通过，239/239 重放未满足，87 已运行中的 86 同 / 1 差；剩余 152、降序、CP3 均未运行。没有重试、改键或改旧产物。CP2 整体未完成，后续仅离线分析、归档、强制记录和提交检查。
+
+CPU、OMP/MKL=2、费用 0 美元；无安装、下载、LLM、HGT 训练、GPU 锁、包升级或全局 solc 切换。最终核验冻结跟踪文件、354 code_refs、96 solc、包元数据、旧历史字节与 14 实现哈希；doc_check 覆盖 CP2_REPORT 全文、PROGRESS:29100、CHANGE_LOG:132329、HANDOVER/DECISIONS 全文与四个新 README，共 9 份，结果在本段后补记。全部记录与检查通过后按要求本地提交 CP2 停止现场，不自动 push；准确提交号以 git log 的 CP2 条目与最终答复为准。
+
+
+最终保护与文档检查补记（修改 AI：Codex）：frozen_audit.json 的 passed=true；28,373 个受保护跟踪文件不变（模块外 27,845、旧产物 473、旧 fixture 28），354 code_refs、96 solc 文件、239 原重放源码均相同。本轮登记的 mando 90 份与 production 114 份包元数据文件没有变化；该数字是本轮基线实际纳入的元数据文件数，不替换旧批次的环境统计口径。14 个实现 SHA 与测试时封存相同，原 Slither 函数 AST 除授权的 run_slither 接入外均保持，PROGRESS/CHANGE_LOG 前缀及 HANDOVER/DECISIONS 历史字节保留，未预期跟踪改动为 0。
+
+doc_check_v1 对全部 9 份目标 passed=true、rc0；本补记写入后用同一目标再运行 doc_check_v2，作为最终文档收据，并保存各文档完整 SHA。冻结审计和文档通过不表示 6c 239/239 通过；CP2 的停止结论保持。最终交付精确清单为 delivery_inventory，seal 绑定文件/文档/归档；git diff --cached --check 和暂存字节核验结果保存 staging_check.json，随后再次核对加入交付清单本身后的暂存范围再本地提交，不 push。

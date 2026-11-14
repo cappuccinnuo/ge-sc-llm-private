@@ -201,3 +201,18 @@ CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1
 - CP1.1 审查通过：路径缺陷修复（8/8 rc 0）、argv 1,347/1,347 不变、三种工作目录结果相同；超时、无 git、regression_6c 防护符合要求。
 - PROMPTS r2.8：新增 1.11 节；CP2 存储格式补充边种类与调用分类（LibraryCall 先于 HighLevelCall、其他 Call 子类不丢弃）；第 2 节改为列出归因；给出运行时间估计。
 - 证据 `artifacts/cp1_1_review_v1/`；记录 `docs/CHANGE_LOG.md` §18。下一步 Codex 执行 CP2。
+
+
+## 2026-11-14 CP2：生产图存储通过，6c 首差停止待审查（修改 AI：Codex）
+
+按 PROMPTS r2.8 §4.4，先 pull --ff-only 至 d56c6e0874bd30a004d7a5c7b4ce9e361d28ed18，完整阅读方案与指定交接/审查记录。修改 toolchain/slither.py、pipeline.py、cli.py、tests/test_pipeline.py，新增 tests/test_graph.py、tests/fixtures/graph_calls.sol；仍 14 个生产 .py。实现 key5/有序 IR/标记、CFG 分支与全部 Call 存储、逐输入 flush 后验收停止回调，不改 D3/选版。四个新批次为 cp2_development_v1、cr_store_mando_v1/v2、cp2_6c_v1；完整文件清单 delivery_inventory。报告 CP2_REPORT，交接 HANDOVER §6，训练改变记录 CHANGE_LOG §19，DECISIONS 记录授权与停止状态。
+
+2026-11-14 用户回复“允许单列既有下限差异，记录后继续”，仅在与 6c 的选版归因中单列旧 0.4.11 → 0.4.12，CP2 对 CP0 三类及 239/239 精确重放标准保持。请求 96/92 计数字段另以 compiler_count_clarification 澄清为 92 支持 + 4 历史，保留原记录。6c 唯一运行前核对 239 原目标路径及源码 SHA；保留旧目标，从本仓库根只 import 冻结编译和提取函数。
+
+两次 production 各 846 输入、843 成功 / 3 规定失败，843 图字节相同、846 状态和版本相同；每轮 110,996 节点、87,645 边、45,565 调用，节点全 original。主阶段 275.856/276.572 秒、完整命令 276.722/277.496 秒，不能沿用估计时间。CP0 842 同版且生产归档 key5+IR 842/842 相同，1 项 (a) 0.5.6 → 0.5.5；与 6c 选版 238 同、1 已批准下限差异。来源 cp2_summary、逐输入 acceptance/receipt；按目录来源/系列/flags 表见 CP2_REPORT，不读标签。
+
+6c 第 87 个 buggy_43.sol 首差停止：86 同 / 1 差，旧 252、本次 251 occurrence，仅旧 Post 继承上下文的 [162,out,DEF]，节点起点 5154 为循环条件 i < 32。停止后离线逐字段核对也只有此差异，底层根因未证明，未重复编译或改键。剩余 152、降序与 CP3 未运行；CP2 整体未完成。完整现场在 cp2_6c_v1，分析在 replay_discrepancy_analysis，下一步先独立审查，新执行或改方案先咨询。
+
+各环境 python -B -m pytest -q -ra -x -p no:cacheprovider 加目标与新 /tmp basetemp：production compile_repair/tests 567 passed/6 skipped（54.56 秒）、mando 同目标 130/443（12.85 秒）、mando DFG v2 2653 passed/9 既有 warnings（159.05 秒），收据 pytest_*.json。三轮首次通过，手写探针全部 10 类调用和停止/确定性测试通过。前置读 UNC、引号、缺 rg、code_refs 依赖分别用 scoped WSL/base64/现有工具/已有 mando 处理；停止后一次只读审批超时允许的一次重试成功，一次超长文档命令未创建进程，拆成短命令，均已记录，未安装内容或重试正式验收。
+
+三个正式存储无损 tar 分别 4,229/4,229/93 成员，逐成员回读通过，散文件保留不删。最终 frozen_audit、9 份 doc_check、交付与暂存核验见 CHANGE_LOG §19.5；完成强制记录后本地提交，不自动 push。旧 CP0–CP1.1 产物/结论、scripts、输入、环境、编译器和根记录保护不改。没有安装、下载、LLM、HGT 训练、GPU 锁或全局 solc 改动，费用 0。

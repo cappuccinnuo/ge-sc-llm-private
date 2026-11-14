@@ -1,8 +1,8 @@
 """PROMPTS 3.1/4.3: one repair entry, CP1 environment steps 1 and 6 only.
 
 Every input is a read-only single-file unit; copies and invocation records live
-in an exclusive store. Directory/import-closure assembly and graph edges are CP3
-and CP2 work respectively. Tool integrity failures stop the batch without retry.
+in an exclusive store. CP2 adds ordered CFG/call storage; project assembly
+remains CP3 work. Tool integrity failures stop the batch without retry.
 """
 import hashlib
 import json
@@ -79,15 +79,21 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             if compiled.returncode == 0:
                 any_solc_success = True
                 analysis = slither_fn(compiled, profile="production")
-                emit(journal, dict(kind="slither", unit_id=unit.unit_id, **analysis))
-                attempt["slither"] = {k: v for k, v in analysis.items() if k != "nodes"}
+                emit(journal, dict(kind="slither", unit_id=unit.unit_id,
+                                  **{k: v for k, v in analysis.items() if k != "graph"}))
+                attempt["slither"] = {k: v for k, v in analysis.items() if k not in ("nodes", "graph")}
                 if analysis["d3"]:
                     marked = [dict(node, provenance=mark_span(provenance, node["key5"][3], node["length"]))
                               for node in analysis["nodes"]]
+                    graph = dict(analysis["graph"])
+                    graph["nodes"] = [dict(node, provenance=mark_span(
+                        provenance, node["key5"][3], node["length"])) for node in graph["nodes"]]
+                    graph_path = store.write_json(prefix + "graph.json", graph)
+                    attempt["slither"]["graph_sha256"] = sha256(graph_path)
                     verify_provenance(source.content, path.read_bytes(), provenance)
                     store.write_json(prefix + "nodes.json", {"schema": "cp1-marked-node-facts-v1",
                         "input_sha256": source.sha256, "working_sha256": compiled.source_sha256,
-                        "nodes": marked, "note": "CFG edges and calls are deferred to CP2"})
+                        "nodes": marked, "note": "Ordered CFG edges and calls are stored in graph.json"})
                     record.status, record.reason = "success", None
                     record.selected_version, record.settings = version, settings
                     if settings:
@@ -120,13 +126,15 @@ def _code_commit(root):
 
 
 def repair(paths, output, snippets=(), known_version=None, order="ascending", regression=None,
-           *, compile_fn=compile_file):
+           *, compile_fn=compile_file, result_check=None):
     """Run the common production entry for files/snippets; return batch summary.
 
     Directory inputs, duplicate paths and missing files fail before creating the
     output. Unrepaired inputs are valid records; unexpected failures stop/seal
     the partial batch. compile_fn can inject recorded compiler outcomes in
     tests. Missing git/HEAD is flagged and sealed as null, with file hashes kept.
+    An optional result_check(record, output_path) may raise to stop and seal
+    after a flushed per-input record; it never participates in version choice.
     No compiler download, global selection or LLM occurs.
     """
     if order not in ("ascending", "descending") or regression not in (None, "mando"):
@@ -181,6 +189,8 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
                     "status": record.status, "reason": record.reason, "selected_version": record.selected_version})
                 print("CP1 {}/{}: {} {}".format(index, len(supplied), record.status,
                                                record.selected_version or record.reason), flush=True)
+                if result_check is not None:
+                    result_check(record, store.path)
             summary["status"] = "complete" if all(x["status"] == "success" for x in summary["units"]) else "unrepaired"
         except Exception as exc:
             summary.update(status="stopped", exception_type=type(exc).__name__, error=str(exc))
