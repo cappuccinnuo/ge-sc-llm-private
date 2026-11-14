@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.7（2026-11-14；r2.6 同日；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.8（2026-11-14；r2.7、r2.6 同日；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -64,6 +64,11 @@
 4. D5、D16、D18 的状态改为用户已定（2026-11-13）。≤ 0.4.11 的测量（CP1 第 6 节）：0.4.11 在两种工作目录下 5/5 通过 D3，0.4.0/0.4.2/0.4.9 全部缺文件名；下限维持 0.4.12，新增 D19 记录（建议，可由用户改）。
 5. CP2 提示按当前状态更新：前提为 CP1.1 通过；预期未修复只有 3 个已知 Slither 侧失败；存储格式与确定性要求写明；与 0.8.0 的结构差异已在 1.7、1.8 节确定，CP2 改为与同版本的生产归档逐组相同；跨版本比较使用生产工具链。
 6. CP3 分类表加入两项已知缺口：`||` pragma（冻结区间语义不支持）与 Slither 在进程内运行没有超时。
+
+**r2.8 相对 r2.7 的修改**（CP1.1 审查；证据 `artifacts/cp1_1_review_v1/README.md`）：
+1. CP1.1（提交 27aa46fe）审查通过（新增 1.11 节）。CP2 可以开始。
+2. CP2 的存储格式写得更具体，以免静默丢失或错分：CFG 边带分支种类（true / false / 顺序）；调用按 SlithIR 操作的确切类型分类，`LibraryCall` 是 `HighLevelCall` 的子类，必须先判断；其他 Call 子类（InternalDynamicCall、Send、Transfer、SolidityCall、EventCall、NewContract）按类名记录，不丢弃。
+3. CP2 第 2 节中“6c 版本与当前升序选定不同的 1 个文件另行重跑”已不适用（生产工具链与 92 个编译器下选定版本可能有更多不同，且生产存储与 6c 的 0.8.0 结果本就不可直接比较）；改为列出并归因，不重跑。给出 CP2 的运行时间估计。
 
 ---
 
@@ -227,6 +232,18 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | 端到端（Claude 环境） | 精确 `pragma solidity 0.4.10;`（CRLF、同行代码）→ 覆盖后 0.4.12 成功，字节长度不变，节点全部 original；无 pragma 含 throw/var → 推断区间 [0.4.12, 0.5.0)；两条 pragma 交集 [0.5.0, 0.5.3) |
 | 历史编译器 | 0.4.11 在仓库根与 `/` 下各 5/5 通过 D3；0.4.0、0.4.2、0.4.9 全部缺文件名（crytic-compile 对 0.4.0–0.4.10 不加 `--allow-paths`） |
 | 缺陷 | `command()` 相对路径：工作目录为 `/` 或字符前缀相同的目录时合法合约判为 solc 失败（Claude 复现：同一合约在这两种目录下 `all_solc_candidates_failed`，在正常目录下成功） |
+
+### 1.11 CP1.1 结果（2026-11-14 审查；证据 `artifacts/cp1_1_v1/`、`cp1_1_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| `command()` | 按路径组件判断（`Path.relative_to`），目录内相对、目录外绝对；Claude 复测 `/`、字符前缀兄弟、包含目录、无关目录在两个环境中 solc 都 rc 0 |
+| argv 不变 | Claude 独立核对 846 个 MANDO 文件 + 501 个兼容性组合（工作目录为仓库根）：新旧 argv 1,347/1,347 相同（两个环境） |
+| 流水线 | Claude 环境：同 3 个输入在正常目录、`/`、字符前缀兄弟目录下状态、选定版本与节点完全相同（此前后两者为 all_solc_candidates_failed）；Codex 的 9 个 CLI case（3 fixture × 3 目录）封存一致、三种目录逐个相同 |
+| regression_6c 防护 | 工作目录为 `/` 或字符前缀相同但不包含输入时，运行前拒绝 |
+| solc 超时 | 该输入记为 unrepaired / solc_timeout，不重试、不试其他候选，批次继续；完整性错误仍停止批次 |
+| 无 git | code_commit 为 null，summary 标记 code_commit_unavailable，实现文件哈希照常封存 |
+| 测试 | production 562 passed / 6 skipped；mando 128 / 440；DFG 2653 passed |
 
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
@@ -725,14 +742,15 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 
 ## 1. 全量运行
 - cli repair --regression mando（输入为 846 个 source_files），产物 compile_repair/artifacts/cr_store_mando_v1/：清单、每个编译单元的存储（3.8 节，报告中给出 schema）、seal。toolchain/slither.py 增加图序列化。
-- 存储内容：节点（key5、source length、节点类型、规范化后的有序 SlithIR、original/added/rewritten 标记）；CFG 边（同一函数内按 Slither 的 sons 顺序，用 key5 表示两端）；调用（按 SlithIR 操作类型分 internal / high-level / low-level / library，记调用点节点 key5 与被调用方的合约名与函数 full_name，取不到时记原文本）。序列化确定：键排序、列表按 Slither 顺序，不含时间与绝对路径（路径另存于清单）。
+- 存储内容：节点（key5、source length、节点类型、规范化后的有序 SlithIR、original/added/rewritten 标记）；CFG 边（同一函数内按 Slither 的 sons 顺序，用 key5 表示两端，并记边种类：条件节点的 son_true 为 true、son_false 为 false，其他为 next）；调用（按 SlithIR 操作的确切类型分类：InternalCall → internal，HighLevelCall → high-level，LowLevelCall → low-level，LibraryCall → library；LibraryCall 是 HighLevelCall 的子类，必须先判断；记调用点节点 key5 与被调用方的合约名与函数 full_name，取不到时记规范化文本。其他 Call 子类——InternalDynamicCall、Send、Transfer、SolidityCall、EventCall、NewContract——按类名另记，不丢弃）。测试覆盖每一类的 fixture，以及 LibraryCall 不被记成 high-level。序列化确定：键排序、列表按 Slither 顺序，不含时间与绝对路径（路径另存于清单）。
+- 运行时间：CP1 样本约 3.7 秒/文件，846 个文件每次约 50–60 分钟；两次全量运行加第 3 节的降序运行约 3 小时。按文件逐条刷新日志，便于中断后核对。
 - 预期未修复只有 reentrancy_bonus.sol、reentrancy_cross_function.sol、reentrancy_insecure.sol（Slither 侧失败）；失败文件只进清单，不进存储；出现其他未修复时停下报告。
 - 确定性：全量运行两次，存储内容（节点、边、调用）逐个编译单元相同。
 - 选定版本与 cp0_v2 的 selection.ascending 比较；不同的每一个按 CP1 第 5 节的三类归因，无法归因时停下。
 
 ## 2. 回归（6c 已比较的 239 个文件）
 - 精确重放：在 mando 环境（Slither 0.8.0、crytic-compile 0.2.4）只 import、不修改冻结的 scripts/DFG/dfg_v2/validate_slither.py 中 6c 使用的编译与抽取函数，在 6c 记录的版本上对 239 个文件重跑，按 CP0 提出的 occurrence 多重集合键（cp0_v2/recon.json 中 cp2 键的提议，路径规范化后）与 6c 报告逐文件比较。预期 239/239 相同；不同的逐条列出并归因，不得放宽键。
-- 6c 版本与当前升序选定不同的 1 个文件：另在选定版本上重跑，差异单列。
+- 列出 239 个文件中 CP2 选定版本与 6c 版本不同的文件，按 CP1 第 5 节的三类归因（生产存储与 6c 的 0.8.0 结果不直接比较，不重跑）。
 - 生产存储与 0.8.0 的结构差异已在 1.7、1.8 节确定，不再重复比较。改为：选定版本与 cp0_v2 相同的文件，存储中的节点（key5 + 规范化 IR）与 cp0_1_env_v2 的生产归档（同一文件、同一版本）逐组相同；不同的逐条列出并停下。不按 source length 判定差异。
 
 ## 3. 跨版本不变性

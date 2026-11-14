@@ -1,24 +1,22 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.7（§1.10、§4.3b、§4.4）、CP1_REPORT 的 CP1.1、DECISIONS 与 CHANGE_LOG §16/17。第 6 节历史只追加，记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.8（§1.10、§1.11、§4.4 CP2）、CP1_REPORT 的 CP1.1、DECISIONS 与 CHANGE_LOG §17、§18。第 6 节历史只追加，记录规则见 README.md。
 
 ## 0. 一句话
 
-CP1 已通过独立审查；CP1.1 已完成路径边界、输入超时与无 Git 封存修复，规定的测试和九组 CLI 验收通过。下一步是独立审查 CP1.1，通过后再执行 CP2；不提前开始 CP2。
+CP1.1 已由 Claude 独立复核通过（路径缺陷修复、argv 1,347/1,347 不变、三种工作目录结果相同）。CP0–CP1.1 全部完成。下一步：Codex 执行 PROMPTS r2.8 的 4.4 节 CP2。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案与决定 | PROMPTS r2.7；D5/D16/D18 已定，D19 仍为建议，D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
-| CP0–CP1 | 原结论与正式产物保留；CP1 已审查通过，未重跑 95 个样本 | cp1_review_v1/README |
-| CP1.1 | 路径边界修复；单输入超时封存后批次继续；无 Git 时 commit=null 并标记 | CP1_REPORT 的 CP1.1 |
-| argv 与真实路径 | 两环境各 846+501 项新旧 argv 相同，五种 cwd 各 5/5 rc0 | cp1_1_v1/module_acceptance.json |
-| CLI 验收 | 3 fixture × 3 cwd = 9/9 成功；版本、设置、key5+IR+标记逐个相同 | cli_acceptance.json |
-| 文件与测试 | 14 个生产 .py、10 个测试、28 个原 fixture；production 562/6，mando 128/440，DFG 2653 passed | pytest_*、frozen_audit.json |
-| 记录与封存 | CP1_REPORT 追加 CP1.1，CHANGE_LOG §17，PROGRESS，本文与 DECISIONS；6 份 doc_check | cp1_1_v1/doc_check_v* |
-| 已知缺口 | || pragma；Slither 进程内无超时；项目与依赖等未实现 | 留 CP3 分类表与后续 CP |
-| 下一步 | CP1.1 审查 → CP2；本步只本地提交 | PROMPTS §4.3b/4.4 |
+| 方案与决定 | PROMPTS r2.8；D5/D16/D18 已定，D19 仍为建议，D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
+| CP0–CP1 | 已审查通过；原结论与正式产物保留 | 各审查目录 |
+| CP1.1 | 已审查通过：`command()` 按路径边界；单输入超时记录后批次继续；无 git 时 commit=null 并标记；regression_6c 拒绝危险工作目录 | artifacts/cp1_1_review_v1/README.md |
+| 文件与测试 | 14 个生产 .py、10 个测试、28 个原 fixture；production 562/6，mando 128/440，DFG 2653 passed | cp1_1_v1 pytest 收据 |
+| CP2 要点 | 生产工具链与 92 个编译器；预期 3 个 Slither 侧失败；两次运行存储逐个相同；与同版本生产归档逐组相同；边带 true/false/next；LibraryCall 先于 HighLevelCall 判断；约 3 小时 | PROMPTS 4.4 |
+| 已知缺口 | `||` pragma；Slither 进程内无超时；项目与依赖等未实现 | 留 CP3 分类表与后续 CP |
+| 下一步 | Codex 执行 CP2 → Claude 审查 → CP3 | PROMPTS §4.4、§4.5 |
 
 ## 2. 分支与工作树
 
@@ -59,6 +57,7 @@ env PYTHONNOUSERSITE=1 /home/zhao/miniconda3/envs/compile-repair-production/bin/
 
 | 内容（compile_repair 下） | 路径 |
 |---|---|
+| CP1.1 审查证据（Claude） | artifacts/cp1_1_review_v1/README.md 及 argv_equality、command_cwd_after、cwd_equivalence |
 | 当前完整报告、详细记录 | CP1_REPORT.md 的 CP1.1；docs/CHANGE_LOG.md §17 |
 | 当前证据入口 | artifacts/cp1_1_v1/README.md |
 | 测试/argv/超时/无 Git | cp1_1_v1/pytest_*、test_evidence_*.json.gz、module_acceptance.json |
@@ -264,3 +263,14 @@ production 模块 562 passed/6 skipped，mando 128 passed/440 skipped，DFG 2653
 CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1cf844b，大小 95,681 字节，archive_audit.json 保存成员清单。前文 cwd/out2/* 路径现在表示归档内成员，替代此前“按原目录提交”的交付说明。首次 seal.json、file_inventory.json、final_validation.json 均保留原字节，作为归档前阶段快照；当时的六份文档保存于 prepackaging_documents.tar.gz，与初版文档哈希完全一致。最终交付以 delivery_seal.json、delivery_inventory.json 为准，它们绑定最终文档及两个压缩包；不得将初版快照误当最终提交清单。失败现场为 staging_failure.json，当前原始目录只留本地，不删除、不提交重复副本。
 
 归档说明纳入 CP1_REPORT、PROGRESS、CHANGE_LOG §17.5、HANDOVER 和本批次 README；追加记录遵守历史字节边界。doc_check_v1/v2 均已 6/6 通过，归档补记后按相同六目标再检查并保存新收据，完成后重新核对精确暂存范围和格式，再本地提交；编译、测试与 CLI 的已通过结果保持。
+
+
+### 2026-11-14 CompileRepair CP1.1 审查与方案 r2.8（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP1.1（提交 27aa46fe）。新增证据目录 `artifacts/cp1_1_review_v1/`，修改 `PROMPTS.md`（r2.7 → r2.8）。本文开头的阅读顺序、第 0、1 节换成审查结论，第 5 节加入证据路径；第 4 节保留。
+
+结论：CP1.1 正确。修复后 `command()` 在 `/`、字符前缀兄弟、包含与无关目录下两个环境 8/8 rc 0；仓库根下 846 个 MANDO 文件与 501 个兼容性组合的 argv 与旧算法 1,347/1,347 相同（两个环境），CP0–CP1 结果不受影响；Claude 的 3 个输入与 Codex 的 9 个 CLI case 在三种目录下状态、版本与节点哈希逐个相同；超时、无 git 与 regression_6c 防护的代码符合 4.3b 节。
+
+方案补充：核对 Slither 0.11.6 的类层次后，r2.8 在 CP2 存储格式中写明 LibraryCall 先于 HighLevelCall 判断、其他 Call 子类按类名记录、CFG 边带 true/false/next；CP2 第 2 节不再对“6c 版本不同的文件”重跑，改为列出归因；给出运行时间估计。
+
+下一步：Codex 执行 CP2。本轮没有模块代码改动或安装。详见 CHANGE_LOG §18。

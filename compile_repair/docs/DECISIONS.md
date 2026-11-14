@@ -190,3 +190,11 @@
 |---|---|---|---|---|
 | 2026-11-14 | CP1.1 | 用户明确要求执行 r2.7 §4.3b；原登记的路径缺陷及超时/无 Git 两项健壮性现已修复并验收，待独立审查；未改变版本策略 | 对话；CP1_REPORT 的 CP1.1；CHANGE_LOG §17 | Codex |
 | 2026-11-14 | D5 当前状态 | 同步上一节已有的 CP1 审查通过结论；当前表原“待审查”仅为状态滞后，历史不改；D16/D18/D19 保持 | CHANGE_LOG §16/17；module_acceptance.json | Codex |
+
+
+### CP1.1 审查与 r2.8（修改 AI：Claude）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-14 | 缺陷 | `command()` 路径缺陷已修复并经独立复核；仓库根下 argv 1,347/1,347 不变 | CHANGE_LOG §18.3；argv_equality.jsonl、cwd_equivalence.json | Claude |
+| 2026-11-14 | 存储 | CP2 存储格式补充：CFG 边种类、调用按确切类型分类（LibraryCall 先于 HighLevelCall）、其他 Call 子类不丢弃 | CHANGE_LOG §18.2 | Claude |

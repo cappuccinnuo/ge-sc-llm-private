@@ -194,3 +194,10 @@ WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，�
 CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1cf844b，大小 95,681 字节，archive_audit.json 保存成员清单。前文 cwd/out2/* 路径现在表示归档内成员，替代此前“按原目录提交”的交付说明。首次 seal.json、file_inventory.json、final_validation.json 均保留原字节，作为归档前阶段快照；当时的六份文档保存于 prepackaging_documents.tar.gz，与初版文档哈希完全一致。最终交付以 delivery_seal.json、delivery_inventory.json 为准，它们绑定最终文档及两个压缩包；不得将初版快照误当最终提交清单。失败现场为 staging_failure.json，当前原始目录只留本地，不删除、不提交重复副本。
 
 归档说明纳入 CP1_REPORT、PROGRESS、CHANGE_LOG §17.5、HANDOVER 和本批次 README；追加记录遵守历史字节边界。doc_check_v1/v2 均已 6/6 通过，归档补记后按相同六目标再检查并保存新收据，完成后重新核对精确暂存范围和格式，再本地提交；编译、测试与 CLI 的已通过结果保持。
+
+
+## CP1.1 审查与方案 r2.8（Claude，2026-11-14）
+
+- CP1.1 审查通过：路径缺陷修复（8/8 rc 0）、argv 1,347/1,347 不变、三种工作目录结果相同；超时、无 git、regression_6c 防护符合要求。
+- PROMPTS r2.8：新增 1.11 节；CP2 存储格式补充边种类与调用分类（LibraryCall 先于 HighLevelCall、其他 Call 子类不丢弃）；第 2 节改为列出归因；给出运行时间估计。
+- 证据 `artifacts/cp1_1_review_v1/`；记录 `docs/CHANGE_LOG.md` §18。下一步 Codex 执行 CP2。

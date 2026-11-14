@@ -934,3 +934,44 @@ CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1
 
 
 交付检查结果补记（修改 AI：Codex）：归档补记后的 doc_check_v3 为 6/6 passed、rc0；改用无损压缩包暂存后 git diff --cached --check 返回 0（staging_check_v2.json），没有放宽判据，也没有删改空格或原 case seal。此补记再由相同六目标的 doc_check_v4 核对；最终证据使用 delivery_seal.json / delivery_inventory.json，旧 seal 与初版清单保留为阶段记录。最终精确暂存字节核验通过后提交 CP1.1，不 push。
+
+
+## 18. 2026-11-14 CompileRepair CP1.1 审查与方案 r2.8（修改 AI：Claude）
+
+### 18.1 任务、依据与范围
+
+用户要求（2026-11-14）：Codex 已完成 CP1.1；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后进入 CP2。起点 `compile-repair@27aa46fe`。审查对象：`toolchain/solc.py`、`toolchain/slither.py`、`pipeline.py` 的差异，`tests/test_cp1_1.py`，产物 `artifacts/cp1_1_v1/`（含 cli_cases.tar.gz），CP1_REPORT 的 CP1.1 节与 CHANGE_LOG §17。
+
+修改：`PROMPTS.md`（r2.7 → r2.8）；新增 `artifacts/cp1_1_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 2 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 18.2 实施方式和重要选择
+
+- 代码审查：逐行读三个文件的差异，确认 `Path.relative_to` 的边界判断、regression_6c 防护的两个条件、超时只结束当前输入且不被后续原因覆盖、`_code_commit` 只处理两类异常。
+- 复测缺陷：用审查 CP1 时的同一探针（4 种目录 × 2 个环境）与同一流水线脚本（3 个输入 × 3 种目录）重跑，与修复前的结果对照。
+- argv 不变：独立写脚本，在仓库根对 846 个 MANDO 文件与 501 个兼容性组合比较新 argv 与旧算法，避免只依赖 Codex 的测试。
+- CLI case：解包 `cli_cases.tar.gz`，核对 9 个 case 的封存与三种目录下的节点哈希。
+- CP2 提示：进入 CP2 前核对 Slither 0.11.6 的 SlithIR 调用类层次，发现 LibraryCall 继承 HighLevelCall，按 isinstance 顺序分类会把库调用记成 high-level；Send、Transfer 等其他 Call 子类在原提示中没有去处；CFG 边没有分支种类。r2.8 把这三点写进存储格式与测试要求。原第 2 节“6c 版本不同的 1 个文件另行重跑”在生产工具链与 92 个编译器下不再适用，改为列出归因。
+
+### 18.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| `command()` 4 种目录 × 2 环境 | 8/8 solc rc 0（修复前 `/` 与字符前缀兄弟目录 rc 1） | command_cwd_after.jsonl |
+| argv 不变 | 1,347/1,347 相同（846 + 501，两个环境各一次） | argv_equality.jsonl |
+| 流水线三种目录 | 3 个输入状态、选定版本、节点哈希逐个相同，全部成功 | cwd_equivalence.json |
+| Codex CLI case | 9 个封存一致；每个 fixture 三种目录节点哈希相同 | 同上 |
+| Slither 0.11.6 类层次 | LibraryCall 的父类为 HighLevelCall；Transfer、EventCall 不是 OperationWithLValue | 审查时核对 `__mro__` |
+
+未证明：CP2 全量运行的结果与耗时（由 CP2 验证）。
+
+### 18.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：4.3b 节全部要求；遇到 `git diff --check` 对等长空格的报错时没有删除空格，而是打包保留原字节。
+- 方案补充（Claude）：CP2 存储格式三点、第 2 节改写、运行时间估计。
+- 待用户确认：D19（建议维持 0.4.12）。D9/D10 待确认，D12/D13 待定。CP2 不需要新授权。
+
+### 18.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp1_1_review_v1/README 全文，CHANGE_LOG:128713、PROGRESS:28555 追加区间，6 个文件全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP1.1 审查通过；下一步 Codex 执行 CP2。本轮提交并 push 到 `compile-repair`。
