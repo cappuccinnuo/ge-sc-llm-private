@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.8（2026-11-14；r2.7、r2.6 同日；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.9（2026-11-14；r2.8、r2.7、r2.6 同日；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -69,6 +69,12 @@
 1. CP1.1（提交 27aa46fe）审查通过（新增 1.11 节）。CP2 可以开始。
 2. CP2 的存储格式写得更具体，以免静默丢失或错分：CFG 边带分支种类（true / false / 顺序）；调用按 SlithIR 操作的确切类型分类，`LibraryCall` 是 `HighLevelCall` 的子类，必须先判断；其他 Call 子类（InternalDynamicCall、Send、Transfer、SolidityCall、EventCall、NewContract）按类名记录，不丢弃。
 3. CP2 第 2 节中“6c 版本与当前升序选定不同的 1 个文件另行重跑”已不适用（生产工具链与 92 个编译器下选定版本可能有更多不同，且生产存储与 6c 的 0.8.0 结果本就不可直接比较）；改为列出并归因，不重跑。给出 CP2 的运行时间估计。
+
+**r2.9 相对 r2.8 的修改**（CP2 审查；证据 `artifacts/cp2_review_v1/README.md`）：
+1. CP2（提交 3dfb347d）的生产部分经独立复核成立（新增 1.12 节）：两次全量 843 成功、3 个已知 Slither 侧失败，843/843 图字节相同，842/842 与同版本生产归档相同，LibraryCall 0 次误分，边与调用无悬空引用。
+2. 新发现的图缺陷：`if` 体为空时 Slither 的 son_true 与 son_false 是同一节点，`graph_facts` 把两条边都标为 true（86 个 IF 节点、40 个文件）。新增 4.4b 节 CP2.1 修复并重跑。
+3. 6c 精确重放停在第 87 个文件。审查证明原因是 Slither 0.8.0 的 L1 局部写集合本身不确定：同一进程内对 buggy_43.sol 连续抽取 10 次，得到 252、253、254 三种结果，争议事实（第 162 行循环条件上的 `out` DEF）在三个继承上下文中时有时无；6c 报告的 252 只是其中一次采样。生产工具链 Slither 0.11.6 对同一文件连续 10 次节点与图完全相同，该循环条件的局部写为空。因此“239/239 逐条相同”对旧工具链不可达；CP2.1 改用“稳定事实必须相同、只允许不稳定事实不同”的判据（需要用户批准，D20）。
+4. 第 3 节降序跨版本比较尚未运行，在 CP2.1 中完成。
 
 ---
 
@@ -244,6 +250,19 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | solc 超时 | 该输入记为 unrepaired / solc_timeout，不重试、不试其他候选，批次继续；完整性错误仍停止批次 |
 | 无 git | code_commit 为 null，summary 标记 code_commit_unavailable，实现文件哈希照常封存 |
 | 测试 | production 562 passed / 6 skipped；mando 128 / 440；DFG 2653 passed |
+
+### 1.12 CP2 结果（2026-11-14 审查；证据 `artifacts/cr_store_mando_v1/`、`v2/`、`cp2_6c_v1/`、`cp2_development_v1/`、`cp2_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 生产全量两次 | 846 个输入，843 成功、3 个已知 Slither 侧失败；846/846 状态与版本相同；843/843 graph.json 字节相同；两次 seal 4,228 个文件哈希一致 |
+| 图 | 110,996 节点（全部 original）、87,645 边（next 76,631、true 5,593、false 5,421）、45,565 调用；LibraryCall 误记为 high-level 0；边与调用的悬空引用 0 |
+| 同版本比较 | 842/842 与 cp0_1_env_v2 生产归档 key5 + IR 相同；1 个选 0.5.5（归因 (a)） |
+| 与 6c 的版本 | 238 相同；1 个 6c 用 0.4.11、现选 0.4.12（用户批准单列） |
+| 图缺陷 | 86 个空体 IF 节点两条边都标 true（`IF:true,true`）；其余 5,145 个 IF、276 个 IFLOOP 都是一 true 一 false |
+| 6c 重放 | 87 个运行，86 相同；buggy_43.sol 少 1 条 L1 DEF |
+| 旧工具链不确定性 | buggy_43.sol 在 Slither 0.8.0 中：新进程首次抽取 5/5 为 254；同一进程连续 10 次为 254、254、252、252、253、254、253、253、252、253；按 6c 顺序在同一进程先跑 86 个文件后为 252（与 6c 报告相同）；Codex 的重放为 251。差异都来自同一事实（`out` 在第 162 行循环条件上的 DEF）出现在 0–3 个继承上下文中 |
+| 生产工具链 | Slither 0.11.6 同一进程连续 10 次，节点与图哈希完全相同；该循环条件的局部写为空 |
 
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
@@ -749,7 +768,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 选定版本与 cp0_v2 的 selection.ascending 比较；不同的每一个按 CP1 第 5 节的三类归因，无法归因时停下。
 
 ## 2. 回归（6c 已比较的 239 个文件）
-- 精确重放：在 mando 环境（Slither 0.8.0、crytic-compile 0.2.4）只 import、不修改冻结的 scripts/DFG/dfg_v2/validate_slither.py 中 6c 使用的编译与抽取函数，在 6c 记录的版本上对 239 个文件重跑，按 CP0 提出的 occurrence 多重集合键（cp0_v2/recon.json 中 cp2 键的提议，路径规范化后）与 6c 报告逐文件比较。预期 239/239 相同；不同的逐条列出并归因，不得放宽键。
+- 精确重放：在 mando 环境（Slither 0.8.0、crytic-compile 0.2.4）只 import、不修改冻结的 scripts/DFG/dfg_v2/validate_slither.py 中 6c 使用的编译与抽取函数，在 6c 记录的版本上对 239 个文件重跑，按 CP0 提出的 occurrence 多重集合键（cp0_v2/recon.json 中 cp2 键的提议，路径规范化后）与 6c 报告逐文件比较。键不放宽。r2.9：旧工具链的局部写集合不确定（1.12 节），判据改为 4.4b 节的“稳定事实相同”。
 - 列出 239 个文件中 CP2 选定版本与 6c 版本不同的文件，按 CP1 第 5 节的三类归因（生产存储与 6c 的 0.8.0 结果不直接比较，不重跑）。
 - 生产存储与 0.8.0 的结构差异已在 1.7、1.8 节确定，不再重复比较。改为：选定版本与 cp0_v2 相同的文件，存储中的节点（key5 + 规范化 IR）与 cp0_1_env_v2 的生产归档（同一文件、同一版本）逐组相同；不同的逐条列出并停下。不按 source length 判定差异。
 
@@ -758,6 +777,40 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 
 ## 4. 分布审计
 - 按类别目录统计版本来源、选定版本系列、各标志的数量。不读标签。
+```
+
+### 4.4b CP2.1：空体 if 的边种类、6c 重放判据与降序比较（r2.9 新增；CP3 之前必须完成）
+
+```text
+# CP2.1：graph_facts 修复、生产重跑、6c 重放（稳定事实判据）与降序跨版本比较
+
+依据：PROMPTS r2.9 的修改说明与 1.12 节；审查证据 compile_repair/artifacts/cp2_review_v1/README.md（只读，不导入其中脚本）。CP2 已有产物（cr_store_mando_v1/v2、cp2_6c_v1、cp2_development_v1）不改、不覆盖；新结果写入新批次。不需要安装或下载；需要时停下。报告追加到 CP2_REPORT.md 的“CP2.1”一节。
+用户批准：第 3 节的 6c 判据改变已由用户批准（D20），把授权写入 artifacts/cp2_1_v1/authorization.json（用户原话与日期）。
+
+## 1. graph_facts 的边种类（toolchain/slither.py）
+- 条件节点（IF、IFLOOP）的边按 Slither 的 son_true、son_false 各输出一条：true 指向 son_true，false 指向 son_false，即使两者是同一节点也输出两条、种类不同。其他节点的 sons 输出 next。输出顺序仍按 node.sons。
+- 若条件节点没有恰好一个 son_true 与一个 son_false，或某个 son 不属于本函数，抛错（不静默）。
+- 测试：空体 `if (!a.send(1)) {}`、空体 else、带 else 的 if、while/for 循环条件；断言每个条件节点恰好一 true 一 false。
+
+## 2. 生产重跑（新批次 cr_store_mando_v3、cr_store_mando_v4，生产环境）
+- 与 CP2 相同的入口与参数，全量运行两次。
+- 预期：843 成功、3 个已知 Slither 侧失败；v3/v4 的 843 个 graph.json 字节相同；与 v1 相比，只有 cp2_review_v1/if_edge_kinds.json 列出的 86 个 IF 节点的一条边由 true 改为 false（40 个文件），节点、调用与其他边逐个相同；全量中每个 IF/IFLOOP 恰好一 true 一 false。偏差逐条列出并停下。
+
+## 3. 6c 重放（新批次 cp2_6c_v2，mando，regression_6c，从仓库根运行，保留 6c 原调用路径）
+- 与 CP2 相同顺序、同一进程运行 239 个文件的冻结抽取，结果称为主运行。
+- 对主运行与 6c 报告不同的每个文件：在一个新进程中、同版本、同原路径、同工作目录，连续抽取 R=10 次，与主运行合计 11 个样本。对每个 occurrence 键 k，计算 11 个样本中的最小与最大重数 min_k、max_k。
+- 判据：
+  - min_k == max_k（稳定事实）的键，6c 报告中的重数必须等于该值；
+  - min_k < max_k（不稳定事实）的键，6c 报告中的重数必须落在 [min_k, max_k] 之内；
+  - 6c 报告中出现而 11 个样本中都没有的键，视为不满足。
+  任何文件不满足即停下，列出全部不满足的键，不增加样本、不放宽。
+- 报告：主运行逐条相同的文件数、只在不稳定事实上不同的文件数、不稳定事实的总数及按层（L1/L2）与种类（DEF/USE/READ/WRITE）的分布、涉及的函数是否都是继承上下文。不推断旧工具链的根因，只陈述观测。
+
+## 4. 降序跨版本比较（生产环境，新批次 cp2_desc_v1）
+- 按 4.4 节第 3 节执行：rules/environment.py 的 --order descending，结果另存；每个成功文件升序与降序选定版本按 key5 与规范化有序 SlithIR 比较。报告相同数、不同数、全部不同条目及归因。预期与 CP0 一致：结构多数相同；若有不同，逐条给出示例。
+
+## 结论
+- 逐项给出预期与实测；修改的生产文件只有 toolchain/slither.py，非测试文件数不变；两个环境的模块测试与 DFG v2 测试都运行。
 ```
 
 ### 4.5 CP3：失败分类表、外部语料获取与分类

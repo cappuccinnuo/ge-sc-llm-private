@@ -1041,3 +1041,48 @@ CPU、OMP/MKL=2、费用 0 美元；无安装、下载、LLM、HGT 训练、GPU 
 最终保护与文档检查补记（修改 AI：Codex）：frozen_audit.json 的 passed=true；28,373 个受保护跟踪文件不变（模块外 27,845、旧产物 473、旧 fixture 28），354 code_refs、96 solc 文件、239 原重放源码均相同。本轮登记的 mando 90 份与 production 114 份包元数据文件没有变化；该数字是本轮基线实际纳入的元数据文件数，不替换旧批次的环境统计口径。14 个实现 SHA 与测试时封存相同，原 Slither 函数 AST 除授权的 run_slither 接入外均保持，PROGRESS/CHANGE_LOG 前缀及 HANDOVER/DECISIONS 历史字节保留，未预期跟踪改动为 0。
 
 doc_check_v1 对全部 9 份目标 passed=true、rc0；本补记写入后用同一目标再运行 doc_check_v2，作为最终文档收据，并保存各文档完整 SHA。冻结审计和文档通过不表示 6c 239/239 通过；CP2 的停止结论保持。最终交付精确清单为 delivery_inventory，seal 绑定文件/文档/归档；git diff --cached --check 和暂存字节核验结果保存 staging_check.json，随后再次核对加入交付清单本身后的暂存范围再本地提交，不 push。
+
+
+## 20. 2026-11-14 CompileRepair CP2 审查与方案 r2.9（修改 AI：Claude）
+
+### 20.1 任务、依据与范围
+
+用户要求（2026-11-14）：Codex 已完成 CP2；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后进入 CP3。起点 `compile-repair@3dfb347d`。审查对象：`toolchain/slither.py` 的 `graph_facts` 与 `_callee`、`pipeline.py`、`cli.py`、`tests/test_graph.py`，两份生产存储与 6c 重放归档（解包核对），`cp2_development_v1/` 的差异分析，CP2_REPORT 与 CHANGE_LOG §19。
+
+修改：`PROMPTS.md`（r2.8 → r2.9）；新增 `artifacts/cp2_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（新增 D20，历史 2 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 20.2 实施方式和重要选择
+
+- 生产存储：解包两份 store.tar.gz，独立统计并比较图、节点与同版本归档；另检查每个条件节点的出边种类，发现 `IF:true,true` 86 个，读 `graph_facts` 确认原因是用 `son is node.son_true` 判断，空体 if 中 son_true 与 son_false 为同一节点。
+- 6c 差异：Codex 只能把差异定位到旧抽取层。Claude 在自己的 Slither 0.8.0 环境中（solc 0.5.0 与 6c 字节相同）复现：新进程首次 254；PYTHONHASHSEED 0–7 都是 254；同一进程连续 10 次在 252–254 之间变化；按 6c 顺序先跑 86 个文件后为 252，与 6c 报告相同。由此判断 6c 报告的这一事实是不确定过程的一次采样，任何重放都不能保证逐条相同。
+- 判据：逐条相同在这种情况下不可达；只放宽到“不稳定事实”，稳定事实仍须相同，且不稳定事实的参考值必须在实测样本范围内，不满足仍停下。改变 CP2 原有判据需要用户批准，记为 D20。
+- 生产工具链：对同一文件用 Slither 0.11.6 同进程连续 10 次，确认节点与图不受此影响。
+- 降序比较原本在 6c 之后，因停止未运行，放入 CP2.1。
+
+### 20.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 两份存储 seal | 各 4,228 个文件哈希一致 | verify_cp2.json |
+| 状态与图 | 843 成功、3 已知失败；846/846 状态与版本相同；843/843 图字节相同 | 同上 |
+| 计数 | 节点 110,996（全部 original）、边 87,645、调用 45,565；与 Codex 报告相同 | 同上 |
+| 调用与引用 | LibraryCall 误分 0；悬空引用 0 | 同上 |
+| 同版本节点 | 842/842 相同；1 个 0.5.5 | 同上 |
+| 条件节点边 | IF 一 true 一 false 5,145；IFLOOP 276；IF 两 true 86（40 个文件） | if_edge_kinds.json |
+| 旧工具链 buggy_43.sol | 新进程 5/5 为 254；哈希种子 0–7 都为 254；同进程 10 次：254、254、252、252、253、254、253、253、252、253；6c 顺序第 87 个为 252 | legacy_*.json(l) |
+| 生产工具链 buggy_43.sol | 同进程 10 次节点与图哈希相同；循环条件局部写为空 | production_repeat_in_process.jsonl |
+
+未证明：旧工具链不确定性的代码位置；239 个文件中不稳定事实的规模（CP2.1 给出）；对 6c（DFG v2）已有结论的影响。
+
+### 20.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：生产部分全部要求；6c 首差即停，没有重试或放宽；把 0.4.11 → 0.4.12 的单列先请用户批准；归档方式保留原字节。
+- 新发现：空体 if 的边种类缺陷（Codex 的测试未覆盖空体 if）；6c 参考事实本身不确定。
+- 待用户批准：D20（6c 稳定事实判据）。待确认：D19。D9/D10 待确认，D12/D13 待定。
+- 提示用户：6c 的 L1 参考事实来自不确定的旧工具链，可能影响 DFG v2 以 6c 为固定参考的结论；本模块不改动 6c。
+
+### 20.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_review_v1/README 全文，CHANGE_LOG:143123、PROGRESS:32407 追加区间，6 个文件全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP3 不能开始。顺序为用户批准 D20 → Codex 执行 CP2.1 → Claude 审查 → CP3。本轮提交并 push 到 `compile-repair`。

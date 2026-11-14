@@ -216,3 +216,11 @@ CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1
 各环境 python -B -m pytest -q -ra -x -p no:cacheprovider 加目标与新 /tmp basetemp：production compile_repair/tests 567 passed/6 skipped（54.56 秒）、mando 同目标 130/443（12.85 秒）、mando DFG v2 2653 passed/9 既有 warnings（159.05 秒），收据 pytest_*.json。三轮首次通过，手写探针全部 10 类调用和停止/确定性测试通过。前置读 UNC、引号、缺 rg、code_refs 依赖分别用 scoped WSL/base64/现有工具/已有 mando 处理；停止后一次只读审批超时允许的一次重试成功，一次超长文档命令未创建进程，拆成短命令，均已记录，未安装内容或重试正式验收。
 
 三个正式存储无损 tar 分别 4,229/4,229/93 成员，逐成员回读通过，散文件保留不删。最终 frozen_audit、9 份 doc_check、交付与暂存核验见 CHANGE_LOG §19.5；完成强制记录后本地提交，不自动 push。旧 CP0–CP1.1 产物/结论、scripts、输入、环境、编译器和根记录保护不改。没有安装、下载、LLM、HGT 训练、GPU 锁或全局 solc 改动，费用 0。
+
+
+## CP2 审查与方案 r2.9（Claude，2026-11-14）
+
+- CP2 生产部分复核成立：两次全量确定，同版本 842/842，调用分类与引用完整。
+- 缺陷：空体 if 的两条边都标 true（86 个节点）。
+- 6c 重放停止的原因：Slither 0.8.0 局部写集合不确定（同进程 10 次得到 252/253/254）；生产 0.11.6 确定。
+- PROMPTS r2.9：新增 1.12 节、4.4b 节 CP2.1、D20（稳定事实判据，待用户批准）。证据 `artifacts/cp2_review_v1/`；记录 `docs/CHANGE_LOG.md` §20。

@@ -1,25 +1,23 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文 §0–5、PROMPTS r2.8 全文（尤其 §4.4）、CP2_REPORT、DECISIONS、CHANGE_LOG §19、cp2_development_v1/README。第 6 节历史只追加；记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.9（§1.12、§4.4、§4.4b CP2.1）、CP2_REPORT、DECISIONS 与 CHANGE_LOG §19、§20。第 6 节历史只追加，记录规则见 README.md。
 
 ## 0. 一句话
 
-CP2 生产图存储已实现，两次全量一致；6c 精确重放在第 87 个 buggy_43.sol 出现一条 occurrence 差异后停止，剩余 152 和降序未运行。CP2 未通过，先独立审查停止现场，不进入 CP3 或自行重跑。
+CP2 的生产部分已由 Claude 独立复核成立；发现空体 if 的边种类缺陷（86 个节点）。6c 重放的停止经审查证明来自 Slither 0.8.0 局部写集合本身不确定，不是本模块的问题。下一步：用户批准 D20 → Codex 执行 4.4b 节 CP2.1 → Claude 审查 → CP3。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案与决定 | r2.8；D5/D16/D18 已定；D19 建议；其他待确认保持 | PROMPTS、DECISIONS |
-| CP0–CP1.1 | 原结论/产物已审查，保护不改 | 旧 review、frozen_audit |
-| CP2 实现 | 图含 key5/有序 IR/标记、CFG 分支、全部 Call 类；生产 14 个 .py | CP2_REPORT |
-| 两次全量 | 各 843 成功 / 3 规定失败；843/843 图字节相同 | ascending1/2_acceptance、receipt |
-| CP0 对照 | 842 同版且生产归档相同、1 项 (a) | cp2_summary |
-| 6c | 选版 238 同/1 已批准下限差异；重放 87 已运行，86 同/1 差 | comparison、差异分析 |
-| 停止边界 | 152、降序与 CP3 未运行；底层根因未证明 | CP2_REPORT 停止节 |
-| 测试 | production 567/6、mando 130/443（通过/跳过）；DFG 2653 passed/9 既有 warnings | pytest_*.json |
-| 交付检查 | 9 份文档初检、冻结保护通过；最终补记由 v2 复核 | doc_check_v*、frozen_audit、delivery_inventory |
-| 其他缺口 | || pragma、Slither 进程内超时、项目/依赖等留后续 | PROMPTS CP3 |
+| 方案与决定 | PROMPTS r2.9；D5/D16/D18 已定；D19 建议；D20（6c 稳定事实判据）待用户批准；D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
+| CP0–CP1.1 | 已审查通过 | 各审查目录 |
+| CP2 生产 | 已复核：两次全量 843 成功 + 3 已知失败，图字节 843/843 相同，同版本 842/842 相同，LibraryCall 误分 0，悬空引用 0 | artifacts/cp2_review_v1/README.md |
+| CP2 图缺陷 | 空体 if 的两条边都标 true（86 个 IF、40 个文件）；CP2.1 修复并重跑 | if_edge_kinds.json |
+| 6c 重放 | 87 个中 86 相同；buggy_43.sol 的差异来自旧工具链不确定（同一进程 10 次得到 252/253/254）；CP2.1 用稳定事实判据完成 239 个 | PROMPTS 1.12、4.4b |
+| 降序跨版本 | 未运行；CP2.1 完成 | PROMPTS 4.4b |
+| 已知缺口 | `||` pragma；Slither 进程内无超时；项目与依赖等未实现 | 留 CP3 |
+| 下一步 | 用户批准 D20 → CP2.1 → 审查 → CP3 | PROMPTS §4.4b |
 
 ## 2. 分支与工作树
 
@@ -55,6 +53,7 @@ CP2 生产图存储已实现，两次全量一致；6c 精确重放在第 87 个
 
 | 内容（compile_repair 下） | 路径 |
 |---|---|
+| CP2 审查证据（Claude） | artifacts/cp2_review_v1/README.md 及 verify_cp2、if_edge_kinds、legacy_*、production_repeat_in_process |
 | 完整报告、训练改变记录 | CP2_REPORT.md；docs/CHANGE_LOG.md §19 |
 | 新证据入口 | artifacts/cp2_development_v1/README.md |
 | 正式生产图 | artifacts/cr_store_mando_v1/store.tar.gz；cr_store_mando_v2/store.tar.gz |
@@ -283,3 +282,14 @@ CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1
 三轮 pytest 为 production 567 passed/6 skipped、mando 130/443、DFG 2653 passed/9 既有 warnings，首次通过，完整命令/日志在 pytest_*.json。正式存储 tar 各 4,229/4,229/93 成员全部回读相同，原现场保留；9 份 doc_check、冻结与提交检查见 CHANGE_LOG §19.5。按要求记录后本地提交，不 push；无安装、下载、LLM、训练、GPU 锁或全局 solc 变更，费用 0。
 
 保护检查补记（修改 AI：Codex）：frozen_audit 已通过，28,373 受保护跟踪文件、354 code_refs、96 solc、239 原始源码及本轮登记的 90/114 份环境元数据不变，14 个实现与测试封存相同。doc_check_v1 为 9/9，最终补记用 v2 收据绑定；验收停止结论不变，交付精确暂存后本地提交。
+
+
+### 2026-11-14 CompileRepair CP2 审查与方案 r2.9（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP2（提交 3dfb347d）。新增证据目录 `artifacts/cp2_review_v1/`，修改 `PROMPTS.md`（r2.8 → r2.9）。本文开头、第 0、1 节换成审查结论，第 5 节加入证据路径；第 4 节保留。
+
+结论：生产部分成立（两次全量与图字节确定、同版本 842/842、调用分类与引用完整）。新发现空体 if 的边种类缺陷：son_true 与 son_false 为同一节点时两条边都标 true，共 86 个节点。6c 重放停在 buggy_43.sol：Claude 证明 Slither 0.8.0 的局部写集合不确定——同一进程连续 10 次得到 252、253、254 三种结果，按 6c 顺序先跑 86 个文件后得到与 6c 报告相同的 252，Codex 得到 251；生产 Slither 0.11.6 连续 10 次完全相同。Codex 停下并且没有放宽判据，处理正确。
+
+处理：新增 4.4b 节 CP2.1——修复边种类并重跑两次生产全量；6c 重放改用“稳定事实必须相同、不稳定事实落在 11 个样本的范围内”的判据（D20，需用户批准）；完成降序跨版本比较。
+
+下一步：用户批准 D20 后由 Codex 执行 CP2.1。本轮没有模块代码改动或安装。详见 CHANGE_LOG §20。
