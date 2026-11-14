@@ -1,25 +1,25 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.6 §4.1/4.3、CP1_REPORT、DECISIONS 与 CHANGE_LOG §15。第 6 节历史只追加；规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.7（尤其 1.10 节、4.3b 节 CP1.1、4.4 节 CP2）、CP1_REPORT、DECISIONS 与 CHANGE_LOG §15、§16。第 6 节保留历史，只追加；记录规则见 README.md。
 
 ## 0. 一句话
 
-CP1 已完成本机实现与 §4–6 验收：95 样本 92 成功、3 个预期 Slither 侧失败；846 文件升降序冻结重放一致。下一步先审查 CP1，不自动开始 CP2。
+CP1 已由 Claude 独立复核：实现与验收成立（独立重算 95/95 选定版本与尝试序列相同）。发现 `command()` 相对路径缺陷（工作目录为 `/` 或字符前缀相同的目录时合法合约判为失败），另有两处健壮性问题。下一步：Codex 执行 PROMPTS r2.7 的 4.3b 节 CP1.1 → Claude 审查 → CP2。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案 | PROMPTS r2.6，不改原方案 | CP1_REPORT |
-| 生产入口 | repair 单/多文件与片段；仅环境第 1、6 步；目录暂不支持 | pipeline、cli、environment |
-| 核心层 | 副本、字节改动/映射、节点来源、清单、seal | core；test_core |
-| 文件数 | 14 生产 Python、9 测试文件、28 原 fixture | implementation_audit.json |
-| CP0/CP0.1 | 已审查，旧产物/报告不变 | frozen_audit.json |
-| CP1 验收 | 升降序各 846/846；设置 6/6；样本 95/95 符合预期 | 三个 cp1 批次 |
-| 历史版本 | 0.4.11 两 CWD 各 5/5，0.4.0/2/9 仍失败；下限不变 | cp1_historical_v1 |
-| 测试 | production 546/6；mando 116/436；DFG 2653 passed | pytest 收据（前两项为 passed/skipped） |
-| 待审 | CP1、原 command() 在 cwd=/ 的路径边界、是否另案扩展 0.4.11 | CP1_REPORT |
-| 未决 | D9/D10 待确认，D12/D13 待定 | DECISIONS |
+| 方案 | PROMPTS r2.7（CP1 审查后修订；CP2 提示已按当前状态更新） | CHANGE_LOG §16 |
+| 决策 | D5、D16、D18 已定；D19（下限维持 0.4.12）为建议；D9/D10 待确认，D12/D13 待定 | DECISIONS |
+| 生产入口 | repair 单/多文件与片段；环境第 1、6 步；目录暂不支持 | pipeline、cli、environment |
+| 文件数 | 14 个生产 Python、9 个测试文件、28 个原 fixture | implementation_audit.json |
+| CP0、CP0.1 | 已审查通过 | 各审查目录 |
+| CP1 | 已审查：冻结重放 846/846；样本 95 个审计无问题，独立重算 95/95 相同；端到端（覆盖、推断、交集）正确 | artifacts/cp1_review_v1/README.md |
+| 待修复（CP1.1） | `command()` 路径边界；单个输入 solc 超时停止批次；无 git 时取提交号崩溃 | PROMPTS 4.3b |
+| 已知缺口（CP3） | `||` pragma；Slither 进程内无超时 | PROMPTS 4.5 |
+| 测试 | production 546/6；mando 116/436；DFG 2653 passed | cp1_development_v1 收据 |
+| 下一步 | CP1.1 → 审查 → CP2 | PROMPTS 4.3b、4.4 |
 
 ## 2. 分支与工作树
 
@@ -62,6 +62,7 @@ production：Python 3.10.21 / Slither 0.11.6 / crytic-compile 0.4.2 / solc-selec
 
 | 内容（compile_repair 下） | 路径 |
 |---|---|
+| CP1 审查证据（Claude） | artifacts/cp1_review_v1/README.md 及 verify_cp1_cases、indep_select、pipeline_cwd、command_cwd |
 | 当前报告与改变记录 | CP1_REPORT.md；docs/CHANGE_LOG.md §15 |
 | 策略与入口 | rules/environment.py；pipeline.py；cli.py |
 | 核心记录 | core/model.py、provenance.py、store.py |
@@ -232,3 +233,14 @@ B 的 846 份区间与 mando 全同，固定版本 D3 为 843/846，指定的三
 没有更换方案或放宽标准。只登记原 command() 在 cwd=/ 的路径问题，待审查和用户确认后处理，历史前置编译在仓库根未受影响。归档排除 pytest current 符号链接别名读取原通过结果；末轮 WSL 超时经文件 SHA 未变和短命令恢复核验后分批写记录，未重跑测试/实验或重启服务。CP1 仍需审查，CP2/CP6 未开始。
 
 生产模块 546 passed/6 skipped，mando 116/436，DFG 2653 passed/9 warnings；分层、Python 3.7、旧代码保护通过。八份 doc_check 与精确暂存结果保存到本轮 artifact，全部完成后本地 CP1 提交，不 push。没有下载安装、全局 solc 切换、LLM、训练或 GPU 锁，费用 0；训练改变记录只写模块 docs。
+
+
+### 2026-11-14 CompileRepair CP1 审查与方案 r2.7（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP1（提交 3497af24）。新增证据目录 `artifacts/cp1_review_v1/`，修改 `PROMPTS.md`（r2.6 → r2.7）。本文第 0、1 节换成审查结论，第 5 节加入证据路径；第 4 节 Codex 写的条目保留。
+
+结论：CP1 的实现与验收成立。冻结选版重放两环境升降序 846/846；95 个样本 case 的封存、候选集合、尝试顺序与结果审计无问题；Claude 用 GitHub 静态 solc 与自己的 Slither 0.11.6 独立重算，95/95 选定版本与尝试序列相同；唯一差异（0.5.5）归因成立；pragma 覆盖（CRLF、同行代码）、无 pragma 推断与多 pragma 交集在 Claude 环境中端到端正确。Codex 登记的 `command()` 问题属实，且比登记的范围大：除 `/` 外，字符前缀相同的兄弟目录也会使合法合约判为失败，经流水线复现为 `all_solc_candidates_failed`。
+
+处理：新增 4.3b 节 CP1.1（路径边界修复与 argv 相同性证明、regression_6c 的防护、solc 超时按输入记录、无 git 时的封存）；CP2 提示按生产工具链与 92 个编译器更新（预期 3 个 Slither 侧失败、存储格式、两次运行确定性、与同版本生产归档逐组相同、生产工具链上的跨版本比较）；D5/D16/D18 状态改为已定；新增 D19 建议维持 0.4.12；CP3 加入 `||` pragma 与 Slither 超时两项缺口。
+
+下一步：Codex 执行 CP1.1；Claude 审查后进入 CP2。本轮没有模块代码改动或安装。详见 CHANGE_LOG §16。

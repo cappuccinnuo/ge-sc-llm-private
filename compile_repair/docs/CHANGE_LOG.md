@@ -824,3 +824,50 @@ frozen_audit passed=true：28,236 份冻结文件、旧报告/PROMPTS、环境�
 
 
 最终验收补记（修改 AI：Codex）：doc_check_v1 的 8 行全部 passed=true、rc0；历史字节审计确认 PROGRESS/CHANGE_LOG 原前缀与 HANDOVER/DECISIONS 旧历史不变（documentation_history_audit.json）。原始 case 无损归档 852/852 成员 SHA/长度通过，原 seal 保留。首次精确暂存 57 文件，git diff --cached --check 返回 0（staging_check.json），未排除任何已暂存文件。补记和归档说明完成后执行 doc_check_v2，再封存三个批次、生成 seal_hashes/file_inventory、核对最终暂存字节和完整格式检查，成功后本地提交；最终八行结果及命令收据为 doc_check_v2.jsonl / doc_check_v2_invocation.json。
+
+
+## 16. 2026-11-14 CompileRepair CP1 审查与方案 r2.7（修改 AI：Claude）
+
+### 16.1 任务、依据与范围
+
+用户要求（2026-11-14）：Codex 已按推荐方案完成 CP1；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后进入 CP2。起点 `compile-repair@3497af24`。审查对象：14 个生产 Python 文件中的新增与改动（core/model、core/provenance、core/store、rules/environment、pipeline、cli、evaluation/survey、toolchain/solc），3 个新测试文件，产物 cp1_development_v1、cp1_sample_v1（含 cases.tar.gz）、cp1_historical_v1，CP1_REPORT 与 CHANGE_LOG §15。
+
+修改：`PROMPTS.md`（r2.6 → r2.7）；新增 `artifacts/cp1_review_v1/`；记录：本节、`docs/HANDOVER.md`（第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（新增 D19，历史 3 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 16.2 实施方式和重要选择
+
+- 代码审查：逐行读 rules/environment.py 与 pipeline.py，对照 3.3 节（含第 3a 条与第 6 条）与 4.3 节检查候选集合、系列顺序、已知版本、无 pragma 推断、覆盖条件、设置重试与 Slither 侧失败的处理。
+- 数据复核三层：重放文件与 cp0_v2 逐个比较；解包 cases.tar.gz 审计 95 个 case 的封存、计划与尝试；用 Claude 的独立工具链（GitHub 静态 solc、`Slither(path)`）按同一候选顺序重算选定版本。
+- 端到端：为在 Claude 环境中运行 Codex 的 environment.py，安装 tree-sitter 0.20.4 并用仓库内的 tree-sitter-solidity 构建语言库；对覆盖、推断、交集三种情形直接调用 repair_unit。
+- `command()`：Codex 报告了 `/` 的情形；Claude 用直接调用与流水线两种方式复现，并发现字符前缀相同的兄弟目录同样失败。修复方式选“按路径组件判断，在目录内用相对路径，否则用绝对路径”，并要求证明 846 个 MANDO 文件与兼容性 fixture 的 argv 不变，因此不需要重跑 CP1 样本。regression_6c 的 Slither 经冻结代码进入 crytic-compile 0.2.4，其内部有同样写法而不能修改，所以只加防护，遇到会出错的工作目录时拒绝运行。
+- 健壮性：检测时会批量处理任意输入，单个输入的 solc 超时不应停止整个批次；模块也可能不在 git 工作树中运行。两项放入 CP1.1。`||` pragma 与 Slither 进程内无超时涉及设计，放入 CP3 分类表先统计频率。
+- CP2 提示：原文写“失败数不为 0 就停下”“与 0.8.0 按 key5 比较”，与生产工具链和 92 个编译器的现状不符；改为预期 3 个已知失败、两次运行确定性、与同版本生产归档逐组相同，并写明存储内容与序列化要求。
+- D19：0.4.11 在生产工具链上可用，但加入候选会改变大量 `^0.4.x` 文件的选定版本，收益只有精确 0.4.11 pragma，建议维持 0.4.12，由用户最终决定。
+
+### 16.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 冻结选版重放 | 两环境升序、降序各 846/846 与 cp0_v2 相同 | offline_replay_*.json.gz |
+| 样本封存 | 95 个 case、757 个文件哈希一致；14 个实现文件与提交相同 | verify_cp1_cases.json |
+| 样本计划与尝试 | 候选集合、顺序、成功位置、区间与下限问题 0；92 成功、3 Slither 侧失败；solc 197、Slither 101 | 同上 |
+| 选定版本 | 与 cp0_v2 相同 91；case 082 选 0.5.5（cp0_v2 未装），归因 (a) | 同上 |
+| 独立重算 | 95/95 选定版本与尝试版本序列相同 | indep_select.jsonl |
+| 节点标记 | 92 个成功 case 11,822 个节点全部 original | 审查时计数 |
+| 端到端 | 精确 0.4.10 → 覆盖 → 0.4.12 成功、字节数不变、4 个节点 original；无 pragma（throw/var）→ [0.4.12, 0.5.0)；两条 pragma → [0.5.0, 0.5.3) | pipeline_cwd.json |
+| `command()` 缺陷 | 工作目录 `/`：`mp/…` not found；字符前缀兄弟目录：`2/units/…` not found；流水线记为 all_solc_candidates_failed；两环境都复现 | command_cwd.jsonl、pipeline_cwd.json |
+| 历史编译器 | 0.4.11 两种目录 5/5；0.4.0/0.4.2/0.4.9 缺文件名 287/50/362（每种目录） | cp1_historical_v1 |
+
+未证明：CP1.1 修复后的行为（由 CP1.1 验证）；`||` pragma 与 Slither 挂起在真实语料中的频率（CP3）。
+
+### 16.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：CP1 全部要求；对 `command()` 只登记不擅改；历史测量只记录不改下限。
+- 新发现：`command()` 缺陷的范围比登记的大（字符前缀兄弟目录）；两处健壮性问题。
+- 待用户确认：D19（建议维持 0.4.12）。D9/D10 待确认，D12/D13 待定。CP1.1 不需要新授权。
+
+### 16.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp1_review_v1/README 全文，CHANGE_LOG:113014、PROGRESS:22951 追加区间，6 个文件全部 passed=True 后提交。
+- 资源：云端 CPU；在会话虚拟环境中安装 tree-sitter 0.20.4（只用于审查）；没有 LLM 调用，费用 0。
+- 停止：CP2 不能开始。顺序为 Codex 执行 CP1.1 → Claude 审查 → CP2。本轮提交并 push 到 `compile-repair`。

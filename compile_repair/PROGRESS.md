@@ -163,3 +163,11 @@ WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，�
 历史 23 组合、23 rc0 编译、46 次生产 Slither；0.4.11 在两个 CWD 各 5/5，0.4.0/2/9 仍缺映射，保持 0.4.12。三个重入文件在 0.4.24/25/26 均 rc0 后 AssertionError，未提前改写。另登记原 command() 在 cwd=/ 的路径边界，只读确认；建议审查/用户确认后再修正，历史测量前置编译在仓库根。pytest 归档遇 current 符号链接重复，排除别名读取原结果，没有重跑测试。最后记录写入前 WSL 连接超时，四文件 SHA 未变、短命令恢复后分批写入，没有重启或重跑；见 documentation_interruption.json。
 
 命令 python -B -m pytest -q -ra -x -p no:cacheprovider：生产模块 546 passed/6 skipped，mando 116/436，DFG 2653 passed/9 warnings；收据/压缩日志在 cp1_development_v1/pytest_*。冻结 28,236 文件、354 code_refs、96 solc 与环境元数据相同，分层/Python 3.7 语法通过。八份文档检查及暂存记录同目录保存。交接/训练改变记录为 docs/HANDOVER、CHANGE_LOG §15；方案未改，未下载安装、LLM、训练、全局切换或 push。本地 CP1 提交后等待审查，CP2 不开始。
+
+
+## CP1 审查与方案 r2.7（Claude，2026-11-14）
+
+- CP1 审查：实现与验收成立；冻结重放 846/846；样本 95 个审计无问题、独立重算 95/95 相同；端到端（覆盖、推断、交集）正确。
+- 缺陷：`command()` 相对路径按字符前缀截取，工作目录为 `/` 或字符前缀相同的目录时合法合约判为失败。另有 solc 超时停止批次、无 git 时崩溃两处健壮性问题。
+- PROMPTS r2.7：新增 1.10 节、4.3b 节 CP1.1、D19（建议维持 0.4.12）；CP2 提示更新；CP3 加入 `||` pragma 与 Slither 超时。
+- 证据 `artifacts/cp1_review_v1/`；记录 `docs/CHANGE_LOG.md` §16。下一步 Codex 执行 CP1.1。
