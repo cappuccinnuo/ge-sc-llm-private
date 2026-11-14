@@ -11053,3 +11053,5 @@ EP9 监控修复已完成真实任务闭环验证：原名重入节点 fold1/G4R
 新运行121项定向测试通过（含3轮CPU数值等价）；NodeSem 1353项与DFG 2653项沿用上一轮通过记录并核验冻结源码未变，明确没有重跑。生产修改仅execution.py、runtime.py、recon/ep9_run.py；构造、binding与完整guarded训练块AST一致，trainer SHA不变。
 本轮证据目录：scripts/edge_sem/artifacts/ep9_v1/recovery_sampling_v3/。39个成功结果继续复用，失败项从封存初值进入attempt_002；余81次按原计划后台串行。此记录为恢复准备，实际启动与完成状态以新training_process、pipeline_started/complete和正式收据为准。
 最终七类实验将另建显存充足的服务器批次；当前显存限制仅来自本地电脑。
+
+恢复实测补记：首个恢复项 access_control_node/fold_3/G4R-A 的50轮及best/last重载验收均通过，控制器已启动第41项 G4R-Api；目前40/120个正式结果完成。fit函数耗时236.39秒，之前同任务同剖面三个折平均436.34秒，下降45.8%；启动至收据写入295.59秒，原平均524.44秒，下降43.6%（不包含随后控制器验收与下项切换）。不同折/选best次数可能影响耗时，此处是描述性实测，非同折受控重跑。新任务记录24次后台查询、0个监控缺口、0个终止错误。证据：recovery_sampling_v3/live_recovery_acceptance.json。余80项继续后台运行；EP9尚未全部完成。代码提交b1d324fd，恢复证据提交b11e7b11，均未推送。
