@@ -18,6 +18,7 @@ from pathlib import Path
 from compile_repair.toolchain.solc import (inventory, version_tuple, error_first_line,
     load_additions, release_coverage, compile_file)
 from compile_repair.toolchain.slither import run_slither, compare_nodes
+from compile_repair.rules import environment
 
 ROOT = Path(__file__).resolve().parents[2]
 SIX_C = Path("/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt6c_v1")
@@ -45,19 +46,8 @@ def metadata_refs(root):
 
 
 def candidate_versions(interval, versions):
-    """List installed eligible releases and later-series fallback separately.
-
-    This is CP0 inventory, not a CP1 version-selection implementation.
-    No pragma uses the MANDO 0.4.12-0.4.26 window; metadata is handled separately.
-    """
-    primary, fallback = [], []
-    lo, hi = interval or ((0, 4, 12), (0, 4, 27))
-    lo, hi = tuple(lo), tuple(hi)
-    for value in sorted(set(versions), key=version_tuple):
-        version = version_tuple(value)
-        if version >= (0, 4, 12) and lo <= version < hi:
-            (primary if version[:2] == lo[:2] else fallback).append(value)
-    return {"primary": primary, "later_series_only_after_primary_failure": fallback}
+    """CP0 inventory adapter: preserve its frozen no-pragma regression window."""
+    return environment.candidate_versions(interval, versions, ((0, 4, 12), (0, 4, 27)))
 
 
 def input_inventory(root, previous):
@@ -195,28 +185,15 @@ def write_json(path, value):
 
 
 def selection_priority(row, available):
-    """CP0 regression priorities; does not implement general CP1 inference."""
+    """CP0 adapter to the single environment priority policy."""
     metadata = row.get("metadata")
-    known = metadata["version"] if metadata else None
-    iv = row["interval"]
-    if known and known in available and version_tuple(known) >= (0, 4, 12):
-        if iv is None or tuple(iv[0]) <= version_tuple(known) < tuple(iv[1]):
-            return known
-    if iv is None and "0.4.25" in available:
-        return "0.4.25"
-    return None
+    return environment.priority_version(row["interval"], available,
+                                        metadata["version"] if metadata else None, "mando")
 
 
 def d3_endpoints(versions, probe):
-    """Find true D3 endpoints, including compile-success/mapping-failure cases.
-
-    Interior versions need not be analyzed unless an endpoint fails. A caller's
-    memoized probe reuses observations; this is not an automatic failure retry.
-    """
-    ordered = sorted(versions, key=version_tuple)
-    low = next((v for v in ordered if probe(v)["d3"]), None)
-    high = next((v for v in reversed(ordered) if probe(v)["d3"]), None) if low else None
-    return low, high
+    """CP0 adapter to environment's D3 endpoint selector."""
+    return environment.d3_endpoints(versions, probe)
 
 
 class Observations:
@@ -275,16 +252,12 @@ def matrix_file(row, compilers, journal, comparisons):
     """Record the candidate matrix, rule A and two experimental D5 orders."""
     obs = Observations(ROOT / row["path"], compilers, journal, "mando")
     candidate = row["installed_candidates"]
-    groups = [candidate["primary"]]
-    later = defaultdict(list)
-    for version in candidate["later_series_only_after_primary_failure"]:
-        later[version_tuple(version)[:2]].append(version)
-    groups += [later[k] for k in sorted(later)]
+    groups = environment.candidate_groups(candidate)
     priority = selection_priority(row, compilers)
     preferred = obs.probe(priority) if priority else None
     low, high, active = None, None, []
     for group in groups:
-        active += group
+        active += list(group)
         for version in group:
             obs.compile(version)
         low, high = d3_endpoints(group, obs.probe)

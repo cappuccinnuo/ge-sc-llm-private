@@ -217,3 +217,28 @@ def compile_file(source, compiler, timeout=120, settings=()):
     return Compilation(str(source), before, compiler, argv, cwd, rc, first,
                        diagnostic, hashlib.sha256(stdout).hexdigest(), elapsed, timed_out,
                        settings=settings)
+
+
+# CP1 local trust snapshot; never discover or trust new binaries from PATH.
+CP0_SHA256 = "bddbeaa256192b567525370f8b27335a3d2bdcf3ccb48e22086150718414ffb6"
+ADDITION_SHA256 = "e5fec62afd37874ee46b2d60466bad4e756d8514d0aab118af626e1008e3fdad"
+
+
+def load_trusted_compilers():
+    """Load approved CP0 identities plus C additions; verify every local binary.
+
+    Return compiler records, frozen regression rows and evidence references.
+    Missing/changed files raise; this function never installs or downloads.
+    """
+    from compile_repair.core.store import read_checked_json
+    root = Path(__file__).resolve().parents[1] / "artifacts"
+    base = root / "cp0_v2/recon.json"
+    cp0 = read_checked_json(base, CP0_SHA256)
+    addition = root / "cp0_1_compilers_v1/trusted_compilers_addition.json"
+    read_checked_json(addition, ADDITION_SHA256)
+    refs, additions, _ = load_additions(cp0["compilers"], [addition])
+    compilers = {v: Compiler(v, r["path"], r["sha256"]) for v, r in refs.items()}
+    for compiler in compilers.values():
+        verify_binary(compiler)
+    return compilers, cp0["inputs"], {"base": {"path": str(base), "sha256": CP0_SHA256},
+                                   "additions": additions}

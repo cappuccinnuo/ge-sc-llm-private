@@ -1,0 +1,1279 @@
+[
+  {
+    "source": "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real",
+    "selected_version": "0.8.24",
+    "settings": [
+      "--evm-version",
+      "cancun"
+    ],
+    "status": "success",
+    "attempts": [
+      {
+        "crossed_minor": false,
+        "round": 1,
+        "settings": [],
+        "settings_retry": null,
+        "slither": null,
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.0046521000331267715,
+          "error_first_line": "Error: Undeclared identifier. Did you mean \"blockhash\"?",
+          "returncode": 1,
+          "settings": [],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol",
+          "source_sha256": "3fc755fdc22a9ff0a00f1a9d01f2c1b429591882012b163bda0b3b172a2cb7e1",
+          "stderr": "Error: Undeclared identifier. Did you mean \"blockhash\"?\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol:3:92:\n  |\n3 | contract C { function f() public view returns (uint, bytes32) { return (block.blobbasefee, blobhash(0)); } }\n  |                                                                                            ^^^^^^^^\n\n",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      },
+      {
+        "crossed_minor": false,
+        "round": 2,
+        "settings": [
+          "--evm-version",
+          "cancun"
+        ],
+        "settings_retry": {
+          "entry": "0.8.25 switches the default EVM version to Cancun; 0.8.24 requires explicit Cancun",
+          "error_type": "DeclarationError or TypeError (combined-json prints Error)",
+          "hi": [
+            0,
+            8,
+            25
+          ],
+          "lo": [
+            0,
+            8,
+            24
+          ],
+          "message": "Function \"{tload,tstore,mcopy,blobhash,blobbasefee}\" not found; Undeclared identifier at blobhash; Member \"blobbasefee\" not found in block",
+          "name": "cancun_builtins",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source": "https://www.soliditylang.org/blog/2024/03/14/solidity-0.8.25-release-announcement/",
+          "trigger_error": "Error: Undeclared identifier. Did you mean \"blockhash\"?"
+        },
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "solc_args": "--evm-version cancun",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol"
+          },
+          "compiler_sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "C": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "d217d5ca301959c39d47bbfb1bed2b3a7f16bdf1311b1244bb95c678cb989dda",
+                "contracts": {
+                  "C": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "C": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 1,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "ir_object_repr_replacements": 0,
+            "ir_object_repr_unresolved": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 0,
+            "nodes": 2,
+            "top_level_functions": 0
+          },
+          "crytic_compile_platform": "solc",
+          "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+          "crytic_compile_version": "0.4.2",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.27436500100884587,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "error_first_line": null,
+          "ir_diagnostics": [],
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "preceding_observed_solc_returncode": 0,
+          "profile": "production",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "slither_version": "0.11.6",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol",
+          "source_sha256": "3fc755fdc22a9ff0a00f1a9d01f2c1b429591882012b163bda0b3b172a2cb7e1",
+          "validation_errors": [],
+          "version": "0.8.24"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.00633830000879243,
+          "error_first_line": null,
+          "returncode": 0,
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting0/real/units/test_input/input.sol",
+          "source_sha256": "3fc755fdc22a9ff0a00f1a9d01f2c1b429591882012b163bda0b3b172a2cb7e1",
+          "stderr": "",
+          "stdout_sha256": "85f5b2566335e928ad74dec12fc3020e20576b4867c134fc815a79e36dd8b606",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      }
+    ],
+    "provenance": {
+      "arbitrary.sol": {
+        "changes": [],
+        "level": "none",
+        "original_length": 165,
+        "original_sha256": "3fc755fdc22a9ff0a00f1a9d01f2c1b429591882012b163bda0b3b172a2cb7e1",
+        "result_length": 165,
+        "result_sha256": "3fc755fdc22a9ff0a00f1a9d01f2c1b429591882012b163bda0b3b172a2cb7e1",
+        "segments": [
+          {
+            "kind": "original",
+            "new_end": 165,
+            "new_start": 0,
+            "original_end": 165,
+            "original_start": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source": "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real",
+    "selected_version": "0.8.24",
+    "settings": [
+      "--evm-version",
+      "cancun"
+    ],
+    "status": "success",
+    "attempts": [
+      {
+        "crossed_minor": false,
+        "round": 1,
+        "settings": [],
+        "settings_retry": null,
+        "slither": null,
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.004047999973408878,
+          "error_first_line": "Error: Function \"blobbasefee\" not found.",
+          "returncode": 1,
+          "settings": [],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol",
+          "source_sha256": "18f9c500d6926017382b603ad506eb97ab66c53f1aefcee4270f740f40013856",
+          "stderr": "Error: Function \"blobbasefee\" not found.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol:3:85:\n  |\n3 | contract C { function f() public view returns (uint a, bytes32 b) { assembly { a := blobbasefee() b := blobhash(0) } } }\n  |                                                                                     ^^^^^^^^^^^\n\nError: Variable count for assignment to \"a\" does not match number of values (1 vs. 0)\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol:3:80:\n  |\n3 | contract C { function f() public view returns (uint a, bytes32 b) { assembly { a := blobbasefee() b := blobhash(0) } } }\n  |                                                                                ^^^^^^^^^^^^^^^^^^\n\nError: Function \"blobhash\" not found.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol:3:104:\n  |\n3 | contract C { function f() public view returns (uint a, bytes32 b) { assembly { a := blobbasefee() b := blobhash(0) } } }\n  |                                                                                                        ^^^^^^^^\n\nError: Variable count for assignment to \"b\" does not match number of values (1 vs. 0)\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol:3:99:\n  |\n3 | contract C { function f() public view returns (uint a, bytes32 b) { assembly { a := blobbasefee() b := blobhash(0) } } }\n  |                                                                                                   ^^^^^^^^^^^^^^^^\n\n",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      },
+      {
+        "crossed_minor": false,
+        "round": 2,
+        "settings": [
+          "--evm-version",
+          "cancun"
+        ],
+        "settings_retry": {
+          "entry": "0.8.25 switches the default EVM version to Cancun; 0.8.24 requires explicit Cancun",
+          "error_type": "DeclarationError or TypeError (combined-json prints Error)",
+          "hi": [
+            0,
+            8,
+            25
+          ],
+          "lo": [
+            0,
+            8,
+            24
+          ],
+          "message": "Function \"{tload,tstore,mcopy,blobhash,blobbasefee}\" not found; Undeclared identifier at blobhash; Member \"blobbasefee\" not found in block",
+          "name": "cancun_builtins",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source": "https://www.soliditylang.org/blog/2024/03/14/solidity-0.8.25-release-announcement/",
+          "trigger_error": "Error: Function \"blobbasefee\" not found."
+        },
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "solc_args": "--evm-version cancun",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol"
+          },
+          "compiler_sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "C": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "4d85a311588ca672d68cc45bce95342982a63d36747fb27fa9fe771aff04ec14",
+                "contracts": {
+                  "C": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "C": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 1,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "ir_object_repr_replacements": 0,
+            "ir_object_repr_unresolved": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 0,
+            "nodes": 6,
+            "top_level_functions": 0
+          },
+          "crytic_compile_platform": "solc",
+          "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+          "crytic_compile_version": "0.4.2",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.012455400021281093,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "error_first_line": null,
+          "ir_diagnostics": [],
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "preceding_observed_solc_returncode": 0,
+          "profile": "production",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "slither_version": "0.11.6",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol",
+          "source_sha256": "18f9c500d6926017382b603ad506eb97ab66c53f1aefcee4270f740f40013856",
+          "validation_errors": [],
+          "version": "0.8.24"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.006646300025749952,
+          "error_first_line": null,
+          "returncode": 0,
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting1/real/units/test_input/input.sol",
+          "source_sha256": "18f9c500d6926017382b603ad506eb97ab66c53f1aefcee4270f740f40013856",
+          "stderr": "",
+          "stdout_sha256": "da20020f2eb677abd55ad6e677e17fe6870b35bf528cf9526498b7157222d540",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      }
+    ],
+    "provenance": {
+      "arbitrary.sol": {
+        "changes": [],
+        "level": "none",
+        "original_length": 177,
+        "original_sha256": "18f9c500d6926017382b603ad506eb97ab66c53f1aefcee4270f740f40013856",
+        "result_length": 177,
+        "result_sha256": "18f9c500d6926017382b603ad506eb97ab66c53f1aefcee4270f740f40013856",
+        "segments": [
+          {
+            "kind": "original",
+            "new_end": 177,
+            "new_start": 0,
+            "original_end": 177,
+            "original_start": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source": "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real",
+    "selected_version": "0.8.24",
+    "settings": [
+      "--evm-version",
+      "cancun"
+    ],
+    "status": "success",
+    "attempts": [
+      {
+        "crossed_minor": false,
+        "round": 1,
+        "settings": [],
+        "settings_retry": null,
+        "slither": null,
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.0033461000421084464,
+          "error_first_line": "Error: Function \"mcopy\" not found.",
+          "returncode": 1,
+          "settings": [],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol",
+          "source_sha256": "85f928d076c58ecbafb16f249f86dac8bfa7366802c760a9e7fdc1f074780648",
+          "stderr": "Error: Function \"mcopy\" not found.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol:3:52:\n  |\n3 | contract C { function f() public pure { assembly { mcopy(0, 32, 32) } } }\n  |                                                    ^^^^^\n\n",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      },
+      {
+        "crossed_minor": false,
+        "round": 2,
+        "settings": [
+          "--evm-version",
+          "cancun"
+        ],
+        "settings_retry": {
+          "entry": "0.8.25 switches the default EVM version to Cancun; 0.8.24 requires explicit Cancun",
+          "error_type": "DeclarationError or TypeError (combined-json prints Error)",
+          "hi": [
+            0,
+            8,
+            25
+          ],
+          "lo": [
+            0,
+            8,
+            24
+          ],
+          "message": "Function \"{tload,tstore,mcopy,blobhash,blobbasefee}\" not found; Undeclared identifier at blobhash; Member \"blobbasefee\" not found in block",
+          "name": "cancun_builtins",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source": "https://www.soliditylang.org/blog/2024/03/14/solidity-0.8.25-release-announcement/",
+          "trigger_error": "Error: Function \"mcopy\" not found."
+        },
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "solc_args": "--evm-version cancun",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol"
+          },
+          "compiler_sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "C": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "b07798906d41a60ef6a2a34e2182384b3a2f3108a3c418f9d3f25a5955c26aa2",
+                "contracts": {
+                  "C": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "C": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 1,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "ir_object_repr_replacements": 0,
+            "ir_object_repr_unresolved": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 0,
+            "nodes": 4,
+            "top_level_functions": 0
+          },
+          "crytic_compile_platform": "solc",
+          "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+          "crytic_compile_version": "0.4.2",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.013743799994699657,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "error_first_line": null,
+          "ir_diagnostics": [],
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "preceding_observed_solc_returncode": 0,
+          "profile": "production",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "slither_version": "0.11.6",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol",
+          "source_sha256": "85f928d076c58ecbafb16f249f86dac8bfa7366802c760a9e7fdc1f074780648",
+          "validation_errors": [],
+          "version": "0.8.24"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.004210199986118823,
+          "error_first_line": null,
+          "returncode": 0,
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting2/real/units/test_input/input.sol",
+          "source_sha256": "85f928d076c58ecbafb16f249f86dac8bfa7366802c760a9e7fdc1f074780648",
+          "stderr": "",
+          "stdout_sha256": "f69ae82905214aff673313ab9f207c4801a97359db8baa86378f138e1302faab",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      }
+    ],
+    "provenance": {
+      "arbitrary.sol": {
+        "changes": [],
+        "level": "none",
+        "original_length": 130,
+        "original_sha256": "85f928d076c58ecbafb16f249f86dac8bfa7366802c760a9e7fdc1f074780648",
+        "result_length": 130,
+        "result_sha256": "85f928d076c58ecbafb16f249f86dac8bfa7366802c760a9e7fdc1f074780648",
+        "segments": [
+          {
+            "kind": "original",
+            "new_end": 130,
+            "new_start": 0,
+            "original_end": 130,
+            "original_start": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source": "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real",
+    "selected_version": "0.8.24",
+    "settings": [
+      "--evm-version",
+      "cancun"
+    ],
+    "status": "success",
+    "attempts": [
+      {
+        "crossed_minor": false,
+        "round": 1,
+        "settings": [],
+        "settings_retry": null,
+        "slither": null,
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.004236700013279915,
+          "error_first_line": "Error: Function \"tload\" not found.",
+          "returncode": 1,
+          "settings": [],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol",
+          "source_sha256": "24ba9b89525becc43e8d477330b1ff6c6315b0f0b81c63b183addfead32b7d9d",
+          "stderr": "Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol\n\nError: Function \"tload\" not found.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol:5:16:\n  |\n5 |             if tload(0) { revert(0, 0) }\n  |                ^^^^^\n\nError: Expected expression to evaluate to one value, but got 0 values instead.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol:5:16:\n  |\n5 |             if tload(0) { revert(0, 0) }\n  |                ^^^^^^^^\n\nError: Function \"tstore\" not found.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol:6:13:\n  |\n6 |             tstore(0, 1)\n  |             ^^^^^^\n\nError: Function \"tstore\" not found.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol:8:20:\n  |\n8 |         assembly { tstore(0, 0) }\n  |                    ^^^^^^\n\n",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      },
+      {
+        "crossed_minor": false,
+        "round": 2,
+        "settings": [
+          "--evm-version",
+          "cancun"
+        ],
+        "settings_retry": {
+          "entry": "0.8.25 switches the default EVM version to Cancun; 0.8.24 requires explicit Cancun",
+          "error_type": "DeclarationError or TypeError (combined-json prints Error)",
+          "hi": [
+            0,
+            8,
+            25
+          ],
+          "lo": [
+            0,
+            8,
+            24
+          ],
+          "message": "Function \"{tload,tstore,mcopy,blobhash,blobbasefee}\" not found; Undeclared identifier at blobhash; Member \"blobbasefee\" not found in block",
+          "name": "cancun_builtins",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source": "https://www.soliditylang.org/blog/2024/03/14/solidity-0.8.25-release-announcement/",
+          "trigger_error": "Error: Function \"tload\" not found."
+        },
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "solc_args": "--evm-version cancun",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol"
+          },
+          "compiler_sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "Lock": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "68472711c37bb3b987d9a2a495d8b3ade193ef11c32583d4387199b976bf8c50",
+                "contracts": {
+                  "Lock": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "Lock": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 1,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "ir_object_repr_replacements": 0,
+            "ir_object_repr_unresolved": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 0,
+            "nodes": 10,
+            "top_level_functions": 0
+          },
+          "crytic_compile_platform": "solc",
+          "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+          "crytic_compile_version": "0.4.2",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.01781950000440702,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "error_first_line": null,
+          "ir_diagnostics": [],
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "preceding_observed_solc_returncode": 0,
+          "profile": "production",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "slither_version": "0.11.6",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol",
+          "source_sha256": "24ba9b89525becc43e8d477330b1ff6c6315b0f0b81c63b183addfead32b7d9d",
+          "validation_errors": [],
+          "version": "0.8.24"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.004940500017255545,
+          "error_first_line": null,
+          "returncode": 0,
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol",
+          "source_sha256": "24ba9b89525becc43e8d477330b1ff6c6315b0f0b81c63b183addfead32b7d9d",
+          "stderr": "Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol\n\nWarning: Transient storage as defined by EIP-1153 can break the composability of smart contracts: Since transient storage is cleared only at the end of the transaction and not at the end of the outermost call frame to the contract within a transaction, your contract may unintentionally misbehave when invoked multiple times in a complex transaction. To avoid this, be sure to clear all transient storage at the end of any call to your contract. The use of transient storage for reentrancy guards that are cleared at the end of the call is safe.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol:6:13:\n  |\n6 |             tstore(0, 1)\n  |             ^^^^^^\n\nWarning: Transient storage as defined by EIP-1153 can break the composability of smart contracts: Since transient storage is cleared only at the end of the transaction and not at the end of the outermost call frame to the contract within a transaction, your contract may unintentionally misbehave when invoked multiple times in a complex transaction. To avoid this, be sure to clear all transient storage at the end of any call to your contract. The use of transient storage for reentrancy guards that are cleared at the end of the call is safe.\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting3/real/units/test_input/input.sol:8:20:\n  |\n8 |         assembly { tstore(0, 0) }\n  |                    ^^^^^^\n\n",
+          "stdout_sha256": "0468a42263cb5af96ae8f4dac68f2cb2af4f0585c0a2f753b58b42a13df116aa",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      }
+    ],
+    "provenance": {
+      "arbitrary.sol": {
+        "changes": [],
+        "level": "none",
+        "original_length": 207,
+        "original_sha256": "24ba9b89525becc43e8d477330b1ff6c6315b0f0b81c63b183addfead32b7d9d",
+        "result_length": 207,
+        "result_sha256": "24ba9b89525becc43e8d477330b1ff6c6315b0f0b81c63b183addfead32b7d9d",
+        "segments": [
+          {
+            "kind": "original",
+            "new_end": 207,
+            "new_start": 0,
+            "original_end": 207,
+            "original_start": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source": "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real",
+    "selected_version": "0.8.26",
+    "settings": [
+      "--via-ir"
+    ],
+    "status": "success",
+    "attempts": [
+      {
+        "crossed_minor": false,
+        "round": 1,
+        "settings": [],
+        "settings_retry": null,
+        "slither": null,
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.26/solc-0.8.26",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.26/solc-0.8.26",
+            "sha256": "d5f23436f443edb85d8e76906d12f0a86ce0490e7663a9e608efeb7a93f149ef",
+            "version": "0.8.26"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.005043199984356761,
+          "error_first_line": "Unimplemented feature: std::exception::what: Require with a custom error is only available using the via-ir pipeline.",
+          "returncode": 2,
+          "settings": [],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol",
+          "source_sha256": "44348bf3ce33e10e3de1c4a2e0fea65245fe1123b490e0d79b2229d131fe2dc5",
+          "stderr": "Unimplemented feature:\n/solidity/libsolidity/codegen/ExpressionCompiler.cpp(1266): Throw in function virtual bool solidity::frontend::ExpressionCompiler::visit(const solidity::frontend::FunctionCall&)\nDynamic exception type: boost::wrapexcept<solidity::langutil::UnimplementedFeatureError>\nstd::exception::what: Require with a custom error is only available using the via-ir pipeline.\n[solidity::util::tag_comment*] = Require with a custom error is only available using the via-ir pipeline.\n",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.26"
+      },
+      {
+        "crossed_minor": false,
+        "round": 2,
+        "settings": [
+          "--via-ir"
+        ],
+        "settings_retry": {
+          "entry": "0.8.26 require(bool, Error) only in IR pipeline; 0.8.27 adds legacy pipeline support",
+          "error_type": "UnimplementedFeatureError; read std::exception::what",
+          "hi": [
+            0,
+            8,
+            27
+          ],
+          "lo": [
+            0,
+            8,
+            26
+          ],
+          "message": "Require with a custom error is only available using the via-ir pipeline.",
+          "name": "require_custom_error_via_ir",
+          "settings": [
+            "--via-ir"
+          ],
+          "source": "https://www.soliditylang.org/blog/2024/05/21/solidity-0.8.26-release-announcement/",
+          "trigger_error": "Unimplemented feature: std::exception::what: Require with a custom error is only available using the via-ir pipeline."
+        },
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.26/solc-0.8.26",
+            "solc_args": "--via-ir",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol"
+          },
+          "compiler_sha256": "d5f23436f443edb85d8e76906d12f0a86ce0490e7663a9e608efeb7a93f149ef",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "C": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "5faaf1e460208e6f274e1e28582711cedf5c7d71a4a60d6a46cdad1f7d01503d",
+                "contracts": {
+                  "C": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "C": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 1,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "ir_object_repr_replacements": 0,
+            "ir_object_repr_unresolved": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 0,
+            "nodes": 2,
+            "top_level_functions": 0
+          },
+          "crytic_compile_platform": "solc",
+          "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+          "crytic_compile_version": "0.4.2",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.02286269998876378,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.26/solc-0.8.26",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol",
+            "--via-ir"
+          ],
+          "error_first_line": null,
+          "ir_diagnostics": [],
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "preceding_observed_solc_returncode": 0,
+          "profile": "production",
+          "settings": [
+            "--via-ir"
+          ],
+          "slither_version": "0.11.6",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol",
+          "source_sha256": "44348bf3ce33e10e3de1c4a2e0fea65245fe1123b490e0d79b2229d131fe2dc5",
+          "validation_errors": [],
+          "version": "0.8.26"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.26/solc-0.8.26",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol",
+            "--via-ir"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.26/solc-0.8.26",
+            "sha256": "d5f23436f443edb85d8e76906d12f0a86ce0490e7663a9e608efeb7a93f149ef",
+            "version": "0.8.26"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.019069601024966687,
+          "error_first_line": null,
+          "returncode": 0,
+          "settings": [
+            "--via-ir"
+          ],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting4/real/units/test_input/input.sol",
+          "source_sha256": "44348bf3ce33e10e3de1c4a2e0fea65245fe1123b490e0d79b2229d131fe2dc5",
+          "stderr": "",
+          "stdout_sha256": "e19a9971e4336e6c0f4e22601bf673bb8945e4c10bd70829db99ac26e4ac12ee",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.26"
+      }
+    ],
+    "provenance": {
+      "arbitrary.sol": {
+        "changes": [],
+        "level": "none",
+        "original_length": 149,
+        "original_sha256": "44348bf3ce33e10e3de1c4a2e0fea65245fe1123b490e0d79b2229d131fe2dc5",
+        "result_length": 149,
+        "result_sha256": "44348bf3ce33e10e3de1c4a2e0fea65245fe1123b490e0d79b2229d131fe2dc5",
+        "segments": [
+          {
+            "kind": "original",
+            "new_end": 149,
+            "new_start": 0,
+            "original_end": 149,
+            "original_start": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source": "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real",
+    "selected_version": "0.8.24",
+    "settings": [
+      "--evm-version",
+      "cancun"
+    ],
+    "status": "success",
+    "attempts": [
+      {
+        "crossed_minor": false,
+        "round": 1,
+        "settings": [],
+        "settings_retry": null,
+        "slither": null,
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.003350700018927455,
+          "error_first_line": "Error: Undeclared identifier. Did you mean \"blockhash\"?",
+          "returncode": 1,
+          "settings": [],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol",
+          "source_sha256": "8350157317763956a6d4021de890a2b508d82833980c0d40a2c388ec56b36edf",
+          "stderr": "Error: Undeclared identifier. Did you mean \"blockhash\"?\n --> compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol:3:92:\n  |\n3 | contract C { function f() public view returns (uint, bytes32) { return (block.blobbasefee, blobhash(0)); } }\n  |                                                                                            ^^^^^^^^\n\n",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      },
+      {
+        "crossed_minor": false,
+        "round": 2,
+        "settings": [
+          "--evm-version",
+          "cancun"
+        ],
+        "settings_retry": {
+          "entry": "0.8.25 switches the default EVM version to Cancun; 0.8.24 requires explicit Cancun",
+          "error_type": "DeclarationError or TypeError (combined-json prints Error)",
+          "hi": [
+            0,
+            8,
+            25
+          ],
+          "lo": [
+            0,
+            8,
+            24
+          ],
+          "message": "Function \"{tload,tstore,mcopy,blobhash,blobbasefee}\" not found; Undeclared identifier at blobhash; Member \"blobbasefee\" not found in block",
+          "name": "cancun_builtins",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source": "https://www.soliditylang.org/blog/2024/03/14/solidity-0.8.25-release-announcement/",
+          "trigger_error": "Error: Undeclared identifier. Did you mean \"blockhash\"?"
+        },
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "solc_args": "--evm-version cancun",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol"
+          },
+          "compiler_sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "C": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "feb2140cd59b35c517c69b9012a77eba49f850862d4052146379189eb9f60c9c",
+                "contracts": {
+                  "C": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "C": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 1,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "ir_object_repr_replacements": 0,
+            "ir_object_repr_unresolved": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 0,
+            "nodes": 2,
+            "top_level_functions": 0
+          },
+          "crytic_compile_platform": "solc",
+          "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+          "crytic_compile_version": "0.4.2",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.014389100018888712,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "error_first_line": null,
+          "ir_diagnostics": [],
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "preceding_observed_solc_returncode": 0,
+          "profile": "production",
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "slither_version": "0.11.6",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol",
+          "source_sha256": "8350157317763956a6d4021de890a2b508d82833980c0d40a2c388ec56b36edf",
+          "validation_errors": [],
+          "version": "0.8.24"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol",
+            "--evm-version",
+            "cancun"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+            "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f",
+            "version": "0.8.24"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.005666699958965182,
+          "error_first_line": null,
+          "returncode": 0,
+          "settings": [
+            "--evm-version",
+            "cancun"
+          ],
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp1_development_v1/tmp_pytest_production/test_real_same_version_setting5/real/units/test_input/input.sol",
+          "source_sha256": "8350157317763956a6d4021de890a2b508d82833980c0d40a2c388ec56b36edf",
+          "stderr": "",
+          "stdout_sha256": "418b914300b1a2e0f88fda25cf8cfa8aa72ee765471bc805d59c20bfa81a72aa",
+          "timed_out": false
+        },
+        "stage": "environment",
+        "version": "0.8.24"
+      }
+    ],
+    "provenance": {
+      "arbitrary.sol": {
+        "changes": [],
+        "level": "none",
+        "original_length": 166,
+        "original_sha256": "8350157317763956a6d4021de890a2b508d82833980c0d40a2c388ec56b36edf",
+        "result_length": 166,
+        "result_sha256": "8350157317763956a6d4021de890a2b508d82833980c0d40a2c388ec56b36edf",
+        "segments": [
+          {
+            "kind": "original",
+            "new_end": 166,
+            "new_start": 0,
+            "original_end": 166,
+            "original_start": 0
+          }
+        ]
+      }
+    }
+  }
+]

@@ -767,3 +767,60 @@ CP1 输入参数：production 固定 Python 3.10.21 / Slither 0.11.6 / crytic-co
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp0_1c2_review_v1/README 全文，CHANGE_LOG:99372、PROGRESS:20047 追加区间，6 个文件全部 passed=True 后提交。
 - 资源：云端 CPU；沿用会话中的虚拟环境与编译器；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP0.1 完成；下一步 Codex 执行 CP1。本轮提交并 push 到 `compile-repair`。
+
+
+## 15. 2026-11-14 CompileRepair CP1：核心层与环境修复入口完成（修改 AI：Codex）
+
+### 15.1 任务、依据与范围
+
+用户要求执行 PROMPTS r2.6 §4.3，先同步和通读全文、HANDOVER §0–5、DECISIONS、§13/14 及 cp0_1c2_review_v1/README，按 §4–6 验收，记录后本地提交。起始 compile-repair@d5e84d39fe876ea1b4b00a8bb26dee47ca9e18a5，pull --ff-only 为 Already up to date。范围为任意单文件/片段的环境第 1、6 步；MANDO 只作回归。
+
+新增 core/provenance.py、core/store.py、rules/__init__.py、rules/environment.py、pipeline.py；修改 core/model.py、toolchain/solc.py、evaluation/survey.py、cli.py；新增 test_core.py、test_environment.py、test_pipeline.py。产物为 cp1_development_v1、cp1_sample_v1、cp1_historical_v1；文档为 CP1_REPORT、三个 README、本节、HANDOVER、DECISIONS、PROGRESS。完整清单见 file_inventory.json。PROMPTS、CP0/CP0.1 报告/产物、scripts/**、原作者代码、语料、根目录记录保持不变。
+
+### 15.2 实施方式和重要选择
+
+核心层记录编译单元、字节补丁、偏移分段与清单。补丁校验当前副本原文，保存 old/new/step/round；最终重放必须完全复现副本和映射。additive 按原字节身份/顺序核验，不只查子序列；等长 rewrite 保留位置对应，删除/非等长替换可映射为 None，跨来源边界或删除拼接点的节点为 rewritten。存储排他创建、拒绝路径逃逸/符号链接，JSONL 逐条 flush；seal 绑定全部产物、工具与实际代码身份。失败保存副本/清单/调用证据，不生成成功节点文件。
+
+选版策略唯一实现在 environment.py，survey 只作委托并保留 CP0 无 pragma 的调查窗口。直接 import versioning.interval，冻结文件 SHA256 为 130251d6a9e46ec176ba183a0a66fa5a30210b43c1ab8faa2bfcf5a676d2ed18，未复制或 monkeypatch。已知版本优先；普通候选先耗尽下界系列再推进；降序只反转系列内顺序。无 pragma 推断只加入有官方版本依据的 throw/var 移除和 unchecked 引入，注释/字符串遮蔽；未出现特征不反推作者意图。MANDO 配置才按源码 hash 匹配 SmartBugs metadata，并通过 recorded_version 复查源码/CSV/唯一行，无 pragma 优先 0.4.25。
+
+默认失败后只按两行表在同一版本重试：0.8.24 Cancun、0.8.26 via-IR；核对类型/消息/版本，未命名标识符另核对源位置。Slither 使用相同有序设置，清单保留触发错误与出处。只有区间内无可信支持候选才覆盖 pragma，候选限下界同系列、距离优先；替换 directive 等长字节，保留换行和同一行其他代码。候选耗尽区分无候选、所有 solc 失败、Slither 侧失败。完整 CFG 边/调用存储留 CP2，目录/闭包留 CP3，兼容源码改写留 CP6。
+
+solc.py 只追加本地固定 SHA 信任加载器，复用已授权追加清单校验；原函数 AST 保持相同，Slither 文件不改。代码封存扫描跳过旧 artifacts/临时树，避免无关 IO。归档辅助检查首次把 pytest 实际目录和 current 符号链接算作两份结果而退出，确认别名后只排除符号链接，读取原通过结果，没有重跑测试或改标准（offline_replay_audit.json）。
+
+写最后四份记录时，WSL 启动命令返回 Wsl/Service/0x8007274c。先只读查 WSL 状态、UNC 文件与主机资源；四文件 SHA256 全部仍等于 baseline，证明未开始写入，随后短 stat 命令恢复。分批继续写记录，没有重启服务、改网络或重跑验收；根因未确定，不推测为代码失败。证据 documentation_interruption.json；普通沙箱读取受限时使用既有获准的显式 WSL/只读权限，不新增安装。
+
+正式 case 源码副本 95 份中 57 份有原有行尾空白；保留副本/原 seal，852 文件（12,212,867 字节）打包为 cases.tar.gz，逐成员回读哈希/长度相同后提交压缩包与 case_archive_index，原目录只保留本地。没有删改源码空白、重写 case 或放宽 git 暂存检查；这是无损证据归档，不改变生产存储格式。
+
+### 15.3 实测与数据结论
+
+| 项 | 实测 | 证据（artifacts 下） |
+|---|---|---|
+| 冻结重放 | 两环境各升序 846/846、降序 846/846；固定 CP0 37 版与旧 rc/D3，不重新编译 | cp1_development_v1/offline_replay_*.json.gz |
+| 自动设置 | 六个真实副本全部默认失败后同版设置 D3 通过，含 ^0.8.24 不先换版本 | settings_acceptance.json |
+| 小样本 | 规则 A 非通过 25 + 七类各 10 个通过；三指定失败已在 25 份内，合计 95 | cp1_sample_v1/sample_plan.json |
+| 小样本验收 | 92 成功，3 个预期 Slither 侧失败，其他未修复 0；197 solc、101 Slither，347.413 秒 | acceptance_summary.json |
+| 选版对账 | 91 相同，1 因新增更低 0.5.5（旧 0.5.6）；无法归因 0，无覆盖/跨系列 | archive_audit.json、cases/082/manifest.jsonl |
+| 原字节与节点 | 95 文件 level=none；11,822 成功节点全部 original；95 case seal 回验通过 | archive_audit.json |
+| 历史测量 | 23 次前置 solc 全 rc0，46 次生产 Slither；0.4.11 两 CWD 各 5/5，其他三版失败 | cp1_historical_v1/results.json、counts.json |
+| 冻结保护 | 27,845 模块外文件、363 旧产物、28 fixture、117 mando/144 production 元数据、96 solc 均相同；354 code_refs 不变 | frozen_audit.json |
+
+唯一选版差异输入 SHA 为 f0028ebd798334727aa07d9857bc3996563b8dc250b899882cb1346fc5d24014，0.5.5 在原区间且 rc0/D3 通过，属于第 5 节 (a)。样本实际 metadata 命中 0、无 pragma 1，不能写成重跑全部 43 份 metadata；已知优先级由冻结 846 离线重放覆盖。三个已知重入文件各在 0.4.12–23 solc 非零，0.4.24/25/26 rc0 后 AssertionError，完整尝试链保留。
+
+历史每个 CWD 的（输入数、D3 通过、缺 filename 节点）：0.4.0=(10,0,287)、0.4.2=(5,0,50)、0.4.9=(3,0,362)、0.4.11=(5,5,0)。两个 CWD 逐版相同，合计 10/46 D3 通过、缺 filename 1,398；36 个 D3 失败是规定测量值，不是额外小样本失败。前置编译在仓库根，run_slither 才分别在根与 /；测量 3.887 秒，含加载进程 7.351 秒。
+
+### 15.4 用户批准、原文差异与待确认设计
+
+本轮授权 CP1 编码、已有工具运行、记录与本地提交；未授权新安装/下载或 push，实际均未执行。没有修改方案、放宽标准或更换实现范围。生产 Slither 使用 production，6c 相关测试只用 regression_6c；CP0/CP0.1 原结论与产物不重做。
+
+只登记两项审查事项，未实施替代方案：（1）0.4.11 五份输入通过不证明任意源码/图语义，建议保持 0.4.12，扩展需审查与用户决定。（2）既有 command() 用字符串截取相对路径，在 cwd=/ 时产生 ome/...；只读构造证据在 cwd_command_inspection.json，未作额外编译或修改原函数。建议经确认后用路径函数并补 / 与相似目录前缀测试。当前 CLI 从项目工作目录运行；第 6 节前置编译在仓库根，测量未受影响。
+
+### 15.5 验收、资源、未执行事项与停止
+
+生产模块 546 passed/6 skipped（41.79 秒），mando 模块 116 passed/436 skipped（13.38 秒），冻结 DFG 2653 passed/9 个已有警告（196.02 秒）。参数 -q -ra -x -p no:cacheprovider，新 basetemp；精确 argv/环境/rc/哈希及原始无损压缩日志见 pytest_*.json/log.gz。14/30 生产文件、9 测试文件、28 fixture；分层和 Python 3.7 语法通过，正式运行后代码身份未变。
+
+frozen_audit passed=true：28,236 份冻结文件、旧报告/PROMPTS、环境与全局选择均相同；Compiler/Compilation、所有原 solc 函数 AST 相同，Slither 整文件不改，模块外无跟踪改动。CPU，OMP/MKL=2；无下载/安装、LLM、训练、GPU 锁或外部语料获取，费用 0。完整图/项目/依赖/其他规则与 CP6 改写未运行。
+
+提交前对 CP1_REPORT、PROGRESS:20625、CHANGE_LOG:103907、HANDOVER、DECISIONS 和三个 README 共 8 份执行 doc_check；前两份历史追加记录按原字节边界，其余全文，逐行 passed 与命令写入 artifact。最终结果在本节末补记。完成封存、精确暂存和 git diff --cached --check 后本地 CP1 提交，不 push；停于待审查，CP2 不开始。
+
+
+最终验收补记（修改 AI：Codex）：doc_check_v1 的 8 行全部 passed=true、rc0；历史字节审计确认 PROGRESS/CHANGE_LOG 原前缀与 HANDOVER/DECISIONS 旧历史不变（documentation_history_audit.json）。原始 case 无损归档 852/852 成员 SHA/长度通过，原 seal 保留。首次精确暂存 57 文件，git diff --cached --check 返回 0（staging_check.json），未排除任何已暂存文件。补记和归档说明完成后执行 doc_check_v2，再封存三个批次、生成 seal_hashes/file_inventory、核对最终暂存字节和完整格式检查，成功后本地提交；最终八行结果及命令收据为 doc_check_v2.jsonl / doc_check_v2_invocation.json。

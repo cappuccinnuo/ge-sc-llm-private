@@ -152,3 +152,14 @@ WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，�
 - C 续审查通过（两次生产 743/743 指纹相同；与独立运行 740/740 相同；兼容性 501/501；seal 全部一致）。CP0.1 完成。
 - PROMPTS r2.6：新增 1.9 节；CP1 选版复现固定用 cp0_v2 的 37 个编译器；小样本验收改为可归因比较并加入 3 个已知 Slither 侧失败合约；0.4.11 缺文件名测试改为替身，新增 CP1 第 6 节测量历史编译器。
 - 证据 `artifacts/cp0_1c2_review_v1/`；记录 `docs/CHANGE_LOG.md` §14。下一步 Codex 执行 CP1。
+
+
+## 2026-11-14 CP1：核心层与环境方法完成（修改 AI：Codex）
+
+按 PROMPTS r2.6 §4.3 从 d5e84d39 同步后实现一般文件/片段 repair、core provenance/store、唯一 environment 策略和设置表；survey 委托，原 solc 函数与 Slither 不改。新增生产 5 文件（core/provenance、store，rules/__init__、environment，pipeline），修改 4 文件（core/model、toolchain/solc、evaluation/survey、cli）；新增 test_core/test_environment/test_pipeline。生产 14/30 文件、9 测试、28 fixture 不变。完整清单见 CP1_REPORT 与 file_inventory.json。
+
+两个环境固定 37 个编译器和 CP0 rc/D3，离线升/降序各 846/846，不重跑 CP0；六个真实设置副本自动同版本重试通过。95 样本 92 成功、仅 3 指定 Slither 侧失败；91 个选版相同，1 从 0.5.6 改选新增 0.5.5，有区间/rc0/D3 依据；无无法归因差异、覆盖或跨系列。197 solc、101 Slither；95 源文件无改动，11,822 成功节点均 original。样本实际 metadata 命中 0、无 pragma 1；不能混算为全部 metadata 重跑。证据 cp1_sample_v1/acceptance_summary.json、archive_audit.json。
+
+历史 23 组合、23 rc0 编译、46 次生产 Slither；0.4.11 在两个 CWD 各 5/5，0.4.0/2/9 仍缺映射，保持 0.4.12。三个重入文件在 0.4.24/25/26 均 rc0 后 AssertionError，未提前改写。另登记原 command() 在 cwd=/ 的路径边界，只读确认；建议审查/用户确认后再修正，历史测量前置编译在仓库根。pytest 归档遇 current 符号链接重复，排除别名读取原结果，没有重跑测试。最后记录写入前 WSL 连接超时，四文件 SHA 未变、短命令恢复后分批写入，没有重启或重跑；见 documentation_interruption.json。
+
+命令 python -B -m pytest -q -ra -x -p no:cacheprovider：生产模块 546 passed/6 skipped，mando 116/436，DFG 2653 passed/9 warnings；收据/压缩日志在 cp1_development_v1/pytest_*。冻结 28,236 文件、354 code_refs、96 solc 与环境元数据相同，分层/Python 3.7 语法通过。八份文档检查及暂存记录同目录保存。交接/训练改变记录为 docs/HANDOVER、CHANGE_LOG §15；方案未改，未下载安装、LLM、训练、全局切换或 push。本地 CP1 提交后等待审查，CP2 不开始。
