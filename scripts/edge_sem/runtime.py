@@ -51,6 +51,14 @@ REVISION_FILES = {
     "scripts/edge_sem/recon/ep9_run.py",
 }
 
+ADVISORY_REVISION_VERSION = "edgesem-ep9-advisory-sampling-v2"
+SAMPLING_ADVISORY_POLICY = dict(version="asynchronous-whole-card-advisory-v2",
+    max_attempts=1, per_query_timeout_seconds=5, backoff_seconds=[],
+    retry_exceptions=["TimeoutExpired", "CalledProcessError"],
+    stale_samples_allowed=False, automatic_fit_retry=False,
+    interval_seconds=10, query_failure_action="record_gap_continue_training",
+    synchronous_epoch_queries=False, validation_cache="one_load_stat_and_sha")
+
 
 def verify_execution_revision(path, plan, revision, execute=False):
     """Explicit EP9-only overlay; old plans, snapshots and approvals stay intact."""
@@ -58,10 +66,12 @@ def verify_execution_revision(path, plan, revision, execute=False):
     data = read(revision)
     if read(revision.with_suffix(".seal.json")).get("revision") != ref(revision):
         raise ValueError("Execution revision seal differs")
-    if (data.get("version") != REVISION_VERSION or plan.get("experiment_stage") != "E-B"
+    policies = {REVISION_VERSION: SAMPLING_RETRY_POLICY,
+                ADVISORY_REVISION_VERSION: SAMPLING_ADVISORY_POLICY}
+    if (data.get("version") not in policies or plan.get("experiment_stage") != "E-B"
             or data.get("plans", {}).get(plan.get("analysis_role")) != ref(path)
             or data.get("old_runtime") != plan["runtime"]
-            or data.get("sampling_policy") != SAMPLING_RETRY_POLICY):
+            or data.get("sampling_policy") != policies.get(data.get("version"))):
         raise ValueError("Execution revision identity/policy differs")
     request_path = checked(data["request"])
     request = read(request_path)

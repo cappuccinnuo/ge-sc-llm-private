@@ -453,12 +453,18 @@ def finish_documents(root,schema):
 def seal_sampling_recovery(root, folder):
     """Reuse prepared jobs and completed fits; record one approved fresh attempt."""
     from ..runtime import (REVISION_VERSION, REVISION_FILES, SAMPLING_RETRY_POLICY,
+                           ADVISORY_REVISION_VERSION, SAMPLING_ADVISORY_POLICY,
                            snapshot_runtime, verify_execution_revision)
     root, folder = Path(root).resolve(), Path(folder).resolve()
     if folder.parent != root:
         raise ValueError("Recovery must be a new EP9 subdirectory")
     request_path = folder/"request.json"
     request = sealed_json(request_path, "request")
+    advisory = request.get("sampling_policy") == SAMPLING_ADVISORY_POLICY
+    if advisory:
+        previous = checked(request["previous_recovery_failure"])
+        if previous.parent.parent != root or read(previous).get("automatic_retry") is not False:
+            raise ValueError("Latest recovery failure identity differs")
     if (request.get("execution_authorized") is not True or not request.get("user_request")
             or request.get("automatic_fit_retry") is not False
             or request.get("restart_failed_job_from_sealed_initial") is not True
@@ -488,9 +494,11 @@ def seal_sampling_recovery(root, folder):
     write(verification.with_suffix(".seal.json"), dict(verification=ref(verification)))
     frozen_evidence = frozen(root)
     runtime, snapshots = snapshot_runtime(folder/"runtime")
-    revision = dict(version=REVISION_VERSION, plans=refs, request=ref(request_path),
+    revision = dict(version=ADVISORY_REVISION_VERSION if advisory else REVISION_VERSION,
+        plans=refs, request=ref(request_path),
         old_runtime=request["old_runtime"], runtime=runtime, runtime_snapshots=snapshots,
-        changed_files=sorted(REVISION_FILES), sampling_policy=SAMPLING_RETRY_POLICY,
+        changed_files=sorted(REVISION_FILES),
+        sampling_policy=SAMPLING_ADVISORY_POLICY if advisory else SAMPLING_RETRY_POLICY,
         tests=ref(folder/"cpu_tests/results.json"), verified_successes=ref(verification),
         frozen=frozen_evidence, training_calculations_unchanged=True)
     path = folder/"runtime_revision.json"

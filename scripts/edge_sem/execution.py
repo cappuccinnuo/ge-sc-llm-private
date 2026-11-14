@@ -27,7 +27,8 @@ from scripts.labeling_v2.safe_graph import read_graph
 from . import VERSION as EDGESEM_VERSION,validate_profile
 from .io import ROOT,read,write,ref,checked
 from .runtime import (runtime_refs,snapshot_runtime,verify_snapshot,
-                      verify_execution_revision,SAMPLING_RETRY_POLICY)
+                      verify_execution_revision,SAMPLING_RETRY_POLICY,
+                      ADVISORY_REVISION_VERSION,SAMPLING_ADVISORY_POLICY)
 from .model import make_edge_model,validate_registration
 from .build_f4 import load_edges,add_edges
 from .support import model_support
@@ -111,25 +112,77 @@ def assemble_model(job):
     return model
 
 
-def _validate_job(job,plan=None,check_initial=True):
+class _LoadValidation:
+    """One load only: SHA on first use, metadata at every reuse and exit.
+
+    No checkpoint deserialization uses this cache. The frozen historical loader
+    runs at both boundaries, including its seal, gates and amendments.
+    """
+    def __init__(self):
+        self.files = {}
+        self.source = None
+        self.source_ref = None
+        self.hits = 0
+
+    @staticmethod
+    def identity(path):
+        st = Path(path).stat()
+        return (st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns, st.st_ctime_ns)
+
+    def checked(self, reference):
+        path = Path(reference["path"]).resolve()
+        expected = reference["sha256"]
+        before = self.identity(path)
+        if path in self.files:
+            old_sha, old_stat = self.files[path]
+            if old_sha != expected or old_stat != before:
+                raise ValueError("Shared validation input changed: " + str(path))
+            self.hits += 1
+            return path
+        checked(reference)
+        if self.identity(path) != before:
+            raise ValueError("Input changed while hashing: " + str(path))
+        self.files[path] = (expected, before)
+        return path
+
+    def historical(self, reference):
+        path = self.checked(reference)
+        if self.source is None:
+            self.source = h8.load(path)
+            self.source_ref = reference
+        elif self.source_ref != reference:
+            raise ValueError("Mixed historical source plans")
+        return self.source
+
+    def finish(self):
+        for path, (unused, original) in self.files.items():
+            if self.identity(path) != original:
+                raise ValueError("Validation input changed before exit: " + str(path))
+        if self.source is not None and h8.load(self.checked(self.source_ref)) != self.source:
+            raise ValueError("Historical plan changed before validation exit")
+
+
+def _validate_job(job,plan=None,check_initial=True,validation=None):
+    check = checked if validation is None else validation.checked
     if job["task_id"] not in TASKS or job["granularity"]!="node" or job["seed"]!=1:
         raise ValueError("Unsupported EdgeSem task/seed")
     if type(job["fold"]) is not int or not 0<=job["fold"]<10:raise ValueError("Invalid fold")
     spec=validate_profile(job["edge_profile"])
     if job["seeds"]!=seeds("node",job["fold"],1):raise ValueError("Frozen seeds differ")
     for name in ("graph","folds","labels","label_view","feature_view","feature_npz","source_preparation","initialization"):
-        checked(job[name])
+        check(job[name])
     if check_initial:
-        checked(job["initial"])
+        check(job["initial"])
         if not job["initial"].get("state_sha256"):raise ValueError("Missing initial tensor digest")
-    if spec["new_relations"]:checked(job["f4_manifest"])
-    if spec["edge_features"]!="none":checked(job["attrs_manifest"])
+    if spec["new_relations"]:check(job["f4_manifest"])
+    if spec["edge_features"]!="none":check(job["attrs_manifest"])
     validate_parts(job["split"],job["graph_files"])
     if job["config"]!=p2_config(job["historical_config"]):raise ValueError("P2 config drift")
     if job["support"]["profile"]!=job["edge_profile"]:raise ValueError("Support profile differs")
     view=validate_view(job,plan)
     if plan is not None:
-        source=h8.load(checked(plan["source_h8_plan"]))
+        source=(h8.load(checked(plan["source_h8_plan"])) if validation is None
+                else validation.historical(plan["source_h8_plan"]))
         old=dict(task_id=job["task_id"],fold=job["fold"],seed=1,profile="G3R")
         task,info,entry=h8.prepared(source,old)
         feature_view,feature_npz=source_feature(source,job["task_id"],view)
@@ -191,7 +244,14 @@ def load(path,mode="execute",revision=None):
         raise ValueError("Authorization matrix differs")
     if len({job_id(j) for j in plan["jobs"]})!=len(plan["jobs"]):raise ValueError("Duplicate jobs")
     validate_plan_view(plan)
-    for job in plan["jobs"]:_validate_job(job,plan)
+    efficient = (revision is not None and read(revision).get("version") == ADVISORY_REVISION_VERSION)
+    cache = _LoadValidation() if efficient else None
+    started = time.monotonic()
+    for job in plan["jobs"]:_validate_job(job,plan,validation=cache)
+    if cache is not None:
+        cache.finish()
+        print("EP9 plan validation: {:.3f}s; {} unique files; {} verified reuses".format(
+            time.monotonic()-started, len(cache.files), cache.hits), flush=True)
     return plan
 
 
@@ -342,7 +402,7 @@ def _next_attempt(path, job, folder):
 
 
 def make_retrying_resources(device, baseline, context, samples_path, history_path,
-                            policy, events_path, query=None):
+                            policy, events_path, query=None, advisory=False):
     """EP9-only telemetry adaptation, without changing training calculations.
 
     Copied observed sample/summary: experiment/preflight.py
@@ -361,6 +421,7 @@ def make_retrying_resources(device, baseline, context, samples_path, history_pat
     _same_device(baseline, context["after_initialization"])
     if context["baseline"] != baseline:
         raise ValueError("Context observation belongs to another baseline")
+    retry_policy = SAMPLING_ADVISORY_POLICY if advisory else SAMPLING_RETRY_POLICY
     query = query_baseline if query is None else query
     samples_path, events_path = Path(samples_path), Path(events_path)
     for p in (samples_path, events_path):
@@ -375,6 +436,7 @@ def make_retrying_resources(device, baseline, context, samples_path, history_pat
             self.observation_lock = threading.Lock()
             self.sample_cycles = 0
             self.terminal_sampling_failure = None
+            self.telemetry_gaps = 0
 
         def event(self, value):
             value = dict(value, unix_seconds=time.time(), monotonic_seconds=time.monotonic())
@@ -393,7 +455,7 @@ def make_retrying_resources(device, baseline, context, samples_path, history_pat
                     return False
                 self.sample_cycles += 1
                 cycle = self.sample_cycles
-                for attempt_number in range(1, SAMPLING_RETRY_POLICY["max_attempts"] + 1):
+                for attempt_number in range(1, retry_policy["max_attempts"] + 1):
                     try:
                         reading = query()
                     except Exception as error:
@@ -410,9 +472,16 @@ def make_retrying_resources(device, baseline, context, samples_path, history_pat
                                 detail[name] = value
                         self.errors.append(str(error))
                         self.event(detail)
-                        if retryable and attempt_number < SAMPLING_RETRY_POLICY["max_attempts"]:
-                            time.sleep(SAMPLING_RETRY_POLICY["backoff_seconds"][attempt_number - 1])
+                        if retryable and attempt_number < retry_policy["max_attempts"]:
+                            time.sleep(retry_policy["backoff_seconds"][attempt_number - 1])
                             continue
+                        if advisory and retryable:
+                            self.telemetry_gaps += 1
+                            self.event(dict(cycle=cycle, attempt=attempt_number, kind="gap",
+                                sample_index=None, reason="query_unavailable"))
+                            if self.telemetry_gaps == 1:
+                                print("EP9 advisory: GPU query unavailable; recording a monitoring gap.", flush=True)
+                            return False
                         self.terminal_sampling_failure = detail
                         return False
                     # Identity, allocator and log failures are not transient command errors.
@@ -427,6 +496,9 @@ def make_retrying_resources(device, baseline, context, samples_path, history_pat
                         reading["context_adjusted_residual_estimate_mib"] = (
                             reading["non_torch_residual_estimate_mib"]-context["free_decrease_mib"])
                         reading["index"] = len(self.observations)
+                        if advisory:
+                            reading["sample_kind"] = "query"
+                            reading["query_cycle"] = cycle
                         with samples_path.open("a", encoding="utf8") as handle:
                             handle.write(json.dumps(reading, sort_keys=True) + "\n")
                         self.observations.append(reading)
@@ -445,9 +517,9 @@ def make_retrying_resources(device, baseline, context, samples_path, history_pat
                         return False
 
         def _watch(self):
-            while not self.done.wait(.5):
+            while not self.done.wait(retry_policy.get("interval_seconds", .5)):
                 try:
-                    if not self.sample():
+                    if not self.sample() and (not advisory or self.terminal_sampling_failure is not None):
                         return
                 except Exception as error:
                     # Never lose a logging/allocator failure in a background
@@ -457,6 +529,30 @@ def make_retrying_resources(device, baseline, context, samples_path, history_pat
                             error=str(error), stage="sampling_watch", retryable=False)
                         self.errors.append(str(error))
                     return
+
+        def __enter__(self):
+            if not advisory:
+                return super().__enter__()
+            torch.cuda.reset_peak_memory_stats()
+            # Preserve the already measured initialization boundary as such.
+            # It is never relabelled as a later observation during training.
+            reading = copy.deepcopy(context["after_initialization"])
+            reading.update(torch_allocated_mib=context.get("torch_allocated_mib", 0.),
+                torch_reserved_mib=context.get("torch_reserved_mib", 0.),
+                sample_kind="context_boundary", index=0,
+                pairing_completed_unix_seconds=reading["unix_seconds"]+reading["elapsed_seconds"],
+                pairing_window_seconds=reading["elapsed_seconds"])
+            reading["non_torch_residual_estimate_mib"] = (
+                reading["total_mib"]-reading["free_mib"]-reading["torch_reserved_mib"])
+            reading["context_adjusted_residual_estimate_mib"] = (
+                reading["non_torch_residual_estimate_mib"]-context["free_decrease_mib"])
+            with samples_path.open("a", encoding="utf8") as handle:
+                handle.write(json.dumps(reading, sort_keys=True)+"\n")
+            self.observations.append(reading)
+            self.samples.append(reading["free_mib"])
+            self.thread = threading.Thread(target=self._watch, daemon=True)
+            self.thread.start()
+            return self
 
         def __exit__(self, *args):
             self.done.set()
@@ -483,16 +579,37 @@ def make_retrying_resources(device, baseline, context, samples_path, history_pat
                     residual_attribution="unattributed; not an identified external process",
                     raw_samples_path=str(samples_path.resolve()), raw_samples_sha256=ref(samples_path)["sha256"],
                     paired_sample_count=len(self.observations), caveats=list(CAVEATS),
-                    sampling_retry_policy=copy.deepcopy(SAMPLING_RETRY_POLICY),
+                    sampling_retry_policy=copy.deepcopy(retry_policy),
                     sampling_events=ref(events_path),
                     terminal_sampling_failure=self.terminal_sampling_failure)
+                if advisory:
+                    query_samples = [x for x in self.observations if x.get("sample_kind") == "query"]
+                    result.update(whole_card_sampling_seconds=retry_policy["interval_seconds"],
+                        telemetry_gaps=self.telemetry_gaps, sampling_cycles=self.sample_cycles,
+                        monitoring_incomplete=self.telemetry_gaps > 0 or not query_samples,
+                        query_sample_count=len(query_samples),
+                        minimum_free_interpretation="minimum of recorded observations, not continuous coverage")
                 return result
 
-    return local_resource_class(RetryingObservedResources, history_path)()
+    local = local_resource_class(RetryingObservedResources, history_path)
+    if not advisory:
+        return local()
+    class AdvisoryResources(local):
+        def check(self):
+            # Never wait for the sampling thread or launch a query on the
+            # training thread. CUDA failures still propagate from the trainer.
+            if self.terminal_sampling_failure is not None:
+                raise MemoryGateError("GPU monitoring integrity failure: " + str(self.terminal_sampling_failure))
+            if self.samples and min(self.samples) < 100 and not self.warned_tight:
+                print("EP9 advisory: observed free GPU memory below 100 MiB.", flush=True)
+                self.warned_tight = True
+    return AdvisoryResources()
 
 
 def validate_sampling_recovery(resources, samples):
     """Every tolerated query error must have a later fresh, indexed reading."""
+    if resources.get("sampling_retry_policy") == SAMPLING_ADVISORY_POLICY:
+        return validate_advisory_sampling(resources, samples)
     if (resources.get("sampling_retry_policy") != SAMPLING_RETRY_POLICY
             or resources.get("terminal_sampling_failure") is not None):
         raise ValueError("Sampling recovery policy/final state differs")
@@ -527,6 +644,55 @@ def validate_sampling_recovery(resources, samples):
             raise ValueError("Recovered reading is not fresh")
         previous_index = index
     return dict(query_failures=len(errors), recovered_cycles=len(groups))
+
+
+def validate_advisory_sampling(resources, samples):
+    """Accept explicit telemetry gaps, never fabricate recovery or fresh data."""
+    if resources.get("terminal_sampling_failure") is not None:
+        raise ValueError("Fatal monitor integrity failure")
+    events = [json.loads(x) for x in checked(resources["sampling_events"]).read_text().splitlines()]
+    if len(events) % 2:
+        raise ValueError("Incomplete telemetry gap evidence")
+    errors = events[::2]
+    previous = 0
+    for error, gap in zip(errors, events[1::2]):
+        if (error.get("kind") != "error" or gap.get("kind") != "gap"
+                or error.get("error_type") not in SAMPLING_ADVISORY_POLICY["retry_exceptions"]
+                or error.get("retryable") is not True
+                or error.get("attempt") != 1 or gap.get("attempt") != 1
+                or type(error.get("cycle")) is not int or error["cycle"] <= previous
+                or gap.get("cycle") != error["cycle"] or gap.get("sample_index") is not None
+                or gap.get("reason") != "query_unavailable"
+                or gap["unix_seconds"] < error["unix_seconds"]):
+            raise ValueError("Invalid telemetry gap record")
+        previous = error["cycle"]
+    if resources.get("sampling_errors") != [e["error"] for e in errors]:
+        raise ValueError("Telemetry errors differ")
+    if not samples or samples[0].get("sample_kind") != "context_boundary":
+        raise ValueError("Missing measured context boundary")
+    for i, sample in enumerate(samples):
+        if sample.get("index") != i or (i and sample.get("sample_kind") != "query"):
+            raise ValueError("Telemetry sample identity differs")
+        if i and sample["unix_seconds"] < samples[i-1]["unix_seconds"]:
+            raise ValueError("Telemetry sample time moves backwards")
+    context = resources["context_observation"]
+    if any(samples[0].get(k) != v for k, v in context["after_initialization"].items()):
+        raise ValueError("Context observation was changed or relabelled")
+    if (samples[0]["torch_allocated_mib"] != context.get("torch_allocated_mib", 0.)
+            or samples[0]["torch_reserved_mib"] != context.get("torch_reserved_mib", 0.)):
+        raise ValueError("Context allocator counters differ")
+    query_count = len(samples)-1
+    cycles = [x.get("query_cycle") for x in samples[1:]] + [x["cycle"] for x in errors]
+    if (any(type(x) is not int for x in cycles)
+            or sorted(cycles) != list(range(1, len(cycles)+1))
+            or resources.get("sampling_cycles") != len(cycles)):
+        raise ValueError("Monitoring cycles are missing or counted twice")
+    if (resources.get("telemetry_gaps") != len(errors)
+            or resources.get("query_sample_count") != query_count
+            or resources.get("monitoring_incomplete") is not (bool(errors) or not query_count)
+            or resources.get("whole_card_sampling_seconds") != SAMPLING_ADVISORY_POLICY["interval_seconds"]):
+        raise ValueError("Monitoring coverage differs")
+    return dict(query_failures=len(errors), recorded_gaps=len(errors), query_samples=query_count)
 
 
 def fit_one(path, job, revision=None):
@@ -565,7 +731,8 @@ def fit_one(path, job, revision=None):
         else:
             resources = make_retrying_resources(cfg["device"], pre["baseline"], context,
                 attempt.with_suffix(".memory_samples.jsonl"), attempt / "history.jsonl",
-                plan["resource_policy"], attempt.with_suffix(".sampling_events.jsonl"))
+                plan["resource_policy"], attempt.with_suffix(".sampling_events.jsonl"),
+                advisory=read(revision)["version"] == ADVISORY_REVISION_VERSION)
         torch.set_num_threads(cfg["threads"])
         with resources:
             model = construct(plan, job, cfg["device"])
@@ -744,6 +911,10 @@ def _verify_result(path, plan, job, attempt, historical=False):
         raise ValueError("Preflight occurred after CUDA initialization")
     samples = [json.loads(x) for x in Path(resources["raw_samples_path"]).read_text().splitlines()]
     validate_local_resource_summary(resources, plan["resource_policy"], attempt / "history.jsonl", samples)
+    if "execution_revision" in start:
+        policy = read(checked(start["execution_revision"]))["sampling_policy"]
+        if resources.get("sampling_retry_policy") != policy:
+            raise ValueError("Resource policy differs from its own execution revision")
     if "execution_revision" in start:
         validate_sampling_recovery(resources, samples)
     elif "sampling_retry_policy" in resources:

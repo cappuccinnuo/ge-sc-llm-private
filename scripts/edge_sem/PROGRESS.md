@@ -1223,3 +1223,18 @@ recovery_sampling_v1 的完整回归保留为失败现场：409项通过，唯�
 
 
 EP9 恢复封存后，本地交付检查因3份冻结源码副本的既有末尾空行、首次失败pytest日志的既有行尾空格而停止（尚未重启GPU）。核对SHA确认归档与原文件完全相同，仅在 ep9_v1/.gitattributes 为这4个精确归档路径登记对应空白例外，保留全部原始字节和失败记录。运行源码、plan/seal、零步初值、4417项回归及4份成功结果的验收均未变化；继续执行同一已批准的 recovery_sampling_v2，不新增训练任务。
+
+
+EP9 后台恢复已实际进入训练（本地修复提交9ccdc5f2）：recovery_sampling_v2/training_process.json 记录当前主管进程；早先 followup_failure.json 只是Git归档空白检查的已处理历史错误。原名 reentrancy_node/fold1/G4R-Api 的 attempt_002 已完成至少1轮，实测一次 nvidia-smi 5秒 TimeoutExpired 后第2次查询成功，匹配到了新的实时读数，训练继续；证据见 live_recovery_check.json。旧失败的具体底层原因仍不能从历史记录确定，不因本次超时而追认。当前仍为4/120份正式完成结果，其余在原顺序后台执行，未宣称EP9全部完成。
+
+
+EP9 监控修复已完成真实任务闭环验证：原名重入节点 fold1/G4R-Api 的 attempt_002 跑满50轮并通过完整收据验收，best/last 在 inner_val/outer_test 的重载均逐位一致。该fit记录1次查询超时且成功恢复，无终止采样错误；控制器已自动启动第6次 reentrancy_node/fold1/G3R-TA。此时正式完成5/120，EP9仍在后台继续；证据见 recovery_sampling_v2/recovered_fit_acceptance.json，不把阶段性恢复验收当作EP9全批完成。
+
+
+## 2026-11-14 EP9 显存采样与加载效率恢复（v3）
+用户授权：“修复同时优化训练的时间，不要再出现中途停止的问题”。已完成39/120个正式结果；第40项 access_control_node/fold_3/G4R-A 在6轮后因 nvidia-smi 连续3次5秒超时停止，最后有效空闲694 MiB，无已记录OOM。失败与旧收据完整保留。
+新执行修订采用10秒后台查询：TimeoutExpired/CalledProcessError只记录显式监控缺口，轮内检查不调用或等待外部查询；不将上下文读数伪装成训练期间的新观测。监控结果披露缺口、覆盖数及采样周期。设备身份、记录写入、输入、非有限数值与真实CUDA错误仍报错。保持原名60→匿名60的120项矩阵、原初值与P2训练核心。
+一次plan加载内共享文件首次SHA核验，复用时及结束时核对inode/大小/mtime/ctime；冻结历史loader在两端核验。checkpoint反序列化仍即时SHA核验。真实两组60项均通过原/新校验：原名24.53→6.62秒，匿名13.88→3.12秒；这是加载环节顺序实测，不宣称整次拟合同比提速。
+新运行121项定向测试通过（含3轮CPU数值等价）；NodeSem 1353项与DFG 2653项沿用上一轮通过记录并核验冻结源码未变，明确没有重跑。生产修改仅execution.py、runtime.py、recon/ep9_run.py；构造、binding与完整guarded训练块AST一致，trainer SHA不变。
+本轮证据目录：scripts/edge_sem/artifacts/ep9_v1/recovery_sampling_v3/。39个成功结果继续复用，失败项从封存初值进入attempt_002；余81次按原计划后台串行。此记录为恢复准备，实际启动与完成状态以新training_process、pipeline_started/complete和正式收据为准。
+最终七类实验将另建显存充足的服务器批次；当前显存限制仅来自本地电脑。
