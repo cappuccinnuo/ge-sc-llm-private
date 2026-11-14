@@ -1,0 +1,839 @@
+{
+  "E3": {
+    "U_initial": 0,
+    "dropout": 0.1,
+    "embedding_dim": 16,
+    "hidden": 32,
+    "u_initial": 0
+  },
+  "EDGE_FEATURE_NAMES": [
+    "ctrl_src_dominates_dst",
+    "ctrl_dst_postdominates_src",
+    "ctrl_branch_contains_ext_call",
+    "var_kind_local",
+    "var_kind_parameter",
+    "var_kind_return_var",
+    "var_kind_other",
+    "value_shape_mapping",
+    "value_shape_array",
+    "value_shape_address",
+    "value_shape_integer",
+    "value_shape_bool",
+    "value_shape_bytes_string",
+    "value_shape_struct_contract",
+    "value_shape_other",
+    "def_weak_update",
+    "def_kind_assign",
+    "def_kind_compound",
+    "def_kind_decl_or_param",
+    "def_kind_incdec_or_delete",
+    "def_loop_carried",
+    "use_path_crosses_ext_call",
+    "use_context_condition",
+    "use_context_call",
+    "use_context_arithmetic",
+    "use_context_state_write_value",
+    "use_context_return",
+    "arith_op_additive",
+    "arith_op_multiplicative",
+    "arith_op_exponent",
+    "write_access_plain",
+    "write_access_indexed",
+    "write_access_member",
+    "write_access_other",
+    "write_op_assign",
+    "write_op_increase",
+    "write_op_decrease",
+    "call_low_level",
+    "call_delegatecall",
+    "call_sends_value",
+    "call_return_checked",
+    "call_callee_writes_state",
+    "call_callee_external_call",
+    "guard_kind_require",
+    "guard_kind_if_branch",
+    "guard_kind_early_exit",
+    "guard_kind_loop_cond",
+    "guard_kind_modifier",
+    "guard_kind_internal_check",
+    "guard_operands_caller_identity",
+    "guard_operands_block_time",
+    "guard_operands_amount_balance",
+    "guard_operands_external_result",
+    "guard_operands_hash",
+    "guard_operands_state",
+    "ctx_src_is_ext_call",
+    "ctx_dst_is_ext_call",
+    "ctx_src_after_ext_call",
+    "ctx_dst_after_ext_call",
+    "ctx_in_loop",
+    "ctx_leads_to_exit",
+    "ctx_unchecked_arith",
+    "ctx_fn_externally_visible",
+    "ctx_call_in_loop",
+    "env_kind_caller_identity",
+    "env_kind_value",
+    "env_kind_block_time_number",
+    "env_kind_blockhash",
+    "unk_cfg",
+    "unk_dfg",
+    "unk_order",
+    "unk_state",
+    "unk_guard",
+    "call_to_library"
+  ],
+  "NEW_RELATIONS": [
+    "MOD_APPLY",
+    "CALL_SITE",
+    "GUARDS"
+  ],
+  "P2": {
+    "best": "strict minimum inner_val loss; first tie",
+    "epochs": 50,
+    "hyperparameters": {
+      "access_control_node": {
+        "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+        "cycle_momentum": true,
+        "delta": 0.001,
+        "device": "cuda:0",
+        "div_factor": 25,
+        "dropout": 0.2,
+        "environment": {
+          "dgl": "0.6.1",
+          "networkx": "2.6.3",
+          "numpy": "1.21.6",
+          "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+          "sklearn": "1.0.2",
+          "torch": "1.8.1+cu111"
+        },
+        "feature": "inside_token",
+        "final_div_factor": 1,
+        "forward_scope": "full_fixed_task_graph",
+        "heads": 8,
+        "hidden_size": 128,
+        "initial_lr": 0.0002,
+        "layer_impl": "shared_projection",
+        "layers": 2,
+        "loss": "unweighted_cross_entropy",
+        "max_lr": 0.005,
+        "maximum_training_epochs": 50,
+        "metric_unit": "HCG node",
+        "mode": "full",
+        "optimizer": "Adam",
+        "partition_policy": "group_disjoint_nested_file_supervision",
+        "patience": 51,
+        "primary_checkpoint": "best",
+        "protocol": "dfg-v2-grouped-nested",
+        "protocol_version": "dfg-v2-grouped-nested-v1",
+        "schedule_epochs": 50,
+        "schema_policy": "registered_schema_allow_train_unseen",
+        "score_role": "outer_test",
+        "secondary_checkpoint": "last",
+        "seed": 1,
+        "selection": "strict minimum inner validation loss; post-update eval forward",
+        "selection_role": "inner_val",
+        "threads": 2,
+        "use_norm": true,
+        "weight_decay": 0.0
+      },
+      "reentrancy_node": {
+        "batch": "inner_train node mask or file batch; one optimizer step per epoch",
+        "cycle_momentum": true,
+        "delta": 0.001,
+        "device": "cuda:0",
+        "div_factor": 25,
+        "dropout": 0.2,
+        "environment": {
+          "dgl": "0.6.1",
+          "networkx": "2.6.3",
+          "numpy": "1.21.6",
+          "python": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+          "sklearn": "1.0.2",
+          "torch": "1.8.1+cu111"
+        },
+        "feature": "inside_token",
+        "final_div_factor": 1,
+        "forward_scope": "full_fixed_task_graph",
+        "heads": 8,
+        "hidden_size": 128,
+        "initial_lr": 0.0002,
+        "layer_impl": "shared_projection",
+        "layers": 2,
+        "loss": "unweighted_cross_entropy",
+        "max_lr": 0.005,
+        "maximum_training_epochs": 50,
+        "metric_unit": "HCG node",
+        "mode": "full",
+        "optimizer": "Adam",
+        "partition_policy": "group_disjoint_nested_file_supervision",
+        "patience": 51,
+        "primary_checkpoint": "best",
+        "protocol": "dfg-v2-grouped-nested",
+        "protocol_version": "dfg-v2-grouped-nested-v1",
+        "schedule_epochs": 50,
+        "schema_policy": "registered_schema_allow_train_unseen",
+        "score_role": "outer_test",
+        "secondary_checkpoint": "last",
+        "seed": 1,
+        "selection": "strict minimum inner validation loss; post-update eval forward",
+        "selection_role": "inner_val",
+        "threads": 2,
+        "use_norm": true,
+        "weight_decay": 0.0
+      }
+    },
+    "label_policy": "L-audit",
+    "patience": 51,
+    "registration": {
+      "bytes": 12044,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep9_v1/protocol_p2/registration.json",
+      "sha256": "8697d3daa7413f2647a15486db6726eef44784d74b885a4cd33e7cd18ebbc15d"
+    },
+    "seed": 1,
+    "train": "inner_train only; outer_test scored after training"
+  },
+  "PROFILES": {
+    "G3R": {
+      "cf_back": false,
+      "direction_mode": "merge",
+      "edge_features": "none",
+      "new_relations": [],
+      "placebo": "none"
+    },
+    "G3R-T": {
+      "cf_back": false,
+      "direction_mode": "typed",
+      "edge_features": "none",
+      "new_relations": [],
+      "placebo": "none"
+    },
+    "G3R-TA": {
+      "cf_back": false,
+      "direction_mode": "typed",
+      "edge_features": "core",
+      "new_relations": [],
+      "placebo": "none"
+    },
+    "G4R": {
+      "cf_back": false,
+      "direction_mode": "typed",
+      "edge_features": "none",
+      "new_relations": [
+        "CALL_SITE",
+        "GUARDS",
+        "MOD_APPLY"
+      ],
+      "placebo": "none"
+    },
+    "G4R-A": {
+      "cf_back": false,
+      "direction_mode": "typed",
+      "edge_features": "core",
+      "new_relations": [
+        "CALL_SITE",
+        "GUARDS",
+        "MOD_APPLY"
+      ],
+      "placebo": "none"
+    },
+    "G4R-AC": {
+      "cf_back": false,
+      "direction_mode": "typed",
+      "edge_features": "core_context",
+      "new_relations": [
+        "CALL_SITE",
+        "GUARDS",
+        "MOD_APPLY"
+      ],
+      "placebo": "none"
+    },
+    "G4R-Api": {
+      "cf_back": false,
+      "direction_mode": "typed",
+      "edge_features": "core",
+      "new_relations": [
+        "CALL_SITE",
+        "GUARDS",
+        "MOD_APPLY"
+      ],
+      "placebo": "attributes"
+    },
+    "G4R-P": {
+      "cf_back": false,
+      "direction_mode": "typed",
+      "edge_features": "none",
+      "new_relations": [
+        "CALL_SITE",
+        "GUARDS",
+        "MOD_APPLY"
+      ],
+      "placebo": "relations"
+    }
+  },
+  "RELATION_FAMILY": {
+    "CALL_SITE": "call",
+    "DATA_DEF_USE": "data",
+    "ENV_FLOW": "data",
+    "GUARDS": "guard",
+    "MOD_APPLY": "call",
+    "READS_STATE": "data",
+    "REV_CALL_SITE": "call",
+    "REV_DATA_DEF_USE": "data",
+    "REV_ENV_FLOW": "data",
+    "REV_GUARDS": "guard",
+    "REV_MOD_APPLY": "call",
+    "REV_READS_STATE": "data",
+    "REV_WRITES_STATE": "data",
+    "REV_cf_back": "control",
+    "REV_end_if": "control",
+    "REV_external_call": "call",
+    "REV_first_next_line": "control",
+    "REV_if_false": "control",
+    "REV_if_true": "control",
+    "REV_internal_call": "call",
+    "REV_neg_next": "control",
+    "REV_next": "control",
+    "REV_next_line": "control",
+    "REV_pos_next": "control",
+    "REV_recursive_method_call": "structure",
+    "WRITES_STATE": "data",
+    "cf_back": "control",
+    "end_if": "control",
+    "external_call": "call",
+    "first_next_line": "control",
+    "if_false": "control",
+    "if_true": "control",
+    "internal_call": "call",
+    "neg_next": "control",
+    "next": "control",
+    "next_line": "control",
+    "pos_next": "control",
+    "recursive_method_call": "structure"
+  },
+  "anonymous": {
+    "gate": {
+      "bytes": 33359,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep6_v1/anonymous_gate/summary.json",
+      "sha256": "a49a812325d136d7e028b1f55dd55a579480e63d8f822122d2b9bbf0a030cef3"
+    },
+    "implementation": {
+      "bytes": 22267,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/dfg_v2/benchmark_v2/anon_binding.py",
+      "sha256": "de44ecaf69264373fdcaea36fbd0530a80612a60ba987d2e468fb4082bc29248"
+    },
+    "source_8G_preparation": {
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/plan/plan.json",
+      "sha256": "be66792cbd43978588761393f354f1df89f1a181104bbee5d567252aae57536a"
+    },
+    "spelling_evidence": {
+      "spelling_naming": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/naming/manifest.json",
+        "sha256": "7e8a27d86485ab13b84301592b2335fa4f5922d5ebcab92e410a542159e1baa3"
+      },
+      "spelling_probes": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/probes/summary.json",
+        "sha256": "78afb93992f09f25db62b86a0c4d1d097bea329e8aa9edae444e480135e79da4"
+      },
+      "spelling_semantics": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/semantic/summary.json",
+        "sha256": "9797b54a155f547667b74f615ac9dea9f64ab1c5b4b792a7b1c64585c800326a"
+      }
+    },
+    "version": "prompt8f-declaration-anon-v1"
+  },
+  "bit61_unknown": {
+    "access_control_node": {
+      "all_forward_attribute_rows": 21830,
+      "fraction_of_all_rows": 0.07352267521759047,
+      "reason": "pragma interval not proven pre/post 0.8; includes unbounded upper ranges",
+      "source": {
+        "bytes": 2966554,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep6_v1/attributes/access_control_node/diagnostics.json",
+        "sha256": "a224ce178a846a29b7ee6ea23cd8c423cceff2c5aacfee58ca99299afcdaced2"
+      },
+      "unknown_edges": 1605
+    },
+    "reentrancy_node": {
+      "all_forward_attribute_rows": 31372,
+      "fraction_of_all_rows": 0.07248501848782354,
+      "reason": "pragma interval not proven pre/post 0.8; includes unbounded upper ranges",
+      "source": {
+        "bytes": 4328925,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep6_v1/attributes/reentrancy_node/diagnostics.json",
+        "sha256": "c6e9e2162431d8384ac2fad5df5ae0a24049c916b40db09ca00f9d475243c7e4"
+      },
+      "unknown_edges": 2274
+    }
+  },
+  "context_indices": [
+    3,
+    4,
+    16,
+    18,
+    30,
+    41,
+    42,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    69,
+    70,
+    71,
+    72,
+    73
+  ],
+  "core_indices": [
+    0,
+    1,
+    2,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    17,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    68,
+    69,
+    71,
+    72
+  ],
+  "final_server_intent": "Final experiments will run on a server with sufficient VRAM; current limits are local only.",
+  "inputs": {
+    "access_control_node": {
+      "anonymous_feature": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/access_control_node/anonymous_manifest.json",
+        "sha256": "a3b0fd9a0b605c74461a6d0761b457ac291da7591a315914a4f55ba2fae92f3f"
+      },
+      "attributes": {
+        "bytes": 35454,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep6_v1/attributes/access_control_node/manifest.json",
+        "sha256": "d75df8ca7d2c667d0aee402c94c41b554ec696dc5a71d6db402acffea0a0829a"
+      },
+      "context_indices": [
+        3,
+        4,
+        16,
+        18,
+        30,
+        41,
+        42,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "core_indices": [
+        0,
+        1,
+        2,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        17,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        68,
+        69,
+        71,
+        72
+      ],
+      "f4": {
+        "bytes": 28642,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/f4_v2/access_control_node/manifest.json",
+        "sha256": "c3929ef9c756a11e9317214b44f1bb0f467167ba4bfc000b310338b1466f7186"
+      }
+    },
+    "reentrancy_node": {
+      "anonymous_feature": {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/dfg_v2/prompt8g_v1/features/reentrancy_node/anonymous_manifest.json",
+        "sha256": "d94044c90d8aa86f7a79dbab062470120fc19faf63d471cb57984430cf2d46a1"
+      },
+      "attributes": {
+        "bytes": 46266,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep6_v1/attributes/reentrancy_node/manifest.json",
+        "sha256": "b8fdaa2ca3fab02c97a476a670c6bde9d7655725bc16bb757cf8d8164c1c1978"
+      },
+      "context_indices": [
+        3,
+        4,
+        16,
+        18,
+        30,
+        41,
+        42,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "core_indices": [
+        0,
+        1,
+        2,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        17,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        68,
+        69,
+        71,
+        72
+      ],
+      "f4": {
+        "bytes": 39462,
+        "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/f4_v2/reentrancy_node/manifest.json",
+        "sha256": "e45c9e0582ef6951ac651ce30fb5056113d7f4c9b680d530e4b9fc6cf17811a9"
+      }
+    }
+  },
+  "known_limitations": [
+    "fallback/receive function nodes are unavailable in the frozen projector; MOD_APPLY is not_in_graph; E-C0 must report owner type.",
+    "The anonymous gate covers about 16%/14% of attribute rows and only 3 library calls per task.",
+    "Attribute bit 61 can be unknown when pragma has no upper bound; report the sealed per-task proportions.",
+    "Bits 46/50/51/53 describe the source-side near endpoint.",
+    "MOD_APPLY guard-type bit is always 47.",
+    "Modified functions and synthetic nodes lack semantic CFG (unk_cfg).",
+    "ENV/state edges lack a use_context evidence source.",
+    "Original names leak injected patterns; the frozen lexical rule can match or exceed the model.",
+    "Folds share training data; one seed and pooled OOF are not independent external validation.",
+    "P/R Wilson intervals are descriptive and do not model within-file node dependence.",
+    "Graph parameters, aggregation and optimization change too; score gains do not isolate pure semantic causation."
+  ],
+  "next_stage_policy": "E-C0/E-C/E-D use this immutable version; changes require a new version and reason",
+  "production_sources": {
+    "scripts/edge_sem/__init__.py": {
+      "bytes": 3270,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/__init__.py",
+      "sha256": "66eb4d194f4321fd71fa5b1c8fff3675a74ce6a92e433fbdfae8f3794b10d591"
+    },
+    "scripts/edge_sem/analysis_ea.py": {
+      "bytes": 25529,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/analysis_ea.py",
+      "sha256": "fbc7deb90781a0d2474b954cbdf70ad699927066d54908591f4dfd2f6d4c677f"
+    },
+    "scripts/edge_sem/analysis_eb.py": {
+      "bytes": 25232,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/analysis_eb.py",
+      "sha256": "5d0183ee458eb563aded69b3c274322fba0812758db8b960bd7b62b23adf07e4"
+    },
+    "scripts/edge_sem/analysis_ep7.py": {
+      "bytes": 5364,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/analysis_ep7.py",
+      "sha256": "2e6caaf719b78e8d1c37cb109285b7226fab92324d938f7c121c2d86dd7fd35a"
+    },
+    "scripts/edge_sem/attr_batch.py": {
+      "bytes": 9069,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/attr_batch.py",
+      "sha256": "d46d1130cd71866aa6231c1734f31b72be140bccc6f6e46410807de4e0c9846b"
+    },
+    "scripts/edge_sem/attr_sources.py": {
+      "bytes": 10073,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/attr_sources.py",
+      "sha256": "8041be3c300180620e9f61ae99e68d0befdd59a0f5d6e06a5e320ae4e7cc2f1e"
+    },
+    "scripts/edge_sem/attr_stats.py": {
+      "bytes": 2453,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/attr_stats.py",
+      "sha256": "e0567e2b421fb5036aeb933845c4ff69c1bba05206ffef0dd36acf8a58d23c03"
+    },
+    "scripts/edge_sem/attrs.py": {
+      "bytes": 27222,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/attrs.py",
+      "sha256": "b447cfeabc6417eecfe63a6934a49ef23b1b08cd7032859cb4770fe7853f66ec"
+    },
+    "scripts/edge_sem/build_f4.py": {
+      "bytes": 13177,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/build_f4.py",
+      "sha256": "17e964669652c9518b9e2f0630772e1142121b5020989a7ec1656af4f4d9579d"
+    },
+    "scripts/edge_sem/call_resolve.py": {
+      "bytes": 19790,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/call_resolve.py",
+      "sha256": "afbeb22edd8949524b0039af1e10a9e53ae45d04a4185affb9e303d30a7e6662"
+    },
+    "scripts/edge_sem/checkpoint.py": {
+      "bytes": 9839,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/checkpoint.py",
+      "sha256": "73cd8e0d0bf8a8581ac18b57b1f0357eb0d6e5fda3a14f525de630c414b3b2af"
+    },
+    "scripts/edge_sem/execution.py": {
+      "bytes": 59182,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/execution.py",
+      "sha256": "77ba8d7dd948dd195720807e5dd870693aa094fc167bdf5c851abdaff86d8fb2"
+    },
+    "scripts/edge_sem/feature_views.py": {
+      "bytes": 3872,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/feature_views.py",
+      "sha256": "2c98bf2765ba217fb3168aab3d1e2e4e25c362a1126a66eed98365289e78ea7c"
+    },
+    "scripts/edge_sem/forward.py": {
+      "bytes": 3431,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/forward.py",
+      "sha256": "3d3eb7c7b05dc4923bd0a3eec56e459442a81565ade90ab665adbc3599d79ccb"
+    },
+    "scripts/edge_sem/guard_edges.py": {
+      "bytes": 10221,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/guard_edges.py",
+      "sha256": "2d9c0b169efe674184ec50d41443e55a58cffdcc15f172cdef2359c1f9feda43"
+    },
+    "scripts/edge_sem/guard_source.py": {
+      "bytes": 3440,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/guard_source.py",
+      "sha256": "fe6cc924297b6b189030c58f491ed96ba5992477442b38a5e932f720ecb22ba5"
+    },
+    "scripts/edge_sem/hgt_edge.py": {
+      "bytes": 6535,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/hgt_edge.py",
+      "sha256": "5c340b445dafedd53cb336693002b3e1d841fee6178f93739c20d8ffab81d65d"
+    },
+    "scripts/edge_sem/init.py": {
+      "bytes": 4186,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/init.py",
+      "sha256": "4e490aaff7370693cd9a2ae2084c3847ed4585f8819786c6d07652c169af8882"
+    },
+    "scripts/edge_sem/input_guard.py": {
+      "bytes": 13569,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/input_guard.py",
+      "sha256": "d048546a4519ce69424919bcfb0a6c29e0d5b354e073bd51af3e7748f13a9f64"
+    },
+    "scripts/edge_sem/io.py": {
+      "bytes": 1131,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/io.py",
+      "sha256": "524965f6e02bed2a8bd82acebb17b03c9b3c00ddf2bd5d7857fb2aa303ba65c4"
+    },
+    "scripts/edge_sem/materialize.py": {
+      "bytes": 3439,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/materialize.py",
+      "sha256": "b458b443069a6186840fa009ac3f7a5a1c991f88a84445e84b3bdc8e054befb7"
+    },
+    "scripts/edge_sem/model.py": {
+      "bytes": 10590,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/model.py",
+      "sha256": "73d61dec14ffa2367c20060dc9a473a83ecab38279168744169b25c6178f4c06"
+    },
+    "scripts/edge_sem/model_attrs.py": {
+      "bytes": 8709,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/model_attrs.py",
+      "sha256": "45478ef403c11db1030ffff87eaf9f090c1f9f08a31dffa45dc37918dc7f497d"
+    },
+    "scripts/edge_sem/model_relations.py": {
+      "bytes": 3943,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/model_relations.py",
+      "sha256": "15ab416664c2a40c3c95bc136a77f7a8cde939f41c3d22b8bd9481f5298f57fb"
+    },
+    "scripts/edge_sem/pilot.py": {
+      "bytes": 10318,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/pilot.py",
+      "sha256": "cb6d67458327d037e1fd7fbfa273b8f60e748f881228c39268ede767a8ba7c39"
+    },
+    "scripts/edge_sem/placebo.py": {
+      "bytes": 6813,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/placebo.py",
+      "sha256": "b5435e3ad911466c7f509cb9c1b86a9d2bbec7d38d1edbeafe0d6c4cdc1609b3"
+    },
+    "scripts/edge_sem/protocol_p2.py": {
+      "bytes": 5485,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/protocol_p2.py",
+      "sha256": "3902e40ec4b7d64fac1d5b0aa94fbc7e20f3b379ace0986bafcf55d9edcf5207"
+    },
+    "scripts/edge_sem/runtime.py": {
+      "bytes": 6092,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/runtime.py",
+      "sha256": "965324c4a0080c3683a2a3fa12b1427716a9c77981487a818d7e707b652493b4"
+    },
+    "scripts/edge_sem/supervision.py": {
+      "bytes": 990,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/supervision.py",
+      "sha256": "65eb0e01b84002a73566c1d53f69375b1180935c2f99d4959ecab21c11b98764"
+    },
+    "scripts/edge_sem/support.py": {
+      "bytes": 12218,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/support.py",
+      "sha256": "b458f5a674d5eaa4abafe8426ee0ae9f7e077d4f48680a149b5ee36b3ab3db3e"
+    },
+    "scripts/edge_sem/trainer.py": {
+      "bytes": 15419,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/trainer.py",
+      "sha256": "29f046483c38e624d4563a28c7087c4642b0f2e756fff81a20663c8ccdcda211"
+    }
+  },
+  "result_summary": {
+    "bytes": 201424,
+    "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep9_v1/results/summary.json",
+    "sha256": "6c0cea8be31560e1a278829731a69c4d5a4fb9da2554ec12bfb24bee41b2c123"
+  },
+  "seeds": {
+    "attribute_permutation": "constructor seed",
+    "constructor": "10000 + fold + 1000 * is_contract",
+    "fit": "constructor + 1000000",
+    "new_relation": "EP1 sha256 semantic relation key"
+  },
+  "version": "edgesem-v1",
+  "view_decision": {
+    "D1": "Original-name S0 is the sole primary endpoint; N-anon-s is a preregistered descriptive sensitivity check outside the Holm family",
+    "EP8": {
+      "bytes": 1629,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep8_v1/decisions.json",
+      "sha256": "053fdb3c2c0b9da3c31aaab051f663d069aa88b91eeeda002b5e6ffbc15bd191"
+    },
+    "EP9": {
+      "bytes": 1312,
+      "path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/edge_sem/artifacts/ep9_v1/decisions.json",
+      "sha256": "3fb4c50ff362630c1cae151fc1c223f14219ebe2a0ff7364e48f059830b5a2a3"
+    }
+  }
+}

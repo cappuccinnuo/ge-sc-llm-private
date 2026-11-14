@@ -3062,3 +3062,25 @@ EP9 监控修复已完成真实任务闭环验证：原名重入节点 fold1/G4R
 最终七类实验将另建显存充足的服务器批次；当前显存限制仅来自本地电脑。
 
 恢复实测补记：首个恢复项 access_control_node/fold_3/G4R-A 的50轮及best/last重载验收均通过，控制器已启动第41项 G4R-Api；目前40/120个正式结果完成。fit函数耗时236.39秒，之前同任务同剖面三个折平均436.34秒，下降45.8%；启动至收据写入295.59秒，原平均524.44秒，下降43.6%（不包含随后控制器验收与下项切换）。不同折/选best次数可能影响耗时，此处是描述性实测，非同折受控重跑。新任务记录24次后台查询、0个监控缺口、0个终止错误。证据：recovery_sampling_v3/live_recovery_acceptance.json。余80项继续后台运行；EP9尚未全部完成。代码提交b1d324fd，恢复证据提交b11e7b11，均未推送。
+
+
+### EP9：重启中断恢复（2026-11-14）
+
+用户明确要求“启动之前因为重启造成的训练中断”。恢复检查发现原名主批60/60、匿名敏感性批17/60已生成封存收据，共77/120；原后台进程均不存在。匿名 reentrancy_node/fold_5/G3R-TA 的 attempt_001 开始时间早于当前 WSL 启动时间，没有 history.jsonl 或完成收据，也没有 Python 异常文件。该现场完整保留，另增 attempt_001.interruption.json：记录用户报告的重启、启动时间、旧PID、全部现场文件SHA；遥测缺口不当作重启原因的证明。
+
+恢复目录为 scripts/edge_sem/artifacts/ep9_v1/recovery_reboot_20261114T133748Z。新建独立恢复授权与 retry 审批，从原封存零步初值启动 attempt_002；成功的77次不重训，原120次计划仍剩43次。运行代码及配置无变化，复用 recovery_sampling_v3 已验收的异步显存监测和计划加载优化；新目录中的 runtime_revision.json 与 v3 原文件字节完全相同，单独生成路径对应的 seal，并用 resume_authorization.json 绑定本次恢复。旧版本中的39次历史验收仅表示当时的验收范围，本次77份收据先核对收据seal/SHA，完整产物、指标与权重仍由原 controller.verify_one 在复用前逐项验收。
+
+原 plan/seal、初值、图、特征、折、50轮训练、P2选 best 与评分规则均保持不变。不新增算法、执行器、对照或GPU并行；本次为明确授权的外部中断恢复，不设置自动训练重试。最终七类实验仍计划在有充足显存的服务器执行，本机4GiB限制仅影响当前先导批次。
+
+
+## EP9：E-B 完成与 EdgeSem v1 冻结
+
+本轮按 PROMPTS r18 完成原名60次、匿名60次 P2 正式拟合；只读复用120个基线结果。原名为唯一主终点，匿名只作预登记描述性敏感性分析。H2采用两项配对p的较大者，与封存H1组成两项Holm族；H1原始p约0.1997，仍不显著。
+
+所有初值共享参数逐位核验，A/Api全部初值相同，u/U为零；8项真实fold0零步输出与6项跨视图装配核验通过。训练计算不变；新增 analysis_eb.py 和 recon/ep9_run.py，现有入口增加E-B身份、矩阵核验及显式监控恢复修订。三套CPU回归和全部收据核验见 ep9_v1/cpu_tests 与 cpu_tests_delivery1、cpu_acceptance.json 与 results/summary.json。
+
+结果报告：scripts/edge_sem/EP9_REPORT.md；综合报告：scripts/edge_sem/EDGESEM_REPORT.md；冻结：scripts/edge_sem/artifacts/frozen_schema/schema.json。机制描述只读取best权重，按outer_test目标入边汇总，不把节点/边当作独立实验。原图、标签、折、旧产物及冻结DFG/NodeSem均保持原SHA。
+
+最终七类实验将在显存充足的服务器另建批次；当前限制仅因本机，不自动启动服务器阶段。已批准的交付调整：大于等于1MiB的JSON以确定性gzip副本交付，原文件、SHA、恢复入口完整保留；本地训练继续读取原JSON，plan/seal与计算不变。Windows长命令写入改用base64标准输入，仅为文件传输方式。
+
+采样恢复修订见 ep9_v1/recovery_sampling_v2：原计划不变，已完成4次结果复用，第5次从封存初值重跑；查询失败保存原异常，最多3次查询，持续失败停止；修订后三套回归在 recovery_sampling_v2/cpu_tests。实际恢复命令：python -B -m scripts.edge_sem.recon.ep9_run run --recovery scripts/edge_sem/artifacts/ep9_v1/recovery_sampling_v2；初值 prepare，登记 register，验收 accept，封存 seal，授权 authorize，各在独立记录中。
