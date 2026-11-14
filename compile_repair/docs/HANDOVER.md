@@ -1,26 +1,22 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.5（尤其 1.8、3.3 第 3a 条、4.2c）、DECISIONS、CP0_1_REPORT 的 C 续和 CHANGE_LOG §13。第 6 节历史只追加；记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.6（尤其 1.6–1.9 节、3.3 节、4.3 节 CP1）、DECISIONS、CP0_1_REPORT 和 CHANGE_LOG §14。第 6 节保留历史，只追加；记录规则见 README.md。
 
 ## 0. 一句话
 
-CP0.1 C 续本机验收完成：两次生产 843/843 指纹一致，20/20 mando 回归一致，501/501 兼容性组合符合预期；等待审查，通过后才开始 CP1。
+CP0.1 全部完成并经 Claude 独立复核通过（C 续：两次生产 843/843 指纹相同，501/501 兼容性符合预期）。PROMPTS r2.6 修正了 CP1 的验收口径。下一步：Codex 执行 CP1（4.3 节）。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案与决定 | PROMPTS r2.5；D5 升序、D16 0.11.6/0.4.2、D18 的 59 版安装决定沿用 | DECISIONS |
-| 模块 | 9 个生产 Python、6 个测试文件、28 个 Solidity fixture | implementation_audit.json、文件清单 |
-| CP0、CP0.1 A/B | 已审查通过，旧结论/产物不变 | 原 review 目录 |
-| 原 C 安装 | 59/59 校验通过，支持快照已安装 92/92；本轮无安装 | cp0_1_compilers_v1、v2/coverage.json |
-| C 续工具链 | settings 白名单及透传、what 消息和 IR 规范化已实现；regression 拒绝设置 | core/model.py、toolchain/solc.py、slither.py |
-| 生产确定性 | 两次各 D3 843/846；同 3 份已知 AssertionError；843 指纹全相同；各 4 行 IR 规范化 | cp0_1_env_v2/production_run*.json |
-| 回归样本 | Random(0) 的 20/20 与 A 指纹相同 | regression_sample*.json |
-| C 续兼容性 | 501/501 符合预期；491 默认正例 + 5 设置正例 + 5 默认负对照；旧 224 指纹全部相同 | cp0_1_compilers_v2/compatibility.json |
-| 测试 | production 506 passed/6 skipped；mando 83/429；DFG v2 2653 passed/9 warnings | cp0_1_env_v2/test_summary.json |
-| 下一步 | 审查本次代码/证据/记录；通过后按 §4.3 开始 CP1 | 本轮未开始 CP1 |
-| 其他决定 | D9/D10 待确认；D12/D13 待定 | DECISIONS |
+| 方案 | PROMPTS r2.6 | CHANGE_LOG §14 |
+| 决策 | D5 升序（含 3.3 节第 3a 条编译设置）、D16 Slither 0.11.6 / crytic-compile 0.4.2、D18 已装 92/92 | DECISIONS |
+| 模块 | 9 个生产 Python 文件、6 个测试文件、28 个 Solidity fixture | cp0_1_env_v2/implementation_audit.json |
+| CP0、CP0.1 A/B/C/C 续 | 全部审查通过 | cp0_review_v1、cp0_1_review_v1、cp0_1bc_review_v1、cp0_1c2_review_v1 |
+| 生产工具链 | 843/846 D3（3 个 0.4.24 重入合约 Slither 侧失败，CP6 第 10 行处理）；指纹确定；设置通路已验证 | 1.8、1.9 节 |
+| 未决 | ≤ 0.4.11 下限对生产工具链是否必要（CP1 第 6 节测量）；D9/D10 待确认，D12/D13 待定 | PROMPTS 1.9 节；DECISIONS |
+| 下一步 | Codex 执行 CP1 → Claude 审查 → CP2 | PROMPTS 4.3 |
 
 ## 2. 分支与工作树
 
@@ -67,7 +63,8 @@ mando 保持 Python 3.7.12 / Slither 0.8.0 / crytic-compile 0.2.4，只作回归
 
 | 内容 | 路径（compile_repair 下） |
 |---|---|
-| 本轮完整报告与详细记录 | CP0_1_REPORT.md 的 C 续；docs/CHANGE_LOG.md §13 |
+| CP0.1 C 续审查证据（Claude） | artifacts/cp0_1c2_review_v1/README.md 及 verify_c2、settings_e2e、github_0411_cwd |
+| 方案与最新记录 | PROMPTS.md r2.6；CP0_1_REPORT.md 的 C 续；docs/CHANGE_LOG.md §13（Codex）、§14（审查） |
 | 两次生产与归档 | artifacts/cp0_1_env_v2/production_run1/2.json、对应 invocations 与 node_facts_v2.jsonl.gz |
 | 抽样方法与回归 | 同目录 regression_sample_plan.json、regression_sample.json 与归档 |
 | 独立归档审计 | 同目录 archive_audit.json、implementation_audit.json |
@@ -215,3 +212,14 @@ B 的 846 份区间与 mando 全同，固定版本 D3 为 843/846，指定的三
 本轮严格使用 r2.5 新批准的参数与预期，没有方案外替代或放宽判据。读取审查 JSON 时发现其为连续两个对象，按实际格式读取并记录，原证据不改；原始 stderr 无损压缩保留。92/92 是可信安装口径，本次 501 组是新增 59 版的矩阵，不宣称穷举全部语法。设置的自动触发/升序策略留给 CP1，源码改写留给 CP6；下一步必须审查本轮之后才能开始 CP1。
 
 两环境新增逻辑与分层各 27 passed；完整模块 production 506 passed/6 skipped、mando 83 passed/429 skipped，冻结 DFG v2 为 2653 passed/9 个既有弃用警告。全部命令与 rc 见 test_summary.json 和同名日志，UTF-8/doc_check 与冻结审计见 CHANGE_LOG §13.5 最终补记。完成记录和检查后按要求本地提交，本任务不 push。没有训练、GPU 锁操作、安装、下载或 LLM API 调用，费用 0 美元。
+
+
+### 2026-11-14 CompileRepair CP0.1 C 续审查与方案 r2.6（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP0.1 C 续（提交 08337158）。新增证据目录 `artifacts/cp0_1c2_review_v1/`，修改 `PROMPTS.md`（r2.5 → r2.6）。本文第 0、1 节换成审查结论，第 5 节加入证据路径；第 4 节 Codex 写的条目保留。
+
+结论：C 续正确。两次生产运行指纹 743/743 个不同源文件相同、对象地址残留 0；与 B 归档只差审查指定的 4 个文件；与 Claude 独立的 0.11.6 运行规范化后 740/740 相同；回归样本 20/20；兼容性 501/501（496 原组合逐组保留、5 个负对照错误文本与 r2.5 一致、5 个设置正对照通过）；seal 中 49 个产物、9 个实现文件、7 份文档的哈希全部一致。Codex 的设置代码在 Claude 环境中端到端验证通过。CP0.1 完成。
+
+新发现：0.4.11 缺文件名只在 Slither 0.8.0 中、且与工作目录有关；0.11.6 未出现。r2.6 因此把 CP1 中“0.4.11 缺文件名”测试改为替身测试，并在 CP1 第 6 节测量生产工具链在历史编译器上的 D3（只记录）。另外，CP1 小样本原来的验收（选定版本与 CP0 预测相同、D3 失败 0）是按 0.8.0 与 37 个编译器写的，改为可归因比较，并加入 3 个已知 Slither 侧失败的合约。
+
+下一步：Codex 执行 CP1。本轮没有模块代码改动或安装。详见 CHANGE_LOG §14。

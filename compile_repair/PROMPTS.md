@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.5（2026-11-13；r2.4 同日；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.6（2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -50,6 +50,12 @@
 3. 新发现：Slither 0.11.6 在 4 个文件的 IR 文本中输出 Python 对象内存地址，使 node_facts_v2 指纹不能复现。toolchain 须规范化这种文本。
 4. 版本策略加入“编译设置”一维（3.3 节第 3a 条，3.2 节第 1 行）：只在有文档依据的错误出现时，在同一版本上改用对应设置（`--evm-version`、`--via-ir`），不改源码；Slither 使用相同设置。CP1 实现。
 5. 新增 4.2c 节 CP0.1 C 续：编译设置支持、IR 文本规范化、生产重跑两次验证确定性、按修正后的计划重跑兼容性矩阵。CP1 前提改为 CP0.1 C 续通过审查。
+
+**r2.6 相对 r2.5 的修改**（CP0.1 C 续审查；证据 `artifacts/cp0_1c2_review_v1/README.md`）：
+1. CP0.1 C 续（提交 08337158）审查通过，CP0.1 全部完成（新增 1.9 节）。CP1 可以开始。
+2. CP1 的选版复现测试明确使用 cp0_v2 的 37 个编译器清单与矩阵结果作为输入；第 5 节小样本的验收改为可归因比较：CP1 用生产 Slither 0.11.6 与 92 个编译器，选定版本可能因新装的更低版本或 Slither 版本不同而变化，每个差异必须给出依据。
+3. CP1 的 0.4.11 缺文件名测试改为先实测：审查发现该现象只在 Slither 0.8.0 中、且与工作目录有关，0.11.6 未出现。新增 CP1 第 6 节：在用户环境测量生产工具链在已安装的 ≤ 0.4.11 历史编译器上的 D3，只记录，不改 0.4.12 下限。
+4. pipeline 对“所有候选 solc 通过但生产 Slither 都失败”的输入记为未修复并标注“Slither 侧失败”，供 CP3 分类表与 CP6 第 10 行规则使用。
 
 ---
 
@@ -188,6 +194,18 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | h0826_require_error | 0.8.26 | 0.8.27 | 0.8.26 加 `--via-ir` | 0.8.26 只在 IR 管线支持；0.8.27 起旧管线也支持（官方 0.8.26、0.8.27 发布说明） |
 
 0.8.24 默认设置下的 solc 错误：`Undeclared identifier. Did you mean "blockhash"?`（blobhash）、`Function "blobbasefee" not found.`、`Function "mcopy" not found.`、`Function "tload" not found.`；0.8.26 默认设置下 rc 2，`std::exception::what: Require with a custom error is only available using the via-ir pipeline.`（第一行是 `Unimplemented feature:`，错误解析必须读取 what 行）。0.8.25、0.8.27 默认设置下所有适用探针 solc rc 0、D3 通过；0.8.28–0.8.37 未在审查中验证。
+
+### 1.9 CP0.1 C 续结果（2026-11-14 审查；证据 `artifacts/cp0_1_env_v2/`、`cp0_1_compilers_v2/`、`cp0_1c2_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 代码 | settings 白名单（`--evm-version <名称>`、`--via-ir`）、命令与记录、Slither 使用相同设置、regression_6c 拒绝设置；崩溃诊断合并 `std::exception::what:` 行；IR 中对象地址规范化，残留即 D3(a) 失败 |
+| 生产确定性 | 两次完整运行 843/843 指纹相同；对象地址残留 0；与 B 归档只差审查指定的 4 行 |
+| 独立复核 | 与 Claude 独立的 0.11.6 运行（规范化后）740/740 个不同源文件完全相同；mando 回归样本 20/20 与 A 相同 |
+| 兼容性 | 501/501 符合预期：491 默认正例、5 设置正例、5 默认负对照；旧 224 组相同；59 个新版本（含 0.8.28–0.8.37）全部完成 |
+| 测试 | production 506 passed / 6 skipped；mando 83 passed / 429 skipped；DFG v2 2653 passed |
+
+0.4.11 的文件名问题（`github_0411_cwd.jsonl`，GitHub 静态构建）：Slither 0.8.0 在工作目录为仓库根或文件所在目录时 5/5 节点缺文件名，在 `/` 或无关目录时正常；Slither 0.11.6 在 4 种工作目录下都正常。用户环境 CP0 的 0.8.0 记录（官方 solc-bin 构建）中 0.4.11 负对照缺文件名。0.4.12 下限对生产工具链是否仍必要，需在用户环境实测（CP1 第 6 节）。
 
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
@@ -612,7 +630,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 
 前提：CP0.1（含 4.2c 节 C 续）已通过审查；D5、D16、D18 已由用户决定；需要的编译器与环境已按授权安装并核验（否则停下）。CP1 的 Slither 运行使用 production profile（D16）；6c 回归另用 regression_6c。
 
-版本策略只实现一份，放在 rules/environment.py；evaluation/survey.py 中 CP0 的 candidate_versions、selection_priority 等选版代码改为调用它（CP0 的产物与报告保持不变，不重跑 cp0_v2）。测试证明：以 cp0_v2 的矩阵结果作为编译结果输入（不重新编译），新实现在 846 个文件上的升序选定版本与 cp0_v2/recon.json 的 selection.ascending 逐一相同。
+版本策略只实现一份，放在 rules/environment.py；evaluation/survey.py 中 CP0 的 candidate_versions、selection_priority 等选版代码改为调用它（CP0 的产物与报告保持不变，不重跑 cp0_v2）。测试证明：以 cp0_v2 的 37 个编译器清单作为已安装集合、cp0_v2 的矩阵结果（solc 退出码与 D3）作为编译结果输入（不重新编译），新实现在 846 个文件上的升序选定版本与 cp0_v2/recon.json 的 selection.ascending 逐一相同；降序同样与 selection.descending 逐一相同。
 
 本步实现的是一般输入的修复入口，不针对任何语料；MANDO 只作为第 5 节的回归样本。
 
@@ -628,19 +646,26 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 不读文件名、目录名、注释或标签（测试：同一源码以不同文件名与目录调用，候选列表相同）。
 
 ## 3. pipeline.py 与 cli.py
-- pipeline：3.1 节循环，本步只接入第 1、6 步；没有其他方法时直接记为未修复。
+- pipeline：3.1 节循环，本步只接入第 1、6 步；没有其他方法时直接记为未修复。未修复的原因分为：无候选编译器、solc 在所有候选（含设置重试）上失败、solc 有通过但生产 Slither 在这些候选上都未通过 D3（标注“Slither 侧失败”，记录每个候选的异常类型与首行）。
 - cli：`repair <路径>...`（一个或多个 .sol 文件；`--snippet <文本文件>` 把文本作为单文件处理；目录输入在 CP3 实现 toolchain/project.py 之前报告“暂不支持”并以非零退出）；`--known-version <x.y.z>`（可选，3.3 节第 2 条）；`--output <产物目录>`；`--order ascending|descending`；`--regression mando`（回归配置：读取经校验的 SmartBugs versions.csv metadata（6c 的 43 份）作为已知版本，无 pragma 先试 0.4.25；只在回归运行中使用）。检测时与评估时都走这一入口。
 
 ## 4. 测试
 - 区间：`^`、`~`、`=`、`>=`/`<` 组合、两条 pragma、无 pragma、`||`、空交集。
 - 候选：已知版本在区间内/外/≤ 0.4.11/未提供；无 pragma 时每条版本特征推断规则至少一个正例与一个反例；`--regression mando` 与一般入口只在回归配置项上不同；下界 < 0.4.12；开放上界限制在下界系列；crossed_minor 只在本系列全部失败时出现；pragma 覆盖只在区间内无可用编译器时出现且保持字节偏移。编译设置：tests/fixtures/features 中 4 个 Cancun 探针用精确 `pragma solidity 0.8.24;` 的副本选到 0.8.24 + `--evm-version cancun`，h0826 用精确 0.8.26 的副本选到 0.8.26 + `--via-ir`，用 `^0.8.24` 的副本选到 0.8.24 + cancun（同一版本先试设置，再进入下一个版本）；不匹配设置表的错误不触发重试。
-- D3：用 cr_pre_v1/probes 与一个能被 0.4.11 编译的小合约构造“编译成功但缺文件名”的情形，断言判为失败并继续下一个候选（0.4.11 未安装则该测试 skip 并记录）。
+- D3：缺文件名、缺偏移、合约不一致、对象地址残留都判失败并继续下一个候选，用替身对象测试（tests/test_slither_v2.py、test_settings.py 已有的不重复）。不要假定 0.4.11 在生产 Slither 中缺文件名（1.9 节）；真实编译器上的情形由第 6 节测量。
 - provenance：副本与原文件的差异与改动记录一致；additive 检查能发现被改动的原字节。
 - test_layering。
 
-## 5. 小样本运行
-- CP0 中规则 A 不通过的全部文件，以及每类按文件 SHA256 排序后用 Random(0) 抽取的 10 个通过文件，产物 compile_repair/artifacts/cp1_sample_v1/。
-- 验收：样本中 D3 失败数为 0；每个文件的选定版本与 CP0 第 4 节预测相同。
+## 5. 小样本运行（production profile，92 个支持范围内的编译器）
+- CP0 中规则 A 不通过的全部文件，以及每类按文件 SHA256 排序后用 Random(0) 抽取的 10 个通过文件；另加入 3 个已知 Slither 侧失败的重入合约（reentrancy_bonus、reentrancy_cross_function、reentrancy_insecure）。产物 compile_repair/artifacts/cp1_sample_v1/。
+- 验收：
+  - 除这 3 个重入合约外，样本中未修复数为 0。3 个重入合约预期记为“Slither 侧失败”；逐个候选记录 solc 退出码与 Slither 异常（审查只在 0.4.24 上实测过失败，其他 0.4 版本按实测结果记录）。
+  - 选定版本与 cp0_v2 的 selection.ascending 比较，相同的计数；不同的每一个都必须归因到以下之一并附证据：（a）新装的、更低的区间内版本 solc rc 0 且生产 D3 通过；（b）cp0_v2 选定版本以下的某版本在 0.8.0 下 D3 失败而在 0.11.6 下通过（给出两边记录）；（c）编译设置重试。无法归因的差异列出并停下。
+  - 所有选定版本都在合取区间内、≥ 0.4.12，pragma 覆盖与 crossed_minor 的出现符合 3.3 节条件。
+
+## 6. ≤ 0.4.11 的生产 D3 测量（只记录，不改下限）
+- 在用户环境的 production profile 中，用已安装的历史编译器（cp0_v2 清单中的 0.4.0、0.4.2、0.4.9、0.4.11，按原信任链校验）编译 tests/fixtures/compat_04.sol 与 cp0_v2 中这 4 个版本上 solc rc 0 的 MANDO 文件，分别在工作目录为仓库根与 `/` 时运行 run_slither，记录每次的 D3(a)/(b) 与缺文件名计数。
+- 在报告中给出结论与建议（保持 0.4.12，或在审查与用户决定后扩展），本步不改变候选集合。
 ```
 
 ### 4.4 CP2：MANDO 回归运行、存储与检查

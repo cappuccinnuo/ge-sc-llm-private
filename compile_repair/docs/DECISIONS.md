@@ -153,3 +153,12 @@
 | 2026-11-13 | D16 | 沿用 0.11.6/0.4.2 独立环境；两次生产 843/843 指纹一致，各只规范化审查指定 4 行 IR；20/20 mando 与 A 指纹相同 | production_run1/2.json、regression_sample.json | Codex |
 | 2026-11-13 | D18 | 不安装、不下载；501 组全部符合预期（496 正例、5 负对照），旧 224 组指纹一致；支持快照可信已安装 92/92，矩阵覆盖新增 59 版 | cp0_1_compilers_v2/compatibility.json、coverage.json | Codex |
 | 2026-11-13 | CP1 前提 | C 续已完成本机验收，等待审查；未把已知三份旧合约断言或完整 CFG/CG 语义写成已修复/已穷举 | CP0_1_REPORT C 续；PROMPTS §4.3 | Codex |
+
+
+### CP0.1 C 续审查与 r2.6（修改 AI：Claude）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-14 | D3 | 0.4.12 下限的依据（缺文件名）只在 Slither 0.8.0 中出现且与工作目录有关；生产工具链下限暂不变，CP1 第 6 节测量 | CHANGE_LOG §14.3；github_0411_cwd.jsonl | Claude |
+| 2026-11-14 | D5 | CP1 选版复现以 cp0_v2 的 37 个编译器为输入；小样本验收改为可归因比较 | CHANGE_LOG §14.2 | Claude |
+| 2026-11-14 | D16 | 生产指纹确定性与设置通路经独立复核成立；CP0.1 完成 | CHANGE_LOG §14.3；verify_c2.json | Claude |

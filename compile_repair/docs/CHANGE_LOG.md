@@ -724,3 +724,46 @@ CP1 输入参数：production 固定 Python 3.10.21 / Slither 0.11.6 / crytic-co
 
 
 验收补记（修改 AI：Codex）：冻结审计已实测通过：模块外 27,845 个已跟踪文件、302 个旧产物、28 个 Solidity fixture、205 个 mando 元数据文件、88 个 production 元数据文件与 96 个 solc 文件均 0 差异；code_refs 354 项不变，未新增/删除 solc 文件，全局选择环境不变；报告/进度/变更记录旧前缀与交接/决策历史保持原字节（frozen_audit.json）。首轮 doc_check_v1 的 7 行均 passed=true，rc0；追加前偏移为 CP0_1_REPORT 25224、PROGRESS 15396、CHANGE_LOG 88986 字节，另外四份检查全文。初次精确暂存 54 个文件后，git diff --cached --check 返回 0，没有排除任何已暂存文件；原始 stderr 以无损 gzip 提交并回读核验，未删改诊断文本（staging_check.json、log_compression.json）。本补记追加后按相同目标执行 doc_check_v2 作为最终检查，实际七行结果和命令保存在 doc_check_v2.jsonl 与 doc_check_v2_invocation.json；全部通过后再封存、核对最终清单和暂存格式并本地提交。
+
+
+## 14. 2026-11-14 CompileRepair CP0.1 C 续审查与方案 r2.6（修改 AI：Claude）
+
+### 14.1 任务、依据与范围
+
+用户要求（2026-11-14）：Codex 已按推荐方案完成修改；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后进入 CP1。起点 `compile-repair@08337158`。审查对象：`core/model.py`、`toolchain/solc.py`、`toolchain/slither.py` 的差异，`tests/test_settings.py`、`tests/test_production.py`，产物 `cp0_1_env_v2/`、`cp0_1_compilers_v2/`，CP0_1_REPORT 的“C 续”节与 CHANGE_LOG §13。
+
+修改：`PROMPTS.md`（r2.5 → r2.6）；新增 `artifacts/cp0_1c2_review_v1/`；记录：本节、`docs/HANDOVER.md`（第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 3 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 14.2 实施方式和重要选择
+
+- 数据复核：`verify_c2.py` 独立重算两次生产运行、B 与 A 归档、回归样本、兼容性计划与调用记录；生产归档与 Claude 上一轮独立的 0.11.6 运行比较时，对 Claude 的数据按同一规则规范化对象地址。另核对两个 seal 中全部产物、实现文件与文档的哈希。
+- 代码复核：逐行审查差异；在 Claude 的 0.11.6 环境中直接调用 Codex 的 `compile_file` 与 `run_slither(production)` 跑设置的正反例与白名单拒绝；查 crytic-compile 0.4.2 源码确认传入 `solc_args` 后仍补 `--allow-paths`。
+- 进入 CP1 前通读 CP1 提示，发现三处与当前状态不符：选版复现测试没写明用 cp0_v2 的编译器集合；小样本验收按 0.8.0 与 37 个编译器写成“与 CP0 预测相同、D3 失败 0”；“用 0.4.11 构造缺文件名”假定了一个未在生产工具链上验证的现象。为核实第三点，在 4 种工作目录下测了 0.4.11 的文件名映射。
+- 处理：复现测试固定输入集合；小样本验收改为可归因比较，并加入 3 个已知 Slither 侧失败合约作为预期未修复项；0.4.11 测试改为替身对象，真实情形放到 CP1 第 6 节只测量、不改下限；pipeline 的未修复原因分类加入“Slither 侧失败”。
+
+### 14.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 两次生产运行 | 743/743 个不同源文件节点与指纹相同；自身指纹 1,486/1,486；对象地址残留 0 | verify_c2.json |
+| 与 B 归档 | 739 相同；4 个规范化后相同（审查指定文件）；其他 0 | 同上 |
+| 与 Claude 独立 0.11.6 运行 | 740/740 相同（规范化后） | 同上 |
+| 回归样本 | 20/20 与 A 相同 | 同上 |
+| 兼容性 | 501 组；496 原组合逐组保留；solc 非零 5 个均为负对照，错误文本与 r2.5 一致；Slither 496 次 D3 全部通过，5 次带设置；旧 224 组相同 | 同上；compatibility.json |
+| seal | cp0_1_env_v2 41 个、cp0_1_compilers_v2 8 个产物；实现 9、文档 7 个文件哈希全部一致 | 审查时核对 |
+| 设置通路（Claude 环境） | 0.8.24 默认失败、加 cancun 通过；0.8.26 默认失败、加 via-ir 通过；0.8.25、0.8.27 默认通过；`--optimize` 被拒 | settings_e2e.jsonl |
+| 0.4.11 文件名 | Slither 0.8.0：工作目录为仓库根或文件目录时 5/5 缺失，`/` 或无关目录时 0；0.11.6：4 种情形都 0 | github_0411_cwd.jsonl |
+
+未证明：用户环境中官方 solc-bin 的历史编译器在生产工具链下的 D3（CP1 第 6 节）；3 个重入合约在 0.4.24 以外的 0.4 版本上的生产 Slither 结果（CP1 第 5 节记录）。
+
+### 14.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：全部 4.2c 节要求；按原格式读取审查给出的两段 JSON；没有提前实现 CP1 的自动设置选择或 CP6 的改写。
+- 方案修正（Claude）：CP1 的三处与当前状态不符的写法，见 §14.2。
+- 不需要用户新决定或授权。D9/D10 待确认，D12/D13 待定；≤ 0.4.11 下限是否扩展，等 CP1 第 6 节结果后再提交用户决定。
+
+### 14.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp0_1c2_review_v1/README 全文，CHANGE_LOG:99372、PROGRESS:20047 追加区间，6 个文件全部 passed=True 后提交。
+- 资源：云端 CPU；沿用会话中的虚拟环境与编译器；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP0.1 完成；下一步 Codex 执行 CP1。本轮提交并 push 到 `compile-repair`。
