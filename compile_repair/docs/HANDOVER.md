@@ -1,31 +1,30 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.7（尤其 1.10 节、4.3b 节 CP1.1、4.4 节 CP2）、CP1_REPORT、DECISIONS 与 CHANGE_LOG §15、§16。第 6 节保留历史，只追加；记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.7（§1.10、§4.3b、§4.4）、CP1_REPORT 的 CP1.1、DECISIONS 与 CHANGE_LOG §16/17。第 6 节历史只追加，记录规则见 README.md。
 
 ## 0. 一句话
 
-CP1 已由 Claude 独立复核：实现与验收成立（独立重算 95/95 选定版本与尝试序列相同）。发现 `command()` 相对路径缺陷（工作目录为 `/` 或字符前缀相同的目录时合法合约判为失败），另有两处健壮性问题。下一步：Codex 执行 PROMPTS r2.7 的 4.3b 节 CP1.1 → Claude 审查 → CP2。
+CP1 已通过独立审查；CP1.1 已完成路径边界、输入超时与无 Git 封存修复，规定的测试和九组 CLI 验收通过。下一步是独立审查 CP1.1，通过后再执行 CP2；不提前开始 CP2。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案 | PROMPTS r2.7（CP1 审查后修订；CP2 提示已按当前状态更新） | CHANGE_LOG §16 |
-| 决策 | D5、D16、D18 已定；D19（下限维持 0.4.12）为建议；D9/D10 待确认，D12/D13 待定 | DECISIONS |
-| 生产入口 | repair 单/多文件与片段；环境第 1、6 步；目录暂不支持 | pipeline、cli、environment |
-| 文件数 | 14 个生产 Python、9 个测试文件、28 个原 fixture | implementation_audit.json |
-| CP0、CP0.1 | 已审查通过 | 各审查目录 |
-| CP1 | 已审查：冻结重放 846/846；样本 95 个审计无问题，独立重算 95/95 相同；端到端（覆盖、推断、交集）正确 | artifacts/cp1_review_v1/README.md |
-| 待修复（CP1.1） | `command()` 路径边界；单个输入 solc 超时停止批次；无 git 时取提交号崩溃 | PROMPTS 4.3b |
-| 已知缺口（CP3） | `||` pragma；Slither 进程内无超时 | PROMPTS 4.5 |
-| 测试 | production 546/6；mando 116/436；DFG 2653 passed | cp1_development_v1 收据 |
-| 下一步 | CP1.1 → 审查 → CP2 | PROMPTS 4.3b、4.4 |
+| 方案与决定 | PROMPTS r2.7；D5/D16/D18 已定，D19 仍为建议，D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
+| CP0–CP1 | 原结论与正式产物保留；CP1 已审查通过，未重跑 95 个样本 | cp1_review_v1/README |
+| CP1.1 | 路径边界修复；单输入超时封存后批次继续；无 Git 时 commit=null 并标记 | CP1_REPORT 的 CP1.1 |
+| argv 与真实路径 | 两环境各 846+501 项新旧 argv 相同，五种 cwd 各 5/5 rc0 | cp1_1_v1/module_acceptance.json |
+| CLI 验收 | 3 fixture × 3 cwd = 9/9 成功；版本、设置、key5+IR+标记逐个相同 | cli_acceptance.json |
+| 文件与测试 | 14 个生产 .py、10 个测试、28 个原 fixture；production 562/6，mando 128/440，DFG 2653 passed | pytest_*、frozen_audit.json |
+| 记录与封存 | CP1_REPORT 追加 CP1.1，CHANGE_LOG §17，PROGRESS，本文与 DECISIONS；6 份 doc_check | cp1_1_v1/doc_check_v* |
+| 已知缺口 | || pragma；Slither 进程内无超时；项目与依赖等未实现 | 留 CP3 分类表与后续 CP |
+| 下一步 | CP1.1 审查 → CP2；本步只本地提交 | PROMPTS §4.3b/4.4 |
 
 ## 2. 分支与工作树
 
-工作树 /home/zhao/SmartContract/ge-sc-llm-compile，compile-repair。CP1 起始 HEAD d5e84d39fe876ea1b4b00a8bb26dee47ca9e18a5，pull --ff-only 返回 Already up to date。只本地提交，准确提交号见 git log 的 CP1 条目，未自动 push；不在 EdgeSem 执行 git。
+独立工作树 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair。CP1.1 起始 HEAD d4f4b48a2484591dc185b90475f775f6c9f5498d，先 pull --ff-only origin compile-repair，返回 Already up to date。完成记录/检查后本地提交，准确提交号看 git log 的 CP1.1 条目；不自动 push，不在 EdgeSem 工作树执行 git。
 
-代码仅在 §3.10 文件表内，新数据仅 cp1_development_v1、cp1_sample_v1、cp1_historical_v1。PROMPTS、旧报告/产物/fixture 和冻结脚本原字节不变；原 solc 函数 AST 与 Slither 整文件不改。
+生产改动仅 toolchain/solc.py、toolchain/slither.py、pipeline.py；新增 test_cp1_1.py 与 cp1_1_v1 证据。旧 CP1 报告的既有字节不变，旧 CP0–CP1 产物、PROMPTS、原 fixture、scripts/**、语料、环境和编译器不改。
 
 ## 3. 环境
 
@@ -33,46 +32,43 @@ CP1 已由 Claude 独立复核：实现与验收成立（独立重算 95/95 选�
 cd /home/zhao/SmartContract/ge-sc-llm-compile
 export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
 export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
-# 输出必须是不存在的新目录。
 env PYTHONNOUSERSITE=1 /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B -m compile_repair.cli repair compile_repair/tests/fixtures/compat_04.sol --output compile_repair/artifacts/cp1_manual_new
 ```
 
-production：Python 3.10.21 / Slither 0.11.6 / crytic-compile 0.4.2 / solc-select 1.0.4 / tree-sitter 0.20.4 / pycryptodome 3.20.0 / pytest 7.4.4，隔离用户 site-packages。mando Python 3.7.12 / 0.8.0 / 0.2.4 保持，只作冻结回归。沿用 96 个可信二进制，支持 0.4.12–0.8.38 共 92 个；四个历史对照不进入候选。加载固定 SHA 的 cp0_v2 与 C 独立追加清单，不下载、不运行 solc-select install/use，不改全局选择。
+输出必须是不存在的新目录。在仓库外调用未安装成包的模块时，设置 PYTHONPATH=/home/zhao/SmartContract/ge-sc-llm-compile 并使用绝对输入/输出路径；CP1.1 已实际在 / 和前缀兄弟目录验证。production 是 Python 3.10.21 / Slither 0.11.6 / crytic-compile 0.4.2；mando 是 Python 3.7.12 / 0.8.0 / 0.2.4，仅做冻结回归。其余已批准包、96 个 solc（92 支持版本+4 历史对照）和全局选择保持；不使用 solc-select install/use。
 
-## 4. 必读事项（已知的坑）
+## 4. 必读事项（当前边界）
 
-1. 任意输入是模块目标，MANDO 只作回归；当前只接环境第 1、6 步。项目/依赖、其他规则、LLM 尚未接入。
-2. D3 同时检查所有声明函数/修饰器/顶层函数节点映射与 AST 合约覆盖；key5 保留重数，length 只记录；不能把不崩溃等同 D3。
-3. 已知版本优先；普通候选系列内升序（可显式降序），本系列全失败才推进。已知优先由 plan.priority/input_record 解释，crossed_minor 用于普通候选推进。
-4. 无 pragma 只按官方有据的 throw/var/unchecked 推断，忽略注释/字符串；无特征再按可信版本顺序。MANDO 配置才用 SmartBugs metadata 与无 pragma 默认 0.4.25；按源码 hash 匹配并重查原源码/CSV/唯一行。
-5. 默认失败先匹配表，同版设置重试先于换版本：0.8.24 Cancun、0.8.26 via-IR。Slither 收到相同有序设置；regression_6c 拒绝非空设置。对象 repr 地址规范化仍沿用 CP0.1，残留使 D3(a) 失败。
-6. 仅区间内无可信支持候选才能 pragma 覆盖，不能因分析失败而越界；等长替换 directive，保留换行/同一行其他代码并记 rewrite，下界系列不变。
-7. 三个旧重入合约在 0.4.24/25/26 均 rc0 后 AssertionError，明确未修复，CP6 第 10 行尚未实现。
-8. 原文件只读，副本必须由改动记录完整重放。跨来源边界/删除拼接点标 rewritten；CP1 只存带标记 node_facts，完整 CFG 边和调用留 CP2。
-9. 输出拒绝覆盖；超时/信任错误停止并封存，正式验收逐文件检查，首项不符即停，不隐式重跑。
-10. 历史测量前置编译在仓库根，只有 run_slither 改 CWD；0.4.11 五个输入通过不是任意输入/完整图语义证明，保持 0.4.12。
-11. 原 command() 在 cwd=/ 用字符串截取产生 ome/...；已只读确认并登记，未改原 CP0.1 函数。CLI 当前从项目工作目录运行；建议后续先审查/咨询用户再修正。
-12. 95 样本实际 metadata 命中 0、无 pragma 1；不能与离线 846 重放/旧 metadata 核验混算。历史 46 次中的 36 次失败是测量结果，不是样本未修复数。
-13. 92/92 是可信安装快照，不是所有语法/图语义穷举；旧 501 矩阵覆盖新增 59 版，结论保留。
-14. EdgeSem 只读范围沿用既有授权，先核 SHA；根目录记录与 scripts/** 不改。交接/训练改变记录只写 compile_repair/docs。
-15. 95 个 sample case 无损提交为 cases.tar.gz，852 成员哈希/长度回读一致，原目录只留本地；报告 cases 路径为包内路径。JSON/TXT 被忽略，按 file_inventory 精确 add -f；不提交 pytest 临时树/current 符号链接/明文重复日志，压缩日志无损，不删除旧临时目录。
-16. Windows 用显式 wsl.exe --cd 与 UTF-8 Python；无 rg 时用既有 Python/sed。网络只走既有代理，新下载安装须授权。末轮文档写入曾 WSL 超时，确认四文件 SHA 未变后分批写入，未重启服务；见 documentation_interruption.json。
+1. 任意检测输入是模块目标，MANDO 只作回归。目前仅接入环境第 1、6 步；目录/导入闭包、依赖、其他规则、LLM 留后续。
+2. D3 覆盖全部声明函数/修饰器/顶层函数映射与 AST 合约覆盖；key5 保留重数，length 只记录。完整 CFG 边和调用存储留 CP2。
+3. D5 仍为已知版本优先、系列内升序、耗尽后才进入下一系列；无 pragma 仅使用有出处的特征，MANDO 配置才启用已批准 metadata 和 0.4.25 默认值。
+4. 同版本先默认设置，符合表中错误后才重试 cancun/via-ir，再换版本；生产 Slither 使用同一设置。regression_6c 拒绝非空设置，保留冻结函数。
+5. CP1.1 已修正 solc.command 的 cwd=/ 与字符前缀错误；目录内按组件求相对路径，外部保留绝对路径。冻结 regression_6c 对 / 和前缀兄弟目录明确拒绝，须从正常仓库目录运行。
+6. solc 超时现在是单输入 unrepaired / solc_timeout：记录 timed_out，不再试该输入的版本或设置，继续批次。信任/完整性异常仍停止。Slither 的进程内超时尚未解决，不能混同。
+7. 无 Git/HEAD 时 code_commit=null，summary.flags 标记 code_commit_unavailable，实现 SHA256 照常保存；不能据 null 推断产物没有代码身份。
+8. 仅区间内无可用编译器才允许等长 pragma 覆盖，保留换行与同行代码并记 rewrite，不能跨下界系列。0.4.12 下限不变；D19 仍为建议。
+9. 三个旧重入合约的 Slither AssertionError 未修复，CP6 第 10 行不在本步范围。|| pragma 仍不支持，列入 CP3。
+10. 原始输入只读，所有副本改动必须能由 provenance 重放。输出拒绝覆盖，正式验收首个非预期结果即停，不隐式重跑。
+11. CP1 样本 95 个中 metadata 命中 0、无 pragma 1；92 成功、3 预期 Slither 侧失败。历史 0.4.11 测量不证明任意输入语义，不改旧结论。
+12. 旧 CP1 样本无损存于 cases.tar.gz；旧临时目录/符号链接不提交不删除。CP1.1 的新测试临时树在 /tmp，43/9 项新增 JSON 结果压缩归档；九个 CLI 输出无损提交为 cli_cases.tar.gz（84 成员）；原目录仅留本地，见归档补记。
+13. EdgeSem 只读范围沿用授权，核对 SHA 后读取；本轮不需要读取。根目录记录与 scripts/** 不改，交接和训练改变记录仅写本 docs 目录。
+14. Windows 使用显式 wsl.exe --cd 和 UTF-8 Python；WSL 无 rg 时用已有 Python/sed。网络只走既有代理；新增安装/下载需要停止并说明，不能修改网络策略绕过。
+15. cp1_1_v1/baseline、frozen_audit、doc_check 和 delivery_inventory 说明冻结保护与交付。JSON/TXT 受 ignore 规则影响，按清单精确 add -f；不要递归添加旧产物树。
 
 ## 5. 关键路径
 
 | 内容（compile_repair 下） | 路径 |
 |---|---|
-| CP1 审查证据（Claude） | artifacts/cp1_review_v1/README.md 及 verify_cp1_cases、indep_select、pipeline_cwd、command_cwd |
-| 当前报告与改变记录 | CP1_REPORT.md；docs/CHANGE_LOG.md §15 |
-| 策略与入口 | rules/environment.py；pipeline.py；cli.py |
-| 核心记录 | core/model.py、provenance.py、store.py |
-| 测试/离线/设置 | artifacts/cp1_development_v1/README.md、pytest_*、offline_replay_*、settings_acceptance.json |
-| 小样本 | artifacts/cp1_sample_v1/sample_plan.json、acceptance_summary.json、archive_audit.json、cases/ |
-| 历史版本 | artifacts/cp1_historical_v1/plan.json、invocations.jsonl、results.json、counts.json |
-| 冻结/文档/提交 | cp1_development_v1/baseline.json、frozen_audit.json、doc_check_*、file_inventory.json、seal_hashes.json |
-| 待审边界 | cp1_development_v1/cwd_command_inspection.json |
-| 旧审查/成果（只读） | cp0_1c2_review_v1、cp0_1_env_v2、cp0_1_compilers_v2 |
-| 编译器身份 | artifacts/cp0_v2/recon.json；cp0_1_compilers_v1/trusted_compilers_addition.json |
+| 当前完整报告、详细记录 | CP1_REPORT.md 的 CP1.1；docs/CHANGE_LOG.md §17 |
+| 当前证据入口 | artifacts/cp1_1_v1/README.md |
+| 测试/argv/超时/无 Git | cp1_1_v1/pytest_*、test_evidence_*.json.gz、module_acceptance.json |
+| 三目录 CLI | cp1_1_v1/cli_plan.json、cli_invocations.jsonl、cli_acceptance.json、cwd/out2/ |
+| 冻结与提交核验 | cp1_1_v1/baseline.json、frozen_audit.json、doc_check_v*、delivery_seal.json、delivery_inventory.json（初版快照保留） |
+| 生产改动与新增测试 | toolchain/solc.py、toolchain/slither.py、pipeline.py；tests/test_cp1_1.py |
+| 旧 CP1 审查（只读） | artifacts/cp1_review_v1/README.md |
+| 旧 CP1 实测（只读） | cp1_development_v1、cp1_sample_v1、cp1_historical_v1 |
+| 编译器信任 | artifacts/cp0_v2/recon.json；cp0_1_compilers_v1/trusted_compilers_addition.json |
+| 旧兼容性计划（只读） | artifacts/cp0_1_compilers_v2/compatibility_plan.json |
 
 ---
 
@@ -244,3 +240,27 @@ B 的 846 份区间与 mando 全同，固定版本 D3 为 843/846，指定的三
 处理：新增 4.3b 节 CP1.1（路径边界修复与 argv 相同性证明、regression_6c 的防护、solc 超时按输入记录、无 git 时的封存）；CP2 提示按生产工具链与 92 个编译器更新（预期 3 个 Slither 侧失败、存储格式、两次运行确定性、与同版本生产归档逐组相同、生产工具链上的跨版本比较）；D5/D16/D18 状态改为已定；新增 D19 建议维持 0.4.12；CP3 加入 `||` pragma 与 Slither 超时两项缺口。
 
 下一步：Codex 执行 CP1.1；Claude 审查后进入 CP2。本轮没有模块代码改动或安装。详见 CHANGE_LOG §16。
+
+
+### 2026-11-14 CompileRepair CP1.1 完成，待审查（修改 AI：Codex）
+
+在 compile-repair@d4f4b48a 起按用户指令先 pull --ff-only，读取 PROMPTS r2.7 全文、本文 §0–5、DECISIONS、CHANGE_LOG §15/16 和 cp1_review_v1/README。只修改 solc.py、slither.py、pipeline.py，新增 test_cp1_1.py，生产文件仍 14。当前 §0–5 全部更新：替换下一步、测试数字、路径修复/超时/无 Git 的新行为与证据路径。第 6 节历史及 CP1 报告旧字节保留，原产物不改。
+
+两环境各 846+501 项新旧 argv 相同，五种 cwd 真实 solc 各 5/5，三种超时场景各 3/3。production 的超时批次续行、信任停止和两种真实无 Git 封存通过，14 个实现 SHA 保持可核验。九组 CLI 均成功，各 10 节点；同一 fixture 的状态、版本、设置及 key5+IR+标记在三个目录逐项相同，90 个节点均 original。证据在 cp1_1_v1/module_acceptance.json、cli_acceptance.json 与各 case seal。
+
+本轮没有偏离 PROMPTS，没有替代方案或追加安装授权。D5 当前表同步既有 CP1 审查通过结论，D19 仍为建议，保持 0.4.12。|| pragma 与 Slither 进程内无超时仍留 CP3，三份旧重入兼容改写仍留 CP6。下一步先审查 CP1.1，再进入 CP2。
+
+production 模块 562 passed/6 skipped，mando 128 passed/440 skipped，DFG 2653 passed/9 warnings，三轮均首次通过。按 CHANGE_LOG §17.5 完成冻结检查、6 份 doc_check 和精确暂存后本地提交 CP1.1，不自动 push。没有重跑 CP1 样本、下载安装、LLM、训练或 GPU 锁操作，费用 0。完整提交号以 git log 的 CP1.1 条目为准。
+
+
+开发记录补记（修改 AI：Codex）：冻结审计辅助脚本第一次从文件路径启动时，在执行检查前因未把仓库根加入 sys.path 而报 ModuleNotFoundError: scripts；没有生成 frozen_audit.json，没有实际冻结判据失败。保留 frozen_audit_launch_error.json 后，只给本批次辅助脚本补齐仓库导入路径，再执行冻结核验。生产代码、验收标准、已通过的三轮 pytest 和九组 CLI 没有修改或重跑；这是证据脚本启动问题，不是编译器或环境缺包，也未安装任何内容。
+
+
+最终检查补记（修改 AI：Codex）：frozen_audit.json 的 passed=true，28,323 个受保护跟踪文件、354 个 code_refs、96 个 solc 文件及 mando/production 的 117/144 份包元数据均未变化；模块外跟踪改动为 0，生产文件仍 14，未授权的工具链函数 AST 变化为 0。旧 CP1_REPORT、PROGRESS、CHANGE_LOG 前缀及 HANDOVER/DECISIONS 历史原字节保留，14 个实现哈希与测试时两份封存相同。doc_check_v1 的 6 行全部 passed=true、rc0；本补记写入后按相同目标运行 doc_check_v2，最终收据为 doc_check_v2.jsonl / doc_check_v2_invocation.json。随后封存证据、按 file_inventory 精确暂存并检查 git diff --cached --check，成功后提交 CP1.1；本步不 push。
+
+
+无损交付归档补记（修改 AI：Codex）：首次暂存清单 123 文件，内容 SHA 检查通过，但 git diff --cached --check 返回 2：三个精确 0.4.10 case 的 pragma_overridden.sol 第 3 行是按方案要求生成的等长空格，触发行尾空白检查。该空格不能删除，否则会改变字节偏移与既有 case seal。沿用 CP1 的交付方式，把九组 CLI 输出的 84 个文件无损打包为 cli_cases.tar.gz，逐成员 SHA256/长度回读 84/84 一致；原文件和九个 case seal 在本地保留不改。未放宽 Git 检查，未重新运行 CLI，未修改生产存储格式。
+
+CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1cf844b，大小 95,681 字节，archive_audit.json 保存成员清单。前文 cwd/out2/* 路径现在表示归档内成员，替代此前“按原目录提交”的交付说明。首次 seal.json、file_inventory.json、final_validation.json 均保留原字节，作为归档前阶段快照；当时的六份文档保存于 prepackaging_documents.tar.gz，与初版文档哈希完全一致。最终交付以 delivery_seal.json、delivery_inventory.json 为准，它们绑定最终文档及两个压缩包；不得将初版快照误当最终提交清单。失败现场为 staging_failure.json，当前原始目录只留本地，不删除、不提交重复副本。
+
+归档说明纳入 CP1_REPORT、PROGRESS、CHANGE_LOG §17.5、HANDOVER 和本批次 README；追加记录遵守历史字节边界。doc_check_v1/v2 均已 6/6 通过，归档补记后按相同六目标再检查并保存新收据，完成后重新核对精确暂存范围和格式，再本地提交；编译、测试与 CLI 的已通过结果保持。

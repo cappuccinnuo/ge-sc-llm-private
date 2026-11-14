@@ -25,8 +25,9 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
     """Attempt one single-file unit and persist a complete manifest record.
 
     Injectable tool functions support deterministic tests without monkeypatching.
-    A solc timeout or integrity error raises after journaling; ordinary compiler
-    and Slither failures continue only to the next allowed candidate/settings.
+    A solc timeout ends only this input, with its invocation and solc_timeout
+    reason recorded. Integrity errors still raise; ordinary compiler and Slither
+    failures continue only to the next allowed candidate/settings.
     """
     if len(unit.sources) != 1:
         raise ValueError("Project compilation units are not supported until CP3")
@@ -73,7 +74,8 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             record.attempts.append(attempt)
             emit(journal, dict(kind="solc", unit_id=unit.unit_id, **asdict(compiled)))
             if compiled.timed_out:
-                raise RuntimeError("solc timeout; stopping without retry")
+                record.reason = "solc_timeout"
+                break
             if compiled.returncode == 0:
                 any_solc_success = True
                 analysis = slither_fn(compiled, profile="production")
@@ -96,9 +98,9 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             if retry is None:
                 break
             settings = tuple(retry["settings"])
-        if record.status == "success":
+        if record.status == "success" or record.reason == "solc_timeout":
             break
-    if record.status != "success" and record.attempts:
+    if record.status != "success" and record.attempts and record.reason != "solc_timeout":
         record.reason = "slither_side_failure" if any_solc_success else "all_solc_candidates_failed"
         if any_solc_success:
             record.flags.append("Slither 侧失败")
@@ -107,12 +109,25 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
     return record
 
 
-def repair(paths, output, snippets=(), known_version=None, order="ascending", regression=None):
+def _code_commit(root):
+    """Return the code checkout's HEAD, or None when git/HEAD is unavailable."""
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=str(root), stderr=subprocess.DEVNULL,
+            universal_newlines=True).strip() or None
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return None
+
+
+def repair(paths, output, snippets=(), known_version=None, order="ascending", regression=None,
+           *, compile_fn=compile_file):
     """Run the common production entry for files/snippets; return batch summary.
 
     Directory inputs, duplicate paths and missing files fail before creating the
     output. Unrepaired inputs are valid records; unexpected failures stop/seal
-    the partial batch. No compiler download, global selection or LLM occurs.
+    the partial batch. compile_fn can inject recorded compiler outcomes in
+    tests. Missing git/HEAD is flagged and sealed as null, with file hashes kept.
+    No compiler download, global selection or LLM occurs.
     """
     if order not in ("ascending", "descending") or regression not in (None, "mando"):
         raise ValueError("Unsupported repair configuration")
@@ -130,7 +145,7 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
             raise ValueError("Expected an existing .sol file or explicit --snippet text file")
     store = ArtifactStore(output)
     root = Path(__file__).resolve().parents[1]
-    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=str(root), universal_newlines=True).strip()
+    commit = _code_commit(root)
     module = root / "compile_repair"
     code = list(module.glob("*.py")) + [p for folder in module.iterdir()
             if folder.is_dir() and folder.name not in ("artifacts", "tests", "docs")
@@ -139,6 +154,8 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
     summary = {"schema": "cp1-repair-v1", "status": "running", "units": [], "llm_calls": 0,
                "cost_usd": 0.0, "order": order, "regression": regression, "known_version": known_version,
                "supplied": [{"path": str(p), "kind": k} for p, k in supplied]}
+    if commit is None:
+        summary["flags"] = ["code_commit_unavailable"]
     tools, snapshots = {}, []
     with store.journal("invocations.jsonl") as journal, store.journal("manifest.jsonl") as manifest:
         try:
@@ -158,7 +175,7 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
                 store.write_json("units/" + unit.unit_id + "/input_record.json", {
                     "path": str(path), "sha256": digest, "kind": kind,
                     "known_version": unit.known_version, "metadata": metadata})
-                record = repair_unit(unit, compilers, store, journal, order)
+                record = repair_unit(unit, compilers, store, journal, order, compile_fn=compile_fn)
                 emit(manifest, record)
                 summary["units"].append({"unit_id": unit.unit_id, "input_sha256": digest,
                     "status": record.status, "reason": record.reason, "selected_version": record.selected_version})

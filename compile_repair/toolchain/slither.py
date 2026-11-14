@@ -213,11 +213,20 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
     CryticCompile object to observe the platform even if Slither parsing fails.
     Slither/crytic subprocess return codes are
     not exposed: bind the observed preceding solc result, never invent a code.
-    Profile and integrity failures raise; analysis failures return diagnostics.
+    Profile, integrity and unsafe regression_6c working directories raise
+    before execution; analysis failures return diagnostics.
     """
     settings = validate_settings(compilation.settings)
     if profile == "regression_6c" and settings:
         raise ValueError("regression_6c does not accept compiler settings")
+    if profile == "regression_6c":
+        cwd = Path.cwd().resolve()
+        source = Path(compilation.source_path).resolve()
+        if cwd == Path(cwd.anchor) or (
+                str(source).startswith(str(cwd)) and cwd not in source.parents):
+            raise ValueError(
+                "regression_6c refuses unsafe working directory for frozen "
+                "crytic-compile 0.2.4: " + str(cwd))
     versions = check_profile(profile)
     if cp0_projection and profile != "regression_6c":
         raise ValueError("CP0 projection requires regression_6c")

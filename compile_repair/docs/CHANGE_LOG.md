@@ -871,3 +871,66 @@ frozen_audit passed=true：28,236 份冻结文件、旧报告/PROMPTS、环境�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp1_review_v1/README 全文，CHANGE_LOG:113014、PROGRESS:22951 追加区间，6 个文件全部 passed=True 后提交。
 - 资源：云端 CPU；在会话虚拟环境中安装 tree-sitter 0.20.4（只用于审查）；没有 LLM 调用，费用 0。
 - 停止：CP2 不能开始。顺序为 Codex 执行 CP1.1 → Claude 审查 → CP2。本轮提交并 push 到 `compile-repair`。
+
+
+## 17. 2026-11-14 CompileRepair CP1.1：路径边界、输入超时与无 Git 封存（修改 AI：Codex）
+
+### 17.1 任务、依据与范围
+
+用户明确要求执行 PROMPTS r2.7 §4.3b，先 pull --ff-only origin compile-repair，通读全文，重点 §1.10、§4.1、§4.3b，以及 HANDOVER §0–5、DECISIONS、§15/16 和 cp1_review_v1/README。起始 d4f4b48a2484591dc185b90475f775f6c9f5498d，pull 返回 Already up to date。实现仅修改 compile_repair/toolchain/solc.py、toolchain/slither.py、pipeline.py；新增 tests/test_cp1_1.py。非测试生产 .py 数保持 14，测试文件为 10；原 28 个 fixture 保留。
+
+新增证据仅 artifacts/cp1_1_v1，包括基线、测试收据/压缩日志/新增测试结果、CLI 计划/调用/九个独立输出、三份测试副本、审计脚本与 README；提交完整清单见 file_inventory.json。文档在 CP1_REPORT 追加 CP1.1，PROGRESS 追加进度，本节五段记录，HANDOVER §0–5 更新及 §6 追加，DECISIONS 当前状态同步与历史追加。PROMPTS、旧报告的既有字节、CP0–CP1 正式产物、scripts/**、语料、模型与根目录记录不改。
+
+### 17.2 实施方式和重要选择
+
+command 使用 pathlib 的路径组件包含关系：relative_to 成功才用相对路径，目录外捕获 ValueError 保留绝对路径，参数顺序与 _build_options 保持。旧字符截取只作为测试内参照，来源为起始提交 toolchain/solc.py（SHA256 711d29b346585d7bb0330ce227e4c2986709dc4ea8155eb97bf46408d6226be7），没有在生产代码保留第二套实现。846 个 MANDO 文件使用冻结的升序选定版本，兼容性使用 C 续全部 501 个计划项含 settings，逐项比较新旧 argv；这不是重跑语料或旧兼容性正式产物。
+
+regression_6c 的前置检查拒绝 / 与错误字符前缀目录；仍 import 冻结 validate_slither._compile（文件 SHA256 4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8），不复制、不 monkeypatch、不修改 crytic-compile 0.2.4。production 保留现有 CryticCompile/Slither 通路。测试对危险 cwd 使用不存在的源码和编译器，若防护没有提前发生则会以不同异常失败，保证拒绝前没有工具调用。
+
+pipeline 对 timed_out 先写完整调用，再退出该输入的两个候选循环并封存 solc_timeout；最后的普通失败分类不得覆盖这个原因。正常批次继续，信任/完整性异常仍沿原停止路径。repair 只增加 compile_fn 的可选注入，默认调用不变；取 Git HEAD 用小型私有函数，仅将无 git/无 HEAD 的两类错误转换为 None。无 Git 测试把本模块 14 文件和两个固定清单复制到 /tmp，冻结依赖仍从原仓库只读 import；第二种情况仅在子进程清空可执行搜索路径，没有修改主环境。
+
+开发中 WSL 无 rg，改用已有 Python/sed/grep；只读检索一次命中不存在的 test_solc.py 后改读实际 test_toolchain.py。三次 pytest 与九组 CLI 均首次运行通过；没有失败重跑、放宽标准或方案外调整。日志压缩前后保留哈希，临时树留 /tmp 不提交、不清理；JSON 产物按交付清单精确 force-add，不扩展到旧临时树。
+
+### 17.3 实测与数据结论
+
+| 项 | 实测 | 来源（cp1_1_v1 下） |
+|---|---|---|
+| argv 不变 | production / mando 各 MANDO 846/846、兼容性 501/501 | module_acceptance.json、test_evidence_*.json.gz |
+| 真实 solc 路径 | 两环境各 5/5 rc0，solc 0.5.17；二进制 SHA 与冻结信任相同 | path_invocation.json 的归档 |
+| 6c 前置拒绝 | / 与前缀兄弟，两环境均通过；没有调用冻结编译 | test_cp1_1.py 与 pytest 收据 |
+| 单输入超时 | 三种位置两环境各 3/3；不重试，末次 timed_out、未修复原因正确 | module_acceptance.json |
+| 批次/信任 | 超时后下一输入成功；信任异常停止、不调用第二输入 | production 测试 batch summary/manifest 归档 |
+| 无 Git | 非 Git 分发目录、PATH 无 Git，两组 CLI complete，seal commit=null、14 文件 SHA 正常 | production relocated_cli 与 seal 归档 |
+| 三目录 CLI | 9/9 成功；状态、版本、设置、key5+IR+标记逐个相同；90 个节点全 original | cli_acceptance.json |
+| CLI 工具调用 | 12 次前置 solc、9 次生产 Slither；每例 10 节点；case seal 全部回读通过 | cli_invocations.jsonl、cwd/out2/* |
+| 原始输入 | 三 fixture 及输入副本 SHA 不变；0.4.10 工作副本只有 pragma 覆盖 | cli_plan / acceptance、case provenance |
+
+三个选定版本分别为 0.5.0、0.8.24 + cancun、0.4.12。0.4.10 副本改动等级 rewrite，但 pragma 不在节点跨度内，故节点标记 original 与 D7 一致。只证明这三种规定探针在三个工作目录下等价，不推广为所有 Solidity 输入的完整语义证明。没有重跑 CP1 的 95 样本或更改已审查结论；argv 相同性覆盖规定的原工作目录。
+
+### 17.4 用户批准、原文差异与待确认设计
+
+2026-11-14 用户明确批准按 r2.7 §4.3b 实现这三项修复、完成记录与本地提交；本次没有安装/下载或 push 授权请求。要求的 git 同步已完成；其他安装、编译器或语料下载未执行。与 PROMPTS 的实施范围和验收标准无差异，无需替代方案；未自行改变 D5/D16/D18，D19 仍为建议，0.4.12 下限不变。
+
+DECISIONS 当前表标题从滞留的 r2.6 同步为 r2.7，D5 的“待审查”同步为已有 CP1 审查通过，不改历史。已知 || pragma 与 Slither 进程内无超时继续留 CP3，未在 CP1.1 扩展；D9/D10、D12/D13 状态保持。下一步必须先审查 CP1.1，再进入 CP2。
+
+### 17.5 验收、资源、未执行事项与停止
+
+production 模块 562 passed/6 skipped（pytest 60.88 秒；整命令 61.301 秒），mando 模块 128 passed/440 skipped（13.18/13.421 秒），mando DFG v2 2653 passed/9 个原有警告（160.19/160.965 秒）。完整命令均为 python -B -m pytest -q -ra -x -p no:cacheprovider 加目标和新 basetemp，见 pytest_*.json；未重复运行已通过检查。分层测试和 Python 3.7 实际导入/执行通过；production 专用测试的跳过不能算 mando 验收结果。
+
+提交前必须通过 frozen_audit、doc_check、历史字节检查与暂存 diff --check。doc_check 覆盖 CP1_REPORT:13921、PROGRESS:23643、CHANGE_LOG:118369 的追加区间，HANDOVER/DECISIONS 和 cp1_1_v1/README 全文，共 6 份；结果随后在本节追加并封存。所有计算使用 CPU，OMP/MKL=2；无 HGT 训练、GPU 锁、LLM 调用、环境升级或全局 solc 切换，费用 0。CP2、CP3、CP6 与旧 CP1 样本未运行。全部记录通过后本地 CP1.1 提交，不自动 push；提交号以 git log 和最终答复为准。
+
+
+开发记录补记（修改 AI：Codex）：冻结审计辅助脚本第一次从文件路径启动时，在执行检查前因未把仓库根加入 sys.path 而报 ModuleNotFoundError: scripts；没有生成 frozen_audit.json，没有实际冻结判据失败。保留 frozen_audit_launch_error.json 后，只给本批次辅助脚本补齐仓库导入路径，再执行冻结核验。生产代码、验收标准、已通过的三轮 pytest 和九组 CLI 没有修改或重跑；这是证据脚本启动问题，不是编译器或环境缺包，也未安装任何内容。
+
+
+最终检查补记（修改 AI：Codex）：frozen_audit.json 的 passed=true，28,323 个受保护跟踪文件、354 个 code_refs、96 个 solc 文件及 mando/production 的 117/144 份包元数据均未变化；模块外跟踪改动为 0，生产文件仍 14，未授权的工具链函数 AST 变化为 0。旧 CP1_REPORT、PROGRESS、CHANGE_LOG 前缀及 HANDOVER/DECISIONS 历史原字节保留，14 个实现哈希与测试时两份封存相同。doc_check_v1 的 6 行全部 passed=true、rc0；本补记写入后按相同目标运行 doc_check_v2，最终收据为 doc_check_v2.jsonl / doc_check_v2_invocation.json。随后封存证据、按 file_inventory 精确暂存并检查 git diff --cached --check，成功后提交 CP1.1；本步不 push。
+
+
+无损交付归档补记（修改 AI：Codex）：首次暂存清单 123 文件，内容 SHA 检查通过，但 git diff --cached --check 返回 2：三个精确 0.4.10 case 的 pragma_overridden.sol 第 3 行是按方案要求生成的等长空格，触发行尾空白检查。该空格不能删除，否则会改变字节偏移与既有 case seal。沿用 CP1 的交付方式，把九组 CLI 输出的 84 个文件无损打包为 cli_cases.tar.gz，逐成员 SHA256/长度回读 84/84 一致；原文件和九个 case seal 在本地保留不改。未放宽 Git 检查，未重新运行 CLI，未修改生产存储格式。
+
+CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1cf844b，大小 95,681 字节，archive_audit.json 保存成员清单。前文 cwd/out2/* 路径现在表示归档内成员，替代此前“按原目录提交”的交付说明。首次 seal.json、file_inventory.json、final_validation.json 均保留原字节，作为归档前阶段快照；当时的六份文档保存于 prepackaging_documents.tar.gz，与初版文档哈希完全一致。最终交付以 delivery_seal.json、delivery_inventory.json 为准，它们绑定最终文档及两个压缩包；不得将初版快照误当最终提交清单。失败现场为 staging_failure.json，当前原始目录只留本地，不删除、不提交重复副本。
+
+归档说明纳入 CP1_REPORT、PROGRESS、CHANGE_LOG §17.5、HANDOVER 和本批次 README；追加记录遵守历史字节边界。doc_check_v1/v2 均已 6/6 通过，归档补记后按相同六目标再检查并保存新收据，完成后重新核对精确暂存范围和格式，再本地提交；编译、测试与 CLI 的已通过结果保持。
+
+
+交付检查结果补记（修改 AI：Codex）：归档补记后的 doc_check_v3 为 6/6 passed、rc0；改用无损压缩包暂存后 git diff --cached --check 返回 0（staging_check_v2.json），没有放宽判据，也没有删改空格或原 case seal。此补记再由相同六目标的 doc_check_v4 核对；最终证据使用 delivery_seal.json / delivery_inventory.json，旧 seal 与初版清单保留为阶段记录。最终精确暂存字节核验通过后提交 CP1.1，不 push。

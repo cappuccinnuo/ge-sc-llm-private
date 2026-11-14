@@ -159,7 +159,9 @@ def validate_settings(settings):
 def command(source, compiler, cwd=None, settings=()):
     """Build crytic-compile 0.2.4's default single-file solc argv.
 
-    Uses its original _build_options; matches _run_solc's allow-paths handling.
+    Uses its original _build_options and allow-paths argument order. CP1.1
+    makes the duplicate source argument relative only within cwd's path boundary;
+    outside inputs stay absolute. Invalid settings raise before construction.
     Append only validated settings, preserving token order. No optimizer,
     remappings, legacy override or project/package manager.
     """
@@ -170,7 +172,10 @@ def command(source, compiler, cwd=None, settings=()):
     options = _build_options(CompilerVersion("solc", compiler.version, False), False)
     argv = [compiler.path, source, "--combined-json", options]
     if version_tuple(compiler.version) not in [(0, 4, i) for i in range(11)]:
-        relative = source[len(cwd) + 1:] if source.startswith(cwd) else source
+        try:
+            relative = str(Path(source).relative_to(cwd))
+        except ValueError:
+            relative = source
         argv += ["--allow-paths", ".", relative]
     return argv + list(settings)
 

@@ -108,3 +108,75 @@ CP1 规定的 §4–6 验收已完成，下一步等待审查，不能自动进�
 归档补记（修改 AI：Codex）：95 个原始源码副本中 57 个含原有行尾空白；为保持源码原字节和所有 case seal，将 852 个 case 文件（12,212,867 原字节）确定性打包为 cases.tar.gz，逐成员回读 SHA256/长度全部相同。原 case 目录本地保留且不改，Git 提交无损包和 case_archive_index.json；报告中的 cases/NNN 路径是包内路径。未清理源码空白或排除已暂存文件的检查。审查时在全新目录解包，逐文件按 index 与各 case seal 校验，不能覆盖本地现有 cases。
 
 最终记录检查：首轮 doc_check 八份全部通过、历史前缀审计通过，初次 57 文件暂存格式检查 rc0；最终补记后的八份检查、封存与提交清单以 cp1_development_v1/doc_check_v2_invocation.json、seal_hashes.json、file_inventory.json 为准。
+
+
+## CP1.1：路径与健壮性修复（2026-11-14，修改 AI：Codex）
+
+### 实现与范围
+
+依据 PROMPTS r2.7 §4.1、§4.3b、§1.10、docs/HANDOVER §0–5、DECISIONS、CHANGE_LOG §15/16 和 cp1_review_v1/README。在 compile-repair 执行 git pull --ff-only origin compile-repair，结果 Already up to date，起始 HEAD d4f4b48a2484591dc185b90475f775f6c9f5498d。本文旧 CP1 内容原字节保留；CP0–CP1 正式产物与结论不重跑、不改写。
+
+生产代码仅修改 toolchain/solc.py、toolchain/slither.py、pipeline.py，新增测试 tests/test_cp1_1.py；生产文件仍 14 个，测试文件现 10 个。solc.command 用 Path.relative_to 判断路径组件，目录内使用相对路径，目录外保留绝对路径，其余参数与顺序不变。regression_6c 在调用任何工具之前拒绝 cwd=/ 或字符前缀相同但不包含输入的目录；冻结 _compile、crytic-compile 0.2.4 原实现不动。
+
+repair_unit 将 timed_out 调用先写入日志与 attempts，再把该输入封存为 unrepaired / solc_timeout；不重试、不试后续候选，批次继续下一个输入。已有信任或完整性异常的停止路径保留。repair 新增可选 compile_fn 参数用于批次测试，默认仍为原 compile_file，没有 monkeypatch。取不到 Git HEAD 时只捕获 CalledProcessError / FileNotFoundError，code_commit=null，summary.flags 含 code_commit_unavailable，14 个实现文件 SHA256 照常封存；其他异常不借此隐藏。
+
+### 真实验收
+
+证据均位于 artifacts/cp1_1_v1/；module_acceptance.json 汇总两个环境的测试证据，cli_acceptance.json 汇总 CLI。
+
+| 验收 | 预期 | 实测 |
+|---|---|---|
+| 仓库根目录下 MANDO argv | 846 个输入逐个相同 | 两环境各 846/846；选用每个输入的 CP0 升序版本，仅构造 argv，不重新编译语料 |
+| C 续兼容性 argv | 所有计划项相同 | 两环境各 501/501，含 5 个设置正例；旧算法仅留测试内 |
+| 五种 cwd 的真实 solc | 全部 rc0 | 两环境各 5/5；根目录、前缀兄弟、无关目录、包含目录、文件父目录；solc 0.5.17 |
+| regression_6c 危险 cwd | 调用前明确拒绝 | 两环境的 / 与前缀兄弟测试通过，源文件和编译器故意不存在，证明未进入工具或完整性读取 |
+| 输入超时 | 记录、终止本输入、不重试 | 首次、已有 Slither 失败后、设置重试中三种情况，两环境各 3/3；末次 timed_out=true、reason=solc_timeout |
+| 批次边界 | 超时继续、信任错误停止 | production 注入超时后第二输入真实编译成功；注入信任错误后批次 stopped，不调用第二输入 |
+| 无 Git 封存 | null + 标记 + 文件哈希 | production 在 /tmp 的非 Git 模块副本与 PATH 无 Git 两种真实子进程中均 complete；14 个实现哈希一致 |
+| CLI 三目录等价 | 3 fixture × 3 cwd 全成功，节点逐项相同 | 9/9；每例 10 个节点，key5 + 有序 IR + 标记完全相同，90 个节点均 original；所有 case seal 回读通过 |
+
+CLI 的三个 fixture：compat_05.sol 原字节副本选 0.5.0、默认设置；y0824_tstore_asm.sol 的精确 0.8.24 副本先默认失败，再用同版 --evm-version cancun 成功；compat_04.sol 的精确 0.4.10 副本经等长 pragma 覆盖后选 0.4.12，等级 rewrite，节点不覆盖 pragma，因此仍 original。共 12 次前置 solc、9 次生产 Slither。输入与原 fixture 哈希均保持；命令、cwd、stdout/stderr、耗时见 cli_invocations.jsonl，各次工具身份与调用见 cwd/out2/*/invocations.jsonl、trust.json、seal.json。
+
+### 测试与开发记录
+
+| 命令目标 | 环境 | 结果 | pytest 耗时 |
+|---|---|---|---|
+| compile_repair/tests | production，Python 3.10.21、Slither 0.11.6、crytic-compile 0.4.2 | 562 passed / 6 skipped | 60.88 秒 |
+| compile_repair/tests | mando，Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4 | 128 passed / 440 skipped | 13.18 秒 |
+| scripts/DFG/dfg_v2/tests | mando | 2653 passed / 9 个原有依赖弃用警告 | 160.19 秒 |
+
+三轮均一次运行，无测试失败或重试；跳过项由 profile/Python 版本限定。完整 argv、环境变量、墙钟耗时、日志 SHA256 在 pytest_*.json，日志无损压缩为 pytest_*.log.gz。新增行为的原始 JSON/JSONL 证据打包在 test_evidence_production.json.gz（43 项）、test_evidence_mando.json.gz（9 项）；pytest 临时树位于 /tmp，未提交，未删除。
+
+开发时 WSL 没有 rg，改用现有 Python、sed、grep 读取；一次路径检索包含不存在的 test_solc.py，随后读取实际 test_toolchain.py。两者均为只读检索问题，没有重试失败的编译或变更验收标准。没有新增方案替代建议；已知 || pragma 和 Slither 进程内无超时仍按 r2.7 留 CP3，D19 仍为建议，本步不改变 0.4.12 下限。
+
+### 归档与复现
+
+产物目录 artifacts/cp1_1_v1，README 说明布局与精确复现命令。baseline.json 绑定起始 HEAD、28,331 个跟踪文件、354 个 code_refs、96 个 solc 文件及两环境包元数据；frozen_audit.json 在提交前核验范围与历史字节，seal.json 封存本次交付的产物，file_inventory.json 列出提交文件与 SHA256。旧 CP1 样本未重跑；argv 相同性与实现范围审计用于证明该路径修复不改变原工作目录下的既有结果。
+
+复现测试可在仓库根直接执行（新证据目录要求未存在；下列 pytest 的临时目录由 pytest 自行选择）：
+
+```bash
+cd /home/zhao/SmartContract/ge-sc-llm-compile
+export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+env PYTHONNOUSERSITE=1 /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B -m pytest -q -ra -x -p no:cacheprovider compile_repair/tests
+/home/zhao/miniconda3/envs/mando/bin/python -B -m pytest -q -ra -x -p no:cacheprovider compile_repair/tests
+/home/zhao/miniconda3/envs/mando/bin/python -B -m pytest -q -ra -x -p no:cacheprovider scripts/DFG/dfg_v2/tests
+```
+
+### 停止位置与后续边界
+
+按用户本次指令完成 CP1.1 后提交，不自动 push；待独立审查通过再进入 CP2。本轮没有 CP2 全量运行、旧 CP1 样本重跑、CP6 改写、外部语料获取、安装升级、全局 solc 切换、HGT 训练、GPU 锁操作或 LLM 调用，费用 0 美元。最终冻结审计、doc_check 与提交检查结果追加于 CHANGE_LOG §17.5，准确提交号以 git log 的 CP1.1 条目为准。
+
+
+开发记录补记（修改 AI：Codex）：冻结审计辅助脚本第一次从文件路径启动时，在执行检查前因未把仓库根加入 sys.path 而报 ModuleNotFoundError: scripts；没有生成 frozen_audit.json，没有实际冻结判据失败。保留 frozen_audit_launch_error.json 后，只给本批次辅助脚本补齐仓库导入路径，再执行冻结核验。生产代码、验收标准、已通过的三轮 pytest 和九组 CLI 没有修改或重跑；这是证据脚本启动问题，不是编译器或环境缺包，也未安装任何内容。
+
+
+最终检查补记（修改 AI：Codex）：frozen_audit.json 的 passed=true，28,323 个受保护跟踪文件、354 个 code_refs、96 个 solc 文件及 mando/production 的 117/144 份包元数据均未变化；模块外跟踪改动为 0，生产文件仍 14，未授权的工具链函数 AST 变化为 0。旧 CP1_REPORT、PROGRESS、CHANGE_LOG 前缀及 HANDOVER/DECISIONS 历史原字节保留，14 个实现哈希与测试时两份封存相同。doc_check_v1 的 6 行全部 passed=true、rc0；本补记写入后按相同目标运行 doc_check_v2，最终收据为 doc_check_v2.jsonl / doc_check_v2_invocation.json。随后封存证据、按 file_inventory 精确暂存并检查 git diff --cached --check，成功后提交 CP1.1；本步不 push。
+
+
+无损交付归档补记（修改 AI：Codex）：首次暂存清单 123 文件，内容 SHA 检查通过，但 git diff --cached --check 返回 2：三个精确 0.4.10 case 的 pragma_overridden.sol 第 3 行是按方案要求生成的等长空格，触发行尾空白检查。该空格不能删除，否则会改变字节偏移与既有 case seal。沿用 CP1 的交付方式，把九组 CLI 输出的 84 个文件无损打包为 cli_cases.tar.gz，逐成员 SHA256/长度回读 84/84 一致；原文件和九个 case seal 在本地保留不改。未放宽 Git 检查，未重新运行 CLI，未修改生产存储格式。
+
+CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1cf844b，大小 95,681 字节，archive_audit.json 保存成员清单。前文 cwd/out2/* 路径现在表示归档内成员，替代此前“按原目录提交”的交付说明。首次 seal.json、file_inventory.json、final_validation.json 均保留原字节，作为归档前阶段快照；当时的六份文档保存于 prepackaging_documents.tar.gz，与初版文档哈希完全一致。最终交付以 delivery_seal.json、delivery_inventory.json 为准，它们绑定最终文档及两个压缩包；不得将初版快照误当最终提交清单。失败现场为 staging_failure.json，当前原始目录只留本地，不删除、不提交重复副本。
+
+归档说明纳入 CP1_REPORT、PROGRESS、CHANGE_LOG §17.5、HANDOVER 和本批次 README；追加记录遵守历史字节边界。doc_check_v1/v2 均已 6/6 通过，归档补记后按相同六目标再检查并保存新收据，完成后重新核对精确暂存范围和格式，再本地提交；编译、测试与 CLI 的已通过结果保持。

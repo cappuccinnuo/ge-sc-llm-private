@@ -171,3 +171,26 @@ WSL reparse-point 与编辑模板问题已用显式 WSL Python 写入解决，�
 - 缺陷：`command()` 相对路径按字符前缀截取，工作目录为 `/` 或字符前缀相同的目录时合法合约判为失败。另有 solc 超时停止批次、无 git 时崩溃两处健壮性问题。
 - PROMPTS r2.7：新增 1.10 节、4.3b 节 CP1.1、D19（建议维持 0.4.12）；CP2 提示更新；CP3 加入 `||` pragma 与 Slither 超时。
 - 证据 `artifacts/cp1_review_v1/`；记录 `docs/CHANGE_LOG.md` §16。下一步 Codex 执行 CP1.1。
+
+
+## 2026-11-14 CP1.1：路径与健壮性修复完成，待审查（修改 AI：Codex）
+
+依据 PROMPTS r2.7 §4.3b；先 pull --ff-only 到 d4f4b48a2484591dc185b90475f775f6c9f5498d（Already up to date），通读全文与指定交接、决策、CHANGE_LOG §15/16、cp1_review_v1/README。代码仅改 toolchain/solc.py、toolchain/slither.py、pipeline.py，新增 tests/test_cp1_1.py；生产 .py 仍 14 个，测试 10 个。新增产物 artifacts/cp1_1_v1；报告只在 CP1_REPORT.md 追加 CP1.1。交接和训练改变记录分别为 docs/HANDOVER §6 与 CHANGE_LOG §17，当前 §0–5 和 DECISIONS 同步已有审查与本轮状态。
+
+完成按路径组件生成 argv；6c 冻结分支在 / 或前缀兄弟目录提前拒绝；solc 超时记为当前输入 unrepaired / solc_timeout 后继续批次，不重试；信任/完整性错误仍停止；没有 Git/HEAD 时 commit=null、summary 标记 code_commit_unavailable，保留实现 SHA256。没有 monkeypatch、环境或全局 solc 修改，也没有替代方案或放宽验收。
+
+实测：两环境的 MANDO 846/846 与兼容性 501/501 新旧 argv 一致；五种 cwd 真实编译各 5/5；三种超时场景各 3/3；生产批次续行/信任停止和两种无 Git 场景通过。九组 CLI 全成功，三目录下状态、版本、设置、key5+IR+标记逐个相同；共 12 次前置 solc、9 次 Slither、90 个 original 节点。三个版本分别 0.5.0、0.8.24+cancun、pragma 覆盖后的 0.4.12，详见 module_acceptance.json、cli_acceptance.json 与 CP1_REPORT 的 CP1.1。
+
+测试命令为各环境 python -B -m pytest -q -ra -x -p no:cacheprovider <目标>，收据含完整 argv/环境/basetemp：production compile_repair/tests 562 passed/6 skipped（60.88 秒）；mando 同目标 128 passed/440 skipped（13.18 秒）；mando scripts/DFG/dfg_v2/tests 2653 passed/9 warnings（160.19 秒）。三轮均首次通过；原始结果与压缩日志保存在本批次，无失败重跑。WSL 无 rg 时使用已有 Python/sed；误检不存在 test_solc.py 后读取实际 test_toolchain.py，仅为读取操作，没有改变测试口径。
+
+原 CP0–CP1 正式产物、旧报告既有字节、fixture、scripts 与语料保持。冻结核验与 6 份 doc_check 结果见 frozen_audit.json、doc_check_v* 以及 CHANGE_LOG §17.5；成功后本地 CP1.1 提交、不自动 push。没有重跑 CP1 样本，没有 CP2/CP3/CP6、下载、安装、训练、GPU 锁或 LLM 调用；费用 0。遗留 || pragma 和 Slither 进程内无超时按 r2.7 留 CP3，D19 仍建议维持 0.4.12；待 CP1.1 审查通过才进入 CP2。
+
+
+开发记录补记（修改 AI：Codex）：冻结审计辅助脚本第一次从文件路径启动时，在执行检查前因未把仓库根加入 sys.path 而报 ModuleNotFoundError: scripts；没有生成 frozen_audit.json，没有实际冻结判据失败。保留 frozen_audit_launch_error.json 后，只给本批次辅助脚本补齐仓库导入路径，再执行冻结核验。生产代码、验收标准、已通过的三轮 pytest 和九组 CLI 没有修改或重跑；这是证据脚本启动问题，不是编译器或环境缺包，也未安装任何内容。
+
+
+无损交付归档补记（修改 AI：Codex）：首次暂存清单 123 文件，内容 SHA 检查通过，但 git diff --cached --check 返回 2：三个精确 0.4.10 case 的 pragma_overridden.sol 第 3 行是按方案要求生成的等长空格，触发行尾空白检查。该空格不能删除，否则会改变字节偏移与既有 case seal。沿用 CP1 的交付方式，把九组 CLI 输出的 84 个文件无损打包为 cli_cases.tar.gz，逐成员 SHA256/长度回读 84/84 一致；原文件和九个 case seal 在本地保留不改。未放宽 Git 检查，未重新运行 CLI，未修改生产存储格式。
+
+CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1cf844b，大小 95,681 字节，archive_audit.json 保存成员清单。前文 cwd/out2/* 路径现在表示归档内成员，替代此前“按原目录提交”的交付说明。首次 seal.json、file_inventory.json、final_validation.json 均保留原字节，作为归档前阶段快照；当时的六份文档保存于 prepackaging_documents.tar.gz，与初版文档哈希完全一致。最终交付以 delivery_seal.json、delivery_inventory.json 为准，它们绑定最终文档及两个压缩包；不得将初版快照误当最终提交清单。失败现场为 staging_failure.json，当前原始目录只留本地，不删除、不提交重复副本。
+
+归档说明纳入 CP1_REPORT、PROGRESS、CHANGE_LOG §17.5、HANDOVER 和本批次 README；追加记录遵守历史字节边界。doc_check_v1/v2 均已 6/6 通过，归档补记后按相同六目标再检查并保存新收据，完成后重新核对精确暂存范围和格式，再本地提交；编译、测试与 CLI 的已通过结果保持。
