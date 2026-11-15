@@ -1,0 +1,69 @@
+{
+  "schema": "rtx5080-branch-integration-v1",
+  "created_utc": "2026-11-15T04:55:52.063665+00:00",
+  "branch": "rtx5080-rebuild",
+  "integration_commit": "e3b199d6d7cb6d3075db35988974e32ac5de10ce",
+  "repository": "https://github.com/cappuccinnuo/ge-sc-llm-private.git",
+  "sources": [
+    {
+      "branch": "main",
+      "source_ref": "main",
+      "commit": "e76285a67a79dc5664c98309a8f2f32cd7342779",
+      "included_by_ancestry": true
+    },
+    {
+      "branch": "ddg-v1.1-correctness",
+      "source_ref": "ddg-v1.1-correctness",
+      "commit": "e7bcb8496d265c61e4d27566f78d26baa9e37594",
+      "included_by_ancestry": true
+    },
+    {
+      "branch": "dfg-v2",
+      "source_ref": "origin/dfg-v2",
+      "commit": "1447c271a930edb26350f004ba8c63be70f1d2b7",
+      "included_by_ancestry": true
+    },
+    {
+      "branch": "node-sem",
+      "source_ref": "origin/node-sem",
+      "commit": "306c135b8a4f0c79b092e2690b0f0d10962f5290",
+      "included_by_ancestry": true
+    },
+    {
+      "branch": "edge-sem",
+      "source_ref": "edge-sem",
+      "commit": "88cc13a77538d327c54057f74ed42bc8d73fa298",
+      "included_by_ancestry": true
+    },
+    {
+      "branch": "compile-repair",
+      "source_ref": "compile-repair",
+      "commit": "0e6830edc00976e7df618e4d0b6ab28afd60cc26",
+      "included_by_ancestry": true
+    }
+  ],
+  "verification": {
+    "source_tips_all_ancestors": true,
+    "edge_sem_tracked_files_checked": 38595,
+    "edge_sem_files_identical_except_dfg_plan": 38594,
+    "updated_plan_matches_origin_dfg_v2": true,
+    "compile_repair_files_identical": 719,
+    "compile_repair_added_files": 719,
+    "main_handover_and_training_changes_already_preserved_as_prefix": true,
+    "main_archive_json_identical": true
+  },
+  "merge_resolution": {
+    "HANDOVER.md": "Keep complete EdgeSem version; main is its byte prefix after trailing whitespace.",
+    "docs/training_changes_2026-10-07.md": "Keep complete EdgeSem version; main is its byte prefix after trailing whitespace.",
+    "scripts/DFG/README.md": "Keep integrated in-repository entry; main points to the older sibling worktree.",
+    "auto_version_solc.py": "Keep frozen EdgeSem bytes; main difference is exactly three leading blank lines."
+  },
+  "scope": {
+    "algorithm_changes": false,
+    "training_started": false,
+    "rtx5080_environment_validated": false,
+    "clean_clone_end_to_end_validated": false,
+    "local_untracked_weights_included": false,
+    "migration_implementation": "pending"
+  }
+}

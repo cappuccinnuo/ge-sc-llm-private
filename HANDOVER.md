@@ -3084,3 +3084,10 @@ EP9 监控修复已完成真实任务闭环验证：原名重入节点 fold1/G4R
 最终七类实验将在显存充足的服务器另建批次；当前限制仅因本机，不自动启动服务器阶段。已批准的交付调整：大于等于1MiB的JSON以确定性gzip副本交付，原文件、SHA、恢复入口完整保留；本地训练继续读取原JSON，plan/seal与计算不变。Windows长命令写入改用base64标准输入，仅为文件传输方式。
 
 采样恢复修订见 ep9_v1/recovery_sampling_v2：原计划不变，已完成4次结果复用，第5次从封存初值重跑；查询失败保存原异常，最多3次查询，持续失败停止；修订后三套回归在 recovery_sampling_v2/cpu_tests。实际恢复命令：python -B -m scripts.edge_sem.recon.ep9_run run --recovery scripts/edge_sem/artifacts/ep9_v1/recovery_sampling_v2；初值 prepare，登记 register，验收 accept，封存 seal，授权 authorize，各在独立记录中。
+
+
+## 2026-11-14：RTX 5080 全创新整合分支（Codex）
+
+用户要求新建包含所有既有创新的分支。已在独立工作树 /home/zhao/SmartContract/ge-sc-llm-rtx5080 创建 rtx5080-rebuild，以 edge-sem@88cc13a7 为基，合入 DFG v2 最新方案、compile-repair@0e6830ed（CP2.2）和 main 历史；NodeSem 最新远程提交及 DDG v1.1 已在祖先链内。来源完整 SHA、逐文件对象核验和冲突处理见 docs/rtx5080_branch_manifest.json，入口 MIGRATION_5080.md。
+
+原分支保留。main 的两个历史交接正文已完整包含在当前文档中；README 保留当前集成入口，原 auto_version_solc.py 字节保留。没有修改算法或训练计算。compile_repair 子树与其原分支一致；本轮仅完成整合，不表示 5080 环境或从源码到训练已验收，也不自动推进 CP3。外部基础模型按固定版本另行准备，项目权重在新批次重训；原名主视图与匿名对比接口按后续新计划登记。最终服务器实验独立建批次，原本机显存限制不继承为新机器固定规则。
