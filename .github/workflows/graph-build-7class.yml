@@ -1,5 +1,5 @@
-# CPU check of the seven-category pipeline on a modern stack (Python 3.11, torch 2.4,
-# DGL 2.4, networkx 3): the same library generation the RTX 5080 image uses, minus
+# CPU check of the seven-category pipeline on a modern stack (Python 3.11, torch 2.2,
+# DGL 2.1, networkx 3): the same library generation the RTX 5080 image uses, minus
 # the GPU. GitHub runners have no GPU, so this proves portability and correctness of
 # graph construction, and that training starts and finishes; it is not a results run.
 name: graph-build-7class
@@ -47,8 +47,12 @@ jobs:
           cache-dependency-path: docker/requirements.txt
       - name: Install CPU torch + DGL and the shared requirements
         run: |
-          pip install torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu
-          pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+          # data.dgl.ai (DGL's own wheel index) fails TLS from GitHub runners, so use
+          # the newest DGL on PyPI (2.1.0) and a torch it ships GraphBolt for (2.2.1).
+          # torchdata only satisfies an import inside DGL 2.1; --no-deps keeps torch.
+          pip install torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install dgl==2.1.0 "numpy<2" requests
+          pip install --no-deps torchdata==0.7.1
           pip install -r docker/requirements.txt
           python -c "import torch, dgl, networkx, numpy; print(torch.__version__, dgl.__version__, networkx.__version__, numpy.__version__)"
       - name: Fetch pinned label sources
@@ -102,8 +106,12 @@ jobs:
           cache-dependency-path: docker/requirements.txt
       - name: Install CPU torch + DGL and the shared requirements
         run: |
-          pip install torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu
-          pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+          # data.dgl.ai (DGL's own wheel index) fails TLS from GitHub runners, so use
+          # the newest DGL on PyPI (2.1.0) and a torch it ships GraphBolt for (2.2.1).
+          # torchdata only satisfies an import inside DGL 2.1; --no-deps keeps torch.
+          pip install torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install dgl==2.1.0 "numpy<2" requests
+          pip install --no-deps torchdata==0.7.1
           pip install -r docker/requirements.txt
       - name: Fetch pinned label sources
         run: bash scripts/graph_build/fetch_labels.sh

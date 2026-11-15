@@ -95,8 +95,9 @@ Full build, Python 3.11 / networkx 3.6 / freshly compiled grammar:
   difference (HANDOVER.md section 4). The other six buggy-node and line-level counts
   are this build's own baseline, a regression lock rather than ground truth.
 - Training smoke (1 epoch x 2 folds, CPU, both phases, `nodetype` and
-  `inside_token`) on unmodified `sco_models/`: torch 2.2 / DGL 2.1 locally, torch
-  2.4 / DGL 2.4 in CI.
+  `inside_token`) on unmodified `sco_models/`: torch 2.2 / DGL 2.1 (CPU), locally and
+  in CI. DGL's own wheel index fails TLS from GitHub runners, so CI uses the
+  newest DGL on PyPI.
 - CI (`.github/workflows/graph-build-7class.yml`, sparse ~80 MB checkout since the
   full tree is ~14 GB): unit tests, the
   no-existing-file-changed check, then per category: fetch labels, build with the
