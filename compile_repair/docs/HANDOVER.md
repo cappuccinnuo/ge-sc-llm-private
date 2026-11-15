@@ -1,25 +1,22 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.9（§1.12、§4.4b）、CP2_REPORT 的 CP2.1、DECISIONS 与 CHANGE_LOG §21；审查依据仍见 cp2_review_v1/README。第 6 节历史只追加。
+> 新接手先读本文第 0–5 节、PROMPTS r2.10（§1.12、§1.13、§4.4b、§4.4c CP2.2）、CP2_REPORT、DECISIONS 与 CHANGE_LOG §21、§22。第 6 节历史只追加，记录规则见 README.md。
 
 ## 0. 一句话
 
-CP2.1 条件边修复及两次 production 全量通过；6c 按已批准 D20 在第 227 份 reentrancy/buggy_44.sol 停止：一个参考键在固定 11 样本均缺失。整体 CP2.1 未通过，剩余 12 份和降序未运行；下一步先独立审查封存证据。
+CP2.1 的图修复与生产重跑已由 Claude 独立复核成立。6c 重放在第 227 个文件停止，审查证明是 11 个样本没有抽中一个低概率的不稳定键（Claude 同进程 40 次中出现 18 次）。下一步：用户批准 D20a → Codex 执行 4.4c 节 CP2.2 → Claude 审查 → CP3。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案与决定 | PROMPTS r2.9；D20 已定（用户 2026-11-14 原话“同意 D20”）；D5/D16/D18 保持；D19 建议 | DECISIONS、cp2_1_v1/authorization.json |
-| CP0–CP1.1 | 已审查通过，旧实现/产物不重做 | 各历史审查目录 |
-| CP2.1 生产修复 | 只改 graph_facts；每个 IF/IFLOOP 一 true 一 false，同目标也保留两边 | slither.py、18 个新测试 |
-| 两次全量 | 各 843 成功/3 既有失败；843 图字节一致；仅 40 文件 86 个指定标记变化 | cr_store_mando_v3/v4、ascending1/2_acceptance |
-| 6c D20 | 227 已测，223 main 精确同、3 D20 通过、1 失败；4 子进程各 10 样本 | cp2_6c_v2、captured_replay_audit |
-| 失败键 | 第 282 行 out DEF，MultiHashWrapper 声明上下文、非继承；6c=1，11 次均 0 | CP2_REPORT CP2.1、reference_only |
-| 波动统计 | 9 个键全 L1 DEF；5 继承、4 非继承，不能推断内部根因 | captured_replay_audit.json |
-| 未运行 | 剩余 12 份 6c、全部降序、CP3；cp2_desc_v1 未创建 | summary.json |
-| 测试 | production 585/6、mando 147/444（通过/跳过）；DFG 2653 通过、9 既有警告 | pytest_* |
-| 下一步 | 先审查现有字节证据；新增实验或方案变化须明确范围并咨询用户 | 用户停止要求、PROMPTS §4.4b |
+| 方案与决定 | PROMPTS r2.10；D5/D16/D18/D20 已定；D19 建议；D20a（追加采样）待用户批准；D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
+| CP0–CP2 生产 | 已审查通过 | 各审查目录 |
+| CP2.1 图修复 | 已复核：v3/v4 843/843 字节相同；与 v1 只差 86 条 true → false；true、false 各 5,507 | artifacts/cp2_1_review_v1/README.md |
+| 6c 重放 | 227 个已运行：223 相同、3 个 D20 通过、第 227 个停止（采样不足）；228–239 未运行 | PROMPTS 1.13 |
+| 降序跨版本 | 未运行 | PROMPTS 4.4c |
+| 已知缺口 | `||` pragma；Slither 进程内无超时；项目与依赖等未实现 | 留 CP3 |
+| 下一步 | 用户批准 D20a → CP2.2 → 审查 → CP3 | PROMPTS §4.4c |
 
 ## 2. 分支与工作树
 
@@ -55,6 +52,7 @@ CP2.1 条件边修复及两次 production 全量通过；6c 按已批准 D20 在
 
 | 内容（compile_repair 下） | 路径 |
 |---|---|
+| CP2.1 审查证据（Claude） | artifacts/cp2_1_review_v1/README.md 及 legacy_buggy44_repeat40.jsonl |
 | 最新完整报告 | CP2_REPORT.md 的 CP2.1 |
 | 训练改变与决策 | docs/CHANGE_LOG.md §21；docs/DECISIONS.md |
 | 授权、基线及执行脚本 | artifacts/cp2_1_v1/README.md、authorization.json、baseline.json |
@@ -306,3 +304,14 @@ CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1
 用户于 2026-11-14 原话“同意 D20”，开始前已写授权并把当前决策改为已定；本次停止严格遵守原判据，没有额外采样或替代方案。只读复算全部已保存比较与 D20 计数一致，新增提取 0。剩余 12 个 6c、降序以及 CP3 未运行，整体 CP2.1 未通过；先独立审查封存材料，任何新增实验或方案改变仍先咨询用户。D3、D5、D16、旧下限归因与冻结 DFG 结论均保持。
 
 production 模块 585 passed/6 skipped，mando 147/444，DFG 2653 passed/9 既有 warnings；D20 边界 12 项通过，三份 tar 逐成员回读通过。最终冻结审计、doc_check 及精确交付记录见 CHANGE_LOG §21.5 和 cp2_1_v1。本轮完成强制记录和检查后本地提交 CP2.1 停止现场，准确提交号见 git log，不自动 push；无安装、下载、LLM、HGT 训练、GPU 锁或全局 solc 变更。
+
+
+### 2026-11-14 CompileRepair CP2.1 审查与方案 r2.10（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP2.1（提交 63a1510b）。新增证据目录 `artifacts/cp2_1_review_v1/`，修改 `PROMPTS.md`（r2.9 → r2.10）。本文开头、第 0、1 节换成审查结论，第 5 节加入证据路径；第 4 节保留。
+
+结论：图修复正确；v3、v4 的 843 个图字节相同，与 v1 相比只有审查指定的 86 条边由 true 改为 false，节点与调用不变。6c 重放在第 227 个文件停止：6c 报告中有一个键在 Codex 的 11 个样本中没有出现。Claude 对该文件同进程连续抽取 40 次，该键出现 18 次，说明它与已判为不稳定的 9 个键同类（数组在 for 循环体内按下标写入，DEF 时有时无地记到循环条件行），只是没有被抽中。Codex 按 D20 停下、没有追加样本，处理正确。
+
+处理：新增 D20a（待用户批准）——D20 不满足的键追加最多 100 次同进程抽取，观察到 6c 的重数才通过，否则停下；新增 4.4c 节 CP2.2：第 227 个文件按 D20a 判定、续跑第 228–239 个文件、完成降序比较。
+
+下一步：用户批准 D20a 后由 Codex 执行 CP2.2。本轮没有模块代码改动或安装。详见 CHANGE_LOG §22。

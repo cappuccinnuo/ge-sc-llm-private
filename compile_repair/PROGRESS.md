@@ -235,3 +235,10 @@ CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1
 6c 在第 227 份 reentrancy/buggy_44.sol 按 D20 停止：223 份精确同、3 份仅波动差异通过、1 失败。四份主运行差异各在一个新进程连续提取 10 次，没有第 12 个样本。失败键为 MultiHashWrapper 声明上下文的第 282 行 out DEF（L1、非继承），6c 重数 1，但 11 次均 0；全部计数和参考原始行见 CP2_REPORT 的 CP2.1 及 captured_replay_audit.json。观察到 9 个不稳定键，均 L1 DEF，其中 5 继承、4 非继承；未归因内部根因。
 
 production 模块 585 passed/6 skipped，mando 模块 147/444，冻结 DFG 2653 passed/9 warnings；D20 边界 12 项和停止现场离线复算均通过。剩余 12 份、降序比较和 CP3 未运行，整体 CP2.1 未通过。doc_check、保护审计及强制记录完成后本地提交；无安装、下载、LLM、训练或 push。下一步先审查已封存证据，改变方案仍需用户确认。
+
+
+## CP2.1 审查与方案 r2.10（Claude，2026-11-14）
+
+- CP2.1 图修复与生产重跑复核成立（只差审查指定的 86 条边）。
+- 6c 第 227 个文件的停止是采样不足：同进程 40 次中该键出现 18 次；10 个不稳定键同属“for 循环体内按下标写入的数组、DEF 记在循环条件行”。
+- PROMPTS r2.10：新增 1.13 节、4.4c 节 CP2.2、D20a（待用户批准）。证据 `artifacts/cp2_1_review_v1/`；记录 `docs/CHANGE_LOG.md` §22。

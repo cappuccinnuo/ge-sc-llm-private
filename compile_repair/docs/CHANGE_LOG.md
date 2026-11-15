@@ -1141,3 +1141,43 @@ graph_facts 先验证每个 son 都属于当前函数，再按 node.sons 原顺�
 
 
 最终检查补记（仍属 §21.5，修改 AI：Codex）：doc_check v1 对全部 9 份文档通过，追加偏移为 CP2_REPORT=20093、PROGRESS=32940、CHANGE_LOG=147458；其余全文检查。补记后的最终同范围复检保存在 doc_check_v2.jsonl 与 doc_check_v2_invocation.json。frozen_audit 通过：28,451 个受保护跟踪文件（其中模块外 27,845、旧产物 546、旧 fixture 29）、8,548 个旧 seal 成员、239 原始 6c 目标、354 代码引用、96 solc 文件均未变；mando 118 / production 145 份包与 conda 元数据集合及内容相同，全局选择环境相同。graph_facts 之外的 11 个既有 Slither 函数、occurrence_keys 和 historical_target 的 AST 均保持；生产 14 文件与测试封存的实现 SHA 一致，五份文档旧历史全部保留。没有验收重试或审批拒绝。提交仅包含 delivery_inventory 所列的新批次、允许代码和记录，正式旧批次不暂存；当前停止结论不变，本地提交后不 push。
+
+
+## 22. 2026-11-14 CompileRepair CP2.1 审查与方案 r2.10（修改 AI：Claude）
+
+### 22.1 任务、依据与范围
+
+用户要求（2026-11-14）：Codex 已完成 CP2.1；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后进入 CP3。起点 `compile-repair@63a1510b`。审查对象：`toolchain/slither.py` 的 `graph_facts` 差异，`tests/test_graph_branches.py`，两份新生产存储（解包核对）与 v1 的比较，`cp2_6c_v2` 与 `cp2_1_v1/captured_replay_audit.json`，CP2_REPORT 的 CP2.1 节与 CHANGE_LOG §21。
+
+修改：`PROMPTS.md`（r2.9 → r2.10）；新增 `artifacts/cp2_1_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（新增 D20a，历史 2 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 22.2 实施方式和重要选择
+
+- 图：读代码差异；解包 v1、v3、v4，逐个比较 graph.json，检查边差异是否正好等于上轮审查列出的 86 个节点，并统计边种类。
+- 6c：核对 Codex 记录的失败键（reference-only，声明上下文 MultiHashWrapper 的 `[282, out, DEF]`），在 Claude 的 Slither 0.8.0 环境中对同一文件同进程连续抽取 40 次。该键出现 18 次，证明它不稳定；再查看 10 个不稳定键的源码行，都是 for 循环体内按下标写入的数组、DEF 记在循环条件行，属于同一类。
+- 判据：D20 以固定 11 个样本界定不稳定，低概率事实会被误判。可选做法有：（a）追加采样直到观察到参考重数；（b）按“循环条件上的数组 DEF”这一类别豁免；（c）放弃 6c 重放。选择（a）：它不依赖对旧工具链内部机制的推断，只用观测；设上限 100 次并保留停止条件；稳定键与键定义不变。（b）需要从 6c 参考行推断节点类型，依据不足；（c）会丢掉已经得到的 223 个逐条相同的证据。改变判据需要用户批准，记为 D20a。
+- 续跑：第 228–239 个文件在新进程中运行。D20 与 D20a 都是逐文件判定，不依赖主运行的进程历史。
+
+### 22.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| v3/v4 seal | 各 4,228 个文件哈希一致 | 审查时核对 |
+| 图 | 843/843 字节相同；节点、调用与 v1 843/843 相同；边差异 86 条，全部 true → false，集合与 if_edge_kinds.json 相同 | 同上 |
+| 边计数 | next 76,631、true 5,507、false 5,507 | 同上 |
+| buggy_44.sol 40 次 | MultiHashWrapper 上下文 18 次（单独 6、与 Feed 同时 12）、Feed 30 次、都没有 4 次；总数 357/358/359 为 4/24/12 次 | legacy_buggy44_repeat40.jsonl |
+| 不稳定键 | 10 个，全部 L1 DEF；变量 `out` 或 `records`，在 for 循环体内按下标写入；记在循环条件行 | CP2_REPORT、源码 |
+
+未证明：用户环境（Python 3.7）中该键的出现频率；旧工具链不确定性的代码位置；DFG v2 以 6c 为固定参考的结论受影响的程度。
+
+### 22.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：图修复与两次生产重跑；6c 停止后没有追加样本、改种子或改键；用审计脚本重算了全部已运行比较。
+- 新发现：第 227 个文件的停止是采样不足；不稳定键属于同一类。
+- 待用户批准：D20a。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 22.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_1_review_v1/README 全文，CHANGE_LOG:157183、PROGRESS:34700 追加区间，6 个文件全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP3 不能开始。顺序为用户批准 D20a → Codex 执行 CP2.2 → Claude 审查 → CP3。本轮提交并 push 到 `compile-repair`。
