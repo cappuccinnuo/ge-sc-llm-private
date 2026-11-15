@@ -2237,6 +2237,52 @@ G0P 不建议在当前（泄漏的）基准上单独执行：现在的剖面差�
 详见 REVIEW_8B 第 12 节。
 
 
+### 4.10j 扩展到全部 7 类：前提与计划（2026-11-02 记录，现在不执行）
+
+研究目标覆盖全部 7 类漏洞，重入与访问控制只是初始实验。
+
+**现状：**
+- **代码层面已经通用。** L1/L2/L3 分析器、投影、关系定义、HGT 都没有按类别分支。L3 的 14 个环境键已覆盖 block.timestamp/now、block.number、blockhash、gasleft 等。8G 的保留表已包含 now、block、timestamp、keccak256、ecrecover、send、delegatecall 等内建名。
+- **数据与实验层面只为 R/AC 建立。** 具体包括：
+  - `tasks.REGISTRY` 只登记了 2 类；
+  - EXTENDING.md 只覆盖到建图，写于 8D 之前，没有覆盖基准 v2；
+  - `diagnostics8c/labels.py` 写死了 R/AC 的 SolidiFI 目录与标记；
+  - `benchmark_v2` 的 `execution.py`（试点与主终点）、`reporting.py`、`spelling_plan.py`（解读规则）写死了 R/AC 的任务名；
+  - 关键字基线只有 tx.origin 与 .call.value/.send/.transfer。
+
+**审查者在源码中发现、扩展前必须先处理的数据问题：**
+1. **SolidiFI 类别与 MANDO 类别的对应关系必须先核实并写进报告。** 这直接决定标签的语义：
+   - arithmetic 中的注入标记是 `_intou`（Overflow-Underflow）；
+   - time_manipulation 是 `_tmstmp`（Timestamp-Dependency）；
+   - front_running 是 `_TOD`（Transaction-Order-Dependence）；
+   - **denial_of_service 是 `_unchk`**（片段为 `if (!addr.send(10 ether) || 1==1) {revert();}`）；
+   - **unchecked_low_level_calls 是 `bug_unchk_send`**（片段为 `msg.sender.transfer(1 ether);`）。
+
+   后两个片段的语义与类别名并不吻合：后者是“无保护的转账”，而不是“未检查的低层调用”，因为 transfer 失败时会回滚。因此这两类的 SolidiFI 节点标签学到的语义可能与类别名不同，必须单独报告，不能直接与非 SolidiFI 样本合并解读。
+2. **算术类的语义损失。** N-anon-s 会把 SafeMath 及其 add/sub/mul 改成 vN，“经过检查的库运算”与“裸运算”就无法再从名字区分。需要靠结构来表达：例如被调用的库函数体内是否对结果做了检查（一层被调函数汇总）。没有这一项，算术类的主视图会系统性地丢失合法语义。
+3. **各类别都需要重做 8B/8C 式的标签审计**：bug log 重叠截断、行号溢出、作者附带漏洞行的来源。审计代码要参数化（类别 → SolidiFI 目录与标记），以新模块的形式实现，不改冻结的 `labels.py`。
+
+**扩展步骤**（每类依次进行；全部不训练，直到用户授权）：
+1. 数据来源与标签语义审计（上述第 1、3 项）。
+2. 按 EXTENDING.md 登记类别、封存输入，构建并核验 F1–F3。
+3. 基准 v2 的三项输入：
+   - 8D 式分组折，按近重复簇分组；
+   - 8G 式 N-anon-s 改写，以及 P2/P3 泄漏探针（门槛不变）；
+   - L-audit 标签视图（C1/C2）。
+4. 每类预先登记的关键字基线，在看到任何 GNN 结果之前写入 plan。草案如下：
+   - time：节点或所在函数含 block.timestamp/now/block.number；
+   - arithmetic：节点含 + − × 等算术运算，且作用于状态变量；
+   - unchecked：低层调用或 send 的返回值没有进入 require 或 if；
+   - DoS：循环体内有外部调用，或条件中含 send 失败分支；
+   - front_running：先读后写同一状态变量，且写入与转账在同一函数中。
+5. 每类预先登记主终点与解读规则：
+   - 被关键字饱和的任务只作描述；
+   - 7 类合在一起报告时，需要事先确定多重比较的做法（例如每类一个主终点，跨类用 Holm 校正）。
+6. 新的计划版本（新模块，不改 8H 执行器）：把任务名、试点与主终点改为由 plan 参数决定。
+
+节点语义增强一侧的对应前提，见 node-sem 分支 `scripts/node_sem/PROMPTS.md` 第 6b 节（r9 已把 M2/M3a 改为对 7 类通用的设计）。
+
+
 ### 4.11 Prompt 9（可选）：新源码的端到端推理
 
 ```text
