@@ -261,12 +261,25 @@ def graph_facts(slither):
                 "declaration_kind": kind})
         for node in function.nodes:
             key = keys[id(node)]
-            for son in node.sons:
-                if id(son) not in keys:
-                    raise ValueError("CFG endpoint outside its declared function")
-                edge_kind = ("true" if son is node.son_true else
-                             "false" if son is node.son_false else "next")
+            sons = node.sons
+            if any(id(son) not in keys for son in sons):
+                raise ValueError("CFG endpoint outside its declared function")
+            conditional = key[2] in ("IF", "IFLOOP")
+            branches = ([(node.son_true, "true"), (node.son_false, "false")]
+                        if conditional else [])
+            for son in sons:
+                edge_kind = "next"
+                if conditional:
+                    # Consume branch occurrences, not distinct target nodes:
+                    # an empty branch can make true and false share a target.
+                    match = next((i for i, (target, _) in enumerate(branches)
+                                  if son is target), None)
+                    if match is None:
+                        raise ValueError("Conditional CFG must have one true and one false edge")
+                    _, edge_kind = branches.pop(match)
                 result["cfg_edges"].append({"source": key, "target": keys[id(son)], "kind": edge_kind})
+            if branches:
+                raise ValueError("Conditional CFG must have one true and one false edge")
             for index, ir in enumerate(node.irs):
                 if isinstance(ir, Call):
                     # Exact type lookup intentionally prevents LibraryCall's

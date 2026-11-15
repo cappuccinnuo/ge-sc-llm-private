@@ -224,3 +224,14 @@ CLI 归档 SHA256 为 bec8f18cdc4510bf066d4bf79abe4489ab8d70c8c8e61a263b60ee63f1
 - 缺陷：空体 if 的两条边都标 true（86 个节点）。
 - 6c 重放停止的原因：Slither 0.8.0 局部写集合不确定（同进程 10 次得到 252/253/254）；生产 0.11.6 确定。
 - PROMPTS r2.9：新增 1.12 节、4.4b 节 CP2.1、D20（稳定事实判据，待用户批准）。证据 `artifacts/cp2_review_v1/`；记录 `docs/CHANGE_LOG.md` §20。
+
+
+## CP2.1：生产边修复通过，6c D20 停止（2026-11-14，修改 AI：Codex）
+
+执行 PROMPTS r2.9 §4.4b，起始 compile-repair@1ed79a6708f505ecb9aa80b157a43f9e07608c9f；D20 已按用户“同意 D20”落盘授权并更新 DECISIONS。只改生产文件 toolchain/slither.py 的 graph_facts，补 18 个条件边测试及新 fixture，生产文件数保持 14。所有结果写入 cp2_1_v1、cr_store_mando_v3/v4、cp2_6c_v2，旧批次不改。
+
+两次生产均 843 成功/3 已知失败，843 图字节相同；与 v1 仅 40 文件 86 条已审查分支标记变化。每轮 110,996 节点、87,645 边、45,565 调用；5,507 true、5,507 false，其他边、节点和调用不变。同版本生产归档 842/842 相同，另 1 份沿用 CP0 归因 (a)。数据见 cp2_1_summary.json、ascending1/2_acceptance.jsonl。
+
+6c 在第 227 份 reentrancy/buggy_44.sol 按 D20 停止：223 份精确同、3 份仅波动差异通过、1 失败。四份主运行差异各在一个新进程连续提取 10 次，没有第 12 个样本。失败键为 MultiHashWrapper 声明上下文的第 282 行 out DEF（L1、非继承），6c 重数 1，但 11 次均 0；全部计数和参考原始行见 CP2_REPORT 的 CP2.1 及 captured_replay_audit.json。观察到 9 个不稳定键，均 L1 DEF，其中 5 继承、4 非继承；未归因内部根因。
+
+production 模块 585 passed/6 skipped，mando 模块 147/444，冻结 DFG 2653 passed/9 warnings；D20 边界 12 项和停止现场离线复算均通过。剩余 12 份、降序比较和 CP3 未运行，整体 CP2.1 未通过。doc_check、保护审计及强制记录完成后本地提交；无安装、下载、LLM、训练或 push。下一步先审查已封存证据，改变方案仍需用户确认。

@@ -160,3 +160,106 @@ CP0 唯一版本差异是 unchecked_low_level_calls/source_files/0x366cf49c6bc39
 ## 最终保护与文档检查（修改 AI：Codex）
 
 frozen_audit.json 已通过：28,373 受保护跟踪文件（其中 27,845 模块外、473 旧产物、28 旧 fixture）、354 code_refs、96 solc、239 原始重放源码不变；本轮登记的 mando 90 / production 114 份包元数据文件相同。旧文档历史保留，14 个实现 SHA 与测试封存一致，原工具链函数 AST 除本轮授权接入外保持。9 份文档 doc_check_v1 全部通过；补记后再用 doc_check_v2 核对最终内容并记录文档 SHA，见 CHANGE_LOG §19.5。精确暂存检查与交付清单在 staging_check / delivery_inventory / delivery_seal；CP2 整体仍因 6c 差异停止，不宣称全部验收通过。
+
+
+## CP2.1：条件边修复完成，6c 在 D20 门槛停止（2026-11-14，修改 AI：Codex）
+
+### 实现与授权
+
+本节追加在原 CP2 报告之后，保留原 20,093 字节。用户要求执行 PROMPTS r2.9 §4.4b；已 pull --ff-only origin compile-repair，起始 HEAD 为 1ed79a6708f505ecb9aa80b157a43f9e07608c9f，结果 Already up to date。已通读 r2.9、HANDOVER §0–5、DECISIONS、CHANGE_LOG §19/20、cp2_review_v1/README；沿用 docs/README 的五段式记录和 REPORT_TEMPLATE。
+
+用户于 2026-11-14 明确批准 D20，原话“同意 D20”；开始实现前已落盘 artifacts/cp2_1_v1/authorization.json，并更新 DECISIONS 当前表和历史。没有修改 D3、D5、D16、编译设置或 occurrence 键。生产代码只修改 toolchain/slither.py 的 graph_facts，非测试 Python 文件数仍为 14：按 node.sons 顺序消费 true/false 两个分支 occurrence，即使目标相同也各保留一次；非条件边为 next；缺分支、额外分支、错误目标或跨函数端点均抛错。
+
+新增 tests/test_graph_branches.py 和 fixtures/graph_branches.sol，18 个用例覆盖空 if、空 else、两支皆空、有 else、while、for、同目标分支、反向 sons 顺序及畸形 CFG。原 fixture 未修改。新批次的 run_corpus.py、run_replay.py 使用已有 CLI 与冻结函数，不 import 审查脚本；其余脚本负责检查、无损打包、只读复算与记录，均位于 artifacts/cp2_1_v1。原 scripts/DFG/dfg_v2/validate_slither.py SHA256 为 4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8；_compile 与 slither_full_facts 只 import，不改写。
+
+### 真实验收
+
+| 项目 | 预期 | 实际与证据 | 状态 |
+|---|---|---|---|
+| production 两次全量 | 每次 843 成功、3 个既有失败 | v3/v4 均 843/3，支持 92 版；ascending1/2_receipt.json | 通过 |
+| 两次图字节 | 843/843 一致 | ascending2_acceptance.jsonl 全部 repeat_equal | 通过 |
+| 与 CP2 v1 图差异 | 仅指定 86 个 IF、40 文件各一边 true→false | 两次均精确命中；节点、调用及其余边完整 JSON 相等 | 通过 |
+| 条件节点与完整性 | 每个 IF/IFLOOP 一 true、一 false，无跨函数端点 | 5,507 条 true、5,507 条 false、76,631 条 next；总 87,645 边 | 通过 |
+| 原节点/调用及 D3 | 保持原事实与成功条件 | 每轮 110,996 节点、45,565 调用，全部 provenance=original；D3 通过 | 通过 |
+| 同版本生产归档 | 保持 key5、有序 IR | 842/842；另 1 个既有新增编译器归因 (a) | 通过 |
+| 6c | 239 文件按 D20 全部通过 | 227 已测：223 精确同、3 个仅波动差异通过、1 失败；12 未运行 | 未通过，已停 |
+| 降序跨版本 | 同一 CLI --order descending；列出全部差异 | 因上一项停止，0 个运行；cp2_desc_v1 未创建 | 未运行 |
+
+三份已知失败仍为 reentrancy/source_files 下的 reentrancy_bonus.sol、reentrancy_cross_function.sol、reentrancy_insecure.sol，reason=slither_side_failure，不进入图存储。每轮 CLI 因它们返回 2 属预期，验收驱动器成功返回 0；不要将这两种返回码混淆。生产升序耗时 262.80 秒和 271.14 秒；6c 驱动内耗时 135.41 秒（外层命令 140.85 秒）。类别、选版分布、完整逐份结果见 cp2_1_summary.json 和 acceptance.jsonl，版本直方图仅统计 843 个成功选版，失败的 selected_version=null 单列。
+
+### 6c 的固定采样与停止事实
+
+main 按 CP2 plan 的相同 239 文件顺序在 mando 的一个进程运行，逐项保持原始 target、版本、仓库根 CWD。每个主运行差异各另起一个进程，在该新进程连续提取恰好 10 次；四份差异共 4 个追加进程、40 次追加提取，与 227 次主运行合计 267 次提取。没有在主进程插入额外提取，没有追加第 12 个样本。原报告/seal 的 SHA256 先验证，plan 与 CP2 plan 完全相等。
+
+| 顺序 | 文件 | 主运行/6c occurrence 总数 | 波动键数 | 结果 |
+|---|---|---|---|---|
+| 87 | experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol | 252/252 | 3 | D20 通过 |
+| 207 | experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_24.sol | 792/793 | 2 | D20 通过 |
+| 226 | experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_43.sol | 391/390 | 3 | D20 通过 |
+| 227 | experiments/ge-sc-data/source_code/reentrancy/source_files/buggy_44.sol | 357/358 | 1 | 停止：1 个 reference-only 键 |
+
+D20 比较的是每个 occurrence 键的重数，不能用总 occurrence 数相同代替。例如 access_control/buggy_43.sol 总数都为 252，键仍不同；reentrancy/buggy_43.sol 的 6c 总数 390 不在总数样本区间 391–392 内，但每一个键均满足 D20，因此按原文通过。没有增加或改成总数范围判据。
+
+**全部失败键只有 1 个**，位于第 227 个 reentrancy/buggy_44.sol：
+
+- 源 SHA256：8e037273ea617a302b2db77c278ba36931dd57474df202f78aa3c4b0ba815f86；原始 solc 0.5.0。
+- 函数 MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)，function start=9070、node start=9337、declaration start=9172；canonical name 为该函数的 .out。
+- layer=L1、fact=[282, out, DEF]、modifier=false、context_contract=context_declarer=MultiHashWrapper、inherited_context=false、tags=[]。
+- 6c 重数 1；main 与追加 10 次均为 0，min=max=0。它是 reference_only 键，触发 D20 的明确失败条件；不能当作已观察到的不稳定键忽略。
+
+该文件有一个 Feed 继承上下文的 out DEF 波动键，不能替代上面缺失的声明上下文键。原始参考行、完整键、全部 11 次计数保存在 captured_replay_audit.json；相应原始提取在 cp2_6c_v2/store.tar.gz 的 extractions/0227.json.gz 和 additional/0227/extractions/01–10.json.gz。audit_replay.py 只读取已保存字节与已核验的参考报告，重新计算全部 227 个 main 比较及 4 个 D20 判定，结果完全相同；该检查新增编译/提取/采样均为 0。
+
+### 全部波动键（观察范围为已执行的 227 份）
+
+9 个不同键全为 L1 DEF；L1 USE/READ/WRITE、L2 DEF/USE/READ/WRITE 均 0。其中 5 个键 inherited_context=true、4 个为 false，不能说全部处于继承上下文。下表计数按 main、追加 1–10 顺序；每项最小/最大均为 0/1，参考重数均落在该范围。缺失的 reference_only 键另列于上一节，不属于这 9 个波动键。
+
+| 顺序 | 函数 | 上下文 | 行 | 变量 | inherited | 6c 重数 | 范围 | 11 次重数 |
+|---|---|---|---|---|---|---|---|---|
+| 87 | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) | MultiHashWrapper | 162 | out | False | 0 | 0–1 | 0,0,0,1,1,0,0,1,1,0,1 |
+| 87 | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) | Post | 162 | out | True | 1 | 0–1 | 0,0,0,0,0,1,1,0,0,1,0 |
+| 87 | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) | ProofHash | 162 | out | True | 0 | 0–1 | 1,0,1,0,0,1,1,0,0,1,0 |
+| 207 | FomoFeast.addInvestRecord(address,uint256,uint256,uint256) | FomoFeast | 584 | records | False | 1 | 0–1 | 0,1,0,1,1,1,0,1,1,1,1 |
+| 207 | FomoFeast.addStaticCommissionRecord(address,uint256,uint256) | FomoFeast | 603 | records | False | 1 | 0–1 | 1,1,0,1,1,1,1,0,1,1,0 |
+| 226 | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) | MultiHashWrapper | 225 | out | False | 0 | 0–1 | 0,1,0,0,0,0,1,1,1,1,1 |
+| 226 | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) | Post | 225 | out | True | 0 | 0–1 | 0,0,0,1,0,1,1,1,1,1,1 |
+| 226 | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) | ProofHash | 225 | out | True | 0 | 0–1 | 1,0,1,1,1,1,0,0,0,0,0 |
+| 227 | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) | Feed | 282 | out | True | 0 | 0–1 | 0,1,0,0,0,0,0,0,0,0,0 |
+
+以上只说明本次固定 11 样本中的观测结果，未证明内部根因，也未证明第 227 份的缺失键在更多运行中绝不出现。没有通过改 seed、GC、输入顺序、键字段或样本数寻找通过结果；原 DFG 与 6c 结论保持原样。
+
+### 测试与开发记录
+
+| 环境/检查 | 结果 | 时间与证据 |
+|---|---|---|
+| production 全模块 | 585 passed、6 skipped、0 failed | 63.99 秒；pytest_production.json / .log.gz |
+| mando 全模块 | 147 passed、444 skipped、0 failed | 12.61 秒；pytest_mando.json / .log.gz |
+| mando 冻结 DFG | 2653 passed、9 个既有警告、0 failed | 152.21 秒；pytest_dfg.json / .log.gz |
+| D20 规则边界 | 12 项通过 | d20_rule_checks.json，含缺参考键、稳定不等、区间端点与错误样本数 |
+| 停止现场只读复算 | 227 主运行、4 组 11 样本全部与原判定一致 | captured_replay_audit.json；这是审计通过，不是 6c 验收通过 |
+
+跳过均为工具链专属用例：production 跳过旧版 CP0/负对照与 metadata backport；mando 跳过 production 特征与 stdlib metadata。没有测试失败后重跑。实现前通过 baseline.json 保存 28,457 个已跟踪文件、8,548 个旧 seal 成员、239 个原始 6c 目标、354 个冻结代码引用、96 个 solc 文件和两环境元数据。最终保护审计、文档检查与精确交付清单见 frozen_audit.json、doc_check_v*、delivery_inventory.json、delivery_seal.json。
+
+### 归档与复核
+
+生产环境为 Python 3.10.21 / Slither 0.11.6 / crytic-compile 0.4.2；regression_6c 为 mando Python 3.7.12 / 0.8.0 / 0.2.4。96 个可信安装中支持快照为 92 个；本轮无新增安装、下载或全局 solc 变更。失败文件 solc 路径为 /home/zhao/.solc-select/artifacts/solc-0.5.0/solc-0.5.0，SHA256 c1bb15b520f5076aebd7aa9ef4ce5fa245b6f210a91cbd2064b9e383e6510e08；全部实际版本、编译器 SHA、argv、设置、观察到的 solc rc 与 Slither API 调用在各 store 的 invocations/plan/trust/seal 中，不伪造 API 未暴露的子进程返回码。
+
+| 新批次 | tar 成员数 | store.tar.gz SHA256 | seal.json SHA256 |
+|---|---|---|---|
+| cr_store_mando_v3 | 4229 | 29a4ccba5612d2a6a1df896647a66d4babd7f6e175b424ece695f152eddba513 | 2d44f95b7ffb5cc8c2dba6a468042c8d3565e455f6974ceb744ad45b067ce075 |
+| cr_store_mando_v4 | 4229 | 54f9f53d666df7e6bc51ee9954843aaec9bdfc34290fea891add03aaee7a75e5 | 22fe73285f04f857e071da3cb2890cdca582014ba8daee6805b3a05aa93381b1 |
+| cp2_6c_v2 | 309 | 6dee59c464bf066930b55546f2d1c7a704fddefab2f132284797b6374c7beae0 | b443421f192f7bdb5c109c65f56364b1e3e395ac677290d082ea4cc86e29cdb2 |
+
+三份归档逐成员回读完全一致，原始散文件保留。旧 CP0–CP2 归档不覆盖；本轮没有创建 cp2_desc_v1。图本身一致不要求时间、路径和日志所在的 manifest/seal 字节相同。所有实际命令与环境完整写入 *_invocation.json、*_plan.json 和 pytest_*.json；实际入口是新批次 launch_phase.py ascending1 / ascending2 / replay。这些目录已存在且当前验收已停止，不要直接重跑入口；任何续验须新的明确范围和新批次。
+
+以下为可直接执行的只读摘要复核命令（不会调用编译器或 Slither）：
+
+```bash
+cd /home/zhao/SmartContract/ge-sc-llm-compile
+/home/zhao/miniconda3/envs/mando/bin/python -B -c 'import json,tarfile; t=tarfile.open("compile_repair/artifacts/cp2_6c_v2/store.tar.gz"); print(json.dumps(json.load(t.extractfile("summary.json")),indent=2))'
+```
+
+### 停止位置、问题与后续边界
+
+CP2.1 的生产代码修复和两次生产验收完成；整体 CP2.1 未通过，停止在 §4.4b 第 3 项。剩余 12 份 6c、全部降序比较、CP3 均未运行，跨版本相同/不同计数及归因不能填成 0 或“通过”。
+
+需审查的问题：D20 的固定 11 样本没有覆盖参考报告中的上述键，现有证据不足以判断其内部原因；应先独立复核已经封存的原始行、源码/版本身份和运行契约，再由用户决定下一步。没有实施替代方案、增加采样或放宽判据。D20 批准仍有效，它并不保证本次能通过。按用户要求，停止后仍完成交接、训练改变记录、文档与保护检查并本地提交，不自动 push；没有 LLM、HGT 训练、GPU 锁操作或 CP6 第 10 行改写。
