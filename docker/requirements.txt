@@ -1,0 +1,31 @@
+# Python packages for the RTX 5080 (Blackwell, sm_120) environment, on top of a
+# PyTorch + DGL that already support the GPU. torch and dgl are deliberately NOT
+# listed: the Docker image takes them from NVIDIA's DGL container, and CI installs
+# CPU wheels itself. Graph construction needs only the first block.
+# Verified on Python 3.11 with torch 2.2 + DGL 2.1 (local) and torch 2.4 + DGL 2.4 (CI).
+
+# Graph construction (scripts/graph_build)
+networkx>=2.6
+tree-sitter==0.20.4        # 0.21+ changed the Language API used by custom_parser.py
+pydot>=1.4
+tqdm
+
+# Tokenizer features (MANDO-LLM node features; tokenizer only, no model forward)
+transformers==4.46.3
+
+# Training / evaluation (graph_classifier.py, node_classifier.py)
+# torch_geometric: sco_models/model_hgt.py imports MetaPath2Vec at load time (only the
+# unused metapath2vec feature calls it). model_hgt.py is SHA-pinned by edge_sem, so
+# it is not edited; the pure-Python PyG wheel satisfies the import without any
+# torch-scatter/torch-sparse CUDA builds.
+torch_geometric
+scikit-learn
+scipy
+pandas
+matplotlib
+tensorboard
+tabulate
+timebudget
+
+# Tests
+pytest
