@@ -1,0 +1,92 @@
+# hcg: build every Dataset A category from source on a clean machine and prove it
+# reproduces the authors' graphs and the Oct 10 label policy, then show the HGT
+# training code consumes the result. CPU only (GitHub runners have no GPU).
+name: hcg
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DGLBACKEND: pytorch
+  MANDO_DATA_DIR: ${{ github.workspace }}/data
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        category:
+          - access_control
+          - arithmetic
+          - denial_of_service
+          - front_running
+          - reentrancy
+          - time_manipulation
+          - unchecked_low_level_calls
+    steps:
+      # The full tree is ~15 GB (sealed experiment artifacts); this set is ~310 MB and
+      # holds the corpus, the authors' graphs and everything hcg and training import.
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/scripts/DFG/
+            !/scripts/node_sem/
+            !/scripts/edge_sem/
+            !/experiments/
+            /experiments/ge-sc-data/source_code/*/source_files/
+            !/Test_code/
+            /Test_code/label_pipeline/artifacts/public_endpoints_verified_v1/
+            !/compile_repair/
+            !/docs/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install (CPU torch 2.2 + DGL 2.1, the newest DGL on PyPI)
+        run: |
+          pip install torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install dgl==2.1.0 "numpy<2" requests "pydantic>=2"
+          pip install --no-deps torchdata==0.7.1
+          pip install "numpy<2" "networkx>=3" tree-sitter==0.20.4 pydot transformers==4.46.3 \
+            scikit-learn scipy pandas matplotlib tensorboard tabulate timebudget \
+            torch_geometric pytest
+      - name: Unit tests
+        run: python -m pytest -q tests/hcg/test_units.py
+      - name: Fetch pinned label sources
+        run: python -m hcg fetch
+      - name: Build from source (with CodeT5+ tokens) and compare with the authors' graphs
+        run: python -m hcg build --categories ${{ matrix.category }} --out out
+      - name: Reproduce the Oct 10 label policy node for node
+        run: python -m pytest -q tests/hcg/test_dataset_a.py -k ${{ matrix.category }}
+      - name: HGT consumes the graphs (1 epoch, 2 folds; nodetype and tokens; both levels)
+        run: |
+          B=out/A/${{ matrix.category }}
+          S=experiments/ge-sc-data/source_code/${{ matrix.category }}/source_files
+          for F in nodetype inside_token; do
+            python -u graph_classifier.py --compressed_graph $B/contract_level.gpickle \
+              --label $B/graph_labels.json --dataset $S --testset $S --node_feature $F \
+              --output_models /tmp/m/c_$F.pth --log_dir /tmp/l/c_$F \
+              --num_epochs 1 --k_folds 2 --seed 1 --no_progress
+            python -u node_classifier.py --compressed_graph $B/line_level.gpickle \
+              --dataset $S --testset $S --node_feature $F \
+              --output_models /tmp/m/n_$F.pth --log_dir /tmp/l/n_$F \
+              --num_epochs 1 --k_folds 2 --seed 1 --no_progress
+          done
+      - name: Upload manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest-${{ matrix.category }}
+          path: out/A/${{ matrix.category }}/manifest.json
+          if-no-files-found: warn
