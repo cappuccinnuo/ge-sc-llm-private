@@ -97,7 +97,8 @@ Full build, Python 3.11 / networkx 3.6 / freshly compiled grammar:
 - Training smoke (1 epoch x 2 folds, CPU, both phases, `nodetype` and
   `inside_token`) on unmodified `sco_models/`: torch 2.2 / DGL 2.1 locally, torch
   2.4 / DGL 2.4 in CI.
-- CI (`.github/workflows/graph-build-7class.yml`): unit tests, the
+- CI (`.github/workflows/graph-build-7class.yml`, sparse ~80 MB checkout since the
+  full tree is ~14 GB): unit tests, the
   no-existing-file-changed check, then per category: fetch labels, build with the
   real CodeT5+ tokenizer, `--check`, both smoke trainings.
 
