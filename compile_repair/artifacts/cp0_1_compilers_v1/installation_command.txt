@@ -1,0 +1,55 @@
+import json,hashlib,time,subprocess,os,re,datetime
+from pathlib import Path
+import requests
+from Crypto.Hash import keccak
+from compile_repair.toolchain.solc import load_additions,release_coverage,version_tuple
+out=Path('compile_repair/artifacts/cp0_1_compilers_v1').resolve()
+envout=Path('compile_repair/artifacts/cp0_1_env_v1').resolve()
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def write(name,obj):
+ with (out/name).open('x') as f:json.dump(obj,f,indent=2);f.write('\n')
+auth=json.loads((out/'authorization.json').read_text());assert auth['status']=='approved'
+gate=json.loads((envout/'B_acceptance.json').read_text());assert gate['status']=='passed' and gate['C_download_install_permitted']
+for name,digest in gate['evidence_sha256'].items():assert sha(envout/name)==digest
+indexref=auth['official_release_index'];assert sha(indexref['path'])==indexref['sha256']
+index=json.loads(Path(indexref['path']).read_text());builds={b['path']:b for b in index['builds']}
+baseline=json.loads((envout/'baseline.json').read_text())
+for path,digest in baseline['solc_select_existing_files'].items():assert sha(path)==digest
+root=Path.home()/'.solc-select/artifacts'
+versions=sorted(auth['versions'],key=version_tuple);assert len(versions)==59
+for version in versions:assert not (root/('solc-'+version)).exists(),version
+session=requests.Session();session.trust_env=False
+session.proxies={'http':'http://172.18.144.1:17897','https':'http://172.18.144.1:17897'}
+start=time.monotonic();installed={};journal=(out/'installation_invocations.jsonl').open('x')
+try:
+ for version in versions:
+  one=time.monotonic();approved=auth['compilers'][version];build=builds[index['releases'][version]]
+  assert approved['sha256']==build['sha256'][2:] and approved['keccak256']==build['keccak256'][2:]
+  assert approved['url']=='https://binaries.soliditylang.org/linux-amd64/'+build['path']
+  response=session.get(approved['url'],timeout=(15,120));response.raise_for_status();data=response.content
+  sha256=hashlib.sha256(data).hexdigest();keccak256=keccak.new(digest_bits=256,data=data).hexdigest()
+  assert sha256==approved['sha256'] and keccak256==approved['keccak256'],version
+  target=root/('solc-'+version)/('solc-'+version)
+  target.parent.mkdir()
+  with target.open('xb') as f:f.write(data)
+  target.chmod(0o755)
+  vstart=time.monotonic();cmd=[str(target),'--version'];proc=subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=20)
+  output=(proc.stdout+proc.stderr).decode('utf8')
+  assert proc.returncode==0 and re.search(r'Version:\s+(\d+\.\d+\.\d+)',output).group(1)==version
+  record={'version':version,'path':str(target),'sha256':sha256,'keccak256':keccak256,'bytes':len(data),'url':approved['url'],'resolved_url':response.url,'provider':'Solidity official linux-amd64','elapsed_seconds':time.monotonic()-one,'version_command':{'command':cmd,'returncode':proc.returncode,'output':output,'elapsed_seconds':time.monotonic()-vstart,'cost_usd':0}}
+  installed[version]=record;journal.write(json.dumps(record)+'\n');journal.flush()
+  print('C installed',len(installed),'/59',version,len(data),flush=True)
+except Exception as exc:
+ write('installation_stop.json',{'status':'stopped','error_type':type(exc).__name__,'error':str(exc),'installed_versions':list(installed),'uncompleted_versions':[v for v in versions if v not in installed],'elapsed_seconds':time.monotonic()-start,'automatic_retry':False});raise
+finally:journal.close()
+for path,digest in baseline['solc_select_existing_files'].items():assert sha(path)==digest
+assert (Path.home()/'.solc-select/global-version').exists()==baseline['global_version_exists']
+addition={'schema':'compile-repair-trusted-addition-v1','authorization':{'path':str(out/'authorization.json'),'sha256':sha(out/'authorization.json')},'official_release_index':indexref,'B_acceptance':{'path':str(envout/'B_acceptance.json'),'sha256':sha(envout/'B_acceptance.json')},'compilers':installed,'global_selection_unchanged':True,'elapsed_seconds':time.monotonic()-start,'cost_usd':0}
+write('trusted_compilers_addition.json',addition)
+base=json.loads(Path('compile_repair/artifacts/cp0_v2/recon.json').read_text())['compilers']
+trusted,refs,catalog=load_additions(base,[out/'trusted_compilers_addition.json'])
+coverage=release_coverage(catalog,trusted)
+coverage.update({'total_installed_including_legacy_controls':len(trusted),'supported_installed':sum(len(s['installed']) for s in coverage['series'].values()),'supported_published':sum(len(s['published']) for s in coverage['series'].values()),'newly_installed':len(installed),'missing':sum(len(s['not_installed']) for s in coverage['series'].values()),'release_index_sha256':indexref['sha256'],'compatibility_validation_status':'pending','note':'Installed and hash-verified does not imply every feature/compiler combination passes D3.'})
+write('coverage.json',coverage)
+write('installation_summary.json',{'status':'passed','installed':len(installed),'elapsed_seconds':time.monotonic()-start,'bytes':sum(r['bytes'] for r in installed.values()),'all_double_hash_verified':True,'all_version_commands_passed':True,'existing_files_unchanged':True,'global_selection_unchanged':True,'llm_calls':0,'cost_usd':0})
+print('C INSTALLATION COMPLETE',len(installed),'SUPPORTED',coverage['supported_installed'],'/',coverage['supported_published'],flush=True)

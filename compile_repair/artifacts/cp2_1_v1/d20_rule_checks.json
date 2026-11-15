@@ -1,0 +1,303 @@
+{
+  "cases": [
+    {
+      "expected": true,
+      "name": "equal_stable",
+      "result": {
+        "failing_keys": [],
+        "passed": true,
+        "samples": 11,
+        "stable_keys": 1,
+        "unstable_keys": []
+      }
+    },
+    {
+      "expected": false,
+      "name": "stable_wrong",
+      "result": {
+        "failing_keys": [
+          {
+            "counts": [
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2
+            ],
+            "key": "[\"sha\", [\"L1\", \"f()\", 1, false, \"C\", \"C\", true, 2, 3, \"v\", [4, \"v\", \"DEF\"], []]]",
+            "maximum": 2,
+            "minimum": 2,
+            "reason": "stable_mismatch",
+            "reference": 1
+          }
+        ],
+        "passed": false,
+        "samples": 11,
+        "stable_keys": 1,
+        "unstable_keys": []
+      }
+    },
+    {
+      "expected": false,
+      "name": "reference_only",
+      "result": {
+        "failing_keys": [
+          {
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "key": "[\"sha\", [\"L1\", \"f()\", 1, false, \"C\", \"C\", true, 2, 3, \"v\", [4, \"v\", \"DEF\"], []]]",
+            "maximum": 0,
+            "minimum": 0,
+            "reason": "reference_only",
+            "reference": 1
+          }
+        ],
+        "passed": false,
+        "samples": 11,
+        "stable_keys": 1,
+        "unstable_keys": []
+      }
+    },
+    {
+      "expected": false,
+      "name": "unexpected_stable",
+      "result": {
+        "failing_keys": [
+          {
+            "counts": [
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2
+            ],
+            "key": "[\"sha\", [\"L1\", \"f()\", 1, false, \"C\", \"C\", true, 2, 3, \"v\", [4, \"v\", \"DEF\"], []]]",
+            "maximum": 2,
+            "minimum": 2,
+            "reason": "stable_mismatch",
+            "reference": 0
+          }
+        ],
+        "passed": false,
+        "samples": 11,
+        "stable_keys": 1,
+        "unstable_keys": []
+      }
+    },
+    {
+      "expected": true,
+      "name": "inside",
+      "result": {
+        "failing_keys": [],
+        "passed": true,
+        "samples": 11,
+        "stable_keys": 0,
+        "unstable_keys": [
+          {
+            "context_contract": "C",
+            "context_declarer": "C",
+            "counts": [
+              0,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "function_name": "f()",
+            "inherited_context": true,
+            "key": "[\"sha\", [\"L1\", \"f()\", 1, false, \"C\", \"C\", true, 2, 3, \"v\", [4, \"v\", \"DEF\"], []]]",
+            "kind": "DEF",
+            "layer": "L1",
+            "maximum": 2,
+            "minimum": 0,
+            "reference": 1
+          }
+        ]
+      }
+    },
+    {
+      "expected": true,
+      "name": "low_endpoint",
+      "result": {
+        "failing_keys": [],
+        "passed": true,
+        "samples": 11,
+        "stable_keys": 0,
+        "unstable_keys": [
+          {
+            "context_contract": "C",
+            "context_declarer": "C",
+            "counts": [
+              0,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "function_name": "f()",
+            "inherited_context": true,
+            "key": "[\"sha\", [\"L1\", \"f()\", 1, false, \"C\", \"C\", true, 2, 3, \"v\", [4, \"v\", \"DEF\"], []]]",
+            "kind": "DEF",
+            "layer": "L1",
+            "maximum": 2,
+            "minimum": 0,
+            "reference": 0
+          }
+        ]
+      }
+    },
+    {
+      "expected": true,
+      "name": "high_endpoint",
+      "result": {
+        "failing_keys": [],
+        "passed": true,
+        "samples": 11,
+        "stable_keys": 0,
+        "unstable_keys": [
+          {
+            "context_contract": "C",
+            "context_declarer": "C",
+            "counts": [
+              0,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "function_name": "f()",
+            "inherited_context": true,
+            "key": "[\"sha\", [\"L1\", \"f()\", 1, false, \"C\", \"C\", true, 2, 3, \"v\", [4, \"v\", \"DEF\"], []]]",
+            "kind": "DEF",
+            "layer": "L1",
+            "maximum": 2,
+            "minimum": 0,
+            "reference": 2
+          }
+        ]
+      }
+    },
+    {
+      "expected": false,
+      "name": "outside",
+      "result": {
+        "failing_keys": [
+          {
+            "context_contract": "C",
+            "context_declarer": "C",
+            "counts": [
+              0,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "function_name": "f()",
+            "inherited_context": true,
+            "key": "[\"sha\", [\"L1\", \"f()\", 1, false, \"C\", \"C\", true, 2, 3, \"v\", [4, \"v\", \"DEF\"], []]]",
+            "kind": "DEF",
+            "layer": "L1",
+            "maximum": 2,
+            "minimum": 0,
+            "reason": "outside_observed_range",
+            "reference": 3
+          }
+        ],
+        "passed": false,
+        "samples": 11,
+        "stable_keys": 0,
+        "unstable_keys": [
+          {
+            "context_contract": "C",
+            "context_declarer": "C",
+            "counts": [
+              0,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "function_name": "f()",
+            "inherited_context": true,
+            "key": "[\"sha\", [\"L1\", \"f()\", 1, false, \"C\", \"C\", true, 2, 3, \"v\", [4, \"v\", \"DEF\"], []]]",
+            "kind": "DEF",
+            "layer": "L1",
+            "maximum": 2,
+            "minimum": 0,
+            "reference": 3
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample_count_0",
+      "rejected": true
+    },
+    {
+      "name": "sample_count_1",
+      "rejected": true
+    },
+    {
+      "name": "sample_count_10",
+      "rejected": true
+    },
+    {
+      "name": "sample_count_12",
+      "rejected": true
+    }
+  ],
+  "passed": true
+}

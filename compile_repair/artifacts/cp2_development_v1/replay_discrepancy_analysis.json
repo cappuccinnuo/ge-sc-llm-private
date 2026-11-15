@@ -1,0 +1,542 @@
+{
+  "all_replay_raw_occurrences_present_in_reference": true,
+  "approved_key_unchanged": true,
+  "attribution": {
+    "established": "A raw legacy Slither extraction occurrence differs in inherited Post context, before CP2 key projection. All 251 replay raw occurrences exist in the 252-row reference. Node source is loop condition i < 32. No evidence of source/compiler mismatch or raw-field normalization loss.",
+    "root_cause_proven": false,
+    "stop_boundary": "No replay retry, no remaining 152 files, no descending production run, no key relaxation or historical artifact edit.",
+    "unverified_hypothesis": "Legacy inherited-function SSA/local-write construction may explain the extra out DEF, but available extraction archives contain no per-node SSA state. Code inspection alone does not prove nondeterminism or locate a root cause."
+  },
+  "code_trace": {
+    "frozen_extractor": "scripts/DFG/dfg_v2/validate_slither.py:483-488 reads L1 DEF from node.local_variables_written; no graph_facts call",
+    "frozen_extractor_sha256": "4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8",
+    "mechanisms": "_find_read_write_call populates local writes at lines 877-919; update_read_write_using_ssa merges SSA writes at lines 937-992.",
+    "slither_node_path": "/home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/slither/core/cfg/node.py",
+    "slither_node_sha256": "c919ca084ec618921584ab9e3bf62ef1a3f95322e2dd82e99ad2e140bb742143"
+  },
+  "formal_replay_reruns": 0,
+  "function_only_reference": [
+    {
+      "multiplicity": 1,
+      "occurrence": {
+        "context_index": 96,
+        "contract": "Post",
+        "declarer": "MultiHashWrapper",
+        "inherited": true,
+        "modifier": false,
+        "name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+        "occurrences": 15,
+        "source": {
+          "end": 5245,
+          "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+          "start": 4887
+        }
+      }
+    }
+  ],
+  "function_only_replay": [
+    {
+      "multiplicity": 1,
+      "occurrence": {
+        "context_index": 96,
+        "contract": "Post",
+        "declarer": "MultiHashWrapper",
+        "inherited": true,
+        "modifier": false,
+        "name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+        "occurrences": 14,
+        "source": {
+          "end": 5245,
+          "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+          "start": 4887
+        }
+      }
+    }
+  ],
+  "mode": "offline_read_only_analysis",
+  "node_line": 162,
+  "node_source": "i < 32",
+  "node_start": 5154,
+  "other_extraction_fields_equal": {
+    "ambiguous_triples": true,
+    "comparability": true,
+    "counts": true,
+    "duplicate_contexts": true,
+    "parameter_writes_synthesized": true
+  },
+  "raw_occurrence_only_reference": [
+    {
+      "multiplicity": 1,
+      "occurrence": {
+        "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).out",
+        "context_contract": "Post",
+        "context_declarer": "MultiHashWrapper",
+        "context_index": 96,
+        "declaration": {
+          "end": 5021,
+          "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+          "start": 4989
+        },
+        "fact": [
+          162,
+          "out",
+          "DEF"
+        ],
+        "function": {
+          "end": 5245,
+          "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+          "start": 4887
+        },
+        "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+        "inherited_context": true,
+        "layer": "L1",
+        "modifier": false,
+        "node": {
+          "end": 5160,
+          "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+          "start": 5154
+        },
+        "tags": [
+          "inheritance"
+        ]
+      }
+    }
+  ],
+  "raw_occurrence_only_replay": [],
+  "reference_compiler": {
+    "path": "/home/zhao/.solc-select/artifacts/solc-0.5.0/solc-0.5.0",
+    "sha256": "c1bb15b520f5076aebd7aa9ef4ce5fa245b6f210a91cbd2064b9e383e6510e08"
+  },
+  "reference_count": 252,
+  "reference_report_sha256": "db56b7066430813540e468c900283414bf49c5e7c1f519cded8a874a760fd2a6",
+  "replay_count": 251,
+  "replay_extraction_sha256": "7483006e788d1f0d14da8a986da7fc901494775d1c82fc86a71ca90e4adbea8c",
+  "same_node_reference": [
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "MultiHashWrapper",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 24,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "USE"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": false,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": []
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "MultiHashWrapper",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 24,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "DEF"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": false,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": []
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "ProofHash",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 41,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "USE"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "ProofHash",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 41,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "DEF"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "Post",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 96,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "USE"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).out",
+      "context_contract": "Post",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 96,
+      "declaration": {
+        "end": 5021,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4989
+      },
+      "fact": [
+        162,
+        "out",
+        "DEF"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "Post",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 96,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "DEF"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    }
+  ],
+  "same_node_replay": [
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "MultiHashWrapper",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 24,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "USE"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": false,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": []
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "MultiHashWrapper",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 24,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "DEF"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": false,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": []
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "ProofHash",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 41,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "USE"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "ProofHash",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 41,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "DEF"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "Post",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 96,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "USE"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    },
+    {
+      "canonical_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash).i",
+      "context_contract": "Post",
+      "context_declarer": "MultiHashWrapper",
+      "context_index": 96,
+      "declaration": {
+        "end": 5132,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5125
+      },
+      "fact": [
+        162,
+        "i",
+        "DEF"
+      ],
+      "function": {
+        "end": 5245,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 4887
+      },
+      "function_name": "MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash)",
+      "inherited_context": true,
+      "layer": "L1",
+      "modifier": false,
+      "node": {
+        "end": 5160,
+        "filename": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+        "start": 5154
+      },
+      "tags": [
+        "inheritance"
+      ]
+    }
+  ],
+  "source_path": "/home/zhao/SmartContract/ge-sc-llm/experiments/ge-sc-data/source_code/access_control/source_files/buggy_43.sol",
+  "source_sha256": "7e0232977cf6d105598c2b137ffa185bd4bac95da9cf4e40925957c4744f77f2",
+  "version": "0.5.0"
+}

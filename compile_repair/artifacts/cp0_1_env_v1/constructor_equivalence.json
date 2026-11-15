@@ -1,0 +1,254 @@
+{
+  "solc": {
+    "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+    "source_sha256": "0f2ed01a0e4aa1b5c2ed4cfaa5f02c7f30d03fa604f5c4eeb34fc9831b32bbc3",
+    "compiler": {
+      "version": "0.4.13",
+      "path": "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+      "sha256": "791ee3a20adf6c5ab76cc889f13cca102f76eb0b7cf0da4a0b5b11dc46edf349"
+    },
+    "command": [
+      "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+      "--combined-json",
+      "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+      "--allow-paths",
+      ".",
+      "compile_repair/tests/fixtures/ternary.sol"
+    ],
+    "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+    "returncode": 0,
+    "error_first_line": null,
+    "stderr": "",
+    "stdout_sha256": "4c1275e7615efc9a80b163c20ae9b642faef22153ec23409a9b9ade77b2afca3",
+    "elapsed_seconds": 0.003981499990914017,
+    "timed_out": false,
+    "cost_usd": 0.0
+  },
+  "observed": {
+    "profile": "production",
+    "slither_version": "0.11.6",
+    "crytic_compile_version": "0.4.2",
+    "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+    "source_sha256": "0f2ed01a0e4aa1b5c2ed4cfaa5f02c7f30d03fa604f5c4eeb34fc9831b32bbc3",
+    "version": "0.4.13",
+    "compiler_sha256": "791ee3a20adf6c5ab76cc889f13cca102f76eb0b7cf0da4a0b5b11dc46edf349",
+    "command": {
+      "api": "Slither",
+      "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+      "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+      "solc_disable_warnings": true,
+      "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)"
+    },
+    "equivalent_solc_argv": [
+      "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+      "--combined-json",
+      "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+      "--allow-paths",
+      ".",
+      "compile_repair/tests/fixtures/ternary.sol"
+    ],
+    "preceding_observed_solc_returncode": 0,
+    "api_subprocess_returncodes_observed": false,
+    "cost_usd": 0.0,
+    "crytic_compile_platform": "solc",
+    "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+    "constructed": true,
+    "d3": true,
+    "d3_a": true,
+    "d3_b": true,
+    "nodes": [
+      {
+        "key5": [
+          "Ternary",
+          "min(uint256,uint256)",
+          "RETURN",
+          127,
+          1
+        ],
+        "ir": [
+          "RETURN a"
+        ],
+        "length": 20,
+        "declaration_kind": "function"
+      },
+      {
+        "key5": [
+          "Ternary",
+          "min(uint256,uint256)",
+          "RETURN",
+          127,
+          2
+        ],
+        "ir": [
+          "RETURN b"
+        ],
+        "length": 20,
+        "declaration_kind": "function"
+      },
+      {
+        "key5": [
+          "Ternary",
+          "min(uint256,uint256)",
+          "IF",
+          127,
+          1
+        ],
+        "ir": [
+          "TMP_0(bool) = a < b",
+          "CONDITION TMP_0"
+        ],
+        "length": 20,
+        "declaration_kind": "function"
+      },
+      {
+        "key5": [
+          "Ternary",
+          "min(uint256,uint256)",
+          "ENTRYPOINT",
+          117,
+          1
+        ],
+        "ir": [],
+        "length": 37,
+        "declaration_kind": "function"
+      }
+    ],
+    "node_facts_schema": "node_facts_v2",
+    "mapping_complete": true,
+    "counts": {
+      "declarations": 1,
+      "functions": 1,
+      "nodes": 4,
+      "modifiers": 0,
+      "top_level_functions": 0,
+      "missing_filename": 0,
+      "invalid_filename": 0,
+      "foreign_filename": 0,
+      "missing_start": 0
+    },
+    "empty_cfg": false,
+    "duplicate_key4": {
+      "[\"Ternary\", \"min(uint256,uint256)\", \"RETURN\", 127]": 2
+    },
+    "contract_coverage": {
+      "complete": true,
+      "ast_source": "crytic_compile.compilation_units[*].asts",
+      "expected": {
+        "Ternary": 1
+      },
+      "actual": {
+        "Ternary": 1
+      },
+      "missing": {},
+      "unexpected": {},
+      "asts": [
+        {
+          "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+          "format": "compact",
+          "contracts": {
+            "Ternary": 1
+          },
+          "ast_sha256": "5dbb0f20b1ad695d0e639bb6420b5b31d8564d81670744dd43ecee5eddc4174b"
+        }
+      ]
+    },
+    "error_first_line": null,
+    "validation_errors": [],
+    "elapsed_seconds": 0.008540500013623387
+  },
+  "direct": {
+    "node_facts_schema": "node_facts_v2",
+    "mapping_complete": true,
+    "counts": {
+      "declarations": 1,
+      "functions": 1,
+      "nodes": 4,
+      "modifiers": 0,
+      "top_level_functions": 0,
+      "missing_filename": 0,
+      "invalid_filename": 0,
+      "foreign_filename": 0,
+      "missing_start": 0
+    },
+    "empty_cfg": false,
+    "duplicate_key4": {
+      "[\"Ternary\", \"min(uint256,uint256)\", \"RETURN\", 127]": 2
+    },
+    "nodes": [
+      {
+        "key5": [
+          "Ternary",
+          "min(uint256,uint256)",
+          "RETURN",
+          127,
+          1
+        ],
+        "ir": [
+          "RETURN a"
+        ],
+        "length": 20,
+        "declaration_kind": "function"
+      },
+      {
+        "key5": [
+          "Ternary",
+          "min(uint256,uint256)",
+          "RETURN",
+          127,
+          2
+        ],
+        "ir": [
+          "RETURN b"
+        ],
+        "length": 20,
+        "declaration_kind": "function"
+      },
+      {
+        "key5": [
+          "Ternary",
+          "min(uint256,uint256)",
+          "IF",
+          127,
+          1
+        ],
+        "ir": [
+          "TMP_0(bool) = a < b",
+          "CONDITION TMP_0"
+        ],
+        "length": 20,
+        "declaration_kind": "function"
+      },
+      {
+        "key5": [
+          "Ternary",
+          "min(uint256,uint256)",
+          "ENTRYPOINT",
+          117,
+          1
+        ],
+        "ir": [],
+        "length": 37,
+        "declaration_kind": "function"
+      }
+    ]
+  },
+  "comparison": {
+    "key5": {
+      "equal": true,
+      "only_low": {},
+      "only_high": {}
+    },
+    "slithir": {
+      "equal": true,
+      "only_low": {},
+      "only_high": {}
+    },
+    "source_length": {
+      "equal": true,
+      "only_low": {},
+      "only_high": {}
+    }
+  }
+}

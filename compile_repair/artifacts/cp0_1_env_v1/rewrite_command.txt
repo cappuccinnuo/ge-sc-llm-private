@@ -1,0 +1,25 @@
+import json,gzip,time,sys,logging
+from pathlib import Path
+from dataclasses import asdict
+from compile_repair.core.model import Compiler
+from compile_repair.toolchain.solc import compile_file
+from compile_repair.toolchain.slither import run_slither,compare_nodes
+out=Path('compile_repair/artifacts/cp0_1_env_v1');profile='production' if sys.version_info[:2]==(3,10) else 'regression_6c'
+logging.basicConfig(filename=str(out/('rewrite_'+profile+'.stderr.log')),level=logging.WARNING)
+recon=json.loads(Path('compile_repair/artifacts/cp0_v2/recon.json').read_text());compiler=Compiler(**recon['compilers']['0.4.24'])
+base={}
+with gzip.open('compile_repair/artifacts/cp0_1_v1/node_facts_v2.jsonl.gz','rt') as f:
+ for line in f:
+  r=json.loads(line)
+  if r['version']=='0.4.24':base[r['source_sha256']]=r['nodes']
+runs=[]
+for item in json.loads((out/'rewrite_manifest.json').read_text()):
+ compilation=compile_file(item['rewritten_path'],compiler)
+ result=run_slither(compilation,profile=profile) if compilation.returncode==0 else None
+ before=base[item['original_sha256']]
+ comparison=compare_nodes(before,result['nodes']) if result else None
+ runs.append({'rewrite':item,'solc':asdict(compilation),'slither':result,'original_A_nodes':len(before),'rewritten_nodes':len(result['nodes']) if result else None,'comparison_original_A_to_rewrite':comparison})
+success=all(r['solc']['returncode']==0 and r['slither']['d3'] and r['slither']['crytic_compile_platform']=='solc' for r in runs)
+with (out/('rewrite_'+profile+'.json')).open('x') as f:json.dump({'passed':success,'runs':runs,'scope':'One-off working copy experiment; no CP6 rule implemented; key offsets can shift after rewrite.'},f,indent=2)
+print(profile,success,[(Path(r['rewrite']['original_path']).name,r['original_A_nodes'],r['rewritten_nodes']) for r in runs],flush=True)
+assert success,'Stop B: rewrite experiment failed'

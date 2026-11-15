@@ -1,0 +1,80 @@
+import json,gzip,hashlib,time,sys,logging
+from collections import Counter
+from dataclasses import asdict
+from pathlib import Path
+from compile_repair.core.model import Compiler
+from compile_repair.toolchain.solc import compile_file
+from compile_repair.toolchain.slither import run_slither,compare_nodes
+out=Path('compile_repair/artifacts/cp0_1_env_v1')
+logging.basicConfig(filename=str(out/'production_batch.stderr.log'),level=logging.WARNING)
+def write(name,obj):
+ with (out/name).open('x',encoding='utf8') as f:json.dump(obj,f,indent=2,ensure_ascii=False);f.write('\n')
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+reconpath=Path('compile_repair/artifacts/cp0_v2/recon.json')
+assert sha(reconpath)=='bddbeaa256192b567525370f8b27335a3d2bdcf3ccb48e22086150718414ffb6'
+recon=json.loads(reconpath.read_text())
+archive=Path('compile_repair/artifacts/cp0_1_v1/node_facts_v2.jsonl.gz')
+assert sha(archive)=='5202a8754e8452af387a80e43c6b7d23aa796074273cfdaf8882af9c304a319b'
+base={}
+with gzip.open(str(archive),'rt') as f:
+ for l in f:
+  r=json.loads(l);base[(r['source_sha256'],r['version'])]=r['nodes']
+expected_fails={'628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332','583b8636921a488beecd71ba8ae8037562c36a781cee299f03ea662efdc2a3ff','97bb37ef327f8e6b2eafad19ea357dac94d81fbee16d5189ad587c53920e4540'}
+counts=Counter();added=Counter();missing=Counter();failures=[];diffs=[];ir_examples=[];unexpected=[];times=Counter()
+journal=(out/'production_invocations.jsonl').open('x')
+nodesout=gzip.open(str(out/'production_node_facts_v2.jsonl.gz'),'xb')
+start=time.monotonic()
+for i,item in enumerate(recon['inputs']):
+ version=item['selection']['ascending'];compiler=Compiler(**recon['compilers'][version]);path=Path(item['path'])
+ assert sha(path)==item['sha256']
+ compilation=compile_file(path,compiler)
+ journal.write(json.dumps(dict(asdict(compilation),kind='solc',scope='B.production_fixed_versions'))+'\n');journal.flush()
+ counts['solc_invocations']+=1;times['solc_seconds']+=compilation.elapsed_seconds
+ if compilation.returncode!=0 or compilation.timed_out:
+  unexpected.append({'path':str(path),'reason':'unexpected solc failure','result':asdict(compilation)});break
+ result=run_slither(compilation,profile='production')
+ times['slither_seconds']+=result['elapsed_seconds'];counts['slither_invocations']+=1
+ nodes=result.pop('nodes')
+ nodesout.write((json.dumps({'schema':'node_facts_v2','source_path':result['source_path'],'source_sha256':item['sha256'],'version':version,'profile':'production','nodes':nodes})+'\n').encode())
+ result['node_facts_v2_sha256']=hashlib.sha256(json.dumps(nodes,sort_keys=True).encode()).hexdigest()
+ journal.write(json.dumps(dict(result,kind='slither',scope='B.production_fixed_versions'))+'\n');journal.flush()
+ if result['crytic_compile_platform']!='solc':unexpected.append({'path':str(path),'reason':'unexpected crytic platform','platform':result['crytic_compile_platform']});break
+ counts['platform_solc']+=1
+ if not result['d3']:
+  failures.append({'path':str(path),'sha256':item['sha256'],'version':version,'exception_type':result.get('exception_type'),'error_first_line':result.get('error_first_line')})
+  if item['sha256'] not in expected_fails or version!='0.4.24' or result.get('exception_type')!='AssertionError':unexpected.append(failures[-1]);break
+  continue
+ if item['sha256'] in expected_fails:unexpected.append({'path':str(path),'reason':'expected AssertionError did not occur'});break
+ counts['d3_pass']+=1;counts['d3_a_pass']+=result['d3_a'];counts['d3_b_pass']+=result['d3_b']
+ counts['top_level_functions']+=result['counts']['top_level_functions'];counts['nodes']+=len(nodes)
+ original=base[(item['sha256'],version)]
+ comparison=compare_nodes(original,nodes)
+ counts['key5_equal']+=comparison['key5']['equal'];counts['key5_ir_equal']+=comparison['slithir']['equal']
+ if not comparison['key5']['equal']:
+  diffs.append({'path':str(path),'sha256':item['sha256'],'version':version,'key5':comparison['key5']})
+  for field,acc in [('only_high',added),('only_low',missing)]:
+   for encoded,n in comparison['key5'][field].items():
+    k=json.loads(encoded)[0];acc[str((k[2],'slitherConstructor' in k[1]))]+=n
+ left={tuple(n['key5']):n['ir'] for n in original};right={tuple(n['key5']):n['ir'] for n in nodes}
+ changed=[k for k in sorted(left.keys() & right.keys(),key=str) if left[k]!=right[k]]
+ counts['common_key5_ir_changed_nodes']+=len(changed);counts['common_key5_ir_changed_files']+=bool(changed)
+ for k in changed:
+  if len(ir_examples)<20:ir_examples.append({'path':str(path),'version':version,'key5':k,'regression_ir':left[k],'production_ir':right[k]})
+ if (i+1)%100==0:print('B',i+1,'D3',counts['d3_pass'],'known failures',len(failures),flush=True)
+journal.close();nodesout.close()
+expected_added={"('RETURN', False)":2182,"('ENDASSEMBLY', False)":128}
+expected_missing={"('OTHER_ENTRYPOINT', True)":48,"('EXPRESSION', False)":6}
+checks={'846_observed_solc_rc0':counts['solc_invocations']==846 and counts['slither_invocations']==846,
+ 'd3_843':counts['d3_pass']==843,
+ 'exact_three_assertions':len(failures)==3 and {r['sha256'] for r in failures}==expected_fails,
+ 'all_actual_platform_solc':counts['platform_solc']==846,
+ 'structure_differs_435':len(diffs)==435,
+ 'exact_added_types_and_counts':dict(added)==expected_added,
+ 'exact_missing_types_and_counts':dict(missing)==expected_missing,
+ 'no_unexpected_items':not unexpected}
+write('structure_differences.json',{'files':len(diffs),'differences':diffs,'added':dict(added),'missing':dict(missing)})
+write('ir_differences.json',{'identical_files':counts['key5_ir_equal'],'changed_common_nodes':counts['common_key5_ir_changed_nodes'],'changed_common_files':counts['common_key5_ir_changed_files'],'first_20_examples':ir_examples,'acceptance_gate':False})
+summary={'status':'passed' if all(checks.values()) else 'stopped_unexpected_result','checks':checks,'counts':dict(counts),'failures':failures,'unexpected':unexpected,'structural_files':len(diffs),'added':dict(added),'missing':dict(missing),'timing':dict(times),'wall_seconds':time.monotonic()-start,'cp2_estimate_fixed_version_seconds':times['solc_seconds']+times['slither_seconds'],'cp2_estimate_scope':'846 fixed-version compile+D3 only; excludes repair/search/storage/cross-version/6c replay','llm_calls':0,'cost_usd':0}
+write('production_comparison.json',summary)
+print(json.dumps(summary,indent=2),flush=True)
+assert all(checks.values()),'Stop B: unexpected result; no C permitted'

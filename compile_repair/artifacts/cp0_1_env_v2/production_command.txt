@@ -1,0 +1,131 @@
+import copy, datetime, gzip, hashlib, json, logging, random, re, sys, time, traceback
+from collections import Counter
+from dataclasses import asdict
+from pathlib import Path
+from compile_repair.core.model import Compiler
+from compile_repair.toolchain.solc import compile_file
+from compile_repair.toolchain.slither import check_profile, run_slither
+
+root=Path.cwd(); art=root/'compile_repair/artifacts'; out=art/'cp0_1_env_v2'
+mode=sys.argv[1]
+assert mode in ('production_run1','production_run2','regression_sample')
+profile='regression_6c' if mode=='regression_sample' else 'production'
+versions=check_profile(profile)
+logging.basicConfig(filename=str(out/(mode+'.stderr.log')),filemode='x',level=logging.WARNING)
+def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def digest(nodes): return hashlib.sha256(json.dumps(nodes,sort_keys=True).encode()).hexdigest()
+def write(name,value):
+    with (out/name).open('x',encoding='utf8') as f:json.dump(value,f,indent=2,ensure_ascii=False);f.write('\n')
+baseline=json.loads((out/'baseline.json').read_text())
+def checked(relative):
+    p=root/relative
+    assert sha(p)==baseline['old_artifacts'][relative],relative
+    return p
+
+def archive(path):
+    with gzip.open(str(path),'rt') as f:
+        rows=[json.loads(line) for line in f]
+    return {(r['source_path'],r['version']):r for r in rows}
+
+recon=json.loads(checked('compile_repair/artifacts/cp0_v2/recon.json').read_text())
+old=archive(checked('compile_repair/artifacts/cp0_1_env_v1/production_node_facts_v2.jsonl.gz'))
+review_text=checked('compile_repair/artifacts/cp0_1bc_review_v1/ir_object_repr.json').read_text()
+# The review file contains two consecutive JSON objects, one for each archive.
+review,offset=json.JSONDecoder().raw_decode(review_text)
+second,end=json.JSONDecoder().raw_decode(review_text[offset:].lstrip())
+assert review['files']==review['ir_lines']==4 and second['files']==second['ir_lines']==0
+reviewed={str(root/'experiments/ge-sc-data/source_code'/item[0]):tuple(item[1]) for item in review['examples']}
+known_failures={'628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332',
+ '583b8636921a488beecd71ba8ae8037562c36a781cee299f03ea662efdc2a3ff',
+ '97bb37ef327f8e6b2eafad19ea357dac94d81fbee16d5189ad587c53920e4540'}
+items=recon['inputs'];reference=None
+if mode=='production_run2':
+    assert json.loads((out/'production_run1.json').read_text())['status']=='passed'
+    reference=archive(out/'production_run1_node_facts_v2.jsonl.gz')
+elif mode=='regression_sample':
+    assert json.loads((out/'production_run2.json').read_text())['status']=='passed'
+    items=random.Random(0).sample(sorted(items,key=lambda item:item['sha256']),20)
+    reference=archive(checked('compile_repair/artifacts/cp0_1_v1/node_facts_v2.jsonl.gz'))
+    write('regression_sample_plan.json',{'method':'Random(0).sample(sorted(cp0_v2.inputs, key=sha256), 20)',
+          'items':[{'path':i['path'],'sha256':i['sha256'],'version':i['selection']['ascending']} for i in items]})
+
+counts=Counter();timing=Counter();failures=[];changed=[];unexpected=[];start=time.monotonic()
+with (out/(mode+'_invocations.jsonl')).open('x') as journal, gzip.open(str(out/(mode+'_node_facts_v2.jsonl.gz')),'xb') as nodesout:
+    def record(value): journal.write(json.dumps(value)+'\n');journal.flush()
+    for i,item in enumerate(items):
+        path=(root/item['path']).resolve();version=item['selection']['ascending'];identity=(str(path),version)
+        try:
+            assert sha(path)==item['sha256'],'source identity changed'
+            compiler=Compiler(**recon['compilers'][version])
+            compilation=compile_file(path,compiler)
+            record(dict(asdict(compilation),kind='solc',scope=mode))
+            counts['solc_invocations']+=1;timing['solc_seconds']+=compilation.elapsed_seconds
+            assert compilation.returncode==0 and not compilation.timed_out,'unexpected solc failure'
+            assert compilation.settings==(),'default settings changed'
+            result=run_slither(compilation,profile=profile)
+            nodes=result.pop('nodes');node_sha=digest(nodes)
+            result['node_facts_v2_sha256']=node_sha
+            record(dict(result,kind='slither',scope=mode))
+            nodesout.write((json.dumps({'schema':'node_facts_v2','source_path':str(path),'source_sha256':item['sha256'],
+                'version':version,'profile':profile,'settings':[],'node_facts_v2_sha256':node_sha,'nodes':nodes})+'\n').encode())
+            nodesout.flush()
+            counts['slither_invocations']+=1;timing['slither_seconds']+=result['elapsed_seconds']
+            assert result['crytic_compile_platform']=='solc','unexpected crytic platform'
+            assert result['settings']==() and 'solc_args' not in result['command'],'unexpected settings'
+            assert ' object at 0x' not in json.dumps(nodes),'residual object address'
+            if profile=='production' and item['sha256'] in known_failures:
+                assert not result['d3'] and result.get('exception_type')=='AssertionError' and version=='0.4.24','known failure changed'
+                failures.append({'path':str(path),'sha256':item['sha256'],'version':version,'exception_type':result['exception_type']})
+                assert nodes==old[identity]['nodes']==[],'failure archive changed'
+            else:
+                assert result['d3'] and result['d3_a'] and result['d3_b'],result.get('error_first_line')
+                counts['d3_pass']+=1;counts['nodes']+=len(nodes)
+                replacements=result['counts']['ir_object_repr_replacements']
+                counts['ir_object_repr_replacements']+=replacements
+                assert result['counts']['ir_object_repr_unresolved']==0,'unresolved object repr'
+                if profile=='production':
+                    original=old[identity]['nodes'];expected=copy.deepcopy(original)
+                    expected_changes=[]
+                    for node in expected:
+                        for j,line in enumerate(node['ir']):
+                            # Independently target only the class documented by the review.
+                            normalized,n=re.subn(r'<slither\.core\.solidity_types\.elementary_type\.ElementaryType object at 0x[0-9a-fA-F]+>',
+                              '<slither.core.solidity_types.elementary_type.ElementaryType>',line)
+                            if n:
+                                expected_changes.append({'key5':node['key5'],'ir_index':j,'before':line,'after':normalized,'replacements':n})
+                                node['ir'][j]=normalized
+                    expected.sort(key=lambda row:json.dumps(row,sort_keys=True))
+                    assert nodes==expected,'unexpected node/IR/length/declaration difference from B archive'
+                    if expected_changes:
+                        assert str(path) in reviewed and len(expected_changes)==replacements==1,'unexpected normalization file/count'
+                        assert tuple(expected_changes[0]['key5'])==reviewed[str(path)],'unexpected normalized node'
+                        changed.append({'path':str(path),'version':version,'sha256':item['sha256'],'changes':expected_changes})
+                    else:
+                        assert str(path) not in reviewed and replacements==0,'missing reviewed normalization'
+                        counts['unchanged_from_B']+=1
+                if reference is not None:
+                    original=reference[identity]
+                    assert nodes==original['nodes'] and node_sha==digest(original['nodes']),'reference fingerprint differs'
+                    assert node_sha==original['node_facts_v2_sha256'],'stored reference fingerprint differs'
+                    counts['reference_fingerprints_equal']+=1
+            if (i+1)%100==0: print(mode,i+1,'D3',counts['d3_pass'],flush=True)
+        except Exception as exc:
+            unexpected.append({'path':str(path),'version':version,'reason':str(exc),'type':type(exc).__name__,'traceback':traceback.format_exc()})
+            print('STOP',json.dumps(unexpected[-1]),flush=True)
+            break
+checks={'all_inputs_executed':counts['slither_invocations']==len(items),'no_unexpected':not unexpected}
+if profile=='production':
+    checks.update(d3_843=counts['d3_pass']==843,exact_three_failures={f['sha256'] for f in failures}==known_failures and len(failures)==3,
+        exactly_four_reviewed_changes={c['path'] for c in changed}==set(reviewed) and len(changed)==4,
+        exactly_four_replacements=counts['ir_object_repr_replacements']==4,unchanged_839=counts['unchanged_from_B']==839)
+    if mode=='production_run2':checks['stable_843_fingerprints']=counts['reference_fingerprints_equal']==843
+else: checks.update(d3_20=counts['d3_pass']==20,same_as_A_20=counts['reference_fingerprints_equal']==20,
+                   normalization_not_needed=counts['ir_object_repr_replacements']==0)
+summary={'status':'passed' if all(checks.values()) else 'stopped_unexpected_result','mode':mode,'profile':versions,
+    'checks':checks,'counts':dict(counts),'known_failures':failures,'changed':changed,'unexpected':unexpected,
+    'timing':dict(timing),'wall_seconds':time.monotonic()-start,'finished_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'python':sys.version,'executable':sys.executable,'code_sha256':{str(p.relative_to(root)):sha(p) for p in (root/'compile_repair').rglob('*.py') if not any(x in p.parts for x in ('artifacts','tests'))},
+    'automatic_retry':False,'cost_usd':0,'llm_calls':0}
+write(mode+'.json',summary)
+print(json.dumps({k:v for k,v in summary.items() if k not in ('changed','code_sha256','known_failures')},indent=2),flush=True)
+sys.exit(0 if summary['status']=='passed' else 1)

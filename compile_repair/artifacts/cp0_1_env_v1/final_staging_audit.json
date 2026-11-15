@@ -1,0 +1,31 @@
+{
+  "original_full_staged_check": {
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "returncode": 2,
+    "stdout": "compile_repair/artifacts/cp0_1_env_v1/production_batch.stderr.log:554: space before tab in indent.\n+ \tamountToWithdraw = rewardsForA[recipient]\ncompile_repair/artifacts/cp0_1_env_v1/production_batch.stderr.log:562: space before tab in indent.\n+ \tamountToWithdraw = userBalances[msg.sender]\ncompile_repair/artifacts/cp0_1_env_v1/production_batch.stderr.log:571: space before tab in indent.\n+ \tamountToWithdraw = userBalances[msg.sender]\n",
+    "stderr": ""
+  },
+  "all_staged_except_one_unchanged_raw_log": {
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude)compile_repair/artifacts/cp0_1_env_v1/production_batch.stderr.log"
+    ],
+    "returncode": 0
+  },
+  "raw_log_exception_reason": "Unedited compiler diagnostic source lines contain original space-tab indentation; preserve evidence bytes. No runtime acceptance criterion changed.",
+  "doc_check_v3_all_7_passed": true,
+  "B_passed": true,
+  "C_compatibility_passed": false,
+  "C_stopped_as_required": true,
+  "commit_allowed_for_documented_stop": true
+}

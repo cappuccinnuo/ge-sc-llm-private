@@ -1,0 +1,112 @@
+import datetime, gzip, hashlib, json, logging, sys, time, traceback
+from collections import Counter
+from dataclasses import asdict
+from pathlib import Path
+from compile_repair.core.model import Compiler
+from compile_repair.toolchain.solc import compile_file, load_additions, release_coverage, version_tuple
+from compile_repair.toolchain.slither import check_profile, run_slither
+root=Path.cwd();art=root/'compile_repair/artifacts';out=art/'cp0_1_compilers_v2';envout=art/'cp0_1_env_v2'
+for name in ('production_run1','production_run2','regression_sample'):
+    assert json.loads((envout/(name+'.json')).read_text())['status']=='passed',name
+check_profile('production')
+logging.basicConfig(filename=str(out/'compatibility.stderr.log'),filemode='x',level=logging.WARNING)
+def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def digest(nodes):return hashlib.sha256(json.dumps(nodes,sort_keys=True).encode()).hexdigest()
+def write(name,value):
+    with (out/name).open('x',encoding='utf8') as f:json.dump(value,f,indent=2,ensure_ascii=False);f.write('\n')
+baseline=json.loads((envout/'baseline.json').read_text())
+def checked(relative):
+    p=root/relative;assert sha(p)==baseline['old_artifacts'][relative],relative
+    return p
+recon=json.loads(checked('compile_repair/artifacts/cp0_v2/recon.json').read_text())
+addition=checked('compile_repair/artifacts/cp0_1_compilers_v1/trusted_compilers_addition.json')
+trusted,refs,index=load_additions(recon['compilers'],[addition])
+plan=json.loads((out/'compatibility_plan.json').read_text());jobs=plan['jobs']
+assert len(jobs)==501 and all(plan['checks'].values()),'plan mismatch'
+original=json.loads(checked('compile_repair/artifacts/cp0_1_compilers_v1/compatibility.json').read_text())
+prior={(r['fixture'],r['version']):r for r in original['results'] if r['passed']}
+assert len(prior)==224
+with gzip.open(str(checked('compile_repair/artifacts/cp0_1_compilers_v1/compatibility_node_facts_v2.jsonl.gz')),'rt') as f:
+    old_nodes={(r['source_path'],r['version']):r['nodes'] for r in (json.loads(line) for line in f)}
+results=[];unexpected=[];counts=Counter();seconds=Counter();start=time.monotonic()
+with (out/'compatibility_invocations.jsonl').open('x') as journal,gzip.open(str(out/'compatibility_node_facts_v2.jsonl.gz'),'xb') as archive:
+    def record(value):journal.write(json.dumps(value)+'\n');journal.flush()
+    for i,job in enumerate(jobs):
+        compilation=None;result=None;row=dict(job)
+        try:
+            ref=trusted[job['version']];compiler=Compiler(ref['version'],ref['path'],ref['sha256'])
+            assert sha(root/job['fixture'])==baseline['fixture_sha256'][job['fixture']],'fixture changed'
+            settings=tuple(job['settings']);compilation=compile_file(job['fixture'],compiler,settings=settings)
+            record(dict(asdict(compilation),kind='solc',scope='C.continuation',job_index=i,probe_kind=job['kind']))
+            seconds['solc_seconds']+=compilation.elapsed_seconds;counts['solc_invocations']+=1
+            row.update(source_sha256=compilation.source_sha256,compiler_sha256=compiler.sha256,
+                solc_returncode=compilation.returncode,error_first_line=compilation.error_first_line)
+            assert compilation.settings==settings and not compilation.timed_out,'settings/timeout mismatch'
+            assert compilation.returncode==job['expected_solc_returncode'],'unexpected solc return code'
+            if job['expectation']=='expected_solc_failure':
+                error=job['expected_error']
+                if job['expected_solc_returncode']==1:
+                    assert compilation.error_first_line==error,'negative diagnostic differs'
+                else:
+                    assert compilation.stderr.startswith('Unimplemented feature:'),'crash banner differs'
+                    assert 'std::exception::what: '+error in compilation.error_first_line,'what message missing/different'
+                    assert 'UnimplementedFeatureError' in compilation.stderr,'crash type differs'
+                counts['negative_controls_passed']+=1
+            else:
+                result=run_slither(compilation,profile='production');nodes=result.pop('nodes')
+                result['node_facts_v2_sha256']=digest(nodes)
+                record(dict(result,kind='slither',scope='C.continuation',job_index=i,probe_kind=job['kind']))
+                archive.write((json.dumps({'schema':'node_facts_v2','source_path':result['source_path'],
+                    'source_sha256':result['source_sha256'],'version':job['version'],'settings':job['settings'],
+                    'profile':'production','node_facts_v2_sha256':result['node_facts_v2_sha256'],'nodes':nodes})+'\n').encode())
+                archive.flush();seconds['slither_seconds']+=result['elapsed_seconds'];counts['slither_invocations']+=1
+                row['slither']=result
+                assert result['d3'] and result['d3_a'] and result['d3_b'],result.get('error_first_line')
+                assert result['crytic_compile_platform']=='solc','unexpected crytic platform'
+                assert result['settings']==settings,'settings not preserved'
+                if settings:assert result['command']['solc_args']==' '.join(settings),'Slither settings differ'
+                else:assert 'solc_args' not in result['command'],'default settings must omit solc_args'
+                assert ' object at 0x' not in json.dumps(nodes),'unstable IR text'
+                counts['settings_positive_passed' if settings else 'default_positive_passed']+=1
+                if not settings and (job['fixture'],job['version']) in prior:
+                    previous=prior[(job['fixture'],job['version'])]
+                    assert previous['solc_returncode']==compilation.returncode and previous['slither']['d3']==result['d3'],'previous outcome differs'
+                    assert previous['source_sha256']==compilation.source_sha256 and previous['compiler_sha256']==compiler.sha256,'previous identity differs'
+                    assert previous['slither']['node_facts_v2_sha256']==result['node_facts_v2_sha256'],'previous fingerprint differs'
+                    assert nodes==old_nodes[(result['source_path'],job['version'])],'previous node facts differ'
+                    counts['previous_224_equal']+=1
+            row['passed']=True;results.append(row)
+            if (i+1)%50==0:print('C continuation',i+1,'/',len(jobs),'matched expectations',flush=True)
+        except Exception as exc:
+            row.update(passed=False,slither=result,reason=str(exc),exception_type=type(exc).__name__,traceback=traceback.format_exc())
+            if compilation is not None:row['solc']=asdict(compilation)
+            results.append(row);unexpected.append(row)
+            print('C STOP',json.dumps({k:v for k,v in row.items() if k not in ('slither','solc')}),flush=True)
+            break
+checks={'executed_501':len(results)==501,'no_unexpected':not unexpected,'default_positive_491':counts['default_positive_passed']==491,
+    'settings_positive_5':counts['settings_positive_passed']==5,'negative_controls_5':counts['negative_controls_passed']==5,
+    'previous_224_identical':counts['previous_224_equal']==224}
+per_version={}
+for version in sorted({j['version'] for j in jobs},key=version_tuple):
+    done=[r for r in results if r['version']==version];planned=[j for j in jobs if j['version']==version]
+    per_version[version]={'planned':len(planned),'executed':len(done),'matched':sum(r['passed'] for r in done),
+        'status':'passed' if len(done)==len(planned) and all(r['passed'] for r in done) else 'failed_or_partial' if done else 'not_run'}
+summary={'status':'passed' if all(checks.values()) else 'stopped_unexpected_result','checks':checks,'counts':dict(counts),
+    'planned':len(jobs),'executed':len(results),'passed':sum(r['passed'] for r in results),'unexpected':unexpected,
+    'not_run':len(jobs)-len(results),'results':results,'remaining_jobs':jobs[len(results):],'per_version':per_version,
+    'timing':dict(seconds),'wall_seconds':time.monotonic()-start,'finished_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'cost_usd':0,'llm_calls':0,'automatic_retry':False,'criteria_relaxed':False}
+write('compatibility.json',summary)
+if summary['status']=='passed':
+    coverage=release_coverage(index,trusted)
+    installed=[v for group in coverage['series'].values() for v in group['installed']]
+    coverage.update(installed_supported_count=len(installed),matrix_versions=len(per_version),matrix=per_version,
+        current_default_positive=491,current_default_negative=5,current_settings_positive=5,
+        installed_previously=[v for v in installed if v not in per_version],
+        interpretation='92 installed trusted versions; this 501-job production matrix covers the 59 additions. Earlier evidence is retained, not rerun or generalized to every syntax/graph semantic.',
+        prior_evidence=['cp0_v2/recon.json.compatibility','cp0_1_env_v1/feature_probes_B.json'],
+        trust_additions=refs)
+    assert len(installed)==92 and all(not group['not_installed'] for group in coverage['series'].values()),'installed coverage differs'
+    write('coverage.json',coverage)
+print(json.dumps({k:v for k,v in summary.items() if k not in ('results','remaining_jobs','per_version','unexpected')},indent=2),flush=True)
+sys.exit(0 if summary['status']=='passed' else 1)

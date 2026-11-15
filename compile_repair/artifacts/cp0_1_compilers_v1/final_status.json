@@ -1,0 +1,56 @@
+{
+  "status": "stopped_unexpected_result",
+  "B_status": "passed",
+  "C_installation_status": "passed",
+  "C_compatibility_status": "stopped_unexpected_result",
+  "supported_installed": 92,
+  "supported_published_snapshot": 92,
+  "total_installed_with_legacy_controls": 96,
+  "coverage_snapshot_latest": "0.8.38",
+  "compatibility_planned": 496,
+  "compatibility_executed": 225,
+  "compatibility_passed": 224,
+  "compatibility_failed": 1,
+  "compatibility_not_run": 271,
+  "full_new_version_matrices_passed": 45,
+  "partial_new_version": "0.8.24",
+  "new_versions_not_tested": 13,
+  "failure": {
+    "version": "0.8.24",
+    "fixture": "compile_repair/tests/fixtures/features/h0824_blob.sol",
+    "kind": "reviewed_feature",
+    "minimum_version": "0.8.24",
+    "solc": {
+      "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/features/h0824_blob.sol",
+      "source_sha256": "c9e90c95e2aa4ff6fca95636caf80ceca31c2ba40cdefdfcfa204b18de141cf2",
+      "compiler": {
+        "version": "0.8.24",
+        "path": "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+        "sha256": "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f"
+      },
+      "command": [
+        "/home/zhao/.solc-select/artifacts/solc-0.8.24/solc-0.8.24",
+        "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/features/h0824_blob.sol",
+        "--combined-json",
+        "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+        "--allow-paths",
+        ".",
+        "compile_repair/tests/fixtures/features/h0824_blob.sol"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "returncode": 1,
+      "error_first_line": "Error: Undeclared identifier. Did you mean \"blockhash\"?",
+      "stderr": "Error: Undeclared identifier. Did you mean \"blockhash\"?\n --> compile_repair/tests/fixtures/features/h0824_blob.sol:3:92:\n  |\n3 | contract C { function f() public view returns (uint, bytes32) { return (block.blobbasefee, blobhash(0)); } }\n  |                                                                                            ^^^^^^^^\n\n",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_seconds": 0.004635400022380054,
+      "timed_out": false,
+      "cost_usd": 0.0
+    },
+    "slither": null,
+    "reason": "Unexpected applicable probe failure; stop without changing flags, source, or criteria."
+  },
+  "CP1_permitted": false,
+  "plan_changes_implemented": false,
+  "automatic_retry": false,
+  "cost_usd": 0
+}

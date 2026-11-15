@@ -1,0 +1,7 @@
+{
+  "error": "TypeError: write_text() got an unexpected keyword argument newline",
+  "cause": "The one-off documentation writer used a newer pathlib signature on Python 3.7.",
+  "state_preserved": "RECON.md and CP0_REPORT.md were created and PROGRESS appended; the failed HANDOVER write changed no bytes; DECISIONS and CHANGE_LOG had not started.",
+  "fix": "Continue only the remaining files using Path.open(encoding=utf8,newline=LF); do not rerun earlier appends.",
+  "production_code_affected": false
+}

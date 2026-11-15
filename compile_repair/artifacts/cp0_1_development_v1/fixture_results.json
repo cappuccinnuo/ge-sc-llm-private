@@ -1,0 +1,1204 @@
+{
+  "probes": [
+    {
+      "result": {
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.12/solc-0.4.12",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_04.sol"
+          },
+          "compiler_sha256": "221ae33e12bda5c8b796c9abae2b2eb73e46d9b12128bfee451b12856f8b47ee",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "Base": 1,
+              "Probe": 1,
+              "Sink": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "d8ab5d628d4cd122a3a42afb843d800d6fba8a306138bcbe4b2e479e26af7f4f",
+                "contracts": {
+                  "Base": 1,
+                  "Probe": 1,
+                  "Sink": 1
+                },
+                "format": "legacy",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_04.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "Base": 1,
+              "Probe": 1,
+              "Sink": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 4,
+            "foreign_filename": 0,
+            "functions": 3,
+            "invalid_filename": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 1,
+            "nodes": 10,
+            "top_level_functions": 0
+          },
+          "cp0_projection_sha256": "f6a53127b4f84a669c6ecd721f8f8ac7c279bd851d075f0288b8cd15533e7114",
+          "crytic_compile_version": "0.2.4",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.023672194976825267,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.4.12/solc-0.4.12",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_04.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/compat_04.sol"
+          ],
+          "error_first_line": null,
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "nodes": [
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "Emit Seen(y)"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "EXPRESSION",
+                549,
+                1
+              ],
+              "length": 7
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "MODIFIER_CALL, Base.gate()()"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "EXPRESSION",
+                493,
+                1
+              ],
+              "length": 4
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "RETURN value"
+              ],
+              "key5": [
+                "Base",
+                "bump(uint256)",
+                "RETURN",
+                379,
+                1
+              ],
+              "length": 12
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "TMP_0(uint256) = INTERNAL_CALL, Base.bump(uint256)(x)",
+                "y(uint256) := TMP_0(uint256)"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "VARIABLE",
+                523,
+                1
+              ],
+              "length": 16
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "TMP_2(uint256) = HIGH_LEVEL_CALL, dest:sink(Sink), function:ping, arguments:['y']  ",
+                "RETURN TMP_2"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "RETURN",
+                566,
+                1
+              ],
+              "length": 19
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "value(uint256) = value + x"
+              ],
+              "key5": [
+                "Base",
+                "bump(uint256)",
+                "EXPRESSION",
+                367,
+                1
+              ],
+              "length": 10
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Base",
+                "bump(uint256)",
+                "ENTRYPOINT",
+                365,
+                1
+              ],
+              "length": 29
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "ENTRYPOINT",
+                513,
+                1
+              ],
+              "length": 79
+            },
+            {
+              "declaration_kind": "modifier",
+              "ir": [],
+              "key5": [
+                "Base",
+                "gate()",
+                "ENTRYPOINT",
+                308,
+                1
+              ],
+              "length": 6
+            },
+            {
+              "declaration_kind": "modifier",
+              "ir": [],
+              "key5": [
+                "Base",
+                "gate()",
+                "PLACEHOLDER",
+                310,
+                1
+              ],
+              "length": 1
+            }
+          ],
+          "preceding_observed_solc_returncode": 0,
+          "profile": "regression_6c",
+          "slither_version": "0.8.0",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_04.sol",
+          "source_sha256": "12dc1fe8fe91a519930da4bcde3ca23b92ef75747b7ce78311c19ed7464e7cc4",
+          "validation_errors": [],
+          "version": "0.4.12"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.4.12/solc-0.4.12",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_04.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/compat_04.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.4.12/solc-0.4.12",
+            "sha256": "221ae33e12bda5c8b796c9abae2b2eb73e46d9b12128bfee451b12856f8b47ee",
+            "version": "0.4.12"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.008691298018675297,
+          "error_first_line": null,
+          "returncode": 0,
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_04.sol",
+          "source_sha256": "12dc1fe8fe91a519930da4bcde3ca23b92ef75747b7ce78311c19ed7464e7cc4",
+          "stderr": "",
+          "stdout_sha256": "c988e4e885fb3fedad91ada70408ee5f761c8a1bd69150cf24a56dabdbe96070",
+          "timed_out": false
+        }
+      },
+      "test_artifact": "compile_repair/artifacts/cp0_1_development_v1/pytest_compile_repair_v1/test_real_ast_formats_and_cp0_0/compat_04.sol.json"
+    },
+    {
+      "result": {
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.0/solc-0.8.0",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_08.sol"
+          },
+          "compiler_sha256": "64016310a57caf1af76a3610f1f94c8848c04c9673e7fa268492e608918a4bdc",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "Base": 1,
+              "Probe": 1,
+              "Sink": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "b549f927b44849f451776cd87f50079c4415ff638667bc5e58542acd8cfb04d0",
+                "contracts": {
+                  "Base": 1,
+                  "Probe": 1,
+                  "Sink": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_08.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "Base": 1,
+              "Probe": 1,
+              "Sink": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 4,
+            "foreign_filename": 0,
+            "functions": 3,
+            "invalid_filename": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 1,
+            "nodes": 14,
+            "top_level_functions": 0
+          },
+          "cp0_projection_sha256": "7e01668726830cf5aa0032a216b40c066ca78c4faea78cda69d763252266303f",
+          "crytic_compile_version": "0.2.4",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.037086592987179756,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.0/solc-0.8.0",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_08.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/compat_08.sol"
+          ],
+          "error_first_line": null,
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "nodes": [
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "Emit Seen(y)"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "EXPRESSION",
+                566,
+                1
+              ],
+              "length": 12
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "MODIFIER_CALL, Base.gate()()"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "EXPRESSION",
+                510,
+                1
+              ],
+              "length": 4
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "RETURN answer"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "RETURN",
+                629,
+                1
+              ],
+              "length": 13
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "RETURN value"
+              ],
+              "key5": [
+                "Base",
+                "bump(uint256)",
+                "RETURN",
+                396,
+                1
+              ],
+              "length": 12
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "RETURN value"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "RETURN",
+                654,
+                1
+              ],
+              "length": 12
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "TMP_0(uint256) = INTERNAL_CALL, Base.bump(uint256)(x)",
+                "y(uint256) := TMP_0(uint256)"
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "VARIABLE",
+                540,
+                1
+              ],
+              "length": 16
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "TMP_2(uint256) = HIGH_LEVEL_CALL, dest:sink(Sink), function:ping, arguments:['y']  "
+              ],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "TRY",
+                588,
+                1
+              ],
+              "length": 81
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "value(uint256) = value + x"
+              ],
+              "key5": [
+                "Base",
+                "bump(uint256)",
+                "EXPRESSION",
+                382,
+                1
+              ],
+              "length": 10
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Base",
+                "bump(uint256)",
+                "ENTRYPOINT",
+                368,
+                1
+              ],
+              "length": 43
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "CATCH",
+                605,
+                1
+              ],
+              "length": 40
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "CATCH",
+                646,
+                1
+              ],
+              "length": 23
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Probe",
+                "run(uint256,Sink)",
+                "ENTRYPOINT",
+                530,
+                1
+              ],
+              "length": 145
+            },
+            {
+              "declaration_kind": "modifier",
+              "ir": [],
+              "key5": [
+                "Base",
+                "gate()",
+                "ENTRYPOINT",
+                311,
+                1
+              ],
+              "length": 6
+            },
+            {
+              "declaration_kind": "modifier",
+              "ir": [],
+              "key5": [
+                "Base",
+                "gate()",
+                "PLACEHOLDER",
+                313,
+                1
+              ],
+              "length": 1
+            }
+          ],
+          "preceding_observed_solc_returncode": 0,
+          "profile": "regression_6c",
+          "slither_version": "0.8.0",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_08.sol",
+          "source_sha256": "a65803e64959c7a106892bf1b565ce74206462d46f40339f2f4df46a2b313865",
+          "validation_errors": [],
+          "version": "0.8.0"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.8.0/solc-0.8.0",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_08.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/compat_08.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.8.0/solc-0.8.0",
+            "sha256": "64016310a57caf1af76a3610f1f94c8848c04c9673e7fa268492e608918a4bdc",
+            "version": "0.8.0"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.011370397987775505,
+          "error_first_line": null,
+          "returncode": 0,
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_08.sol",
+          "source_sha256": "a65803e64959c7a106892bf1b565ce74206462d46f40339f2f4df46a2b313865",
+          "stderr": "Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> /home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/compat_08.sol\n\nWarning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> compile_repair/tests/fixtures/compat_08.sol\n\n",
+          "stdout_sha256": "384024847ed203c17fa9d044a0d6d84083eef8a704c67addc5a2f6a60d4ae193",
+          "timed_out": false
+        }
+      },
+      "test_artifact": "compile_repair/artifacts/cp0_1_development_v1/pytest_compile_repair_v1/test_real_ast_formats_and_cp0_1/compat_08.sol.json"
+    },
+    {
+      "result": {
+        "compile": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.4.11/solc-0.4.11",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/counter.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.4.11/solc-0.4.11",
+            "sha256": "0a8d138ee245039e6f8312edc024ba3c4739cc3c013b47dc7fc9196a2e327fea",
+            "version": "0.4.11"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.004609598952811211,
+          "error_first_line": null,
+          "returncode": 0,
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+          "source_sha256": "7b3424cade753fd79c25fc57d7df74d957d21a48ac4e925a610579b5c620798d",
+          "stderr": "",
+          "stdout_sha256": "4177042a3347e0d838359d3f5a4fcb44d50db5894a8a54224f63b8b1bece2f3e",
+          "timed_out": false
+        },
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.11/solc-0.4.11",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol"
+          },
+          "compiler_sha256": "0a8d138ee245039e6f8312edc024ba3c4739cc3c013b47dc7fc9196a2e327fea",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {},
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "21ed667f8426f3a93bef81c67bf867513a15e7545f9b1e019c9df88377a84292",
+                "contracts": {
+                  "Counter": 1
+                },
+                "format": "legacy",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol"
+              }
+            ],
+            "complete": false,
+            "expected": {
+              "Counter": 1
+            },
+            "missing": {
+              "Counter": 1
+            },
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 2,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "missing_filename": 5,
+            "missing_start": 0,
+            "modifiers": 1,
+            "nodes": 5,
+            "top_level_functions": 0
+          },
+          "crytic_compile_version": "0.2.4",
+          "d3": false,
+          "d3_a": false,
+          "d3_b": false,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.011823998007457703,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.4.11/solc-0.4.11",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/counter.sol"
+          ],
+          "error_first_line": "D3(a) incomplete",
+          "mapping_complete": false,
+          "node_facts_schema": "node_facts_v2",
+          "nodes": [
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "MODIFIER_CALL, Counter.allowed()()"
+              ],
+              "key5": [
+                "Counter",
+                "increment(uint256)",
+                "EXPRESSION",
+                139,
+                1
+              ],
+              "length": 7
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "count(uint256) = count + value"
+              ],
+              "key5": [
+                "Counter",
+                "increment(uint256)",
+                "EXPRESSION",
+                149,
+                1
+              ],
+              "length": 14
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Counter",
+                "increment(uint256)",
+                "ENTRYPOINT",
+                147,
+                1
+              ],
+              "length": 19
+            },
+            {
+              "declaration_kind": "modifier",
+              "ir": [],
+              "key5": [
+                "Counter",
+                "allowed()",
+                "ENTRYPOINT",
+                90,
+                1
+              ],
+              "length": 6
+            },
+            {
+              "declaration_kind": "modifier",
+              "ir": [],
+              "key5": [
+                "Counter",
+                "allowed()",
+                "PLACEHOLDER",
+                92,
+                1
+              ],
+              "length": 1
+            }
+          ],
+          "preceding_observed_solc_returncode": 0,
+          "profile": "regression_6c",
+          "slither_version": "0.8.0",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+          "source_sha256": "7b3424cade753fd79c25fc57d7df74d957d21a48ac4e925a610579b5c620798d",
+          "validation_errors": [
+            "D3(a) incomplete",
+            "D3(b) incomplete"
+          ],
+          "version": "0.4.11"
+        }
+      },
+      "test_artifact": "compile_repair/artifacts/cp0_1_development_v1/pytest_compile_repair_v1/test_real_compiler_success_is_0/0.4.11.json"
+    },
+    {
+      "result": {
+        "compile": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/counter.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+            "sha256": "791ee3a20adf6c5ab76cc889f13cca102f76eb0b7cf0da4a0b5b11dc46edf349",
+            "version": "0.4.13"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.005462198983877897,
+          "error_first_line": null,
+          "returncode": 0,
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+          "source_sha256": "7b3424cade753fd79c25fc57d7df74d957d21a48ac4e925a610579b5c620798d",
+          "stderr": "",
+          "stdout_sha256": "139b98e21b6d130a22abd5a0b44ec9ef02e0b36f5c7c69118873e73641fc709d",
+          "timed_out": false
+        },
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol"
+          },
+          "compiler_sha256": "791ee3a20adf6c5ab76cc889f13cca102f76eb0b7cf0da4a0b5b11dc46edf349",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "Counter": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "2f6d4ee0875dc17235f9d9b5e5d7ae6ab3e34e9e517ec50653f29d9361840f59",
+                "contracts": {
+                  "Counter": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "Counter": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 2,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 1,
+            "nodes": 5,
+            "top_level_functions": 0
+          },
+          "crytic_compile_version": "0.2.4",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.01460599695565179,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/counter.sol"
+          ],
+          "error_first_line": null,
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "nodes": [
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "MODIFIER_CALL, Counter.allowed()()"
+              ],
+              "key5": [
+                "Counter",
+                "increment(uint256)",
+                "EXPRESSION",
+                139,
+                1
+              ],
+              "length": 7
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "count(uint256) = count + value"
+              ],
+              "key5": [
+                "Counter",
+                "increment(uint256)",
+                "EXPRESSION",
+                149,
+                1
+              ],
+              "length": 14
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Counter",
+                "increment(uint256)",
+                "ENTRYPOINT",
+                147,
+                1
+              ],
+              "length": 19
+            },
+            {
+              "declaration_kind": "modifier",
+              "ir": [],
+              "key5": [
+                "Counter",
+                "allowed()",
+                "ENTRYPOINT",
+                90,
+                1
+              ],
+              "length": 6
+            },
+            {
+              "declaration_kind": "modifier",
+              "ir": [],
+              "key5": [
+                "Counter",
+                "allowed()",
+                "PLACEHOLDER",
+                92,
+                1
+              ],
+              "length": 1
+            }
+          ],
+          "preceding_observed_solc_returncode": 0,
+          "profile": "regression_6c",
+          "slither_version": "0.8.0",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+          "source_sha256": "7b3424cade753fd79c25fc57d7df74d957d21a48ac4e925a610579b5c620798d",
+          "validation_errors": [],
+          "version": "0.4.13"
+        }
+      },
+      "test_artifact": "compile_repair/artifacts/cp0_1_development_v1/pytest_compile_repair_v1/test_real_compiler_success_is_0/0.4.13.json"
+    },
+    {
+      "result": {
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.7.6/solc-0.7.6",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/free_function.sol"
+          },
+          "compiler_sha256": "bd69ea85427bf2f4da74cb426ad951dd78db9dfdd01d791208eccc2d4958a6bb",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "UsesFreeFunction": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "c330e3c04eebccc840458d04e0720cc3d8820eb012c5df81380d0a6283afcc45",
+                "contracts": {
+                  "UsesFreeFunction": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/free_function.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "UsesFreeFunction": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 2,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 0,
+            "nodes": 4,
+            "top_level_functions": 1
+          },
+          "crytic_compile_version": "0.2.4",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {},
+          "elapsed_seconds": 0.01680179702816531,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.7.6/solc-0.7.6",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/free_function.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/free_function.sol"
+          ],
+          "error_first_line": null,
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "nodes": [
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "TMP_0(uint256) = INTERNAL_CALL, increment(uint256)(value)",
+                "RETURN TMP_0"
+              ],
+              "key5": [
+                "UsesFreeFunction",
+                "next(uint256)",
+                "RETURN",
+                206,
+                1
+              ],
+              "length": 23
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "UsesFreeFunction",
+                "next(uint256)",
+                "ENTRYPOINT",
+                196,
+                1
+              ],
+              "length": 40
+            },
+            {
+              "declaration_kind": "top_level_function",
+              "ir": [
+                "TMP_1(uint256) = value + 1",
+                "RETURN TMP_1"
+              ],
+              "key5": [
+                "<top-level>",
+                "increment(uint256)",
+                "RETURN",
+                90,
+                1
+              ],
+              "length": 16
+            },
+            {
+              "declaration_kind": "top_level_function",
+              "ir": [],
+              "key5": [
+                "<top-level>",
+                "increment(uint256)",
+                "ENTRYPOINT",
+                84,
+                1
+              ],
+              "length": 25
+            }
+          ],
+          "preceding_observed_solc_returncode": 0,
+          "profile": "regression_6c",
+          "slither_version": "0.8.0",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/free_function.sol",
+          "source_sha256": "f39f62ed2ae075e51883cafb9546fc15a8b2034d751396fff62d8b71cad85d6d",
+          "validation_errors": [],
+          "version": "0.7.6"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.7.6/solc-0.7.6",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/free_function.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/free_function.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.7.6/solc-0.7.6",
+            "sha256": "bd69ea85427bf2f4da74cb426ad951dd78db9dfdd01d791208eccc2d4958a6bb",
+            "version": "0.7.6"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.008183397992979735,
+          "error_first_line": null,
+          "returncode": 0,
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/free_function.sol",
+          "source_sha256": "f39f62ed2ae075e51883cafb9546fc15a8b2034d751396fff62d8b71cad85d6d",
+          "stderr": "Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> /home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/free_function.sol\n\nWarning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> compile_repair/tests/fixtures/free_function.sol\n\n",
+          "stdout_sha256": "02b9b8bf18d161fda4e04cb309fd7f5aa6a57bf0014c61b12adc1f8f27d8373a",
+          "timed_out": false
+        }
+      },
+      "test_artifact": "compile_repair/artifacts/cp0_1_development_v1/pytest_compile_repair_v1/test_real_free_function_in_com0/free_function.sol.json"
+    },
+    {
+      "result": {
+        "slither": {
+          "api_subprocess_returncodes_observed": false,
+          "command": {
+            "api": "Slither",
+            "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+            "solc_disable_warnings": true,
+            "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol"
+          },
+          "compiler_sha256": "791ee3a20adf6c5ab76cc889f13cca102f76eb0b7cf0da4a0b5b11dc46edf349",
+          "constructed": true,
+          "contract_coverage": {
+            "actual": {
+              "Ternary": 1
+            },
+            "ast_source": "crytic_compile.compilation_units[*].asts",
+            "asts": [
+              {
+                "ast_sha256": "4a5aec99e967ed46c79eecfa4ba377ab9f3cafb03834c3742fffe9db35669ae4",
+                "contracts": {
+                  "Ternary": 1
+                },
+                "format": "compact",
+                "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol"
+              }
+            ],
+            "complete": true,
+            "expected": {
+              "Ternary": 1
+            },
+            "missing": {},
+            "unexpected": {}
+          },
+          "cost_usd": 0.0,
+          "counts": {
+            "declarations": 1,
+            "foreign_filename": 0,
+            "functions": 1,
+            "invalid_filename": 0,
+            "missing_filename": 0,
+            "missing_start": 0,
+            "modifiers": 0,
+            "nodes": 4,
+            "top_level_functions": 0
+          },
+          "crytic_compile_version": "0.2.4",
+          "d3": true,
+          "d3_a": true,
+          "d3_b": true,
+          "duplicate_key4": {
+            "[\"Ternary\", \"min(uint256,uint256)\", \"RETURN\", 127]": 2
+          },
+          "elapsed_seconds": 0.014605697011575103,
+          "empty_cfg": false,
+          "equivalent_solc_argv": [
+            "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/ternary.sol"
+          ],
+          "error_first_line": null,
+          "mapping_complete": true,
+          "node_facts_schema": "node_facts_v2",
+          "nodes": [
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "RETURN a"
+              ],
+              "key5": [
+                "Ternary",
+                "min(uint256,uint256)",
+                "RETURN",
+                127,
+                1
+              ],
+              "length": 20
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "RETURN b"
+              ],
+              "key5": [
+                "Ternary",
+                "min(uint256,uint256)",
+                "RETURN",
+                127,
+                2
+              ],
+              "length": 20
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [
+                "TMP_0(bool) = a < b",
+                "CONDITION TMP_0"
+              ],
+              "key5": [
+                "Ternary",
+                "min(uint256,uint256)",
+                "IF",
+                127,
+                1
+              ],
+              "length": 20
+            },
+            {
+              "declaration_kind": "function",
+              "ir": [],
+              "key5": [
+                "Ternary",
+                "min(uint256,uint256)",
+                "ENTRYPOINT",
+                117,
+                1
+              ],
+              "length": 37
+            }
+          ],
+          "preceding_observed_solc_returncode": 0,
+          "profile": "regression_6c",
+          "slither_version": "0.8.0",
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+          "source_sha256": "0f2ed01a0e4aa1b5c2ed4cfaa5f02c7f30d03fa604f5c4eeb34fc9831b32bbc3",
+          "validation_errors": [],
+          "version": "0.4.13"
+        },
+        "solc": {
+          "command": [
+            "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+            "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+            "--combined-json",
+            "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+            "--allow-paths",
+            ".",
+            "compile_repair/tests/fixtures/ternary.sol"
+          ],
+          "compiler": {
+            "path": "/home/zhao/.solc-select/artifacts/solc-0.4.13/solc-0.4.13",
+            "sha256": "791ee3a20adf6c5ab76cc889f13cca102f76eb0b7cf0da4a0b5b11dc46edf349",
+            "version": "0.4.13"
+          },
+          "cost_usd": 0.0,
+          "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+          "elapsed_seconds": 0.008997098018880934,
+          "error_first_line": null,
+          "returncode": 0,
+          "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/ternary.sol",
+          "source_sha256": "0f2ed01a0e4aa1b5c2ed4cfaa5f02c7f30d03fa604f5c4eeb34fc9831b32bbc3",
+          "stderr": "",
+          "stdout_sha256": "4c1275e7615efc9a80b163c20ae9b642faef22153ec23409a9b9ade77b2afca3",
+          "timed_out": false
+        }
+      },
+      "test_artifact": "compile_repair/artifacts/cp0_1_development_v1/pytest_compile_repair_v1/test_real_ternary_duplicate_re0/ternary.sol.json"
+    }
+  ],
+  "tests": "pytest_compile_repair_v1"
+}

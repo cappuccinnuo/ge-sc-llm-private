@@ -1,0 +1,106 @@
+{
+  "status": "passed",
+  "archives": {
+    "compile_repair/artifacts/cp0_1_compilers_v2/compatibility_node_facts_v2.jsonl.gz": {
+      "groups": 496,
+      "residual_object_addresses": 0,
+      "incorrect_stored_fingerprints": 0
+    },
+    "compile_repair/artifacts/cp0_1_env_v2/production_run1_node_facts_v2.jsonl.gz": {
+      "groups": 846,
+      "residual_object_addresses": 0,
+      "incorrect_stored_fingerprints": 0
+    },
+    "compile_repair/artifacts/cp0_1_env_v2/production_run2_node_facts_v2.jsonl.gz": {
+      "groups": 846,
+      "residual_object_addresses": 0,
+      "incorrect_stored_fingerprints": 0
+    },
+    "compile_repair/artifacts/cp0_1_env_v2/regression_sample_node_facts_v2.jsonl.gz": {
+      "groups": 20,
+      "residual_object_addresses": 0,
+      "incorrect_stored_fingerprints": 0
+    }
+  },
+  "unique_matrix_jobs": 501,
+  "installed_supported": 92,
+  "matrix_version_count": 59,
+  "negative_controls": [
+    {
+      "version": "0.8.24",
+      "fixture": "compile_repair/tests/fixtures/features/h0824_blob.sol",
+      "returncode": 1,
+      "error_first_line": "Error: Undeclared identifier. Did you mean \"blockhash\"?"
+    },
+    {
+      "version": "0.8.24",
+      "fixture": "compile_repair/tests/fixtures/features/y0824_blob_asm.sol",
+      "returncode": 1,
+      "error_first_line": "Error: Function \"blobbasefee\" not found."
+    },
+    {
+      "version": "0.8.24",
+      "fixture": "compile_repair/tests/fixtures/features/y0824_mcopy.sol",
+      "returncode": 1,
+      "error_first_line": "Error: Function \"mcopy\" not found."
+    },
+    {
+      "version": "0.8.24",
+      "fixture": "compile_repair/tests/fixtures/features/y0824_tstore_asm.sol",
+      "returncode": 1,
+      "error_first_line": "Error: Function \"tload\" not found."
+    },
+    {
+      "version": "0.8.26",
+      "fixture": "compile_repair/tests/fixtures/features/h0826_require_error.sol",
+      "returncode": 2,
+      "error_first_line": "Unimplemented feature: std::exception::what: Require with a custom error is only available using the via-ir pipeline."
+    }
+  ],
+  "settings_controls": [
+    {
+      "version": "0.8.24",
+      "fixture": "compile_repair/tests/fixtures/features/h0824_blob.sol",
+      "settings": [
+        "--evm-version",
+        "cancun"
+      ],
+      "d3": true
+    },
+    {
+      "version": "0.8.24",
+      "fixture": "compile_repair/tests/fixtures/features/y0824_blob_asm.sol",
+      "settings": [
+        "--evm-version",
+        "cancun"
+      ],
+      "d3": true
+    },
+    {
+      "version": "0.8.24",
+      "fixture": "compile_repair/tests/fixtures/features/y0824_mcopy.sol",
+      "settings": [
+        "--evm-version",
+        "cancun"
+      ],
+      "d3": true
+    },
+    {
+      "version": "0.8.24",
+      "fixture": "compile_repair/tests/fixtures/features/y0824_tstore_asm.sol",
+      "settings": [
+        "--evm-version",
+        "cancun"
+      ],
+      "d3": true
+    },
+    {
+      "version": "0.8.26",
+      "fixture": "compile_repair/tests/fixtures/features/h0826_require_error.sol",
+      "settings": [
+        "--via-ir"
+      ],
+      "d3": true
+    }
+  ]
+}

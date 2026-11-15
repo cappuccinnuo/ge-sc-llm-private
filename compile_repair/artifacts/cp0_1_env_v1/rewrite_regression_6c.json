@@ -1,0 +1,874 @@
+{
+  "passed": true,
+  "runs": [
+    {
+      "rewrite": {
+        "original_path": "experiments/ge-sc-data/source_code/reentrancy/source_files/reentrancy_bonus.sol",
+        "original_sha256": "628f60b16c878d8dfe5a271a26f6a83574fbeaae27a62a059467dab8974db332",
+        "rewritten_path": "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol",
+        "rewritten_sha256": "e8144c703107d440ce2b544cfcbe9d8f39e5548905e8f82dec71233a08971b9f",
+        "start_byte": 524,
+        "old": "(bool success, ) =",
+        "new": "bool success =",
+        "classification": "rewrite",
+        "rule_implemented": false,
+        "version": "0.4.24"
+      },
+      "solc": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol",
+        "source_sha256": "e8144c703107d440ce2b544cfcbe9d8f39e5548905e8f82dec71233a08971b9f",
+        "compiler": {
+          "version": "0.4.24",
+          "path": "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "sha256": "665675b9e0431c2572d59d6a7112afbdc752732ea0ce9aecf1a1855f28e02a09"
+        },
+        "command": [
+          "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol",
+          "--combined-json",
+          "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+          "--allow-paths",
+          ".",
+          "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol"
+        ],
+        "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+        "returncode": 0,
+        "error_first_line": null,
+        "stderr": "",
+        "stdout_sha256": "2510940bb8f26ecb5e45a0cde6ef1509ace6165d8b56607c382d114c7602a974",
+        "elapsed_seconds": 0.010663898952770978,
+        "timed_out": false,
+        "cost_usd": 0.0
+      },
+      "slither": {
+        "profile": "regression_6c",
+        "slither_version": "0.8.0",
+        "crytic_compile_version": "0.2.4",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol",
+        "source_sha256": "e8144c703107d440ce2b544cfcbe9d8f39e5548905e8f82dec71233a08971b9f",
+        "version": "0.4.24",
+        "compiler_sha256": "665675b9e0431c2572d59d6a7112afbdc752732ea0ce9aecf1a1855f28e02a09",
+        "command": {
+          "api": "Slither",
+          "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol",
+          "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "solc_disable_warnings": true
+        },
+        "equivalent_solc_argv": [
+          "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol",
+          "--combined-json",
+          "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+          "--allow-paths",
+          ".",
+          "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol"
+        ],
+        "preceding_observed_solc_returncode": 0,
+        "api_subprocess_returncodes_observed": false,
+        "cost_usd": 0.0,
+        "crytic_compile_platform": "solc",
+        "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+        "constructed": true,
+        "d3": true,
+        "d3_a": true,
+        "d3_b": true,
+        "nodes": [
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "getFirstWithdrawalBonus(address)",
+              "EXPRESSION",
+              871,
+              1
+            ],
+            "ir": [
+              "INTERNAL_CALL, Reentrancy_bonus.withdrawReward(address)(recipient)"
+            ],
+            "length": 25,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "withdrawReward(address)",
+              "VARIABLE",
+              432,
+              1
+            ],
+            "ir": [
+              "REF_0(uint256) -> rewardsForA[recipient]",
+              "amountToWithdraw(uint256) := REF_0(uint256)"
+            ],
+            "length": 46,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "withdrawReward(address)",
+              "EXPRESSION",
+              488,
+              1
+            ],
+            "ir": [
+              "REF_1(uint256) -> rewardsForA[recipient]",
+              "REF_1 (->rewardsForA) := 0(uint256)"
+            ],
+            "length": 26,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "getFirstWithdrawalBonus(address)",
+              "EXPRESSION",
+              689,
+              1
+            ],
+            "ir": [
+              "REF_4(bool) -> claimedBonus[recipient]",
+              "TMP_3 = ! REF_4 ",
+              "TMP_4(None) = SOLIDITY_CALL require(bool)(TMP_3)"
+            ],
+            "length": 33,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "getFirstWithdrawalBonus(address)",
+              "EXPRESSION",
+              795,
+              1
+            ],
+            "ir": [
+              "REF_5(uint256) -> rewardsForA[recipient]",
+              "REF_5(-> rewardsForA) = REF_5 + 100"
+            ],
+            "length": 29,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "getFirstWithdrawalBonus(address)",
+              "EXPRESSION",
+              990,
+              1
+            ],
+            "ir": [
+              "REF_6(bool) -> claimedBonus[recipient]",
+              "REF_6 (->claimedBonus) := True(bool)"
+            ],
+            "length": 30,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "withdrawReward(address)",
+              "VARIABLE",
+              524,
+              1
+            ],
+            "ir": [
+              "TMP_1(bool) = LOW_LEVEL_CALL, dest:recipient, function:call, arguments:[''] value:amountToWithdraw ",
+              "success(bool) := TMP_1(bool)"
+            ],
+            "length": 57,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "withdrawReward(address)",
+              "EXPRESSION",
+              591,
+              1
+            ],
+            "ir": [
+              "TMP_2(None) = SOLIDITY_CALL require(bool)(success)"
+            ],
+            "length": 16,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "getFirstWithdrawalBonus(address)",
+              "ENTRYPOINT",
+              679,
+              1
+            ],
+            "ir": [],
+            "length": 348,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_bonus",
+              "withdrawReward(address)",
+              "ENTRYPOINT",
+              422,
+              1
+            ],
+            "ir": [],
+            "length": 192,
+            "declaration_kind": "function"
+          }
+        ],
+        "node_facts_schema": "node_facts_v2",
+        "mapping_complete": true,
+        "counts": {
+          "declarations": 2,
+          "functions": 2,
+          "nodes": 10,
+          "modifiers": 0,
+          "top_level_functions": 0,
+          "missing_filename": 0,
+          "invalid_filename": 0,
+          "foreign_filename": 0,
+          "missing_start": 0
+        },
+        "empty_cfg": false,
+        "duplicate_key4": {},
+        "contract_coverage": {
+          "complete": true,
+          "ast_source": "crytic_compile.compilation_units[*].asts",
+          "expected": {
+            "Reentrancy_bonus": 1
+          },
+          "actual": {
+            "Reentrancy_bonus": 1
+          },
+          "missing": {},
+          "unexpected": {},
+          "asts": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_bonus.sol",
+              "format": "compact",
+              "contracts": {
+                "Reentrancy_bonus": 1
+              },
+              "ast_sha256": "c5840531e5b1f411885fb0ac063e2485578605f7164d1ea781c4cddfa571e43c"
+            }
+          ]
+        },
+        "error_first_line": null,
+        "validation_errors": [],
+        "elapsed_seconds": 0.17376850004075095
+      },
+      "original_A_nodes": 11,
+      "rewritten_nodes": 10,
+      "comparison_original_A_to_rewrite": {
+        "key5": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 875, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 693, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 799, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 994, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 524, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 595, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"ENTRYPOINT\", 683, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"VARIABLE\", 525, 1]]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 871, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 689, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 795, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 990, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"VARIABLE\", 524, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 591, 1]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"ENTRYPOINT\", 679, 1]]": 1
+          }
+        },
+        "slithir": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 875, 1], [\"INTERNAL_CALL, Reentrancy_bonus.withdrawReward(address)(recipient)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 693, 1], [\"REF_4(bool) -> claimedBonus[recipient]\", \"TMP_3 = ! REF_4 \", \"TMP_4(None) = SOLIDITY_CALL require(bool)(TMP_3)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 799, 1], [\"REF_5(uint256) -> rewardsForA[recipient]\", \"REF_5(-> rewardsForA) = REF_5 + 100\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 994, 1], [\"REF_6(bool) -> claimedBonus[recipient]\", \"REF_6 (->claimedBonus) := True(bool)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 524, 1], [\"TMP_1(bool) = LOW_LEVEL_CALL, dest:recipient, function:call, arguments:[''] value:amountToWithdraw \", \"success(bool) := TMP_1(bool)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 595, 1], [\"TMP_2(None) = SOLIDITY_CALL require(bool)(success)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"ENTRYPOINT\", 683, 1], []]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"VARIABLE\", 525, 1], []]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 871, 1], [\"INTERNAL_CALL, Reentrancy_bonus.withdrawReward(address)(recipient)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 689, 1], [\"REF_4(bool) -> claimedBonus[recipient]\", \"TMP_3 = ! REF_4 \", \"TMP_4(None) = SOLIDITY_CALL require(bool)(TMP_3)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 795, 1], [\"REF_5(uint256) -> rewardsForA[recipient]\", \"REF_5(-> rewardsForA) = REF_5 + 100\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 990, 1], [\"REF_6(bool) -> claimedBonus[recipient]\", \"REF_6 (->claimedBonus) := True(bool)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"VARIABLE\", 524, 1], [\"TMP_1(bool) = LOW_LEVEL_CALL, dest:recipient, function:call, arguments:[''] value:amountToWithdraw \", \"success(bool) := TMP_1(bool)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 591, 1], [\"TMP_2(None) = SOLIDITY_CALL require(bool)(success)\"]]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"ENTRYPOINT\", 679, 1], []]": 1
+          }
+        },
+        "source_length": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 875, 1], 25]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 693, 1], 33]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 799, 1], 29]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 994, 1], 30]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 524, 1], 61]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 595, 1], 16]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"ENTRYPOINT\", 683, 1], 348]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"ENTRYPOINT\", 422, 1], 196]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"VARIABLE\", 525, 1], 12]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 871, 1], 25]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 689, 1], 33]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 795, 1], 29]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"EXPRESSION\", 990, 1], 30]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"VARIABLE\", 524, 1], 57]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"EXPRESSION\", 591, 1], 16]": 1,
+            "[[\"Reentrancy_bonus\", \"getFirstWithdrawalBonus(address)\", \"ENTRYPOINT\", 679, 1], 348]": 1,
+            "[[\"Reentrancy_bonus\", \"withdrawReward(address)\", \"ENTRYPOINT\", 422, 1], 192]": 1
+          }
+        }
+      }
+    },
+    {
+      "rewrite": {
+        "original_path": "experiments/ge-sc-data/source_code/reentrancy/source_files/reentrancy_cross_function.sol",
+        "original_sha256": "583b8636921a488beecd71ba8ae8037562c36a781cee299f03ea662efdc2a3ff",
+        "rewritten_path": "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol",
+        "rewritten_sha256": "dbdae7863437a9ee1e768334e3ab82b3ebbcb18447b1ddb35a1b2855e334a6b3",
+        "start_byte": 622,
+        "old": "(bool success, ) =",
+        "new": "bool success =",
+        "classification": "rewrite",
+        "rule_implemented": false,
+        "version": "0.4.24"
+      },
+      "solc": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol",
+        "source_sha256": "dbdae7863437a9ee1e768334e3ab82b3ebbcb18447b1ddb35a1b2855e334a6b3",
+        "compiler": {
+          "version": "0.4.24",
+          "path": "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "sha256": "665675b9e0431c2572d59d6a7112afbdc752732ea0ce9aecf1a1855f28e02a09"
+        },
+        "command": [
+          "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol",
+          "--combined-json",
+          "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+          "--allow-paths",
+          ".",
+          "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol"
+        ],
+        "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+        "returncode": 0,
+        "error_first_line": null,
+        "stderr": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol:14:5: Warning: No visibility specified. Defaulting to \"public\". \n    function transfer(address to, uint amount) {\n    ^ (Relevant source part starts here and spans across multiple lines).\ncompile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol:14:5: Warning: No visibility specified. Defaulting to \"public\". \n    function transfer(address to, uint amount) {\n    ^ (Relevant source part starts here and spans across multiple lines).\n",
+        "stdout_sha256": "97c5b757cfe1082aa3ae44a113c1cea1d6ab133ff22691beb36b19eb752d61f8",
+        "elapsed_seconds": 0.0102006999659352,
+        "timed_out": false,
+        "cost_usd": 0.0
+      },
+      "slither": {
+        "profile": "regression_6c",
+        "slither_version": "0.8.0",
+        "crytic_compile_version": "0.2.4",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol",
+        "source_sha256": "dbdae7863437a9ee1e768334e3ab82b3ebbcb18447b1ddb35a1b2855e334a6b3",
+        "version": "0.4.24",
+        "compiler_sha256": "665675b9e0431c2572d59d6a7112afbdc752732ea0ce9aecf1a1855f28e02a09",
+        "command": {
+          "api": "Slither",
+          "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol",
+          "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "solc_disable_warnings": true
+        },
+        "equivalent_solc_argv": [
+          "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol",
+          "--combined-json",
+          "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+          "--allow-paths",
+          ".",
+          "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol"
+        ],
+        "preceding_observed_solc_returncode": 0,
+        "api_subprocess_returncodes_observed": false,
+        "cost_usd": 0.0,
+        "crytic_compile_platform": "solc",
+        "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+        "constructed": true,
+        "d3": true,
+        "d3_a": true,
+        "d3_b": true,
+        "nodes": [
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "transfer(address,uint256)",
+              "IF",
+              336,
+              1
+            ],
+            "ir": [
+              "REF_0(uint256) -> userBalances[msg.sender]",
+              "TMP_0(bool) = REF_0 >= amount",
+              "CONDITION TMP_0"
+            ],
+            "length": 34,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "transfer(address,uint256)",
+              "EXPRESSION",
+              386,
+              1
+            ],
+            "ir": [
+              "REF_1(uint256) -> userBalances[to]",
+              "REF_1(-> userBalances) = REF_1 + amount"
+            ],
+            "length": 26,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "transfer(address,uint256)",
+              "EXPRESSION",
+              426,
+              1
+            ],
+            "ir": [
+              "REF_2(uint256) -> userBalances[msg.sender]",
+              "REF_2(-> userBalances) = REF_2 - amount"
+            ],
+            "length": 34,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "withdrawBalance()",
+              "VARIABLE",
+              527,
+              1
+            ],
+            "ir": [
+              "REF_3(uint256) -> userBalances[msg.sender]",
+              "amountToWithdraw(uint256) := REF_3(uint256)"
+            ],
+            "length": 48,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "withdrawBalance()",
+              "EXPRESSION",
+              789,
+              1
+            ],
+            "ir": [
+              "REF_6(uint256) -> userBalances[msg.sender]",
+              "REF_6 (->userBalances) := 0(uint256)"
+            ],
+            "length": 28,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "withdrawBalance()",
+              "VARIABLE",
+              622,
+              1
+            ],
+            "ir": [
+              "TMP_2(bool) = LOW_LEVEL_CALL, dest:msg.sender, function:call, arguments:[''] value:amountToWithdraw ",
+              "success(bool) := TMP_2(bool)"
+            ],
+            "length": 58,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "withdrawBalance()",
+              "EXPRESSION",
+              763,
+              1
+            ],
+            "ir": [
+              "TMP_3(None) = SOLIDITY_CALL require(bool)(success)"
+            ],
+            "length": 16,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "transfer(address,uint256)",
+              "ENDIF",
+              332,
+              1
+            ],
+            "ir": [],
+            "length": 139,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "transfer(address,uint256)",
+              "ENTRYPOINT",
+              322,
+              1
+            ],
+            "ir": [],
+            "length": 155,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_cross_function",
+              "withdrawBalance()",
+              "ENTRYPOINT",
+              517,
+              1
+            ],
+            "ir": [],
+            "length": 307,
+            "declaration_kind": "function"
+          }
+        ],
+        "node_facts_schema": "node_facts_v2",
+        "mapping_complete": true,
+        "counts": {
+          "declarations": 2,
+          "functions": 2,
+          "nodes": 10,
+          "modifiers": 0,
+          "top_level_functions": 0,
+          "missing_filename": 0,
+          "invalid_filename": 0,
+          "foreign_filename": 0,
+          "missing_start": 0
+        },
+        "empty_cfg": false,
+        "duplicate_key4": {},
+        "contract_coverage": {
+          "complete": true,
+          "ast_source": "crytic_compile.compilation_units[*].asts",
+          "expected": {
+            "Reentrancy_cross_function": 1
+          },
+          "actual": {
+            "Reentrancy_cross_function": 1
+          },
+          "missing": {},
+          "unexpected": {},
+          "asts": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_cross_function.sol",
+              "format": "compact",
+              "contracts": {
+                "Reentrancy_cross_function": 1
+              },
+              "ast_sha256": "79389b3596609b8fd849e015d90a0bd774dd4c0d9b7201bbf2266c594c1c21d1"
+            }
+          ]
+        },
+        "error_first_line": null,
+        "validation_errors": [],
+        "elapsed_seconds": 0.02561459899879992
+      },
+      "original_A_nodes": 11,
+      "rewritten_nodes": 10,
+      "comparison_original_A_to_rewrite": {
+        "key5": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 793, 1]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 622, 1]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 767, 1]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"VARIABLE\", 623, 1]]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 789, 1]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"VARIABLE\", 622, 1]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 763, 1]]": 1
+          }
+        },
+        "slithir": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 793, 1], [\"REF_6(uint256) -> userBalances[msg.sender]\", \"REF_6 (->userBalances) := 0(uint256)\"]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 622, 1], [\"TMP_2(bool) = LOW_LEVEL_CALL, dest:msg.sender, function:call, arguments:[''] value:amountToWithdraw \", \"success(bool) := TMP_2(bool)\"]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 767, 1], [\"TMP_3(None) = SOLIDITY_CALL require(bool)(success)\"]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"VARIABLE\", 623, 1], []]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 789, 1], [\"REF_6(uint256) -> userBalances[msg.sender]\", \"REF_6 (->userBalances) := 0(uint256)\"]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"VARIABLE\", 622, 1], [\"TMP_2(bool) = LOW_LEVEL_CALL, dest:msg.sender, function:call, arguments:[''] value:amountToWithdraw \", \"success(bool) := TMP_2(bool)\"]]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 763, 1], [\"TMP_3(None) = SOLIDITY_CALL require(bool)(success)\"]]": 1
+          }
+        },
+        "source_length": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 793, 1], 28]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 622, 1], 62]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 767, 1], 16]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"ENTRYPOINT\", 517, 1], 311]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"VARIABLE\", 623, 1], 12]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 789, 1], 28]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"VARIABLE\", 622, 1], 58]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"EXPRESSION\", 763, 1], 16]": 1,
+            "[[\"Reentrancy_cross_function\", \"withdrawBalance()\", \"ENTRYPOINT\", 517, 1], 307]": 1
+          }
+        }
+      }
+    },
+    {
+      "rewrite": {
+        "original_path": "experiments/ge-sc-data/source_code/reentrancy/source_files/reentrancy_insecure.sol",
+        "original_sha256": "97bb37ef327f8e6b2eafad19ea357dac94d81fbee16d5189ad587c53920e4540",
+        "rewritten_path": "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol",
+        "rewritten_sha256": "fb0ebe52cbdd1fd24c4b9ccb7a39e199f6a494642886853327ba5b8d3b5ff483",
+        "start_byte": 412,
+        "old": "(bool success, ) =",
+        "new": "bool success =",
+        "classification": "rewrite",
+        "rule_implemented": false,
+        "version": "0.4.24"
+      },
+      "solc": {
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol",
+        "source_sha256": "fb0ebe52cbdd1fd24c4b9ccb7a39e199f6a494642886853327ba5b8d3b5ff483",
+        "compiler": {
+          "version": "0.4.24",
+          "path": "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "sha256": "665675b9e0431c2572d59d6a7112afbdc752732ea0ce9aecf1a1855f28e02a09"
+        },
+        "command": [
+          "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol",
+          "--combined-json",
+          "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+          "--allow-paths",
+          ".",
+          "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol"
+        ],
+        "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+        "returncode": 0,
+        "error_first_line": null,
+        "stderr": "",
+        "stdout_sha256": "026361361128f0b162d33dfd6467496af79985148b0b2c5e789a2dc9f7dab935",
+        "elapsed_seconds": 0.007833799987565726,
+        "timed_out": false,
+        "cost_usd": 0.0
+      },
+      "slither": {
+        "profile": "regression_6c",
+        "slither_version": "0.8.0",
+        "crytic_compile_version": "0.2.4",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol",
+        "source_sha256": "fb0ebe52cbdd1fd24c4b9ccb7a39e199f6a494642886853327ba5b8d3b5ff483",
+        "version": "0.4.24",
+        "compiler_sha256": "665675b9e0431c2572d59d6a7112afbdc752732ea0ce9aecf1a1855f28e02a09",
+        "command": {
+          "api": "Slither",
+          "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol",
+          "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "solc_disable_warnings": true
+        },
+        "equivalent_solc_argv": [
+          "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+          "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol",
+          "--combined-json",
+          "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+          "--allow-paths",
+          ".",
+          "compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol"
+        ],
+        "preceding_observed_solc_returncode": 0,
+        "api_subprocess_returncodes_observed": false,
+        "cost_usd": 0.0,
+        "crytic_compile_platform": "solc",
+        "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+        "constructed": true,
+        "d3": true,
+        "d3_a": true,
+        "d3_b": true,
+        "nodes": [
+          {
+            "key5": [
+              "Reentrancy_insecure",
+              "withdrawBalance()",
+              "VARIABLE",
+              317,
+              1
+            ],
+            "ir": [
+              "REF_0(uint256) -> userBalances[msg.sender]",
+              "amountToWithdraw(uint256) := REF_0(uint256)"
+            ],
+            "length": 48,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_insecure",
+              "withdrawBalance()",
+              "EXPRESSION",
+              590,
+              1
+            ],
+            "ir": [
+              "REF_3(uint256) -> userBalances[msg.sender]",
+              "REF_3 (->userBalances) := 0(uint256)"
+            ],
+            "length": 28,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_insecure",
+              "withdrawBalance()",
+              "VARIABLE",
+              412,
+              1
+            ],
+            "ir": [
+              "TMP_1(bool) = LOW_LEVEL_CALL, dest:msg.sender, function:call, arguments:[''] value:amountToWithdraw ",
+              "success(bool) := TMP_1(bool)"
+            ],
+            "length": 58,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_insecure",
+              "withdrawBalance()",
+              "EXPRESSION",
+              564,
+              1
+            ],
+            "ir": [
+              "TMP_2(None) = SOLIDITY_CALL require(bool)(success)"
+            ],
+            "length": 16,
+            "declaration_kind": "function"
+          },
+          {
+            "key5": [
+              "Reentrancy_insecure",
+              "withdrawBalance()",
+              "ENTRYPOINT",
+              307,
+              1
+            ],
+            "ir": [],
+            "length": 318,
+            "declaration_kind": "function"
+          }
+        ],
+        "node_facts_schema": "node_facts_v2",
+        "mapping_complete": true,
+        "counts": {
+          "declarations": 1,
+          "functions": 1,
+          "nodes": 5,
+          "modifiers": 0,
+          "top_level_functions": 0,
+          "missing_filename": 0,
+          "invalid_filename": 0,
+          "foreign_filename": 0,
+          "missing_start": 0
+        },
+        "empty_cfg": false,
+        "duplicate_key4": {},
+        "contract_coverage": {
+          "complete": true,
+          "ast_source": "crytic_compile.compilation_units[*].asts",
+          "expected": {
+            "Reentrancy_insecure": 1
+          },
+          "actual": {
+            "Reentrancy_insecure": 1
+          },
+          "missing": {},
+          "unexpected": {},
+          "asts": [
+            {
+              "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp0_1_env_v1/rewrite/reentrancy_insecure.sol",
+              "format": "compact",
+              "contracts": {
+                "Reentrancy_insecure": 1
+              },
+              "ast_sha256": "2cfb06baca7d3839cf118e2c278500e37f988a047bc2685d4ff3b22493f3bbe7"
+            }
+          ]
+        },
+        "error_first_line": null,
+        "validation_errors": [],
+        "elapsed_seconds": 0.02179589995648712
+      },
+      "original_A_nodes": 6,
+      "rewritten_nodes": 5,
+      "comparison_original_A_to_rewrite": {
+        "key5": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 594, 1]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 412, 1]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 568, 1]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"VARIABLE\", 413, 1]]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 590, 1]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"VARIABLE\", 412, 1]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 564, 1]]": 1
+          }
+        },
+        "slithir": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 594, 1], [\"REF_3(uint256) -> userBalances[msg.sender]\", \"REF_3 (->userBalances) := 0(uint256)\"]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 412, 1], [\"TMP_1(bool) = LOW_LEVEL_CALL, dest:msg.sender, function:call, arguments:[''] value:amountToWithdraw \", \"success(bool) := TMP_1(bool)\"]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 568, 1], [\"TMP_2(None) = SOLIDITY_CALL require(bool)(success)\"]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"VARIABLE\", 413, 1], []]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 590, 1], [\"REF_3(uint256) -> userBalances[msg.sender]\", \"REF_3 (->userBalances) := 0(uint256)\"]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"VARIABLE\", 412, 1], [\"TMP_1(bool) = LOW_LEVEL_CALL, dest:msg.sender, function:call, arguments:[''] value:amountToWithdraw \", \"success(bool) := TMP_1(bool)\"]]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 564, 1], [\"TMP_2(None) = SOLIDITY_CALL require(bool)(success)\"]]": 1
+          }
+        },
+        "source_length": {
+          "equal": false,
+          "only_low": {
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 594, 1], 28]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 412, 1], 62]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 568, 1], 16]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"ENTRYPOINT\", 307, 1], 322]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"VARIABLE\", 413, 1], 12]": 1
+          },
+          "only_high": {
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 590, 1], 28]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"VARIABLE\", 412, 1], 58]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"EXPRESSION\", 564, 1], 16]": 1,
+            "[[\"Reentrancy_insecure\", \"withdrawBalance()\", \"ENTRYPOINT\", 307, 1], 318]": 1
+          }
+        }
+      }
+    }
+  ],
+  "scope": "One-off working copy experiment; no CP6 rule implemented; key offsets can shift after rewrite."
+}

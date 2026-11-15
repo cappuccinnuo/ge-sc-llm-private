@@ -1,0 +1,45 @@
+{
+  "modifier": "Codex",
+  "date": "2026-11-12",
+  "issues": [
+    {
+      "id": "upstream_divergence",
+      "observed": "git pull --ff-only fetched r2.2 but returned 128 because local CP0 checkpoint and upstream documentation diverged.",
+      "resolution": "Merge upstream 54ecc927 without discarding local CP0 history; resolve four documentation conflicts, keep PROMPTS exactly upstream, renumber imported CHANGE_LOG section 4 to 5 and local installation D16 to D17.",
+      "evidence": [
+        "pull.json",
+        "merge_start.json",
+        "merge_resolution.json"
+      ]
+    },
+    {
+      "id": "solc_select_http_403",
+      "observed": "solc-select 1.0.4 install 0.4.17 failed in get_latest_release before creating the compiler path.",
+      "resolution": "Use the already approved official URL through an explicit-proxy requests session, trust_env=False, no direct fallback; verify SHA256 and Keccak256 before installing. No package or global version change.",
+      "evidence": [
+        "../cp0_compiler_install_v1/install_result.json",
+        "../cp0_compiler_install_v1/verified_compiler.json"
+      ]
+    },
+    {
+      "id": "python37_write_text",
+      "observed": "Python 3.7 Path.write_text does not accept newline keyword.",
+      "resolution": "Use Path.open with encoding UTF-8 and newline, then write; no dependency change."
+    },
+    {
+      "id": "json_interval_types",
+      "observed": "Development smoke cp0_matrix_smoke_v1 failed before compilation: list <= tuple is not supported after a JSON evidence roundtrip.",
+      "resolution": "Normalize interval endpoints to tuples in candidate_versions; add a JSON-roundtrip test. A distinct smoke_v2 passed six boundary inputs. The failed first run is retained.",
+      "evidence": [
+        "../cp0_matrix_smoke_v1/report.json",
+        "../cp0_matrix_smoke_v2/report.json",
+        "tests_cp0_v2.json"
+      ]
+    },
+    {
+      "id": "documentation_heading_lookup",
+      "observed": "A read-only script searched for a nonexistent CP1 heading string and raised ValueError.",
+      "resolution": "Read actual numbered section 4 headings; no file mutation."
+    }
+  ]
+}

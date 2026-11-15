@@ -1,0 +1,52 @@
+{
+  "base_commit": "36c6109fa9271608feb8f4634eca6ab7ff6a192a",
+  "cost_cap_usd": 0,
+  "criterion": {
+    "D20": "unchanged main + exactly 10 fresh-process sequential extractions",
+    "D20a": "one NEW process per file failing D20; at most 100 sequential extractions; early stop once each failing key has observed its reference multiplicity",
+    "new_variation": "record previously stable keys which vary; preserve the original D20 conclusion",
+    "stable_keys": "keys constant over 11 and additional samples must equal reference",
+    "unobserved_at_100": "stop; no more samples or criterion changes"
+  },
+  "date": "2026-11-14",
+  "decision": "D20a",
+  "download_allowed": false,
+  "execution": {
+    "continuation": "only after 227 passes, files 228-239 in one fresh main process; apply D20 and D20a if needed",
+    "descending": "only after 239 pass; production CLI --order descending; compare with cr_store_mando_v3",
+    "first": "D20a for existing file 227; no new main or D20 samples",
+    "reuse": "cp2_6c_v2 files 1-226 unchanged"
+  },
+  "installation_allowed": false,
+  "llm_calls": 0,
+  "preserved": [
+    "all production code",
+    "all tests",
+    "CP0-CP2.1 artifacts",
+    "occurrence keys",
+    "source paths/versions/CWD",
+    "D3",
+    "D5",
+    "D16"
+  ],
+  "profiles": {
+    "production": {
+      "crytic_compile": "0.4.2",
+      "environment": "compile-repair-production",
+      "python": "3.10.21",
+      "slither": "0.11.6"
+    },
+    "regression_6c": {
+      "crytic_compile": "0.2.4",
+      "environment": "mando",
+      "python": "3.7.12",
+      "slither": "0.8.0"
+    }
+  },
+  "recorded_at_utc": "2026-11-15T02:51:19.802534+00:00",
+  "schema": "compile-repair-authorization-v1",
+  "scope": "PROMPTS r2.10 §4.4c CP2.2",
+  "source": "Current user instruction: 用户已于 2026-11-14 批准 D20a，原话：“同意 D20a”",
+  "status": "approved",
+  "user_exact_quote": "同意 D20a"
+}

@@ -1,0 +1,36 @@
+{
+  "path": "/home/zhao/miniconda3/envs/mando/lib/python3.7/site-packages/slither/solc_parsing/declarations/contract.py",
+  "sha256": "4c80abf3a0fae5d33c674de5f28ab798d8d5f9b2921b619deeb19b4bbc73f88d",
+  "error_line": 252,
+  "excerpt": [
+    "            if item[self.get_key()] == \"FunctionDefinition\":",
+    "                self._functionsNotParsed.append(item)",
+    "            elif item[self.get_key()] == \"EventDefinition\":",
+    "                self._eventsNotParsed.append(item)",
+    "            elif item[self.get_key()] == \"InheritanceSpecifier\":",
+    "                # we dont need to parse it as it is redundant",
+    "                # with self.linearizedBaseContracts",
+    "                continue",
+    "            elif item[self.get_key()] == \"VariableDeclaration\":",
+    "                self._variablesNotParsed.append(item)",
+    "            elif item[self.get_key()] == \"EnumDefinition\":",
+    "                self._enumsNotParsed.append(item)",
+    "            elif item[self.get_key()] == \"ModifierDefinition\":",
+    "                self._modifiersNotParsed.append(item)",
+    "            elif item[self.get_key()] == \"StructDefinition\":",
+    "                self._structuresNotParsed.append(item)",
+    "            elif item[self.get_key()] == \"UsingForDirective\":",
+    "                self._usingForNotParsed.append(item)",
+    "            else:",
+    "                raise ParsingError(\"Unknown contract item: \" + item[self.get_key()])",
+    "        return",
+    "",
+    "    def _parse_struct(self, struct: Dict):"
+  ],
+  "observed_probe_versions": [
+    "0.8.4",
+    "0.8.38"
+  ],
+  "observed_error": "Unknown contract item: ErrorDefinition",
+  "inference": "The installed parser has no ErrorDefinition branch; untested 0.8.x patches are not individually measured."
+}

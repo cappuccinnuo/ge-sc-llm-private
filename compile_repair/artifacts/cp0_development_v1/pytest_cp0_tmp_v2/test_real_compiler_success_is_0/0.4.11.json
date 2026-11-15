@@ -1,0 +1,125 @@
+{
+  "compile": {
+    "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+    "source_sha256": "7b3424cade753fd79c25fc57d7df74d957d21a48ac4e925a610579b5c620798d",
+    "compiler": {
+      "version": "0.4.11",
+      "path": "/home/zhao/.solc-select/artifacts/solc-0.4.11/solc-0.4.11",
+      "sha256": "0a8d138ee245039e6f8312edc024ba3c4739cc3c013b47dc7fc9196a2e327fea"
+    },
+    "command": [
+      "/home/zhao/.solc-select/artifacts/solc-0.4.11/solc-0.4.11",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+      "--combined-json",
+      "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc",
+      "--allow-paths",
+      ".",
+      "compile_repair/tests/fixtures/counter.sol"
+    ],
+    "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+    "returncode": 0,
+    "error_first_line": null,
+    "stderr": "",
+    "stdout_sha256": "4177042a3347e0d838359d3f5a4fcb44d50db5894a8a54224f63b8b1bece2f3e",
+    "elapsed_seconds": 0.004028800001833588,
+    "timed_out": false,
+    "cost_usd": 0.0
+  },
+  "slither": {
+    "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+    "source_sha256": "7b3424cade753fd79c25fc57d7df74d957d21a48ac4e925a610579b5c620798d",
+    "version": "0.4.11",
+    "compiler_sha256": "0a8d138ee245039e6f8312edc024ba3c4739cc3c013b47dc7fc9196a2e327fea",
+    "slither_version": "0.8.0",
+    "crytic_compile_version": "0.2.4",
+    "command": {
+      "api": "Slither",
+      "target": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+      "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.11/solc-0.4.11",
+      "solc_disable_warnings": true
+    },
+    "equivalent_solc_argv": [
+      "/home/zhao/.solc-select/artifacts/solc-0.4.11/solc-0.4.11",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/counter.sol",
+      "--combined-json",
+      "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc",
+      "--allow-paths",
+      ".",
+      "compile_repair/tests/fixtures/counter.sol"
+    ],
+    "preceding_observed_solc_returncode": 0,
+    "api_subprocess_returncodes_observed": false,
+    "cost_usd": 0.0,
+    "mapping_complete": false,
+    "counts": {
+      "declarations": 2,
+      "nodes": 5,
+      "missing_filename": 5,
+      "invalid_filename": 0,
+      "foreign_filename": 0,
+      "missing_start": 0
+    },
+    "empty_cfg": false,
+    "duplicate_key4": {},
+    "nodes": [
+      {
+        "key4": [
+          "Counter",
+          "increment(uint256)",
+          "EXPRESSION",
+          139
+        ],
+        "ir": [
+          "MODIFIER_CALL, Counter.allowed()()"
+        ],
+        "length": 7
+      },
+      {
+        "key4": [
+          "Counter",
+          "increment(uint256)",
+          "EXPRESSION",
+          149
+        ],
+        "ir": [
+          "count(uint256) = count + value"
+        ],
+        "length": 14
+      },
+      {
+        "key4": [
+          "Counter",
+          "allowed()",
+          "ENTRY_POINT",
+          90
+        ],
+        "ir": [],
+        "length": 6
+      },
+      {
+        "key4": [
+          "Counter",
+          "allowed()",
+          "_",
+          92
+        ],
+        "ir": [],
+        "length": 1
+      },
+      {
+        "key4": [
+          "Counter",
+          "increment(uint256)",
+          "ENTRY_POINT",
+          147
+        ],
+        "ir": [],
+        "length": 19
+      }
+    ],
+    "constructed": true,
+    "d3": false,
+    "error_first_line": null,
+    "elapsed_seconds": 0.09418550599366426
+  }
+}
