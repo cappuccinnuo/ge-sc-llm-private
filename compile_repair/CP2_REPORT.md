@@ -263,3 +263,94 @@ cd /home/zhao/SmartContract/ge-sc-llm-compile
 CP2.1 的生产代码修复和两次生产验收完成；整体 CP2.1 未通过，停止在 §4.4b 第 3 项。剩余 12 份 6c、全部降序比较、CP3 均未运行，跨版本相同/不同计数及归因不能填成 0 或“通过”。
 
 需审查的问题：D20 的固定 11 样本没有覆盖参考报告中的上述键，现有证据不足以判断其内部原因；应先独立复核已经封存的原始行、源码/版本身份和运行契约，再由用户决定下一步。没有实施替代方案、增加采样或放宽判据。D20 批准仍有效，它并不保证本次能通过。按用户要求，停止后仍完成交接、训练改变记录、文档与保护检查并本地提交，不自动 push；没有 LLM、HGT 训练、GPU 锁操作或 CP6 第 10 行改写。
+
+
+## CP2.2：D20a、6c 续跑与降序比较（2026-11-14，修改 AI：Codex）
+
+### 实现与范围
+
+先 git pull --ff-only origin compile-repair，Already up to date，起始 HEAD=36c6109fa9271608feb8f4634eca6ab7ff6a192a。完整读取 PROMPTS r2.10，重点 §1.12/1.13/4.4/4.4b/4.4c 与共享上下文；读 HANDOVER §0–5、DECISIONS、CHANGE_LOG §21/22、cp2_1_review_v1/README、docs/README 和 REPORT_TEMPLATE。用户 2026-11-14 原话“同意 D20a”先保存于 artifacts/cp2_2_v1/authorization.json，并把 DECISIONS 改为已定。
+
+生产代码、测试文件与旧产物均不修改；驱动和审计仅写 cp2_2_v1，新结果写 cp2_6c_v3、cp2_desc_v1。新文件及用途见三个目录 README，最终精确清单见 delivery_inventory.json。生产 .py 仍为 14；D3、D5、D16、occurrence 键及原始路径/版本/CWD 不变。run_replay import 复用旧 CP2.1 的 occurrence_keys、historical_target、ranges、archive_extraction，不导入审查脚本；冻结 validate_slither 的 _compile 和 slither_full_facts 未改（SHA256 4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8）。
+
+D20a 必须实际观察到每个失败键的参考重数；仅扩大 min/max 范围但未出现该值不能通过。各键分别观察到即可，不要求同时发生；首次满足全部目标即停，最多 100 次。每次完整提取和失败键计数均保存。旧 D20 结论原样保留，新增波动另记，全部样本仍稳定的键必须相同。11 个合成边界检查通过，没有为开发检查额外抽取语料。
+
+### 真实验收
+
+| 项目 | 预期 | 实测 / 证据 |
+|---|---|---|
+| 第 227 份 D20a | 最多 100 次，首次满足即停 | 第 1 次通过；cp2_6c_v3/d20a/0227 |
+| 前 226 份 | 不重跑，原结论不变 | 沿用旧 223 精确 + 3 D20；逐行复算一致 |
+| 第 228–239 份 | 一个新进程按原顺序，差异按 D20/D20a | 11 精确；第 239 份另取 10 次后 D20 通过 |
+| 合计 | 239/239 通过 | 234 精确、4 D20、1 D20a，剩余 0 |
+| 本轮新增提取 | 不重做旧主运行 | 23 = 12 主样本 + 10 D20 + 1 D20a |
+| 重放审计 | 不放宽键、重数或稳定事实 | 239 份独立只读复算通过，新增提取 0 |
+| 生产降序 | 仅三份已知 Slither 侧失败 | 846 输入，843 成功 / 3 已知失败，92 支持版本 |
+| 跨版本 | 每份比较 key5 + 规范化有序 IR | 229 同版、614 不同版，843/843 相同，差异 0 |
+| source length | 仅诊断 | 815 相同、28 不同 |
+
+证据为 cp2_6c_v3/summary.json、cp2_2_v1/captured_replay_audit.json、descending_receipt.json、descending_comparison.json。本轮新 23 次调用来自三个不同 PID（D20a、续跑主运行、D20）；旧 227 主样本 + 旧 40 D20 + 新 23 = 累计保留 290 次提取。本轮没有重抽第 1–227 份的主样本或第 227 份的固定 10 样本。
+
+第 227 份 reentrancy/buggy_44.sol 的 SHA256=8e037273ea617a302b2db77c278ba36931dd57474df202f78aa3c4b0ba815f86，solc 0.5.0。原失败键 function/node/declaration start=9070/9337/9172，MultiHashWrapper 声明上下文、非继承，fact=[282,out,DEF]，参考 1、旧 11 次全 0、新第 1 次 1。同文件 Feed 上下文新样本为 0，是另一个键，未合并。旧 CP2.1 的 D20 失败历史保留，本次是授权后的 D20a 通过。
+
+### 全部不稳定键
+
+12 个键均为 L1 DEF；L1 USE/READ/WRITE 与 L2 DEF/USE/READ/WRITE 均 0。5 个继承、7 个非继承。完整键、SHA、偏移与计数在 captured_replay_audit.json.unstable_facts；下表 main+D20 为按时间顺序的 11 次，D20a 为本轮追加。
+
+| 序号/文件 | 函数 / 上下文（继承） | 变量 / 行 | 参考重数 | main + D20 十次 | D20a |
+|---|---|---|---:|---|---|
+| 87 access_control/buggy_43.sol | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) / MultiHashWrapper（否） | out / 162 | 0 | 0,0,0,1,1,0,0,1,1,0,1 | 未追加 |
+| 87 access_control/buggy_43.sol | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) / Post（是） | out / 162 | 1 | 0,0,0,0,0,1,1,0,0,1,0 | 未追加 |
+| 87 access_control/buggy_43.sol | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) / ProofHash（是） | out / 162 | 0 | 1,0,1,0,0,1,1,0,0,1,0 | 未追加 |
+| 207 reentrancy/buggy_24.sol | FomoFeast.addInvestRecord(address,uint256,uint256,uint256) / FomoFeast（否） | records / 584 | 1 | 0,1,0,1,1,1,0,1,1,1,1 | 未追加 |
+| 207 reentrancy/buggy_24.sol | FomoFeast.addStaticCommissionRecord(address,uint256,uint256) / FomoFeast（否） | records / 603 | 1 | 1,1,0,1,1,1,1,0,1,1,0 | 未追加 |
+| 226 reentrancy/buggy_43.sol | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) / MultiHashWrapper（否） | out / 225 | 0 | 0,1,0,0,0,0,1,1,1,1,1 | 未追加 |
+| 226 reentrancy/buggy_43.sol | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) / Post（是） | out / 225 | 0 | 0,0,0,1,0,1,1,1,1,1,1 | 未追加 |
+| 226 reentrancy/buggy_43.sol | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) / ProofHash（是） | out / 225 | 0 | 1,0,1,1,1,1,0,0,0,0,0 | 未追加 |
+| 227 reentrancy/buggy_44.sol | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) / Feed（是） | out / 282 | 0 | 0,1,0,0,0,0,0,0,0,0,0 | 0 |
+| 227 reentrancy/buggy_44.sol | MultiHashWrapper._combineMultiHash(MultiHashWrapper.MultiHash) / MultiHashWrapper（否） | out / 282 | 1 | 0,0,0,0,0,0,0,0,0,0,0 | 1 |
+| 239 reentrancy/spank_chain_payment.sol | ECTools.substring(string,uint256,uint256) / ECTools（否） | result / 174 | 1 | 0,0,0,0,0,0,0,0,0,0,1 | 未追加 |
+| 239 reentrancy/spank_chain_payment.sol | ECTools.uintToString(uint256) / ECTools（否） | b / 156 | 1 | 1,1,0,1,1,1,1,1,1,1,1 | 未追加 |
+
+逐键所在行源码同样写在 JSON 的 source_line，原文为：
+
+- 序号 87/226/227，out，行 162/225/282：for (i = 0; i < 32; i++) {
+- 序号 207，records，行 584/603：for (uint256 i = 8; i > 0; --i) {
+- 序号 239，result，行 174：for (uint i = _startIndex; i < _endIndex; i++) {
+- 序号 239，b，行 156：while (_uint != 0) {
+
+第 239 份为 reentrancy/spank_chain_payment.sol（SHA256 15724a9aecd227749e4e3441bf408892ead6639d7c2830b116014183fb537d09，solc 0.4.23）。新增观测包含 while 条件上的 DEF，不能将上轮十键的 for 描述推广为全部波动键的必要条件。未定位内部根因，也不能用有限样本通过证明全状态确定性。
+
+### 降序比较与分布
+
+使用同一生产 CLI --regression mando --order descending、唯一 rules/environment.py 策略，覆盖全部 846 输入。614 个不同版本均在同一小版本系列内，例如 0.4.12→0.4.26 为 26 份、0.5.0→0.5.17 为 124 份、0.5.11→0.5.17 为 105 份，节点与有序 IR 均相同。完整 843 份版本对、逐文件结果及汇总在 descending_comparison.json，different_entries=[]；没有实际 IR 差异需要归因，不构造差异示例。28 份 length 差异只诊断，完整值在 descending_acceptance.jsonl 的 cross_version.source_length 中。
+
+降序只作验证，不替换升序主存储。未修复为 reentrancy_bonus.sol、reentrancy_cross_function.sol、reentrancy_insecure.sol，均 slither_side_failure，无 graph。CLI 因三份预期失败返回 2，外层验收确认符合预期后返回 0。按类别分组仅使用目录，不读取标签；版本来源、系列、补丁版和各标志完整分布在 descending_comparison.json.distribution。
+
+### 测试与开发记录
+
+production：585 passed/6 skipped（64.70 秒）；mando：147 passed/444 skipped（13.29 秒）；冻结 DFG：2653 passed/9 既有 warnings（160.04 秒）。11 个合成边界检查通过。生产跳过为 backport/0.8.0 专属，mando 跳过为 production/标准库专属；完整原因在日志。实际命令、rc、临时目录、耗时和哈希在 pytest_production/mando/dfg.json，原日志 gzip 无损交付。6c 驱动 28.14 秒（外层 33.57 秒），降序 265.68 秒（外层 267.45 秒）。
+
+WSL 未安装 rg，定位改用现有 git ls-files 与 Python 定向读取，不安装工具。文档写入封装首次因 Markdown 反引号触发 JavaScript 语法错误，未执行任何文件操作；改用普通 UTF-8 文本和缩进命令段后写入。旧 CP2.1 未执行的降序驱动只列 843 个成功输入，本轮新驱动按 r2.10 覆盖 846 并验收三份已知失败。没有变更生产策略或冻结判据，没有实际测试失败、运行重试或审批拒绝。最终保护和文档结果见 frozen_audit.json、doc_check_v*。
+
+### 归档与复现
+
+cp2_6c_v3 seal SHA256=4bb3dda023b41937839673469bfc8f512407eb46f40a46d30bac8fe4dce6f31d；56 文件 + seal = 57 成员，tar SHA256=b432b70257e061a5b57bc19a80f8754fdd1d03e27f2bcee3e64b64084d2a724b。cp2_desc_v1 seal SHA256=d1f469766ddacff40fc161c857a0f82d463865d8bc47a7e8cdf738696f402aab；4,228 文件 + seal = 4,229 成员，tar SHA256=02ccc74dce4a9acde715d0d8a133d87d87345cbb9fcbba7951a3bc82d4ceb2c1。两个归档逐成员 SHA 回读相同，散文件保留；前 227 份原始提取依赖旧 cp2_6c_v2，未复制 EdgeSem 报告。编译器路径/版本/SHA、命令、profile、实现指纹见 trust、invocations、seal、evidence_seal。
+
+实际执行入口如下；结果拒绝覆盖，不能对现有批次再次采样：
+
+    cd /home/zhao/SmartContract/ge-sc-llm-compile
+    export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+    export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+    /home/zhao/miniconda3/envs/mando/bin/python -B compile_repair/artifacts/cp2_2_v1/run_replay.py --self-check
+    /home/zhao/miniconda3/envs/mando/bin/python -B compile_repair/artifacts/cp2_2_v1/launch_phase.py replay
+    /home/zhao/miniconda3/envs/mando/bin/python -B compile_repair/artifacts/cp2_2_v1/launch_phase.py descending
+    /home/zhao/miniconda3/envs/mando/bin/python -B compile_repair/artifacts/cp2_2_v1/run_checks.py production
+    /home/zhao/miniconda3/envs/mando/bin/python -B compile_repair/artifacts/cp2_2_v1/run_checks.py mando
+    /home/zhao/miniconda3/envs/mando/bin/python -B compile_repair/artifacts/cp2_2_v1/run_checks.py dfg
+
+### 停止位置与后续边界
+
+本机验收完成，待独立审查后进入 CP3。本轮未改生产代码、旧产物、原语料或环境；没有安装/下载包、编译器、语料或文档，没有 LLM、训练、GPU 锁或全局 solc 操作，费用 0。没有发现需改变本步方案的问题；有限采样的结论边界只登记，未实施替代方案。强制记录、doc_check 和冻结检查全部通过后本地提交，实际提交号见 git log，不自动 push。
+
+最终检查补记（修改 AI：Codex）：doc_check v1 的 8 份文档全部通过，补记后 v2 最终复检记录在 cp2_2_v1。frozen_audit 通过，14 个生产文件字节未变；28,512 受保护跟踪文件、17,315 旧 seal 成员、239 原始目标、354 DFG 引用和 96 solc 文件未变；mando 118 / production 145 份环境元数据集合与内容相同，五份文档历史保留。git diff --check 通过；本轮只按 delivery_inventory 精确提交允许文件，旧产物和历史未跟踪文件保留。

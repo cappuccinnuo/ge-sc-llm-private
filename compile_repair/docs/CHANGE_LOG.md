@@ -1181,3 +1181,58 @@ graph_facts 先验证每个 son 都属于当前函数，再按 node.sons 原顺�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_1_review_v1/README 全文，CHANGE_LOG:157183、PROGRESS:34700 追加区间，6 个文件全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP3 不能开始。顺序为用户批准 D20a → Codex 执行 CP2.2 → Claude 审查 → CP3。本轮提交并 push 到 `compile-repair`。
+
+
+## 23. 2026-11-14 CompileRepair CP2.2：完成 D20a、6c 续跑与降序比较（修改 AI：Codex）
+
+### 23.1 任务、依据与范围
+
+用户要求执行 PROMPTS r2.10 §4.4c，并给出 2026-11-14 原话“同意 D20a”。先 git pull --ff-only origin compile-repair，Already up to date，起始 HEAD=36c6109fa9271608feb8f4634eca6ab7ff6a192a；完整阅读 PROMPTS，重点 §1.12/1.13/4.4/4.4b/4.4c 和共享上下文，读 HANDOVER §0–5、DECISIONS、本文 §21/22、cp2_1_review_v1/README、docs/README、REPORT_TEMPLATE。先写 authorization.json、baseline.json，DECISIONS 当前 D20a 改为用户已定并追加历史。
+
+生产文件和测试文件均不修改。新脚本位于 artifacts/cp2_2_v1：run_replay.py、audit_replay.py、run_corpus.py、run_checks.py、launch_phase.py、summarize.py、package_store.py、audit_frozen.py、check_docs.py；对应授权/基线/计划、invocations、逐份验收、汇总、测试日志、归档审计、最终检查和交付清单均在该新批次，精确文件名由 delivery_inventory.json 列全。正式新批次 cp2_6c_v3、cp2_desc_v1 各交付 README 与 store.tar.gz；本地散文件保留。文档修改仅 CP2_REPORT.md（追加 CP2.2）、PROGRESS.md、docs/CHANGE_LOG.md、HANDOVER.md（第 0–5 节当前状态及第 6 节末尾）、DECISIONS.md。CP0–CP2.1 旧产物、PROMPTS、scripts、原始语料、根交接和训练改变文档不改。
+
+### 23.2 实施方式和重要选择
+
+run_replay import 复用 cp2_1_v1 的 occurrence_keys、historical_target、ranges、archive_extraction；冻结 validate_slither._compile 与 slither_full_facts 原 SHA256=4f3dde9c48063a48f9dd3b0011bda8dab410186682d4bce82b48414f56caa3a8，不修改、不 monkeypatch，不导入 Claude 审查脚本。参考报告与 seal 先按 PROMPTS 的 SHA 校验，再只读；239 原始目标路径先绑定 SHA。重放沿用 mando/regression_6c、原版本、原 target 和仓库根 CWD。
+
+先检查旧 cp2_6c_v2 seal，前 226 的比较行原样复用，227 的 main+10 样本只读加载。D20a 另启新进程，每次完整抽取并记录所有失败键重数；每个键必须实际出现参考值，不能以扩大的范围替代；全部目标首次满足即结束，最多 100。D20 判定保留，追加新波动单列。合成检查覆盖参考独有、上限、参考 0、范围含参考但未实际观察、多个键不同次出现及原稳定键变化。只读 audit_replay 以独立计数实现复算所有现存样本，验证首个可通过样本后没有继续抽取，并导出全部源码行和计数。
+
+227 通过后新进程按原序续跑 228–239；差异文件另起新进程连续 10 次，按原 D20 判据裁定。全部通过才启动 production 降序。新 run_corpus 调用原 CLI 的 result_check 逐份检查，完整 846 输入只允许三份已知 Slither 侧失败；同版本仍核对节点/IR，防止掩盖异常。与 v3 比较按 key5 和规范化有序 IR，length 仅诊断。旧 CP2.1 未执行的降序分支只计划 843 成功输入，本轮按现行 r2.10 把三份已知失败也纳入，不改生产实现或 D5。
+
+运行问题处理：WSL 无 rg，改用已有 git ls-files 与 Python 定向读取，未安装工具；初次文档写入封装因 Markdown 反引号触发 JavaScript 语法错误，工具代码未执行、文件未变，改成普通 UTF-8 文本与缩进命令段。正式验收和测试无失败、无重试；没有自动审批拒绝。Windows/WSL 用既有代理完成 Git 同步，未改变 fail-closed 网络设置。
+
+### 23.3 实测与数据结论
+
+| 项目 | 实测 | 证据 |
+|---|---|---|
+| D20a 第 227 份 | 新进程第 1 次观察到参考重数 1，立即停止 | cp2_6c_v3/d20a/0227 |
+| 6c 合计 | 239/239 通过：234 精确、4 D20、1 D20a | cp2_6c_v3/summary.json |
+| 本轮抽取 | 23 = 12 主运行 + 10 D20 + 1 D20a；旧 227 主样本不重跑 | captured_replay_audit.json |
+| 不稳定键 | 12，均 L1 DEF；5 继承、7 非继承 | 同上 unstable_facts |
+| 降序全量 | 843 success、3 已知 slither_side_failure；92 支持版 | descending_receipt.json |
+| 升降序节点/IR | 229 同版、614 不同版，843/843 key5 + IR 同，差异 0 | descending_comparison.json |
+| length 诊断 | 815 同、28 不同，不影响 D4 验收 | descending_acceptance.jsonl |
+| production 模块 | 585 passed/6 skipped，64.70 秒 | pytest_production |
+| mando 模块 | 147 passed/444 skipped，13.29 秒 | pytest_mando |
+| 冻结 DFG | 2653 passed/9 既有 warnings，160.04 秒 | pytest_dfg |
+
+第 227 源 SHA=8e037273ea617a302b2db77c278ba36931dd57474df202f78aa3c4b0ba815f86，solc 0.5.0，MultiHashWrapper._combineMultiHash 的非继承 out DEF，第 282 行，function/node/declaration start=9070/9337/9172，参考 1、旧 11 次全 0、追加第 1 次 1。Feed 继承键追加为 0，保持独立键。第 239 份 spank_chain_payment.sol 的 result/b DEF 波动分别在 for/while 条件上，10 次附加后满足 D20；全部逐次重数及原行源码在 CP2_REPORT 的 CP2.2 表和 captured_replay_audit.json，不以总 occurrence 数代替逐键比较。
+
+614 个版本差异均在同一小版本系列，完整列表见 descending_comparison.json；例如 0.4.12→0.4.26 的 26 份、0.5.0→0.5.17 的 124 份均节点/IR 不变。different_entries=[]，没有实际 IR 文本差异可进一步归因。按类别统计来源/系列/标志已导出，不读取标签。CLI 返回 2 代表三份预期失败，验收驱动返回 0；未修复输入不写 graph。
+
+6c 驱动用时 28.14 秒，外层 33.57；降序 265.68 秒，外层 267.45。两 tar 回读通过：cp2_6c_v3 57 成员、318121 字节、SHA b432b70257e061a5b57bc19a80f8754fdd1d03e27f2bcee3e64b64084d2a724b；cp2_desc_v1 4229 成员、14207625 字节、SHA 02ccc74dce4a9acde715d0d8a133d87d87345cbb9fcbba7951a3bc82d4ceb2c1。完整 seal 和成员清单在对应 archive_audit，散文件保留，不覆盖旧批次。
+
+### 23.4 用户批准、原文差异与待确认设计
+
+用户 2026-11-14 原话“同意 D20a”，authorization.json 记录来源、日期、profile 精确版本、费用上限 0、最多 100 与提前停止、禁下载/安装和保护边界；DECISIONS 已定。D20 其他部分、occurrence 键、源路径/CWD/版本、D3/D5/D16 和旧历史不变。本轮按 r2.10 完成，没有方案外调整，不需要新的安装或授权。原 CP2.1 按 D20 停止的结论保留，新授权的 D20a 通过不回写旧结果。
+
+只登记的证据边界：有限样本通过不证明旧工具链全局确定性或内部根因；新增 while 观测也说明上轮十键的 for 类描述不是所有波动键的必要条件。本轮没有提出或实施替代判据，没有按语法类别豁免差异。D19、D9/D10、D12/D13 的既有待定状态保持；CP3 仍须先审查 CP2.2。
+
+### 23.5 验收、资源、未执行事项与停止
+
+§4.4c D20a、239 份重放、降序比较以及两环境模块/DFG 测试全部完成并通过；11 个合成边界检查、239 份只读复算及 843 份独立跨版本复算通过，没有新增抽取用于审计。强制测试命令及 rc/环境/临时目录见 pytest_*.json；CPU OMP/MKL=2，未测峰值资源。mando Python 3.7.12/Slither 0.8.0/crytic-compile 0.2.4；production 3.10.21/0.11.6/0.4.2；可信 96 版中 92 支持、4 历史，不改全局 solc。
+
+doc_check 按 baseline 的追加前字节偏移检查 CP2_REPORT=32299、PROGRESS=35191、CHANGE_LOG=161129；HANDOVER、DECISIONS 和三个新 README 全文，共 8 份。实际结果和最终保护检查在本段末尾补记，检查通过前不提交。当前准备本地提交，实际提交号由 git log 获取；不自动 push。CP3、额外抽样和重跑 CP0–CP2.1 均未运行；无安装、依赖/语料/文档下载、LLM、HGT、GPU 锁、全局 solc 或网络配置改变，费用 0。
+
+
+最终检查补记（仍属 §23.5，修改 AI：Codex）：doc_check v1 全部 8 份通过，追加偏移为 CP2_REPORT=32299、PROGRESS=35191、CHANGE_LOG=161129；其余全文检查。补记后的同范围最终复检写入 doc_check_v2.jsonl 与 doc_check_v2_invocation.json。frozen_audit 通过：28,512 受保护跟踪文件（模块外 27,845、旧产物 604、旧 fixture 30）、17,315 旧 seal 成员、239 原始目标、354 DFG 引用和 96 solc 文件均未变；mando 118 / production 145 份包与 conda 元数据集合及内容相同。全部 14 个生产文件字节不变，并与实际测试 seal 相同；Slither 全部 12 个函数及旧 occurrence/D20 helper 复用保持，五份文档旧历史保留。git diff --check 通过，受跟踪改动仅五份允许记录。最终按 delivery_inventory 精确暂存新批次及文档，核对暂存字节后本地提交，不 push；CP2.2 本机验收完成，待独立审查。

@@ -242,3 +242,18 @@ production 模块 585 passed/6 skipped，mando 模块 147/444，冻结 DFG 2653 
 - CP2.1 图修复与生产重跑复核成立（只差审查指定的 86 条边）。
 - 6c 第 227 个文件的停止是采样不足：同进程 40 次中该键出现 18 次；10 个不稳定键同属“for 循环体内按下标写入的数组、DEF 记在循环条件行”。
 - PROMPTS r2.10：新增 1.13 节、4.4c 节 CP2.2、D20a（待用户批准）。证据 `artifacts/cp2_1_review_v1/`；记录 `docs/CHANGE_LOG.md` §22。
+
+
+## 2026-11-14 CP2.2：D20a 与剩余验收完成（修改 AI：Codex）
+
+执行 PROMPTS r2.10 §4.4c，pull --ff-only 后 HEAD=36c6109fa9271608feb8f4634eca6ab7ff6a192a。通读全文及指定 HANDOVER/DECISIONS/CHANGE_LOG §21/22、cp2_1_review_v1/README。用户“同意 D20a”的授权于运行前写入 artifacts/cp2_2_v1/authorization.json，DECISIONS 改为已定；baseline 先记录全部保护身份。
+
+新增脚本和审计只在 cp2_2_v1：run_replay、audit_replay、run_corpus、run_checks、launch_phase、summarize、package_store、audit_frozen、check_docs；新正式结果为 cp2_6c_v3、cp2_desc_v1。修改文档仅 CP2_REPORT（追加 CP2.2）、本文件、docs/CHANGE_LOG、HANDOVER（0–5 当前状态及末尾记录）、DECISIONS。完整新文件清单见 delivery_inventory.json；生产 14 文件及全部测试文件均不改。
+
+6c 合计 239/239：234 精确、4 D20、1 D20a。旧 227 主样本全部复用；第 227 追加第 1 次观察到参考重数即停，其余 12 份在新进程按原顺序运行，第 239 另取固定 10 次后 D20 通过。本轮新增 23 次提取；只读独立复算通过。12 个波动键均 L1 DEF，5 继承、7 非继承；全部键、源码行与逐次计数在 captured_replay_audit.json。新增 while 条件观测，不推断内部根因。
+
+降序全量 843 成功/3 已知 Slither 侧失败；229 同版、614 不同版，843/843 key5 与规范化有序 IR 相同；length 815 同、28 差仅诊断。descending_comparison.json 保存全部逐文件结果和类别分布，不读标签。两个正式新 tar 分别 57/4,229 成员，逐成员回读通过，散文件保留。
+
+测试由 run_checks.py 依次运行 production、mando、dfg；实际命令为相应环境 python -B -m pytest -q -ra -x -p no:cacheprovider，模块目标 compile_repair/tests，DFG 目标 scripts/DFG/dfg_v2/tests，使用新 /tmp basetemp。结果 production 585/6、mando 147/444、DFG 2653 passed/9 既有 warnings；11 个 D20a 合成边界通过。具体命令、rc、时间和 SHA 在 pytest_*、replay_invocation、descending_invocation 中。
+
+无方案外改变。WSL 无 rg 改用 git ls-files/Python；一次文档封装 JS 引号解析失败发生在工具执行前、没有文件操作，改为普通 UTF-8 文本后完成。旧未执行的降序驱动只列成功输入，本轮新驱动遵循 r2.10 对全部 846 输入验收；未改生产策略。强制记录、doc_check 与保护审计后本地提交，不自动 push。CP3 未运行，等待独立审查；无安装、下载依赖/语料/文档、LLM、HGT、GPU 锁或全局 solc 修改，费用 0。
