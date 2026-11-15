@@ -51,9 +51,10 @@ jobs:
           # the newest DGL on PyPI (2.1.0) and a torch it ships GraphBolt for (2.2.1).
           # torchdata only satisfies an import inside DGL 2.1; --no-deps keeps torch.
           pip install torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
-          pip install dgl==2.1.0 "numpy<2" requests
+          # DGL 2.1 imports pydantic without declaring it; its binaries need numpy < 2.
+          pip install dgl==2.1.0 "numpy<2" requests "pydantic>=2"
           pip install --no-deps torchdata==0.7.1
-          pip install -r docker/requirements.txt
+          pip install -r docker/requirements.txt "numpy<2"
           python -c "import torch, dgl, networkx, numpy; print(torch.__version__, dgl.__version__, networkx.__version__, numpy.__version__)"
       - name: Fetch pinned label sources
         run: bash scripts/graph_build/fetch_labels.sh
@@ -110,9 +111,10 @@ jobs:
           # the newest DGL on PyPI (2.1.0) and a torch it ships GraphBolt for (2.2.1).
           # torchdata only satisfies an import inside DGL 2.1; --no-deps keeps torch.
           pip install torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
-          pip install dgl==2.1.0 "numpy<2" requests
+          # DGL 2.1 imports pydantic without declaring it; its binaries need numpy < 2.
+          pip install dgl==2.1.0 "numpy<2" requests "pydantic>=2"
           pip install --no-deps torchdata==0.7.1
-          pip install -r docker/requirements.txt
+          pip install -r docker/requirements.txt "numpy<2"
       - name: Fetch pinned label sources
         run: bash scripts/graph_build/fetch_labels.sh
       - name: Build graphs from raw .sol and check against paper Table 1 + baseline
