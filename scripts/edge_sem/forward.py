@@ -10,8 +10,6 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from scripts.DFG.dfg_v2.model import DfgV2NodeClassifier, DfgV2GraphClassifier
-from .hgt_edge import verify_frozen_sources
-verify_frozen_sources()
 
 
 class EdgeForward:

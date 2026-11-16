@@ -55,3 +55,12 @@ main 的 README 冲突保留当前仓库内的集成入口；auto_version_solc.p
 ## 2026-11-15：从源码构图（第 2 项）
 
 `python -m hcg build` 已实现从源码构建七类 HGT 输入图，结果与作者图结构完全一致，详见 hcg/README.md。DFG v2、NodeSem、EdgeSem 改读新图并登记其余五类尚未进行。
+
+## 2026-11-15：DFG 接入新图与项目重构（第 3、4 项）
+
+- DFG 实现移入顶层 `dfg/` 包（schema / analysis / graph / model / inputs / store / train），直接读取 `python -m hcg build` 的输出，七类均已登记：`python -m dfg build`、`python -m dfg train`、`python -m dfg report`，详见 dfg/README.md。
+- 等价性：新包对 7 类 × 2 任务 × F0–F3 的图内容指纹与重构前 `scripts/DFG` 代码逐位一致；重入/访问控制四任务的每个 profile 关系边数、fold0 五个 profile 初始参数摘要、全部节点匿名代码、30 个嵌套折、重复组划分均与封存的 Prompt 8 证据一致（tests/dfg/）。
+- 发现并修复：CI 未固定 pydot（装到 4.x），而 DFG 投影调用了 pydot 3 起删除的 `quote_if_necessary`，新环境下 DFG 直接报错；`dfg` 改用 hcg 的 quote（七类 226,898 个字符串上与 pydot 1.4.2 结果一致），CI 固定 pydot==1.4.2。此修复也使 NodeSem 19 个原先失败的测试通过。
+- 训练默认用 hcg 标签（10 月 10 日公开标注策略）与原名特征；`--features anonymous` 保留 8H 的匿名视图。L-audit 诊断标签、G0P 安慰剂、封存/收据/修订层不在主线，保存在归档分支 `archive/pre-restructure-2026-11-15`。
+- `scripts/DFG` 只保留 NodeSem/EdgeSem 仍在导入的 131 个旧模块（集成这两个模块时再移除）；已迁移模块经 `scripts/DFG/__init__.py` 的导入映射指向 `dfg` 中同一模块对象。DFG 产物（约 5 GB）与 `scripts/verify_{e23,h1,h2}_archive.py` 已从主线移除；新训练结果写入不跟踪的 `runs/`。
+- EdgeSem 对 HGT 层源码的导入时 SHA 检查改为测试（tests/dfg/test_units.py），所继承的层代码未变。
