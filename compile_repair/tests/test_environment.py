@@ -13,7 +13,7 @@ from compile_repair.rules.environment import (FEATURE_RULES, candidate_versions,
 from compile_repair.core.provenance import apply_patches
 from compile_repair.core.store import read_checked_json
 from compile_repair.toolchain.solc import CP0_SHA256
-from scripts.DFG.models import Unsupported
+from dfg.analysis.ir import Unsupported
 
 ROOT = Path(__file__).resolve().parents[2]
 VERSIONS = ['0.4.11', '0.4.12', '0.4.17', '0.4.24', '0.4.25', '0.4.26', '0.5.0', '0.5.17', '0.8.0']

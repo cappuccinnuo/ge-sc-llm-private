@@ -1,1 +1,0 @@
-pragma solidity ^0.6.0; contract A { function f(address payable a, bytes memory b) public { uint t = block.timestamp; bytes32 h = keccak256(b); a.call{value: 1}(""); selfdestruct(a); } function stop() public { revert(); } }

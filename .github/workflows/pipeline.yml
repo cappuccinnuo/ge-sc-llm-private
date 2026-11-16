@@ -1,8 +1,10 @@
 # pipeline: on a clean machine, build every Dataset A category from source (hcg),
 # prove it reproduces the authors' graphs and the Oct 10 label policy, augment it with
 # the DFG layers (dfg), prove those match the pre-restructure code and the sealed
-# Prompt 8 evidence, and smoke-train both the MANDO-LLM baselines and the DFG
-# profiles on the result. CPU only (GitHub runners have no GPU).
+# Prompt 8 evidence, derive the NodeSem features (nodesem) and the EdgeSem F4 edges and
+# edge attributes (edgesem) and prove them equal to the unmodified NodeSem/EdgeSem code
+# and their sealed evidence, and smoke-train the MANDO-LLM baselines, the DFG profiles,
+# the NodeSem configurations and the EdgeSem profiles. CPU only (no GPU on runners).
 name: pipeline
 
 on:
@@ -27,11 +29,8 @@ jobs:
         with:
           filter: blob:none
           sparse-checkout-cone-mode: false
-          # node_sem/edge_sem hold ~8 GB of sealed artifacts; neither stage imports them.
           sparse-checkout: |
             /*
-            !/scripts/node_sem/
-            !/scripts/edge_sem/
             !/experiments/
             /experiments/ge-sc-data/source_code/*/source_files/
             !/Test_code/
@@ -50,8 +49,10 @@ jobs:
           pip install "numpy<2" "networkx>=3" tree-sitter==0.20.4 pydot==1.4.2 transformers==4.46.3 \
             scikit-learn scipy pandas matplotlib tensorboard tabulate timebudget \
             torch_geometric pytest
-      - name: hcg, dfg and nodesem unit tests (dfg.train against the sealed Prompt 8 folds/groups)
-        run: python -m pytest -q tests/hcg/test_units.py tests/dfg/test_units.py tests/dfg/test_train.py tests/nodesem/test_units.py
+      - name: hcg, dfg, nodesem and edgesem unit tests (dfg.train against the sealed Prompt 8 folds/groups)
+        run: |
+          python -m pytest -q tests/hcg/test_units.py tests/dfg/test_units.py tests/dfg/test_train.py \
+            tests/nodesem/test_units.py tests/edgesem/test_units.py
 
   category:
     runs-on: ubuntu-24.04
@@ -72,11 +73,8 @@ jobs:
         with:
           filter: blob:none
           sparse-checkout-cone-mode: false
-          # node_sem/edge_sem hold ~8 GB of sealed artifacts; neither stage imports them.
           sparse-checkout: |
             /*
-            !/scripts/node_sem/
-            !/scripts/edge_sem/
             !/experiments/
             /experiments/ge-sc-data/source_code/*/source_files/
             !/Test_code/
@@ -139,6 +137,14 @@ jobs:
           python -m nodesem describe $A --limit 2
           python -c "from nodesem.encode import encode_teacher; u, v = encode_teacher(['reads the balance', 'checks the caller'], 'cpu'); print(len(u), v.shape)"
           python -m nodesem train $A --configs S0o S2 S4 --folds 0 --epochs 2 --device cpu --out out/runs_nodesem
+      - name: edgesem F4 edges and attributes equal the unmodified EdgeSem code and the sealed EdgeSem evidence
+        run: python -m pytest -q tests/edgesem/test_dataset_a.py -k ${{ matrix.category }}
+      - name: edgesem build on the real build, and P2 training smoke (fold 0, 2 epochs, both tasks)
+        run: |
+          python -m edgesem build --categories ${{ matrix.category }} --hcg out/hcg --dfg out/dfg --edgesem out/edgesem
+          python -m edgesem train --categories ${{ matrix.category }} --hcg out/hcg --dfg out/dfg \
+            --edgesem out/edgesem --out out/runs_edgesem --profiles G3R G4R-P G4R-A G4R-Api \
+            --folds 0 --epochs 2 --device cpu
       - name: Upload manifests, DFG summaries and the smoke report
         if: always()
         uses: actions/upload-artifact@v4
@@ -151,5 +157,7 @@ jobs:
             out/runs_anon/report.md
             out/runs_nodesem/report.md
             out/nodesem/A/*/*/summary.json
+            out/runs_edgesem/report.md
+            out/edgesem/A/*/*/summary.json
             out/runs/*/task.json
           if-no-files-found: warn

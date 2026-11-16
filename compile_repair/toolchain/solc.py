@@ -108,7 +108,7 @@ def inventory(trusted):
     A wrong hash or incompatible environment raises, while absent binaries are
     reported to the survey. Trusted records are supplied by a sealed manifest.
     """
-    from scripts.DFG.dfg_v2.validate_slither import (
+    from compile_repair.toolchain.inventory import (
         inspect_environment, compiler_for_selection)
     environment = inspect_environment()
     if environment["skip_reasons"]:

@@ -121,7 +121,7 @@ def test_production_feature_d3(fixture, version, settings, tmp_path):
 
 def test_platform_observation_preserves_public_constructor_results(tmp_path):
     production_required()
-    from scripts.DFG.dfg_v2.validate_slither import _compile
+    from compile_repair.toolchain.inventory import _compile
     compiler = trusted_compilers()["0.4.13"]
     path = ROOT / "tests/fixtures/ternary.sol"
     compilation = compile_file(path, compiler)

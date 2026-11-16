@@ -4,7 +4,6 @@ The missing-compiler gate precedes the expensive matrix. Evidence is written
 once, with a flushed invocation journal; expected candidate failures are data,
 while uncovered inputs, timeouts and integrity failures stop the survey.
 """
-import ast
 import gc
 import hashlib
 import json
@@ -35,14 +34,21 @@ def checked_json(path, expected):
     return json.loads(raw.decode("utf8"))
 
 
+# Source-metadata manifests of the frozen registry (formerly read from the REGISTRY literal
+# of scripts/DFG/dfg_v2/tasks.py, now on the archive branch); values unchanged.
+METADATA_REFS = {
+    "access_control": {"path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/"
+                                "paper_kfold/stage_j_v1/build/access_control_author_contract/sources.json",
+                       "sha256": "c325e8b58ac1378f1bd04d3e38a9c6240fbce6ee672583627a7760d1d3987a82"},
+    "reentrancy": {"path": "/home/zhao/SmartContract/ge-sc-llm-ddg-v11/scripts/DFG/experiments/artifacts/"
+                            "paper_kfold/stage_j_v1/build/reentrancy_author_contract/sources.json",
+                   "sha256": "05bc49e58840478d13f0974248201fafcd50a06922e28bd1f10a1a7679a65f5b"},
+}
+
+
 def metadata_refs(root):
-    """Read only registry literals; never import task/label/graph loaders."""
-    tree = ast.parse((root / "scripts/DFG/dfg_v2/tasks.py").read_text(encoding="utf8"))
-    registry = next(ast.literal_eval(n.value) for n in tree.body
-                    if isinstance(n, ast.Assign) and any(
-                        isinstance(t, ast.Name) and t.id == "REGISTRY" for t in n.targets))
-    return {c: registry[c]["tasks"]["contract"]["source_metadata_manifest"]
-            for c in ("access_control", "reentrancy")}
+    """Frozen registry literals; never import task/label/graph loaders."""
+    return {c: dict(METADATA_REFS[c]) for c in ("access_control", "reentrancy")}
 
 
 def candidate_versions(interval, versions):
@@ -52,8 +58,8 @@ def candidate_versions(interval, versions):
 
 def input_inventory(root, previous):
     """Bind corpus paths/SHA256 to pre-evidence and frozen pragma semantics."""
-    from scripts.DFG.frontend import parse
-    from scripts.DFG.state.stage_f.versioning import interval
+    from dfg.analysis.frontend import parse
+    from dfg.analysis.frontend import interval
     from auto_version_solc import get_solc_version
     old = {(r["class"], r["file"]): r for r in previous}
     if len(old) != len(previous):
@@ -80,7 +86,7 @@ def input_inventory(root, previous):
 
 def bind_metadata(root, rows, refs, authorization):
     """Validate only the approved source manifests and their metadata refs."""
-    from scripts.DFG.state.stage_f.versioning import recorded_version
+    from dfg.analysis.frontend import recorded_version
     if authorization.get("allowed_manifests") != refs:
         raise ValueError("Metadata manifests differ from user-approved read scope")
     local = {(r["category"], r["file"]): r for r in rows}
