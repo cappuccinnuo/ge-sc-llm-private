@@ -1,4 +1,9 @@
-"""TODO docstring."""
+"""Statement facts of every F3 row of a task: AST semantics joined with the DFG evidence.
+
+Original nodes are projected to their exact AST statements; L1/L2/L3 edges are
+accepted only with matching evidence in the F3 audit. ``env_source`` rows carry
+their environment keys.
+"""
 import json
 from collections import Counter, defaultdict
 

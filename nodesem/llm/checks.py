@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""Base response checks: identifier restoration, blacklisted security wording, fact sets
+and gates shared by the alignment in ``post``.
+"""
 import re
 import statistics
 from collections import Counter

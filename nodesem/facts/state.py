@@ -1,4 +1,4 @@
-"""TODO docstring."""
+"""State-access support from the L2 evidence (no new edges) and edge-evidence checks."""
 import re
 from collections import defaultdict
 

@@ -1,4 +1,7 @@
-"""TODO docstring."""
+"""Prompt units: one function (with line numbers, contract header and state variables)
+per unit, local identifiers kept, SolidiFI marker comments removed; functions without
+a body and without target lines are skipped.
+"""
 import hashlib
 from collections import defaultdict
 

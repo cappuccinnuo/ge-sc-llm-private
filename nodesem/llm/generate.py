@@ -96,8 +96,12 @@ def plan_units(task_inputs, asset_sha=MODEL["sha256"], parameters=PARAMETERS):
 
 
 def generate(units, schedule, cache_dir, backend=None, model_cache=None, log=print,
-             asset_sha=MODEL["sha256"], parameters=PARAMETERS):
-    """Generate every non-skipped unit (cached); returns {key: result}."""
+             asset_sha=MODEL["sha256"], parameters=PARAMETERS, limit=None):
+    """Generate every non-skipped unit (cached); returns {key: result}.
+
+    ``limit`` generates at most that many new responses and returns only the
+    results obtained so far (for smoke tests); teacher text then cannot be built.
+    """
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
     results, pending = {}, [k for k in sorted(units) if not schedule[k]
@@ -106,7 +110,10 @@ def generate(units, schedule, cache_dir, backend=None, model_cache=None, log=pri
         backend = LlamaBackend(model_path(model_cache), parameters)
     log("LLM units: %d, skipped %d, cached %d, to generate %d" % (
         len(units), sum(schedule.values()), len(units) - sum(schedule.values()) - len(pending), len(pending)))
+    fresh = 0
     for i, key in enumerate(sorted(units)):
+        if limit is not None and fresh >= limit:
+            break
         if schedule[key]:
             results[key] = dict(status="skipped_no_body", cache_key=key)
             continue
@@ -114,6 +121,7 @@ def generate(units, schedule, cache_dir, backend=None, model_cache=None, log=pri
         if result["parameters"] != parameters or result["asset_sha256"] != asset_sha:
             raise ValueError("Cached response was produced under another model or decoding contract")
         results[key] = dict(status=result["status"], cache_key=key, parsed=result["parsed"])
+        fresh += not result["cache_hit"]
         if not result["cache_hit"] and i % 50 == 0:
             log("  generated %d/%d" % (i + 1, len(units)))
     return results

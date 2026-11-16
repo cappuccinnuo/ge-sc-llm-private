@@ -1,4 +1,10 @@
-"""TODO docstring."""
+"""NodeSem input adapters and the HGT model built on a carried graph.
+
+Each node type gets a ``NodeSemAdapter`` in place of the DFG model's input Linear:
+per-modality LayerNorm (normalized modalities) and projection, presence flags,
+concat or gated fusion, and modality dropout drawn from a per-fit seeded stream.
+S0o keeps the original Linear over raw token IDs; S1o embeds token IDs (64-d bag).
+"""
 import numpy as np
 import torch
 from nodesem.schema import STATIC, TOKEN_IDS

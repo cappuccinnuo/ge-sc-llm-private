@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""STATIC: a name-independent 245-d encoding of the statement facts (schema-driven,
+three-valued fields with explicit unknown indicators).
+"""
 import json
 from pathlib import Path
 

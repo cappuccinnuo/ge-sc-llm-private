@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""Guard evidence: require/assert, if-branch early exits, modifiers and internal check
+functions, with sender-identity comparisons (also disjunctive/conjunctive).
+"""
 from collections import Counter
 
 from nodesem.facts.syntax import sender_condition

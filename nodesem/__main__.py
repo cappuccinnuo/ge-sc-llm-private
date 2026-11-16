@@ -55,6 +55,7 @@ def build_parser():
     _common(cmd)
     cmd.add_argument("--cache", type=Path, default=None, help="response cache (default <nodesem>/llm_cache)")
     cmd.add_argument("--model-cache", type=Path, default=None, help="Hugging Face cache for the GGUF")
+    cmd.add_argument("--limit", type=int, default=None, help="generate at most N new responses (smoke test)")
     cmd = commands.add_parser("train", help="grouped nested CV of feature configurations")
     _common(cmd)
     cmd.add_argument("--configs", nargs="+", default=["S0o", "S2", "S4"], choices=sorted(CONFIGS))
@@ -105,7 +106,7 @@ def main(argv=None):
         from nodesem.store import TaskStore
         items = [(load_context(dataset, c, t, args.hcg, args.dfg, args.label_root), TaskStore(args.nodesem, dataset, c, t))
                  for c, t in pairs]
-        describe_tasks(items, args.cache or args.nodesem / "llm_cache", model_cache=args.model_cache)
+        describe_tasks(items, args.cache or args.nodesem / "llm_cache", model_cache=args.model_cache, limit=args.limit)
     elif args.command == "train":
         from dfg.train.report import report
         from nodesem.train import train

@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""Source-only AST semantics (declarations, operators, bindings) and bounded boolean
+repair of conditions, using original token spellings only internally.
+"""
 import re
 from types import SimpleNamespace
 

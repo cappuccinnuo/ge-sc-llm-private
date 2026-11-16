@@ -1,4 +1,4 @@
-"""TODO docstring."""
+"""Closed, JSON-safe schema of statement facts (validated on construction)."""
 import copy
 import re
 

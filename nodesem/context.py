@@ -1,4 +1,9 @@
-"""TODO docstring."""
+"""CTX fields: data-flow and contract context of a statement, rendered as short text.
+
+Fields (STMT, DEF, USE, FROM, TO, STATE_R/W, GUARD, CALL, ENV, FUNC, ...) come only from
+the statement facts and exact AST slices; ``masked`` replaces identifier spellings by
+their binding role (STATE, PARAM, LOCAL, ...).
+"""
 import copy
 import re
 from collections import OrderedDict, defaultdict

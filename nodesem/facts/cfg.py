@@ -1,4 +1,4 @@
-"""TODO docstring."""
+"""Per-file semantic CFG (DFG analyzers) and exact declaration lookup for facts."""
 import networkx as nx
 
 from dfg.analysis.cfg import CFGBuilder

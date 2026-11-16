@@ -97,7 +97,7 @@ def encode_task(store, device="cuda", batch_size=32, cache_dir=None, teacher=Fal
     log("%s: encoded %s" % (summary["task_id"], "teacher" if teacher else "code, ctx"))
 
 
-def describe_tasks(contexts_and_stores, cache_dir, backend=None, model_cache=None, log=print):
+def describe_tasks(contexts_and_stores, cache_dir, backend=None, model_cache=None, log=print, limit=None):
     """LLM descriptions for all given tasks (shared prompt cache), then teacher text per task."""
     from nodesem.llm.generate import generate, plan_units, teacher_rows
     from nodesem.store import read_jsonl, write_jsonl
@@ -106,7 +106,10 @@ def describe_tasks(contexts_and_stores, cache_dir, backend=None, model_cache=Non
         analysis = dict(text=read_jsonl(store.path / "text.jsonl"), facts=read_jsonl(store.path / "facts.jsonl"))
         inputs.append((context, analysis))
     units, rows_by_task, schedule = plan_units(inputs)
-    results = generate(units, schedule, cache_dir, backend, model_cache, log)
+    results = generate(units, schedule, cache_dir, backend, model_cache, log, limit=limit)
+    if limit is not None:
+        log("limit reached: %d responses available; teacher text not written" % len(results))
+        return results
     for (context, analysis), (_, store) in zip(inputs, contexts_and_stores):
         facts = {r["row_key"]: r["facts"] for r in analysis["facts"]}
         rows = teacher_rows(rows_by_task[context["task_id"]], facts, units, results)

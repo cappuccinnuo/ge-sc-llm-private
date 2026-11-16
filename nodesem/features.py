@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""Feature specifications (the S-series) and the carrier that writes a node's modality
+vectors, each preceded by a presence flag, into its ``token`` attribute.
+"""
 import copy
 import hashlib
 import json

@@ -1,4 +1,6 @@
-"""NS-P8b label-free CPU student. Only explicit vectors, identities and file splits enter."""
+"""Per-fold student: predicts the teacher vector from CTX + STATIC (S5), so deployment needs
+no LLM. Trained with 1-cosine loss on teacher-present inner_train rows, early-stopped on
+inner_val; outer-test teachers are never read. S8 permutes student vectors within node types."""
 import copy
 import math
 import numpy as np

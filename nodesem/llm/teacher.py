@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""Teacher text policy: statement summary plus function intent (no role), presence per
+row, quality statistics, and scattering BGE vectors onto rows.
+"""
 import hashlib
 import statistics
 from collections import Counter

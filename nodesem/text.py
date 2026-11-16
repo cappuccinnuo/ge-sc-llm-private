@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""CODE text of every F3 row: the exact AST span of the statement (signatures for
+functions, headers for contracts), whitespace-normalized; placeholders for end nodes.
+"""
 import copy
 import hashlib
 import re

@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""Response alignment to HCG rows and conservative checks against the statement facts
+(read/write overlap, role agreement); unverifiable descriptions stay, flagged.
+"""
 import re
 
 from nodesem.llm import checks as v1

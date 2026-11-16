@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""Row identity of NodeSem features: original HCG node ids, ``env:<file>:<key>`` for
+environment nodes, and the SHA-256 of a float32 feature vector.
+"""
 import hashlib
 
 import numpy as np

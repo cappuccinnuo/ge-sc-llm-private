@@ -1,4 +1,4 @@
-"""TODO docstring."""
+"""Function and contract summaries (writes, calls, guards, loops, ...) with field masks."""
 from collections import defaultdict
 
 from nodesem.facts.schema import new_facts

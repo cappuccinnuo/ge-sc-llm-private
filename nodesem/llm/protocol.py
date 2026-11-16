@@ -1,4 +1,6 @@
-"""TODO docstring."""
+"""LLM prompt protocol: system/user templates, output schema, response parsing, cache
+keys (prompt + model file SHA-256 + decoding parameters) and the response cache.
+"""
 import hashlib
 import json
 import time
