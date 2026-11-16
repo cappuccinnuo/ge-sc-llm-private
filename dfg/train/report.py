@@ -97,7 +97,7 @@ def select(records):
     return dict(rule=SELECTION, tasks=sorted(tasks), inner_val_scores=score, selected=chosen)
 
 
-def report(run_dir):
+def report(run_dir, baseline="G0"):
     records = load(run_dir)
     if not records:
         raise SystemExit("no results under " + str(run_dir))
@@ -105,8 +105,8 @@ def report(run_dir):
     comparisons = []
     for task_id in sorted({r["task_id"] for r in records}):
         family = {}
-        for profile in sorted({r["profile"] for r in records if r["task_id"] == task_id} - {"G0"}):
-            c = paired(records, task_id, profile)
+        for profile in sorted({r["profile"] for r in records if r["task_id"] == task_id} - {baseline}):
+            c = paired(records, task_id, profile, baseline=baseline)
             if c is not None:
                 comparisons.append(c)
                 family[profile] = c["p_raw"]
@@ -125,7 +125,7 @@ def report(run_dir):
         lines.append("| %s | %s | %d | %s |" % (row["task_id"], row["profile"], len(row["folds"]), " | ".join(
             fmt(row[m], row[m + "_sd"]) for m in METRICS)))
     if comparisons:
-        lines += ["", "Paired with G0 (buggy F1, best checkpoint):", "",
+        lines += ["", "Paired with %s (buggy F1, best checkpoint):" % baseline, "",
                   "| task | profile | mean diff (pp) | improved/tied/worse | p | p Holm |", "|---|---|---|---|---|---|"]
         for c in comparisons:
             p = "-" if c["p_raw"] is None else "%.4f" % c["p_raw"]
