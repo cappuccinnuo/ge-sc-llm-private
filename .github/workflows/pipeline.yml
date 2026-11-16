@@ -119,10 +119,12 @@ jobs:
         run: python -m dfg build --categories ${{ matrix.category }} --hcg out/hcg --out out/dfg
       - name: dfg layers match the pre-restructure code and the sealed Prompt 8 evidence
         run: python -m pytest -q tests/dfg/test_dataset_a.py -k ${{ matrix.category }}
-      - name: dfg training smoke (G0 vs G3R, fold 0, 2 epochs, anonymized features, both tasks)
+      - name: dfg training smoke (G0 vs G3R, fold 0, 2 epochs, both tasks; original and anonymized views)
         run: |
           python -m dfg train --categories ${{ matrix.category }} --hcg out/hcg --dfg out/dfg \
             --out out/runs --profiles G0 G3R --folds 0 --epochs 2 --device cpu
+          python -m dfg train --categories ${{ matrix.category }} --hcg out/hcg --dfg out/dfg \
+            --out out/runs_anon --profiles G0 G3R --folds 0 --epochs 2 --device cpu --features anonymous
       - name: Upload manifests, DFG summaries and the smoke report
         if: always()
         uses: actions/upload-artifact@v4
@@ -132,5 +134,6 @@ jobs:
             out/hcg/A/${{ matrix.category }}/manifest.json
             out/dfg/A/${{ matrix.category }}/*/summary.json
             out/runs/report.md
+            out/runs_anon/report.md
             out/runs/*/task.json
           if-no-files-found: warn

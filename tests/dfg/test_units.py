@@ -113,3 +113,21 @@ def test_cli_rejects_unknown_category_and_gaps_in_layers():
         cli(["build", "--categories", "nope"])
     with pytest.raises(SystemExit, match="cumulative"):
         cli(["build", "--layers", "L1", "L3"])
+
+
+def test_edgesem_pins_the_current_hgt_layer():
+    """EdgeSem subclasses dfg.model.hgt; a changed parent layer must be a deliberate update."""
+    from scripts.edge_sem.hgt_edge import verify_frozen_sources
+    verify_frozen_sources()
+
+
+def test_legacy_names_are_the_moved_modules():
+    """scripts.DFG.<old> resolves to the dfg module itself (one object, own spec)."""
+    import importlib
+    import scripts.DFG as legacy
+    for old, new in legacy.MOVED.items():
+        module = importlib.import_module("scripts.DFG." + old)
+        assert module is importlib.import_module(new)
+        assert module.__spec__.name == new
+    from scripts.DFG.dfg_v2 import PROFILES
+    assert PROFILES is schema.PROFILES

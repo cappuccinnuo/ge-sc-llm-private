@@ -31,7 +31,7 @@ class TaskData:
     """Graphs per graph key, file labels and nested folds of one task."""
 
     def __init__(self, dataset, category, task, hcg_root, dfg_root, label_root,
-                 features="anonymous", encoder=None, log=print):
+                 features="original", encoder=None, log=print):
         if features not in ("anonymous", "original"):
             raise ValueError("features must be 'anonymous' or 'original'")
         self.task = task
@@ -164,7 +164,7 @@ def run_task(data, out_dir, profiles=ALL_PROFILES, folds=None, seed=1, device="c
 
 
 def train(dataset, categories, tasks, hcg_root, dfg_root, label_root, out_root, profiles=ALL_PROFILES,
-          folds=None, seed=1, device="cpu", features="anonymous", config_overrides=None,
+          folds=None, seed=1, device="cpu", features="original", config_overrides=None,
           save_checkpoints=False, encoder=None, log=print):
     results = []
     for category in categories:

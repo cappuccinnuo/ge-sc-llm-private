@@ -38,7 +38,8 @@ def build_parser():
     cmd.add_argument("--folds", nargs="+", type=int, default=None, help="default: all folds")
     cmd.add_argument("--seed", type=int, default=1)
     cmd.add_argument("--device", default="cuda:0" if _cuda() else "cpu")
-    cmd.add_argument("--features", choices=("anonymous", "original"), default="anonymous")
+    cmd.add_argument("--features", choices=("original", "anonymous"), default="original",
+                     help="node tokens from original code (default) or identifier-anonymized code")
     cmd.add_argument("--epochs", type=int, default=None, help="override the 50-epoch schedule")
     cmd.add_argument("--save-checkpoints", action="store_true")
     cmd = commands.add_parser("report", help="summarize a training run")

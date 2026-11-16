@@ -67,15 +67,19 @@ Tasks: `<category>_contract` (all contracts, contract labels) and `<category>_no
 
 The numerics of the Prompt 8H benchmark, without its sealing layer:
 
+
 * **Folds** (`splits.py`): source files are grouped by duplicates (exact after removing
   whitespace; near = comments also removed, `SequenceMatcher` ratio ≥ 0.98), then groups
   are assigned to 5 (contract) or 10 (node) outer folds and each remainder to inner
   train/validation 80/20 by deterministic greedy stratification (file class × SolidiFI
   cohort, node label counts). Duplicates never straddle train and test.
-* **Features** (`features.py`): node tokens are recomputed after a per-file bijective
-  renaming of user identifiers (`bug_txorigin20` → `v17`), because SolidiFI's injected
-  names leak labels. Builtins, globals and keywords are kept; files the grammar cannot
-  parse keep their original tokens and are listed in `task.json`.
+* **Features**: by default the HCG node tokens of the original code (the project's
+  main view, shared with NodeSem/EdgeSem). `--features anonymous` (`features.py`)
+  recomputes them after a per-file bijective renaming of user identifiers
+  (`bug_txorigin20` → `v17`), the Prompt 8H view, since SolidiFI's injected names can
+  leak labels. Builtins, globals and keywords are kept; files the grammar cannot parse
+  keep their original tokens and are listed in `task.json`. Scores of the two views are
+  not paired with each other.
 * **Initialization** (`init.py`): per fold a G0 model is built with the fold's
   constructor seed; every other profile copies G0's parameters by semantic identity and
   draws only its new relation/node rows. Profiles differ in structure, not initial weights.

@@ -16,7 +16,7 @@ from dgl.nn.functional import edge_softmax
 from . import FAMILIES, RELATION_FAMILY
 
 FROZEN_SOURCES = {
-    "scripts/DFG/dfg_v2/hgt_layer.py": "09eb3f7d6cce2e22214cb0cb127d47c69fab43e382032f8439896938ef46cf8b",
+    "dfg/model/hgt.py": "2699ec7331568cececcac7369d92927d16dadf3e18952f4ec5191d0530d16d7a",
     "sco_models/model_hgt.py": "4e6ff0710b345ffddb555810fadb74225dcf396f90b3cdf928f4f0afc3a12947",
 }
 
@@ -28,8 +28,9 @@ def verify_frozen_sources(root=None):
             raise ValueError("Frozen HGT source SHA mismatch: "+name)
 
 
-verify_frozen_sources()
-from scripts.DFG.dfg_v2.hgt_layer import HGTLayerSharedProjection
+# Checked by tests/dfg/test_units.py::test_edgesem_pins_the_current_hgt_layer (was an
+# import-time check; the layer moved from scripts/DFG/dfg_v2/hgt_layer.py, content unchanged).
+from dfg.model.hgt import HGTLayerSharedProjection
 
 
 class EdgeAttrEncoder(nn.Module):
