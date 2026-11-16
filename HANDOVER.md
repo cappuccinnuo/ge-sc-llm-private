@@ -3091,3 +3091,10 @@ EP9 监控修复已完成真实任务闭环验证：原名重入节点 fold1/G4R
 用户要求新建包含所有既有创新的分支。已在独立工作树 /home/zhao/SmartContract/ge-sc-llm-rtx5080 创建 rtx5080-rebuild，以 edge-sem@88cc13a7 为基，合入 DFG v2 最新方案、compile-repair@0e6830ed（CP2.2）和 main 历史；NodeSem 最新远程提交及 DDG v1.1 已在祖先链内。来源完整 SHA、逐文件对象核验和冲突处理见 docs/rtx5080_branch_manifest.json，入口 MIGRATION_5080.md。
 
 原分支保留。main 的两个历史交接正文已完整包含在当前文档中；README 保留当前集成入口，原 auto_version_solc.py 字节保留。没有修改算法或训练计算。compile_repair 子树与其原分支一致；本轮仅完成整合，不表示 5080 环境或从源码到训练已验收，也不自动推进 CP3。外部基础模型按固定版本另行准备，项目权重在新批次重训；原名主视图与匿名对比接口按后续新计划登记。最终服务器实验独立建批次，原本机显存限制不继承为新机器固定规则。
+
+
+## 2026-11-15：hcg 上游构图包（Claude）
+
+新增根目录包 `hcg/`（入口 `python -m hcg build`，说明见 hcg/README.md），从原始 .sol 为 Dataset A 七类构建合约级/行级图、合约标签和 512 维 tokenizer 特征。七类重建结果在按合约名对齐后与 data/upstream_mando_llm 的作者图逐节点、逐边、逐属性完全一致，合约标签也一致；节点标签采用 Test_code/label_pipeline（2026-10-10）的公开标注政策，七类 annotations_preprocessed 与 label_differences 均逐项复现。作者边名依据 CFG_solidity.py 的边创建位置映射（表在 hcg/cfg/author_schema.py，绑定该文件 SHA-256）。process_graphs、DFG v2、NodeSem、EdgeSem、compile_repair、sco_models 未修改。
+
+删除 scripts/ 下被 hcg 取代的构图脚本和一次性诊断脚本（共 46 个文件）以及 access_control_test、author_label_audit_20261009、reentrancy_ablation 三个实验目录；删除前后全部测试套件的失败集合逐项相同。被引用的 encode_tokenizer_features.py、line_mapping.py、labeling_v2、verify_*_archive.py 保留。下游模块接入新图与其余五类登记为第二阶段，未进行。
