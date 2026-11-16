@@ -14,15 +14,15 @@ from pathlib import Path
 import torch
 
 from dfg.graph.pipeline import key_for_profile
-from dfg.inputs import TASKS, hcg_dir, load_task
+from dfg.inputs import TASKS, has_tokens, hcg_dir, load_task
 from dfg.model.model import make_model
 from dfg.schema import PROFILES
 from dfg.train.features import anonymize_features
 from dfg.train.init import initialize_family, seeds
 from dfg.train.splits import K_FOLDS, category_groups, grouped_folds, population
 from dfg.train.trainer import ROLES, Supervision, fit, score, task_config
-from dfg.utils import seed_all, tensor_digest
-from hcg.store.io import dump_json, read_gpickle
+from dfg.utils import digest, seed_all, tensor_digest
+from hcg.store.io import dump_json, read_gpickle, sha256
 
 ALL_PROFILES = ("G0", "G1R", "G2R", "G3R", "G3")
 
@@ -39,11 +39,18 @@ class TaskData:
         self.task_id = inp.task_id
         labels = json.loads((hcg_dir(hcg_root, dataset, category) / "graph_labels.json").read_text())
         self.file_labels = {r["contract_name"]: int(r["targets"]) for r in labels}
+        if not has_tokens(inp.graph):
+            raise ValueError("%s: HCG has no node tokens; build it without --no-tokens" % inp.task_id)
         self.graphs = {"F0": inp.graph}
-        for key in ("F1", "F2", "F3"):
-            path = Path(dfg_root) / dataset / category / task / key / "graph.gpickle"
-            if path.is_file():
-                self.graphs[key] = read_gpickle(path)
+        store = Path(dfg_root) / dataset / category / task
+        if (store / "summary.json").is_file():
+            built_from = json.loads((store / "summary.json").read_text())["hcg_graph"]["sha256"]
+            if built_from != sha256(inp.graph_path):
+                raise ValueError("%s: DFG store was built from a different HCG graph; rerun "
+                                 "`python -m dfg build`" % inp.task_id)
+            for key in ("F1", "F2", "F3"):
+                if (store / key / "graph.gpickle").is_file():
+                    self.graphs[key] = read_gpickle(store / key / "graph.gpickle")
         self.feature_summary = dict(view=features)
         if features == "anonymous":
             if encoder is None:
@@ -112,9 +119,16 @@ def run_task(data, out_dir, profiles=ALL_PROFILES, folds=None, seed=1, device="c
     config = task_config(data.task, **(config_overrides or {}))
     out_dir = Path(out_dir) / data.task_id
     out_dir.mkdir(parents=True, exist_ok=True)
+    identity = dict(task_id=data.task_id, task=data.task, seed=seed, config=config,
+                    features=data.feature_summary, folds_sha256=digest(data.folds))
+    previous = out_dir / "task.json"
+    if previous.is_file():
+        old = json.loads(previous.read_text())
+        if {k: old.get(k) for k in identity} != identity:
+            raise ValueError("%s already holds a run with a different config, seed, feature view or "
+                             "folds; use another --out" % out_dir)
     dump_json(out_dir / "folds.json", data.folds)
-    dump_json(out_dir / "task.json", dict(task_id=data.task_id, task=data.task, config=config,
-                                          groups=data.groups, features=data.feature_summary))
+    dump_json(previous, dict(identity, groups=data.groups))
     chosen = range(len(data.folds["folds"])) if folds is None else folds
     results = []
     for fold in chosen:

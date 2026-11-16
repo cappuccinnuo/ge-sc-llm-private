@@ -18,11 +18,11 @@ from dfg.utils import metrics
 
 ROLES = ("inner_train", "inner_val", "outer_test")
 CONFIG = {
-    "contract": dict(k_folds=5, initial_lr=0.0005, max_lr=0.01, weight_decay=5e-06),
-    "node": dict(k_folds=10, initial_lr=0.0002, max_lr=0.005, weight_decay=0.0),
+    "contract": dict(k_folds=5, initial_lr=0.0005, max_lr=0.01, weight_decay=5e-06, div_factor=20),
+    "node": dict(k_folds=10, initial_lr=0.0002, max_lr=0.005, weight_decay=0.0, div_factor=25),
 }
 COMMON = dict(hidden_size=128, layers=2, heads=8, reducer="mean", layer_impl="shared_projection",
-              dropout=0.2, maximum_training_epochs=50, schedule_epochs=50, div_factor=20,
+              dropout=0.2, maximum_training_epochs=50, schedule_epochs=50,
               final_div_factor=1, cycle_momentum=True, patience=7, delta=0.001)
 
 

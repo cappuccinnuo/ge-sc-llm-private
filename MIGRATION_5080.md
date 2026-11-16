@@ -64,3 +64,11 @@ main 的 README 冲突保留当前仓库内的集成入口；auto_version_solc.p
 - 训练默认用 hcg 标签（10 月 10 日公开标注策略）与原名特征；`--features anonymous` 保留 8H 的匿名视图。L-audit 诊断标签、G0P 安慰剂、封存/收据/修订层不在主线，保存在归档分支 `archive/pre-restructure-2026-11-15`。
 - `scripts/DFG` 只保留 NodeSem/EdgeSem 仍在导入的 131 个旧模块（集成这两个模块时再移除）；已迁移模块经 `scripts/DFG/__init__.py` 的导入映射指向 `dfg` 中同一模块对象。DFG 产物（约 5 GB）与 `scripts/verify_{e23,h1,h2}_archive.py` 已从主线移除；新训练结果写入不跟踪的 `runs/`。
 - EdgeSem 对 HGT 层源码的导入时 SHA 检查改为测试（tests/dfg/test_units.py），所继承的层代码未变。
+
+## 2026-11-16：NodeSem 接入新图（含 LLM）与重构
+
+- 复查：发现并修复 `dfg.train` 两处问题——未检查 DFG 图是否由当前 HCG 构建；续跑时不同配置的结果可能混入同一目录（均已拒绝）。另发现移植时节点任务 OneCycle `div_factor` 误用 20，8H 实际为 25（合约任务 20），已修正并加测试固定两类任务配置。
+- NodeSem 移入顶层 `nodesem/` 包（inputs、text、facts/、context、static、pipeline、store、encode、llm/、student、features、model、init、train），读取 `data/hcg` 与 `data/dfg`，七类均可运行：`python -m nodesem analyze|encode|describe|train|report`，详见 nodesem/README.md。按用户决定包含全部配置（S0o/S1o/S2/S3/S3m/S4/S4g/S4m/S4-noG/S5/S6/S8，含 LLM 教师与学生）。
+- 等价性：分析阶段（代码文本、facts、CTX、STATIC）在七类 × 两任务上与原 NodeSem 代码逐位一致；重入/访问控制与封存产物逐文件一致（访问控制 6 个节点的状态读取列表顺序随图边顺序不同，内容相同）；新图上的 LLM 提示共 4,485 个缓存键，与封存 llm_v3 完全相同，因此原机器上的回复缓存可直接复制到 `data/nodesem/llm_cache` 复用；S0o/S2/S4 × G0/G3R 的 fold0 初始权重与封存 N-A 摘要一致；教师文本路径在合成回复上与原代码逐行一致。
+- `scripts/node_sem` 只保留 EdgeSem 仍导入的 15 个模块与测试夹具（集成 EdgeSem 时移除），其余 5,014 个文件（含约 6 GB 产物）已从主线移除，保存在归档分支；EdgeSem 测试结果与清理前逐项相同。
+- 编码器与 LLM 在 GPU 上以 fp16 运行（与原实验一致），向量与旧结果在 fp16 精度内一致而非逐位一致。

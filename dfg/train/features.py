@@ -13,7 +13,6 @@ import copy
 import hashlib
 import random
 import re
-from collections import Counter
 
 import numpy as np
 
@@ -226,7 +225,3 @@ def anonymize_features(graph, sources, encoder):
 
 def code_sha(code):
     return hashlib.sha256(code.encode("utf8")).hexdigest()
-
-
-def code_counts(codes):
-    return Counter(code_sha(c) for c in codes.values())
