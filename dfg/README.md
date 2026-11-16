@@ -84,7 +84,7 @@ The numerics of the Prompt 8H benchmark, without its sealing layer:
   constructor seed; every other profile copies G0's parameters by semantic identity and
   draws only its new relation/node rows. Profiles differ in structure, not initial weights.
 * **Fit** (`trainer.py`): full-batch Adam + OneCycle (one step per epoch), cross-entropy,
-  at most 50 epochs; the best checkpoint is the minimum inner-validation loss (patience 7,
+  at most 50 epochs (OneCycle div factor 20 for contract, 25 for node tasks); the best checkpoint is the minimum inner-validation loss (patience 7,
   δ 0.001). Outer-test labels are read only after fitting. `env_source` nodes are never
   supervised or scored. Contract: lr 5e-4 → 1e-2, weight decay 5e-6; node: lr 2e-4 →
   5e-3, no weight decay; hidden 128, 2 layers, 8 heads, shared-projection HGT layer.

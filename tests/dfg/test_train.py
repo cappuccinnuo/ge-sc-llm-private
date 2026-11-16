@@ -200,3 +200,18 @@ def test_resume_refuses_a_run_directory_with_another_config(tmp_path):
     (tmp_path / "reentrancy_node" / "task.json").write_text(json.dumps(dict(task_id="reentrancy_node", config={})))
     with pytest.raises(ValueError, match="different config"):
         run_task(data, tmp_path, folds=[])
+
+
+def test_task_configs_equal_the_prompt8h_effective_configs():
+    """Values of prompt8h_v1/plan.json tasks[*].effective_config (archive branch)."""
+    expected = {
+        "contract": dict(hidden_size=128, layers=2, heads=8, initial_lr=0.0005, max_lr=0.01, weight_decay=5e-06,
+                         div_factor=20, final_div_factor=1, maximum_training_epochs=50, schedule_epochs=50,
+                         cycle_momentum=True, patience=7, delta=0.001, layer_impl="shared_projection"),
+        "node": dict(hidden_size=128, layers=2, heads=8, initial_lr=0.0002, max_lr=0.005, weight_decay=0.0,
+                     div_factor=25, final_div_factor=1, maximum_training_epochs=50, schedule_epochs=50,
+                     cycle_momentum=True, patience=7, delta=0.001, layer_impl="shared_projection"),
+    }
+    for task, values in expected.items():
+        config = task_config(task)
+        assert {k: config[k] for k in values} == values, task
