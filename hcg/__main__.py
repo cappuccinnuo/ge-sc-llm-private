@@ -1,6 +1,6 @@
 """Command line: python -m hcg {fetch,build}
 
-    python -m hcg fetch                          # pinned SmartBugs + SolidiFI checkouts
+    python -m hcg fetch [--label-root DIR]       # pinned SmartBugs + SolidiFI checkouts
     python -m hcg build                          # Dataset A, all seven categories
     python -m hcg build --categories reentrancy access_control --no-tokens
 
@@ -20,15 +20,17 @@ from hcg.sources import repos
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(prog="python -m hcg", description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--label-root", type=Path,
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--label-root", type=Path,
                         default=Path(os.environ.get("MANDO_DATA_DIR", REPO / "data")),
                         help="holds smartbug-dataset/ and SolidiFI-benchmark/ "
                              "(default $MANDO_DATA_DIR or <repo>/data)")
+    parser = argparse.ArgumentParser(prog="python -m hcg", description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("fetch", help="fetch the pinned annotation repositories")
-    build = commands.add_parser("build", help="build graphs for a dataset")
+    commands.add_parser("fetch", parents=[common],
+                        help="fetch the pinned annotation repositories")
+    build = commands.add_parser("build", parents=[common], help="build graphs for a dataset")
     build.add_argument("--dataset", default="A")
     build.add_argument("--categories", nargs="+", default=["all"])
     build.add_argument("--out", type=Path, default=REPO / "data/hcg")
@@ -45,8 +47,12 @@ def main(argv=None):
         return 0
 
     dataset = get_dataset(args.dataset)
-    names = ([c.name for c in dataset.categories] if args.categories == ["all"]
-             else args.categories)
+    known = [c.name for c in dataset.categories]
+    names = known if args.categories == ["all"] else args.categories
+    unknown = [n for n in names if n not in known]
+    if unknown:
+        raise SystemExit("unknown categories %s for dataset %s; known: %s"
+                         % (unknown, dataset.name, ", ".join(known)))
     tokenizer = None
     if not args.no_tokens:
         from hcg.features import load_tokenizer

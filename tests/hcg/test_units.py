@@ -156,3 +156,17 @@ def test_gpickle_protocol_4(tmp_path):
     io.write_gpickle(_graph(), path)
     assert path.read_bytes()[:2] == b"\x80\x04"
     assert io.read_gpickle(path).nodes[1]["node_type"] == "expression_statement"
+
+
+# ----------------------------------------------------------------------- cli --
+def test_cli_accepts_label_root_after_the_subcommand(tmp_path):
+    from hcg.__main__ import build_parser
+    args = build_parser().parse_args(["build", "--label-root", str(tmp_path), "--no-tokens"])
+    assert args.label_root == tmp_path and args.no_tokens
+    assert build_parser().parse_args(["fetch", "--label-root", str(tmp_path)]).command == "fetch"
+
+
+def test_cli_rejects_unknown_category():
+    from hcg.__main__ import main
+    with pytest.raises(SystemExit, match="unknown categories"):
+        main(["build", "--categories", "not_a_class", "--no-tokens"])
