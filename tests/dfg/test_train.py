@@ -188,3 +188,15 @@ def test_report_summary_selection_and_holm():
     assert rows["G3R"]["buggy_f1"] == pytest.approx(61.5)
     assert select(records)["selected"] == "G3"   # within 0.1 pp: fewer relations wins
     assert holm({"a": .01, "b": .04, "c": None}) == {"a": .02, "b": .04, "c": None}
+
+
+def test_resume_refuses_a_run_directory_with_another_config(tmp_path):
+    from types import SimpleNamespace
+    from dfg.train.runner import run_task
+    ref = SEALED["folds"]["reentrancy_node"]
+    data = SimpleNamespace(task="node", task_id="reentrancy_node", groups=1, feature_summary=dict(view="original"),
+                           folds=splits.grouped_folds("reentrancy_node", ref["rows"], 10))
+    (tmp_path / "reentrancy_node").mkdir()
+    (tmp_path / "reentrancy_node" / "task.json").write_text(json.dumps(dict(task_id="reentrancy_node", config={})))
+    with pytest.raises(ValueError, match="different config"):
+        run_task(data, tmp_path, folds=[])
