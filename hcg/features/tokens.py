@@ -1,6 +1,6 @@
 """512-wide tokenizer features: MANDO-LLM's node feature (node['token']).
 
-As recorded in scripts/DFG/dfg_v2/RECON.md for the frozen DFG v2 inputs: the
+As fixed for the frozen DFG v2 inputs (the RECON record is on the archive branch): the
 CodeT5+ 770M tokenizer at a fixed revision, applied to the node's code exactly as
 stored (authors' quotes and escapes kept), special tokens added, the first 512 ids
 kept and right-padded with the pad id, as float32. Same arithmetic as

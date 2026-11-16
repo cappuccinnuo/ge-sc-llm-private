@@ -17,7 +17,7 @@ from compile_repair.rules.environment import (make_plan, mando_known_version,
     ordered_candidates, pragma_patches, settings_retry)
 from compile_repair.toolchain.solc import compile_file, load_trusted_compilers, version_tuple
 from compile_repair.toolchain.slither import check_profile, run_slither
-from scripts.DFG.models import Unsupported
+from dfg.analysis.ir import Unsupported
 
 
 def repair_unit(unit, compilers, store, journal, order="ascending",

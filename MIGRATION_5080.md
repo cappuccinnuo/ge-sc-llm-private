@@ -72,3 +72,12 @@ main 的 README 冲突保留当前仓库内的集成入口；auto_version_solc.p
 - 等价性：分析阶段（代码文本、facts、CTX、STATIC）在七类 × 两任务上与原 NodeSem 代码逐位一致；重入/访问控制与封存产物逐文件一致（访问控制 6 个节点的状态读取列表顺序随图边顺序不同，内容相同）；新图上的 LLM 提示共 4,485 个缓存键，与封存 llm_v3 完全相同，因此原机器上的回复缓存可直接复制到 `data/nodesem/llm_cache` 复用；S0o/S2/S4 × G0/G3R 的 fold0 初始权重与封存 N-A 摘要一致；教师文本路径在合成回复上与原代码逐行一致。
 - `scripts/node_sem` 只保留 EdgeSem 仍导入的 15 个模块与测试夹具（集成 EdgeSem 时移除），其余 5,014 个文件（含约 6 GB 产物）已从主线移除，保存在归档分支；EdgeSem 测试结果与清理前逐项相同。
 - 编码器与 LLM 在 GPU 上以 fp16 运行（与原实验一致），向量与旧结果在 fp16 精度内一致而非逐位一致。
+
+## 2026-11-16：EdgeSem 接入新图与重构；移除旧目录
+
+- EdgeSem 移入顶层 `edgesem/` 包（schema、graph/（F4 = F3 + MOD_APPLY/CALL_SITE/GUARDS）、attributes/（74 位边属性）、pipeline、store、model/（关系物化、类型化初值、边感知 HGT、安慰剂、构建与校验）、train），读取 `data/hcg` 与 `data/dfg`，facts 由 `nodesem.facts` 从同一输入重算，不依赖 NodeSem 存储。七类两任务均可运行：`python -m edgesem build|train|report`，详见 edgesem/README.md。
+- 训练沿用冻结的 P2：DFG 任务配置、patience 51（固定 50 轮）、严格最小内验证损失选 best；每折所有 profile 由该折构造种子下全新的 G3R 锚点派生（G3R、G3R-T、G4R、G4R-P、G3R-TA、G4R-A、G4R-Api、G4R-AC）。折、标签、节点 token 与 `dfg.train` 同一任务一致（hcg 标签；`--features anonymous` 仅替换 token，边属性始终原名视图）。EdgeSem 的 G3R 是其自身基线（`dfg.train` 的 G3R 由 G0 家族初始化）。
+- 等价性：新图上 F4 边与旧 EdgeSem 代码逐条一致，并与封存 f4_v2 四个任务（重入/访问控制 × 节点/合约）按源码锚点与证据完全一致；重入/访问控制节点任务的边属性（31,372 / 21,830 行）与封存 ep6 逐位一致；7 个已训练 profile 的初始参数摘要与封存 EP7–EP9 一致（测试核对 fold 0 与 fold 9）。七类 14 个任务的新包输出与旧代码在新图上的输出一致（tests/edgesem/reference/old_code.json）。
+- 发现并修复：networkx ≥ 3.5 的 `immediate_dominators` 不再包含起点，旧 EdgeSem 在新环境中计算支配位时会 KeyError（或把入口判为不自支配）；已补回根节点映射，与封存时的 networkx 2.6.3 语义一致，并加单元测试模拟新行为。
+- 发现并修复（上一轮引入）：DFG 重构删除了 `scripts/DFG/dfg_v2/validate_slither.py`，但 compile_repair 仍延迟导入其中的编译器清点函数；所需 5 个函数已原样移至 `compile_repair/toolchain/inventory.py`。compile_repair 经旧别名导入的 frontend/ir 改为直接导入 `dfg.analysis`（同一模块对象）；`metadata_refs` 读取的注册表常量内联（数值不变）。
+- 移除 `scripts/edge_sem`（含约 6 GB 封存产物）、`scripts/node_sem`、`scripts/DFG`（含别名映射与 dfg_v2）；全部保存在归档分支 `archive/pre-restructure-2026-11-15`。新主线的 hcg → dfg → nodesem → edgesem 只依赖重新生成的输出。

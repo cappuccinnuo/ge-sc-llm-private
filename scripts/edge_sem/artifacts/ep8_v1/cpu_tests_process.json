@@ -1,6 +1,0 @@
-{
-  "pid": 1419989,
-  "script": "import os,subprocess,json,time,pathlib,hashlib\nroot=pathlib.Path.cwd();out=root/\"scripts/edge_sem/artifacts/ep8_v1/cpu_tests_v1\"\nout.mkdir(exist_ok=False);results=[]\nfor name in (\"edge_sem\",\"node_sem\",\"DFG/dfg_v2\"):\n args=[\"/home/zhao/miniconda3/envs/mando/bin/python\",\"-B\",\"-m\",\"pytest\",\"-q\",\"-p\",\"no:cacheprovider\",\"scripts/\"+name+\"/tests\"]\n log=out/(name.replace(\"/\",\"_\")+\".log\");started=time.monotonic()\n with log.open(\"x\",encoding=\"utf8\") as f:done=subprocess.run(args,stdout=f,stderr=subprocess.STDOUT)\n value=dict(suite=name,command=args,exit_code=done.returncode,seconds=time.monotonic()-started,log=dict(path=str(log),sha256=hashlib.sha256(log.read_bytes()).hexdigest()))\n results.append(value)\n with (out/(name.replace(\"/\",\"_\")+\".json\")).open(\"x\",encoding=\"utf8\") as f:json.dump(value,f,indent=2)\n if done.returncode:break\nwith (out/\"results.json\").open(\"x\",encoding=\"utf8\") as f:json.dump(dict(passed=len(results)==3 and all(r[\"exit_code\"]==0 for r in results),suites=results),f,indent=2)\n",
-  "started_unix": 1794453796.5923505,
-  "gpu_hidden": true
-}

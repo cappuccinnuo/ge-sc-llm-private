@@ -1,1 +1,0 @@
-pragma solidity ^0.5.11; contract Subject { address owner; mapping(address=>uint) rewards; function f(address a) public { require(msg.sender == owner); rewards[a] = 0; } function mul(uint a,uint b) public pure returns(uint) { uint c = a * b; assert(c / a == b); return c; } }

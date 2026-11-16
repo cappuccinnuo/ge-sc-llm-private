@@ -1,0 +1,231 @@
+"""Guard evidence for GUARDS and MOD_APPLY edges: modifier guard sources, per-file guard
+collection and the task-level guard correspondence audit.
+"""
+import copy
+import hashlib
+from collections import Counter
+
+from dfg.analysis.frontend import walk
+from nodesem.facts.extract import STATEMENTS, kind_of
+from nodesem.facts.guards import children, unwrap
+from nodesem.facts.syntax import key
+
+
+FROZEN_SOURCE_SHA256 = "bb2bad3e65aab2e35a88955b7cc33d53ec324471156cca2f6987b377d24fbda5"
+
+def public_record(record):
+    return {k: v for k, v in record.items() if not k.startswith("_")}
+
+def inspect_modifier_guards(analyzer, function):
+    """Return sources plus unresolved/audit counters without changing cached records."""
+    result, unresolved, audit = [], Counter(), Counter()
+    sem = analyzer.sem
+    invocations = [n for n in children(function) if n.type == "modifier_invocation"
+        and not (sem.text(n) == "constant" and not sem.members(function).get("constant"))]
+    if not invocations:
+        return result, unresolved, audit
+    scope = analyzer._scope(function)
+    for invocation in invocations:
+        cs = children(invocation)
+        if scope is None or not cs or cs[0].type != "identifier":
+            unresolved["modifier_binding_unresolved"] += 1
+            audit["modifier_unresolved"] += 1
+            continue
+        ds = scope.declarations(sem.text(cs[0]))
+        if len(ds) != 1 or ds[0].type != "modifier_definition":
+            unresolved["modifier_binding_unresolved"] += 1
+            audit["modifier_unresolved"] += 1
+            continue
+        modifier = ds[0]
+        body = modifier.child_by_field_name("body")
+        bindings = analyzer._bindings(modifier, invocation)
+        holes = [] if body is None else [n for n in walk(body)
+            if n.type == "expression_statement" and unwrap(n).type == "identifier"
+            and sem.text(unwrap(n)) == "_"]
+        if not holes or bindings is None:
+            unresolved["modifier_placeholder_or_arguments_unresolved"] += 1
+            audit["modifier_unresolved"] += 1
+            continue
+        if len(holes) != 1:
+            unresolved["modifier_multiple_placeholders"] += 1
+            audit["modifier_unresolved"] += 1
+            continue
+        audit["modifier_resolved"] += 1
+        if scope.owner.get(modifier.start_byte) != scope.contract:
+            audit["modifier_inherited"] += 1
+        guards, _ = analyzer._lexical(holes[0], modifier, include_internal=False)
+        for guard in guards:
+            if guard["rule"] not in {"1", "2", "3"}:
+                continue
+            anchor = guard["_anchor"]
+            condition = (anchor.child_by_field_name("condition") if anchor.type == "if_statement"
+                         else analyzer._require(anchor))
+            rule = "5p" if guard["rule"] == "2" else "5"
+            record = analyzer._guard(rule, "modifier", guard["polarity"], condition,
+                                     invocation, bindings)
+            result.append(dict(record=public_record(record), invocation=invocation,
+                               inner_anchor=anchor))
+    return result, unresolved, audit
+
+def modifier_guard_sources(analyzer, function):
+    """Required EP0b/EP3 list API; diagnostics are available via inspect_modifier_guards."""
+    return inspect_modifier_guards(analyzer, function)[0]
+
+
+KINDS = frozenset(("require","if_branch","early_exit","loop_cond","modifier","internal_check"))
+
+def anchor(node):
+    return None if node is None else list(key(node))
+
+def collect_guards(file,source,sem,raw,analyzer):
+    """Return forward edges and a full audit, including non-projectable records.
+
+    The task builder stops on nonmodifier missing mappings after persisting the
+    audit. This helper returns them so the exact failed identities can be tested.
+    No smallest-containing-statement or nearest-node fallback is used.
+    """
+    inverse={key(n):nid for nid,n in raw.items()}
+    if len(inverse)!=len(raw):
+        raise ValueError("Nonunique guard AST projection")
+    sha=hashlib.sha256(source.encode("utf8")).hexdigest()
+    edges={};counts=Counter();kind_records=Counter();kind_mapped=Counter()
+    sources_by_function={};functions=[];targets=[];missing=[];excluded=[]
+    for nid,node in raw.items():
+        if node.type not in STATEMENTS:
+            if kind_of(node,sem) in ("statement","condition"):
+                excluded.append(dict(node=nid,anchor=anchor(node),
+                    records=len(analyzer.for_node(node)["guards"])))
+            continue
+        result=analyzer.for_node(node);guards=result["guards"];function=sem.owner(node)
+        fkey=key(function) if function is not None else None
+        if fkey not in sources_by_function:
+            sources=[] if function is None else modifier_guard_sources(analyzer,function)
+            sources_by_function[fkey]=sources
+            functions.append(dict(function_anchor=anchor(function),
+                modifier_sources=[dict(record=r["record"],inner_anchor=anchor(r["inner_anchor"]),
+                    invocation_anchor=anchor(r["invocation"])) for r in sources]))
+        sources=sources_by_function[fkey]
+        modifiers=[g for g in guards if g["kind"]=="modifier"]
+        if ([public_record(g) for g in modifiers] != [r["record"] for r in sources]
+                or (modifiers and guards[-len(modifiers):] != modifiers)):
+            raise ValueError("Modifier record correspondence failed: "+str((file,anchor(function),nid)))
+        counts["targets"]+=1
+        counts["unknown_targets"]+=int(result["guard_status"]=="unknown")
+        targets.append(dict(node=nid,anchor=anchor(node),function_anchor=anchor(function),
+            guard_status=result["guard_status"],unresolved=dict(result["unresolved"]),records=len(guards),
+            function_name=(sem.text(function.child_by_field_name("name"))
+                if function is not None and function.child_by_field_name("name") is not None
+                else function.type if function is not None else None)))
+        mi=0
+        for index,g in enumerate(guards):
+            kind=g["kind"]
+            if kind not in KINDS:
+                raise ValueError("Unknown frozen guard kind: "+str(kind))
+            evidence=copy.deepcopy(public_record(g))
+            evidence["source"]="modifier" if kind=="modifier" else "lexical"
+            if kind=="modifier":
+                match=sources[mi];mi+=1;src_node=match["inner_anchor"]
+                evidence["invocation_anchor"]=anchor(match["invocation"])
+            else:
+                src_node=g["_anchor"]
+            counts["records"]+=1;kind_records[kind]+=1
+            source_group="modifier" if kind=="modifier" else "nonmodifier"
+            counts[source_group+"_records"]+=1
+            src=inverse.get(key(src_node))
+            if src is None or src_node.type not in STATEMENTS:
+                counts[source_group+"_unmapped"]+=1
+                missing.append(dict(target=nid,target_anchor=anchor(node),source_anchor=anchor(src_node),
+                    function_anchor=anchor(function),record_index=index,evidence=evidence,
+                    reason="not_statement" if src_node.type not in STATEMENTS else "no_exact_graph_node"))
+                continue
+            kind_mapped[kind]+=1;counts[source_group+"_mapped"]+=1
+            if src==nid:
+                counts["self_skipped"]+=1
+                continue
+            ident=(src,nid)
+            if ident not in edges:
+                edges[ident]=dict(relation="GUARDS",src=src,dst=nid,rule="E1-GUARD-1",
+                    src_anchor=anchor(src_node),dst_anchor=anchor(node),file=file,
+                    source_sha256=sha,evidence=[],kind=[])
+            edges[ident]["evidence"].append(evidence)
+            counts["emitted_evidence"]+=1
+    combinations=Counter()
+    for row in edges.values():
+        row["kind"]=sorted(set(r["kind"] for r in row["evidence"]))
+        if len(row["evidence"])>1:
+            counts["multi_evidence_edges"]+=1
+            combinations["+".join(row["kind"])]+=1
+    counts["edges"]=len(edges)
+    counts["duplicate_records"]=sum(len(e["evidence"])-1 for e in edges.values())
+    counts["legacy_excluded_targets"]=len(excluded)
+    counts["legacy_excluded_records"]=sum(r["records"] for r in excluded)
+    return list(edges.values()),dict(counts=dict(counts),kind_records=dict(kind_records),
+        kind_mapped=dict(kind_mapped),multi_evidence_kinds=dict(combinations),
+        missing=missing,targets=targets,functions=functions,legacy_excluded=excluded,
+        correspondence_pass=True)
+
+def describe_unresolved_modifiers(sem,analyzer,events):
+    """Describe the EP2 exclusions; declaration names never select an edge."""
+    nodes={key(n):n for n in sem.nodes};rows=[]
+    for event in events:
+        if event["relation"]!="MOD_APPLY" or event["status"]=="resolved":
+            continue
+        function=nodes[tuple(event["owner_anchor"])]
+        invocation=nodes[tuple(event["anchor"])]
+        scope=analyzer._scope(function)
+        from nodesem.facts.guards import children
+        parts=children(invocation)
+        declarations=[] if scope is None or not parts or parts[0].type!="identifier" else scope.declarations(sem.text(parts[0]))
+        resolved=sem.resolve_identifier(parts[0]) if parts else {"kind":"unknown","declaration":None}
+        declaration=resolved["declaration"]
+        # ClosedScopeJ.declarations includes only contract members. The frozen
+        # general identifier resolver also checks same-source contract names.
+        # Both diagnostic outcomes are kept; modifier binding is unchanged.
+        rows.append(dict(function_anchor=anchor(function),invocation_anchor=anchor(invocation),
+            reason=event["reason"],identifier_kind=resolved["kind"],
+            declaration_types=[] if declaration is None else [declaration.type],
+            declaration_anchors=[] if declaration is None else [anchor(declaration)],
+            modifier_scope_declaration_types=sorted(d.type for d in declarations),
+            modifier_scope_declaration_anchors=[anchor(d) for d in declarations]))
+    return rows
+
+def task_guard_audit(graph,files,edges,prior=None):
+    """Census parity and incoming counts; all nodes, author nodes and targets."""
+    import statistics
+    counts=Counter();kinds=Counter();mapped=Counter();combinations=Counter();unresolved=[]
+    expected=None if prior is None else {r["file"]:r for r in prior["files"]};comparisons=[]
+    for f in files:
+        a=f["guards"];counts.update(a["counts"]);kinds.update(a["kind_records"])
+        mapped.update(a["kind_mapped"]);combinations.update(a["multi_evidence_kinds"])
+        if expected is not None:
+            expected_records=sum(v["records"] for v in expected[f["file"]]["guards"].values())
+            actual=a["counts"].get("records",0)
+            excluded=a["counts"].get("legacy_excluded_records",0)
+            comparisons.append(dict(file=f["file"],source_sha256=f["source_sha256"],
+                ep0_records=expected_records,ep3_records=actual,legacy_excluded_records=excluded,
+                equal=(actual==expected_records),explained_by_target_set=(actual+excluded==expected_records)))
+        unresolved.extend(dict(file=f["file"],source_sha256=f["source_sha256"],**r)
+                          for r in f["unresolved_modifier_declarations"])
+    if expected is not None and set(expected)!={f["file"] for f in files}:
+        raise ValueError("EP0/EP3 file identities differ")
+    incoming=Counter(e["dst"] for e in edges if e["relation"]=="GUARDS")
+    target_info={r["node"]:dict(file=f["file"],source_sha256=f["source_sha256"],**r)
+                 for f in files for r in f["guards"]["targets"]}
+    per_node=[dict(node=n,file=a["source_file"],node_type=a["node_type"],guards=incoming[n])
+              for n,a in graph.nodes(data=True)]
+    def distribution(nodes):
+        nodes=list(nodes);values=[incoming[n] for n in nodes]
+        maximum=max(values) if values else 0
+        return dict(count=len(nodes),mean=(sum(values)/len(values) if values else 0),
+            median=(statistics.median(values) if values else 0),maximum=maximum,
+            histogram={str(k):v for k,v in sorted(Counter(values).items())},
+            maximum_nodes=[target_info[n] for n in nodes if incoming[n]==maximum and n in target_info])
+    return dict(counts=dict(counts),kind_records=dict(kinds),kind_mapped=dict(mapped),
+        multi_evidence_kinds=dict(combinations),unresolved_modifier_declarations=unresolved,
+        per_file_reproduction=comparisons,
+        reproduction_pass=None if expected is None else all(r["explained_by_target_set"] for r in comparisons),
+        nonmodifier_mapping_pass=counts.get("nonmodifier_unmapped",0)==0,
+        incoming_all_f3_nodes=distribution(graph.nodes),
+        incoming_author_nodes=distribution(n for n,a in graph.nodes(data=True) if a["node_type"]!="env_source"),
+        incoming_statement_targets=distribution(target_info),
+        incoming_by_node=per_node)

@@ -317,7 +317,7 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
         raise ValueError("CP0 projection requires regression_6c")
     if compilation.returncode != 0 or compilation.timed_out:
         raise ValueError("D3 requires an observed successful solc invocation")
-    from scripts.DFG.dfg_v2.validate_slither import _compile
+    from compile_repair.toolchain.inventory import _compile
     path, compiler = Path(compilation.source_path), compilation.compiler
     if hashlib.sha256(path.read_bytes()).hexdigest() != compilation.source_sha256:
         raise ValueError("Slither input differs from compiled source")

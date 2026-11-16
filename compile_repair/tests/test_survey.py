@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 
 from compile_repair.evaluation.survey import candidate_versions, checked_json, write_json, survey, ROOT
-from scripts.DFG.frontend import parse
-from scripts.DFG.models import Unsupported
-from scripts.DFG.state.stage_f.versioning import interval, recorded_version
+from dfg.analysis.frontend import parse
+from dfg.analysis.ir import Unsupported
+from dfg.analysis.frontend import interval, recorded_version
 
 
 @pytest.mark.parametrize("pragma,expected", [

@@ -10,9 +10,9 @@ from collections import defaultdict
 
 from compile_repair.core.model import EnvironmentPlan, Patch
 from compile_repair.toolchain.solc import version_tuple
-from scripts.DFG.frontend import parse
-from scripts.DFG.models import Unsupported
-from scripts.DFG.state.stage_f.versioning import interval as frozen_interval, recorded_version
+from dfg.analysis.frontend import parse
+from dfg.analysis.ir import Unsupported
+from dfg.analysis.frontend import interval as frozen_interval, recorded_version
 
 FLOOR, CEILING = (0, 4, 12), (0, 9, 0)
 # Official v0.5.0: throw and var are disallowed. v0.8.0: unchecked blocks
