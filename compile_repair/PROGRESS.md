@@ -318,3 +318,27 @@ production 622 passed/6 skipped，mando 181 passed/447 skipped，DFG v2 2653 pas
 前置问题是本地资料缺失、DAppSCAN 整仓目录响应截断、Solidity 仓库迁移和调试输出体量，处理分别为提出授权请求、查询完整目标子树、核对同一 repository id、改为准确聚合，见 development_issues.json。没有与 PROMPTS 不一致的方案修改。已知 || 与 Slither 无超时保留后续范围，未擅自实现。完成强制记录与检查后本地提交，不自动 push；无新下载正文/语料、安装、LLM、训练或全局 solc 改动。
 
 CP3 前置终审补记：五份 doc_check v1 通过，冻结审计通过；28,750 个保护跟踪文件与 25,828 个旧封存文件未变，354 个 code refs、96 个编译器与 14 个生产文件不变。补记后的最终文档收据为 doc_check_v2_invocation.json；精确清单/封存分别见 delivery_inventory.json 与 evidence_seal.json。下载授权仍 pending，CP3 功能未实施。
+
+
+## 2026-11-17 CP3 授权续做：资料获取与前提探针通过，内容差异后停止（修改 AI：Codex）
+
+用户批准“批准全部资料，仅本地研究使用（推荐）”，在88b499e7基础上继续PROMPTS r2.13 CP3。先保存cp3_v1/authorization，再按固定提交获取十份官方文档和三语料指定子目录；文档188,817字节、语料29,611文件/235,835,756字节全部Git blob与SHA256核验通过，源码在仓库外且不提交。未安装或扩大获取权限，费用0。
+
+新增cp3_v1及tests/fixtures/cp3_project三文件，生产代码/已有测试/旧证据未改，生产文件14。分类初表29类/125条breaking changes先于内容统计建立，模板与规则仍待逐类实测；四版本三文件combined-json与production Slither前提探针4/4通过，D3(a/b)和全部文件映射覆盖成立。完整清单见delivery_inventory，具体证据见taxonomy_initial_receipt、project_probe_acceptance。
+
+结构核对DAppSCAN四类字段全部与cr_pre_v2相同（608项目/21,457.sol；相对找到38,122、缺1,094），Trace为5,000/83项目与3,092/15。SOChecker三份897条input同序，ours+GPT仅846条，是严格子集少51条，没有新增或重复input。按获批请求内容计数不符即停止，未合并/去重/补数据，证据structure_acceptance与structure_review_request。
+
+待确认建议保持原定ours.json897条唯一分类输入，846条附属子集只记录来源差异；不是重新请求已批准下载。生产分类器/项目闭包、语料步骤1/6、失败统计、其余前提探针与最终D6/CP4判断未完成。记录更新CP3_REPORT续节、CHANGE_LOG §30、HANDOVER §0–5及追加段、DECISIONS；初表覆盖漏掉两个嵌套条目等开发问题与处理在development_issues。
+
+规定测试用对应production/mando环境python -B -m pytest -q -ra -x -p no:cacheprovider，独立/tmp目录，模块目标compile_repair/tests，DFG目标scripts/DFG/dfg_v2/tests。最终数字与doc_check、冻结保护核验在下方终审补记和本批次收据，不把结构失败写成CP3通过。仅本地提交，未push、训练、LLM、全局solc或6c重放；后续需处理待确认项后使用新批次，禁止覆盖现有产物。
+
+
+本轮终审补记（Codex）：production 622/6、mando 181/447、DFG 2653 passed/9既有warnings；六份doc_check v1通过，补记后以v2收据为准。冻结审计确认28,779个保护跟踪文件、25,828个旧封存文件、354个引用、96个编译器、两套环境及14个生产文件不变；29,611份语料文件和10份文档哈希保持。SOChecker差异仍待确认，CP3未完成，仅本地检查点提交。收据数字解析的转义错误已在development_issues记录并从既有日志纠正，无测试重跑。
+
+
+交付补记（2026-11-17，修改 AI：Codex）：暂存后的 git diff --cached --check 报告三份 Git init 原始 stderr 的提示行尾空格，以及 solc 0.8.38 原始 stderr 的末尾空行。为保持取证原字节，未修改四份日志或已封存 cp3_v1；仅将这四个精确日志路径排除后，其余全部文件的同一空白检查通过。该处理不排除代码、文档或任何CP3验收项；SOChecker的结构差异仍为未通过。
+
+另建 artifacts/cp3_delivery_v1 保存原始报错、四日志SHA、检查命令和上次doc_check对应的文档快照。最终文档检查与提交清单改以该交付批次的 doc_check_final_invocation.json、delivery_inventory.json 为准；cp3_v1/evidence_seal.json 原样保留。没有重跑编译或测试，也没有改变生产实现、授权范围或待确认建议；本地检查点提交后仍等待对846/897子集差异的处理确认。
+
+
+交付终检补记（修改 AI：Codex）：七份 doc_check_delivery_v1 全部通过；本条补记后再次检查的最终文档哈希见 cp3_delivery_v1/doc_check_final_invocation.json。四份原始工具日志按精确路径保留并豁免空白检查，其余文件检查通过；编译验收和 SOChecker 待确认状态均未改变。

@@ -69,3 +69,97 @@ export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
 
 
 前置终审补记（Codex）：doc_check v1 的五份文档全部通过，冻结审计通过；28,750 个保护跟踪文件与 25,828 个旧封存文件均无变化，354 个 DFG 引用、96 个编译器文件、两套环境元数据和 14 个生产文件全同。三份历史文档前缀保留。补记后的 doc_check v2 收据记录最终文档 SHA256，通过后才本地提交；本次通过的是前置检查点，CP3 实现/验收状态仍为未完成。
+
+
+## CP3 续：授权获取、初始分类表与结构核验停止（未完成）
+
+2026-11-17（EST），修改 AI：Codex。本节追加于前置检查点之后，不改前文历史。起点 compile-repair@88b499e714883066b3bc1379f42a5a89ce8ba1d6；这是同一 CP3 任务在收到下载许可后的继续，前置 pull 已完成。用户原话“批准全部资料，仅本地研究使用（推荐）”先写入 artifacts/cp3_v1/authorization.json（SHA256 f42f045ba9c235674cc3fea3a4b42a7d28945daaf56b1b43ba9ae8aef869a87a），再开始获取。当前状态 stopped_on_structure_mismatch，不能把本节作为 CP3 完成结论。
+
+### 实现与范围
+
+新增 artifacts/cp3_v1 的授权、获取驱动、逐文件哈希清单、分类表初稿、结构核对、三文件前提探针、停止审查请求及校验收据。新增 tests/fixtures/cp3_project/Main.sol、sub/Base.sol、vendor/Numbers.sol；未创建 project.py，未改 toolchain/solc.py、pipeline 或 Slither，生产文件保持 14。DECISIONS 记录下载授权，HANDOVER 更新 §0–5 并追加历史；CHANGE_LOG §30 和 PROGRESS 记录本轮工作。完整文件和 SHA256 见 delivery_inventory.json。
+
+10 份官方文档全部按固定标签解析出的提交、路径、Git blob SHA1 和大小核验，合计 188,817 字节。三套语料合计 29,611 文件、235,835,756 字节，逐文件 SHA256 与 Git blob 校验通过，均存仓库外；这些字节数是源文件大小，不是网络传输量。DAppSCAN 21,495 文件/109,776,516 字节，SOChecker 4/3,762,624，Trace 8,112/122,296,616。来源及全提交见 authorization.json、acquisition/*/receipt.json；未分发外部源码。
+
+分类表先于语料内容统计建立；taxonomy_initial_receipt.json 记录 taxonomy.json 的 SHA256 7096c70be45debbbd671919674ee2afd63dc59e3bf08c969ed977353299832bb。包含 29 类，覆盖文档中的 13 种诊断类型和 PROMPTS 初始集合，并记录 125 个 breaking-change 条目（0.5:59、0.6:23、0.7:22、0.8:21）。每条有来源行、类型/模板、原因、修复候选、D3/D7 检查和可构造的 CP4 候选算子；这不是已实现规则。尚未实测的模板 verified_versions 为空，errorCode 不凭空填写。
+
+### 初始分类表（文档依据，尚未完成逐类实测）
+
+下表是 taxonomy.json 的类别层；125 条版本变化的逐条文档行号及映射保存在同一文件的 breaking_changes 和 breaking_change_coverage。官方 error_types 指 v0.7.6 using-the-compiler 的 Error types；imports 指 v0.8.38 path-resolution；layout 指 v0.8.38 layout-of-source-files；old_imports 指 v0.4.12 layout-of-source-files；cp3 指 PROMPTS §4.5 与已定决定。所有候选均须通过 D3，并执行 D7 的原字节前提、逐文件等级、错误行限制及节点来源标记，不能仅凭编译通过宣称语义等价。
+
+| 类别 | 类型与消息模板 | 原因 | 候选修复与等级 | 来源 |
+|---|---|---|---|---|
+| unresolved_package_import | IOError, ParserError; Source <path> not found | Package is absent or no supplied mapping resolves its source-unit name. | deterministic: authorized offline package and version match; otherwise agent after dependency evidence; additive | error_types, cp3, imports, old_imports |
+| missing_relative_file | IOError, ParserError; Source <path> not found | Relative import target is absent from the approved project. | deterministic only with an unambiguous identity-checked existing dependency; otherwise agent; additive | error_types, cp3, imports, old_imports |
+| undeclared_identifier | DeclarationError; Undeclared identifier / Identifier not found | A referenced declaration or scope is missing. | deterministic declaration-only stub when its complete type is constrained; otherwise agent; additive | error_types, cp3 |
+| missing_base_contract | DeclarationError; Identifier not found or not unique / Definition of base has to precede | A base declaration is absent, ambiguous, or ordered incorrectly. | deterministic proven declaration recovery; otherwise agent; additive | error_types, cp3 |
+| duplicate_definition | DeclarationError; Identifier already declared / defined twice / same name and parameter types | Flattening or project assembly introduced competing declarations. | deterministic only for byte/token-identical declarations with preserved binding; otherwise agent; rewrite | error_types, cp3 |
+| multiple_license_or_pragma | ParserError, SyntaxError; Multiple SPDX license identifiers / ABI coder has already been selected / experimental features | Repeated flattened directives may conflict; repeated Solidity constraints alone are not inherently invalid. | deterministic redundant identical directive removal only; conflicting licenses require human scope decision and conflicting versions require evidence; rewrite | error_types, cp3, layout |
+| encoding | ParserError; Invalid character / Invalid escape / Invalid UTF-8 / unicode | Bytes or escapes are not legal at their lexical position; arbitrary comment bytes need not fail. | deterministic BOM or proven escape representation correction; otherwise agent; rewrite | error_types, cp3 |
+| unbalanced_structure | ParserError; Expected token Semicolon got 'RBrace' / Expected ';' but got '}' / end of source | A required delimiter, statement terminator, or source tail is missing. | deterministic unique missing delimiter with no invented executable body; otherwise agent; additive | error_types, cp3 |
+| parser_error_other | ParserError; Expected <token> but got <token> / Expected token | Grammar does not accept the token sequence. | deterministic documented local syntax migration where equivalent; otherwise agent; rewrite | error_types, cp3 |
+| type_error_other | TypeError; not implicitly convertible / Invalid type / Wrong argument count / Member <name> not found | Declarations and expressions have incompatible types or arity. | deterministic mechanically equivalent type spelling or cast only; otherwise agent; rewrite | error_types, cp3 |
+| codegen_only | CompilerError, UnimplementedFeatureError; Stack too deep / stack too deep / Unimplemented feature | Parsing/type checking succeeded but requested code generation cannot finish. | deterministic compiler settings only after matched solc and Slither D3 validation; otherwise tool limitation; none | error_types, cp3 |
+| closure_version_conflict | SyntaxError; F: empty pragma interval | File constraints or their transitive intersection have no common compiler. | deterministic compatible original dependency retrieval only; otherwise agent with version evidence; additive | error_types, cp3, layout |
+| slither_incomplete | ; solc rc0; Slither exception or D3(a/b) incomplete | Analysis cannot represent the compiler-accepted unit. | deterministic only for separately proven equivalent tuple-call case; otherwise tool limitation, no agent rewrite of legal source; rewrite_or_none | error_types, cp3 |
+| other | ; unmatched compiler diagnostic | Observed diagnostic has no verified template yet. | unclassified: enumerate every normalized template, establish cause before routing; undetermined | error_types, cp3 |
+| json_error | JSONError; Invalid JSON input / Unknown key / Invalid component | Malformed standard-JSON input; diagnostic probes only, not main compilation path. | deterministic repair of caller input, not Solidity source; none | error_types, cp3 |
+| io_error | IOError; File not found / Permission denied / File outside of allowed directories | The compiler cannot read a requested source. | deterministic path/permission configuration within approved scope; no dependency download; none | error_types, cp3, imports, old_imports |
+| docstring_error | DocstringParsingError; Documentation tag / Documented parameter / @return | NatSpec tags refer to absent or inconsistent declarations. | deterministic exact tag-name correction if binding is unique; otherwise agent; rewrite | error_types, cp3 |
+| syntax_error | SyntaxError; outside of a for / not inside a loop / No visibility specified | Parsed construct violates a syntactic context restriction. | deterministic documented context correction only if behavior is preserved; otherwise agent; rewrite | error_types, cp3 |
+| unimplemented_feature | UnimplementedFeatureError; Unimplemented feature / not yet supported / not implemented | Compiler feature is not implemented for this version or code-generation mode. | deterministic existing candidate/settings selection; otherwise tool limitation; none | error_types, cp3 |
+| internal_compiler_error | InternalCompilerError; Internal compiler error / InternalCompilerError | Compiler implementation failed internally; source location may be absent. | tool limitation: retain compiler/version/diagnostic and try only existing permitted candidates; none | error_types, cp3 |
+| compiler_exception | Exception; Exception / std::exception::what | Compiler exception with no stable more-specific diagnosis. | tool limitation; never infer a source repair from exception text alone; none | error_types, cp3 |
+| fatal_error | FatalError; Fatal error / FatalError | Unhandled fatal compiler condition. | tool limitation; preserve crash evidence, no arbitrary source rewrite; none | error_types, cp3 |
+| warning | Warning; Warning: <message> | Non-fatal diagnostic; not a failed compilation. | no repair required; none | error_types, cp3 |
+| unsupported_disjunction | ; F: unsupported pragma expression; expression contains  /  /  | Frozen interval semantics do not represent a union. | later deterministic union of intervals with ordered attempts; CP3 classification only; none | error_types, cp3, layout |
+| unsupported_expression | ; F: unsupported pragma expression | Malformed or unsupported version expression without a proven missing terminator. | agent when source malformed; tool limitation when legal expression unsupported; rewrite_or_none | error_types, cp3, layout |
+| unterminated_pragma | ; F: unterminated pragma directive | A top-level Solidity pragma has no terminator before braces or EOF. | deterministic insertion only if unique; otherwise agent; additive | error_types, cp3, layout |
+| pragma_missing_semicolon_candidate | ; F: unsupported pragma expression; expression includes directive keyword | The expression consumes a following import/pragma/contract/interface/library/abstract token. | deterministic unique semicolon insertion only after compiler validation; keep original expression evidence; additive | error_types, cp3, layout |
+| slither_no_timeout | ; no completed API call | In-process Slither has no enforced timeout; absence of timeout records is not evidence of no hangs. | later subprocess isolation and explicit deadline; no implementation in CP3; none | error_types, cp3 |
+| declaration_error | DeclarationError; Identifier <name> invalid or unavailable | A declaration violates a documented naming or binding rule. | deterministic declaration-only stub when its complete type is constrained; otherwise agent; additive | error_types, cp3 |
+
+### 真实验收与停止位置
+
+| 项目 | 实测 | 判定 |
+|---|---|---|
+| 官方文档身份与字节核验 | 10/10 | 通过 |
+| 指定语料文件身份与字节核验 | 29,611/29,611 | 通过 |
+| 三文件四版本前提 | 0.4.12、0.4.24、0.5.17、0.8.38 的 solc rc0、Slither 构造、D3(a/b) 与三文件映射覆盖均通过 | 4/4，通过 |
+| DAppSCAN 历史结构 | summary、首个版本文本系列、import 前25项、608 项目明细逐项全同 | 通过 |
+| Trace 历史结构 | on-chain 5,000；repo-level 83 项目/3,092 .sol；CVEs 15 | 通过 |
+| SOChecker 四份 input 一致性 | 三份 897 条完全同序；ours+GPT.json 846 条，是其中严格子集，缺 51 条 | 不符合，停止 |
+| 分类器与项目闭包生产实现、语料步骤1/6、各类统计及 §4 前提探针 | 未运行 | 未验收 |
+
+SOChecker 无额外或重复 input；897 条的历史 contract/function 子串计数为 656，846 条对应为 621。这里只复核 cr_pre_v2 的文本口径，未把它当作新的 Solidity 判定规则，也没有用旧整文件 parse 产生 CP3 版本区间统计。51 条差异只保存 input SHA256，证据为 structure_acceptance.json 和 structure_review_request.json。
+
+三文件探针以夹具目录为 cwd、Main.sol 为相对入口、@vendor/=vendor/ 为 remapping、--allow-paths . 为允许路径，采用既有 combined-json 输出项。CryticCompile 同时接收 solc_working_dir、solc_remaps、solc_args，参数一致；Slither 使用 production，记录可执行文件 SHA256、完整命令、rc、错误、耗时和费用。源码哈希未变，没有改全局编译器选择；该探针只证明前提，不替代项目闭包的通用实现验收。
+
+### 问题处理、候选建议与剩余工作
+
+初稿覆盖校验发现 0.6 文档中 fallback/receive 下的两个嵌套条目未列入，补齐后 125 条覆盖成立；尚未读取语料统计时完成，未改标准。读取不存在的 core/types.py 后按实际目录定位到 core/model.py；默认 WSL 调用受沙箱限制后采用既有授权 WSL 执行方式，未改网络配置。一次过长的统计文件显示被截断，正式核验采用 JSON 字段比较并保存完整结果，不依赖截断显示。详见 development_issues.json。
+
+值得保留的边界：Warning 不导致编译失败，部分版本变化只影响运行语义或输出接口；初表将这些条目保留且明确区分。编译器内部错误不等于可修复的源码错误，Slither 工具限制不直接交给代理改写合法源码。所有修复候选仍需后续探针和 D3/D7 验证，未把语料频率用作覆盖门槛。
+
+获批请求 after_approval 明确要求内容计数不符时保留并停止，PROMPTS §4.5.1 要求不一致时报告。建议继续采用原定 ours.json 的 897 条唯一输入，把 ours+GPT.json 登记为仅供来源核对的 846 条附属子集，不合并、不去重、不补数据。该核验假设的调整尚未批准；structure_review_request.json 给出具体范围，下载许可本身没有撤销，无须重下资料。
+
+生产分类器、项目闭包、片段判定、语料编译与失败频率、冻结 parse 与新读取差异、0.6/0.7 格式切换、旧/新错误模板测试、tuple-call 复核、重复声明/许可/pragma、AST-only/codegen、CP4 最终算子全部仍未完成。|| 并集支持和 Slither 超时仍只登记缺口；本轮未增加新修复。没有 LLM、软件安装/升级、额外下载、6c 重放、HGT 训练、GPU 锁或 push，费用 0 美元。
+
+### 测试、封存与复现
+
+停止检查点按共享上下文运行两个环境的模块测试和 mando DFG v2；实际命令、rc、耗时、日志哈希见 pytest_*.json，结果在下方终审补记。命令为相应环境 python -B -m pytest -q -ra -x -p no:cacheprovider，目标 compile_repair/tests 或 scripts/DFG/dfg_v2/tests，独立 /tmp basetemp。所有新文档及追加段运行 doc_check，保护核验同时检查旧跟踪/封存文件、生产实现、354 个 code refs、96 个编译器文件与环境元数据。
+
+本批次证据只追加，evidence_seal.json 和 delivery_inventory.json 封存后不可覆盖；后续执行使用新批次并只读复用初表/已获取资料。旧 CP3 前置报告状态仅表示当时历史，本节为最新状态。完成强制记录和校验后仅本地提交；CP3 仍未完成。
+
+
+终审补记（2026-11-17，修改 AI：Codex）：本轮 production 622 passed/6 skipped（驱动79.93秒）、mando 181 passed/447 skipped（20.26秒）、DFG v2 2653 passed/9既有warnings（152.65秒），各执行一次且rc=0，见test_acceptance与pytest_*。首次汇总收据的数字正则转义错误只影响日志解析，改为读取已有末行的词项后正确汇总，未重跑测试、未改验收判据，详见development_issues。
+
+六份doc_check v1全部通过。frozen_audit通过：28,779个保护跟踪文件、25,828个旧封存文件无变化；354个code refs、96个编译器文件、production/mando的145/118份环境元数据、14个生产文件均保持；29,611语料文件与10份文档复核无变化。五份既有文档的历史字节段保持。补记后的doc_check v2记录最终文档SHA256，通过后按delivery_inventory精确本地提交；结构核验差异仍未解决，CP3仍未完成，不将该项改记为通过。
+
+
+交付补记（2026-11-17，修改 AI：Codex）：暂存后的 git diff --cached --check 报告三份 Git init 原始 stderr 的提示行尾空格，以及 solc 0.8.38 原始 stderr 的末尾空行。为保持取证原字节，未修改四份日志或已封存 cp3_v1；仅将这四个精确日志路径排除后，其余全部文件的同一空白检查通过。该处理不排除代码、文档或任何CP3验收项；SOChecker的结构差异仍为未通过。
+
+另建 artifacts/cp3_delivery_v1 保存原始报错、四日志SHA、检查命令和上次doc_check对应的文档快照。最终文档检查与提交清单改以该交付批次的 doc_check_final_invocation.json、delivery_inventory.json 为准；cp3_v1/evidence_seal.json 原样保留。没有重跑编译或测试，也没有改变生产实现、授权范围或待确认建议；本地检查点提交后仍等待对846/897子集差异的处理确认。
+
+
+交付终检补记（修改 AI：Codex）：七份 doc_check_delivery_v1 全部通过；本条补记后再次检查的最终文档哈希见 cp3_delivery_v1/doc_check_final_invocation.json。四份原始工具日志按精确路径保留并豁免空白检查，其余文件检查通过；编译验收和 SOChecker 待确认状态均未改变。

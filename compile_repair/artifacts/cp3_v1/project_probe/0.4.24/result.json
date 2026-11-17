@@ -1,0 +1,224 @@
+{
+  "inputs_unchanged": true,
+  "passed": true,
+  "slither": {
+    "all_closure_files_have_cfg_nodes": true,
+    "api_subprocess_returncodes_observed": false,
+    "command": {
+      "api": "CryticCompile then Slither",
+      "kwargs": {
+        "solc": "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+        "solc_args": "--allow-paths .",
+        "solc_disable_warnings": true,
+        "solc_remaps": [
+          "@vendor/=vendor/"
+        ],
+        "solc_working_dir": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project"
+      },
+      "target": "Main.sol"
+    },
+    "compiler_sha256": "665675b9e0431c2572d59d6a7112afbdc752732ea0ce9aecf1a1855f28e02a09",
+    "constructed": true,
+    "contract_coverage": {
+      "actual": {
+        "Base": 1,
+        "Main": 1,
+        "Numbers": 1
+      },
+      "ast_source": "crytic_compile.compilation_units[*].asts",
+      "asts": [
+        {
+          "ast_sha256": "08afb504e2b6c1237197fa2d4da8f4647b8a36edde27ed4fbfcb6a788c5e5da9",
+          "contracts": {
+            "Main": 1
+          },
+          "format": "compact",
+          "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/Main.sol"
+        },
+        {
+          "ast_sha256": "83ce7e2fedfaeb301c45bf731895676909b4176e730e558ab8c19ce763928b66",
+          "contracts": {
+            "Base": 1
+          },
+          "format": "compact",
+          "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/sub/Base.sol"
+        },
+        {
+          "ast_sha256": "fd88194037c644ebd478bc27090c87adc605230fd08a7166a5774d34d7578a32",
+          "contracts": {
+            "Numbers": 1
+          },
+          "format": "compact",
+          "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/vendor/Numbers.sol"
+        }
+      ],
+      "complete": true,
+      "expected": {
+        "Base": 1,
+        "Main": 1,
+        "Numbers": 1
+      },
+      "missing": {},
+      "unexpected": {}
+    },
+    "cost_usd": 0,
+    "crytic_compile_platform": "solc",
+    "crytic_compile_version": "0.4.2",
+    "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project",
+    "d3": true,
+    "elapsed_seconds": 0.011672199994791299,
+    "equivalent_solc_argv": [
+      "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+      "@vendor/=vendor/",
+      "Main.sol",
+      "--combined-json",
+      "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+      "--allow-paths",
+      "."
+    ],
+    "expected_files": [
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/Main.sol",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/sub/Base.sol",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/vendor/Numbers.sol"
+    ],
+    "kind": "slither",
+    "node_facts": {
+      "counts": {
+        "declarations": 3,
+        "foreign_filename": 0,
+        "functions": 3,
+        "invalid_filename": 0,
+        "ir_object_repr_replacements": 0,
+        "ir_object_repr_unresolved": 0,
+        "missing_filename": 0,
+        "missing_start": 0,
+        "modifiers": 0,
+        "nodes": 6,
+        "top_level_functions": 0
+      },
+      "duplicate_key4": {},
+      "empty_cfg": false,
+      "ir_diagnostics": [],
+      "mapping_complete": true,
+      "node_facts_schema": "node_facts_v2",
+      "nodes": [
+        {
+          "declaration_kind": "function",
+          "ir": [
+            "RETURN 1"
+          ],
+          "key5": [
+            "Base",
+            "baseValue()",
+            "RETURN",
+            100,
+            1
+          ],
+          "length": 8
+        },
+        {
+          "declaration_kind": "function",
+          "ir": [
+            "RETURN 2"
+          ],
+          "key5": [
+            "Numbers",
+            "value()",
+            "RETURN",
+            98,
+            1
+          ],
+          "length": 8
+        },
+        {
+          "declaration_kind": "function",
+          "ir": [
+            "TMP_0(uint256) = INTERNAL_CALL, Base.baseValue()()",
+            "TMP_1(uint256) = LIBRARY_CALL, dest:Numbers, function:Numbers.value(), arguments:[] ",
+            "TMP_2(uint256) = TMP_0 + TMP_1",
+            "RETURN TMP_2"
+          ],
+          "key5": [
+            "Main",
+            "total()",
+            "RETURN",
+            157,
+            1
+          ],
+          "length": 36
+        },
+        {
+          "declaration_kind": "function",
+          "ir": [],
+          "key5": [
+            "Base",
+            "baseValue()",
+            "ENTRYPOINT",
+            98,
+            1
+          ],
+          "length": 13
+        },
+        {
+          "declaration_kind": "function",
+          "ir": [],
+          "key5": [
+            "Main",
+            "total()",
+            "ENTRYPOINT",
+            155,
+            1
+          ],
+          "length": 41
+        },
+        {
+          "declaration_kind": "function",
+          "ir": [],
+          "key5": [
+            "Numbers",
+            "value()",
+            "ENTRYPOINT",
+            96,
+            1
+          ],
+          "length": 13
+        }
+      ]
+    },
+    "observed_cfg_files": [
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/Main.sol",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/sub/Base.sol",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/vendor/Numbers.sol"
+    ],
+    "profile": "production",
+    "slither_version": "0.11.6",
+    "version": "0.4.24"
+  },
+  "solc": {
+    "command": [
+      "/home/zhao/.solc-select/artifacts/solc-0.4.24/solc-0.4.24",
+      "@vendor/=vendor/",
+      "Main.sol",
+      "--combined-json",
+      "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+      "--allow-paths",
+      "."
+    ],
+    "compiler_sha256": "665675b9e0431c2572d59d6a7112afbdc752732ea0ce9aecf1a1855f28e02a09",
+    "cost_usd": 0,
+    "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project",
+    "elapsed_seconds": 0.0032266999478451908,
+    "error_first_line": null,
+    "inputs": {
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/Main.sol": "5b706283d3aa2e927a8037c0fc0513ecbaa58367cda64902605f657aa92a838d",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/sub/Base.sol": "c4f848ce357d3c45fa4bedca30ec54ed9dfc5a24354ad80dcc5cd4128f6e64da",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_project/vendor/Numbers.sol": "06b57ec3341ae93c41bb834e29b02fea80d6bf549e3dbe0e931778f5a7a61f1f"
+    },
+    "kind": "solc",
+    "returncode": 0,
+    "stderr_sha256": "4cd18ab16c8c85d65460361bde51e44125234e782ba9648ba7121b9578880f4c",
+    "stdout_sha256": "429fee7a75e6f5b82a55cc5c0e15dc3bdc2c7028f87432cc60000750cca139a1",
+    "version": "0.4.24"
+  },
+  "version": "0.4.24"
+}
