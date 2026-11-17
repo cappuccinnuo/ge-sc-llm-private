@@ -16,8 +16,8 @@ from edgesem.schema import FAMILIES, RELATION_FAMILY
 
 
 FROZEN_SOURCES = {
-    "dfg/model/hgt.py": "2699ec7331568cececcac7369d92927d16dadf3e18952f4ec5191d0530d16d7a",
-    "sco_models/model_hgt.py": "4e6ff0710b345ffddb555810fadb74225dcf396f90b3cdf928f4f0afc3a12947",
+    "dfg/model/hgt.py": "2f04f173133609fc750a44b2483412e1bb1c9ef51fcfe35fba5ec9d713a37b20",
+    "mando/models/model_hgt.py": "4e6ff0710b345ffddb555810fadb74225dcf396f90b3cdf928f4f0afc3a12947",
 }
 
 def verify_frozen_sources(root=None):

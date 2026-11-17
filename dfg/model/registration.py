@@ -1,5 +1,5 @@
 """Checks that a model's parameter banks match the registered graph schema."""
-import sco_models.graph_utils as gu
+import mando.models.graph_utils as gu
 import torch
 
 from dfg.utils import digest

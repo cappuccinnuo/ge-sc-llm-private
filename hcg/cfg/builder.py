@@ -1,6 +1,6 @@
 """Contract graphs (CFG + call graph) in the authors' format, from Solidity files.
 
-Runs the repository's tree-sitter builder (process_graphs, unchanged; DFG v2,
+Runs the repository's tree-sitter builder (mando.graphs, unchanged; DFG v2,
 NodeSem and EdgeSem import it too) with two temporary instrumentation hooks that
 record where each edge is created, then converts every contract graph to the
 authors' format and merges a corpus with disjoint_union in file-name order.
@@ -19,13 +19,13 @@ import networkx as nx
 from hcg.cfg import author_schema as schema
 
 REPO = Path(__file__).resolve().parents[2]
-_CFG_DIR = REPO / "process_graphs/tree_sitter_codeviews/codeviews/CFG"
+_CFG_DIR = REPO / "mando/graphs/tree_sitter_codeviews/codeviews/CFG"
 
 
 def grammar_dir():
     """Per-platform tree-sitter grammar build (git-ignored).
 
-    The my-languages.so checked in under process_graphs/.../build/ is a macOS arm64
+    The my-languages.so checked in under mando/graphs/.../build/ is a macOS arm64
     binary; custom_parser compiles the vendored grammar into this directory on first
     use (needs a C compiler). The old machine used the same <repo>/build/<platform>.
     """
@@ -42,7 +42,7 @@ def _check_builder():
 @contextlib.contextmanager
 def _site_tagging():
     """Record each edge's creation line; restore the original methods afterwards."""
-    from process_graphs.tree_sitter_codeviews.codeviews.CFG import CFG, CFG_solidity
+    from mando.graphs.tree_sitter_codeviews.codeviews.CFG import CFG, CFG_solidity
 
     solidity_cls, base_cls = CFG_solidity.CFGGraph_solidity, CFG.CFGGraph
     original_add, original_export = solidity_cls.add_edge, base_cls.to_networkx
@@ -73,7 +73,7 @@ def _site_tagging():
 def build_contract(path):
     """One contract's graph in the authors' format (node ids local to the file)."""
     os.environ.setdefault("TREE_SITTER_LIB_DIR", str(grammar_dir()))
-    from process_graphs.tree_sitter_codeviews.generator import generate_cfg_from_file
+    from mando.graphs.tree_sitter_codeviews.generator import generate_cfg_from_file
 
     with _site_tagging(), contextlib.redirect_stdout(io.StringIO()):
         raw = generate_cfg_from_file(path)

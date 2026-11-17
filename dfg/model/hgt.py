@@ -2,7 +2,7 @@
 import dgl.function as fn
 import torch
 from dgl.nn.functional import edge_softmax
-from sco_models.model_hgt import HGTLayer
+from mando.models.model_hgt import HGTLayer
 
 
 
@@ -11,7 +11,7 @@ from sco_models.model_hgt import HGTLayer
 # dfg_v2/hgt_layer
 # Optional execution adapters for the frozen HGT layer.
 #
-# Copied forward source: sco_models/model_hgt.py::HGTLayer.forward
+# Copied forward source: mando/models/model_hgt.py::HGTLayer.forward
 # Source file SHA256: 4e6ff0710b345ffddb555810fadb74225dcf396f90b3cdf928f4f0afc3a12947
 # Constructors and parameter allocation are inherited unchanged. NonEmptyMean
 # changes only the cross-relation reduction. SharedProjection classes reuse

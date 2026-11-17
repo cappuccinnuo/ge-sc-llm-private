@@ -37,7 +37,7 @@ from edgesem.model.layers import EdgeAttrEncoder, EdgeAwareHGTLayer, EdgeGraphCl
 from edgesem.model.placebo import add_placebo_edges, permute_attributes, randomize_edges
 from edgesem.model.relations import materialize, parameter_key_map
 from edgesem.schema import CONTEXT_INDICES, CORE_INDICES, NEW_RELATIONS, VERSION, validate_profile
-from sco_models import graph_utils as gu
+from mando.models import graph_utils as gu
 
 
 def feature_indices(profile):

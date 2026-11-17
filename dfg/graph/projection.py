@@ -137,7 +137,7 @@ class Projector:
 # its existing version-aware frontend and must never use ProjectionView.
 class ProjectionView(SourceView):
     def __init__(self, source, file, mode=None):
-        from process_graphs.tree_sitter_codeviews.utils import preprocessor
+        from mando.graphs.tree_sitter_codeviews.utils import preprocessor
         self.source, self.file = source, file
         self.raw = source.encode("utf8")
         self.sha256 = hashlib.sha256(self.raw).hexdigest()

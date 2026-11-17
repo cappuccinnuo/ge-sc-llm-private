@@ -33,8 +33,6 @@ jobs:
             /*
             !/experiments/
             /experiments/ge-sc-data/source_code/*/source_files/
-            !/Test_code/
-            /Test_code/label_pipeline/artifacts/public_endpoints_verified_v1/
             !/compile_repair/
             !/docs/
       - uses: actions/setup-python@v5
@@ -49,10 +47,10 @@ jobs:
           pip install "numpy<2" "networkx>=3" tree-sitter==0.20.4 pydot==1.4.2 transformers==4.46.3 \
             scikit-learn scipy pandas matplotlib tensorboard tabulate timebudget \
             torch_geometric pytest
-      - name: hcg, dfg, nodesem and edgesem unit tests (dfg.train against the sealed Prompt 8 folds/groups)
+      - name: hcg, dfg, nodesem, edgesem and mando unit tests (dfg.train against the sealed Prompt 8 folds/groups)
         run: |
           python -m pytest -q tests/hcg/test_units.py tests/dfg/test_units.py tests/dfg/test_train.py \
-            tests/nodesem/test_units.py tests/edgesem/test_units.py
+            tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando
 
   category:
     runs-on: ubuntu-24.04
@@ -77,8 +75,6 @@ jobs:
             /*
             !/experiments/
             /experiments/ge-sc-data/source_code/*/source_files/
-            !/Test_code/
-            /Test_code/label_pipeline/artifacts/public_endpoints_verified_v1/
             !/compile_repair/
             !/docs/
       - uses: actions/setup-python@v5
@@ -104,11 +100,11 @@ jobs:
           B=out/hcg/A/${{ matrix.category }}
           S=experiments/ge-sc-data/source_code/${{ matrix.category }}/source_files
           for F in nodetype inside_token; do
-            python -u graph_classifier.py --compressed_graph $B/contract_level.gpickle \
+            python -u -m mando.graph_classifier --compressed_graph $B/contract_level.gpickle \
               --label $B/graph_labels.json --dataset $S --testset $S --node_feature $F \
               --output_models /tmp/m/c_$F.pth --log_dir /tmp/l/c_$F \
               --num_epochs 1 --k_folds 2 --seed 1 --no_progress
-            python -u node_classifier.py --compressed_graph $B/line_level.gpickle \
+            python -u -m mando.node_classifier --compressed_graph $B/line_level.gpickle \
               --dataset $S --testset $S --node_feature $F \
               --output_models /tmp/m/n_$F.pth --log_dir /tmp/l/n_$F \
               --num_epochs 1 --k_folds 2 --seed 1 --no_progress
