@@ -1344,3 +1344,47 @@ doc_check v1 的 7 份文档全部通过；本补记与新目录说明更新后�
 
 
 暂存检查补记（修改 AI：Codex）：首次 git diff --cached --check 指出新 v5 README 文件末尾多一个空白行，记录于 staging_attempt1.json。只删除该冗余换行，正式存储/tar 与生产代码字节不变；前一版 evidence_seal.json 保留为文档格式整理前的快照，最终交付使用 evidence_seal_v2.json 和 delivery_seal.json。处理已登记 development_issues，七份文档最终再检结果见 doc_check_v3；提交前重新核对全部暂存字节与空白格式。
+
+
+## 26. 2026-11-17 CompileRepair CP2.3 审查与方案 r2.12（修改 AI：Claude）
+
+### 26.1 任务、依据与范围
+
+用户要求（2026-11-17）：Codex 已完成 CP2.3；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP3。起点 `compile-repair@76a2cc810`。审查对象：`rules/environment.py` 与 `pipeline.py` 的差异，`tests/test_pragma_bytes.py` 与新夹具，`cr_store_mando_v5` 与 `cli_probe_stores.tar.gz`（解包核对），CP2_REPORT 的 CP2.3 节、HANDOVER、DECISIONS、CHANGE_LOG §25、PROGRESS 与 development_issues.json。
+
+修改：`PROMPTS.md`（r2.11 → r2.12）；新增 `artifacts/cp2_3_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 4 节第 11 条补注，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 1 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 26.2 实施方式和重要选择
+
+- 代码：逐行对照 `_expression_interval` 与冻结 `versioning.py` 第 7–23 行；读 `_pragma_spans` 与 `code_only` 的遮盖正则，确认遮盖等长、字符串先于注释匹配。
+- 等价：自写脚本对 1,659 个文件（`source_code` 全部、`tests/fixtures`、审查边界用例）比较新实现与 CP2.3 之前的实现（git 中的原文件）及冻结函数。初次只传入两个类别目录，发现与 846 不符，改为整个 `source_code` 后覆盖 846/846。
+- 存储：解包 v5，与 v3 逐个比较记录字段与图字节；解包 CLI 探针存储，核对状态、版本、标志、改动与 seal。
+- 边界：为“任意输入”的目标另写 10 个合约，用 solc 与生产 Slither 判定哪些应被接受。两例与目标不符（见 26.3）。
+- 处理选择：两个遗留都是一两行的修改，但用户要求问题在 CP3 之前解决，且第二项直接影响 CP3 的分类，所以单列 CP2.4。验收用 846 个输入上 make_plan 结果全同代替全量生产重跑：选版只由 make_plan 决定，其余代码不改。
+- 测试：审查环境没有 pytest，从 Slither 0.8.0 环境以符号链接借用（不安装）。`test_environment.py` 20/20 通过；`test_pragma_bytes.py` 等 6 个模块在本机之外收集失败（读取 `/home/zhao/...`），以独立等价比较代替，并登记为既有的可移植性问题。
+
+### 26.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 求值代码 | 与冻结第 7–23 行逐行相同 | 代码对照 |
+| 与原实现 | 原实现能读取的 1,646 个文件：区间 1,646/1,646、补丁区间 1,648/1,648；MANDO 846/846 | verify_equivalence.json |
+| 新实现多接受 | 5 个新语法、2 个 Latin-1、合约体内 pragma 夹具，及两个 solc 本身报错的审查用例 | 同上 |
+| v5 | seal 4,228 一致；846/846 状态、原因、版本、SHA、设置、标志与 v3 相同；843/843 图字节相同 | 内联核对 |
+| CLI 探针 | 9 个正例 success、无改动、seal 一致；`||` 负例 unrepaired、不调用编译器 | 同上 |
+| pragma 内注释 | solc 0.8.0（块注释）与 0.5.17（行注释）rc 0，生产 Slither 成功；模块抛 Unsupported | edge_cases |
+| 缺分号 | solc 0.5.17 报解析错误；模块信息与 `||` 相同 | 同上 |
+
+未证明：用户环境（Python 3.10）中的测试结果之外，本审查没有运行 `test_pragma_bytes.py`；遗留两项在外部语料中的数量（CP3 统计）。
+
+### 26.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：实现符合 4.4d 节；等价、回归与 CLI 验收完整；四个执行问题只涉及记录过程，保留了首次结果，没有放宽判据。
+- 新发现：两个继承自冻结语义的同类遗留；测试可移植性（既有）。CP2.4 的修复只在冻结实现抛异常的输入上偏离冻结语义，不改变已定决策，不需要新的用户批准。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 26.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_3_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP3 不能开始。顺序为 Codex 执行 CP2.4 → Claude 审查 → CP3。本轮提交并 push 到 `compile-repair`。

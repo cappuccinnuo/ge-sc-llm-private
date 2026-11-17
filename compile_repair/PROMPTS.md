@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.11（2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.12（2026-11-17；r2.11 同日；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.12 相对 r2.11 的修改**（CP2.3 审查；证据 `artifacts/cp2_3_review_v1/README.md`）：
+1. CP2.3 经独立复核成立（新增 1.15 节）：原实现能读取的 1,646 个文件中区间 1,646/1,646、补丁区间 1,648/1,648 与原实现相同，MANDO 846/846 相同；v5 与 v3 的状态、版本、设置、标志 846/846 相同，843/843 图字节相同；9 个 CLI 正例成功、`||` 负例不调用编译器。
+2. 审查边界用例发现两个同类遗留（都继承自冻结语义，不是 CP2.3 引入）：pragma 内含注释（`pragma solidity ^0.8.0 /* note */;`，solc 0.8.0 rc 0）被拒；缺分号的 pragma 与 `||` 记录相同的异常信息，CP3 无法把它归入解析类。新增 4.4e 节 CP2.4 修复，CP3 之前完成。修复后的语义只在冻结实现抛异常的输入上与冻结实现不同，属有意偏离，在 DECISIONS 记录。
+3. 测试可移植性（既有）：6 个测试模块在用户本机之外收集即失败（导入时读取 `/home/zhao/...` 的授权文件），应在缺少生产环境时跳过。不阻塞 CP3（Codex 在用户本机验收）；在引入 CI 或迁移到 5080 主线时处理，先登记。
 
 ---
 
@@ -300,6 +305,16 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | 降序 | 846 个输入：843 成功、3 个已知 Slither 侧失败；229 同版、614 不同版（都在同一小版本系列） |
 | 升降序比较 | 843/843 节点 key5、IR、边、调用相同；graph.json 815 个字节相同，28 个只在 87 个节点的 `length` 上不同 |
 | 遗留缺陷 | 0.8 新语法使版本读取失败（19 个特性夹具中 5 个）；非 UTF-8 字节使版本读取失败；solc 与生产 Slither 都接受这些输入 |
+
+### 1.15 CP2.3 结果（2026-11-17 审查；证据 `artifacts/cp2_3_v1/`、`cr_store_mando_v5/`、`cp2_3_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 实现 | `_pragma_spans` 在遮盖注释与字符串后的字节上按花括号深度找顶层指令；`_expression_interval` 逐行复制冻结求值；Latin-1 无损解码；pipeline 只把 Unsupported 记为版本约束不支持 |
+| 与原实现 | 原实现能读取的 1,646 个文件：区间 1,646/1,646、补丁区间 1,648/1,648 相同；MANDO 846/846 |
+| v5 回归 | 843 成功 + 3 已知失败；状态、版本、设置、标志 846/846 与 v3 相同；843/843 图字节相同 |
+| CLI 正例 | 5 个新语法、Latin-1 注释、注释与字符串中的伪 pragma、两条 pragma、无 pragma 的 Latin-1：9/9 成功，无源码改动 |
+| 遗留 | pragma 内含注释被拒（solc 接受）；缺分号的 pragma 与 `||` 的记录无法区分 |
 
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
@@ -911,6 +926,35 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 逐项给出预期与实测；列出修改的函数与改动行数；生产文件数。
 ```
 
+### 4.4e CP2.4：pragma 内注释与未结束指令（r2.12 新增；CP3 之前必须完成）
+
+```text
+# CP2.4：版本表达式从遮盖后的字节读取；未结束的 pragma 单独记录
+
+依据：PROMPTS r2.12 的修改说明与 1.15 节；审查证据 compile_repair/artifacts/cp2_3_review_v1/README.md 与 edge_cases/（只读，不导入其中脚本；夹具可以复制）。CP0–CP2.3 的产物不改、不覆盖，新结果写入新批次 cp2_4_v1。不需要安装或下载；需要时停下。报告追加到 CP2_REPORT.md 的“CP2.4”一节。
+
+## 1. 问题（审查已复现，先在本机复现一次并记录）
+- pragma_interval 从原始字节截取表达式。edge_cases/comment_inside.sol（`pragma solidity ^0.8.0 /* note */;`）由 solc 0.8.0 编译成功，模块抛 Unsupported、不编译。
+- edge_cases/missing_semicolon.sol（pragma 缺分号）由 solc 0.5.17 报 `Expected ';' but got end of source`，是可修复的源码错误；模块记录的异常信息与 `||` 相同（`F: unsupported pragma expression`）。
+
+## 2. 修改（只改 rules/environment.py；生产文件数保持 14）
+- 表达式从 code_only 遮盖后的同一字节区间截取（注释变为等长空格），再交给 _expression_interval；pragma_patches 的区间与改写内容不变（仍改写原始字节）。
+- 已识别的顶层 `pragma solidity` 在分号之前遇到 `{`、`}` 或文件结束时，抛 Unsupported("F: unterminated pragma directive")；`||`、无法解析的表达式与空交集的异常信息不变。pipeline 记录方式不变（标志仍为 unsupported_version_constraints，attempts 中的 error_first_line 区分原因）。
+- 其他不改。
+
+## 3. 测试与验收
+- 等价：MANDO 846 个输入与 tests/fixtures 中原实现能读取的全部文件，pragma_interval、pragma_patches 与 make_plan 的结果（EnvironmentPlan 全部字段）与 CP2.3 实现逐一相同。make_plan 在 846 个输入上全部相同即说明选版不变，不需要重跑全量生产回归。
+- 新夹具（可复制 edge_cases/ 下的文件）：
+  - comment_inside.sol：区间为 [0.8.0, 0.9.0)；生产 profile 经 CLI 成功，D3 成立，无源码改动。
+  - 行注释在表达式与分号之间（`pragma solidity ^0.5.0 // note` 换行后 `;`）：同上，用 0.5 系列。
+  - missing_semicolon.sol：unsupported_version_constraints，error_first_line 为 `F: unterminated pragma directive`，不调用编译器。
+  - `||` 夹具：异常信息仍为 `F: unsupported pragma expression`。
+- 两个环境的模块测试与 DFG v2 测试都运行。
+
+## 结论
+- 逐项给出预期与实测；修改的函数与行数；生产文件数。
+```
+
 ### 4.5 CP3：失败分类表、外部语料获取与分类
 
 ```text
@@ -924,6 +968,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 另设“Slither 侧失败”一类：solc rc0 而生产 Slither 构造或 D3 失败（例如 1.7 节的 0.4.x 元组 call 写法、生产版本不支持的新语法）。按 Slither 错误信息分子类；能用 3.2 节第 10 行语义等价改写处理的标为确定性，否则记为工具限制，不交给代理改写合法源码。
 - 诊断来源（r2.11，审查实测见 artifacts/cp2_2_review_v1/probe_diagnostics.json）：命令行 stderr 在 0.4.12–0.8.38 的已测版本中只写 `Error:`，不写错误类型；位置格式在 0.5.17 及以前为 `file:line:col: Error: msg`，0.8.0 起为 `Error: msg` 后接一行 ` --> file:line:col:`；0.6、0.7 未测，由本 CP 用已安装编译器确定格式切换的版本。standard JSON 给出类型（0.8 另有 errorCode），但 0.4.12 对缺失基类的源码抛 InternalCompilerError，0.4.12 与 0.4.17 对解析错误和缺失基类不给 sourceLocation。同一错误的措辞随版本变化（0.4.12、0.4.17 为 `Expected token Semicolon got 'RBrace'`，0.4.24 起为 `Expected ';' but got '}'`）。因此：分类以模块已有的 combined-json 编译的 stderr 为来源，按消息模板与位置分类；类型列取自文档与能给出类型的版本的 standard JSON；每个模板注明已核实的版本范围；夹具测试覆盖新旧两种措辞与两种位置格式。
 - Slither 侧失败（r2.11，审查实测见 probe_slither_compat.json）：MANDO 三个 Slither 侧失败文件各有一处 `(bool success, ) = ….call.value(…)("");`，0.4.24 与 0.4.26 下 solc rc 0、生产 Slither 抛 AssertionError；改写为 `bool success = …;` 后两个版本都构建成功（0.4.12 下原文 solc 失败、改写后成功）。本 CP 把它列为确定性候选并在夹具上复核；实现与改写记录留 CP6。
+- unsupported_version_constraints 按 attempts 中的 error_first_line 细分（r2.12）：`||`、无法解析的表达式、未结束的指令（源码错误，归入解析类候选）、单文件或单元内空交集。
 - 版本区间一律用 CP2.3 之后的 pragma_interval（不依赖整文件解析）；survey.py 中 CP0 的 parse 路径不得用于新统计。另统计冻结 parse 失败而新读取成功的单元数，作为 CP2.3 影响的记录。
 - 表写入 compile_repair/artifacts/cp3_v1/taxonomy.json 与 CP3_REPORT.md；分类规则写在 toolchain/solc.py，测试覆盖每一类（用 tests/fixtures 中的手写合约，不依赖语料中是否出现）。
 

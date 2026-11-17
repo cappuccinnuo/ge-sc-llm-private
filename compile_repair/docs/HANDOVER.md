@@ -1,23 +1,23 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.11（§1.14、§4.4d、§4.5）、CP2_REPORT 的 CP2.3、DECISIONS、CHANGE_LOG §24/25 及 artifacts/cp2_3_v1/README.md。第 6 节历史只追加。
+> 新接手先读本文第 0–5 节、PROMPTS r2.12（§1.15、§4.4e CP2.4、§4.5 CP3）、artifacts/cp2_3_review_v1/README.md、DECISIONS 与 CHANGE_LOG §25、§26。第 6 节历史只追加，记录规则见 README.md。
 
 ## 0. 一句话
 
-CP2.3 已完成本机验收：pragma 定位不再依赖整文件 parser，版本读取/推断接受非 UTF-8 字节；v5 的 846 个记录字段与 v3 相同，843 个图字节相同。下一步独立审查 CP2.3，审查通过后才进入 CP3。6c 回归已经结束，不再重放。
+CP2.3 已由 Claude 独立复核成立：两个缺陷已修复，MANDO 846/846 与原实现相同，v5 与 v3 图字节相同。审查边界用例另发现两个同类小遗留（pragma 内注释被拒；缺分号的 pragma 与 `||` 记录相同），继承自冻结语义。下一步：Codex 执行 4.4e 节 CP2.4 → Claude 审查 → CP3。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 决策 | PROMPTS r2.11；D5/D16/D18/D20/D20a 已定；既有待定项不改 | DECISIONS |
-| CP0–CP2.2 | 已审查通过；6c 239/239 已结束 | cp2_2_review_v1 |
-| CP2.3 实现 | 仅 environment.py/pipeline.py，+73/-16，生产文件 14 | code_change_summary.json |
-| 冻结等价 | 两环境各 846 输入 + 28 可解析夹具相同 | cp2_3_v1/equivalence.json |
-| 新 CLI 输入 | 9 正例成功、1 并集负例按预期拒绝 | probes.json |
-| MANDO v5 | 843 成功、3 已知 Slither 侧失败；846 记录字段同，843 图字节同 | regression.json |
-| 测试 | production 607/6、mando 167/446、DFG 2653 passed/9 既有 warnings | pytest_* |
-| 下一步 | CP2.3 独立审查 → CP3；本轮没有开展 CP3 | PROMPTS §4.4d |
+| 方案与决定 | PROMPTS r2.12；D5/D16/D18/D20/D20a 已定；D19 建议；D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
+| CP0–CP2.3 | 已审查通过；6c 239/239 已结束 | 各审查目录；cp2_3_review_v1 |
+| CP2.3 复核 | 原实现能读取的 1,646 个文件区间全同；MANDO 846/846；v5 与 v3 846/846 记录、843/843 图字节相同；9 个 CLI 正例成功 | cp2_3_review_v1/README.md |
+| 遗留 | pragma 内注释被拒（solc 0.8.0 与 0.5.17 接受）；未结束的 pragma 与 `||` 记录相同；CP2.4 修复 | cp2_3_review_v1/edge_cases |
+| 测试可移植性 | 6 个测试模块在用户本机之外收集失败（既有）；引入 CI 或迁移时处理 | PROMPTS r2.12 修改说明第 3 条 |
+| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 | PROMPTS r2.11 修改说明第 4 条 |
+| 已知缺口 | `||` pragma；Slither 进程内无超时；项目与依赖等未实现 | 留 CP3 |
+| 下一步 | CP2.4 → 审查 → CP3 | PROMPTS §4.4e |
 
 ## 2. 分支与工作树
 
@@ -43,13 +43,14 @@ production=/home/zhao/miniconda3/envs/compile-repair-production，Python 3.10.21
 8. 旧 cp0_1_compilers_v1 首次 seal 已由 README 指明被 seal_v2 替代；当前 README 与最终 seal 相同，不改历史。处理记录在 development_issues。
 9. 所有旧代码/产物保护按 baseline 与 frozen_audit_v2 检查；新测试和 v5 的代码指纹必须与本次实际实现一致。
 10. docs/CHANGE_LOG 是本模块训练改变/运行记录，根目录两份文档不改。第 6 节及各旧报告历史保留。
-11. CP2.3 已完成本机功能验收，仍需独立审查；不要将该状态写成已审查，不提前执行 CP3。
+11. CP2.3 已完成本机功能验收，仍需独立审查；不要将该状态写成已审查，不提前执行 CP3。（2026-11-17 Claude 更新：CP2.3 审查已通过；CP3 之前先执行 CP2.4，见 PROMPTS §4.4e。）
 12. 未来任何方案变更先咨询用户并记录。本次未提出或实施替代方案；有限探针通过不证明所有输入和图语义已穷举。
 
 ## 5. 关键路径
 
 | 内容（compile_repair 下） | 路径 |
 |---|---|
+| CP2.3 审查证据（Claude） | artifacts/cp2_3_review_v1/README.md、verify_equivalence.json、edge_cases/ |
 | 当前报告和训练改变记录 | CP2_REPORT.md 的 CP2.3；docs/CHANGE_LOG.md §25 |
 | CP2.3 证据总览 | artifacts/cp2_3_v1/README.md |
 | 修改前复现 | cp2_3_v1/reproduction.json、reproduction_invocations.jsonl、reproduction_cli |
@@ -354,3 +355,14 @@ doc_check v1 的 7 份文档全部通过；本补记与新目录说明更新后�
 
 
 暂存检查补记（修改 AI：Codex）：首次 git diff --cached --check 指出新 v5 README 文件末尾多一个空白行，记录于 staging_attempt1.json。只删除该冗余换行，正式存储/tar 与生产代码字节不变；前一版 evidence_seal.json 保留为文档格式整理前的快照，最终交付使用 evidence_seal_v2.json 和 delivery_seal.json。处理已登记 development_issues，七份文档最终再检结果见 doc_check_v3；提交前重新核对全部暂存字节与空白格式。
+
+
+### 2026-11-17 CompileRepair CP2.3 审查与方案 r2.12（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP2.3（提交 76a2cc810）。新增证据目录 `artifacts/cp2_3_review_v1/`，修改 `PROMPTS.md`（r2.11 → r2.12）。本文开头、第 0、1 节换成审查结论，第 4 节第 11 条补注，第 5 节加入证据路径。
+
+结论：CP2.3 成立。复制的求值与冻结函数逐行相同；原实现能读取的 1,646 个文件中区间与补丁区间全部相同，MANDO 846/846；v5 与 v3 的 846 个记录与 843 个图字节相同；9 个 CLI 正例成功、`||` 负例不调用编译器。Codex 记录的四个执行问题都只涉及记录过程，处理得当。
+
+审查新写 10 个边界合约，发现两个继承自冻结语义的同类遗留：pragma 内含注释时模块拒绝而 solc 接受；缺分号的 pragma 与 `||` 的异常信息相同，CP3 无法区分。另登记测试可移植性（6 个模块在本机之外收集失败，既有）。新增 4.4e 节 CP2.4。
+
+下一步：Codex 执行 CP2.4，Claude 审查后进入 CP3。本轮没有模块代码改动或安装。详见 CHANGE_LOG §26。

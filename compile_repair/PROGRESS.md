@@ -278,3 +278,10 @@ production 模块 585 passed/6 skipped，mando 模块 147/444，冻结 DFG 2653 
 
 
 CP2.3 最终补记（Codex）：7 份 doc_check v1 通过，补记后的最终复检见 v2。最终保护审计 frozen_audit_v2 通过；首次审计把 6 个旧测试手工空指纹 seal 计入真实 CLI，原结果与驱动保留，已按真实封存证据纠正归类。3 个真实 CLI seal 与 v5 的实现指纹一致，没有改生产代码、测试或判据；完整过程见 CHANGE_LOG §25。
+
+
+## CP2.3 审查与方案 r2.12（Claude，2026-11-17）
+
+- CP2.3 复核成立：与原实现在 1,646 个可读文件上全同（MANDO 846/846）；v5 与 v3 记录与图字节相同；9 个 CLI 正例成功。
+- 遗留两项（继承自冻结语义）：pragma 内注释被拒；缺分号的 pragma 与 `||` 记录相同。另登记测试可移植性（既有）。
+- PROMPTS r2.12：新增 1.15 节、4.4e 节 CP2.4，CP3 第 0 节细分版本约束不支持的原因。证据 `artifacts/cp2_3_review_v1/`；记录 `docs/CHANGE_LOG.md` §26。
