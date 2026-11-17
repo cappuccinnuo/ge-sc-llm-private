@@ -1,313 +1,76 @@
-# Smart Contract Vulnerabilities
-[![python](https://img.shields.io/badge/python-3.7.12-blue)](https://www.python.org/)
-[![slither](https://img.shields.io/badge/slither-0.8.0-orange)](https://github.com/crytic/slither)
-[![slither](https://img.shields.io/badge/dgl-0.6.1-green)](https://www.dgl.ai/)
+# MANDO-LLM with data-flow and semantic enhancements
 
-# Multi-Level Graph Embeddings
-[![GE-SC overview](./assets/MANDO-LLM-full.png)](https://github.com/MANDO-Project/ge-sc-llm)
+Smart-contract vulnerability detection with heterogeneous graph transformers (HGT),
+extending [MANDO-LLM](https://github.com/MANDO-Project/ge-sc-llm). Every stage is rebuilt
+from the raw Solidity sources, so all graphs, features and model weights can be
+regenerated on a new machine. Each stage reads only the outputs of the stages before it,
+and refuses outputs that were built from different inputs.
 
-This repository is an implementation of MANDO-LLM: Heterogeneous Graph Transformers with Large Language Models for Smart Contract Vulnerability Detection.
-The source code is the next version of our two previous frameworks [MANDO](https://github.com/MANDO-Project/ge-sc) and [MANDO-HGT](https://github.com/MANDO-Project/ge-sc-transformer).
-
-# Table of contents
-
-- [Smart Contract Vulnerabilities](#smart-contract-vulnerabilities)
-- [Multi-Level Graph Embeddings](#multi-level-graph-embeddings)
-- [Table of contents](#table-of-contents)
-- [How to run the models?](#how-to-run-the-models)
-  - [Quickstart](#quickstart)
-  - [Dataset](#dataset)
-  - [Pretrained checkpoints and compressed graphs](#pretrained-checkpoints-and-compressed-graphs)
-  - [System Description](#system-description)
-  - [Install Environment](#install-environment)
-  - [Inspection scripts](#inspection-scripts)
-    - [Graph Classification](#graph-classification)
-    - [Node Classification](#node-classification)
-  - [Trainer](#trainer)
-    - [Graph Classification](#graph-classification-1)
-      - [Usage](#usage)
-      - [Examples](#examples)
-    - [Node Classification](#node-classification-1)
-      - [Usage](#usage-1)
-      - [Examples](#examples-1)
-  - [Testing](#testing)
-  - [Visualization](#visualization)
-  - [Results](#results)
-    - [Combine HCFGs and HCGs in Form-A Fusion.](#combine-hcfgs-and-hcgs-in-form-a-fusion)
-      - [Coarse-Grained Contract-Level Detection](#coarse-grained-contract-level-detection)
-      - [Fine-Grained Line-Level Detection](#fine-grained-line-level-detection)
-    - [HCFGs only](#hcfgs-only)
-      - [Coarse-Grained Contract-Level Detection](#coarse-grained-contract-level-detection-1)
-    - [Combine CFGs and CGs in Form-B Fusion.](#combine-cfgs-and-cgs-in-form-b-fusion)
-      - [Fine-Grained Function-Level Detection](#fine-grained-function-level-detection)
-
-# How to run the models?
-
-## Quickstart
-- We provide a quickstart guide for the refactored direct classifier scripts in [docs/classifier-quickstart.md](docs/classifier-quickstart.md).
-
-
-## Dataset
-- We prepared dataset for [experiments](experiments/ge-sc-data/source_code).
-
-## Pretrained checkpoints and compressed graphs
-- We provide our trained weight checkpoints and compressed graphs for training and inference in the [Google Drive](https://drive.google.com/drive/folders/1Ne3ozncJK1Oqaf6hlF_NdQAiS4VgWulx?usp=sharing).
-- For hands-on direct script usage after the classifier refactor, see [Classifier Quickstart](docs/classifier-quickstart.md). The default assets live under `mando-assets/` and use `nodetype` node features.
-
-## System Description
-
-We run all experiments on 
-- Ubuntu 20.04
-- CUDA 11.1
-- NVIDA 3080
-
-## Install Environment
-
-Install python required packages.
-```bash
-pip install -r requirements.txt
+```
+Solidity sources ──► hcg ──► dfg ──► nodesem ──► (training)
+                      │       │  └──► edgesem ──► (training)
+                      │       └──► dfg train  (DFG profiles; G0 = MANDO-LLM baseline)
+                      └──► mando classifiers (upstream baseline on the rebuilt graphs)
 ```
 
-## Inspection scripts
+| Stage | What it adds | Output |
+|---|---|---|
+| [`hcg`](hcg/README.md) | contract graphs (CFG + call graph) in the authors' format, labels, CodeT5+ tokens; checked against the authors' released graphs | `data/hcg/` |
+| [`dfg`](dfg/README.md) | data-flow layers L1 def-use, L2 state reads/writes, L3 environment flow; grouped nested CV training | `data/dfg/`, `runs/dfg/` |
+| [`nodesem`](nodesem/README.md) | node semantics: code/context encoders, static facts, LLM descriptions (Qwen2.5-Coder) distilled into a student | `data/nodesem/`, `runs/nodesem/` |
+| [`edgesem`](edgesem/README.md) | edge semantics: MOD_APPLY / CALL_SITE / GUARDS relations, 74-bit edge attributes, edge-aware HGT | `data/edgesem/`, `runs/edgesem/` |
+| [`mando`](mando/README.md) | the upstream MANDO-LLM baseline: HGT models, tree-sitter graph construction, trainers, inference | — |
 
-We provide inspection scripts for Graph Classification and Node Classification tasks as well as their required data.
+## Layout
 
-### Graph Classification
-
-Training Phase
-```bash
-python -m experiments.graph_classification --epochs 50 --repeat 20
 ```
-To show the result table
-
-```bash
-python -m experiments.graph_classification --result
-```
-
-### Node Classification
-
-Training Phase
-```bash
-python -m experiments.node_classification --epochs 50 --repeat 20
-```
-To show the result table
-
-```bash
-python -m experiments.node_classification --result
+hcg/ dfg/ nodesem/ edgesem/   pipeline stages (each: README, CLI `python -m <stage>`, layered subpackages)
+mando/                        upstream MANDO-LLM baseline (models/, graphs/, classifiers, inference)
+compile_repair/               compile-repair subsystem (in development)
+tests/                        per-package tests: hcg/ dfg/ nodesem/ edgesem/ mando/ (+ reference data)
+data/upstream_mando_llm/      the authors' released graphs (reference for hcg)
+experiments/ge-sc-data/       Dataset A Solidity sources
+docs/                         migration_5080.md (rebuild log), history/ (earlier handovers and archives)
+.github/workflows/            CI: unit tests + every category end to end on CPU
 ```
 
-- We currently supported 7 types of the bug: `access_control`, `arithmetic`, `denial_of_service`, `front_running`, `reentrancy`, `time_manipulation`, `unchecked_low_level_calls`.
+Generated data goes to `data/` and training runs to `runs/` (both git-ignored).
 
-- Run the inspection 
+## Setup
 
+The tested environment is the CI one (Python 3.11, CPU): torch 2.2.1, dgl 2.1.0,
+`numpy<2`, `networkx>=3`, tree-sitter 0.20.4, pydot 1.4.2, transformers 4.46.3, plus
+sentence-transformers 3.3.1 and llama-cpp-python 0.3.19 for NodeSem's teacher and LLM
+(see `.github/workflows/pipeline.yml`). A C compiler is needed once to build the
+tree-sitter grammar. GPU (RTX 5080) environment: see `docs/migration_5080.md`.
 
-## Trainer
-
-### Graph Classification
-
-#### Usage
-
-```bash
-usage: MANDO Graph Classifier [-h] [-s SEED] [-ld LOG_DIR]
-                              [--output_models OUTPUT_MODELS]
-                              [--compressed_graph COMPRESSED_GRAPH]
-                              [--dataset DATASET] [--testset TESTSET]
-                              [--label LABEL] [--checkpoint CHECKPOINT]
-                              [--feature_extractor FEATURE_EXTRACTOR]
-                              [--node_feature NODE_FEATURE]
-                              [--k_folds K_FOLDS] [--test] [--non_visualize]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -s SEED, --seed SEED  Random seed
-
-Storage:
-  Directories for util results
-
-  -ld LOG_DIR, --log-dir LOG_DIR
-                        Directory for saving training logs and visualization
-  --output_models OUTPUT_MODELS
-                        Where you want to save your models
-
-Dataset:
-  Dataset paths
-
-  --compressed_graph COMPRESSED_GRAPH
-                        Compressed graphs of dataset which was extracted by
-                        graph helper tools
-  --dataset DATASET     Dicrectory of all souce code files which were used to
-                        extract the compressed graph
-  --testset TESTSET     Dicrectory of all souce code files which is a
-                        partition of the dataset for testing
-  --label LABEL         Label of sources in source code storage
-  --checkpoint CHECKPOINT
-                        Checkpoint of trained models
-
-Node feature:
-  Define the way to get node features
-
-  --feature_extractor FEATURE_EXTRACTOR
-                        If "node_feature" is "GAE" or "LINE" or "Node2vec", we
-                        need a extracted features from those models
-  --node_feature NODE_FEATURE
-                        Kind of node features we want to use, here is one of
-                        "nodetype", "metapath2vec", "han", "gae", "line",
-                        "node2vec"
-
-Optional configures:
-  Advanced options
-
-  --k_folds K_FOLDS     Config for cross validate strategy
-  --test                Set true if you only want to run test phase
-  --non_visualize       Wheather you want to visualize the metrics
-```
-
-#### Examples
-
-- We prepared some scripts for the custom MANDO structures below:
-
-- Graph Classification for Heterogeneous Control Flow Graphs (HCFGs), which detect vulnerabilities at the contract level.
-  - GAE as node features.
-```bash
-python graph_classifier.py -ld ./logs/graph_classification/cfg/gae/access_control --output_models ./models/graph_classification/cfg/gae/access_control --dataset ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/ --compressed_graph ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/cfg_compressed_graphs.gpickle --label ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/graph_labels.json --node_feature gae --feature_extractor ./experiments/ge-sc-data/source_code/gesc_matrices_node_embedding/matrix_gae_dim128_of_core_graph_of_access_control_cfg_clean_57_0.pkl --seed 1
-```
-
-- Graph Classification for Heterogeneous Call Graphs (HCGs), which detect vulnerabilities at the contract level.
-  - LINE as node features.
-```bash
-python graph_classifier.py -ld ./logs/graph_classification/cg/line/access_control --output_models ./models/graph_classification/cg/line/access_control --dataset ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/ --compressed_graph ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/cg_compressed_graphs.gpickle --label ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/graph_labels.json --node_feature line --feature_extractor ./experiments/ge-sc-data/source_code/gesc_matrices_node_embedding/matrix_line_dim128_of_core_graph_of_access_control_cg_clean_57_0.pkl --seed 1
-```
-
-- Graph Classification for the combination of HCFGs and HCGs which detect vulnerabilities at the contract level.
-  - node2vec as node features.
-```bash
-python graph_classifier.py -ld ./logs/graph_classification/cfg_cg/node2vec/access_control --output_models ./models/graph_classification/cfg_cg/node2vec/access_control --dataset ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/ --compressed_graph ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/cfg_cg_compressed_graphs.gpickle --label ./experiments/ge-sc-data/source_code/access_control/clean_57_buggy_curated_0/graph_labels.json --node_feature node2vec --feature_extractor ./experiments/ge-sc-data/source_code/gesc_matrices_node_embedding/matrix_node2vec_dim128_of_core_graph_of_access_control_cfg_cg_clean_57_0.pkl --seed 1
-```
-
-### Node Classification
-- We used node classification tasks to detect vulnerabilities at the line and function levels for Heterogeneous Control-Flow Graphs (HCFGs) and Call Graphs (HCGs) in correspondence.
-
-#### Usage
-```bash
-usage: MANDO Node Classifier [-h] [-s SEED] [-ld LOG_DIR]
-                             [--output_models OUTPUT_MODELS]
-                             [--compressed_graph COMPRESSED_GRAPH]
-                             [--dataset DATASET] [--testset TESTSET]
-                             [--label LABEL]
-                             [--feature_compressed_graph FEATURE_COMPRESSED_GRAPH]
-                             [--cfg_feature_extractor CFG_FEATURE_EXTRACTOR]
-                             [--feature_extractor FEATURE_EXTRACTOR]
-                             [--node_feature NODE_FEATURE] [--k_folds K_FOLDS]
-                             [--test] [--non_visualize]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -s SEED, --seed SEED  Random seed
-
-Storage:
-  Directories \for util results
-
-  -ld LOG_DIR, --log-dir LOG_DIR
-                        Directory for saving training logs and visualization
-  --output_models OUTPUT_MODELS
-                        Where you want to save your models
-
-Dataset:
-  Dataset paths
-
-  --compressed_graph COMPRESSED_GRAPH
-                        Compressed graphs of dataset which was extracted by
-                        graph helper tools
-  --dataset DATASET     Dicrectory of all souce code files which were used to
-                        extract the compressed graph
-  --testset TESTSET     Dicrectory of all souce code files which is a
-                        partition of the dataset for testing
-  --label LABEL
-
-Node feature:
-  Define the way to get node features
-
-  --feature_compressed_graph FEATURE_COMPRESSED_GRAPH
-                        If "node_feature" is han, you mean use 2 HAN layers.
-                        The first one is HAN of CFGs as feature node for the
-                        second HAN of call graph, This is the compressed
-                        graphs were trained for the first HAN
-  --cfg_feature_extractor CFG_FEATURE_EXTRACTOR
-                        If "node_feature" is han, feature_extractor is a
-                        checkpoint of the first HAN layer
-  --feature_extractor FEATURE_EXTRACTOR
-                        If "node_feature" is "GAE" or "LINE" or "Node2vec", we
-                        need a extracted features from those models
-  --node_feature NODE_FEATURE
-                        Kind of node features we want to use, here is one of
-                        "nodetype", "metapath2vec", "han", "gae", "line",
-                        "node2vec"
-
-Optional configures:
-  Advanced options
-
-  --k_folds K_FOLDS     Config cross validate strategy
-  --test                If true you only want to run test phase
-  --non_visualize       Wheather you want to visualize the metrics
-```
-
-#### Examples
-We prepared some scripts for the custom MANDO structures bellow:
-
-- Node Classification for Heterogeneous Control Flow Graphs (HCFGs), which detect vulnerabilities at the line level.
-  - GAE is used as a node feature for detecting access_control bugs.
-  ```bash
-  python node_classifier.py -ld ./logs/node_classification/cfg/gae/access_control --output_models ./models/node_classification/cfg/gae/access_control --dataset ./experiments/ge-sc-data/source_code/access_control/buggy_curated/ --compressed_graph ./experiments/ge-sc-data/source_code/access_control/buggy_curated/cfg_compressed_graphs.gpickle --node_feature gae --feature_extractor ./experiments/ge-sc-data/source_code/gesc_matrices_node_embedding/matrix_gae_dim128_of_core_graph_of_access_control_cfg_buggy_curated.pkl --testset ./experiments/ge-sc-data/source_code/access_control/curated --seed 1
-    ```
-
-- Node Classification for Heterogeneous Call Graphs (HCGs), which detect vulnerabilities at the function level.
-- The command lines are the same as CFG except for the dataset. 
-  - LINE as node features for detection access_control bugs.
-  ```bash
-  python node_classifier.py -ld ./logs/node_classification/cg/line/access_control --output_models ./models/node_classification/cg/line/access_control --dataset ./experiments/ge-sc-data/source_code/access_control/buggy_curated --compressed_graph ./experiments/ge-sc-data/source_code/access_control/buggy_curated/cg_compressed_graphs.gpickle --node_feature line --feature_extractor ./experiments/ge-sc-data/source_code/gesc_matrices_node_embedding/matrix_line_dim128_of_core_graph_of_access_control_cg_buggy_curated.pkl --testset ./experiments/ge-sc-data/source_code/access_control/curated --seed 1
-  ```
-
-- Node Classification for the combination of HCFGs and HCGs, which detect vulnerabilities at the line level.
-  - node2vec as node features.
-  ```bash
-  python node_classifier.py -ld ./logs/node_classification/cfg_cg/node2vec/access_control --output_models ./models/node_classification/cfg_cg/node2vec/access_control --dataset ./experiments/ge-sc-data/source_code/access_control/buggy_curated --compressed_graph ./experiments/ge-sc-data/source_code/access_control/buggy_curated/cfg_cg_compressed_graphs.gpickle --node_feature node2vec --feature_extractor ./experiments/ge-sc-data/source_code/gesc_matrices_node_embedding/matrix_node2vec_dim128_of_core_graph_of_access_control_cfg_cg_buggy_curated.pkl --testset ./experiments/ge-sc-data/source_code/access_control/curated --seed 1
-  ```
-
-
-- We also stack 2 HAN layers for function-level detection. The first HAN layer is based on HCFGs used as a feature for the second HAN layer based on HCGs (It will be deprecated in a future version).
-```bash
-python node_classifier.py -ld ./logs/node_classification/call_graph/node2vec_han/access_control --output_models ./models/node_classification/call_graph/node2vec_han/access_control --dataset ./ge-sc-data/node_classification/cg/access_control/buggy_curated --compressed_graph ./ge-sc-data/node_classification/cg/access_control/buggy_curated/compressed_graphs.gpickle --testset ./ge-sc-data/node_classification/cg/curated/access_control --seed 1  --node_feature han --feature_compressed_graph ./data/smartbugs_wild/binary_class_cfg/access_control/buggy_curated/compressed_graphs.gpickle --cfg_feature_extractor ./data/smartbugs_wild/embeddings_buggy_currated_mixed/cfg_mixed/gesc_matrices_node_embedding/matrix_node2vec_dim128_of_core_graph_of_access_control_compressed_graphs.pkl --feature_extractor ./models/node_classification/cfg/node2vec/access_control/han_fold_0.pth
-```
-
-## Testing
-- We automatically run testing after the training phase for now.
-
-## Visualization
-- You also use Tensorboard and take a look at the trend of metrics for both the training phase and the testing phase.
+## Running everything
 
 ```bash
-tensorboard --logdir LOG_DIR
+python -m hcg fetch                       # pinned SmartBugs-curated + SolidiFI (data/ or $MANDO_DATA_DIR)
+python -m hcg build                       # 7 categories, with tokens
+python -m dfg build
+python -m dfg train --out runs/dfg/all && python -m dfg report runs/dfg/all
+
+python -m nodesem analyze && python -m nodesem encode
+python -m nodesem describe && python -m nodesem encode --teacher
+python -m nodesem train --out runs/nodesem/all && python -m nodesem report runs/nodesem/all
+
+python -m edgesem build
+python -m edgesem train --out runs/edgesem/all && python -m edgesem report runs/edgesem/all
 ```
 
-## Results
+Training commands use the GPU when available (`--device`), resume interrupted runs and
+accept `--categories`, `--tasks`, `--folds` and `--seed`; the stage READMEs list the
+rest. The upstream baseline runs as `python -m mando.graph_classifier` /
+`python -m mando.node_classifier` (see `mando/README.md`).
 
-### Combine HCFGs and HCGs in Form-A Fusion.
+## Verification
 
-#### Coarse-Grained Contract-Level Detection
+`python -m pytest tests/<stage>/test_units.py` runs without data. The
+`tests/<stage>/test_dataset_a.py` suites (need `$MANDO_DATA_DIR`) rebuild each category
+and check it against the authors' graphs, the pre-restructure code and the sealed
+evidence of the earlier experiments; CI runs them for all seven categories.
 
-[![Coarse-Grained CFGs+CGs](./assets/coarse_grained_cfg_cg.png)](https://anonymous.4open.science/r/ge-sc-FE31)
-
-#### Fine-Grained Line-Level Detection
-
-[![Coarse-Grained CFGs+CGs](./assets/fine_grained_cfg_cg.png)](https://anonymous.4open.science/r/ge-sc-FE31)
-
-
-### HCFGs only
-#### Coarse-Grained Contract-Level Detection
-
-[![CFGs](./assets/coarse_grained_cfg.png)](https://anonymous.4open.science/r/ge-sc-FE31)
-
-### Combine CFGs and CGs in Form-B Fusion.
-#### Fine-Grained Function-Level Detection
-
-[![CGs](./assets/function_level_fusion_form_B.png)](https://anonymous.4open.science/r/ge-sc-FE31)
+Code and artifacts removed during the restructure are kept on the branches
+`archive/pre-restructure-2026-11-15` and `archive/pre-root-tidy-2026-11-16`.

@@ -2,7 +2,7 @@
 and the map from each relation to the G3R anchor relation that initializes it.
 """
 import torch
-from sco_models import graph_utils as gu
+from mando.models import graph_utils as gu
 
 from dfg.model.model import _validate_canonical, materialize as dfg_materialize
 from dfg.schema import FORWARD_RELATIONS

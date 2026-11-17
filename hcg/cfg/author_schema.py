@@ -1,6 +1,6 @@
 """The MANDO-LLM authors' graph format, derived from their released graphs.
 
-The released tree-sitter CFG (process_graphs/.../CFG_solidity.py, also in the
+The released tree-sitter CFG (mando/graphs/.../CFG_solidity.py, also in the
 authors' TOSEM-release branch) emits plain 'next' for almost every control-flow
 edge, while the authors' published graphs distinguish next_line, first_next_line,
 pos_next, neg_next and end_if. The version that produced those graphs is not

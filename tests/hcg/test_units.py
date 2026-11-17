@@ -136,7 +136,7 @@ def test_line_level_keeps_target_contracts_and_renumbers():
 
 def test_training_consumer_reads_quoted_labels():
     pytest.importorskip("dgl")
-    from sco_models.graph_utils import get_node_label
+    from mando.models.graph_utils import get_node_label
     g = _graph()
     projection.label_nodes(g, {"a.sol": [{"category": "c", "lines": [4]}], "b.sol": []},
                            {"a.sol": 6, "b.sol": 3})
@@ -146,7 +146,14 @@ def test_training_consumer_reads_quoted_labels():
 
 # ------------------------------------------------------------ features / io --
 def test_encode_ids_matches_existing_encoder():
-    from scripts.encode_tokenizer_features import encode_ids as original
+    def original(ids, size, pad_id):
+        """encode_ids of the former scripts/encode_tokenizer_features.py (archive branch), verbatim."""
+        out = np.full(size, pad_id, dtype=np.float32)
+        n = min(len(ids), size)
+        if n:
+            out[:n] = np.asarray(ids[:n], dtype=np.float32)
+        return out
+
     for ids in ([], [5, 6, 7], list(range(600))):
         assert np.array_equal(tokens.encode_ids(ids, 512, 0), original(ids, 512, 0))
 

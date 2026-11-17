@@ -2,8 +2,8 @@
 
 1. The MANDO-LLM authors' released graphs (data/upstream_mando_llm): structure,
    every node and edge attribute and the contract labels must be identical.
-2. The Oct 10 public-annotation policy outputs (Test_code/label_pipeline/artifacts/
-   public_endpoints_verified_v1): projected annotations, the exact set of nodes
+2. The Oct 10 public-annotation policy outputs (reference/public_endpoints_verified_v1,
+   from the label pipeline on the archive branch): projected annotations, the exact set of nodes
    whose label differs from the authors', and the line-level graph size.
 
 Needs the pinned label sources ($MANDO_DATA_DIR, `python -m hcg fetch`) and a C
@@ -23,7 +23,7 @@ from hcg.store import read_gpickle
 from hcg.verify import _by_file
 
 LABEL_ROOT = os.environ.get("MANDO_DATA_DIR")
-POLICY = REPO / "Test_code/label_pipeline/artifacts/public_endpoints_verified_v1"
+POLICY = Path(__file__).parent / "reference/public_endpoints_verified_v1"
 CATEGORIES = [c.name for c in DATASET_A.categories]
 
 

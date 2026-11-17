@@ -6,9 +6,9 @@ from pathlib import Path
 import dgl
 import networkx as nx
 import torch
-from sco_models import graph_utils as gu
-from sco_models.model_hgt import HGTLayer, HGTVulGraphClassifier, HGTVulNodeClassifier
-from scripts.labeling_v2.safe_graph import read_graph
+from mando.models import graph_utils as gu
+from mando.models.model_hgt import HGTLayer, HGTVulGraphClassifier, HGTVulNodeClassifier
+from hcg.store.io import read_audited_graph as read_graph
 from torch import nn
 
 from dfg.model.hgt import (

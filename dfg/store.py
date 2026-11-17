@@ -21,7 +21,7 @@ from pathlib import Path
 
 import networkx as nx
 
-import sco_models.graph_utils as gu
+import mando.models.graph_utils as gu
 from dfg import __version__
 from dfg.graph.audit import computation_fingerprint, fingerprint
 from dfg.graph.pipeline import GRAPH_RELATIONS, iter_build, layers_for_key, profiles_for_key

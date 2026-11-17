@@ -115,7 +115,7 @@ def leaves(root):
 
 class SourceView:
     def __init__(self, source, file, mode=None):
-        from process_graphs.tree_sitter_codeviews.utils import preprocessor
+        from mando.graphs.tree_sitter_codeviews.utils import preprocessor
         self.source, self.file = source, file
         self.raw = source.encode("utf8")
         self.sha256 = hashlib.sha256(self.raw).hexdigest()
@@ -237,7 +237,7 @@ def available(view,name):
 # Stage F source view, same exact raw/compat token and AST mapping as v1.1.
 class StageFSourceView(SourceView):
  def __init__(self,source,file,metadata=None):
-  from process_graphs.tree_sitter_codeviews.utils import preprocessor
+  from mando.graphs.tree_sitter_codeviews.utils import preprocessor
   self.source,self.file=source,file;self.raw=source.encode("utf8");self.sha256=hashlib.sha256(self.raw).hexdigest()
   self.tree=parse(source);self.version_interval,self.version_evidence=effective_interval(source,self.tree.root_node,metadata)
   self.mode=mode_for(source,self.tree.root_node,self.version_interval)
