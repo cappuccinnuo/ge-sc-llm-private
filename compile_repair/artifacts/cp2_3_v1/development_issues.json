@@ -1,0 +1,32 @@
+[
+  {
+    "cause": "Initial historical seal.json is superseded by seal_v2.json, as documented in unchanged README.",
+    "exception": "Frozen seal mismatch cp0_1_compilers_v1/README.md",
+    "matches_previous_tracked": true,
+    "readme_sha256": "7d7873c67e069d98bf9d12b46fcf79af9d94bcd02767b7270b73d9931e712ee8",
+    "resolution": "Preserve all tracked files by current HEAD hashes; carry forward the prior audited result-seal member set and add CP2.2 formal stores. No old artifact changed; no CP2.3 acceptance relaxed.",
+    "stage": "baseline_preparation",
+    "superseding_seal_readme_verified": true,
+    "superseding_seal_sha256": "36724427a5c88c4c6c4b5e2d63f92a5d6c5216e317b674bebc0005ee830e7d6f"
+  },
+  {
+    "documents_changed": false,
+    "error": "Windows CreateProcess os error 206: command line too long",
+    "process_started": false,
+    "resolution": "Write the prepared UTF-8 document generator in seven small chunks into the new batch, then execute it. No production code or acceptance criterion changed.",
+    "stage": "documentation_write"
+  },
+  {
+    "cause": "Expanded evidence capture included six unchanged settings tests that intentionally call store.seal with code_commit=test and no implementation map.",
+    "diagnosis": "test_seal_diagnosis.json",
+    "initial_receipt": "frozen_audit.json",
+    "resolution": "Preserve first receipt and initial driver. Validate exactly those six manual seals and compare all three genuine CLI seals to the 14 current implementation hashes. Rerun integrity audit into frozen_audit_v2.json; no production/test edits, no repeated successful compilation, no acceptance changes.",
+    "stage": "final_audit"
+  },
+  {
+    "cause": "New v5 README had one extra blank line at EOF, reported only after adding the untracked README to the index.",
+    "initial_receipt": "staging_attempt1.json",
+    "resolution": "Remove only the redundant final newline in the new README; no runtime artifact or production byte changed. Retain the pre-format evidence_seal snapshot and issue final evidence_seal_v2, then doc_check v3 and repeat staging hash/whitespace checks.",
+    "stage": "staging"
+  }
+]

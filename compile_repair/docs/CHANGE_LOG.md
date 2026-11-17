@@ -1286,3 +1286,61 @@ doc_check 按 baseline 的追加前字节偏移检查 CP2_REPORT=32299、PROGRES
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_2_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP3 不能开始。顺序为 Codex 执行 CP2.3 → Claude 审查 → CP3。本轮提交并 push 到 `compile-repair`。
+
+
+## 25. 2026-11-17 CompileRepair CP2.3：修复字节级版本读取并保持回归（修改 AI：Codex）
+
+### 25.1 任务、依据与范围
+
+用户要求执行更新后的 CP2.3，先读共享上下文、通读 PROMPTS；实质方案改变先咨询并记录。执行 r2.11 §4.4d；起点 compile-repair@361772f74b28b4dce0ad094907dc3dbf27a17794，git pull --ff-only origin compile-repair 为 Already up to date。已读 PROMPTS 全文、HANDOVER §0–5、DECISIONS、本文 §23/24、docs/README、REPORT_TEMPLATE 与 cp2_2_review_v1 的 README/probe_inputs。先记录 baseline，再复现旧代码，随后修改。
+
+生产只改 rules/environment.py、pipeline.py；新增 tests/test_pragma_bytes.py 和 tests/fixtures/pragma_inputs 下 latin1_comment、no_pragma_latin1、masked_pragma、two_pragmas、nested_pragma、union_pragma 六个 .sol。新驱动仅在 artifacts/cp2_3_v1：reproduce.py、launch_phase.py、run_checks.py、audit_tests.py、run_corpus.py、package_store.py、audit_frozen.py、check_docs.py、write_documents.py。新正式存储 cr_store_mando_v5。文档为 CP2_REPORT 追加 CP2.3、PROGRESS、本文、HANDOVER §0–5 与历史追加、DECISIONS 历史追加、两个新 README。完整新增证据文件由 delivery_inventory 列出。CP0–CP2.2 旧产物、旧夹具/测试、PROMPTS、scripts、语料、根交接及训练改变文档不改；不迁移分支。
+
+### 25.2 实施方式和重要选择
+
+复用 code_only 等长遮盖后按字节识别顶层 pragma，花括号深度屏蔽合约/函数体；新增 _pragma_spans 为 interval/patches 的唯一定位函数。表达式求值从冻结 scripts/DFG/state/stage_f/versioning.py:10–23 复制为 _expression_interval，来源 SHA256=130251d6a9e46ec176ba183a0a66fa5a30210b43c1ab8faa2bfcf5a676d2ed18。选择复制表达式而不调用冻结 interval，是因为后者要求整文件 AST；遵循 Prompt 的明确授权，不改其表达式语义。冻结构造只在本轮测试中导入。Latin-1 无损解码不改源码字节，infer_interval 同步处理；pragma_patches 保留逆序、换行和等长空格。pipeline 的异常分支仅保留 Unsupported；MANDO metadata 路径仍按 UTF-8 和哈希校验。
+
+run_corpus 沿用同一 CLI/result_check，846 个输入顺序和升序回归参数与 v3 相同，每份验收状态、reason、选定版本、settings、flags 和完整 graph 字节，首个差异即停止。正式运行一次。run_checks/package_store 由上轮证据驱动改写到新目录，来源 SHA 见 reuse_sources.json；未导入审查脚本。已成功 CLI 测试不重跑，audit_tests 只读复算并无损打包 58 成员的两个探针存储。最终 v5 的 4,229 成员也逐个回读哈希，原文件保留。
+
+问题处理：基线扫描误用了 cp0_1_compilers_v1 的首次 seal；README 已登记其被 seal_v2 替代。核对 README 与既有跟踪基线及 seal_v2 均一致后，沿用上一轮已审计结果集合并加入 CP2.2；所有旧跟踪文件仍逐一保护，未改历史封存。development_issues.json 保存原异常和证据，不作为本轮验收豁免。Windows/WSL 继续使用既有代理完成 Git pull；文件定位用已有 git ls-files/Python，未安装工具；UTF-8 文档用 Python 写入。首次整段文档命令超过 Windows 命令行长度（os error 206），未创建进程或修改文档；改为分块写入新 write_documents.py 再执行。该 OS 长度错误不是审批拒绝。
+
+### 25.3 实测与数据结论
+
+| 项目 | 结果 | 证据（cp2_3_v1） |
+|---|---|---|
+| 修改前复现 | 6/6 CLI 被拒，5 Unsupported + 1 UnicodeDecodeError | reproduction.json |
+| 编译工具对照 | 9/9 solc rc0、production D3；Latin-1 覆盖四个指定版本 | reproduction_invocations.jsonl |
+| 冻结等价 | production/mando 各 846 输入 + 28 可解析夹具全部同；8 个旧路径无法处理者明列 | equivalence.json |
+| 新 CLI 正/负例 | 9 成功、1 并集按预期拒绝，无重复编译审计 | probes.json |
+| v5 全量 | 843 成功、3 已知 Slither 侧失败，92 支持版本 | regression.json |
+| v3 对比 | 各记录字段 846/846 同，843/843 图字节同，差异 0 | regression_acceptance.jsonl |
+| 生产文件 | 14；仅两份修改，共 +73/-16 | code_change_summary.json |
+| production 测试 | 607 passed/6 skipped，69.72 秒 | pytest_production |
+| mando 测试 | 167 passed/446 skipped，13.33 秒 | pytest_mando |
+| DFG v2 测试 | 2653 passed/9 既有 warnings，150.01 秒 | pytest_dfg |
+
+原始输入身份取自 cp0_v2/recon.json（SHA256=bddbeaa256192b567525370f8b27335a3d2bdcf3ccb48e22086150718414ffb6），846 源码逐一验哈希；回归原参照 v3 seal 首先验全体成员。新 v5 用时 239.81 秒，外层 241.22 秒；3 个失败仍是 reentrancy_bonus/reentrancy_cross_function/reentrancy_insecure，不写 graph。CLI rc2、验收驱动 rc0 均符合预期。v5 seal=db925ee1642b5f8eae79d20defbbec673ffbaa7b4a0bb37cc270027bb1a8372b；tar=de29da390672b53d185c920bb994cbcee62b6dd53fd76510d952c92880d2c622，14148449 字节、4,229 成员。每次调用的路径/版本/参数/耗时与失败记录均封存。
+
+五个新语法 CLI 选择 0.8.13/0.8.19/0.8.28/0.8.22/0.8.29，Latin-1 选择 0.4.24；另外三个正例为 0.5.0/0.5.1/0.4.16。新源码未改写。全部受测正例成立不代表所有未来输入或图语义已经穷举；非法嵌套 pragma 只检验定位忽略，不声称可编译。
+
+### 25.4 用户批准、原文差异与待确认设计
+
+本轮依据用户 2026-11-17 的 CP2.3 指令实施已有 r2.11 方案，没有替代方案或额外下载/安装请求；D3/D5/key5/settings、D20/D20a、已知版本读取和既有决策状态不改。DECISIONS 只追加实现证据。基线 seal 选择的问题是证据版本识别，不改变任何 CP2.3 验收判据。
+
+实质限制只登记两项既有缺口：双竖线 pragma 不支持、Slither 进程内没有超时，按 CP3 既定安排分类和提出后续方案，本轮不实现。D19 与 D9/D10 等待定状态保持。没有发现需要先咨询的新方案调整。
+
+### 25.5 验收、资源、未执行事项与停止
+
+§4.4d 的复现、指定修复、等价/边界测试、生产 CLI 正负例、两环境模块/DFG 测试与 846 全量验收全部符合预期。非测试文件 14，分层测试通过；只在当前两份生产文件改功能。环境为 production Python 3.10.21/Slither 0.11.6/crytic-compile 0.4.2 与 mando 3.7.12/0.8.0/0.2.4。CPU OMP/MKL=2，费用 0，峰值未测。
+
+doc_check 使用追加前字节数 CP2_REPORT=43516、PROGRESS=38417、CHANGE_LOG=175780；HANDOVER、DECISIONS 和两个新 README 全文检查。最终结果在本节末尾补记。实际测试命令为各环境 python -B -m pytest -q -ra -x -p no:cacheprovider，加独立 --basetemp；详见 pytest_*.json。完整性审计核对旧跟踪内容、旧 seal 成员、源码、环境、solc、DFG _code_refs、函数保护与运行/测试代码指纹；最终结果见 frozen_audit。
+
+CP2.3 本机验收通过后等待独立审查；CP3 未开始，6c 未重放。未安装、下载编译器/依赖/语料/文档、调用 LLM、训练、申请 GPU 锁或修改全局 solc、网络配置。强制记录/最终检查通过后本地提交，提交号见 git log；不自动 push。
+
+
+最终检查补记（2026-11-17，修改 AI：Codex）：首次 frozen_audit.json 的实现指纹项未通过，原因是新收集的证据包含旧 settings 测试手工创建的 6 个空实现指纹 seal（code_commit=test），并非生产代码差异。test_seal_diagnosis.json 逐条列出；保留首次结果和 audit_frozen_initial.py，审计明确验证恰好这 6 个手工 seal，再核对全部 3 个真实 CLI seal 的 14 文件指纹，最终 frozen_audit_v2.json 全部通过。测试、生产代码与正式回归没有重跑或修改，未改变验收标准。其余保护项两次均通过：28,574 受保护跟踪文件（模块外 27,845、旧产物 668、旧夹具 30）、21,599 旧结果成员、239 原始目标、354 DFG 引用、96 solc 文件与两环境元数据集合/内容（production 145、mando 118）均未变；12 个非目标函数 AST 保持，生产文件仍 14 且仅两份获授权修改，测试与 v5 实现指纹相同，文档旧历史保留。
+
+doc_check v1 的 7 份文档全部通过；本补记与新目录说明更新后的最终复检记录在 doc_check_v2.jsonl 和 doc_check_v2_invocation.json。git diff --check 已通过。按精确 delivery_inventory 暂存并核对字节后本地提交，不 push；CP2.3 本机验收完成，独立审查尚未进行。
+
+
+暂存检查补记（修改 AI：Codex）：首次 git diff --cached --check 指出新 v5 README 文件末尾多一个空白行，记录于 staging_attempt1.json。只删除该冗余换行，正式存储/tar 与生产代码字节不变；前一版 evidence_seal.json 保留为文档格式整理前的快照，最终交付使用 evidence_seal_v2.json 和 delivery_seal.json。处理已登记 development_issues，七份文档最终再检结果见 doc_check_v3；提交前重新核对全部暂存字节与空白格式。

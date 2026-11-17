@@ -42,7 +42,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
                             (), [], [], {source.path: provenance})
     try:
         plan = make_plan([source.content], compilers, unit.known_version, unit.regression, order)
-    except (Unsupported, UnicodeDecodeError) as exc:
+    except Unsupported as exc:
         record.flags.append("unsupported_version_constraints")
         record.attempts.append({"stage": "environment_plan", "exception_type": type(exc).__name__,
                                 "error_first_line": str(exc).splitlines()[0]})

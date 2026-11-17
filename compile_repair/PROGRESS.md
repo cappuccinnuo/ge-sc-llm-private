@@ -264,3 +264,17 @@ production 模块 585 passed/6 skipped，mando 模块 147/444，冻结 DFG 2653 
 - CP2.2 复核成立：降序 843/843 节点、IR、边、调用相同（28 个文件只差 length）；6c 239/239，回归结束；第 239 个文件的波动在 Claude 环境独立复现。
 - 新发现两个缺陷：版本读取依赖整文件解析（0.8 新语法失败）且要求 UTF-8；可编译的合约被记为版本约束不支持。
 - PROMPTS r2.11：新增 1.14 节、4.4d 节 CP2.3，CP3 第 0 节补充诊断前提与第 10 行改写的实测。证据 `artifacts/cp2_2_review_v1/`；记录 `docs/CHANGE_LOG.md` §24。
+
+
+## 2026-11-17 CP2.3：版本读取修复与回归通过（修改 AI：Codex）
+
+执行 PROMPTS r2.11 §4.4d，先 pull --ff-only origin compile-repair，起点 361772f74b28b4dce0ad094907dc3dbf27a17794；通读 PROMPTS、指定当前状态/审查证据和记录规范。旧缺陷先复现：6 个 CLI 输入被拒、直接 solc/production D3 9/9 通过。仅改 rules/environment.py 的字节定位/表达式求值/Latin-1 推断和 pipeline.py 的异常捕获，共 +73/-16；生产文件仍 14。新增一个测试文件和六个夹具，已有产物、测试和源码不变。
+
+两个环境各 846 个输入与 28 个可解析夹具的区间及补丁字节范围均与冻结实现相同；其余 8 个夹具按真实异常明列。9 个 CLI 正例全部成功、1 个并集负例仍拒绝；新增探针与合约体内 pragma、CR/LF/偏移等边界都已测试。v5 全量一次：843 成功、3 已知 Slither 侧失败；846/846 记录字段与 v3 同，843/843 graph 字节同。证据 cp2_3_v1 与 cr_store_mando_v5，详见 CP2_REPORT 的 CP2.3。
+
+测试 production 607/6、mando 167/446、DFG 2653 passed/9 既有 warnings。v5 耗时 239.81 秒，tar 4,229 成员逐哈希回读通过；探针存储 58 成员无损交付。基线准备遇到旧首次 seal 已被 seal_v2 替代的情况，核验既有 README/最终 seal 后使用登记的结果集合并保持所有旧字节，见 development_issues；正式验收无意外失败或重试。
+
+已更新交接、训练改变记录（模块 CHANGE_LOG §25）、决策历史及报告；doc_check 与保护审计完成后本地提交，不自动 push。CP2.3 待独立审查，CP3 未开始；6c 不重放。没有方案外调整、安装/下载、LLM、训练、GPU 锁或全局 solc 变更，费用 0。
+
+
+CP2.3 最终补记（Codex）：7 份 doc_check v1 通过，补记后的最终复检见 v2。最终保护审计 frozen_audit_v2 通过；首次审计把 6 个旧测试手工空指纹 seal 计入真实 CLI，原结果与驱动保留，已按真实封存证据纠正归类。3 个真实 CLI seal 与 v5 的实现指纹一致，没有改生产代码、测试或判据；完整过程见 CHANGE_LOG §25。

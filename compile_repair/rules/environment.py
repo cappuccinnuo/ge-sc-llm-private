@@ -1,6 +1,6 @@
 """PROMPTS 3.3/4.3: the single version/settings policy, independent of paths.
 
-Intervals import frozen stage_f semantics. Feature rules cite the official
+CP2.3 copies frozen interval expression semantics, without whole-file parsing. Feature rules cite the official
 versioned documents already referenced by PROMPTS/CP0; no online lookup occurs.
 CP0 adapters retain its frozen no-pragma inventory window only for that survey.
 """
@@ -10,9 +10,8 @@ from collections import defaultdict
 
 from compile_repair.core.model import EnvironmentPlan, Patch
 from compile_repair.toolchain.solc import version_tuple
-from scripts.DFG.frontend import parse
 from scripts.DFG.models import Unsupported
-from scripts.DFG.state.stage_f.versioning import interval as frozen_interval, recorded_version
+from scripts.DFG.state.stage_f.versioning import recorded_version
 
 FLOOR, CEILING = (0, 4, 12), (0, 9, 0)
 # Official v0.5.0: throw and var are disallowed. v0.8.0: unchecked blocks
@@ -52,12 +51,74 @@ def code_only(source):
     return _MASK.sub(lambda m: re.sub(rb'[^\r\n]', b' ', m.group()), source)
 
 
+def _pragma_spans(source):
+    """Return top-level Solidity directive byte spans after lexical masking.
+
+    Braces in comments and strings do not affect depth. A recognized top-level
+    directive without a terminating semicolon before a brace/end is unsupported;
+    unrelated Solidity syntax is left to the compiler.
+    """
+    code = code_only(source)
+    tokens = rb"[{}]|(?<![A-Za-z0-9_$])pragma\s+solidity(?![A-Za-z0-9_$])"
+    depth, spans = 0, []
+    for match in re.finditer(tokens, code):
+        token = match.group()
+        if token == b"{":
+            depth += 1
+        elif token == b"}":
+            depth = max(0, depth - 1)
+        elif depth == 0:
+            end = re.search(rb"[;{}]", code[match.end():])
+            if end is None or end.group() != b";":
+                raise Unsupported("F: unsupported pragma expression")
+            spans.append((match.start(), match.end() + end.end()))
+    return tuple(spans)
+
+
+def _expression_interval(expressions):
+    """Evaluate constraints with frozen stage_f interval() semantics.
+
+    Copied evaluation only from scripts/DFG/state/stage_f/versioning.py:10-23,
+    SHA256 130251d6a9e46ec176ba183a0a66fa5a30210b43c1ab8faa2bfcf5a676d2ed18.
+    Directive location is independent; frozen parsing is used only in tests.
+    """
+    if not expressions:
+        return None
+    lo, hi = (0, 0, 0), (999, 0, 0)
+    pattern = r"(\^|~|>=|<=|>|<|=)?\s*(\d+)\.(\d+)\.(\d+)"
+    for expr in expressions:
+        if "||" in expr or not re.search(pattern, expr) or re.sub(pattern, "", expr).strip():
+            raise Unsupported("F: unsupported pragma expression")
+        for match in re.finditer(pattern, expr):
+            op = match.group(1) or "="
+            version = tuple(int(match.group(i)) for i in (2, 3, 4))
+            patch = (version[0], version[1], version[2] + 1)
+            if op in ("=", "^", "~"):
+                upper = (patch if op == "=" else (version[0], version[1] + 1, 0) if op == "~"
+                         else (version[0] + 1, 0, 0) if version[0]
+                         else (0, version[1] + 1, 0) if version[1] else patch)
+                lo, hi = max(lo, version), min(hi, upper)
+            elif op in (">", ">="):
+                lo = max(lo, patch if op == ">" else version)
+            else:
+                hi = min(hi, patch if op == "<=" else version)
+    if lo >= hi:
+        raise Unsupported("F: empty pragma intersection")
+    return lo, hi
+
+
 def pragma_interval(sources):
-    """Intersect all files' pragmas using frozen interval(); raise if unsupported."""
+    """Intersect byte sources' top-level pragmas; raise Unsupported if invalid.
+
+    Only constraint expression semantics are frozen. Latin-1 is lossless and
+    preserves byte positions without requiring the whole source to be UTF-8.
+    """
     found = []
     for raw in sources:
-        text = raw.decode("utf8")
-        value = frozen_interval(text, parse(text).root_node)
+        expressions = [re.sub(r"^pragma\s+solidity\s*|;\s*$", "",
+                             raw[start:end].decode("latin1")).strip()
+                       for start, end in _pragma_spans(raw)]
+        value = _expression_interval(expressions)
         if value is not None:
             found.append(value)
     if not found:
@@ -67,10 +128,9 @@ def pragma_interval(sources):
         raise Unsupported("F: empty pragma intersection across compilation unit")
     return lo, hi
 
-
 def infer_interval(sources):
     """Infer only documented positive syntax evidence; return bounds and rules."""
-    code = b"\n".join(code_only(raw) for raw in sources).decode("utf8")
+    code = b"\n".join(code_only(raw) for raw in sources).decode("latin1")
     matched = tuple(dict(rule) for rule in FEATURE_RULES if re.search(rule["pattern"], code))
     lo = max([FLOOR] + [r["lo"] for r in matched])
     hi = min([CEILING] + [r["hi"] for r in matched])
@@ -185,14 +245,11 @@ def pragma_patches(source):
     Preserve CR/LF and same-line code outside directives. Reverse positions keep
     current-copy coordinates valid. Caller must first establish override eligibility.
     """
-    text = source.decode("utf8")
-    root = parse(text).root_node
     patches = []
-    for node in root.named_children:
-        raw = source[node.start_byte:node.end_byte]
-        if node.type == "pragma_directive" and re.match(rb"pragma\s+solidity\b", raw):
-            patches.append(Patch(node.start_byte, node.end_byte, raw, re.sub(rb"[^\r\n]", b" ", raw),
-                                 "pragma_override", 1, "No supported trusted compiler in declared interval"))
+    for start, end in _pragma_spans(source):
+        raw = source[start:end]
+        patches.append(Patch(start, end, raw, re.sub(rb"[^\r\n]", b" ", raw),
+                             "pragma_override", 1, "No supported trusted compiler in declared interval"))
     return tuple(reversed(patches))
 
 
