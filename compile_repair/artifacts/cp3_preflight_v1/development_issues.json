@@ -1,0 +1,35 @@
+{
+  "author": "Codex",
+  "date": "2026-11-17",
+  "design_changes": [],
+  "entries": [
+    {
+      "finding": "约定本地路径与仓库没有 CP3 官方文档/语料，历史授权未包含本清单",
+      "kind": "required_authorization_gate",
+      "resolution": "保存精确待批准请求，停止依赖下载的实现，不填造 taxonomy 或统计结果",
+      "status": "awaiting_user"
+    },
+    {
+      "finding": "DAppSCAN 整仓 recursive tree truncated=true",
+      "kind": "metadata_response_truncated",
+      "resolution": "使用已列出的 contracts 子树 SHA 重新请求目录元数据，得到 truncated=false；只使用完整子树统计",
+      "status": "resolved_without_content_download"
+    },
+    {
+      "finding": "ethereum/solidity GitHub API 返回 Moved Permanently",
+      "kind": "official_repository_redirect",
+      "resolution": "核对 repository id=40892817 与 canonical argotorg/solidity，标签解析到固定 commit；文件正文未获取",
+      "status": "resolved_metadata_only"
+    },
+    {
+      "finding": "一次调试输出把普通可执行文件模式列作特殊模式并输出过长；尚未写入请求或计数证据",
+      "kind": "diagnostic_output_volume",
+      "resolution": "改用 mode=120000 统计符号链接、只输出聚合；指定子树无符号链接。项目数量按 contracts 第一级目录计数，608；不使用第二级目录数",
+      "status": "resolved_before_artifact_write"
+    }
+  ],
+  "known_later_scope": [
+    "|| pragma 支持缺口",
+    "Slither 进程内无超时；只按 CP3 后续统计和建议范围登记，不在前置检查中改动生产行为"
+  ]
+}

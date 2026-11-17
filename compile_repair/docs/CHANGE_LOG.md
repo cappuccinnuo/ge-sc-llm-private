@@ -1483,3 +1483,57 @@ PROMPTS §4.4e 的修改前复现、明确修复、原可读取输入的区间/�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_4_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP2 系列结束，可以开始 CP3。本轮提交并 push 到 `compile-repair`。
+
+
+## 29. 2026-11-17 CompileRepair CP3 前置核查：停在资料获取授权（修改 AI：Codex）
+
+### 29.1 任务、依据与范围
+
+用户最新要求执行 CP3，并在替代方案或设计调整前咨询。起点 compile-repair@0d39c3546dbb8d456ef7c2fd5534143dcef92c94，git pull --ff-only origin compile-repair 返回 Already up to date；先读 §4.1，再核对 PROMPTS r2.13 更新、当前 §4.5 全节、HANDOVER §0–5、DECISIONS、最新变更及 cp2_4_review_v1/README、cr_pre_v2/README、记录模板。当前任务明确是 CP3；先前 CP3.4 的歧义已由用户新指令消除，没有据旧编号实施。
+
+本轮只做 CP3 获取前准备。新增 CP3_REPORT.md 和 artifacts/cp3_preflight_v1；旧文档仅追加本节、PROGRESS 的 CP3 节、HANDOVER §6，并更新 HANDOVER §0–5 的当前状态。批次包括授权请求、元数据/本地可用性证据、baseline/runtime、run_checks 与 verify_preflight、问题记录、测试/审计收据、README、封存和交付清单；完整逐文件清单与 SHA256 以 delivery_inventory.json 为准。未修改生产实现、测试、PROMPTS、DECISIONS、CP0–CP2.4 产物、CP2_REPORT、冻结 scripts、原始语料或根目录两份记录。
+
+### 29.2 实施方式和重要选择
+
+- 先核对仓库、约定的 /home/zhao/SmartContract/corpora 与语料目录、/tmp 与用户缓存一级目录。未找到所需官方文档或三套外部语料，也未找到 CP3 获取授权；检查范围和未命中记录在 local_availability.json，不推断整台机器都没有副本。
+- 用 GitHub connector 只读仓库身份、Git tree、tag/ref 元数据，生成具体版本、路径和大小请求；没有读取源码 blob 或文档正文。DAppSCAN 整仓 recursive tree 被截断，改查已列出的 contracts 子树，确认 truncated=false 后再统计。未用截断结果当作完整清单。
+- 官方 ethereum/solidity API 返回 Moved Permanently。核对 repository id=40892817 对应 argotorg/solidity，记录同一仓库迁移而不是替换非官方来源；十份文档均锁定标签解析出的完整 commit 和 blob SHA1。正文获取及 SHA256 留待授权后。
+- 一次调试输出过长，最初特殊模式汇总还包含普通可执行 blob；未写入正式证据。改为只统计 mode=120000 的符号链接、仅输出聚合信息；项目统计按 contracts 第一级目录，结果 608。完整处理见 development_issues.json。
+- 请求保存为 authorization_request.json，status=pending_user_authorization；不创建伪批准的 authorization.json。语料限定指定子目录并放仓库外；SOChecker 只以 input 字段为后续分类输入，897 条及四文件一致性先核对，发现不同不自行合并或去重。
+- 复用 cp2_4_v1/run_checks.py 的检查驱动，仅改标题和临时目录前缀；来源 SHA256 在 runner_provenance.json。verify_preflight.py 只负责本批次文档与完整性，不是生产功能模块，没有复制冻结函数或改变分层。
+
+### 29.3 实测与数据结论
+
+| 项目 | 本轮结果 | 来源 |
+|---|---|---|
+| DAppSCAN 获取范围 | 21,495 个 blob、109,776,516 字节；608 个项目目录、21,457 个 .sol | remote_metadata.json 的完整 contracts 子树 |
+| SOChecker 获取范围 | 4 个 JSON、3,762,624 字节；input 内容计数未核验 | 同上，固定提交 evaluation/RQ1 |
+| Trace 获取范围 | 8,112 个 blob、122,296,616 字节；on-chain 5,000 / repo-level 83 项目 3,092 .sol / CVEs 15 | 同上，datasets 子树 |
+| 三语料合计 | 235,835,756 字节，约 224.91 MiB | authorization_request.json |
+| 官方文档 | 10 份、188,817 字节，约 184.39 KiB | 同上的 docs 列表 |
+| production 模块测试 | 622 passed、6 skipped，驱动 71.10 秒 | pytest_production.json 与日志 |
+| mando 模块测试 | 181 passed、447 skipped，驱动 20.86 秒 | pytest_mando.json 与日志 |
+| 冻结 DFG v2 | 2653 passed、9 既有 warnings，驱动 154.89 秒 | pytest_dfg.json 与日志 |
+
+体量是 Git tree 未压缩 blob 字节数，不是实测网络流量，不含 Git/传输/文件系统开销。目录数量与 cr_pre_v2 对应结构数字一致，但尚未验证源码 SHA256、import、pragma、SOChecker input 数量或内容；不能写成已完成语料核验。所有测试都是已有测试，不能写成 CP3 taxonomy、导入闭包、四版本三文件探针或语料分类通过。这些 CP3 事项均未实现/未运行。
+
+起始基线包含 28,753 个跟踪文件 SHA256、354 个 DFG code refs、14 个生产文件、96 个编译器文件；旧 seal 索引引用 25,828 个文件，见 baseline.json。runtime.json 现场核对 production Python 3.10.21 / Slither 0.11.6 / crytic-compile 0.4.2，mando Python 3.7.12 / Slither 0.8.0 / crytic-compile 0.2.4，其他包版本见收据。
+
+### 29.4 用户批准、原文差异与待确认设计
+
+最新用户要求授权执行 CP3 本身，但 §4.1、§4.5 明确把新文档/语料下载单列为用户批准后才能执行；历史 solc 与环境授权不覆盖本清单。本轮没有收到 CP3 获取批准，没有产生新已定决策，因此 DECISIONS 不变。
+
+待用户批准的具体范围：十份官方文档、三套固定提交的指定目录、零美元费用上限、本地研究与只读编译分类用途；逐条来源、保存路径、版本与请求说明在 authorization_request.json/README.md。三个固定提交根目录元数据未列出 LICENSE，这一事实不等于所有嵌入源码都无单独许可；依原文由用户决定使用范围。
+
+未提出或实施替代方案，也没有降低验收标准。已知 || pragma 与 Slither 进程内无超时仍按 §4.5 后续统计/建议处理，本轮未改实现。CP3 批次时长上限尚未由用户指定；若需上限或抽样，先在资料与规定探针可用后给出估时依据，不擅自指定已批准时长。需要获取授权不是自动审批拒绝，也不是 skill 追加的限制，而是 PROMPTS 明确条款。
+
+### 29.5 验收、资源、未执行事项与停止
+
+三组既有测试各首次运行 rc0，完整命令见 pytest_*.json：对应环境 python -B -m pytest -q -ra -x -p no:cacheprovider，模块目标 compile_repair/tests，冻结目标 scripts/DFG/dfg_v2/tests，每轮使用新的 /tmp basetemp；无失败重试。跳过原因是原有 production/regression/Python 版本边界，详见 test_acceptance.json 与日志。
+
+提交前检查五份 UTF-8 文档：新 CP3_REPORT、批次 README、HANDOVER 全文，CHANGE_LOG 与 PROGRESS 仅从 baseline 保存的追加前字节数起检查。并核对跟踪文件/旧封存产物、两环境元数据、solc、_code_refs、生产文件数和文档历史前缀。文档检查和完整性实际结果在本节末尾补记；只有全部通过才提交，不将尚未执行检查写成通过。
+
+全部 CPU，外部 LLM API 0 次、费用 0 美元。网络操作仅同步已授权分支与只读仓库元数据；未下载语料或文档正文、安装/升级包、运行 CP3 分类、修改全局 solc、启动 HGT、操作 GPU 锁或 push。停止点是 §4.5 第 0、1 节的获取授权；CP3 未完成，不能进入 CP4。本地提交信息以 CP3 开头，实际提交号由 git log 和最终答复给出。
+
+
+本轮终审补记：doc_check v1 对五份文档全部 passed=True、rc0，详见 doc_check_v1_invocation.json；冻结审计 passed=True。28,750 个保护跟踪文件（其中模块外 27,845、旧产物 829）与 25,828 个旧封存文件均 0 变化，354 个 code refs、96 个编译器文件、两环境 145/118 份元数据与 14 个生产文件全同，三份历史记录前缀保留，详见 frozen_audit.json。本补记后以 doc_check v2 复查最终五份文档；最终结果和文档 SHA256 见 doc_check_v2_invocation.json，未通过不得提交。精确交付清单与 seal 完成后只提交本地 CP3 前置检查点，获取授权仍待用户决定。

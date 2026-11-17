@@ -303,3 +303,18 @@ production 622 passed/6 skipped，mando 181 passed/447 skipped，DFG v2 2653 pas
 - CP2.4 复核成立：与 CP2.3 在可读的 1,656 个文件上全同；MANDO make_plan 升降序 1,692/1,692；CLI 两个注释输入成功、两个拒绝输入不调用工具。
 - 无遗留需在 CP3 前修复。CP3 提示补两处：缺分号后接指令的分类单列；多文件单元走命令行编译路径（不用 standard JSON）。
 - PROMPTS r2.13：新增 1.16 节。证据 `artifacts/cp2_4_review_v1/`；记录 `docs/CHANGE_LOG.md` §28。下一步 CP3，语料获取前等用户授权。
+
+
+## 2026-11-17 CP3 前置核查：获取请求待授权（修改 AI：Codex）
+
+从 compile-repair@0d39c3546dbb8d456ef7c2fd5534143dcef92c94 开始，pull --ff-only 已同步，按 PROMPTS r2.13 §4.1、§4.5 核对当前方案及 CP2.4 审查。最新任务明确是 CP3。尚未实施分类器、项目闭包或 CP3 探针；已停止在官方文档/外部语料下载授权处，不能把本轮称为 CP3 完成。
+
+新增 CP3_REPORT.md、artifacts/cp3_preflight_v1；其中 authorization_request.json 是待批准请求，未创建 authorization.json。十份官方文档固定标签/提交/路径、三套语料固定提交和目标子目录、仓库外保存位置、零美元上限及建议本地研究用途均已列明。详细文件及 SHA256 见 delivery_inventory.json；交接更新 §0–5 与末尾记录，训练改变/运行记录追加 CHANGE_LOG §29，DECISIONS 状态不变。
+
+仅获取 GitHub 仓库身份与 tree/ref 元数据，未下载源码或文档正文。三语料指定文件总 235,835,756 字节（约 224.91 MiB），文档 10 份/188,817 字节；目录计数 DAppSCAN 608/21,457 .sol、Trace 5,000 / 83 项目 3,092 .sol / 15，与 cr_pre_v2 对应项一致。源码 SHA256、import、pragma、SOChecker 897 条内容计数尚未核验，数据出处为 remote_metadata.json 和请求文件。
+
+现有测试 production 622 passed/6 skipped，mando 181/447，DFG 2653 passed/9 既有 warnings；每轮一次，无失败重试。实际命令为相应环境 python -B -m pytest -q -ra -x -p no:cacheprovider，独立 /tmp basetemp，完整命令/rc/时长/日志哈希见 pytest_*.json。冻结完整性与文档检查在本轮末尾完成后补记；这些测试不构成 CP3 新功能验收。
+
+前置问题是本地资料缺失、DAppSCAN 整仓目录响应截断、Solidity 仓库迁移和调试输出体量，处理分别为提出授权请求、查询完整目标子树、核对同一 repository id、改为准确聚合，见 development_issues.json。没有与 PROMPTS 不一致的方案修改。已知 || 与 Slither 无超时保留后续范围，未擅自实现。完成强制记录与检查后本地提交，不自动 push；无新下载正文/语料、安装、LLM、训练或全局 solc 改动。
+
+CP3 前置终审补记：五份 doc_check v1 通过，冻结审计通过；28,750 个保护跟踪文件与 25,828 个旧封存文件未变，354 个 code refs、96 个编译器与 14 个生产文件不变。补记后的最终文档收据为 doc_check_v2_invocation.json；精确清单/封存分别见 delivery_inventory.json 与 evidence_seal.json。下载授权仍 pending，CP3 功能未实施。
