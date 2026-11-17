@@ -1388,3 +1388,54 @@ doc_check v1 的 7 份文档全部通过；本补记与新目录说明更新后�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_3_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP3 不能开始。顺序为 Codex 执行 CP2.4 → Claude 审查 → CP3。本轮提交并 push 到 `compile-repair`。
+
+
+## 27. 2026-11-17 CompileRepair CP2.4：读取 pragma 注释并区分未结束指令（修改 AI：Codex）
+
+### 27.1 任务、依据与范围
+
+用户明确要求执行更新 PROMPTS 的 CP2.4，先读 §4.1、通读全文，若有实质替代方案须先咨询并记录。已执行 git pull --ff-only origin compile-repair，返回 Already up to date，起始 7e32d85c6d02049fd606a9410759dbfb9f18fb7a；已读 r2.12 全文、HANDOVER §0–5、DECISIONS、本文 §25/26、docs/README、REPORT_TEMPLATE 和 cp2_3_review_v1 的 README/edge_cases。工作树保持 ge-sc-llm-compile；先建立 baseline 并复现，再改生产代码。
+
+生产只改 rules/environment.py。测试新增 test_pragma_comments.py，既有 test_pragma_bytes.py 只为新注释夹具显式登记冻结异常边界；新增 fixtures/pragma_comments/{comment_inside,line_comment_inside,missing_semicolon}.sol。新证据全部在 artifacts/cp2_4_v1；驱动为 reproduce、launch_phase、run_checks、audit_results、audit_frozen、check_docs、write_documents，另保留测试专用的 environment_cp23.py 原代码快照。文档为 CP2_REPORT 追加 CP2.4、PROGRESS、本文、HANDOVER §0–5 更新及历史追加、DECISIONS 历史追加、新批次 README。完整证据清单见 delivery_inventory.json。CP0–CP2.3 旧产物、scripts、语料、PROMPTS、根交接和训练改变文档不改。
+
+### 27.2 实施方式和重要选择
+
+_pragma_spans 的定位和范围不变，只在分号前遇花括号/EOF 时用专门的 F: unterminated pragma directive。pragma_interval 将表达式切片的来源从 raw 改为 code_only(raw)，保持同一字节区间与 Latin-1 无损解码，再调用未修改的 _expression_interval。pragma_patches 仍截取原始字节；对两个新注释夹具也与 CP2.3 的完整 Patch 相同。生产两函数共 +5/-4 行（含 docstring），其他函数不改。
+
+本轮等价对象是 CP2.3 实现，参照快照由起始工作树原文件复制，SHA256=f0d4f4b9274532c0b3760d67341f37dba7f2f81430d9aad091f42644483429e0，测试先校验再加载。846 输入按 cp0_v2 已封存 SHA 验证；版本表为 96 个可信版本，其中 92 个属于支持范围。MANDO 按既有 metadata known version 和 mando 配置，夹具按一般入口，升降序各比较完整 EnvironmentPlan 八字段。没有编译回归语料，符合 §4.4e 的明确验收安排。
+
+新增测试同时覆盖注释中的伪分号/花括号、CRLF、Latin-1、原始补丁字节和无工具调用的拒绝路径。新注释夹具在冻结 interval 路径上会抛异常，本来就不属于“原实现可读取输入”；旧冻结测试的例外按这两份文件精确登记并断言旧异常，新测试证明修复行为，未删除旧比较。三个新夹具与审查字节相同，来源见 fixture_sources.json。
+
+运行器由 CP2.3 证据驱动复制到新批次改写，reuse_sources.json 保存来源 SHA；未导入审查脚本。已成功的 CLI 只读审计、打包，不为写报告重复运行。Windows rg 的 UNC 读取报拒绝访问，改用 WSL Python/git 读取；无自动审批拒绝，无权限或代理设置变化。没有实现失败或验收失败；全部处理见 development_issues.json。
+
+### 27.3 实测与数据结论
+
+| 项目 | 结果 | 证据（cp2_4_v1） |
+|---|---|---|
+| 修改前复现 | 块/行注释 solc 0.8.0/0.5.17 rc0、D3；旧模块拒绝。缺分号为 solc 解析错误；旧 CLI 四例同报 unsupported pragma expression | reproduction.json、reproduction_invocations.jsonl |
+| CP2.3 等价 | 每环境 846 MANDO + 35 可读取夹具，interval/Patch/完整 plan 全同；每环境升降序共 1,762 份 plan；两环境明细全同 | equivalence.json、test_evidence_*.json.gz |
+| 排除旧失败输入 | 4 个明确列出：新注释两份、未结束 pragma、旧 union；其当前行为均单独验收 | equivalence.json、pytest 日志 |
+| 生产 CLI | 两注释选 0.8.0 / 0.5.0，D3 成立，零源码改动；缺分号/union 两个错误区分，二者均无工具调用 | cli_acceptance.json |
+| 调用与归档 | 新 CLI 2 次 solc + 2 次 Slither；归档 21 成员回读一致，SHA 见 CP2_REPORT | cli_acceptance_store.tar.gz |
+| production | 622 passed / 6 skipped，80.43 秒 | pytest_production |
+| mando | 181 passed / 447 skipped，21.12 秒 | pytest_mando |
+| DFG v2 | 2653 passed / 9 既有 warnings，155.25 秒 | pytest_dfg |
+| 代码 | 生产 14 文件，只改 environment.py 两函数，+5/-4 行 | code_change_summary.json |
+
+结果均为首轮执行，具体命令、退出码、运行时间和临时目录保存在 pytest_*.json。上述 pragma 注释直接工具复现耗时与调用记录见 reproduction_invocation.json；完整生产验收复用测试所运行的 CLI。runtime.json 现场确认两个环境与固定 profile，未改变任何包或编译器。有限输入验收不等于所有未来源码已穷举；未重跑全量、6c 或训练，未重新声称历史图比较为本轮测量。
+
+### 27.4 用户批准、原文差异与待确认设计
+
+用户 2026-11-17 的 CP2.4 请求授权本轮 r2.12 既定修改，没有新的方案或下载授权。与冻结实现的有意差异正是 §4.4e 指定的两项：接受 pragma 内注释；未结束指令仍为 unsupported_version_constraints，但 error_first_line 单列。按要求写入 DECISIONS 历史，不修改既有决定表或 D3/D5/key5。没有计划外替代方案或判据变更，因而没有额外咨询请求。
+
+只登记既有缺口：六个测试模块的本机绝对路径依赖，在 CI/迁移阶段处理；并集 pragma 和 Slither 无超时按 CP3 分类，当前不实现。D19 建议、D9/D10 待确认和 D12/D13 待定保持。
+
+### 27.5 验收、资源、未执行事项与停止
+
+PROMPTS §4.4e 的修改前复现、明确修复、原可读取输入的区间/补丁/全字段计划等价、两正两负 CLI、两个环境模块与 DFG 测试均通过。分层测试通过，生产文件数保持 14。最终完整性审计见 frozen_audit.json：保护旧跟踪/封存内容、环境、solc、DFG _code_refs、非目标函数及文档历史。doc_check 检查六份文档，初次通过后在本节补记，再复检最终字节并保存哈希；执行结果以 doc_check_v*_invocation.json 为准。
+
+文档追加前字节数：CP2_REPORT 55034、PROGRESS 41137、CHANGE_LOG 189391；HANDOVER、DECISIONS 与新 README 全文检查。实际测试命令为各环境 python -B -m pytest -q -ra -x -p no:cacheprovider，目标分别为 compile_repair/tests、scripts/DFG/dfg_v2/tests，并使用独立 --basetemp；完整命令见 pytest_*.json。所有运行在 CPU，OMP/MKL=2，费用 0，峰值未测。
+
+未安装、下载、LLM 调用、HGT 训练或读写 GPU 锁；未改变全局 solc、网络配置或旧产物。846 全量编译未运行，按文档以 make_plan 全同验收；6c 未重放；CP3 未开始。全部记录和检查通过后本地提交，提交信息以 CP2.4 开头，提交号见 git log，不自动 push。停止于 CP2.4 本机验收完成、等待独立审查。
+
+最终检查补记（2026-11-17，修改 AI：Codex）：doc_check v1 六份文档全部 passed=True；本补记后的最终六份文档复检和哈希记录在 doc_check_v2.jsonl、doc_check_v2_invocation.json。frozen_audit 全部通过：28,675 个受保护跟踪文件（模块外 27,845、旧产物 762）、25,828 个旧封存成员、96 个 solc 文件、两环境元数据集合与内容（production 145、mando 118）、354 个 DFG _code_refs 均未变；environment.py 除两目标函数外的 13 个函数 AST 不变，生产文件仍 14。新 CLI seal 的实现指纹与当前代码一致，旧文档历史前缀保持。git diff --check 通过；按 delivery_inventory 精确暂存后核对暂存字节与格式再本地提交，不 push。

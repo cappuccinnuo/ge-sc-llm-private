@@ -1,0 +1,556 @@
+{
+  "archive": "cli_acceptance_store.tar.gz",
+  "archive_members": 21,
+  "archive_sha256": "ff5bc10faded5855479e34b4edc3c398ee98d6ad3fc04eb9afdee8f2442ab48a",
+  "implementation_sha256": {
+    "compile_repair/__init__.py": "bfe04fb6eacb683848bd6a27f8502103afe2f3e4cb3f8d08b0aa4f118b7ab7fb",
+    "compile_repair/cli.py": "4981837e70db155597cfc7d21a91cc629df257017ec5bd424047a3a5b9e9153f",
+    "compile_repair/core/__init__.py": "2aad1f27fa5ba9ea5eb04593899b8c2b662b4e92e739cebc1d10a85f7c39028f",
+    "compile_repair/core/model.py": "8178abc0775834e6f06d29ebc02b68791e24e0bcbe2bad37a23895a2d9fed472",
+    "compile_repair/core/provenance.py": "cda55e402cce4cbdf15aff6f80f165fa8601446ae659776c10c2776d751ae7f6",
+    "compile_repair/core/store.py": "7f4579898dc102908a559759e10743584974ccee9ec2a232499e2334e34ac038",
+    "compile_repair/evaluation/__init__.py": "e72b23446c6010cbdb9ca03c39629a6fc06b1e849dabbec4e44e558fbd4a27b4",
+    "compile_repair/evaluation/survey.py": "aede38796b247c9d90d993faf566f2f400b357c004f087d83de584cc104f7cb3",
+    "compile_repair/pipeline.py": "5510fc6c41d6173f0534b2a6b897fe719a8328465f87272d05632ed221f18b2b",
+    "compile_repair/rules/__init__.py": "6f6f42cdb4aba46266116a4278c9a6c82b73755ac54939a2dfbcc6d30f8268ad",
+    "compile_repair/rules/environment.py": "d8386c5d4144b65eec5b1605703bcca0bcb3bb8b3ec3f2be1c75b244711bdb5e",
+    "compile_repair/toolchain/__init__.py": "fa5336dddc722b0b49326ab44ee117f228c15f90cfe915573e2dc267b3f18c88",
+    "compile_repair/toolchain/slither.py": "d8c46d36d38dc63e6d178a664684eb3286d0cff334d36ae7c564d8ef9257aa6d",
+    "compile_repair/toolchain/solc.py": "09fd857a52c891ecd6abf2806bc00b7eb6ec94f03468d736cf8af75c853cb320"
+  },
+  "invocations": 4,
+  "passed": true,
+  "records": [
+    {
+      "attempts": [
+        {
+          "crossed_minor": false,
+          "round": 1,
+          "settings": [],
+          "settings_retry": null,
+          "slither": {
+            "api_subprocess_returncodes_observed": false,
+            "command": {
+              "api": "Slither",
+              "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+              "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.0/solc-0.8.0",
+              "solc_disable_warnings": true,
+              "target": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol"
+            },
+            "compiler_sha256": "64016310a57caf1af76a3610f1f94c8848c04c9673e7fa268492e608918a4bdc",
+            "constructed": true,
+            "contract_coverage": {
+              "actual": {
+                "A": 1
+              },
+              "ast_source": "crytic_compile.compilation_units[*].asts",
+              "asts": [
+                {
+                  "ast_sha256": "a714f2fffe7d7fa2a459ac5a95dd48b4d5230ff77f6d727a665308f9276e7da1",
+                  "contracts": {
+                    "A": 1
+                  },
+                  "format": "compact",
+                  "path": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol"
+                }
+              ],
+              "complete": true,
+              "expected": {
+                "A": 1
+              },
+              "missing": {},
+              "unexpected": {}
+            },
+            "cost_usd": 0.0,
+            "counts": {
+              "declarations": 0,
+              "foreign_filename": 0,
+              "functions": 0,
+              "invalid_filename": 0,
+              "ir_object_repr_replacements": 0,
+              "ir_object_repr_unresolved": 0,
+              "missing_filename": 0,
+              "missing_start": 0,
+              "modifiers": 0,
+              "nodes": 0,
+              "top_level_functions": 0
+            },
+            "crytic_compile_platform": "solc",
+            "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+            "crytic_compile_version": "0.4.2",
+            "d3": true,
+            "d3_a": true,
+            "d3_b": true,
+            "duplicate_key4": {},
+            "elapsed_seconds": 0.007508301001507789,
+            "empty_cfg": true,
+            "equivalent_solc_argv": [
+              "/home/zhao/.solc-select/artifacts/solc-0.8.0/solc-0.8.0",
+              "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol",
+              "--combined-json",
+              "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+              "--allow-paths",
+              ".",
+              "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol"
+            ],
+            "error_first_line": null,
+            "graph_sha256": "f13ace68d233c7128b16ca10829993d42fc480afa7891dedd3bb2621f0fa8bb9",
+            "ir_diagnostics": [],
+            "mapping_complete": true,
+            "node_facts_schema": "node_facts_v2",
+            "preceding_observed_solc_returncode": 0,
+            "profile": "production",
+            "settings": [],
+            "slither_version": "0.11.6",
+            "source_path": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol",
+            "source_sha256": "0984652dc619d174d041228f07a16a0c966c684ef44f336d8350bc9783392183",
+            "validation_errors": [],
+            "version": "0.8.0"
+          },
+          "solc": {
+            "command": [
+              "/home/zhao/.solc-select/artifacts/solc-0.8.0/solc-0.8.0",
+              "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol",
+              "--combined-json",
+              "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+              "--allow-paths",
+              ".",
+              "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol"
+            ],
+            "compiler": {
+              "path": "/home/zhao/.solc-select/artifacts/solc-0.8.0/solc-0.8.0",
+              "sha256": "64016310a57caf1af76a3610f1f94c8848c04c9673e7fa268492e608918a4bdc",
+              "version": "0.8.0"
+            },
+            "cost_usd": 0.0,
+            "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+            "elapsed_seconds": 0.0032115000067278743,
+            "error_first_line": null,
+            "returncode": 0,
+            "settings": [],
+            "source_path": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol",
+            "source_sha256": "0984652dc619d174d041228f07a16a0c966c684ef44f336d8350bc9783392183",
+            "stderr": "Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> /tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0001/input.sol\n\n",
+            "stdout_sha256": "84dbcc680197b11767e23df8c3721ee4bc488ae1e96a03a2f495fd34321df7e7",
+            "timed_out": false
+          },
+          "stage": "environment",
+          "version": "0.8.0"
+        }
+      ],
+      "cost_usd": 0.0,
+      "flags": [],
+      "inputs": [
+        {
+          "bytes": 49,
+          "kind": "file",
+          "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/pragma_comments/comment_inside.sol",
+          "sha256": "0984652dc619d174d041228f07a16a0c966c684ef44f336d8350bc9783392183"
+        }
+      ],
+      "llm_calls": 0,
+      "plan": {
+        "effective_interval": [
+          [
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            9,
+            0
+          ]
+        ],
+        "flags": [],
+        "groups": [
+          [
+            "0.8.0",
+            "0.8.1",
+            "0.8.2",
+            "0.8.3",
+            "0.8.4",
+            "0.8.5",
+            "0.8.6",
+            "0.8.7",
+            "0.8.8",
+            "0.8.9",
+            "0.8.10",
+            "0.8.11",
+            "0.8.12",
+            "0.8.13",
+            "0.8.14",
+            "0.8.15",
+            "0.8.16",
+            "0.8.17",
+            "0.8.18",
+            "0.8.19",
+            "0.8.20",
+            "0.8.21",
+            "0.8.22",
+            "0.8.23",
+            "0.8.24",
+            "0.8.25",
+            "0.8.26",
+            "0.8.27",
+            "0.8.28",
+            "0.8.29",
+            "0.8.30",
+            "0.8.31",
+            "0.8.32",
+            "0.8.33",
+            "0.8.34",
+            "0.8.35",
+            "0.8.36",
+            "0.8.37",
+            "0.8.38"
+          ]
+        ],
+        "inference": [],
+        "interval": [
+          [
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            9,
+            0
+          ]
+        ],
+        "origin": "pragma_intersection",
+        "override": false,
+        "priority": null
+      },
+      "provenance": {
+        "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/pragma_comments/comment_inside.sol": {
+          "changes": [],
+          "level": "none",
+          "original_length": 49,
+          "original_sha256": "0984652dc619d174d041228f07a16a0c966c684ef44f336d8350bc9783392183",
+          "result_length": 49,
+          "result_sha256": "0984652dc619d174d041228f07a16a0c966c684ef44f336d8350bc9783392183",
+          "segments": [
+            {
+              "kind": "original",
+              "new_end": 49,
+              "new_start": 0,
+              "original_end": 49,
+              "original_start": 0
+            }
+          ]
+        }
+      },
+      "reason": null,
+      "selected_version": "0.8.0",
+      "settings": [],
+      "status": "success",
+      "unit_id": "input_0001"
+    },
+    {
+      "attempts": [
+        {
+          "crossed_minor": false,
+          "round": 1,
+          "settings": [],
+          "settings_retry": null,
+          "slither": {
+            "api_subprocess_returncodes_observed": false,
+            "command": {
+              "api": "Slither",
+              "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+              "solc": "/home/zhao/.solc-select/artifacts/solc-0.5.0/solc-0.5.0",
+              "solc_disable_warnings": true,
+              "target": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0002/input.sol"
+            },
+            "compiler_sha256": "c1bb15b520f5076aebd7aa9ef4ce5fa245b6f210a91cbd2064b9e383e6510e08",
+            "constructed": true,
+            "contract_coverage": {
+              "actual": {
+                "A": 1
+              },
+              "ast_source": "crytic_compile.compilation_units[*].asts",
+              "asts": [
+                {
+                  "ast_sha256": "b9fa967a308b93de958ef4921e3b3d0e3ac7727c059cdeb9d0f912ae422b40f1",
+                  "contracts": {
+                    "A": 1
+                  },
+                  "format": "compact",
+                  "path": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0002/input.sol"
+                }
+              ],
+              "complete": true,
+              "expected": {
+                "A": 1
+              },
+              "missing": {},
+              "unexpected": {}
+            },
+            "cost_usd": 0.0,
+            "counts": {
+              "declarations": 0,
+              "foreign_filename": 0,
+              "functions": 0,
+              "invalid_filename": 0,
+              "ir_object_repr_replacements": 0,
+              "ir_object_repr_unresolved": 0,
+              "missing_filename": 0,
+              "missing_start": 0,
+              "modifiers": 0,
+              "nodes": 0,
+              "top_level_functions": 0
+            },
+            "crytic_compile_platform": "solc",
+            "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+            "crytic_compile_version": "0.4.2",
+            "d3": true,
+            "d3_a": true,
+            "d3_b": true,
+            "duplicate_key4": {},
+            "elapsed_seconds": 0.006467900006100535,
+            "empty_cfg": true,
+            "equivalent_solc_argv": [
+              "/home/zhao/.solc-select/artifacts/solc-0.5.0/solc-0.5.0",
+              "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0002/input.sol",
+              "--combined-json",
+              "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+              "--allow-paths",
+              ".",
+              "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0002/input.sol"
+            ],
+            "error_first_line": null,
+            "graph_sha256": "f13ace68d233c7128b16ca10829993d42fc480afa7891dedd3bb2621f0fa8bb9",
+            "ir_diagnostics": [],
+            "mapping_complete": true,
+            "node_facts_schema": "node_facts_v2",
+            "preceding_observed_solc_returncode": 0,
+            "profile": "production",
+            "settings": [],
+            "slither_version": "0.11.6",
+            "source_path": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0002/input.sol",
+            "source_sha256": "96face125ccd1f1ebf013c4f4ec17037b4eb164f0bf4047e54fcc170ace36475",
+            "validation_errors": [],
+            "version": "0.5.0"
+          },
+          "solc": {
+            "command": [
+              "/home/zhao/.solc-select/artifacts/solc-0.5.0/solc-0.5.0",
+              "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0002/input.sol",
+              "--combined-json",
+              "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+              "--allow-paths",
+              ".",
+              "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0002/input.sol"
+            ],
+            "compiler": {
+              "path": "/home/zhao/.solc-select/artifacts/solc-0.5.0/solc-0.5.0",
+              "sha256": "c1bb15b520f5076aebd7aa9ef4ce5fa245b6f210a91cbd2064b9e383e6510e08",
+              "version": "0.5.0"
+            },
+            "cost_usd": 0.0,
+            "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+            "elapsed_seconds": 0.0018532999674789608,
+            "error_first_line": null,
+            "returncode": 0,
+            "settings": [],
+            "source_path": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli/units/input_0002/input.sol",
+            "source_sha256": "96face125ccd1f1ebf013c4f4ec17037b4eb164f0bf4047e54fcc170ace36475",
+            "stderr": "",
+            "stdout_sha256": "93449f2a3adf2035ab0d121b8b5db543401a0f1d47ad0bf5c451ce0e74fe5759",
+            "timed_out": false
+          },
+          "stage": "environment",
+          "version": "0.5.0"
+        }
+      ],
+      "cost_usd": 0.0,
+      "flags": [],
+      "inputs": [
+        {
+          "bytes": 47,
+          "kind": "file",
+          "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/pragma_comments/line_comment_inside.sol",
+          "sha256": "96face125ccd1f1ebf013c4f4ec17037b4eb164f0bf4047e54fcc170ace36475"
+        }
+      ],
+      "llm_calls": 0,
+      "plan": {
+        "effective_interval": [
+          [
+            0,
+            5,
+            0
+          ],
+          [
+            0,
+            6,
+            0
+          ]
+        ],
+        "flags": [],
+        "groups": [
+          [
+            "0.5.0",
+            "0.5.1",
+            "0.5.2",
+            "0.5.3",
+            "0.5.4",
+            "0.5.5",
+            "0.5.6",
+            "0.5.7",
+            "0.5.8",
+            "0.5.9",
+            "0.5.10",
+            "0.5.11",
+            "0.5.12",
+            "0.5.13",
+            "0.5.14",
+            "0.5.15",
+            "0.5.16",
+            "0.5.17"
+          ]
+        ],
+        "inference": [],
+        "interval": [
+          [
+            0,
+            5,
+            0
+          ],
+          [
+            0,
+            6,
+            0
+          ]
+        ],
+        "origin": "pragma_intersection",
+        "override": false,
+        "priority": null
+      },
+      "provenance": {
+        "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/pragma_comments/line_comment_inside.sol": {
+          "changes": [],
+          "level": "none",
+          "original_length": 47,
+          "original_sha256": "96face125ccd1f1ebf013c4f4ec17037b4eb164f0bf4047e54fcc170ace36475",
+          "result_length": 47,
+          "result_sha256": "96face125ccd1f1ebf013c4f4ec17037b4eb164f0bf4047e54fcc170ace36475",
+          "segments": [
+            {
+              "kind": "original",
+              "new_end": 47,
+              "new_start": 0,
+              "original_end": 47,
+              "original_start": 0
+            }
+          ]
+        }
+      },
+      "reason": null,
+      "selected_version": "0.5.0",
+      "settings": [],
+      "status": "success",
+      "unit_id": "input_0002"
+    },
+    {
+      "attempts": [
+        {
+          "error_first_line": "F: unterminated pragma directive",
+          "exception_type": "Unsupported",
+          "stage": "environment_plan"
+        }
+      ],
+      "cost_usd": 0.0,
+      "flags": [
+        "unsupported_version_constraints"
+      ],
+      "inputs": [
+        {
+          "bytes": 37,
+          "kind": "file",
+          "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/pragma_comments/missing_semicolon.sol",
+          "sha256": "be39a840a04c911376993666448bf4f701ada3a602091d2846411f54863b0eae"
+        }
+      ],
+      "llm_calls": 0,
+      "plan": null,
+      "provenance": {
+        "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/pragma_comments/missing_semicolon.sol": {
+          "changes": [],
+          "level": "none",
+          "original_length": 37,
+          "original_sha256": "be39a840a04c911376993666448bf4f701ada3a602091d2846411f54863b0eae",
+          "result_length": 37,
+          "result_sha256": "be39a840a04c911376993666448bf4f701ada3a602091d2846411f54863b0eae",
+          "segments": [
+            {
+              "kind": "original",
+              "new_end": 37,
+              "new_start": 0,
+              "original_end": 37,
+              "original_start": 0
+            }
+          ]
+        }
+      },
+      "reason": "no_candidate_compiler",
+      "selected_version": null,
+      "settings": [],
+      "status": "unrepaired",
+      "unit_id": "input_0003"
+    },
+    {
+      "attempts": [
+        {
+          "error_first_line": "F: unsupported pragma expression",
+          "exception_type": "Unsupported",
+          "stage": "environment_plan"
+        }
+      ],
+      "cost_usd": 0.0,
+      "flags": [
+        "unsupported_version_constraints"
+      ],
+      "inputs": [
+        {
+          "bytes": 104,
+          "kind": "file",
+          "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/pragma_inputs/union_pragma.sol",
+          "sha256": "7e31873606f255eac365ecc00bdaf5957dad0d484fa6a00b04f21b7c6ffd2f39"
+        }
+      ],
+      "llm_calls": 0,
+      "plan": null,
+      "provenance": {
+        "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/pragma_inputs/union_pragma.sol": {
+          "changes": [],
+          "level": "none",
+          "original_length": 104,
+          "original_sha256": "7e31873606f255eac365ecc00bdaf5957dad0d484fa6a00b04f21b7c6ffd2f39",
+          "result_length": 104,
+          "result_sha256": "7e31873606f255eac365ecc00bdaf5957dad0d484fa6a00b04f21b7c6ffd2f39",
+          "segments": [
+            {
+              "kind": "original",
+              "new_end": 104,
+              "new_start": 0,
+              "original_end": 104,
+              "original_start": 0
+            }
+          ]
+        }
+      },
+      "reason": "no_candidate_compiler",
+      "selected_version": null,
+      "settings": [],
+      "status": "unrepaired",
+      "unit_id": "input_0004"
+    }
+  ],
+  "seal_sha256": "802cdd364105afcfc5bf26e1fa24563b1eae0282872b0fedab402d9dfc552084",
+  "slither_calls": 2,
+  "solc_calls": 2,
+  "source_store": "/tmp/cp2_4_production_belwjql2/pytest/test_real_cp24_cli_comments_an0/cli"
+}

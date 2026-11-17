@@ -436,3 +436,65 @@ doc_check v1 的 7 份文档全部通过；本补记与新目录说明更新后�
 
 
 暂存检查补记（修改 AI：Codex）：首次 git diff --cached --check 指出新 v5 README 文件末尾多一个空白行，记录于 staging_attempt1.json。只删除该冗余换行，正式存储/tar 与生产代码字节不变；前一版 evidence_seal.json 保留为文档格式整理前的快照，最终交付使用 evidence_seal_v2.json 和 delivery_seal.json。处理已登记 development_issues，七份文档最终再检结果见 doc_check_v3；提交前重新核对全部暂存字节与空白格式。
+
+
+## CP2.4：pragma 内注释与未结束指令（2026-11-17，修改 AI：Codex）
+
+### 实现与范围
+
+按用户要求先读共享上下文，再通读 PROMPTS r2.12（尤其 §1.15、§3.3、§3.10、§4.4e），以及 HANDOVER §0–5、DECISIONS、CHANGE_LOG §25/26、记录模板和 cp2_3_review_v1/README、edge_cases。git pull --ff-only origin compile-repair 返回 Already up to date；起始 HEAD 为 7e32d85c6d02049fd606a9410759dbfb9f18fb7a。新批次只有 artifacts/cp2_4_v1；CP0–CP2.3 原产物和已审查结论保留。
+
+生产仅修改 rules/environment.py 的 _pragma_spans 和 pragma_interval，共 +5/-4 行（含说明文字），生产文件仍为 14。前者遇到分号之前的左/右花括号或文件结束时，抛出 F: unterminated pragma directive；后者从 code_only 的等长遮盖字节中读取同一区间的表达式，再交给原 _expression_interval。pragma_patches 仍使用原始字节，不改变区间、替换内容、CRLF 或后续源码偏移。pipeline、选版策略、metadata、D3、key5、settings_retry 和图存储均不改。
+
+新增 tests/test_pragma_comments.py（15 个测试实例）与 tests/fixtures/pragma_comments 下 comment_inside、line_comment_inside、missing_semicolon 三个原样夹具。旧 test_pragma_bytes.py 只追加两个新注释夹具的明确例外：先证明冻结 interval 抛 Unsupported，再交给新测试验证预期成功；所有旧夹具的冻结比较保留。夹具来源和 SHA256 见 fixture_sources.json。CP2.3 参照保存为 environment_cp23.py，SHA256=f0d4f4b9274532c0b3760d67341f37dba7f2f81430d9aad091f42644483429e0，与起始提交原文件逐字节相同；只在测试中载入，不用于生产或替换冻结函数。
+
+### 真实验收
+
+| 项目 | 预期与实测 | 证据（artifacts/cp2_4_v1/） |
+|---|---|---|
+| 修改前复现 | 两种注释分别在 solc 0.8.0/0.5.17 rc0、生产 D3 成立，但旧模块拒绝；缺分号在 0.5.17 报 Expected ';' but got end of source；四个 CLI 输入均旧同一错误且不编译 | reproduction.json、reproduction_invocations.jsonl、reproduction_cli/ |
+| MANDO 等价 | 两环境各 846/846：pragma_interval、完整 Patch 和 EnvironmentPlan 全字段相同；升降序各比较一次 | equivalence.json、test_evidence_*.json.gz |
+| 夹具等价 | 当前 39 文件中原 CP2.3 能读取的 35/35 全同；4 个异常文件明确列出：两个注释、缺分号、既有并集 | 同上 |
+| 计划字段 | interval、effective_interval、origin、groups、priority、flags、inference、override 全部比较；每环境 881 个输入、1,762 份计划 | 同上 |
+| 块注释 CLI | [0.8.0, 0.9.0)，选 0.8.0；solc rc0、production D3，源码零改动 | cli_acceptance.json |
+| 行注释 CLI | [0.5.0, 0.6.0)，选 0.5.0；solc rc0、production D3，源码零改动 | 同上 |
+| 缺分号 CLI | unrepaired、unsupported_version_constraints；error_first_line=F: unterminated pragma directive；没有工具调用 | 同上 |
+| 并集 CLI | 标志不变；error_first_line=F: unsupported pragma expression；没有工具调用 | 同上 |
+| 其他错误 | 非法表达式与空交集消息不变；左右花括号/EOF、伪分隔符、CRLF/Latin-1、原始补丁字节均有测试 | test_pragma_comments.py |
+| 代码边界 | 非测试生产文件 14，仅 environment.py 两个函数改动；其余函数 AST、模块、DFG 引用保护 | frozen_audit.json、code_change_summary.json |
+
+本轮未重跑 846 全量生产编译；这是 §4.4e 明确规定的验收方式，完整 make_plan 相同加其他生产代码不变，证明本次改动未改变这些输入的选版计划。上轮 843 成功/3 个已知失败、843 图字节相同是 CP2.3 的历史结论，不标作本轮重测。6c 回归未重放。
+
+### 测试与开发记录
+
+| 环境/测试 | 实测 | 证据 |
+|---|---|---|
+| dfg | 2653 passed, 9 warnings in 155.25s (0:02:35) | pytest_dfg.json / .log.gz |
+| mando | 181 passed, 447 skipped in 21.12s | pytest_mando.json / .log.gz |
+| production | 622 passed, 6 skipped in 80.43s (0:01:20) | pytest_production.json / .log.gz |
+
+两环境的 CP2.4 等价明细完全相同。production 的 6 个跳过是 Python 3.7 回退或 regression_6c 专用；mando 的 447 个跳过由生产 profile 或 Python >=3.8 条件触发。DFG v2 在 mando 运行，既有 warning 明细保存在日志。pytest 全部首轮通过，无失败后自动重试；没有额外重跑成功的 CLI，只读审计和打包其原产物。
+
+开发记录见 development_issues.json：Windows rg 读取 WSL UNC 返回 os error 5，改用 WSL Python/git 读取，未改权限或网络配置；不是自动审批拒绝。旧冻结测试对新注释夹具的失败预期需与 r2.12 的有意偏离一致，因此明确记录两项例外并保留所有既有输入的等价断言。此处理在正式测试前完成，没有放宽验收。没有发现需先咨询的新替代方案。
+
+### 归档与复现
+
+production 为 Python 3.10.21、Slither 0.11.6、crytic-compile 0.4.2；mando 为 Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4。runtime.json 是现场版本记录。可信安装 96 个，其中支持范围 92 个；工具信任链和每次 solc 路径、SHA256、命令、退出码、诊断、耗时、费用均在 invocations 和 CLI seal。CPU，OMP/MKL=2，费用 0，无 LLM。
+
+新 CLI 存储归档 cli_acceptance_store.tar.gz，SHA256=ff5bc10faded5855479e34b4edc3c398ee98d6ad3fc04eb9afdee8f2442ab48a，21 个成员回读一致；seal SHA256=802cdd364105afcfc5bf26e1fa24563b1eae0282872b0fedab402d9dfc552084。其两成功、两预期拒绝共 2 次 solc 和 2 次 Slither，拒绝输入调用数 0。旧代码和旧产物按 baseline/frozen_audit 校验；新证据的最终哈希清单见 evidence_seal.json，精确交付清单见 delivery_inventory.json。原临时结果保留，不清理历史文件。
+
+从仓库根可复现测试（输出使用新的批次或临时目录，不覆盖 cp2_4_v1）：
+
+    export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+    export TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64
+    /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B -m pytest -q -ra -x -p no:cacheprovider compile_repair/tests
+    /home/zhao/miniconda3/envs/mando/bin/python -B -m pytest -q -ra -x -p no:cacheprovider compile_repair/tests
+    /home/zhao/miniconda3/envs/mando/bin/python -B -m pytest -q -ra -x -p no:cacheprovider scripts/DFG/dfg_v2/tests
+
+实际命令、独立临时目录和运行耗时以 pytest_*.json 为准。reproduce.py 用于修改前复现并校验旧实现哈希，当前新实现上不得再运行；audit_results.py 只读已有结果，写新证据时拒绝覆盖。doc_check 检查本轮六份文档；结果在 doc_check_v*_invocation.json，CHANGE_LOG §27.5 补记。
+
+### 用户授权、差异与停止位置
+
+用户 2026-11-17 明确要求执行更新文档的 CP2.4。本轮按 r2.12 授权，有意偏离冻结实现的两个拒绝行为：pragma 内注释现在接受；未结束指令仍拒绝但消息单列。已追加 DECISIONS 历史；既有 D3/D5/D16/D18/D20/D20a 状态和其他待定决定保持。未提出或实施方案外替代方案。
+
+仅登记既有问题：六个测试模块的本机路径依赖，在 CI/迁移时处理；并集 pragma 与 Slither 进程内超时留后续 CP3 分类。不安装、不下载、不调用 LLM、不启动训练或读写 GPU 锁，不切换全局 solc。CP2.4 本机验收通过，完成记录、完整性和 doc_check 后本地提交；提交号见 git log，不自动 push。停止于待独立审查，CP3 未开始。

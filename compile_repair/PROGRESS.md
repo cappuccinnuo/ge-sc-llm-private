@@ -285,3 +285,14 @@ CP2.3 最终补记（Codex）：7 份 doc_check v1 通过，补记后的最终�
 - CP2.3 复核成立：与原实现在 1,646 个可读文件上全同（MANDO 846/846）；v5 与 v3 记录与图字节相同；9 个 CLI 正例成功。
 - 遗留两项（继承自冻结语义）：pragma 内注释被拒；缺分号的 pragma 与 `||` 记录相同。另登记测试可移植性（既有）。
 - PROMPTS r2.12：新增 1.15 节、4.4e 节 CP2.4，CP3 第 0 节细分版本约束不支持的原因。证据 `artifacts/cp2_3_review_v1/`；记录 `docs/CHANGE_LOG.md` §26。
+
+
+## 2026-11-17 CP2.4 完成：pragma 注释与未结束指令（修改 AI：Codex）
+
+按 PROMPTS r2.12 §4.4e，起点 compile-repair@7e32d85c6d02049fd606a9410759dbfb9f18fb7a，pull 为 Already up to date。生产只改 rules/environment.py 两函数（+5/-4 行，生产文件 14），从遮盖后的字节读取版本表达式，并区分未结束 pragma。新增 test_pragma_comments.py、三个 pragma_comments 夹具，旧 test_pragma_bytes.py 显式登记两个新夹具的冻结拒绝边界；测试参照为经 SHA 校验的 CP2.3 原文件。pipeline、D3、D5、key5、settings、原始补丁区间及字节不变。
+
+新批次 cp2_4_v1，修改前复现符合审查；两环境各 846 MANDO + 35 可读取夹具的 interval、Patch、EnvironmentPlan 八字段全同，升降序各一份，合计每环境 1,762 份计划。两个新注释 CLI 成功（0.8.0 / 0.5.0），源码不变；缺分号和 union 分别记录 unterminated pragma directive / unsupported pragma expression，均不调用编译器。验收证据为 equivalence.json、cli_acceptance.json、cli_acceptance_store.tar.gz。
+
+production 622 passed/6 skipped，mando 181 passed/447 skipped，DFG v2 2653 passed/9 warnings。命令均为指定环境 python -B -m pytest -q -ra -x -p no:cacheprovider，目标和独立临时目录见 pytest_*.json；没有失败后重跑。完整性与 doc_check 见 frozen_audit.json、doc_check_v*。CP2_REPORT 已追加 CP2.4；CHANGE_LOG §27、HANDOVER 与 DECISIONS 已同步，完整文件清单见 delivery_inventory.json。
+
+与冻结实现的两项有意偏离由 r2.12 明确要求，未提出新的替代方案或放宽判据。UNC 文件访问问题通过 WSL 读取解决；旧冻结测试的两个新夹具例外明确断言并单独验收，详见 development_issues.json。既有测试可移植性、union 和 Slither 超时仍登记在后续边界。本轮不重跑全量生产或 6c，不安装/下载/LLM/训练，不切全局 solc；本地提交后待独立审查，未自动 push，CP3 未开始。

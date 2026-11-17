@@ -1,0 +1,21 @@
+{
+  "acceptance_failures": [],
+  "implementation_failures": [],
+  "known_deferred": [
+    "Six test modules depend on local authorization files at collection; handle when adding CI or migrating, per r2.12.",
+    "Union pragmas and in-process Slither timeout remain CP3 classification/future implementation topics."
+  ],
+  "operational_notes": [
+    {
+      "issue": "Windows rg cannot access WSL UNC paths under current sandbox (os error 5)",
+      "resolution": "Read repository files using WSL Python/git commands under the authorized workspace; no network or permission configuration changes.",
+      "scope": "read-only repository inspection; no automatic approval rejection"
+    },
+    {
+      "issue": "New comment fixtures intentionally differ from frozen interval rejection",
+      "resolution": "Preserve all pre-existing frozen comparisons; explicitly assert the two new fixture rejection boundaries, and test their new intervals, original patch bytes and real CLI separately. CP2.3 reference comparison includes every readable fixture.",
+      "scope": "PROMPTS r2.12 authorized semantic divergence; no criterion relaxed"
+    }
+  ],
+  "plan_changes": []
+}

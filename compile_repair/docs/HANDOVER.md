@@ -1,65 +1,66 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.12（§1.15、§4.4e CP2.4、§4.5 CP3）、artifacts/cp2_3_review_v1/README.md、DECISIONS 与 CHANGE_LOG §25、§26。第 6 节历史只追加，记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.12（§1.15、§4.4e CP2.4、§4.5 CP3）、CP2_REPORT 的 CP2.4、CHANGE_LOG §27、DECISIONS 和 artifacts/cp2_4_v1/README.md。第 6 节历史只追加，记录规则见 README.md。
 
 ## 0. 一句话
 
-CP2.3 已由 Claude 独立复核成立：两个缺陷已修复，MANDO 846/846 与原实现相同，v5 与 v3 图字节相同。审查边界用例另发现两个同类小遗留（pragma 内注释被拒；缺分号的 pragma 与 `||` 记录相同），继承自冻结语义。下一步：Codex 执行 4.4e 节 CP2.4 → Claude 审查 → CP3。
+CP2.4 已完成本机验收并待独立审查：pragma 内块/行注释可以读取，未结束指令单列错误；两环境 846 MANDO 与 35 可读取夹具的完整计划保持，CLI 两正两负通过。顺序：CP2.4 审查通过后再进入 CP3。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案与决定 | PROMPTS r2.12；D5/D16/D18/D20/D20a 已定；D19 建议；D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
-| CP0–CP2.3 | 已审查通过；6c 239/239 已结束 | 各审查目录；cp2_3_review_v1 |
-| CP2.3 复核 | 原实现能读取的 1,646 个文件区间全同；MANDO 846/846；v5 与 v3 846/846 记录、843/843 图字节相同；9 个 CLI 正例成功 | cp2_3_review_v1/README.md |
-| 遗留 | pragma 内注释被拒（solc 0.8.0 与 0.5.17 接受）；未结束的 pragma 与 `||` 记录相同；CP2.4 修复 | cp2_3_review_v1/edge_cases |
-| 测试可移植性 | 6 个测试模块在用户本机之外收集失败（既有）；引入 CI 或迁移时处理 | PROMPTS r2.12 修改说明第 3 条 |
-| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 | PROMPTS r2.11 修改说明第 4 条 |
-| 已知缺口 | `||` pragma；Slither 进程内无超时；项目与依赖等未实现 | 留 CP3 |
-| 下一步 | CP2.4 → 审查 → CP3 | PROMPTS §4.4e |
+| 方案与决定 | PROMPTS r2.12；既有决定状态保持；新增有意偏离执行记录 | PROMPTS、DECISIONS |
+| CP0–CP2.3 | 已审查通过；6c 239/239 已结束，不重放 | 各审查目录 |
+| CP2.4 实现 | 仅 environment.py 两函数，表达式遮盖读取、未结束 pragma 独立消息；生产 14 文件 | code_change_summary.json |
+| 等价 | production/mando 各 846 MANDO + 35 可读取夹具，interval/Patch/完整 EnvironmentPlan 全同；每环境 1,762 份升降序计划 | cp2_4_v1/equivalence.json |
+| 生产 CLI | 两种注释成功且零改动，缺分号/union 两错误区分且不编译 | cli_acceptance.json |
+| 测试 | production 622/6，mando 181/447（通过/跳过）；DFG 2653 通过、9 warnings | test_acceptance.json |
+| 测试可移植性 | 6 个模块在用户本机之外收集失败（既有）；CI/迁移时处理，本轮不扩范围 | r2.12、development_issues.json |
+| 分支 | 继续 compile-repair；5080 主线导入改动在迁移时合并 | PROMPTS r2.11 |
+| 下一步 | CP2.4 独立审查；CP3 未开始 | §4.4e 与本轮停止边界 |
 
 ## 2. 分支与工作树
 
-工作树 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair。本轮 pull --ff-only origin compile-repair 返回 Already up to date，起始 HEAD=361772f74b28b4dce0ad094907dc3dbf27a17794。强制记录和检查后本地提交，提交号见 git log；本轮未自动 push，不在 EdgeSem 工作树执行 git。
+工作树 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair。CP2.4 pull --ff-only 返回 Already up to date，起始 HEAD=7e32d85c6d02049fd606a9410759dbfb9f18fb7a。本轮完成记录与检查后本地提交；提交号见 git log，不自动 push。
 
-新批次仅 cp2_3_v1、cr_store_mando_v5，旧批次不修改/覆盖。v5 用 store.tar.gz 交付，原散文件保留；探针 CLI 存储另用 cli_probe_stores.tar.gz。按 delivery_inventory 精确暂存，不递归 force-add 旧树，不清理历史未跟踪文件。CP2.3/CP3 继续当前分支，rtx5080-rebuild 的导入重构留迁移时合并。
+新批次仅 cp2_4_v1。CP0–CP2.3 旧产物保持，不重跑 v5 或 6c，不覆盖旧记录。按 delivery_inventory 精确暂存；历史未跟踪文件和原测试临时产物保留，不递归 force-add 旧树。当前没有执行 5080 主线迁移。
 
 ## 3. 环境
 
-production=/home/zhao/miniconda3/envs/compile-repair-production，Python 3.10.21、Slither 0.11.6、crytic-compile 0.4.2；mando Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4。runtime.json 已现场核对。可信 solc 96 个，其中 92 个支持版本；本轮无安装、下载或全局版本选择。
+production=/home/zhao/miniconda3/envs/compile-repair-production，Python 3.10.21、Slither 0.11.6、crytic-compile 0.4.2；mando Python 3.7.12、Slither 0.8.0、crytic-compile 0.2.4。本轮 runtime.json 现场核对；可信 solc 96 个，其中 92 个支持版本，没有安装、下载或切全局版本。
 
-从仓库根运行，PYTHONDONTWRITEBYTECODE=1、PYTHONNOUSERSITE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2、TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64。全部 CPU，无 HGT/LLM/GPU 锁，费用 0；没有改变已有 Windows/WSL 代理和网络配置。
+从仓库根运行，PYTHONDONTWRITEBYTECODE=1、PYTHONNOUSERSITE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2、TREE_SITTER_LIB_DIR=/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64。全部 CPU，费用 0；无 HGT/LLM/GPU 锁操作，无网络配置变化。
 
 ## 4. 必读事项（当前边界）
 
-1. 目标是未来检测时任意合约；MANDO 846 仅回归，不按漏洞标签决定策略。
-2. pragma_interval/pragma_patches 共用 code_only 后的顶层字节定位；只复制冻结表达式求值语义，源码字节不重编码。infer_interval 用无损 Latin-1。
-3. MANDO recorded_version 的 UTF-8/元数据哈希保持；D3/D5/key5/settings_retry、图格式与标记保持。
-4. 并集 pragma 仍为 unsupported_version_constraints；Slither 进程内仍无超时，按 CP3 分类和讨论后续实现，本轮不处理。
-5. 6c 已按 D20/D20a 完成；历史样本与判据封存。本轮没有重放或追加样本。
-6. v5 与 v3 的状态、reason、版本、settings、flags 各 846/846 同，843 图字节同；3 个已知失败不写图，CLI rc2、验收驱动 rc0 是预期。
-7. 8 个夹具在冻结 parser/UTF-8 路径无法处理，明确排除旧实现等价、另做边界或 CLI 测试，未把它们当作旧实现通过。
-8. 旧 cp0_1_compilers_v1 首次 seal 已由 README 指明被 seal_v2 替代；当前 README 与最终 seal 相同，不改历史。处理记录在 development_issues。
-9. 所有旧代码/产物保护按 baseline 与 frozen_audit_v2 检查；新测试和 v5 的代码指纹必须与本次实际实现一致。
-10. docs/CHANGE_LOG 是本模块训练改变/运行记录，根目录两份文档不改。第 6 节及各旧报告历史保留。
-11. CP2.3 已完成本机功能验收，仍需独立审查；不要将该状态写成已审查，不提前执行 CP3。（2026-11-17 Claude 更新：CP2.3 审查已通过；CP3 之前先执行 CP2.4，见 PROMPTS §4.4e。）
-12. 未来任何方案变更先咨询用户并记录。本次未提出或实施替代方案；有限探针通过不证明所有输入和图语义已穷举。
+1. 目标是未来检测时任意合约；MANDO 846 仅回归，不根据标签选版。
+2. CP2.4 表达式从 code_only 后的同一区间读取；_pragma_spans 仍是 interval/patches 共用的顶层定位。pragma_patches 保留原始字节、CRLF 与偏移。
+3. 未结束 pragma 的 error_first_line 是 F: unterminated pragma directive，flags 仍为 unsupported_version_constraints。CP3 据此细分解析错误；本轮不补分号、不修原文。
+4. union、非法表达式与空交集消息保持；pipeline、known version、D3、D5、key5、settings_retry、图格式不改。
+5. 本轮等价参照为经 SHA 校验的 environment_cp23.py，只在测试中载入；冻结 interval 等价测试保留所有旧比较，新注释两夹具明确证明旧拒绝并另验新行为。
+6. 当前 39 夹具中原 CP2.3 可读取 35；两个注释、缺分号和旧 union 不计作原可读取输入，全部单独测试，不能把排除写成原实现通过。
+7. 每环境 846 个回归输入的完整 make_plan 相同，依 §4.4e 不重跑全量编译。CP2.3 的 v5 843 成功/3 旧失败、843 图同是历史结论。
+8. 6c 已完成 D20/D20a；不重放、不新增采样、不变更其历史判据。
+9. 旧 cp0_1_compilers_v1 首次 seal 被 seal_v2 替代的说明保持。新 baseline 沿用已核对的旧 seal 集合并加入 v5，未重解释旧证据。
+10. 所有旧跟踪/封存文件、两环境和 solc、DFG _code_refs、非目标函数按 baseline/frozen_audit 校验。新 CLI seal 的 14 文件指纹必须与当前实现相同。
+11. docs/CHANGE_LOG 是本模块的训练改变/运行记录，根目录两份文档不改；HANDOVER §6 和旧报告仅追加。
+12. CP2.4 本机验收完成尚不等于独立审查；审查前不进入 CP3。任何方案外调整先咨询用户并记录，测试可移植性和 Slither 超时等既有事项按既定后续范围处理。
 
 ## 5. 关键路径
 
 | 内容（compile_repair 下） | 路径 |
 |---|---|
-| CP2.3 审查证据（Claude） | artifacts/cp2_3_review_v1/README.md、verify_equivalence.json、edge_cases/ |
-| 当前报告和训练改变记录 | CP2_REPORT.md 的 CP2.3；docs/CHANGE_LOG.md §25 |
-| CP2.3 证据总览 | artifacts/cp2_3_v1/README.md |
-| 修改前复现 | cp2_3_v1/reproduction.json、reproduction_invocations.jsonl、reproduction_cli |
-| 等价与 CLI 验收 | cp2_3_v1/equivalence.json、probes.json、cli_probe_stores.tar.gz |
-| 新正式升序存储 | artifacts/cr_store_mando_v5/store.tar.gz |
-| 严格逐份回归 | cp2_3_v1/regression_plan.json、regression_acceptance.jsonl、regression.json |
-| 测试与最终检查 | cp2_3_v1/pytest_*、frozen_audit_v2、doc_check_v*、delivery_inventory/seal |
-| 冻结参照 | artifacts/cr_store_mando_v3/store.tar.gz；cp0_v2/recon.json |
-| 上轮独立审查 | artifacts/cp2_2_review_v1/README.md、probe_inputs.json（只读） |
+| 本轮报告与详细记录 | CP2_REPORT.md 的 CP2.4；docs/CHANGE_LOG.md §27 |
+| 证据总览 | artifacts/cp2_4_v1/README.md |
+| 旧实现复现 | cp2_4_v1/reproduction.json、reproduction_invocations.jsonl、reproduction_cli/ |
+| 参照与来源 | cp2_4_v1/environment_cp23.py、fixture_sources.json、baseline.json |
+| 等价明细 | cp2_4_v1/equivalence.json、test_evidence_production.json.gz、test_evidence_mando.json.gz |
+| CLI 验收 | cp2_4_v1/cli_acceptance.json、cli_acceptance_store.tar.gz |
+| 测试、问题与完整性 | cp2_4_v1/pytest_*、test_acceptance.json、development_issues.json、frozen_audit.json |
+| 文档与交付 | cp2_4_v1/doc_check_v*、evidence_seal.json、delivery_inventory.json |
+| 审查依据（只读） | artifacts/cp2_3_review_v1/README.md、edge_cases/ |
+| 历史生产存储（未重跑） | artifacts/cr_store_mando_v5/store.tar.gz、cr_store_mando_v3/store.tar.gz |
 
 ---
 
@@ -366,3 +367,14 @@ doc_check v1 的 7 份文档全部通过；本补记与新目录说明更新后�
 审查新写 10 个边界合约，发现两个继承自冻结语义的同类遗留：pragma 内含注释时模块拒绝而 solc 接受；缺分号的 pragma 与 `||` 的异常信息相同，CP3 无法区分。另登记测试可移植性（6 个模块在本机之外收集失败，既有）。新增 4.4e 节 CP2.4。
 
 下一步：Codex 执行 CP2.4，Claude 审查后进入 CP3。本轮没有模块代码改动或安装。详见 CHANGE_LOG §26。
+
+
+### 2026-11-17 CompileRepair CP2.4 完成（修改 AI：Codex）
+
+在 compile-repair@7e32d85c6d02049fd606a9410759dbfb9f18fb7a 开始，pull --ff-only 为 Already up to date，先读共享上下文和 PROMPTS r2.12 全文、HANDOVER §0–5、DECISIONS、CHANGE_LOG §25/26 与审查 README/edge_cases。生产只改 environment.py 两函数，共 +5/-4 行，生产文件仍为 14；新增三个 pragma_comments 夹具与 test_pragma_comments.py，旧 test_pragma_bytes.py 精确登记新注释夹具的冻结异常边界。所有新证据写 cp2_4_v1，旧产物/语料/scripts 不变。本轮更新本文开头、第 0 节摘要、第 1 节状态、第 2 节起点与批次、第 3 节环境依据、第 4 节当前边界、第 5 节关键路径；此前第 6 节原字节保留。
+
+旧模块拒绝两类 solc/Slither 可接受注释输入、且缺分号与 union 消息相同，均已复现。修改后两注释生产 CLI 成功（0.8.0/0.5.0）并保持源码原字节；两种拒绝消息正确且不调用编译器。两环境各 846 MANDO 与 35 个 CP2.3 可读取夹具的区间、完整补丁与 EnvironmentPlan 八字段全部相同，升降序共每环境 1,762 份计划；四个旧拒绝输入明确单列。证据见 equivalence.json、cli_acceptance.json，CLI 归档 21 成员回读一致。
+
+r2.12 明确要求的有意偏离已记入 DECISIONS；既有决定状态、失败标志和策略不改。没有新的替代方案或验收偏差；开发文件访问处理与测试例外说明已记录于 development_issues.json、CHANGE_LOG §27。六模块测试可移植性、union 和 Slither 超时仍是既有后续事项，不提前实现。停止于本机验收完成、待独立审查；CP3 尚未开始。
+
+production 622 passed/6 skipped，mando 181 passed/447 skipped，DFG 2653 passed/9 warnings；完整命令和耗时见 pytest_*.json。六份文档按 doc_check 核验，最终结果及完整性记录见 doc_check_v*、frozen_audit.json；强制记录通过后本地提交，提交号见 git log，不自动 push。无下载、安装、LLM、训练、GPU 锁或全局 solc/网络改动。按 §4.4e 不重跑全量生产，6c 已完成且不重放。

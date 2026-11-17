@@ -70,7 +70,7 @@ def _pragma_spans(source):
         elif depth == 0:
             end = re.search(rb"[;{}]", code[match.end():])
             if end is None or end.group() != b";":
-                raise Unsupported("F: unsupported pragma expression")
+                raise Unsupported("F: unterminated pragma directive")
             spans.append((match.start(), match.end() + end.end()))
     return tuple(spans)
 
@@ -110,13 +110,14 @@ def _expression_interval(expressions):
 def pragma_interval(sources):
     """Intersect byte sources' top-level pragmas; raise Unsupported if invalid.
 
-    Only constraint expression semantics are frozen. Latin-1 is lossless and
-    preserves byte positions without requiring the whole source to be UTF-8.
+    CP2.4 masks comments inside expressions before frozen constraint evaluation.
+    Latin-1 preserves byte positions without requiring the source to be UTF-8.
     """
     found = []
     for raw in sources:
+        code = code_only(raw)
         expressions = [re.sub(r"^pragma\s+solidity\s*|;\s*$", "",
-                             raw[start:end].decode("latin1")).strip()
+                             code[start:end].decode("latin1")).strip()
                        for start, end in _pragma_spans(raw)]
         value = _expression_interval(expressions)
         if value is not None:

@@ -71,6 +71,17 @@ def test_frozen_equivalence_all_parseable_fixtures(tmp_path):
             excluded.append({"path": str(path.relative_to(ROOT)), "exception_type": type(exc).__name__,
                              "message": str(exc)})
             continue
+        # CP2.4 intentionally accepts these two formerly rejected expressions.
+        # Keep every pre-existing frozen comparison, and assert this exact
+        # exception boundary; their new intervals/patches/CLI have dedicated tests.
+        if path.parent.name == "pragma_comments" and path.name in (
+                "comment_inside.sol", "line_comment_inside.sol"):
+            assert outcome(lambda: frozen_interval(text, root)) == {
+                "value": None, "exception_type": "Unsupported"}
+            excluded.append({"path": str(path.relative_to(ROOT)),
+                             "exception_type": "Unsupported",
+                             "message": "CP2.4 authorized pragma-comment acceptance"})
+            continue
         records.append(compare_frozen(path, root, text))
     assert records
     (tmp_path / "equivalence.json").write_text(json.dumps(
