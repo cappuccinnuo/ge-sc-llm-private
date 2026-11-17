@@ -1,24 +1,23 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.10 §1.12/1.13/4.4c、CP2_REPORT 的 CP2.2、DECISIONS 与 CHANGE_LOG §23。第 6 节历史只追加，记录规则见 README.md。
+> 新接手先读本文第 0–5 节、PROMPTS r2.11（§1.14、§4.4d CP2.3、§4.5 CP3）、artifacts/cp2_2_review_v1/README.md、DECISIONS 与 CHANGE_LOG §23、§24。第 6 节历史只追加，记录规则见 README.md。
 
 ## 0. 一句话
 
-CP2.2 本机验收完成：6c 239/239（234 精确、4 D20、1 D20a），第 227 追加 1 次即通过；生产降序 843 成功/3 已知失败，与升序 v3 的 843 份 key5 + 有序 IR 全同。下一步独立审查 CP2.2，通过后再进 CP3。
+CP2.2 已由 Claude 独立复核成立，6c 回归到此结束。审查另发现两个自 CP1 起存在的缺陷：版本区间读取依赖整文件解析（0.8 新语法会失败）且要求 UTF-8，可编译的合约被记为 unsupported_version_constraints。下一步：Codex 执行 4.4d 节 CP2.3 → Claude 审查 → CP3。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 方案与决定 | r2.10；D5/D16/D18/D20/D20a 用户已定；D19 建议；D9/D10 待确认，D12/D13 待定 | PROMPTS、DECISIONS、authorization |
-| CP0–CP2.1 生产 | 原结论已审查，本轮不重做或修改 | 原审查与 frozen_audit |
-| 6c 重放 | 239/239；旧 227 主样本复用，仅新增 23 次提取 | cp2_6c_v3/summary、captured_replay_audit |
-| 波动键 | 12 个 L1 DEF；5 继承、7 非继承；逐次计数与行源码完整 | captured_replay_audit |
-| 降序跨版本 | 229 同版、614 不同版；843/843 key5 和 IR 同，0 差 | descending_comparison |
-| 测试 | production 585/6；mando 147/444；DFG 2653 passed/9 既有 warnings | pytest_* |
-| 代码与环境 | 生产 14 文件不改，测试文件不改，旧产物不覆盖 | baseline、frozen_audit |
-| 已知缺口 | || pragma、Slither 进程内无超时、项目与依赖等未实现 | 留 CP3 |
-| 下一步 | 独立审查 CP2.2 → CP3 | 本机通过不代替独立审查 |
+| 方案与决定 | PROMPTS r2.11；D5/D16/D18/D20/D20a 已定；D19 建议；D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
+| CP0–CP2.2 | 已审查通过；6c 239/239（234 相同、4 D20、1 D20a），回归结束 | 各审查目录；cp2_2_review_v1 |
+| 降序跨版本 | 已复核：843/843 节点 key5、IR、边、调用相同；28 个文件只在 87 个节点的 length 上不同 | cp2_2_review_v1/verify_desc.json |
+| 遗留缺陷 | 0.8 新语法（19 个特性夹具中 5 个）与非 UTF-8 字节使版本读取失败；CP2.3 修复 | cp2_2_review_v1/probe_inputs.json |
+| CP3 前提 | 诊断格式、措辞随版本变化与 standard JSON 的限制已实测；3.2 节第 10 行改写在 3 个文件上可行 | probe_diagnostics.json、probe_slither_compat.json |
+| 分支 | 继续在 compile-repair；rtx5080-rebuild 上 5080 重构改过本模块导入，迁移时再合并（用户决定现在不迁移） | PROMPTS r2.11 修改说明第 4 条 |
+| 已知缺口 | `||` pragma；Slither 进程内无超时；项目与依赖等未实现 | 留 CP3 |
+| 下一步 | CP2.3 → 审查 → CP3 | PROMPTS §4.4d |
 
 ## 2. 分支与工作树
 
@@ -48,12 +47,13 @@ CP2.2 本机验收完成：6c 239/239（234 精确、4 D20、1 D20a），第 227
 12. 代码与旧证据最终保护见 frozen_audit；两 tar 分别 57/4229 成员回读通过，原散文件保留。
 13. docs/CHANGE_LOG 是本模块训练改变/运行记录；根两份记录不改。强制记录全部完成后才提交。
 14. Windows/WSL 使用 scoped 命令与已有代理；无 rg 时改用 git ls-files/Python，不安装。文档用 UTF-8 Python 写入，避免外层反引号歧义。
-15. CP2.2 本机通过，独立审查尚未进行，CP3 未开始。当前无需追加采样或新授权。
+15. CP2.2 本机通过，独立审查尚未进行，CP3 未开始。当前无需追加采样或新授权。（2026-11-17 Claude 更新：CP2.2 审查已通过，6c 回归结束；CP3 之前先执行 CP2.3，见 PROMPTS §4.4d。）
 
 ## 5. 关键路径
 
 | 内容（compile_repair 下） | 路径 |
 |---|---|
+| CP2.2 审查证据（Claude） | artifacts/cp2_2_review_v1/README.md 及 verify_desc、verify_6c、legacy_spank_repeat30、probe_inputs、probe_diagnostics、probe_slither_compat |
 | 最新报告和记录 | CP2_REPORT.md 的 CP2.2；docs/CHANGE_LOG.md §23；DECISIONS.md |
 | 授权与基线 | artifacts/cp2_2_v1/authorization.json、baseline.json、evidence_seal.json |
 | 6c 新证据 | artifacts/cp2_6c_v3/store.tar.gz，前 227 原始提取依赖旧 cp2_6c_v2 |
@@ -327,3 +327,14 @@ production 模块 585 passed/6 skipped，mando 147/444，DFG 2653 passed/9 既�
 production 测试 585/6、mando 147/444、DFG 2653 passed/9 既有 warnings，11 个边界检查通过。doc_check/保护审计按强制要求完成后本地提交，提交号见 git log，不自动 push；没有安装、下载依赖/语料/文档、LLM、训练、GPU 锁或全局 solc 操作。下一步独立审查 CP2.2，CP3 尚未开始。
 
 CP2.2 最终检查补记（修改 AI：Codex）：8 份文档 doc_check v1 通过，补记后的 v2 见 cp2_2_v1；frozen_audit 确认生产 14 文件、28,512 保护跟踪文件、17,315 旧 seal 成员、239 源路径、354 DFG 引用、96 solc 及两环境元数据全部未变。旧历史保留，git diff --check 通过；按精确交付清单本地提交，未 push。
+
+
+### 2026-11-17 CompileRepair CP2.2 审查与方案 r2.11（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP2.2（提交 0e6830edc）。新增证据目录 `artifacts/cp2_2_review_v1/`，修改 `PROMPTS.md`（r2.10 → r2.11）。本文开头、第 0、1 节换成审查结论，第 4 节第 15 条更新，第 5 节加入证据路径。
+
+结论：CP2.2 成立。降序 843/843 节点 key5、IR、边与调用相同，graph.json 只在 28 个文件的 87 个节点 length 上不同；6c 续跑的重放侧计数、SHA 与第 239 个文件的逐键计数和记录一致，第 239 个文件的两个波动键在 Claude 的 Slither 0.8.0 环境中同进程 30 次独立复现（`result` 出现 7 次、`b` 缺失 9 次）。6c 参考报告只在用户本机，参考侧数字未独立复核。
+
+新发现两个缺陷：版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，19 个特性夹具中 5 个解析失败；读取前要求 UTF-8，注释含 Latin-1 字节的合约同样被拒。这些文件 solc 与生产 Slither 都接受，模块却记为 unsupported_version_constraints。缺陷自 CP1 起存在，此前审查没有发现。新增 4.4d 节 CP2.3 修复；CP3 的诊断前提按实测修改。
+
+下一步：Codex 执行 CP2.3，Claude 审查后进入 CP3。本轮没有模块代码改动或安装。详见 CHANGE_LOG §24。

@@ -1236,3 +1236,53 @@ doc_check 按 baseline 的追加前字节偏移检查 CP2_REPORT=32299、PROGRES
 
 
 最终检查补记（仍属 §23.5，修改 AI：Codex）：doc_check v1 全部 8 份通过，追加偏移为 CP2_REPORT=32299、PROGRESS=35191、CHANGE_LOG=161129；其余全文检查。补记后的同范围最终复检写入 doc_check_v2.jsonl 与 doc_check_v2_invocation.json。frozen_audit 通过：28,512 受保护跟踪文件（模块外 27,845、旧产物 604、旧 fixture 30）、17,315 旧 seal 成员、239 原始目标、354 DFG 引用和 96 solc 文件均未变；mando 118 / production 145 份包与 conda 元数据集合及内容相同。全部 14 个生产文件字节不变，并与实际测试 seal 相同；Slither 全部 12 个函数及旧 occurrence/D20 helper 复用保持，五份文档旧历史保留。git diff --check 通过，受跟踪改动仅五份允许记录。最终按 delivery_inventory 精确暂存新批次及文档，核对暂存字节后本地提交，不 push；CP2.2 本机验收完成，待独立审查。
+
+
+## 24. 2026-11-17 CompileRepair CP2.2 审查与方案 r2.11（修改 AI：Claude）
+
+### 24.1 任务、依据与范围
+
+用户要求（2026-11-17）：Codex 已完成 CP2.2；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP3。起点 `compile-repair@0e6830edc`。审查对象：CP2_REPORT 的 CP2.2 节、HANDOVER、DECISIONS、CHANGE_LOG §23、PROGRESS，`cp2_6c_v3` 与 `cp2_desc_v1` 两个归档（解包核对），`cp2_2_v1` 的授权与记录；另核对 CP2.2 之后仍在生产代码中的版本读取路径，以及 CP3 依赖的诊断前提。
+
+修改：`PROMPTS.md`（r2.10 → r2.11）；新增 `artifacts/cp2_2_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 4 节第 15 条补注，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 2 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 24.2 实施方式和重要选择
+
+- 生产代码：`git diff --stat 36c6109fa 0e6830edc` 在 artifacts 之外只有五份记录，CP2.2 没有改代码与测试，因此没有重跑测试。
+- 降序：解包 v3 与 cp2_desc_v1，独立比较状态、版本对、节点 key5/IR/类型/改动标记、边与调用，并统计 graph.json 字节差异落在哪些字段。
+- 6c：参考报告只在用户本机，审查复算重放侧：三个 seal、D20a 样本中失败键的次数、续跑 12 个文件的提取总数与 SHA、第 239 个文件 11 次样本的逐键变化；再在 Claude 的 Slither 0.8.0 环境中用冻结抽取对第 239 个文件同进程连续 30 次，独立确认两个键的波动。
+- 版本读取：CP2.2 的结论成立后，检查模块面对任意输入时 CP3 之前的路径。把 19 个特性夹具与一个注释含 Latin-1 字节的合约送入 `pragma_interval`，并用 solc 与生产 Slither 对照。发现两个缺陷后读 `pipeline.repair_unit`，确认两种异常都会记为 unsupported_version_constraints 并直接返回。
+- 处理选择：（a）在 CP3 中顺带修复；（b）单独 CP2.3 修复后再 CP3。选择（b）：用户要求问题先解决并核实；CP3 的失败分类以第 1、6 步之后的结果为输入，不先修复会把可编译的输入统计进版本约束类。修复只换指令定位方式，表达式语义不变，用 MANDO 846 个文件与夹具上的等价测试和一次与 v3 字节对比的回归来证明。
+- CP3 前提：探测三个含错夹具在 0.4.12–0.8.38 的命令行与 standard JSON 输出；在生产 Slither 上对三个 Slither 侧失败文件试 3.2 节第 10 行的改写。
+
+### 24.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 降序 seal | 两个存储各 4,228 个文件一致 | verify_desc.json |
+| 降序状态与版本 | 843 成功 + 3 slither_side_failure，两次相同；229 同版、614 不同版，跨系列 0 | 同上 |
+| 降序节点与图 | 843/843 key5、IR、边、调用相同；graph.json 815 个字节相同，28 个只在 87 个节点的 length 上不同 | 同上 |
+| 6c seal | cp2_6c_v3、continuation、d20a/0227 三个 seal 0 不一致 | verify_6c.json |
+| 第 227 个文件 D20a | 1 个样本，失败键出现 1 次（MultiHashWrapper 非继承） | 同上 |
+| 第 228–239 个文件 | 提取总数与记录相同、SHA 相同；11 个等于参考总数，第 239 个 754 对 755 | 同上 |
+| 第 239 个文件 11 次样本 | `result` DEF 0,0,0,0,0,0,0,0,0,0,1；`b` DEF 1,1,0,1,1,1,1,1,1,1,1；其余键不变 | 同上 |
+| 第 239 个文件独立 30 次 | `result` 7 次、`b` 缺失 9 次；总数 753/754/755 为 8/17/5 次 | legacy_spank_repeat30.jsonl |
+| 版本读取：新语法 | 19 个特性夹具中 5 个 `Unsupported: Solidity parser ERROR/MISSING`；同样的文件 solc 0.8.38 rc 0，生产 Slither 成功 | probe_inputs.json |
+| 版本读取：非 UTF-8 | UnicodeDecodeError；solc 0.4.24、0.5.17、0.8.0、0.8.38 rc 0，生产 Slither 成功 | 同上 |
+| 诊断格式 | 命令行只写 `Error:`；位置格式 0.5.17 及以前与 0.8.0 起不同；standard JSON 在 0.4.12 内部错误、0.4.12/0.4.17 无位置；措辞随版本变化 | probe_diagnostics.json |
+| 第 10 行改写 | 3 个文件在 0.4.24、0.4.26 由 AssertionError 变为成功；0.4.12 原文 solc 失败、改写后成功 | probe_slither_compat.json |
+
+未证明：6c 参考侧数字（报告只在用户本机）；用户环境（Python 3.7）中第 239 个文件的波动频率；0.6、0.7 的诊断格式；新语法与非 UTF-8 输入在外部语料中的数量（CP3 统计）。
+
+### 24.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：按 D20a 只追加到首次观察即停；续跑在新进程中按原顺序；第 239 个文件按 D20 判定；降序覆盖全部 846 个输入；没有改代码、键或判据。执行中的问题（WSL 没有 rg、文档写入封装的引号错误、旧驱动只列 843 个成功输入）处理得当，没有影响结果。
+- 新发现：两个版本读取缺陷（自 CP1 起存在，CP1–CP2.1 审查漏掉）。修复不改变已定决策的语义，只改实现方式，不需要新的用户批准。
+- 分支：CP2.3 与 CP3 继续在 compile-repair；5080 主线上本模块的导入改动留到迁移时合并。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 24.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_2_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP3 不能开始。顺序为 Codex 执行 CP2.3 → Claude 审查 → CP3。本轮提交并 push 到 `compile-repair`。

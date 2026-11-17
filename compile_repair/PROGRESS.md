@@ -257,3 +257,10 @@ production 模块 585 passed/6 skipped，mando 模块 147/444，冻结 DFG 2653 
 测试由 run_checks.py 依次运行 production、mando、dfg；实际命令为相应环境 python -B -m pytest -q -ra -x -p no:cacheprovider，模块目标 compile_repair/tests，DFG 目标 scripts/DFG/dfg_v2/tests，使用新 /tmp basetemp。结果 production 585/6、mando 147/444、DFG 2653 passed/9 既有 warnings；11 个 D20a 合成边界通过。具体命令、rc、时间和 SHA 在 pytest_*、replay_invocation、descending_invocation 中。
 
 无方案外改变。WSL 无 rg 改用 git ls-files/Python；一次文档封装 JS 引号解析失败发生在工具执行前、没有文件操作，改为普通 UTF-8 文本后完成。旧未执行的降序驱动只列成功输入，本轮新驱动遵循 r2.10 对全部 846 输入验收；未改生产策略。强制记录、doc_check 与保护审计后本地提交，不自动 push。CP3 未运行，等待独立审查；无安装、下载依赖/语料/文档、LLM、HGT、GPU 锁或全局 solc 修改，费用 0。
+
+
+## CP2.2 审查与方案 r2.11（Claude，2026-11-17）
+
+- CP2.2 复核成立：降序 843/843 节点、IR、边、调用相同（28 个文件只差 length）；6c 239/239，回归结束；第 239 个文件的波动在 Claude 环境独立复现。
+- 新发现两个缺陷：版本读取依赖整文件解析（0.8 新语法失败）且要求 UTF-8；可编译的合约被记为版本约束不支持。
+- PROMPTS r2.11：新增 1.14 节、4.4d 节 CP2.3，CP3 第 0 节补充诊断前提与第 10 行改写的实测。证据 `artifacts/cp2_2_review_v1/`；记录 `docs/CHANGE_LOG.md` §24。
