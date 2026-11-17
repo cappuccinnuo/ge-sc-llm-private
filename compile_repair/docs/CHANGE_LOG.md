@@ -1439,3 +1439,47 @@ PROMPTS §4.4e 的修改前复现、明确修复、原可读取输入的区间/�
 未安装、下载、LLM 调用、HGT 训练或读写 GPU 锁；未改变全局 solc、网络配置或旧产物。846 全量编译未运行，按文档以 make_plan 全同验收；6c 未重放；CP3 未开始。全部记录和检查通过后本地提交，提交信息以 CP2.4 开头，提交号见 git log，不自动 push。停止于 CP2.4 本机验收完成、等待独立审查。
 
 最终检查补记（2026-11-17，修改 AI：Codex）：doc_check v1 六份文档全部 passed=True；本补记后的最终六份文档复检和哈希记录在 doc_check_v2.jsonl、doc_check_v2_invocation.json。frozen_audit 全部通过：28,675 个受保护跟踪文件（模块外 27,845、旧产物 762）、25,828 个旧封存成员、96 个 solc 文件、两环境元数据集合与内容（production 145、mando 118）、354 个 DFG _code_refs 均未变；environment.py 除两目标函数外的 13 个函数 AST 不变，生产文件仍 14。新 CLI seal 的实现指纹与当前代码一致，旧文档历史前缀保持。git diff --check 通过；按 delivery_inventory 精确暂存后核对暂存字节与格式再本地提交，不 push。
+
+
+## 28. 2026-11-17 CompileRepair CP2.4 审查与方案 r2.13（修改 AI：Claude）
+
+### 28.1 任务、依据与范围
+
+用户要求（2026-11-17）：Codex 已完成 CP2.4；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后进入 CP3。起点 `compile-repair@9fdc96e13`。审查对象：`rules/environment.py` 的差异，`tests/test_pragma_comments.py` 与新夹具，`cli_acceptance_store.tar.gz`（解包核对），`environment_cp23.py` 参照副本，CP2_REPORT 的 CP2.4 节、HANDOVER、DECISIONS、CHANGE_LOG §27、PROGRESS 与 development_issues.json；另通读 4.5 节 CP3 提示，核对其与已有实测是否一致。
+
+修改：`PROMPTS.md`（r2.12 → r2.13）；新增 `artifacts/cp2_4_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 4 节第 12 条补注，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 1 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 28.2 实施方式和重要选择
+
+- 代码：读差异，确认只有两处修改；用 cmp 确认 Codex 的 CP2.3 参照副本与 git 中 `76a2cc810` 的文件逐字节相同。
+- 等价：自写脚本比较新实现与 CP2.3 实现：1,663 个文件的区间（含异常信息）与补丁区间；MANDO 846 个输入在升序、降序下的完整 make_plan（92 个官方支持版本，known version 取自 v5 输入记录，regression=mando）。
+- 存储：解包 CLI 验收存储，核对归档与 seal 的 SHA256 前缀、seal、各单元结果与原因、调用记录。
+- 边界：再写三个缺分号的合约（后接 import、pragma、library），与 solc 0.5.17 对照。后接 import 或 pragma 时 solc 本身把两行读成一条 pragma，报版本不符；模块与 solc 读法一致，所以不改代码，只在 CP3 分类中单列。
+- CP3 提示：通读后发现第 2 节要求“standard-json 输入组装”，与 r2.11 的实测（0.4.12 内部错误，0.4.12/0.4.17 不给位置）矛盾，且生产 Slither 经 crytic-compile 的命令行路径编译。查看 crytic-compile 0.4.2 的 solc 平台，确认支持 `solc_working_dir`、`solc_remaps`、`solc_args`，改为命令行路径，同一组参数同时用于 solc 与 Slither；要求先用三文件夹具在 4 个版本上确认，某版本不支持某参数时停下报告。3.2 节表第 2 行与 3.10 节的文件说明同步修改。
+
+### 28.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 参照副本 | 与 `76a2cc810` 的 environment.py 逐字节相同 | cmp |
+| 区间与异常信息 | CP2.3 能读取的 1,656 个文件全同；补丁区间 1,661/1,661 | verify_cp24.json |
+| 有意的不同 | 两份块注释、两份行注释现在接受；两份缺分号信息改为 unterminated | 同上 |
+| make_plan | MANDO 846 个输入升降序 1,692/1,692 全同 | 同上 |
+| CLI 验收存储 | 归档 `ff5bc10faded5855…`、seal `802cdd364105afcf…`，20 个文件 0 不一致；4 条调用都属于两个成功输入 | 内联核对 |
+| 测试 | 34 通过；1 个失败为 `production_required()` 读取 `/home/zhao/...` | 审查环境 pytest |
+| 缺分号后接指令 | 后接 import、pragma：模块 unsupported pragma expression，solc 报版本不符；后接 library：模块 unterminated，solc 报缺分号 | edge_cases/ |
+
+未证明：多文件命令行路径在 0.4.12–0.8.x 上的参数兼容性（CP3 用夹具确认）；外部语料中各类的数量（CP3 统计）。
+
+### 28.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：实现与 4.4e 节一致；按规定以 make_plan 全同代替全量重跑；冻结等价测试只对两个注释夹具显式例外，其余保留；执行问题只涉及只读检查方式。
+- 方案修正：CP3 第 2 节的编译路径（由 Claude 早先写入的 standard JSON 改为命令行）。这是方案内部不一致的修正，不改变已定决策。
+- CP3 第 1 节的语料获取需要用户书面授权；Codex 写出授权请求后停下。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 28.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp2_4_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP2 系列结束，可以开始 CP3。本轮提交并 push 到 `compile-repair`。

@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.12（2026-11-17；r2.11 同日；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.13（2026-11-17；r2.12、r2.11 同日；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.13 相对 r2.12 的修改**（CP2.4 审查；证据 `artifacts/cp2_4_review_v1/README.md`）：
+1. CP2.4 经独立复核成立（新增 1.16 节）：与 CP2.3 在其能读取的 1,656 个文件上区间与异常信息全同、补丁区间 1,661/1,661 全同；MANDO 846 个输入的 make_plan 升降序 1,692/1,692 全同；CLI 验收的两个注释输入成功、两个拒绝输入不调用工具。没有遗留需要在 CP3 之前修复的问题，下一步执行 4.5 节 CP3。
+2. CP3 第 0 节补一条分类细节：缺分号的 pragma 后接 `import` 或另一条 `pragma` 时，分号属于下一条指令，模块与 solc 都把两行读成一条 pragma（模块记 `F: unsupported pragma expression`，solc 0.5.17 报 `Source file requires different compiler version`）。读法与 solc 一致，不改代码；CP3 应把表达式中含指令关键字的这类记录归入“缺分号”候选。
+3. CP3 第 2 节：多文件单元的编译调用由“standard-json 输入组装”改为与单文件相同的命令行 combined-json 路径，参数同时传给 solc 与 crytic-compile（`solc_working_dir`、`solc_remaps`、`solc_args`），与 r2.11 对 standard JSON 的实测一致；先用三文件夹具在 4 个版本上确认。
 
 **r2.12 相对 r2.11 的修改**（CP2.3 审查；证据 `artifacts/cp2_3_review_v1/README.md`）：
 1. CP2.3 经独立复核成立（新增 1.15 节）：原实现能读取的 1,646 个文件中区间 1,646/1,646、补丁区间 1,648/1,648 与原实现相同，MANDO 846/846 相同；v5 与 v3 的状态、版本、设置、标志 846/846 相同，843/843 图字节相同；9 个 CLI 正例成功、`||` 负例不调用编译器。
@@ -316,6 +321,15 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | CLI 正例 | 5 个新语法、Latin-1 注释、注释与字符串中的伪 pragma、两条 pragma、无 pragma 的 Latin-1：9/9 成功，无源码改动 |
 | 遗留 | pragma 内含注释被拒（solc 接受）；缺分号的 pragma 与 `||` 的记录无法区分 |
 
+### 1.16 CP2.4 结果（2026-11-17 审查；证据 `artifacts/cp2_4_v1/`、`cp2_4_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 实现 | `_pragma_spans` 的未结束指令单独报 `F: unterminated pragma directive`；`pragma_interval` 从遮盖注释后的字节读取表达式；+5/−4 行，生产文件 14 |
+| 与 CP2.3 | 可读的 1,656 个文件区间与异常信息全同；补丁区间 1,661/1,661；MANDO make_plan 升降序 1,692/1,692 |
+| CLI | 块注释选 0.8.0、行注释选 0.5.0，成功且无改动；缺分号与 `||` 不调用工具，原因分别记录 |
+| 遗留 | 无需在 CP3 前修复；测试可移植性仍按 r2.12 第 3 条登记 |
+
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
 **确定性方法与编译环境**
@@ -383,7 +397,7 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | 步骤 | 处理的问题 | 改动等级 | 证据状态 | 代码位置 |
 |---|---|---|---|---|
 | 1 | 编译器版本与编译设置：按 3.3 节在声明区间内选择版本；只在有文档依据的错误出现时，在同一版本上改用对应编译设置（`--evm-version`、`--via-ir`，3.3 节第 3a 条）；Slither 需要 ≥ 0.4.12 | none | 版本已验证（证据 2、3、5）；设置已在 0.8.24、0.8.26 上验证（1.8 节） | rules/environment.py |
-| 2 | 项目组装：为编译单元构造导入闭包、remapping 与 solc standard-json 输入 | none | 需要（1.4：几乎没有构建配置）；算法待 CP3 数据 | toolchain/project.py |
+| 2 | 项目组装：为编译单元构造导入闭包、remapping 与命令行编译参数（r2.13：不用 standard JSON，见 4.5 节第 2 节） | none | 需要（1.4：几乎没有构建配置）；算法待 CP3 数据 | toolchain/project.py |
 | 3 | 依赖补全：包导入映射到兼容的库发布版（DAI 两步检查，扩展到 0.4 与更多包），离线库索引 | additive | 需要（1.4：405 个项目有无法解析的 import） | rules/dependencies.py |
 | 4 | 缺失文件搜索：相对导入目标在项目内其他位置（移动、改名、大小写） | rewrite（只改导入路径） | 未测量；1,094 条相对导入缺失 | rules/dependencies.py |
 | 5 | 源码规范化：扁平化产生的逐字节相同的重复定义、重复许可证或 pragma 行、编码问题 | rewrite（只删逐字节相同的重复） | 哪些情况被 solc 拒绝须按版本核实 | rules/normalize.py |
@@ -476,7 +490,7 @@ compile_repair/
     __init__.py
     solc.py              # 编译器清单与校验、调用、错误解析与分类
     slither.py           # Slither 运行、D3 判定、图序列化
-    project.py           # 编译单元与导入闭包、remapping、standard-json 输入（第 2 步）
+    project.py           # 编译单元与导入闭包、remapping、命令行编译参数（第 2 步）
   rules/                 # 第 2 层：确定性方法，依赖 core、toolchain
     __init__.py
     environment.py       # 第 1、6、9 步
@@ -968,7 +982,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 另设“Slither 侧失败”一类：solc rc0 而生产 Slither 构造或 D3 失败（例如 1.7 节的 0.4.x 元组 call 写法、生产版本不支持的新语法）。按 Slither 错误信息分子类；能用 3.2 节第 10 行语义等价改写处理的标为确定性，否则记为工具限制，不交给代理改写合法源码。
 - 诊断来源（r2.11，审查实测见 artifacts/cp2_2_review_v1/probe_diagnostics.json）：命令行 stderr 在 0.4.12–0.8.38 的已测版本中只写 `Error:`，不写错误类型；位置格式在 0.5.17 及以前为 `file:line:col: Error: msg`，0.8.0 起为 `Error: msg` 后接一行 ` --> file:line:col:`；0.6、0.7 未测，由本 CP 用已安装编译器确定格式切换的版本。standard JSON 给出类型（0.8 另有 errorCode），但 0.4.12 对缺失基类的源码抛 InternalCompilerError，0.4.12 与 0.4.17 对解析错误和缺失基类不给 sourceLocation。同一错误的措辞随版本变化（0.4.12、0.4.17 为 `Expected token Semicolon got 'RBrace'`，0.4.24 起为 `Expected ';' but got '}'`）。因此：分类以模块已有的 combined-json 编译的 stderr 为来源，按消息模板与位置分类；类型列取自文档与能给出类型的版本的 standard JSON；每个模板注明已核实的版本范围；夹具测试覆盖新旧两种措辞与两种位置格式。
 - Slither 侧失败（r2.11，审查实测见 probe_slither_compat.json）：MANDO 三个 Slither 侧失败文件各有一处 `(bool success, ) = ….call.value(…)("");`，0.4.24 与 0.4.26 下 solc rc 0、生产 Slither 抛 AssertionError；改写为 `bool success = …;` 后两个版本都构建成功（0.4.12 下原文 solc 失败、改写后成功）。本 CP 把它列为确定性候选并在夹具上复核；实现与改写记录留 CP6。
-- unsupported_version_constraints 按 attempts 中的 error_first_line 细分（r2.12）：`||`、无法解析的表达式、未结束的指令（源码错误，归入解析类候选）、单文件或单元内空交集。
+- unsupported_version_constraints 按 attempts 中的 error_first_line 细分（r2.12）：`||`、无法解析的表达式、未结束的指令（源码错误，归入解析类候选）、单文件或单元内空交集。r2.13：`F: unsupported pragma expression` 中表达式含指令关键字（`import`、`pragma`、`contract`、`interface`、`library`、`abstract`）的记录，按“缺分号”候选单列，并保存表达式原文作为证据（审查实测见 artifacts/cp2_4_review_v1/edge_cases）。
 - 版本区间一律用 CP2.3 之后的 pragma_interval（不依赖整文件解析）；survey.py 中 CP0 的 parse 路径不得用于新统计。另统计冻结 parse 失败而新读取成功的单元数，作为 CP2.3 影响的记录。
 - 表写入 compile_repair/artifacts/cp3_v1/taxonomy.json 与 CP3_REPORT.md；分类规则写在 toolchain/solc.py，测试覆盖每一类（用 tests/fixtures 中的手写合约，不依赖语料中是否出现）。
 
@@ -977,7 +991,8 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 三个仓库没有 LICENSE 文件；只记录事实，由用户决定使用范围。
 
 ## 2. 编译单元
-- DAppSCAN 与 Trace repo-level：每个 .sol 文件及其传递导入闭包为一个编译单元；在 toolchain/project.py 中实现导入闭包与 standard-json 输入组装（第 2 步）。导入无法解析时记录原因（包导入 / 相对路径缺失 / 其他），不补依赖。
+- DAppSCAN 与 Trace repo-level：每个 .sol 文件及其传递导入闭包为一个编译单元；在 toolchain/project.py 中实现导入闭包与编译调用的组装（第 2 步）。导入无法解析时记录原因（包导入 / 相对路径缺失 / 其他），不补依赖。
+- 编译调用（r2.13）：多文件单元与单文件相同，走命令行 combined-json 路径；组装工作目录、目标的相对路径、remapping 与允许路径（`--allow-paths`），同一组参数既用于 solc，也通过 crytic-compile 的 `solc_working_dir`、`solc_remaps`、`solc_args` 传给生产 Slither，保证两者看到同一次编译。不以 standard JSON 作为编译路径（审查实测：0.4.12 对含错源码内部错误，0.4.12/0.4.17 不给位置）。先用一个三文件夹具（相对导入、子目录、一个 remapping）在 0.4.12、0.4.24、0.5.17、0.8.x 上确认 solc rc 0、生产 Slither 构建成功、D3 的文件名覆盖闭包内全部文件；某版本不支持某个参数时记录并停下报告，不猜替代参数。
 - Trace on-chain、CVEs、MANDO：单文件即编译单元。
 - SOChecker 片段：每条 input 为一个单元；先判定是否为 Solidity（规则写在 survey.py，判定依据记录在报告中），非 Solidity 的单列统计，不进入后续步骤。
 - 编译单元数量过大使运行时间超过用户批准的上限时，按项目分层、文件 SHA256 排序后 Random(0) 抽样，记录抽样比例。

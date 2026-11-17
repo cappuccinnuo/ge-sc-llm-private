@@ -1,0 +1,141 @@
+{
+ "versions": 92,
+ "files": 1663,
+ "old_ok": 1656,
+ "interval_equal_where_old_ok": 1656,
+ "patches_equal_where_old_ok": 1661,
+ "old_patches_ok": 1661,
+ "differences": [
+  {
+   "file": "compile_repair/tests/fixtures/pragma_comments/comment_inside.sol",
+   "new": [
+    "ok",
+    "((0, 8, 0), (0, 9, 0))"
+   ],
+   "old": [
+    "raise",
+    "Unsupported",
+    "F: unsupported pragma expression"
+   ],
+   "new_patches": [
+    "ok",
+    "(Patch(start=0, end=34, expected=b'pragma solidity ^0.8.0 /* note */;', replacement=b'                                  ', step='pragma_override', round=1, reason='No supported trusted compiler in declared interval'),)"
+   ],
+   "old_patches": [
+    "ok",
+    "(Patch(start=0, end=34, expected=b'pragma solidity ^0.8.0 /* note */;', replacement=b'                                  ', step='pragma_override', round=1, reason='No supported trusted compiler in declared interval'),)"
+   ]
+  },
+  {
+   "file": "compile_repair/tests/fixtures/pragma_comments/line_comment_inside.sol",
+   "new": [
+    "ok",
+    "((0, 5, 0), (0, 6, 0))"
+   ],
+   "old": [
+    "raise",
+    "Unsupported",
+    "F: unsupported pragma expression"
+   ],
+   "new_patches": [
+    "ok",
+    "(Patch(start=0, end=32, expected=b'pragma solidity ^0.5.0 // note\\n;', replacement=b'                              \\n ', step='pragma_override', round=1, reason='No supported trusted compiler in declared interval'),)"
+   ],
+   "old_patches": [
+    "ok",
+    "(Patch(start=0, end=32, expected=b'pragma solidity ^0.5.0 // note\\n;', replacement=b'                              \\n ', step='pragma_override', round=1, reason='No supported trusted compiler in declared interval'),)"
+   ]
+  },
+  {
+   "file": "compile_repair/tests/fixtures/pragma_comments/missing_semicolon.sol",
+   "new": [
+    "raise",
+    "Unsupported",
+    "F: unterminated pragma directive"
+   ],
+   "old": [
+    "raise",
+    "Unsupported",
+    "F: unsupported pragma expression"
+   ],
+   "new_patches": [
+    "raise",
+    "Unsupported",
+    "F: unterminated pragma directive"
+   ],
+   "old_patches": [
+    "raise",
+    "Unsupported",
+    "F: unsupported pragma expression"
+   ]
+  },
+  {
+   "file": "compile_repair/artifacts/cp2_3_review_v1/edge_cases/comment_inside.sol",
+   "new": [
+    "ok",
+    "((0, 8, 0), (0, 9, 0))"
+   ],
+   "old": [
+    "raise",
+    "Unsupported",
+    "F: unsupported pragma expression"
+   ],
+   "new_patches": [
+    "ok",
+    "(Patch(start=0, end=34, expected=b'pragma solidity ^0.8.0 /* note */;', replacement=b'                                  ', step='pragma_override', round=1, reason='No supported trusted compiler in declared interval'),)"
+   ],
+   "old_patches": [
+    "ok",
+    "(Patch(start=0, end=34, expected=b'pragma solidity ^0.8.0 /* note */;', replacement=b'                                  ', step='pragma_override', round=1, reason='No supported trusted compiler in declared interval'),)"
+   ]
+  },
+  {
+   "file": "compile_repair/artifacts/cp2_3_review_v1/edge_cases/line_comment_inside.sol",
+   "new": [
+    "ok",
+    "((0, 5, 0), (0, 6, 0))"
+   ],
+   "old": [
+    "raise",
+    "Unsupported",
+    "F: unsupported pragma expression"
+   ],
+   "new_patches": [
+    "ok",
+    "(Patch(start=0, end=32, expected=b'pragma solidity ^0.5.0 // note\\n;', replacement=b'                              \\n ', step='pragma_override', round=1, reason='No supported trusted compiler in declared interval'),)"
+   ],
+   "old_patches": [
+    "ok",
+    "(Patch(start=0, end=32, expected=b'pragma solidity ^0.5.0 // note\\n;', replacement=b'                              \\n ', step='pragma_override', round=1, reason='No supported trusted compiler in declared interval'),)"
+   ]
+  },
+  {
+   "file": "compile_repair/artifacts/cp2_3_review_v1/edge_cases/missing_semicolon.sol",
+   "new": [
+    "raise",
+    "Unsupported",
+    "F: unterminated pragma directive"
+   ],
+   "old": [
+    "raise",
+    "Unsupported",
+    "F: unsupported pragma expression"
+   ],
+   "new_patches": [
+    "raise",
+    "Unsupported",
+    "F: unterminated pragma directive"
+   ],
+   "old_patches": [
+    "raise",
+    "Unsupported",
+    "F: unsupported pragma expression"
+   ]
+  }
+ ],
+ "make_plan_mando": {
+  "inputs": 1692,
+  "equal": 1692,
+  "different": []
+ }
+}

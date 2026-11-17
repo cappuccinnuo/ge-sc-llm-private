@@ -4,7 +4,7 @@
 
 状态：已定（用户）＝用户明确决定；已定（证据）＝由证据确定，用户未反对；建议＝待用户确认；待定＝尚未讨论到；撤销。
 
-## 1. 当前决策（PROMPTS r2.12）
+## 1. 当前决策（PROMPTS r2.13）
 
 | 编号 | 内容（摘要） | 状态 | 最近变化 |
 |---|---|---|---|
@@ -281,3 +281,10 @@ D20a 已按用户授权执行：第 227 份另起进程，第 1 次观察到 Mul
 用户明确要求执行更新后的 CP2.4；按 PROMPTS r2.12 §4.4e 和上方审查历史实施。pragma 的约束表达式从 code_only 等长遮盖字节读取，因此旧冻结实现拒绝、而 solc 接受的块/行注释输入现在通过；已识别指令在分号前遇花括号或 EOF 仍被拒绝，error_first_line 改为 F: unterminated pragma directive。标志仍为 unsupported_version_constraints，union/无法解析/空交集的原消息不变，pragma_patches 原始区间和字节保持。
 
 此为已要求的有意偏离，不是新的策略决定：两个环境各 846 MANDO 与 35 个 CP2.3 可读取夹具，区间、完整补丁、EnvironmentPlan 八字段在升降序下全部相同。两个注释 CLI 成功且无源码改动；缺分号和 union 在编译前分别记录预期错误。证据：cp2_4_v1/equivalence.json、cli_acceptance.json；CP2_REPORT 的 CP2.4、CHANGE_LOG §27。生产仅 environment.py 两函数修改，其他决定表与历史保持，未提出额外替代方案；本机验收完成，等待独立审查，CP3 未开始。
+
+
+### CP2.4 审查与 r2.13（修改 AI：Claude）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-17 | 3.2 节第 2 步 | 多文件单元的编译调用改为命令行 combined-json 路径（与单文件相同，参数同时传给 solc 与 crytic-compile），不用 standard JSON；方案修正，不改变已定决策 | CHANGE_LOG §28.2；cp2_2_review_v1/probe_diagnostics.json | Claude |

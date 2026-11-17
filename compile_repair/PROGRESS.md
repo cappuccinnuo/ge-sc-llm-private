@@ -296,3 +296,10 @@ CP2.3 最终补记（Codex）：7 份 doc_check v1 通过，补记后的最终�
 production 622 passed/6 skipped，mando 181 passed/447 skipped，DFG v2 2653 passed/9 warnings。命令均为指定环境 python -B -m pytest -q -ra -x -p no:cacheprovider，目标和独立临时目录见 pytest_*.json；没有失败后重跑。完整性与 doc_check 见 frozen_audit.json、doc_check_v*。CP2_REPORT 已追加 CP2.4；CHANGE_LOG §27、HANDOVER 与 DECISIONS 已同步，完整文件清单见 delivery_inventory.json。
 
 与冻结实现的两项有意偏离由 r2.12 明确要求，未提出新的替代方案或放宽判据。UNC 文件访问问题通过 WSL 读取解决；旧冻结测试的两个新夹具例外明确断言并单独验收，详见 development_issues.json。既有测试可移植性、union 和 Slither 超时仍登记在后续边界。本轮不重跑全量生产或 6c，不安装/下载/LLM/训练，不切全局 solc；本地提交后待独立审查，未自动 push，CP3 未开始。
+
+
+## CP2.4 审查与方案 r2.13（Claude，2026-11-17）
+
+- CP2.4 复核成立：与 CP2.3 在可读的 1,656 个文件上全同；MANDO make_plan 升降序 1,692/1,692；CLI 两个注释输入成功、两个拒绝输入不调用工具。
+- 无遗留需在 CP3 前修复。CP3 提示补两处：缺分号后接指令的分类单列；多文件单元走命令行编译路径（不用 standard JSON）。
+- PROMPTS r2.13：新增 1.16 节。证据 `artifacts/cp2_4_review_v1/`；记录 `docs/CHANGE_LOG.md` §28。下一步 CP3，语料获取前等用户授权。
