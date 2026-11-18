@@ -1,0 +1,1658 @@
+
+=== environment
+      python                       3.12.3
+      torch                        2.8.0a0+5228986c39.nv25.05
+      dgl                          2.5
+      numpy                        1.26.4
+      networkx                     3.4.2
+      scipy                        1.15.2
+      transformers                 4.46.3
+      tokenizers                   0.20.3
+      sentence_transformers        3.3.1
+      torch_geometric              2.8.1
+      tree_sitter                  ?
+      pydot                        1.4.2
+      llama_cpp                    0.3.19
+      torch CUDA / cuDNN           12.9 / 91001
+      NVIDIA_TF32_OVERRIDE         0
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE 0
+ok    GPU                          NVIDIA GeForce RTX 5080, sm_120, FP32 matmul, 14.6/15.9 GB free
+ok    DGL GPU kernels              edge_softmax + u_mul_e/sum on GPU equal CPU
+ok    tree-sitter grammar          /work/repo/build/linux-x86_64, root=source_file
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 16302 MiB):
+  Device 0: NVIDIA GeForce RTX 5080, compute capability 12.0, VMM: yes, VRAM: 16302 MiB
+ok    llama.cpp                    GPU offload supported
+environment ok
+--- environment: 19 s
+
+=== unit tests
+Running 84 items in this shard
+........................................................................ [ 85%]
+............                                                             [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93
+  /usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/mando/test_early_stopping.py::EarlyStoppingTests::test_saved_absolute_best_weights_survive_later_updates
+  /work/repo/tests/mando/test_early_stopping.py:129: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+    self.assertEqual(model.weight.item(), 3.0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+84 passed, 5 warnings in 184.06s (0:03:04)
+--- unit tests: 187 s
+
+=== fetch Dataset A sources
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/repo/hcg/__main__.py", line 87, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/work/repo/hcg/__main__.py", line 45, in main
+    for name, commit in repos.ensure(args.label_root).items():
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/hcg/sources/repos.py", line 41, in ensure
+    _git(directory, "fetch", "-q", "--depth", "1", "origin", commit)
+  File "/work/repo/hcg/sources/repos.py", line 18, in _git
+    return subprocess.run(["git", "-C", str(directory)] + list(args), check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', '-C', '/work/repo/data/smartbug-dataset', 'fetch', '-q', '--depth', '1', 'origin', '230e649123477eff332742a59a1c7cc6dc286cab']' returned non-zero exit status 128.
+
+=== environment
+      python                       3.12.3
+      torch                        2.8.0a0+5228986c39.nv25.05
+      dgl                          2.5
+      numpy                        1.26.4
+      networkx                     3.4.2
+      scipy                        1.15.2
+      transformers                 4.46.3
+      tokenizers                   0.20.3
+      sentence_transformers        3.3.1
+      torch_geometric              2.8.1
+      tree_sitter                  ?
+      pydot                        1.4.2
+      llama_cpp                    0.3.19
+      torch CUDA / cuDNN           12.9 / 91001
+      NVIDIA_TF32_OVERRIDE         0
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE 0
+ok    GPU                          NVIDIA GeForce RTX 5080, sm_120, FP32 matmul, 14.6/15.9 GB free
+ok    DGL GPU kernels              edge_softmax + u_mul_e/sum on GPU equal CPU
+ok    tree-sitter grammar          /work/repo/build/linux-x86_64, root=source_file
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 16302 MiB):
+  Device 0: NVIDIA GeForce RTX 5080, compute capability 12.0, VMM: yes, VRAM: 16302 MiB
+ok    llama.cpp                    GPU offload supported
+environment ok
+--- environment: 9 s
+
+=== unit tests
+Running 84 items in this shard
+........................................................................ [ 85%]
+............                                                             [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93
+  /usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/mando/test_early_stopping.py::EarlyStoppingTests::test_saved_absolute_best_weights_survive_later_updates
+  /work/repo/tests/mando/test_early_stopping.py:129: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+    self.assertEqual(model.weight.item(), 3.0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+84 passed, 5 warnings in 176.81s (0:02:56)
+--- unit tests: 181 s
+
+=== fetch Dataset A sources
+smartbug-dataset 230e649123477eff332742a59a1c7cc6dc286cab
+SolidiFI-benchmark 4b0573e1b3f7031396de6f48f7f3e7380222ad3a
+--- fetch Dataset A sources: 0 s
+
+=== dataset tests (access_control)
+Running 7 items in this shard
+sssssss                                                                  [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+7 skipped, 42 deselected, 1 warning in 3.50s
+--- dataset tests (access_control): 5 s
+
+=== hcg build
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))"), '(Request ID: f6ae8b33-4c9c-404f-ba79-18ab78c2deec)')' thrown while requesting HEAD https://huggingface.co/Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))"), '(Request ID: 9d7b0320-cb73-4ab7-8db4-ae10a06f790e)')' thrown while requesting HEAD https://huggingface.co/Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))"), '(Request ID: 310467d2-bda9-4074-af16-4f5c1f688e15)')' thrown while requesting HEAD https://huggingface.co/Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))"), '(Request ID: f0c1977a-b76b-42b6-9410-c7d6531fbcba)')' thrown while requesting HEAD https://huggingface.co/Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))"), '(Request ID: 26608941-df53-4f59-8a96-3dc045c142be)')' thrown while requesting HEAD https://huggingface.co/Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))"), '(Request ID: 661595b3-a393-4d24-a090-1646fe818df7)')' thrown while requesting HEAD https://huggingface.co/Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/connectionpool.py", line 468, in _make_request
+    self._validate_conn(conn)
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/connectionpool.py", line 1097, in _validate_conn
+    conn.connect()
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/connection.py", line 642, in connect
+    sock_and_verified = _ssl_wrap_socket_and_match_hostname(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/connection.py", line 783, in _ssl_wrap_socket_and_match_hostname
+    ssl_sock = ssl_wrap_socket(
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/util/ssl_.py", line 471, in ssl_wrap_socket
+    ssl_sock = _ssl_wrap_socket_impl(sock, context, tls_in_tls, server_hostname)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/util/ssl_.py", line 515, in _ssl_wrap_socket_impl
+    return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 455, in wrap_socket
+    return self.sslsocket_class._create(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1042, in _create
+    self.do_handshake()
+  File "/usr/lib/python3.12/ssl.py", line 1320, in do_handshake
+    self._sslobj.do_handshake()
+ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/connectionpool.py", line 791, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/connectionpool.py", line 492, in _make_request
+    raise new_e
+urllib3.exceptions.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/dist-packages/requests/adapters.py", line 667, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/connectionpool.py", line 845, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/urllib3/util/retry.py", line 515, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/repo/hcg/__main__.py", line 87, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/work/repo/hcg/__main__.py", line 59, in main
+    tokenizer = load_tokenizer()
+                ^^^^^^^^^^^^^^^^
+  File "/work/repo/hcg/features/tokens.py", line 18, in load_tokenizer
+    return AutoTokenizer.from_pretrained(name, revision=revision)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/auto/tokenization_auto.py", line 857, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/auto/tokenization_auto.py", line 689, in get_tokenizer_config
+    resolved_config_file = cached_file(
+                           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+                    ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/file_download.py", line 1014, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/file_download.py", line 1077, in _hf_hub_download_to_cache_dir
+    (url_to_download, etag, commit_hash, expected_size, xet_file_data, head_call_error) = _get_metadata_or_catch_error(
+                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/file_download.py", line 1550, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/file_download.py", line 1467, in get_hf_file_metadata
+    r = _request_wrapper(
+        ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/file_download.py", line 283, in _request_wrapper
+    response = _request_wrapper(
+               ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/file_download.py", line 306, in _request_wrapper
+    response = http_backoff(method=method, url=url, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_http.py", line 326, in http_backoff
+    raise err
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_http.py", line 307, in http_backoff
+    response = session.request(method=method, url=url, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_http.py", line 96, in send
+    return super().send(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/requests/adapters.py", line 698, in send
+    raise SSLError(e, request=request)
+requests.exceptions.SSLError: (MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /Salesforce/codet5p-770m/resolve/3f7cc6e80aee6612f41253b5ee28f09f86faa35f/tokenizer_config.json (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))"), '(Request ID: 661595b3-a393-4d24-a090-1646fe818df7)')
+
+=== environment
+      python                       3.12.3
+      torch                        2.8.0a0+5228986c39.nv25.05
+      dgl                          2.5
+      numpy                        1.26.4
+      networkx                     3.4.2
+      scipy                        1.15.2
+      transformers                 4.46.3
+      tokenizers                   0.20.3
+      sentence_transformers        3.3.1
+      torch_geometric              2.8.1
+      tree_sitter                  ?
+      pydot                        1.4.2
+      llama_cpp                    0.3.19
+      torch CUDA / cuDNN           12.9 / 91001
+      NVIDIA_TF32_OVERRIDE         0
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE 0
+ok    GPU                          NVIDIA GeForce RTX 5080, sm_120, FP32 matmul, 14.6/15.9 GB free
+ok    DGL GPU kernels              edge_softmax + u_mul_e/sum on GPU equal CPU
+ok    tree-sitter grammar          /work/repo/build/linux-x86_64, root=source_file
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 16302 MiB):
+  Device 0: NVIDIA GeForce RTX 5080, compute capability 12.0, VMM: yes, VRAM: 16302 MiB
+ok    llama.cpp                    GPU offload supported
+environment ok
+--- environment: 7 s
+
+=== unit tests
+Running 84 items in this shard
+........................................................................ [ 85%]
+............                                                             [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93
+  /usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/mando/test_early_stopping.py::EarlyStoppingTests::test_saved_absolute_best_weights_survive_later_updates
+  /work/repo/tests/mando/test_early_stopping.py:129: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+    self.assertEqual(model.weight.item(), 3.0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+84 passed, 5 warnings in 208.29s (0:03:28)
+--- unit tests: 212 s
+
+=== fetch Dataset A sources
+smartbug-dataset 230e649123477eff332742a59a1c7cc6dc286cab
+SolidiFI-benchmark 4b0573e1b3f7031396de6f48f7f3e7380222ad3a
+--- fetch Dataset A sources: 0 s
+
+=== dataset tests (access_control)
+Running 7 items in this shard
+sssssss                                                                  [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+7 skipped, 42 deselected, 1 warning in 4.52s
+--- dataset tests (access_control): 6 s
+
+=== hcg build
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/repo/hcg/__main__.py", line 87, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/work/repo/hcg/__main__.py", line 59, in main
+    tokenizer = load_tokenizer()
+                ^^^^^^^^^^^^^^^^
+  File "/work/repo/hcg/features/tokens.py", line 18, in load_tokenizer
+    return AutoTokenizer.from_pretrained(name, revision=revision)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/auto/tokenization_auto.py", line 857, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/auto/tokenization_auto.py", line 711, in get_tokenizer_config
+    result = json.load(reader)
+             ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+=== environment
+      python                       3.12.3
+      torch                        2.8.0a0+5228986c39.nv25.05
+      dgl                          2.5
+      numpy                        1.26.4
+      networkx                     3.4.2
+      scipy                        1.15.2
+      transformers                 4.46.3
+      tokenizers                   0.20.3
+      sentence_transformers        3.3.1
+      torch_geometric              2.8.1
+      tree_sitter                  ?
+      pydot                        1.4.2
+      llama_cpp                    0.3.19
+      torch CUDA / cuDNN           12.9 / 91001
+      NVIDIA_TF32_OVERRIDE         0
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE 0
+ok    GPU                          NVIDIA GeForce RTX 5080, sm_120, FP32 matmul, 14.6/15.9 GB free
+ok    DGL GPU kernels              edge_softmax + u_mul_e/sum on GPU equal CPU
+ok    tree-sitter grammar          /work/repo/build/linux-x86_64, root=source_file
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 16302 MiB):
+  Device 0: NVIDIA GeForce RTX 5080, compute capability 12.0, VMM: yes, VRAM: 16302 MiB
+ok    llama.cpp                    GPU offload supported
+environment ok
+--- environment: 6 s
+
+=== unit tests
+Running 84 items in this shard
+........................................................................ [ 85%]
+............                                                             [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93
+  /usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/mando/test_early_stopping.py::EarlyStoppingTests::test_saved_absolute_best_weights_survive_later_updates
+  /work/repo/tests/mando/test_early_stopping.py:129: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+    self.assertEqual(model.weight.item(), 3.0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+84 passed, 5 warnings in 180.09s (0:03:00)
+--- unit tests: 181 s
+
+=== fetch Dataset A sources
+smartbug-dataset 230e649123477eff332742a59a1c7cc6dc286cab
+SolidiFI-benchmark 4b0573e1b3f7031396de6f48f7f3e7380222ad3a
+--- fetch Dataset A sources: 0 s
+
+=== dataset tests (access_control)
+Running 7 items in this shard
+sssssss                                                                  [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+7 skipped, 42 deselected, 1 warning in 3.32s
+--- dataset tests (access_control): 4 s
+
+=== hcg build
+[A/access_control] graphs: 114 contracts
+[A/access_control] labels
+[A/access_control] tokens
+Token indices sequence length is longer than the specified maximum sequence length for this model (1821 > 512). Running this sequence through the model will result in indexing errors
+[A/access_control] comparing with access_control_tree_sitter_cfg_cg_compressed_graphs.gpickle
+
+category                    contracts  vuln  nodes  edges pos.nodes line nodes = authors label diffs
+access_control                    114    57  13432  15538      3114       7710       yes         137
+--- hcg build: 22 s
+
+=== mando baseline (1 epoch, 2 folds, both levels)
+Training phase
+===============================================
+Graph file  runs/smoke/hcg/A/access_control/contract_level.gpickle
+Getting features
+---------------------------------------------------------------------------
+['0x0000000fdf9eb269b38e39e058f45d7d0ddb60f9.sol', '0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol', '0x00c8162c86a977edc10c641636bdff1c59327983.sol', '0x00cab00609e70f14e755524bd07e1c639665e796.sol', '0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol', '0x00fc270c9cc13e878ab5363d00354bebf6f05c15.sol', '0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol', '0x0a5dc2204dfc6082ef3bbcfc3a468f16318c4168.sol', '0x0ab38601a798c4ee31401371ff817b78bb19b7b6.sol', '0x0b4d94e04e1fe219d8ad6b9bc7cd0176e273dc28.sol', '0x0b5828d786f397c73554c5b091aa9ea108fffc51.sol', '0x0baf42501c5a3dda287db7a822e364ea60c76a62.sol', '0x0bbb4b90cb9176929e16f307bc1efa63867a8c6d.sol', '0x0be4a987fd8dcbd2fff64ba4131d3a208307f667.sol', '0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol', '0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol', '0x0ce80662769f22fd161e5e92cfc82121c835e097.sol', '0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol', '0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol', '0x0df53a6946b21146a817c8c9e4792dc442bbded2.sol', '0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol', '0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol', '0x0ecf0851b2cb945ddbee413c0e23f0c01cd4df7d.sol', '0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol', '0x0f02e27745e3b6e9e1310d19469e2b5d7b5ec99a.sol', '0x1a07fd4786d38288d60d10e7181c596a4f5d8f38.sol', '0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol', '0x1b6f5b9906e287767e8be7b65e843161857a2a07.sol']
+---------------------------------------------------------------------------
+['arbitrary_location_write_simple.sol', 'buggy_11.sol', 'buggy_15.sol', 'buggy_16.sol', 'buggy_17.sol', 'buggy_19.sol', 'buggy_21.sol', 'buggy_23.sol', 'buggy_24.sol', 'buggy_26.sol', 'buggy_3.sol', 'buggy_31.sol', 'buggy_32.sol', 'buggy_33.sol', 'buggy_34.sol', 'buggy_35.sol', 'buggy_36.sol', 'buggy_38.sol', 'buggy_39.sol', 'buggy_42.sol', 'buggy_47.sol', 'buggy_48.sol', 'buggy_7.sol', 'incorrect_constructor_name1.sol', 'multiowned_vulnerable.sol', 'simple_suicide.sol', 'unprotected0.sol', 'wallet_02_refund_nosub.sol', 'wallet_04_confused_sign.sol']
+---------------------------------------------------------------------------
+['0x000adad69101420129a64715a1a52b7348c5e633.sol', '0x01a47f1d07f1fd01b6499a4eef7abdc5e9cd3372.sol', '0x0a123a23ade571c7a716c596fb8ac4e6bc642e05.sol', '0x0a7073207bac23865e0e3b204615364b5a9d3783.sol', '0x0ab3177dc2baa3f9b492124d6214537c69bba89e.sol', '0x0b54c811cd4fd4d27c2ff0061c3831427d89b73c.sol', '0x0bec4767cd170242895d244d7ff73feaff6c2598.sol', '0x0cab2d4f3804de20facb7ae095d68b339e32732a.sol', '0x0d416ffd6964fd122ee13d9a229fd3bb08b2deec.sol', '0x0d689d1d3ef39e379329d9fc88eabceccc1215a0.sol', '0x0de059aa5dd17427b58145782143c4e3d2dda6ab.sol', '0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol', '0x0e5d3380806f947b151fc3c9ba8946453fada97a.sol', '0x0e6b6477009832e20997ba744feb46b65be00742.sol', '0x0e97dcbe67df2a0d3fbcd983c04990e6d0cbb566.sol', '0x0ef987c2be871851176e46b098083b8f0fef4c17.sol', '0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol', '0x0f35d82007119dc339af57b29dc8ae794b92926c.sol', '0x0f437f4bf7f41ff57ae5fee81bbec921ba0371b1.sol', '0x0f7feaeeb7872bfeb39da593f60c2a3b65d16e93.sol', '0x1a09bfbec6487fd11c75a60aa4d39ebf47da6eff.sol', '0x1a1759d929041ec22a826edc71e60b4b4ec856e0.sol', '0x1a4e76811d9c319a953eada36f1def25156c8d93.sol', '0x1a6ea5a886fb8fd61b9cbf83d47e5b07aec897f5.sol', '0x1a746a2228ec6ebd432194b03d0c3f38429c8ec7.sol', '0x1a75288226ad60431eb7759430cdf764e2bb56ea.sol', '0x1a9ecb05376bf8bb32f7f038a845dbafb22041cd.sol', '0x1abaa2aa88eded26223a273c291120e635c47f40.sol', '0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol']
+---------------------------------------------------------------------------
+['FibonacciBalance.sol', 'buggy_14.sol', 'buggy_18.sol', 'buggy_2.sol', 'buggy_20.sol', 'buggy_22.sol', 'buggy_25.sol', 'buggy_27.sol', 'buggy_28.sol', 'buggy_29.sol', 'buggy_30.sol', 'buggy_4.sol', 'buggy_40.sol', 'buggy_43.sol', 'buggy_44.sol', 'buggy_45.sol', 'buggy_49.sol', 'buggy_50.sol', 'buggy_6.sol', 'incorrect_constructor_name2.sol', 'incorrect_constructor_name3.sol', 'mapping_write.sol', 'mycontract.sol', 'parity_wallet_bug_2.sol', 'phishable.sol', 'proxy.sol', 'rubixi.sol', 'wallet_03_wrong_constructor.sol']
+---------------------------------------------------------------------------
+Train class distribution: 28/29
+Val class distribution: 29/28
+Start training fold 0 with 57/57/0 train/val/test smart contracts
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  163
+Training settings: patience=7, delta=0.001, LR=0.0005 -> 0.01 -> 0.0005, OneCycle per optimizer update
+/work/repo/mando/graph_classifier.py:48: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+  total_loss += loss.item()
+Saving checkpoint at val loss 0.646611 (best seen 0.646611) -> runs/smoke/mando/c_fold0/best.pt
+Fold 0: ran all 1 epochs, early stopping never triggered (best val loss 0.646611)
+Saving model fold 0
+Fold 0: restore best epoch 0 (val loss 0.646611) from runs/smoke/mando/c_fold0/best.pt; last epoch 0 saved to runs/smoke/mando/c_fold0/last.pt
+[[28  1]
+ [17 11]]
+---------------------------------------------------------------------------
+['0x000adad69101420129a64715a1a52b7348c5e633.sol', '0x01a47f1d07f1fd01b6499a4eef7abdc5e9cd3372.sol', '0x0a123a23ade571c7a716c596fb8ac4e6bc642e05.sol', '0x0a7073207bac23865e0e3b204615364b5a9d3783.sol', '0x0ab3177dc2baa3f9b492124d6214537c69bba89e.sol', '0x0b54c811cd4fd4d27c2ff0061c3831427d89b73c.sol', '0x0bec4767cd170242895d244d7ff73feaff6c2598.sol', '0x0cab2d4f3804de20facb7ae095d68b339e32732a.sol', '0x0d416ffd6964fd122ee13d9a229fd3bb08b2deec.sol', '0x0d689d1d3ef39e379329d9fc88eabceccc1215a0.sol', '0x0de059aa5dd17427b58145782143c4e3d2dda6ab.sol', '0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol', '0x0e5d3380806f947b151fc3c9ba8946453fada97a.sol', '0x0e6b6477009832e20997ba744feb46b65be00742.sol', '0x0e97dcbe67df2a0d3fbcd983c04990e6d0cbb566.sol', '0x0ef987c2be871851176e46b098083b8f0fef4c17.sol', '0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol', '0x0f35d82007119dc339af57b29dc8ae794b92926c.sol', '0x0f437f4bf7f41ff57ae5fee81bbec921ba0371b1.sol', '0x0f7feaeeb7872bfeb39da593f60c2a3b65d16e93.sol', '0x1a09bfbec6487fd11c75a60aa4d39ebf47da6eff.sol', '0x1a1759d929041ec22a826edc71e60b4b4ec856e0.sol', '0x1a4e76811d9c319a953eada36f1def25156c8d93.sol', '0x1a6ea5a886fb8fd61b9cbf83d47e5b07aec897f5.sol', '0x1a746a2228ec6ebd432194b03d0c3f38429c8ec7.sol', '0x1a75288226ad60431eb7759430cdf764e2bb56ea.sol', '0x1a9ecb05376bf8bb32f7f038a845dbafb22041cd.sol', '0x1abaa2aa88eded26223a273c291120e635c47f40.sol', '0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol']
+---------------------------------------------------------------------------
+['FibonacciBalance.sol', 'buggy_14.sol', 'buggy_18.sol', 'buggy_2.sol', 'buggy_20.sol', 'buggy_22.sol', 'buggy_25.sol', 'buggy_27.sol', 'buggy_28.sol', 'buggy_29.sol', 'buggy_30.sol', 'buggy_4.sol', 'buggy_40.sol', 'buggy_43.sol', 'buggy_44.sol', 'buggy_45.sol', 'buggy_49.sol', 'buggy_50.sol', 'buggy_6.sol', 'incorrect_constructor_name2.sol', 'incorrect_constructor_name3.sol', 'mapping_write.sol', 'mycontract.sol', 'parity_wallet_bug_2.sol', 'phishable.sol', 'proxy.sol', 'rubixi.sol', 'wallet_03_wrong_constructor.sol']
+---------------------------------------------------------------------------
+['0x0000000fdf9eb269b38e39e058f45d7d0ddb60f9.sol', '0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol', '0x00c8162c86a977edc10c641636bdff1c59327983.sol', '0x00cab00609e70f14e755524bd07e1c639665e796.sol', '0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol', '0x00fc270c9cc13e878ab5363d00354bebf6f05c15.sol', '0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol', '0x0a5dc2204dfc6082ef3bbcfc3a468f16318c4168.sol', '0x0ab38601a798c4ee31401371ff817b78bb19b7b6.sol', '0x0b4d94e04e1fe219d8ad6b9bc7cd0176e273dc28.sol', '0x0b5828d786f397c73554c5b091aa9ea108fffc51.sol', '0x0baf42501c5a3dda287db7a822e364ea60c76a62.sol', '0x0bbb4b90cb9176929e16f307bc1efa63867a8c6d.sol', '0x0be4a987fd8dcbd2fff64ba4131d3a208307f667.sol', '0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol', '0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol', '0x0ce80662769f22fd161e5e92cfc82121c835e097.sol', '0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol', '0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol', '0x0df53a6946b21146a817c8c9e4792dc442bbded2.sol', '0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol', '0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol', '0x0ecf0851b2cb945ddbee413c0e23f0c01cd4df7d.sol', '0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol', '0x0f02e27745e3b6e9e1310d19469e2b5d7b5ec99a.sol', '0x1a07fd4786d38288d60d10e7181c596a4f5d8f38.sol', '0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol', '0x1b6f5b9906e287767e8be7b65e843161857a2a07.sol']
+---------------------------------------------------------------------------
+['arbitrary_location_write_simple.sol', 'buggy_11.sol', 'buggy_15.sol', 'buggy_16.sol', 'buggy_17.sol', 'buggy_19.sol', 'buggy_21.sol', 'buggy_23.sol', 'buggy_24.sol', 'buggy_26.sol', 'buggy_3.sol', 'buggy_31.sol', 'buggy_32.sol', 'buggy_33.sol', 'buggy_34.sol', 'buggy_35.sol', 'buggy_36.sol', 'buggy_38.sol', 'buggy_39.sol', 'buggy_42.sol', 'buggy_47.sol', 'buggy_48.sol', 'buggy_7.sol', 'incorrect_constructor_name1.sol', 'multiowned_vulnerable.sol', 'simple_suicide.sol', 'unprotected0.sol', 'wallet_02_refund_nosub.sol', 'wallet_04_confused_sign.sol']
+---------------------------------------------------------------------------
+Train class distribution: 29/28
+Val class distribution: 28/29
+Start training fold 1 with 57/57/0 train/val/test smart contracts
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  163
+Training settings: patience=7, delta=0.001, LR=0.0005 -> 0.01 -> 0.0005, OneCycle per optimizer update
+Saving checkpoint at val loss 0.677735 (best seen 0.677735) -> runs/smoke/mando/c_fold1/best.pt
+Fold 1: ran all 1 epochs, early stopping never triggered (best val loss 0.677735)
+Saving model fold 1
+Fold 1: restore best epoch 0 (val loss 0.677735) from runs/smoke/mando/c_fold1/best.pt; last epoch 0 saved to runs/smoke/mando/c_fold1/last.pt
+[[28  0]
+ [28  1]]
+Writing TensorBoard scalars to runs/smoke/mando/c
+View them with: tensorboard --logdir runs/smoke/mando/c
+Average Buggy F1 score of folds: 30.8333
+Average Macro F1 score of folds: 51.0023
+Running on  cuda:0
+Training phase
+Getting features
+torch.Size([129, 512])
+Label dict:  {'valid': 0, 'access_control': 1}
+Contracts in graph: 57 (all enter the 2-fold rotation)
+Buggy node 3114/7710 (40.38910505836576%)
+Fold 0: 2185/3522 validation nodes (62.0%) share an exact (code, label) pair with the training fold
+torch.Size([129, 512])
+Buggy nodes in train: 1665/4188 (39.75644699140401%)
+Buggy nodes in valid: 1449/3522 (41.14139693356048%)
+Start training fold 0: 28/29 train/val contracts, 4188/3522 train/val nodes
+Training settings: patience=7, delta=0.001, LR=0.0002 -> 0.005 -> 0.0002, OneCycle per optimizer update
+/work/repo/mando/node_classifier.py:341: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+  train_results[fold]['loss'].append(train_loss.item())
+Saving checkpoint at val loss 0.657390 (best seen 0.657390) -> runs/smoke/mando/n_fold0/best.pt
+Fold 0: ran all 1 epochs, early stopping never triggered (best val loss 0.657390)
+Saving model fold 0
+Fold 0: restore best epoch 0 (val loss 0.657390) from runs/smoke/mando/n_fold0/best.pt; last epoch 0 saved to runs/smoke/mando/n_fold0/last.pt
+Fold 1: 2566/4188 validation nodes (61.3%) share an exact (code, label) pair with the training fold
+torch.Size([129, 512])
+Buggy nodes in train: 1449/3522 (41.14139693356048%)
+Buggy nodes in valid: 1665/4188 (39.75644699140401%)
+Start training fold 1: 29/28 train/val contracts, 3522/4188 train/val nodes
+Training settings: patience=7, delta=0.001, LR=0.0002 -> 0.005 -> 0.0002, OneCycle per optimizer update
+Saving checkpoint at val loss 0.638662 (best seen 0.638662) -> runs/smoke/mando/n_fold1/best.pt
+Fold 1: ran all 1 epochs, early stopping never triggered (best val loss 0.638662)
+Saving model fold 1
+Fold 1: restore best epoch 0 (val loss 0.638662) from runs/smoke/mando/n_fold1/best.pt; last epoch 0 saved to runs/smoke/mando/n_fold1/last.pt
+
+Split mode: contract   validation nodes whose exact (code, label) pair was in their training fold: 4751/7710 (61.6%)
+Writing TensorBoard scalars to runs/smoke/mando/n
+View them with: tensorboard --logdir runs/smoke/mando/n
+Average Buggy F1 score of folds: 62.8841
+Average Macro F1 score of folds: 64.9655
+--- mando baseline (1 epoch, 2 folds, both levels): 155 s
+
+=== dfg build
+A/access_control_contract: 114 files, 16 with recorded compiler version
+  access_control_contract F0: 13432 nodes, 15538 edges
+  access_control_contract F1: 13432 nodes, 21311 edges
+  access_control_contract F2: 13432 nodes, 25128 edges
+  access_control_contract F3: 13693 nodes, 27664 edges
+A/access_control_node: 57 files, 16 with recorded compiler version
+  access_control_node F0: 7710 nodes, 8840 edges
+  access_control_node F1: 7710 nodes, 12763 edges
+  access_control_node F2: 7710 nodes, 14621 edges
+  access_control_node F3: 7892 nodes, 16569 edges
+
+task                              files versioned L1 fallback nodes   edges   seconds 
+access_control_contract           114   16        12          13693   27664   58.0    
+access_control_node               57    16        2           7892    16569   35.8    
+--- dfg build: 99 s
+
+=== dfg train (G0, G3R; fold 0, 2 epochs)
+access_control_contract: 114 files, 107 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+  access_control_contract fold 0 G0
+    epochs 2, best epoch 1, best inner_val loss 0.4414
+    outer_test best buggy F1 90.91
+  access_control_contract fold 0 G3R
+    epochs 2, best epoch 1, best inner_val loss 0.4436
+    outer_test best buggy F1 90.91
+access_control_node: 57 files, 52 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+  access_control_node fold 0 G0
+    epochs 2, best epoch 1, best inner_val loss 0.3293
+    outer_test best buggy F1 84.01
+  access_control_node fold 0 G3R
+    epochs 2, best epoch 1, best inner_val loss 0.3263
+    outer_test best buggy F1 84.12
+# DFG run report
+
+Outer-test, best checkpoint, fold mean (SD), percent.
+
+| task | profile | folds | buggy F1 | macro F1 | precision | recall |
+|---|---|---|---|---|---|---|
+| access_control_contract | G0 | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_contract | G3R | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_node | G0 | 1 | 84.01 | 84.39 | 72.42 | 100.00 |
+| access_control_node | G3R | 1 | 84.12 | 84.52 | 72.60 | 100.00 |
+
+Paired with G0 (buggy F1, best checkpoint):
+
+| task | profile | mean diff (pp) | improved/tied/worse | p | p Holm |
+|---|---|---|---|---|---|
+| access_control_contract | G3R | +0.00 | 0/1/0 | - | - |
+| access_control_node | G3R | +0.12 | 1/0/0 | - | - |
+
+Selected profile (inner validation only): **G3R**
+
+--- dfg train (G0, G3R; fold 0, 2 epochs): 620 s
+
+=== nodesem analyze
+access_control_contract: 13693 rows analysed
+access_control_node: 7892 rows analysed
+--- nodesem analyze: 94 s
+
+=== nodesem encode (CodeT5+)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/repo/nodesem/__main__.py", line 123, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/work/repo/nodesem/__main__.py", line 101, in main
+    encode_task(TaskStore(args.nodesem, dataset, c, t), args.device, args.batch_size,
+  File "/work/repo/nodesem/pipeline.py", line 88, in encode_task
+    code = encode_code(text, device, batch_size, cache_dir)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/nodesem/encode.py", line 206, in encode_code
+    tokenizer, model = load_codet5(device, cache_dir)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/nodesem/encode.py", line 171, in load_codet5
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/auto/tokenization_auto.py", line 857, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/auto/tokenization_auto.py", line 711, in get_tokenizer_config
+    result = json.load(reader)
+             ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+=== environment
+      python                       3.12.3
+      torch                        2.8.0a0+5228986c39.nv25.05
+      dgl                          2.5
+      numpy                        1.26.4
+      networkx                     3.4.2
+      scipy                        1.15.2
+      transformers                 4.46.3
+      tokenizers                   0.20.3
+      sentence_transformers        3.3.1
+      torch_geometric              2.8.1
+      tree_sitter                  ?
+      pydot                        1.4.2
+      llama_cpp                    0.3.19
+      torch CUDA / cuDNN           12.9 / 91001
+      NVIDIA_TF32_OVERRIDE         0
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE 0
+ok    GPU                          NVIDIA GeForce RTX 5080, sm_120, FP32 matmul, 14.6/15.9 GB free
+ok    DGL GPU kernels              edge_softmax + u_mul_e/sum on GPU equal CPU
+ok    tree-sitter grammar          /work/repo/build/linux-x86_64, root=source_file
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 16302 MiB):
+  Device 0: NVIDIA GeForce RTX 5080, compute capability 12.0, VMM: yes, VRAM: 16302 MiB
+ok    llama.cpp                    GPU offload supported
+environment ok
+--- environment: 7 s
+
+=== unit tests
+Running 96 items in this shard
+........................................................................ [ 75%]
+........................                                                 [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93
+  /usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/mando/test_early_stopping.py::EarlyStoppingTests::test_saved_absolute_best_weights_survive_later_updates
+  /work/repo/tests/mando/test_early_stopping.py:129: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+    self.assertEqual(model.weight.item(), 3.0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+96 passed, 5 warnings in 211.06s (0:03:31)
+--- unit tests: 213 s
+
+=== fetch label repositories and pinned models
+smartbug-dataset 230e649123477eff332742a59a1c7cc6dc286cab
+SolidiFI-benchmark 4b0573e1b3f7031396de6f48f7f3e7380222ad3a
+codet5p-770m-tokenizer /cache/huggingface/hub/models--Salesforce--codet5p-770m/snapshots/3f7cc6e80aee6612f41253b5ee28f09f86faa35f
+codet5p-110m-embedding /cache/huggingface/hub/models--Salesforce--codet5p-110m-embedding/snapshots/d9f3a534af4252f04b10cd9f78e05037542d10f6
+bge-small-en-v1.5 /cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a
+qwen2.5-coder-3b-instruct-gguf /cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-3B-Instruct-GGUF/snapshots/f74adce6aa16316c625447af059dbebe4983757c
+--- fetch label repositories and pinned models: 0 s
+
+=== dataset tests (access_control)
+Running 7 items in this shard
+sssssss                                                                  [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+7 skipped, 42 deselected, 1 warning in 3.55s
+--- dataset tests (access_control): 5 s
+
+=== hcg build
+[A/access_control] graphs: 114 contracts
+[A/access_control] labels
+[A/access_control] tokens
+Token indices sequence length is longer than the specified maximum sequence length for this model (1821 > 512). Running this sequence through the model will result in indexing errors
+[A/access_control] comparing with access_control_tree_sitter_cfg_cg_compressed_graphs.gpickle
+
+category                    contracts  vuln  nodes  edges pos.nodes line nodes = authors label diffs
+access_control                    114    57  13432  15538      3114       7710       yes         137
+--- hcg build: 20 s
+
+=== mando baseline (1 epoch, 2 folds, both levels)
+Training phase
+===============================================
+Graph file  runs/smoke/hcg/A/access_control/contract_level.gpickle
+Getting features
+---------------------------------------------------------------------------
+['0x0000000fdf9eb269b38e39e058f45d7d0ddb60f9.sol', '0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol', '0x00c8162c86a977edc10c641636bdff1c59327983.sol', '0x00cab00609e70f14e755524bd07e1c639665e796.sol', '0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol', '0x00fc270c9cc13e878ab5363d00354bebf6f05c15.sol', '0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol', '0x0a5dc2204dfc6082ef3bbcfc3a468f16318c4168.sol', '0x0ab38601a798c4ee31401371ff817b78bb19b7b6.sol', '0x0b4d94e04e1fe219d8ad6b9bc7cd0176e273dc28.sol', '0x0b5828d786f397c73554c5b091aa9ea108fffc51.sol', '0x0baf42501c5a3dda287db7a822e364ea60c76a62.sol', '0x0bbb4b90cb9176929e16f307bc1efa63867a8c6d.sol', '0x0be4a987fd8dcbd2fff64ba4131d3a208307f667.sol', '0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol', '0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol', '0x0ce80662769f22fd161e5e92cfc82121c835e097.sol', '0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol', '0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol', '0x0df53a6946b21146a817c8c9e4792dc442bbded2.sol', '0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol', '0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol', '0x0ecf0851b2cb945ddbee413c0e23f0c01cd4df7d.sol', '0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol', '0x0f02e27745e3b6e9e1310d19469e2b5d7b5ec99a.sol', '0x1a07fd4786d38288d60d10e7181c596a4f5d8f38.sol', '0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol', '0x1b6f5b9906e287767e8be7b65e843161857a2a07.sol']
+---------------------------------------------------------------------------
+['arbitrary_location_write_simple.sol', 'buggy_11.sol', 'buggy_15.sol', 'buggy_16.sol', 'buggy_17.sol', 'buggy_19.sol', 'buggy_21.sol', 'buggy_23.sol', 'buggy_24.sol', 'buggy_26.sol', 'buggy_3.sol', 'buggy_31.sol', 'buggy_32.sol', 'buggy_33.sol', 'buggy_34.sol', 'buggy_35.sol', 'buggy_36.sol', 'buggy_38.sol', 'buggy_39.sol', 'buggy_42.sol', 'buggy_47.sol', 'buggy_48.sol', 'buggy_7.sol', 'incorrect_constructor_name1.sol', 'multiowned_vulnerable.sol', 'simple_suicide.sol', 'unprotected0.sol', 'wallet_02_refund_nosub.sol', 'wallet_04_confused_sign.sol']
+---------------------------------------------------------------------------
+['0x000adad69101420129a64715a1a52b7348c5e633.sol', '0x01a47f1d07f1fd01b6499a4eef7abdc5e9cd3372.sol', '0x0a123a23ade571c7a716c596fb8ac4e6bc642e05.sol', '0x0a7073207bac23865e0e3b204615364b5a9d3783.sol', '0x0ab3177dc2baa3f9b492124d6214537c69bba89e.sol', '0x0b54c811cd4fd4d27c2ff0061c3831427d89b73c.sol', '0x0bec4767cd170242895d244d7ff73feaff6c2598.sol', '0x0cab2d4f3804de20facb7ae095d68b339e32732a.sol', '0x0d416ffd6964fd122ee13d9a229fd3bb08b2deec.sol', '0x0d689d1d3ef39e379329d9fc88eabceccc1215a0.sol', '0x0de059aa5dd17427b58145782143c4e3d2dda6ab.sol', '0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol', '0x0e5d3380806f947b151fc3c9ba8946453fada97a.sol', '0x0e6b6477009832e20997ba744feb46b65be00742.sol', '0x0e97dcbe67df2a0d3fbcd983c04990e6d0cbb566.sol', '0x0ef987c2be871851176e46b098083b8f0fef4c17.sol', '0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol', '0x0f35d82007119dc339af57b29dc8ae794b92926c.sol', '0x0f437f4bf7f41ff57ae5fee81bbec921ba0371b1.sol', '0x0f7feaeeb7872bfeb39da593f60c2a3b65d16e93.sol', '0x1a09bfbec6487fd11c75a60aa4d39ebf47da6eff.sol', '0x1a1759d929041ec22a826edc71e60b4b4ec856e0.sol', '0x1a4e76811d9c319a953eada36f1def25156c8d93.sol', '0x1a6ea5a886fb8fd61b9cbf83d47e5b07aec897f5.sol', '0x1a746a2228ec6ebd432194b03d0c3f38429c8ec7.sol', '0x1a75288226ad60431eb7759430cdf764e2bb56ea.sol', '0x1a9ecb05376bf8bb32f7f038a845dbafb22041cd.sol', '0x1abaa2aa88eded26223a273c291120e635c47f40.sol', '0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol']
+---------------------------------------------------------------------------
+['FibonacciBalance.sol', 'buggy_14.sol', 'buggy_18.sol', 'buggy_2.sol', 'buggy_20.sol', 'buggy_22.sol', 'buggy_25.sol', 'buggy_27.sol', 'buggy_28.sol', 'buggy_29.sol', 'buggy_30.sol', 'buggy_4.sol', 'buggy_40.sol', 'buggy_43.sol', 'buggy_44.sol', 'buggy_45.sol', 'buggy_49.sol', 'buggy_50.sol', 'buggy_6.sol', 'incorrect_constructor_name2.sol', 'incorrect_constructor_name3.sol', 'mapping_write.sol', 'mycontract.sol', 'parity_wallet_bug_2.sol', 'phishable.sol', 'proxy.sol', 'rubixi.sol', 'wallet_03_wrong_constructor.sol']
+---------------------------------------------------------------------------
+Train class distribution: 28/29
+Val class distribution: 29/28
+Start training fold 0 with 57/57/0 train/val/test smart contracts
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  163
+Training settings: patience=7, delta=0.001, LR=0.0005 -> 0.01 -> 0.0005, OneCycle per optimizer update
+/work/repo/mando/graph_classifier.py:48: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+  total_loss += loss.item()
+Saving checkpoint at val loss 0.646611 (best seen 0.646611) -> runs/smoke/mando/c_fold0/best.pt
+Fold 0: ran all 1 epochs, early stopping never triggered (best val loss 0.646611)
+Saving model fold 0
+Fold 0: restore best epoch 0 (val loss 0.646611) from runs/smoke/mando/c_fold0/best.pt; last epoch 0 saved to runs/smoke/mando/c_fold0/last.pt
+[[28  1]
+ [17 11]]
+---------------------------------------------------------------------------
+['0x000adad69101420129a64715a1a52b7348c5e633.sol', '0x01a47f1d07f1fd01b6499a4eef7abdc5e9cd3372.sol', '0x0a123a23ade571c7a716c596fb8ac4e6bc642e05.sol', '0x0a7073207bac23865e0e3b204615364b5a9d3783.sol', '0x0ab3177dc2baa3f9b492124d6214537c69bba89e.sol', '0x0b54c811cd4fd4d27c2ff0061c3831427d89b73c.sol', '0x0bec4767cd170242895d244d7ff73feaff6c2598.sol', '0x0cab2d4f3804de20facb7ae095d68b339e32732a.sol', '0x0d416ffd6964fd122ee13d9a229fd3bb08b2deec.sol', '0x0d689d1d3ef39e379329d9fc88eabceccc1215a0.sol', '0x0de059aa5dd17427b58145782143c4e3d2dda6ab.sol', '0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol', '0x0e5d3380806f947b151fc3c9ba8946453fada97a.sol', '0x0e6b6477009832e20997ba744feb46b65be00742.sol', '0x0e97dcbe67df2a0d3fbcd983c04990e6d0cbb566.sol', '0x0ef987c2be871851176e46b098083b8f0fef4c17.sol', '0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol', '0x0f35d82007119dc339af57b29dc8ae794b92926c.sol', '0x0f437f4bf7f41ff57ae5fee81bbec921ba0371b1.sol', '0x0f7feaeeb7872bfeb39da593f60c2a3b65d16e93.sol', '0x1a09bfbec6487fd11c75a60aa4d39ebf47da6eff.sol', '0x1a1759d929041ec22a826edc71e60b4b4ec856e0.sol', '0x1a4e76811d9c319a953eada36f1def25156c8d93.sol', '0x1a6ea5a886fb8fd61b9cbf83d47e5b07aec897f5.sol', '0x1a746a2228ec6ebd432194b03d0c3f38429c8ec7.sol', '0x1a75288226ad60431eb7759430cdf764e2bb56ea.sol', '0x1a9ecb05376bf8bb32f7f038a845dbafb22041cd.sol', '0x1abaa2aa88eded26223a273c291120e635c47f40.sol', '0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol']
+---------------------------------------------------------------------------
+['FibonacciBalance.sol', 'buggy_14.sol', 'buggy_18.sol', 'buggy_2.sol', 'buggy_20.sol', 'buggy_22.sol', 'buggy_25.sol', 'buggy_27.sol', 'buggy_28.sol', 'buggy_29.sol', 'buggy_30.sol', 'buggy_4.sol', 'buggy_40.sol', 'buggy_43.sol', 'buggy_44.sol', 'buggy_45.sol', 'buggy_49.sol', 'buggy_50.sol', 'buggy_6.sol', 'incorrect_constructor_name2.sol', 'incorrect_constructor_name3.sol', 'mapping_write.sol', 'mycontract.sol', 'parity_wallet_bug_2.sol', 'phishable.sol', 'proxy.sol', 'rubixi.sol', 'wallet_03_wrong_constructor.sol']
+---------------------------------------------------------------------------
+['0x0000000fdf9eb269b38e39e058f45d7d0ddb60f9.sol', '0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol', '0x00c8162c86a977edc10c641636bdff1c59327983.sol', '0x00cab00609e70f14e755524bd07e1c639665e796.sol', '0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol', '0x00fc270c9cc13e878ab5363d00354bebf6f05c15.sol', '0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol', '0x0a5dc2204dfc6082ef3bbcfc3a468f16318c4168.sol', '0x0ab38601a798c4ee31401371ff817b78bb19b7b6.sol', '0x0b4d94e04e1fe219d8ad6b9bc7cd0176e273dc28.sol', '0x0b5828d786f397c73554c5b091aa9ea108fffc51.sol', '0x0baf42501c5a3dda287db7a822e364ea60c76a62.sol', '0x0bbb4b90cb9176929e16f307bc1efa63867a8c6d.sol', '0x0be4a987fd8dcbd2fff64ba4131d3a208307f667.sol', '0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol', '0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol', '0x0ce80662769f22fd161e5e92cfc82121c835e097.sol', '0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol', '0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol', '0x0df53a6946b21146a817c8c9e4792dc442bbded2.sol', '0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol', '0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol', '0x0ecf0851b2cb945ddbee413c0e23f0c01cd4df7d.sol', '0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol', '0x0f02e27745e3b6e9e1310d19469e2b5d7b5ec99a.sol', '0x1a07fd4786d38288d60d10e7181c596a4f5d8f38.sol', '0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol', '0x1b6f5b9906e287767e8be7b65e843161857a2a07.sol']
+---------------------------------------------------------------------------
+['arbitrary_location_write_simple.sol', 'buggy_11.sol', 'buggy_15.sol', 'buggy_16.sol', 'buggy_17.sol', 'buggy_19.sol', 'buggy_21.sol', 'buggy_23.sol', 'buggy_24.sol', 'buggy_26.sol', 'buggy_3.sol', 'buggy_31.sol', 'buggy_32.sol', 'buggy_33.sol', 'buggy_34.sol', 'buggy_35.sol', 'buggy_36.sol', 'buggy_38.sol', 'buggy_39.sol', 'buggy_42.sol', 'buggy_47.sol', 'buggy_48.sol', 'buggy_7.sol', 'incorrect_constructor_name1.sol', 'multiowned_vulnerable.sol', 'simple_suicide.sol', 'unprotected0.sol', 'wallet_02_refund_nosub.sol', 'wallet_04_confused_sign.sol']
+---------------------------------------------------------------------------
+Train class distribution: 29/28
+Val class distribution: 28/29
+Start training fold 1 with 57/57/0 train/val/test smart contracts
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  163
+Training settings: patience=7, delta=0.001, LR=0.0005 -> 0.01 -> 0.0005, OneCycle per optimizer update
+Saving checkpoint at val loss 0.677735 (best seen 0.677735) -> runs/smoke/mando/c_fold1/best.pt
+Fold 1: ran all 1 epochs, early stopping never triggered (best val loss 0.677735)
+Saving model fold 1
+Fold 1: restore best epoch 0 (val loss 0.677735) from runs/smoke/mando/c_fold1/best.pt; last epoch 0 saved to runs/smoke/mando/c_fold1/last.pt
+[[28  0]
+ [28  1]]
+Writing TensorBoard scalars to runs/smoke/mando/c
+View them with: tensorboard --logdir runs/smoke/mando/c
+Average Buggy F1 score of folds: 30.8333
+Average Macro F1 score of folds: 51.0023
+Running on  cuda:0
+Training phase
+Getting features
+torch.Size([129, 512])
+Label dict:  {'valid': 0, 'access_control': 1}
+Contracts in graph: 57 (all enter the 2-fold rotation)
+Buggy node 3114/7710 (40.38910505836576%)
+Fold 0: 2185/3522 validation nodes (62.0%) share an exact (code, label) pair with the training fold
+torch.Size([129, 512])
+Buggy nodes in train: 1665/4188 (39.75644699140401%)
+Buggy nodes in valid: 1449/3522 (41.14139693356048%)
+Start training fold 0: 28/29 train/val contracts, 4188/3522 train/val nodes
+Training settings: patience=7, delta=0.001, LR=0.0002 -> 0.005 -> 0.0002, OneCycle per optimizer update
+/work/repo/mando/node_classifier.py:341: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+  train_results[fold]['loss'].append(train_loss.item())
+Saving checkpoint at val loss 0.657390 (best seen 0.657390) -> runs/smoke/mando/n_fold0/best.pt
+Fold 0: ran all 1 epochs, early stopping never triggered (best val loss 0.657390)
+Saving model fold 0
+Fold 0: restore best epoch 0 (val loss 0.657390) from runs/smoke/mando/n_fold0/best.pt; last epoch 0 saved to runs/smoke/mando/n_fold0/last.pt
+Fold 1: 2566/4188 validation nodes (61.3%) share an exact (code, label) pair with the training fold
+torch.Size([129, 512])
+Buggy nodes in train: 1449/3522 (41.14139693356048%)
+Buggy nodes in valid: 1665/4188 (39.75644699140401%)
+Start training fold 1: 29/28 train/val contracts, 3522/4188 train/val nodes
+Training settings: patience=7, delta=0.001, LR=0.0002 -> 0.005 -> 0.0002, OneCycle per optimizer update
+Saving checkpoint at val loss 0.638662 (best seen 0.638662) -> runs/smoke/mando/n_fold1/best.pt
+Fold 1: ran all 1 epochs, early stopping never triggered (best val loss 0.638662)
+Saving model fold 1
+Fold 1: restore best epoch 0 (val loss 0.638662) from runs/smoke/mando/n_fold1/best.pt; last epoch 0 saved to runs/smoke/mando/n_fold1/last.pt
+
+Split mode: contract   validation nodes whose exact (code, label) pair was in their training fold: 4751/7710 (61.6%)
+Writing TensorBoard scalars to runs/smoke/mando/n
+View them with: tensorboard --logdir runs/smoke/mando/n
+Average Buggy F1 score of folds: 62.8841
+Average Macro F1 score of folds: 64.9655
+--- mando baseline (1 epoch, 2 folds, both levels): 190 s
+
+=== dfg build
+A/access_control_contract: 114 files, 16 with recorded compiler version
+  access_control_contract F0: 13432 nodes, 15538 edges
+  access_control_contract F1: 13432 nodes, 21311 edges
+  access_control_contract F2: 13432 nodes, 25128 edges
+  access_control_contract F3: 13693 nodes, 27664 edges
+A/access_control_node: 57 files, 16 with recorded compiler version
+  access_control_node F0: 7710 nodes, 8840 edges
+  access_control_node F1: 7710 nodes, 12763 edges
+  access_control_node F2: 7710 nodes, 14621 edges
+  access_control_node F3: 7892 nodes, 16569 edges
+
+task                              files versioned L1 fallback nodes   edges   seconds 
+access_control_contract           114   16        12          13693   27664   60.3    
+access_control_node               57    16        2           7892    16569   36.6    
+--- dfg build: 101 s
+
+=== dfg train (G0, G3R; fold 0, 2 epochs)
+access_control_contract: 114 files, 107 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+access_control_node: 57 files, 52 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+# DFG run report
+
+Outer-test, best checkpoint, fold mean (SD), percent.
+
+| task | profile | folds | buggy F1 | macro F1 | precision | recall |
+|---|---|---|---|---|---|---|
+| access_control_contract | G0 | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_contract | G3R | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_node | G0 | 1 | 84.01 | 84.39 | 72.42 | 100.00 |
+| access_control_node | G3R | 1 | 84.12 | 84.52 | 72.60 | 100.00 |
+
+Paired with G0 (buggy F1, best checkpoint):
+
+| task | profile | mean diff (pp) | improved/tied/worse | p | p Holm |
+|---|---|---|---|---|---|
+| access_control_contract | G3R | +0.00 | 0/1/0 | - | - |
+| access_control_node | G3R | +0.12 | 1/0/0 | - | - |
+
+Selected profile (inner validation only): **G3R**
+
+--- dfg train (G0, G3R; fold 0, 2 epochs): 9 s
+
+=== nodesem analyze
+access_control_contract: 13693 rows analysed
+access_control_node: 7892 rows analysed
+--- nodesem analyze: 97 s
+
+=== nodesem encode (CodeT5+)
+/usr/local/lib/python3.12/dist-packages/torch/nn/modules/linear.py:125: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  return F.linear(input, self.weight, self.bias)
+/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py:520: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  scores = torch.matmul(query_states, key_states.transpose(3, 2))
+/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py:559: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  attn_output = torch.matmul(attn_weights, value_states)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/repo/nodesem/__main__.py", line 123, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/work/repo/nodesem/__main__.py", line 101, in main
+    encode_task(TaskStore(args.nodesem, dataset, c, t), args.device, args.batch_size,
+  File "/work/repo/nodesem/pipeline.py", line 88, in encode_task
+    code = encode_code(text, device, batch_size, cache_dir)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/nodesem/encode.py", line 208, in encode_code
+    return encode_texts([r["text"] for r in text_rows], tokenizer, model, device, CODE_MAX_LENGTH, batch_size)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/nodesem/encode.py", line 189, in encode_texts
+    values, diagnostics = encode_unique(unique, tokenizer, model, device, max_length, "model_default",
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/nodesem/encode.py", line 146, in encode_unique
+    output = model(**batch)
+             ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cache/huggingface/modules/transformers_modules/d9f3a534af4252f04b10cd9f78e05037542d10f6/modeling_codet5p_embedding.py", line 41, in forward
+    encoder_outputs = self.encoder(
+                      ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py", line 1124, in forward
+    layer_outputs = layer_module(
+                    ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py", line 675, in forward
+    self_attention_outputs = self.layer[0](
+                             ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py", line 592, in forward
+    normed_hidden_states = self.layer_norm(hidden_states)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/apex/normalization/fused_layer_norm.py", line 898, in forward
+    return fused_rms_norm_affine(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/apex/normalization/fused_layer_norm.py", line 692, in fused_rms_norm_affine
+    return fused_rms_norm_affine_fwd(*args)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 681, in __call__
+    return self._opoverload(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_ops.py", line 756, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 344, in backend_impl
+    result = self._backend_fns[device_type](*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_compile.py", line 51, in inner
+    return disable_fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 850, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 377, in wrapped_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/apex/normalization/fused_layer_norm.py", line 239, in fused_rms_norm_affine_fwd
+    output, invvar = fused_layer_norm_cuda.rms_forward_affine(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: expected scalar type Float but found Half
+
+=== environment
+      python                       3.12.3
+      torch                        2.8.0a0+5228986c39.nv25.05
+      dgl                          2.5
+      numpy                        1.26.4
+      networkx                     3.4.2
+      scipy                        1.15.2
+      transformers                 4.46.3
+      tokenizers                   0.20.3
+      sentence_transformers        3.3.1
+      torch_geometric              2.8.1
+      tree_sitter                  ?
+      pydot                        1.4.2
+      llama_cpp                    0.3.19
+      torch CUDA / cuDNN           12.9 / 91001
+      NVIDIA_TF32_OVERRIDE         0
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE 0
+ok    GPU                          NVIDIA GeForce RTX 5080, sm_120, FP32 matmul, 14.6/15.9 GB free
+ok    DGL GPU kernels              edge_softmax + u_mul_e/sum on GPU equal CPU
+ok    tree-sitter grammar          /work/repo/build/linux-x86_64, root=source_file
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 16302 MiB):
+  Device 0: NVIDIA GeForce RTX 5080, compute capability 12.0, VMM: yes, VRAM: 16302 MiB
+ok    llama.cpp                    GPU offload supported
+environment ok
+--- environment: 5 s
+
+=== unit tests
+Running 96 items in this shard
+........................................................................ [ 75%]
+........................                                                 [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93
+  /usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/mando/test_early_stopping.py::EarlyStoppingTests::test_saved_absolute_best_weights_survive_later_updates
+  /work/repo/tests/mando/test_early_stopping.py:129: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+    self.assertEqual(model.weight.item(), 3.0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+96 passed, 5 warnings in 211.00s (0:03:30)
+--- unit tests: 212 s
+
+=== fetch label repositories and pinned models
+smartbug-dataset 230e649123477eff332742a59a1c7cc6dc286cab
+SolidiFI-benchmark 4b0573e1b3f7031396de6f48f7f3e7380222ad3a
+codet5p-770m-tokenizer /cache/huggingface/hub/models--Salesforce--codet5p-770m/snapshots/3f7cc6e80aee6612f41253b5ee28f09f86faa35f
+codet5p-110m-embedding /cache/huggingface/hub/models--Salesforce--codet5p-110m-embedding/snapshots/d9f3a534af4252f04b10cd9f78e05037542d10f6
+bge-small-en-v1.5 /cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a
+qwen2.5-coder-3b-instruct-gguf /cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-3B-Instruct-GGUF/snapshots/f74adce6aa16316c625447af059dbebe4983757c
+--- fetch label repositories and pinned models: 0 s
+
+=== dataset tests (access_control)
+Running 7 items in this shard
+sssssss                                                                  [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+7 skipped, 42 deselected, 1 warning in 3.76s
+--- dataset tests (access_control): 5 s
+
+=== hcg build
+[A/access_control] graphs: 114 contracts
+[A/access_control] labels
+[A/access_control] tokens
+Token indices sequence length is longer than the specified maximum sequence length for this model (1821 > 512). Running this sequence through the model will result in indexing errors
+[A/access_control] comparing with access_control_tree_sitter_cfg_cg_compressed_graphs.gpickle
+
+category                    contracts  vuln  nodes  edges pos.nodes line nodes = authors label diffs
+access_control                    114    57  13432  15538      3114       7710       yes         137
+--- hcg build: 22 s
+
+=== mando baseline (1 epoch, 2 folds, both levels)
+Training phase
+===============================================
+Graph file  runs/smoke/hcg/A/access_control/contract_level.gpickle
+Getting features
+---------------------------------------------------------------------------
+['0x0000000fdf9eb269b38e39e058f45d7d0ddb60f9.sol', '0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol', '0x00c8162c86a977edc10c641636bdff1c59327983.sol', '0x00cab00609e70f14e755524bd07e1c639665e796.sol', '0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol', '0x00fc270c9cc13e878ab5363d00354bebf6f05c15.sol', '0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol', '0x0a5dc2204dfc6082ef3bbcfc3a468f16318c4168.sol', '0x0ab38601a798c4ee31401371ff817b78bb19b7b6.sol', '0x0b4d94e04e1fe219d8ad6b9bc7cd0176e273dc28.sol', '0x0b5828d786f397c73554c5b091aa9ea108fffc51.sol', '0x0baf42501c5a3dda287db7a822e364ea60c76a62.sol', '0x0bbb4b90cb9176929e16f307bc1efa63867a8c6d.sol', '0x0be4a987fd8dcbd2fff64ba4131d3a208307f667.sol', '0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol', '0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol', '0x0ce80662769f22fd161e5e92cfc82121c835e097.sol', '0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol', '0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol', '0x0df53a6946b21146a817c8c9e4792dc442bbded2.sol', '0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol', '0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol', '0x0ecf0851b2cb945ddbee413c0e23f0c01cd4df7d.sol', '0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol', '0x0f02e27745e3b6e9e1310d19469e2b5d7b5ec99a.sol', '0x1a07fd4786d38288d60d10e7181c596a4f5d8f38.sol', '0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol', '0x1b6f5b9906e287767e8be7b65e843161857a2a07.sol']
+---------------------------------------------------------------------------
+['arbitrary_location_write_simple.sol', 'buggy_11.sol', 'buggy_15.sol', 'buggy_16.sol', 'buggy_17.sol', 'buggy_19.sol', 'buggy_21.sol', 'buggy_23.sol', 'buggy_24.sol', 'buggy_26.sol', 'buggy_3.sol', 'buggy_31.sol', 'buggy_32.sol', 'buggy_33.sol', 'buggy_34.sol', 'buggy_35.sol', 'buggy_36.sol', 'buggy_38.sol', 'buggy_39.sol', 'buggy_42.sol', 'buggy_47.sol', 'buggy_48.sol', 'buggy_7.sol', 'incorrect_constructor_name1.sol', 'multiowned_vulnerable.sol', 'simple_suicide.sol', 'unprotected0.sol', 'wallet_02_refund_nosub.sol', 'wallet_04_confused_sign.sol']
+---------------------------------------------------------------------------
+['0x000adad69101420129a64715a1a52b7348c5e633.sol', '0x01a47f1d07f1fd01b6499a4eef7abdc5e9cd3372.sol', '0x0a123a23ade571c7a716c596fb8ac4e6bc642e05.sol', '0x0a7073207bac23865e0e3b204615364b5a9d3783.sol', '0x0ab3177dc2baa3f9b492124d6214537c69bba89e.sol', '0x0b54c811cd4fd4d27c2ff0061c3831427d89b73c.sol', '0x0bec4767cd170242895d244d7ff73feaff6c2598.sol', '0x0cab2d4f3804de20facb7ae095d68b339e32732a.sol', '0x0d416ffd6964fd122ee13d9a229fd3bb08b2deec.sol', '0x0d689d1d3ef39e379329d9fc88eabceccc1215a0.sol', '0x0de059aa5dd17427b58145782143c4e3d2dda6ab.sol', '0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol', '0x0e5d3380806f947b151fc3c9ba8946453fada97a.sol', '0x0e6b6477009832e20997ba744feb46b65be00742.sol', '0x0e97dcbe67df2a0d3fbcd983c04990e6d0cbb566.sol', '0x0ef987c2be871851176e46b098083b8f0fef4c17.sol', '0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol', '0x0f35d82007119dc339af57b29dc8ae794b92926c.sol', '0x0f437f4bf7f41ff57ae5fee81bbec921ba0371b1.sol', '0x0f7feaeeb7872bfeb39da593f60c2a3b65d16e93.sol', '0x1a09bfbec6487fd11c75a60aa4d39ebf47da6eff.sol', '0x1a1759d929041ec22a826edc71e60b4b4ec856e0.sol', '0x1a4e76811d9c319a953eada36f1def25156c8d93.sol', '0x1a6ea5a886fb8fd61b9cbf83d47e5b07aec897f5.sol', '0x1a746a2228ec6ebd432194b03d0c3f38429c8ec7.sol', '0x1a75288226ad60431eb7759430cdf764e2bb56ea.sol', '0x1a9ecb05376bf8bb32f7f038a845dbafb22041cd.sol', '0x1abaa2aa88eded26223a273c291120e635c47f40.sol', '0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol']
+---------------------------------------------------------------------------
+['FibonacciBalance.sol', 'buggy_14.sol', 'buggy_18.sol', 'buggy_2.sol', 'buggy_20.sol', 'buggy_22.sol', 'buggy_25.sol', 'buggy_27.sol', 'buggy_28.sol', 'buggy_29.sol', 'buggy_30.sol', 'buggy_4.sol', 'buggy_40.sol', 'buggy_43.sol', 'buggy_44.sol', 'buggy_45.sol', 'buggy_49.sol', 'buggy_50.sol', 'buggy_6.sol', 'incorrect_constructor_name2.sol', 'incorrect_constructor_name3.sol', 'mapping_write.sol', 'mycontract.sol', 'parity_wallet_bug_2.sol', 'phishable.sol', 'proxy.sol', 'rubixi.sol', 'wallet_03_wrong_constructor.sol']
+---------------------------------------------------------------------------
+Train class distribution: 28/29
+Val class distribution: 29/28
+Start training fold 0 with 57/57/0 train/val/test smart contracts
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  163
+Training settings: patience=7, delta=0.001, LR=0.0005 -> 0.01 -> 0.0005, OneCycle per optimizer update
+/work/repo/mando/graph_classifier.py:48: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+  total_loss += loss.item()
+Saving checkpoint at val loss 0.646611 (best seen 0.646611) -> runs/smoke/mando/c_fold0/best.pt
+Fold 0: ran all 1 epochs, early stopping never triggered (best val loss 0.646611)
+Saving model fold 0
+Fold 0: restore best epoch 0 (val loss 0.646611) from runs/smoke/mando/c_fold0/best.pt; last epoch 0 saved to runs/smoke/mando/c_fold0/last.pt
+[[28  1]
+ [17 11]]
+---------------------------------------------------------------------------
+['0x000adad69101420129a64715a1a52b7348c5e633.sol', '0x01a47f1d07f1fd01b6499a4eef7abdc5e9cd3372.sol', '0x0a123a23ade571c7a716c596fb8ac4e6bc642e05.sol', '0x0a7073207bac23865e0e3b204615364b5a9d3783.sol', '0x0ab3177dc2baa3f9b492124d6214537c69bba89e.sol', '0x0b54c811cd4fd4d27c2ff0061c3831427d89b73c.sol', '0x0bec4767cd170242895d244d7ff73feaff6c2598.sol', '0x0cab2d4f3804de20facb7ae095d68b339e32732a.sol', '0x0d416ffd6964fd122ee13d9a229fd3bb08b2deec.sol', '0x0d689d1d3ef39e379329d9fc88eabceccc1215a0.sol', '0x0de059aa5dd17427b58145782143c4e3d2dda6ab.sol', '0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol', '0x0e5d3380806f947b151fc3c9ba8946453fada97a.sol', '0x0e6b6477009832e20997ba744feb46b65be00742.sol', '0x0e97dcbe67df2a0d3fbcd983c04990e6d0cbb566.sol', '0x0ef987c2be871851176e46b098083b8f0fef4c17.sol', '0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol', '0x0f35d82007119dc339af57b29dc8ae794b92926c.sol', '0x0f437f4bf7f41ff57ae5fee81bbec921ba0371b1.sol', '0x0f7feaeeb7872bfeb39da593f60c2a3b65d16e93.sol', '0x1a09bfbec6487fd11c75a60aa4d39ebf47da6eff.sol', '0x1a1759d929041ec22a826edc71e60b4b4ec856e0.sol', '0x1a4e76811d9c319a953eada36f1def25156c8d93.sol', '0x1a6ea5a886fb8fd61b9cbf83d47e5b07aec897f5.sol', '0x1a746a2228ec6ebd432194b03d0c3f38429c8ec7.sol', '0x1a75288226ad60431eb7759430cdf764e2bb56ea.sol', '0x1a9ecb05376bf8bb32f7f038a845dbafb22041cd.sol', '0x1abaa2aa88eded26223a273c291120e635c47f40.sol', '0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol']
+---------------------------------------------------------------------------
+['FibonacciBalance.sol', 'buggy_14.sol', 'buggy_18.sol', 'buggy_2.sol', 'buggy_20.sol', 'buggy_22.sol', 'buggy_25.sol', 'buggy_27.sol', 'buggy_28.sol', 'buggy_29.sol', 'buggy_30.sol', 'buggy_4.sol', 'buggy_40.sol', 'buggy_43.sol', 'buggy_44.sol', 'buggy_45.sol', 'buggy_49.sol', 'buggy_50.sol', 'buggy_6.sol', 'incorrect_constructor_name2.sol', 'incorrect_constructor_name3.sol', 'mapping_write.sol', 'mycontract.sol', 'parity_wallet_bug_2.sol', 'phishable.sol', 'proxy.sol', 'rubixi.sol', 'wallet_03_wrong_constructor.sol']
+---------------------------------------------------------------------------
+['0x0000000fdf9eb269b38e39e058f45d7d0ddb60f9.sol', '0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol', '0x00c8162c86a977edc10c641636bdff1c59327983.sol', '0x00cab00609e70f14e755524bd07e1c639665e796.sol', '0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol', '0x00fc270c9cc13e878ab5363d00354bebf6f05c15.sol', '0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol', '0x0a5dc2204dfc6082ef3bbcfc3a468f16318c4168.sol', '0x0ab38601a798c4ee31401371ff817b78bb19b7b6.sol', '0x0b4d94e04e1fe219d8ad6b9bc7cd0176e273dc28.sol', '0x0b5828d786f397c73554c5b091aa9ea108fffc51.sol', '0x0baf42501c5a3dda287db7a822e364ea60c76a62.sol', '0x0bbb4b90cb9176929e16f307bc1efa63867a8c6d.sol', '0x0be4a987fd8dcbd2fff64ba4131d3a208307f667.sol', '0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol', '0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol', '0x0ce80662769f22fd161e5e92cfc82121c835e097.sol', '0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol', '0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol', '0x0df53a6946b21146a817c8c9e4792dc442bbded2.sol', '0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol', '0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol', '0x0ecf0851b2cb945ddbee413c0e23f0c01cd4df7d.sol', '0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol', '0x0f02e27745e3b6e9e1310d19469e2b5d7b5ec99a.sol', '0x1a07fd4786d38288d60d10e7181c596a4f5d8f38.sol', '0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol', '0x1b6f5b9906e287767e8be7b65e843161857a2a07.sol']
+---------------------------------------------------------------------------
+['arbitrary_location_write_simple.sol', 'buggy_11.sol', 'buggy_15.sol', 'buggy_16.sol', 'buggy_17.sol', 'buggy_19.sol', 'buggy_21.sol', 'buggy_23.sol', 'buggy_24.sol', 'buggy_26.sol', 'buggy_3.sol', 'buggy_31.sol', 'buggy_32.sol', 'buggy_33.sol', 'buggy_34.sol', 'buggy_35.sol', 'buggy_36.sol', 'buggy_38.sol', 'buggy_39.sol', 'buggy_42.sol', 'buggy_47.sol', 'buggy_48.sol', 'buggy_7.sol', 'incorrect_constructor_name1.sol', 'multiowned_vulnerable.sol', 'simple_suicide.sol', 'unprotected0.sol', 'wallet_02_refund_nosub.sol', 'wallet_04_confused_sign.sol']
+---------------------------------------------------------------------------
+Train class distribution: 29/28
+Val class distribution: 28/29
+Start training fold 1 with 57/57/0 train/val/test smart contracts
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  163
+Training settings: patience=7, delta=0.001, LR=0.0005 -> 0.01 -> 0.0005, OneCycle per optimizer update
+Saving checkpoint at val loss 0.677735 (best seen 0.677735) -> runs/smoke/mando/c_fold1/best.pt
+Fold 1: ran all 1 epochs, early stopping never triggered (best val loss 0.677735)
+Saving model fold 1
+Fold 1: restore best epoch 0 (val loss 0.677735) from runs/smoke/mando/c_fold1/best.pt; last epoch 0 saved to runs/smoke/mando/c_fold1/last.pt
+[[28  0]
+ [28  1]]
+Writing TensorBoard scalars to runs/smoke/mando/c
+View them with: tensorboard --logdir runs/smoke/mando/c
+Average Buggy F1 score of folds: 30.8333
+Average Macro F1 score of folds: 51.0023
+Running on  cuda:0
+Training phase
+Getting features
+torch.Size([129, 512])
+Label dict:  {'valid': 0, 'access_control': 1}
+Contracts in graph: 57 (all enter the 2-fold rotation)
+Buggy node 3114/7710 (40.38910505836576%)
+Fold 0: 2185/3522 validation nodes (62.0%) share an exact (code, label) pair with the training fold
+torch.Size([129, 512])
+Buggy nodes in train: 1665/4188 (39.75644699140401%)
+Buggy nodes in valid: 1449/3522 (41.14139693356048%)
+Start training fold 0: 28/29 train/val contracts, 4188/3522 train/val nodes
+Training settings: patience=7, delta=0.001, LR=0.0002 -> 0.005 -> 0.0002, OneCycle per optimizer update
+/work/repo/mando/node_classifier.py:341: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+  train_results[fold]['loss'].append(train_loss.item())
+Saving checkpoint at val loss 0.657390 (best seen 0.657390) -> runs/smoke/mando/n_fold0/best.pt
+Fold 0: ran all 1 epochs, early stopping never triggered (best val loss 0.657390)
+Saving model fold 0
+Fold 0: restore best epoch 0 (val loss 0.657390) from runs/smoke/mando/n_fold0/best.pt; last epoch 0 saved to runs/smoke/mando/n_fold0/last.pt
+Fold 1: 2566/4188 validation nodes (61.3%) share an exact (code, label) pair with the training fold
+torch.Size([129, 512])
+Buggy nodes in train: 1449/3522 (41.14139693356048%)
+Buggy nodes in valid: 1665/4188 (39.75644699140401%)
+Start training fold 1: 29/28 train/val contracts, 3522/4188 train/val nodes
+Training settings: patience=7, delta=0.001, LR=0.0002 -> 0.005 -> 0.0002, OneCycle per optimizer update
+Saving checkpoint at val loss 0.638662 (best seen 0.638662) -> runs/smoke/mando/n_fold1/best.pt
+Fold 1: ran all 1 epochs, early stopping never triggered (best val loss 0.638662)
+Saving model fold 1
+Fold 1: restore best epoch 0 (val loss 0.638662) from runs/smoke/mando/n_fold1/best.pt; last epoch 0 saved to runs/smoke/mando/n_fold1/last.pt
+
+Split mode: contract   validation nodes whose exact (code, label) pair was in their training fold: 4751/7710 (61.6%)
+Writing TensorBoard scalars to runs/smoke/mando/n
+View them with: tensorboard --logdir runs/smoke/mando/n
+Average Buggy F1 score of folds: 62.8841
+Average Macro F1 score of folds: 64.9655
+--- mando baseline (1 epoch, 2 folds, both levels): 182 s
+
+=== dfg build
+A/access_control_contract: 114 files, 16 with recorded compiler version
+  access_control_contract F0: 13432 nodes, 15538 edges
+  access_control_contract F1: 13432 nodes, 21311 edges
+  access_control_contract F2: 13432 nodes, 25128 edges
+  access_control_contract F3: 13693 nodes, 27664 edges
+A/access_control_node: 57 files, 16 with recorded compiler version
+  access_control_node F0: 7710 nodes, 8840 edges
+  access_control_node F1: 7710 nodes, 12763 edges
+  access_control_node F2: 7710 nodes, 14621 edges
+  access_control_node F3: 7892 nodes, 16569 edges
+
+task                              files versioned L1 fallback nodes   edges   seconds 
+access_control_contract           114   16        12          13693   27664   59.2    
+access_control_node               57    16        2           7892    16569   36.8    
+--- dfg build: 101 s
+
+=== dfg train (G0, G3R; fold 0, 2 epochs)
+access_control_contract: 114 files, 107 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+access_control_node: 57 files, 52 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+# DFG run report
+
+Outer-test, best checkpoint, fold mean (SD), percent.
+
+| task | profile | folds | buggy F1 | macro F1 | precision | recall |
+|---|---|---|---|---|---|---|
+| access_control_contract | G0 | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_contract | G3R | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_node | G0 | 1 | 84.01 | 84.39 | 72.42 | 100.00 |
+| access_control_node | G3R | 1 | 84.12 | 84.52 | 72.60 | 100.00 |
+
+Paired with G0 (buggy F1, best checkpoint):
+
+| task | profile | mean diff (pp) | improved/tied/worse | p | p Holm |
+|---|---|---|---|---|---|
+| access_control_contract | G3R | +0.00 | 0/1/0 | - | - |
+| access_control_node | G3R | +0.12 | 1/0/0 | - | - |
+
+Selected profile (inner validation only): **G3R**
+
+--- dfg train (G0, G3R; fold 0, 2 epochs): 8 s
+
+=== nodesem analyze
+access_control_contract: 13693 rows analysed
+access_control_node: 7892 rows analysed
+--- nodesem analyze: 97 s
+
+=== nodesem encode (CodeT5+)
+/usr/local/lib/python3.12/dist-packages/torch/nn/modules/linear.py:125: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  return F.linear(input, self.weight, self.bias)
+/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py:520: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  scores = torch.matmul(query_states, key_states.transpose(3, 2))
+/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py:559: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  attn_output = torch.matmul(attn_weights, value_states)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/repo/nodesem/__main__.py", line 123, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/work/repo/nodesem/__main__.py", line 101, in main
+    encode_task(TaskStore(args.nodesem, dataset, c, t), args.device, args.batch_size,
+  File "/work/repo/nodesem/pipeline.py", line 88, in encode_task
+    code = encode_code(text, device, batch_size, cache_dir)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/nodesem/encode.py", line 208, in encode_code
+    return encode_texts([r["text"] for r in text_rows], tokenizer, model, device, CODE_MAX_LENGTH, batch_size)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/nodesem/encode.py", line 189, in encode_texts
+    values, diagnostics = encode_unique(unique, tokenizer, model, device, max_length, "model_default",
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/nodesem/encode.py", line 146, in encode_unique
+    output = model(**batch)
+             ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cache/huggingface/modules/transformers_modules/d9f3a534af4252f04b10cd9f78e05037542d10f6/modeling_codet5p_embedding.py", line 41, in forward
+    encoder_outputs = self.encoder(
+                      ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py", line 1124, in forward
+    layer_outputs = layer_module(
+                    ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py", line 675, in forward
+    self_attention_outputs = self.layer[0](
+                             ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py", line 592, in forward
+    normed_hidden_states = self.layer_norm(hidden_states)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/apex/normalization/fused_layer_norm.py", line 898, in forward
+    return fused_rms_norm_affine(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/apex/normalization/fused_layer_norm.py", line 692, in fused_rms_norm_affine
+    return fused_rms_norm_affine_fwd(*args)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 681, in __call__
+    return self._opoverload(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_ops.py", line 756, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 344, in backend_impl
+    result = self._backend_fns[device_type](*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_compile.py", line 51, in inner
+    return disable_fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 850, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_library/custom_ops.py", line 377, in wrapped_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/apex/normalization/fused_layer_norm.py", line 239, in fused_rms_norm_affine_fwd
+    output, invvar = fused_layer_norm_cuda.rms_forward_affine(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: expected scalar type Float but found Half
+
+=== environment
+      python                       3.12.3
+      torch                        2.8.0a0+5228986c39.nv25.05
+      dgl                          2.5
+      numpy                        1.26.4
+      networkx                     3.4.2
+      scipy                        1.15.2
+      transformers                 4.46.3
+      tokenizers                   0.20.3
+      sentence_transformers        3.3.1
+      torch_geometric              2.8.1
+      tree_sitter                  ?
+      pydot                        1.4.2
+      llama_cpp                    0.3.19
+      torch CUDA / cuDNN           12.9 / 91001
+      NVIDIA_TF32_OVERRIDE         0
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE 0
+ok    GPU                          NVIDIA GeForce RTX 5080, sm_120, FP32 matmul, 14.6/15.9 GB free
+ok    DGL GPU kernels              edge_softmax + u_mul_e/sum on GPU equal CPU
+ok    tree-sitter grammar          /work/repo/build/linux-x86_64, root=source_file
+ok    no apex                      transformers keeps its own T5LayerNorm
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 16302 MiB):
+  Device 0: NVIDIA GeForce RTX 5080, compute capability 12.0, VMM: yes, VRAM: 16302 MiB
+ok    llama.cpp                    GPU offload supported
+environment ok
+--- environment: 5 s
+
+=== unit tests
+Running 97 items in this shard
+........................................................................ [ 74%]
+.........................                                                [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93
+  /usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/mando/test_early_stopping.py::EarlyStoppingTests::test_saved_absolute_best_weights_survive_later_updates
+  /work/repo/tests/mando/test_early_stopping.py:129: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+    self.assertEqual(model.weight.item(), 3.0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+97 passed, 5 warnings in 213.56s (0:03:33)
+--- unit tests: 215 s
+
+=== fetch label repositories and pinned models
+smartbug-dataset 230e649123477eff332742a59a1c7cc6dc286cab
+SolidiFI-benchmark 4b0573e1b3f7031396de6f48f7f3e7380222ad3a
+codet5p-770m-tokenizer /cache/huggingface/hub/models--Salesforce--codet5p-770m/snapshots/3f7cc6e80aee6612f41253b5ee28f09f86faa35f
+codet5p-110m-embedding /cache/huggingface/hub/models--Salesforce--codet5p-110m-embedding/snapshots/d9f3a534af4252f04b10cd9f78e05037542d10f6
+bge-small-en-v1.5 /cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a
+qwen2.5-coder-3b-instruct-gguf /cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-3B-Instruct-GGUF/snapshots/f74adce6aa16316c625447af059dbebe4983757c
+--- fetch label repositories and pinned models: 0 s
+
+=== dataset tests (access_control)
+Running 7 items in this shard
+sssssss                                                                  [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+7 skipped, 42 deselected, 1 warning in 3.41s
+--- dataset tests (access_control): 4 s
+
+=== hcg build
+[A/access_control] graphs: 114 contracts
+[A/access_control] labels
+[A/access_control] tokens
+Token indices sequence length is longer than the specified maximum sequence length for this model (1821 > 512). Running this sequence through the model will result in indexing errors
+[A/access_control] comparing with access_control_tree_sitter_cfg_cg_compressed_graphs.gpickle
+
+category                    contracts  vuln  nodes  edges pos.nodes line nodes = authors label diffs
+access_control                    114    57  13432  15538      3114       7710       yes         137
+--- hcg build: 21 s
+
+=== mando baseline (1 epoch, 2 folds, both levels)
+Training phase
+===============================================
+Graph file  runs/smoke/hcg/A/access_control/contract_level.gpickle
+Getting features
+---------------------------------------------------------------------------
+['0x0000000fdf9eb269b38e39e058f45d7d0ddb60f9.sol', '0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol', '0x00c8162c86a977edc10c641636bdff1c59327983.sol', '0x00cab00609e70f14e755524bd07e1c639665e796.sol', '0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol', '0x00fc270c9cc13e878ab5363d00354bebf6f05c15.sol', '0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol', '0x0a5dc2204dfc6082ef3bbcfc3a468f16318c4168.sol', '0x0ab38601a798c4ee31401371ff817b78bb19b7b6.sol', '0x0b4d94e04e1fe219d8ad6b9bc7cd0176e273dc28.sol', '0x0b5828d786f397c73554c5b091aa9ea108fffc51.sol', '0x0baf42501c5a3dda287db7a822e364ea60c76a62.sol', '0x0bbb4b90cb9176929e16f307bc1efa63867a8c6d.sol', '0x0be4a987fd8dcbd2fff64ba4131d3a208307f667.sol', '0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol', '0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol', '0x0ce80662769f22fd161e5e92cfc82121c835e097.sol', '0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol', '0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol', '0x0df53a6946b21146a817c8c9e4792dc442bbded2.sol', '0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol', '0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol', '0x0ecf0851b2cb945ddbee413c0e23f0c01cd4df7d.sol', '0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol', '0x0f02e27745e3b6e9e1310d19469e2b5d7b5ec99a.sol', '0x1a07fd4786d38288d60d10e7181c596a4f5d8f38.sol', '0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol', '0x1b6f5b9906e287767e8be7b65e843161857a2a07.sol']
+---------------------------------------------------------------------------
+['arbitrary_location_write_simple.sol', 'buggy_11.sol', 'buggy_15.sol', 'buggy_16.sol', 'buggy_17.sol', 'buggy_19.sol', 'buggy_21.sol', 'buggy_23.sol', 'buggy_24.sol', 'buggy_26.sol', 'buggy_3.sol', 'buggy_31.sol', 'buggy_32.sol', 'buggy_33.sol', 'buggy_34.sol', 'buggy_35.sol', 'buggy_36.sol', 'buggy_38.sol', 'buggy_39.sol', 'buggy_42.sol', 'buggy_47.sol', 'buggy_48.sol', 'buggy_7.sol', 'incorrect_constructor_name1.sol', 'multiowned_vulnerable.sol', 'simple_suicide.sol', 'unprotected0.sol', 'wallet_02_refund_nosub.sol', 'wallet_04_confused_sign.sol']
+---------------------------------------------------------------------------
+['0x000adad69101420129a64715a1a52b7348c5e633.sol', '0x01a47f1d07f1fd01b6499a4eef7abdc5e9cd3372.sol', '0x0a123a23ade571c7a716c596fb8ac4e6bc642e05.sol', '0x0a7073207bac23865e0e3b204615364b5a9d3783.sol', '0x0ab3177dc2baa3f9b492124d6214537c69bba89e.sol', '0x0b54c811cd4fd4d27c2ff0061c3831427d89b73c.sol', '0x0bec4767cd170242895d244d7ff73feaff6c2598.sol', '0x0cab2d4f3804de20facb7ae095d68b339e32732a.sol', '0x0d416ffd6964fd122ee13d9a229fd3bb08b2deec.sol', '0x0d689d1d3ef39e379329d9fc88eabceccc1215a0.sol', '0x0de059aa5dd17427b58145782143c4e3d2dda6ab.sol', '0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol', '0x0e5d3380806f947b151fc3c9ba8946453fada97a.sol', '0x0e6b6477009832e20997ba744feb46b65be00742.sol', '0x0e97dcbe67df2a0d3fbcd983c04990e6d0cbb566.sol', '0x0ef987c2be871851176e46b098083b8f0fef4c17.sol', '0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol', '0x0f35d82007119dc339af57b29dc8ae794b92926c.sol', '0x0f437f4bf7f41ff57ae5fee81bbec921ba0371b1.sol', '0x0f7feaeeb7872bfeb39da593f60c2a3b65d16e93.sol', '0x1a09bfbec6487fd11c75a60aa4d39ebf47da6eff.sol', '0x1a1759d929041ec22a826edc71e60b4b4ec856e0.sol', '0x1a4e76811d9c319a953eada36f1def25156c8d93.sol', '0x1a6ea5a886fb8fd61b9cbf83d47e5b07aec897f5.sol', '0x1a746a2228ec6ebd432194b03d0c3f38429c8ec7.sol', '0x1a75288226ad60431eb7759430cdf764e2bb56ea.sol', '0x1a9ecb05376bf8bb32f7f038a845dbafb22041cd.sol', '0x1abaa2aa88eded26223a273c291120e635c47f40.sol', '0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol']
+---------------------------------------------------------------------------
+['FibonacciBalance.sol', 'buggy_14.sol', 'buggy_18.sol', 'buggy_2.sol', 'buggy_20.sol', 'buggy_22.sol', 'buggy_25.sol', 'buggy_27.sol', 'buggy_28.sol', 'buggy_29.sol', 'buggy_30.sol', 'buggy_4.sol', 'buggy_40.sol', 'buggy_43.sol', 'buggy_44.sol', 'buggy_45.sol', 'buggy_49.sol', 'buggy_50.sol', 'buggy_6.sol', 'incorrect_constructor_name2.sol', 'incorrect_constructor_name3.sol', 'mapping_write.sol', 'mycontract.sol', 'parity_wallet_bug_2.sol', 'phishable.sol', 'proxy.sol', 'rubixi.sol', 'wallet_03_wrong_constructor.sol']
+---------------------------------------------------------------------------
+Train class distribution: 28/29
+Val class distribution: 29/28
+Start training fold 0 with 57/57/0 train/val/test smart contracts
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  163
+Training settings: patience=7, delta=0.001, LR=0.0005 -> 0.01 -> 0.0005, OneCycle per optimizer update
+/work/repo/mando/graph_classifier.py:48: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+  total_loss += loss.item()
+Saving checkpoint at val loss 0.646611 (best seen 0.646611) -> runs/smoke/mando/c_fold0/best.pt
+Fold 0: ran all 1 epochs, early stopping never triggered (best val loss 0.646611)
+Saving model fold 0
+Fold 0: restore best epoch 0 (val loss 0.646611) from runs/smoke/mando/c_fold0/best.pt; last epoch 0 saved to runs/smoke/mando/c_fold0/last.pt
+[[28  1]
+ [17 11]]
+---------------------------------------------------------------------------
+['0x000adad69101420129a64715a1a52b7348c5e633.sol', '0x01a47f1d07f1fd01b6499a4eef7abdc5e9cd3372.sol', '0x0a123a23ade571c7a716c596fb8ac4e6bc642e05.sol', '0x0a7073207bac23865e0e3b204615364b5a9d3783.sol', '0x0ab3177dc2baa3f9b492124d6214537c69bba89e.sol', '0x0b54c811cd4fd4d27c2ff0061c3831427d89b73c.sol', '0x0bec4767cd170242895d244d7ff73feaff6c2598.sol', '0x0cab2d4f3804de20facb7ae095d68b339e32732a.sol', '0x0d416ffd6964fd122ee13d9a229fd3bb08b2deec.sol', '0x0d689d1d3ef39e379329d9fc88eabceccc1215a0.sol', '0x0de059aa5dd17427b58145782143c4e3d2dda6ab.sol', '0x0e5632feb2c2619dba9c7e2dc5a7ed3fd14969da.sol', '0x0e5d3380806f947b151fc3c9ba8946453fada97a.sol', '0x0e6b6477009832e20997ba744feb46b65be00742.sol', '0x0e97dcbe67df2a0d3fbcd983c04990e6d0cbb566.sol', '0x0ef987c2be871851176e46b098083b8f0fef4c17.sol', '0x0f1ed66c251bcb52ecf7e67ac64bb72482048adb.sol', '0x0f35d82007119dc339af57b29dc8ae794b92926c.sol', '0x0f437f4bf7f41ff57ae5fee81bbec921ba0371b1.sol', '0x0f7feaeeb7872bfeb39da593f60c2a3b65d16e93.sol', '0x1a09bfbec6487fd11c75a60aa4d39ebf47da6eff.sol', '0x1a1759d929041ec22a826edc71e60b4b4ec856e0.sol', '0x1a4e76811d9c319a953eada36f1def25156c8d93.sol', '0x1a6ea5a886fb8fd61b9cbf83d47e5b07aec897f5.sol', '0x1a746a2228ec6ebd432194b03d0c3f38429c8ec7.sol', '0x1a75288226ad60431eb7759430cdf764e2bb56ea.sol', '0x1a9ecb05376bf8bb32f7f038a845dbafb22041cd.sol', '0x1abaa2aa88eded26223a273c291120e635c47f40.sol', '0x1b5d56bfe749e492ae226cf9aa23c1426f828b7b.sol']
+---------------------------------------------------------------------------
+['FibonacciBalance.sol', 'buggy_14.sol', 'buggy_18.sol', 'buggy_2.sol', 'buggy_20.sol', 'buggy_22.sol', 'buggy_25.sol', 'buggy_27.sol', 'buggy_28.sol', 'buggy_29.sol', 'buggy_30.sol', 'buggy_4.sol', 'buggy_40.sol', 'buggy_43.sol', 'buggy_44.sol', 'buggy_45.sol', 'buggy_49.sol', 'buggy_50.sol', 'buggy_6.sol', 'incorrect_constructor_name2.sol', 'incorrect_constructor_name3.sol', 'mapping_write.sol', 'mycontract.sol', 'parity_wallet_bug_2.sol', 'phishable.sol', 'proxy.sol', 'rubixi.sol', 'wallet_03_wrong_constructor.sol']
+---------------------------------------------------------------------------
+['0x0000000fdf9eb269b38e39e058f45d7d0ddb60f9.sol', '0x000c100050e98c91f9114fa5dd75ce6869bf4f53.sol', '0x00c8162c86a977edc10c641636bdff1c59327983.sol', '0x00cab00609e70f14e755524bd07e1c639665e796.sol', '0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol', '0x00fc270c9cc13e878ab5363d00354bebf6f05c15.sol', '0x0a43edfe106d295e7c1e591a4b04b5598af9474c.sol', '0x0a5dc2204dfc6082ef3bbcfc3a468f16318c4168.sol', '0x0ab38601a798c4ee31401371ff817b78bb19b7b6.sol', '0x0b4d94e04e1fe219d8ad6b9bc7cd0176e273dc28.sol', '0x0b5828d786f397c73554c5b091aa9ea108fffc51.sol', '0x0baf42501c5a3dda287db7a822e364ea60c76a62.sol', '0x0bbb4b90cb9176929e16f307bc1efa63867a8c6d.sol', '0x0be4a987fd8dcbd2fff64ba4131d3a208307f667.sol', '0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4.sol', '0x0c7b8eedd028f3730e7b0f3dc032e916302f09b4.sol', '0x0ce80662769f22fd161e5e92cfc82121c835e097.sol', '0x0da2c2f5bb8cef300e894f47532af79811f0e18a.sol', '0x0da9326d7da81f8b19a8ec2d3255ab7076768c2d.sol', '0x0df53a6946b21146a817c8c9e4792dc442bbded2.sol', '0x0e24191da2f58dcf792d0bf5e2b14e2b6a205e36.sol', '0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol', '0x0ecf0851b2cb945ddbee413c0e23f0c01cd4df7d.sol', '0x0ef23ae0a27130999bf9d886e9598ff355ecf323.sol', '0x0f02e27745e3b6e9e1310d19469e2b5d7b5ec99a.sol', '0x1a07fd4786d38288d60d10e7181c596a4f5d8f38.sol', '0x1b6ab9d402d37e99e453b0eca8254075922e289d.sol', '0x1b6f5b9906e287767e8be7b65e843161857a2a07.sol']
+---------------------------------------------------------------------------
+['arbitrary_location_write_simple.sol', 'buggy_11.sol', 'buggy_15.sol', 'buggy_16.sol', 'buggy_17.sol', 'buggy_19.sol', 'buggy_21.sol', 'buggy_23.sol', 'buggy_24.sol', 'buggy_26.sol', 'buggy_3.sol', 'buggy_31.sol', 'buggy_32.sol', 'buggy_33.sol', 'buggy_34.sol', 'buggy_35.sol', 'buggy_36.sol', 'buggy_38.sol', 'buggy_39.sol', 'buggy_42.sol', 'buggy_47.sol', 'buggy_48.sol', 'buggy_7.sol', 'incorrect_constructor_name1.sol', 'multiowned_vulnerable.sol', 'simple_suicide.sol', 'unprotected0.sol', 'wallet_02_refund_nosub.sol', 'wallet_04_confused_sign.sol']
+---------------------------------------------------------------------------
+Train class distribution: 29/28
+Val class distribution: 28/29
+Start training fold 1 with 57/57/0 train/val/test smart contracts
+Hidden size:  128
+Ntype dict:  16
+{'constructor_definition': 0, 'continue_statement': 1, 'contract_declaration': 2, 'end_if': 3, 'end_loop': 4, 'expression_statement': 5, 'for': 6, 'function_definition': 7, 'if': 8, 'interface_declaration': 9, 'library_declaration': 10, 'modifier_definition': 11, 'new_variable': 12, 'return': 13, 'struct_declaration': 14, 'while': 15}
+Etype dict:  163
+Training settings: patience=7, delta=0.001, LR=0.0005 -> 0.01 -> 0.0005, OneCycle per optimizer update
+Saving checkpoint at val loss 0.677735 (best seen 0.677735) -> runs/smoke/mando/c_fold1/best.pt
+Fold 1: ran all 1 epochs, early stopping never triggered (best val loss 0.677735)
+Saving model fold 1
+Fold 1: restore best epoch 0 (val loss 0.677735) from runs/smoke/mando/c_fold1/best.pt; last epoch 0 saved to runs/smoke/mando/c_fold1/last.pt
+[[28  0]
+ [28  1]]
+Writing TensorBoard scalars to runs/smoke/mando/c
+View them with: tensorboard --logdir runs/smoke/mando/c
+Average Buggy F1 score of folds: 30.8333
+Average Macro F1 score of folds: 51.0023
+Running on  cuda:0
+Training phase
+Getting features
+torch.Size([129, 512])
+Label dict:  {'valid': 0, 'access_control': 1}
+Contracts in graph: 57 (all enter the 2-fold rotation)
+Buggy node 3114/7710 (40.38910505836576%)
+Fold 0: 2185/3522 validation nodes (62.0%) share an exact (code, label) pair with the training fold
+torch.Size([129, 512])
+Buggy nodes in train: 1665/4188 (39.75644699140401%)
+Buggy nodes in valid: 1449/3522 (41.14139693356048%)
+Start training fold 0: 28/29 train/val contracts, 4188/3522 train/val nodes
+Training settings: patience=7, delta=0.001, LR=0.0002 -> 0.005 -> 0.0002, OneCycle per optimizer update
+/work/repo/mando/node_classifier.py:341: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+  train_results[fold]['loss'].append(train_loss.item())
+Saving checkpoint at val loss 0.657390 (best seen 0.657390) -> runs/smoke/mando/n_fold0/best.pt
+Fold 0: ran all 1 epochs, early stopping never triggered (best val loss 0.657390)
+Saving model fold 0
+Fold 0: restore best epoch 0 (val loss 0.657390) from runs/smoke/mando/n_fold0/best.pt; last epoch 0 saved to runs/smoke/mando/n_fold0/last.pt
+Fold 1: 2566/4188 validation nodes (61.3%) share an exact (code, label) pair with the training fold
+torch.Size([129, 512])
+Buggy nodes in train: 1449/3522 (41.14139693356048%)
+Buggy nodes in valid: 1665/4188 (39.75644699140401%)
+Start training fold 1: 29/28 train/val contracts, 3522/4188 train/val nodes
+Training settings: patience=7, delta=0.001, LR=0.0002 -> 0.005 -> 0.0002, OneCycle per optimizer update
+Saving checkpoint at val loss 0.638662 (best seen 0.638662) -> runs/smoke/mando/n_fold1/best.pt
+Fold 1: ran all 1 epochs, early stopping never triggered (best val loss 0.638662)
+Saving model fold 1
+Fold 1: restore best epoch 0 (val loss 0.638662) from runs/smoke/mando/n_fold1/best.pt; last epoch 0 saved to runs/smoke/mando/n_fold1/last.pt
+
+Split mode: contract   validation nodes whose exact (code, label) pair was in their training fold: 4751/7710 (61.6%)
+Writing TensorBoard scalars to runs/smoke/mando/n
+View them with: tensorboard --logdir runs/smoke/mando/n
+Average Buggy F1 score of folds: 62.8841
+Average Macro F1 score of folds: 64.9655
+--- mando baseline (1 epoch, 2 folds, both levels): 183 s
+
+=== dfg build
+A/access_control_contract: 114 files, 16 with recorded compiler version
+  access_control_contract F0: 13432 nodes, 15538 edges
+  access_control_contract F1: 13432 nodes, 21311 edges
+  access_control_contract F2: 13432 nodes, 25128 edges
+  access_control_contract F3: 13693 nodes, 27664 edges
+A/access_control_node: 57 files, 16 with recorded compiler version
+  access_control_node F0: 7710 nodes, 8840 edges
+  access_control_node F1: 7710 nodes, 12763 edges
+  access_control_node F2: 7710 nodes, 14621 edges
+  access_control_node F3: 7892 nodes, 16569 edges
+
+task                              files versioned L1 fallback nodes   edges   seconds 
+access_control_contract           114   16        12          13693   27664   60.8    
+access_control_node               57    16        2           7892    16569   36.9    
+--- dfg build: 103 s
+
+=== dfg train (G0, G3R; fold 0, 2 epochs)
+access_control_contract: 114 files, 107 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+access_control_node: 57 files, 52 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+# DFG run report
+
+Outer-test, best checkpoint, fold mean (SD), percent.
+
+| task | profile | folds | buggy F1 | macro F1 | precision | recall |
+|---|---|---|---|---|---|---|
+| access_control_contract | G0 | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_contract | G3R | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_node | G0 | 1 | 84.01 | 84.39 | 72.42 | 100.00 |
+| access_control_node | G3R | 1 | 84.12 | 84.52 | 72.60 | 100.00 |
+
+Paired with G0 (buggy F1, best checkpoint):
+
+| task | profile | mean diff (pp) | improved/tied/worse | p | p Holm |
+|---|---|---|---|---|---|
+| access_control_contract | G3R | +0.00 | 0/1/0 | - | - |
+| access_control_node | G3R | +0.12 | 1/0/0 | - | - |
+
+Selected profile (inner validation only): **G3R**
+
+--- dfg train (G0, G3R; fold 0, 2 epochs): 7 s
+
+=== nodesem analyze
+access_control_contract: 13693 rows analysed
+access_control_node: 7892 rows analysed
+--- nodesem analyze: 98 s
+
+=== nodesem encode (CodeT5+)
+/usr/local/lib/python3.12/dist-packages/torch/nn/modules/linear.py:125: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  return F.linear(input, self.weight, self.bias)
+/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py:520: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  scores = torch.matmul(query_states, key_states.transpose(3, 2))
+/usr/local/lib/python3.12/dist-packages/transformers/models/t5/modeling_t5.py:559: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  attn_output = torch.matmul(attn_weights, value_states)
+access_control_contract: encoded code, ctx
+access_control_node: encoded code, ctx
+--- nodesem encode (CodeT5+): 55 s
+
+=== nodesem describe (Qwen2.5-Coder-3B, 5 units)
+llama_context: n_ctx_seq (4096) < n_ctx_train (32768) -- the full capacity of the model will not be utilized
+LLM units: 1010, skipped 77, cached 0, to generate 933
+limit reached: 6 responses available; teacher text not written
+--- nodesem describe (Qwen2.5-Coder-3B, 5 units): 25 s
+
+=== nodesem teacher encoder (BGE)
+/usr/local/lib/python3.12/dist-packages/transformers/models/bert/modeling_bert.py:304: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
+/usr/local/lib/python3.12/dist-packages/transformers/models/bert/modeling_bert.py:344: UserWarning: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/Context.cpp:233.)
+  context_layer = torch.matmul(attention_probs, value_layer)
+2 (2, 384)
+--- nodesem teacher encoder (BGE): 5 s
+
+=== nodesem train (S0o, S2, S4; node, fold 0, 2 epochs)
+access_control_node: 57 files, 52 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+  access_control_node fold 0 S0o@G0
+    epochs 2, best epoch 1, best inner_val loss 0.3293
+    outer_test best buggy F1 84.01
+  access_control_node fold 0 S0o@G3R
+    epochs 2, best epoch 1, best inner_val loss 0.3263
+    outer_test best buggy F1 84.12
+  access_control_node fold 0 S2@G0
+    epochs 2, best epoch 1, best inner_val loss 0.4922
+    outer_test best buggy F1 53.94
+  access_control_node fold 0 S2@G3R
+    epochs 2, best epoch 1, best inner_val loss 0.2874
+    outer_test best buggy F1 85.88
+  access_control_node fold 0 S4@G0
+    epochs 2, best epoch 1, best inner_val loss 0.5947
+    outer_test best buggy F1 77.28
+  access_control_node fold 0 S4@G3R
+    epochs 2, best epoch 1, best inner_val loss 0.2666
+    outer_test best buggy F1 86.74
+# DFG run report
+
+Outer-test, best checkpoint, fold mean (SD), percent.
+
+| task | profile | folds | buggy F1 | macro F1 | precision | recall |
+|---|---|---|---|---|---|---|
+| access_control_node | S0o@G0 | 1 | 84.01 | 84.39 | 72.42 | 100.00 |
+| access_control_node | S0o@G3R | 1 | 84.12 | 84.52 | 72.60 | 100.00 |
+| access_control_node | S2@G0 | 1 | 53.94 | 63.46 | 60.49 | 48.68 |
+| access_control_node | S2@G3R | 1 | 85.88 | 86.54 | 75.44 | 99.67 |
+| access_control_node | S4@G0 | 1 | 77.28 | 75.91 | 63.10 | 99.67 |
+| access_control_node | S4@G3R | 1 | 86.74 | 87.47 | 76.79 | 99.67 |
+
+Paired with S0o@G3R (buggy F1, best checkpoint):
+
+| task | profile | mean diff (pp) | improved/tied/worse | p | p Holm |
+|---|---|---|---|---|---|
+| access_control_node | S0o@G0 | -0.12 | 0/0/1 | - | - |
+| access_control_node | S2@G0 | -30.18 | 0/0/1 | - | - |
+| access_control_node | S2@G3R | +1.75 | 1/0/0 | - | - |
+| access_control_node | S4@G0 | -6.84 | 0/0/1 | - | - |
+| access_control_node | S4@G3R | +2.62 | 1/0/0 | - | - |
+
+--- nodesem train (S0o, S2, S4; node, fold 0, 2 epochs): 1097 s
+
+=== edgesem build
+access_control_contract: 9871 F4 edges {'MOD_APPLY': 526, 'CALL_SITE': 1247, 'GUARDS': 8098}, 37535 attribute rows
+access_control_node: 5261 F4 edges {'CALL_SITE': 564, 'GUARDS': 4502, 'MOD_APPLY': 195}, 21830 attribute rows
+--- edgesem build: 104 s
+
+=== edgesem train (G3R, G4R-P, G4R-A; fold 0, 2 epochs)
+access_control_contract: 114 files, 107 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+  access_control_contract fold 0 G3R
+    epochs 2, best epoch 1, best inner_val loss 0.3998
+    outer_test best buggy F1 90.91
+  access_control_contract fold 0 G4R-P
+    epochs 2, best epoch 1, best inner_val loss 0.3972
+    outer_test best buggy F1 90.91
+  access_control_contract fold 0 G4R-A
+    epochs 2, best epoch 1, best inner_val loss 0.3969
+    outer_test best buggy F1 90.91
+access_control_node: 57 files, 52 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+  access_control_node fold 0 G3R
+    epochs 2, best epoch 1, best inner_val loss 0.4071
+    outer_test best buggy F1 80.43
+  access_control_node fold 0 G4R-P
+    epochs 2, best epoch 1, best inner_val loss 0.4060
+    outer_test best buggy F1 80.11
+  access_control_node fold 0 G4R-A
+    epochs 2, best epoch 1, best inner_val loss 0.4055
+    outer_test best buggy F1 80.11
+# DFG run report
+
+Outer-test, best checkpoint, fold mean (SD), percent.
+
+| task | profile | folds | buggy F1 | macro F1 | precision | recall |
+|---|---|---|---|---|---|---|
+| access_control_contract | G3R | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_contract | G4R-A | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_contract | G4R-P | 1 | 90.91 | 91.29 | 90.91 | 90.91 |
+| access_control_node | G3R | 1 | 80.43 | 80.05 | 67.26 | 100.00 |
+| access_control_node | G4R-A | 1 | 80.11 | 79.64 | 66.81 | 100.00 |
+| access_control_node | G4R-P | 1 | 80.11 | 79.64 | 66.81 | 100.00 |
+
+Paired with G3R (buggy F1, best checkpoint):
+
+| task | profile | mean diff (pp) | improved/tied/worse | p | p Holm |
+|---|---|---|---|---|---|
+| access_control_contract | G4R-A | +0.00 | 0/1/0 | - | - |
+| access_control_contract | G4R-P | +0.00 | 0/1/0 | - | - |
+| access_control_node | G4R-A | -0.32 | 0/0/1 | - | - |
+| access_control_node | G4R-P | -0.32 | 0/0/1 | - | - |
+
+Selected profile (inner validation only): **G3R**
+
+--- edgesem train (G3R, G4R-P, G4R-A; fold 0, 2 epochs): 649 s
+
+name, memory.used [MiB], memory.total [MiB]
+NVIDIA GeForce RTX 5080, 58 MiB, 16303 MiB
+smoke run ok; log: runs/smoke/smoke_access_control.log
