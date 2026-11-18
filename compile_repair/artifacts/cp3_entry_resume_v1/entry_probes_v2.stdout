@@ -1,0 +1,26 @@
+....F
+=================================== FAILURES ===================================
+________ test_leading_dash_entry_same_target_and_accepted_graph[0.4.12] ________
+
+tmp_path = PosixPath('/home/zhao/SmartContract/compile-repair-local/cp3_entry_v1/pytest_entry_probes_v2/test_leading_dash_entry_same_t0')
+version = '0.4.12'
+
+    @pytest.mark.parametrize("version", ["0.4.12", "0.4.24", "0.5.17", "0.8.38"])
+    def test_leading_dash_entry_same_target_and_accepted_graph(tmp_path, version):
+        from dataclasses import asdict
+        production_required()
+        original = resolve_project(F / "cp3_leading_dash", "-contracts/Entry.sol")
+        store = ArtifactStore(tmp_path / "project")
+        project = materialize_project(original, store, "copy")
+        compiler = trusted_compilers()[version]
+        compiled = compile_project(project, compiler)
+        store.write_json("compiled.json", asdict(compiled))
+>       assert compiled.returncode == 0
+E       AssertionError: assert 1 == 0
+E        +  where 1 = Compilation(source_path='/home/zhao/SmartContract/compile-repair-local/cp3_entry_v1/pytest_entry_probes_v2/test_leadin...2427ae41e4649b934ca495991b7852b855', elapsed_seconds=0.0015274000470526516, timed_out=False, cost_usd=0.0, settings=()).returncode
+
+compile_repair/tests/test_project.py:261: AssertionError
+=========================== short test summary info ============================
+FAILED compile_repair/tests/test_project.py::test_leading_dash_entry_same_target_and_accepted_graph[0.4.12]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 4 passed, 27 deselected in 4.02s

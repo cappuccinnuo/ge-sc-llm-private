@@ -1,0 +1,21 @@
+--- a/compile_repair/toolchain/project.py
++++ b/compile_repair/toolchain/project.py
+@@ -246,7 +246,8 @@
+     settings = validate_settings(settings)
+     options = _build_options(CompilerVersion("solc", compiler.version, False), False)
+     return [compiler.path] + list(project.remappings) + [
+-        _entry_argument(project), "--combined-json", options, "--allow-paths", "."] + list(settings)
++        _entry_argument(project), "--combined-json", options, "--allow-paths",
++        str(Path(project.root).resolve())] + list(settings)
+ 
+ 
+ def slither_arguments(project, compiler, settings=()):
+@@ -254,7 +255,7 @@
+     settings = validate_settings(settings)
+     return _entry_argument(project), {"solc": compiler.path, "solc_disable_warnings": True,
+         "solc_working_dir": project.root, "solc_remaps": list(project.remappings),
+-        "solc_args": " ".join(("--allow-paths", ".") + settings)}
++        "solc_args": " ".join(("--allow-paths", str(Path(project.root).resolve())) + settings)}
+ 
+ 
+ def compile_project(project, compiler, timeout=120, settings=()):
