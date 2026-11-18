@@ -16,7 +16,7 @@ import torch
 
 from dfg.train.runner import TaskData, initial_states
 from dfg.train.trainer import ROLES, Supervision, fit, score, task_config
-from dfg.utils import digest, seed_all, tensor_digest
+from dfg.utils import Timer, digest, seed_all, tensor_digest
 from hcg.store.io import dump_json
 from nodesem.features import CONFIGS, CTX_VIEW, DROPOUT_PAIR, EXTENDS, carry, spec_for
 from nodesem.init import extend_state, initial_state, pair_dropout
@@ -94,12 +94,14 @@ def run_task(data, store, out_dir, configs, profiles=PROFILES, folds=None, seed=
                 records.append(json.loads(done.read_text()))
         if not pending:
             continue
+        fold_timer = Timer()
         fold_seeds, base = initial_states(data.task, data.graph, fold, ["G0", "G3R"], config, seed)
         students, student_info = {}, None
         if any("student" in needs(n) for n, _ in pending):
             students, student_info = _students(store, split, data.task_id, fold, fold_seeds["fit"])
+        fold_setup = fold_timer.mark("fold_setup").seconds
         for name, profile in pending:
-            started = time.monotonic()
+            started, timer = time.monotonic(), Timer(fold_setup)
             log("  %s fold %d %s@%s" % (data.task_id, fold, name, profile))
             state, initial_sha = initial(data, store, name, profile, fold, config, fold_seeds, base, students, vocabulary)
             seed_all(fold_seeds["constructor"])
@@ -112,8 +114,11 @@ def run_task(data, store, out_dir, configs, profiles=PROFILES, folds=None, seed=
             for adapter in getattr(model, "adapt_ws", []):
                 if hasattr(adapter, "reset_dropout"):
                     adapter.reset_dropout(fold_seeds["fit"], data.task_id, fold, profile)
+            timer.mark("build")
             history, checkpoints, best_epoch = fit(model, parts, data.file_labels, config, log=log)
+            timer.mark("fit")
             scores, predictions = score(model, parts, data.file_labels, checkpoints)
+            timer.mark("score")
             folder = out_dir / ("fold_%d" % fold) / ("%s@%s" % (name, profile))
             folder.mkdir(parents=True, exist_ok=True)
             dump_json(folder / "history.json", history)
@@ -124,10 +129,11 @@ def run_task(data, store, out_dir, configs, profiles=PROFILES, folds=None, seed=
                           inner_val=scores["inner_val"], outer_test=scores["outer_test"],
                           student=student_info if name in ("S5", "S8") else None, device=str(device),
                           parameters=sum(p.numel() for p in model.parameters()),
-                          seconds=round(time.monotonic() - started, 1))
+                          seconds=round(time.monotonic() - started, 1), timing=timer.summary(len(history)))
             dump_json(folder / "result.json", record)
             records.append(record)
             log("    outer_test best buggy F1 %.2f" % scores["outer_test"]["best"]["buggy_f1"])
+            log(timer.line(len(history)))
             del model, parts, checkpoints
             gc.collect()
             if torch.cuda.is_available():

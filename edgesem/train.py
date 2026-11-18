@@ -17,7 +17,7 @@ import torch
 from dfg.train.init import seeds
 from dfg.train.runner import TaskData
 from dfg.train.trainer import ROLES, Supervision, fit, score, task_config
-from dfg.utils import digest, seed_all, tensor_digest
+from dfg.utils import Timer, digest, seed_all, tensor_digest
 from edgesem.model.build import make_edge_model, validate_registration
 from edgesem.schema import P2_OVERRIDES, PROFILES, TRAIN_PROFILES, validate_profile
 from edgesem.store import EdgeStore
@@ -72,7 +72,7 @@ def run_task(data, edges, attrs, out_dir, profiles=TRAIN_PROFILES, folds=None, s
             if done.is_file():
                 results.append(json.loads(done.read_text()))
                 continue
-            started = time.monotonic()
+            started, timer = time.monotonic(), Timer()
             log("  %s fold %d %s" % (data.task_id, fold, profile))
             reads_attributes = PROFILES[profile]["edge_features"] != "none"
             model = make_edge_model(data.task, graph, profile, fold, edges=edges,
@@ -81,9 +81,12 @@ def run_task(data, edges, attrs, out_dir, profiles=TRAIN_PROFILES, folds=None, s
                                     heads=config["heads"])
             initial_sha = tensor_digest(model.state_dict())
             parts = {role: EdgeSupervision(model, data.task, split[role + "_files"]) for role in ROLES}
+            timer.mark("build")
             seed_all(fold_seeds["fit"])
             history, checkpoints, best_epoch = fit(model, parts, data.file_labels, config, log=log)
+            timer.mark("fit")
             scores, predictions = score(model, parts, data.file_labels, checkpoints)
+            timer.mark("score")
             folder.mkdir(parents=True, exist_ok=True)
             if save_checkpoints:
                 torch.save({k: {n: t.cpu() for n, t in v.items()} for k, v in checkpoints.items()},
@@ -95,10 +98,11 @@ def run_task(data, edges, attrs, out_dir, profiles=TRAIN_PROFILES, folds=None, s
                           best_epoch=best_epoch, epochs=len(history), inner_val=scores["inner_val"],
                           outer_test=scores["outer_test"], canonical_relations=len(model.etypes_dict),
                           device=str(device), parameters=sum(p.numel() for p in model.parameters()),
-                          seconds=round(time.monotonic() - started, 1))
+                          seconds=round(time.monotonic() - started, 1), timing=timer.summary(len(history)))
             dump_json(done, record)
             results.append(record)
             log("    outer_test best buggy F1 %.2f" % scores["outer_test"]["best"]["buggy_f1"])
+            log(timer.line(len(history)))
             del model, parts, checkpoints
             gc.collect()
             if torch.cuda.is_available():

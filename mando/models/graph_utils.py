@@ -1,4 +1,5 @@
 import ast
+import functools
 from collections import defaultdict
 import pickle
 
@@ -87,17 +88,15 @@ def map_node_token(nx_graph, token):
 
 
 def get_node_token(nx_graph):
-    features = {}
+    """{node type: (n, width) tensor} of node tokens in graph order.
+
+    One stack per node type: the upstream version grew each tensor with a torch.cat per
+    node, which is quadratic in the graph size (tens of seconds per model on Dataset A);
+    the result is the same tensor, row for row."""
+    rows = {}
     for node_ids, node_data in nx_graph.nodes(data=True):
-        node_type = node_data['node_type']
-        if node_type not in features:
-            # features[node_type] = node_data['token'].unsqueeze(0)
-            features[node_type] = torch.tensor(node_data['token']).unsqueeze(0)
-            # print(features[node_type].shape)
-        else:
-            # features[node_type] = torch.cat((features[node_type], node_data['token'].unsqueeze(0)))
-            features[node_type] = torch.cat((features[node_type], torch.tensor(node_data['token']).unsqueeze(0)))
-    return features
+        rows.setdefault(node_data['node_type'], []).append(torch.tensor(node_data['token']))
+    return {node_type: torch.stack(values) for node_type, values in rows.items()}
 
 
 def generate_random_node_features(nx_graph, feature_dims):
@@ -171,6 +170,12 @@ def reveert_map_node_embedding(nx_graph, features):
     return embedded
 
 
+@functools.lru_cache(maxsize=1 << 16)
+def _label_category(text):
+    """Category of a stored node label string (parsed once per distinct string)."""
+    return ast.literal_eval(text.strip('"'))[0]['category']
+
+
 def get_node_label(nx_graph):
     nx_g = nx_graph
     node_labels = []
@@ -186,8 +191,9 @@ def get_node_label(nx_graph):
         else:
             _node_label = node_data['node_info_vulnerabilities']
             if isinstance(_node_label, str):
-                _node_label = ast.literal_eval(_node_label.strip('"'))
-            bug_type = _node_label[0]['category']
+                bug_type = _label_category(_node_label)
+            else:
+                bug_type = _node_label[0]['category']
             if bug_type not in label_ids:
                 label_ids[bug_type] = len(label_ids)
             target = label_ids[bug_type]

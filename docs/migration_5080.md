@@ -108,3 +108,9 @@ main 的 README 冲突保留当前仓库内的集成入口；auto_version_solc.p
 - 回归测试 `tests/hcg/test_models.py`（模拟 Hub，无需网络）：HEAD 长度为 0（支持/不支持 Range）、正常下载与离线复用、缓存中 0 字节配置的定点修复且权重不被重新请求或改动、网络失败、下载中断、内容错误、ETag 错误或缺失、文件选择规则、所有加载的模型均已登记且 ID/修订一致、transformers 从核验快照加载。
 - NVIDIA 容器自带 Apex；只要 Apex 可导入，transformers 就把 T5 的 `T5LayerNorm` 换成 Apex 的 `FusedRMSNorm`，在 5080 上对 fp16 的 CodeT5+ 编码器报 `expected scalar type Float but found Half`，且其计算方式与原始特征（fp32 累加的 T5LayerNorm）不同。镜像中卸载 Apex（流程不使用它）；`nodesem.encode` 加载 CodeT5+ 后检查所有归一化层均为 transformers 自带实现，否则拒绝编码；`check_env.py` 增加 Apex 检查；新增单元测试。
 
+## 2026-11-18：训练前模型构建提速与计时
+
+- 5080 冒烟测试中，2 轮的单次拟合耗时 16–243 秒，主要花在构建模型而非训练。分析（CPU 性能剖析）发现：`mando.models.graph_utils.get_node_token` 逐节点 `torch.cat` 拼接节点 token，耗时随图规模二次增长（访问控制合约图一次 3 秒，每次拟合调用 8 次）；`get_node_label` 对每个节点重复 `ast.literal_eval` 解析标签字符串。
+- 修正：`get_node_token` 改为每类节点收集后一次 `torch.stack`（逐行、dtype 完全相同）；`get_node_label` 对相同标签字符串只解析一次。两者在四张真实图上与原实现逐张量/逐项一致，并加回归测试。DFG、NodeSem、EdgeSem 三处同一拟合（fold 0、2 轮、CPU）前后初始权重摘要、损失曲线、预测与分数完全一致，耗时由 41/47/47 秒降至 16/28/18 秒。
+- 三个训练器的 `result.json` 增加 `timing`（fold_setup、build、fit、score、per_epoch，GPU 工作在每个阶段结束时同步计入），日志逐次打印，用于定位 5080 上的剩余开销。
+
