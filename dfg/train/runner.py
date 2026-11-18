@@ -21,7 +21,7 @@ from dfg.train.features import anonymize_features
 from dfg.train.init import initialize_family, seeds
 from dfg.train.splits import K_FOLDS, category_groups, grouped_folds, population
 from dfg.train.trainer import ROLES, Supervision, fit, score, task_config
-from dfg.utils import digest, seed_all, tensor_digest
+from dfg.utils import Timer, digest, seed_all, tensor_digest
 from hcg.store.io import dump_json, read_gpickle, sha256
 
 ALL_PROFILES = ("G0", "G1R", "G2R", "G3R", "G3")
@@ -140,19 +140,24 @@ def run_task(data, out_dir, profiles=ALL_PROFILES, folds=None, seed=1, device="c
                 results.append(json.loads(done.read_text()))
         if not pending:
             continue
+        fold_timer = Timer()
         s, states = initial_states(data.task, data.graph, fold,
                                    ["G0"] + [p for p in pending if p != "G0"], config, seed)
+        fold_setup = fold_timer.mark("fold_setup").seconds
         for profile in pending:
-            started = time.monotonic()
+            started, timer = time.monotonic(), Timer(fold_setup)
             log("  %s fold %d %s" % (data.task_id, fold, profile))
             seed_all(s["constructor"])
             model = _model(data.task, data.graph(profile), profile, config, device)
             model.load_state_dict({k: v.to(device) for k, v in states[profile].items()}, strict=True)
             initial_sha = tensor_digest(states[profile])
             parts = {role: Supervision(model, data.task, split[role + "_files"]) for role in ROLES}
+            timer.mark("build")
             seed_all(s["fit"])
             history, checkpoints, best_epoch = fit(model, parts, data.file_labels, config, log=log)
+            timer.mark("fit")
             scores, predictions = score(model, parts, data.file_labels, checkpoints)
+            timer.mark("score")
             folder = out_dir / ("fold_%d" % fold) / profile
             folder.mkdir(parents=True, exist_ok=True)
             done = folder / "result.json"
@@ -166,10 +171,11 @@ def run_task(data, out_dir, profiles=ALL_PROFILES, folds=None, seed=1, device="c
                           epochs=len(history), inner_val=scores["inner_val"], outer_test=scores["outer_test"],
                           canonical_relations=len(model.etypes_dict), device=str(device),
                           parameters=sum(p.numel() for p in model.parameters()),
-                          seconds=round(time.monotonic() - started, 1))
+                          seconds=round(time.monotonic() - started, 1), timing=timer.summary(len(history)))
             dump_json(done, record)
             results.append(record)
             log("    outer_test best buggy F1 %.2f" % scores["outer_test"]["best"]["buggy_f1"])
+            log(timer.line(len(history)))
             del model, parts, checkpoints
             gc.collect()
             if torch.cuda.is_available():
