@@ -5,10 +5,22 @@
 # edge attributes (edgesem) and prove them equal to the unmodified NodeSem/EdgeSem code
 # and their sealed evidence, and smoke-train the MANDO-LLM baselines, the DFG profiles,
 # the NodeSem configurations and the EdgeSem profiles. CPU only (no GPU on runners).
+#
+# Cost control (private repository, metered minutes): every pull request runs only the
+# unit job (~7 min). The seven category jobs (~2.5 h each) run when started by hand
+# (Actions -> pipeline -> Run workflow) or on a pull request labelled `full-ci`; the same
+# Dataset A tests run on the GPU machine with docker/smoke.sh. Changes that touch only
+# documentation or docker/ (never executed here) do not trigger CI.
 name: pipeline
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - "docker/**"
+      - ".dockerignore"
   workflow_dispatch:
 
 concurrency:
@@ -51,6 +63,7 @@ jobs:
             tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando
 
   category:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'full-ci')
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:

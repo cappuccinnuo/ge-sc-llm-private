@@ -98,3 +98,4 @@ main 的 README 冲突保留当前仓库内的集成入口；auto_version_solc.p
 - `.gitignore` 的 `models/` 改为只匹配根目录，`mando/models/__init__.py` 此前因此未被提交，现已加入。
 - 尚未在 5080 上验证：NVIDIA DGL 容器官方说明面向 Hopper/Ampere，其 DGL 是否含 sm_120 内核由 `check_env.py` 的 DGL 检查确认；若不含，需要换基础镜像或自行编译 DGL。
 - 数值精度：NVIDIA 容器默认强制 TF32 矩阵乘（`TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=1`），在 5080 上 1024×1024 矩阵乘与 CPU 最大差 0.05；镜像改为 `NVIDIA_TF32_OVERRIDE=0`、`TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0`，训练使用完整 FP32（与 CPU/CI 和封存实验一致），`check_env.py` 显式检查 TF32 已关闭。
+- CI 费用控制（私有仓库按分钟计费，2026-11 月额度已用完）：每个 PR 只自动运行 unit 作业（约 7 分钟）；七个类别作业（各约 2.5 小时）改为手动触发（Actions → pipeline → Run workflow）或给 PR 加 `full-ci` 标签时运行；只改文档或 docker/ 的提交不触发 CI。完整的 Dataset A 等价性测试改在 5080 上用 `docker/smoke.sh` 运行。
