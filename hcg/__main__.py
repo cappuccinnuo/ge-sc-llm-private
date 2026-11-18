@@ -1,6 +1,8 @@
 """Command line: python -m hcg {fetch,build}
 
-    python -m hcg fetch [--label-root DIR]       # pinned SmartBugs + SolidiFI checkouts
+    python -m hcg fetch [--label-root DIR]       # pinned SmartBugs + SolidiFI checkouts and
+                                                 # every pinned model (verified, see hcg/sources/models.py)
+    python -m hcg fetch --diagnose-hub           # HEAD / Range / GET headers through the proxy and directly
     python -m hcg build                          # Dataset A, all seven categories
     python -m hcg build --categories reentrancy access_control --no-tokens
 
@@ -28,8 +30,13 @@ def build_parser():
     parser = argparse.ArgumentParser(prog="python -m hcg", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("fetch", parents=[common],
-                        help="fetch the pinned annotation repositories")
+    fetch = commands.add_parser("fetch", parents=[common],
+                                help="fetch the pinned annotation repositories and pretrained models")
+    fetch.add_argument("--no-models", action="store_true", help="only the annotation repositories")
+    fetch.add_argument("--model-cache", type=Path, default=None,
+                       help="Hugging Face hub cache (default: $HF_HOME/hub)")
+    fetch.add_argument("--diagnose-hub", action="store_true",
+                       help="print what HEAD, a Range GET and a GET report for one Hub file, then exit")
     build = commands.add_parser("build", parents=[common], help="build graphs for a dataset")
     build.add_argument("--dataset", default="A")
     build.add_argument("--categories", nargs="+", default=["all"])
@@ -42,8 +49,19 @@ def build_parser():
 def main(argv=None):
     args = build_parser().parse_args(argv)
     if args.command == "fetch":
+        from hcg.sources import models
+        if args.diagnose_hub:
+            models.diagnose()
+            return 0
         for name, commit in repos.ensure(args.label_root).items():
             print("%s %s" % (name, commit))
+        if not args.no_models:
+            try:
+                for name, path in models.ensure_all(args.model_cache).items():
+                    print("%s %s" % (name, path))
+            except models.HubError as error:
+                raise SystemExit("model download failed: %s\n(nothing unverified was cached; "
+                                 "`python -m hcg fetch --diagnose-hub` shows what the network returns)" % error)
         return 0
 
     dataset = get_dataset(args.dataset)

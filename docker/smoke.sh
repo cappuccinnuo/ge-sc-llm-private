@@ -27,9 +27,9 @@ step() {
 }
 
 step "environment" python docker/check_env.py
-step "unit tests" python -m pytest -q tests/hcg/test_units.py tests/dfg/test_units.py tests/dfg/test_train.py \
+step "unit tests" python -m pytest -q tests/hcg/test_units.py tests/hcg/test_models.py tests/dfg/test_units.py tests/dfg/test_train.py \
     tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando
-step "fetch Dataset A sources" python -m hcg fetch
+step "fetch label repositories and pinned models" python -m hcg fetch
 if [ "${SKIP_DATASET_TESTS:-0}" != 1 ]; then
     step "dataset tests ($CAT)" python -m pytest -q tests/hcg/test_dataset_a.py tests/dfg/test_dataset_a.py \
         tests/nodesem/test_dataset_a.py tests/edgesem/test_dataset_a.py -k "$CAT"

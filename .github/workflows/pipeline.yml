@@ -59,7 +59,7 @@ jobs:
           pip install "numpy<2" -r requirements.txt
       - name: hcg, dfg, nodesem, edgesem and mando unit tests (dfg.train against the sealed Prompt 8 folds/groups)
         run: |
-          python -m pytest -q tests/hcg/test_units.py tests/dfg/test_units.py tests/dfg/test_train.py \
+          python -m pytest -q tests/hcg/test_units.py tests/hcg/test_models.py tests/dfg/test_units.py tests/dfg/test_train.py \
             tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando
 
   category:
@@ -99,7 +99,7 @@ jobs:
           pip install --no-deps torchdata==0.7.1
           pip install "numpy<2" -r requirements.txt
       - name: Fetch pinned label sources
-        run: python -m hcg fetch
+        run: python -m hcg fetch --no-models
       - name: hcg build from source (with CodeT5+ tokens), compared with the authors' graphs
         run: python -m hcg build --categories ${{ matrix.category }} --out out/hcg
       - name: hcg reproduces the Oct 10 label policy node for node

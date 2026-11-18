@@ -14,8 +14,11 @@ WIDTH = 512
 
 
 def load_tokenizer(name=TOKENIZER, revision=REVISION):
+    """The pinned tokenizer, loaded from its verified local snapshot (hcg.sources.models)."""
     from transformers import AutoTokenizer
-    return AutoTokenizer.from_pretrained(name, revision=revision)
+
+    from hcg.sources.models import ensure
+    return AutoTokenizer.from_pretrained(str(ensure(name, revision)))
 
 
 def pad_id(tokenizer):

@@ -17,6 +17,8 @@ from collections import OrderedDict
 
 import numpy as np
 
+from hcg.sources.models import ensure
+
 MODELS = {
     "codet5p-110m-embedding": dict(repo_id="Salesforce/codet5p-110m-embedding",
                                    revision="d9f3a534af4252f04b10cd9f78e05037542d10f6",
@@ -168,11 +170,10 @@ def load_codet5(device="cuda", cache_dir=None):
     import transformers
     spec = MODELS["codet5p-110m-embedding"]
     dtype = torch.float16 if device != "cpu" else torch.float32
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
-        spec["repo_id"], revision=spec["revision"], trust_remote_code=True, cache_dir=cache_dir, use_fast=True)
+    path = str(ensure(spec["repo_id"], spec["revision"], cache_dir))  # verified pinned snapshot
+    tokenizer = transformers.AutoTokenizer.from_pretrained(path, trust_remote_code=True, use_fast=True)
     model = transformers.AutoModel.from_pretrained(
-        spec["repo_id"], revision=spec["revision"], trust_remote_code=True, cache_dir=cache_dir,
-        torch_dtype=dtype, attn_implementation="eager").to(device)
+        path, trust_remote_code=True, torch_dtype=dtype, attn_implementation="eager").to(device)
     model.eval()
     model.requires_grad_(False)
     return tokenizer, model
@@ -221,7 +222,8 @@ def encode_teacher(texts, device="cuda", batch_size=32, cache_dir=None):
     torch = _deterministic_torch(device)
     from sentence_transformers import SentenceTransformer
     spec = MODELS["bge-small-en-v1.5"]
-    model = SentenceTransformer(spec["repo_id"], revision=spec["revision"], device=device, cache_folder=cache_dir,
+    path = str(ensure(spec["repo_id"], spec["revision"], cache_dir))  # verified pinned snapshot
+    model = SentenceTransformer(path, device=device,
                                 model_kwargs={"torch_dtype": torch.float32, "attn_implementation": "eager"})
     model.eval()
     model.requires_grad_(False)

@@ -52,7 +52,7 @@ needed once to build the tree-sitter grammar.
 ## Running everything
 
 ```bash
-python -m hcg fetch                       # pinned SmartBugs-curated + SolidiFI (data/ or $MANDO_DATA_DIR)
+python -m hcg fetch                       # pinned SmartBugs-curated + SolidiFI, and the 4 pinned models (verified)
 python -m hcg build                       # 7 categories, with tokens
 python -m dfg build
 python -m dfg train --out runs/dfg/all && python -m dfg report runs/dfg/all

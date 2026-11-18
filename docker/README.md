@@ -41,6 +41,15 @@ only `git pull`; the image is rebuilt only when `requirements.txt` or the Docker
   (e.g. `export https_proxy=http://<host>:<port> http_proxy=$https_proxy`) before
   `docker/run.sh`; the proxy must be reachable from WSL (with WSL's default NAT
   networking that is the Windows host's address, not 127.0.0.1).
+* **Model downloads**: `python -m hcg fetch` also downloads the four pinned models and
+  verifies every file (size, ETag and content hash against the Hub's listing at the
+  pinned commit) before it enters the cache; nothing unverified is ever cached, and
+  broken cache entries (such as 0-byte `config.json` files from an earlier download)
+  are replaced while verified weights are kept. Some proxies answer `HEAD` with
+  `Content-Length: 0`; the downloader never relies on that value.
+  `docker/run.sh python -m hcg fetch --diagnose-hub` prints what `HEAD`, a 1-byte Range
+  `GET` and a full `GET` return through the configured proxy and directly, with
+  `Via`/`Server`/cache headers, to identify which layer rewrites the length.
 
 ## 2. Code and image
 

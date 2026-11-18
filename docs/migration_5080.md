@@ -99,3 +99,11 @@ main 的 README 冲突保留当前仓库内的集成入口；auto_version_solc.p
 - 尚未在 5080 上验证：NVIDIA DGL 容器官方说明面向 Hopper/Ampere，其 DGL 是否含 sm_120 内核由 `check_env.py` 的 DGL 检查确认；若不含，需要换基础镜像或自行编译 DGL。
 - 数值精度：NVIDIA 容器默认强制 TF32 矩阵乘（`TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=1`），在 5080 上 1024×1024 矩阵乘与 CPU 最大差 0.05；镜像改为 `NVIDIA_TF32_OVERRIDE=0`、`TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0`，训练使用完整 FP32（与 CPU/CI 和封存实验一致），`check_env.py` 显式检查 TF32 已关闭。
 - CI 费用控制（私有仓库按分钟计费，2026-11 月额度已用完）：每个 PR 只自动运行 unit 作业（约 7 分钟）；七个类别作业（各约 2.5 小时）改为手动触发（Actions → pipeline → Run workflow）或给 PR 加 `full-ci` 标签时运行；只改文档或 docker/ 的提交不触发 CI。完整的 Dataset A 等价性测试改在 5080 上用 `docker/smoke.sh` 运行。
+
+## 2026-11-18：统一的 Hugging Face 下载层（hcg/sources/models.py）
+
+- 问题：5080 所在网络的 TLS 代理对 `HEAD` 返回 `Content-Length: 0`；huggingface_hub 据此认为文件已完整，把 0 字节的 `config.json` 等写入缓存，加载时报 `JSONDecodeError: Expecting value`。大权重文件经 `X-Linked-Size` 报告大小，因此通常不受影响。
+- 新的下载层：`PINNED` 登记全部四个模型（CodeT5+ 770M 分词器、CodeT5+ 110M embedding、BGE、Qwen2.5-Coder GGUF；模型 ID 与固定修订版本不变，Transformers/PyTorch/DGL 版本不变）。期望大小与哈希取自 Hub 在固定提交下的文件列表（LFS 为 SHA-256，普通文件为 git blob SHA-1）；`HEAD` 大小为 0 时不采用，改用 `Range: bytes=0-0` 的 `Content-Range` 总长度，再不行用完整 `GET` 的长度；ETag 必须与期望哈希一致；内容先流式写入临时文件，大小与哈希通过后才移入缓存。任何一项无法核验即报错，缓存中不留未核验内容。缓存沿用 Hub 标准布局，已存在且可核验的文件（如权重）保持不动，核验失败的文件（如 0 字节配置）逐个修复；核验后写入记录，之后离线运行无需联网也不再重复计算哈希。
+- hcg 分词器、nodesem 的 CodeT5+/BGE 编码器和 Qwen GGUF 均改为从核验后的本地快照目录加载。`python -m hcg fetch` 同时下载并核验四个模型（`--no-models` 跳过；CI 使用该选项），`--diagnose-hub` 对比经代理与直连时 `HEAD`、Range GET、GET 返回的头部，用于判断改写长度的是代理、CDN 还是其他中间层。
+- 回归测试 `tests/hcg/test_models.py`（模拟 Hub，无需网络）：HEAD 长度为 0（支持/不支持 Range）、正常下载与离线复用、缓存中 0 字节配置的定点修复且权重不被重新请求或改动、网络失败、下载中断、内容错误、ETag 错误或缺失、文件选择规则、所有加载的模型均已登记且 ID/修订一致、transformers 从核验快照加载。
+
