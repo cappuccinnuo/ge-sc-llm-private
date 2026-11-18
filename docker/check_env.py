@@ -88,7 +88,8 @@ def dgl_kernels():
 def grammar():
     from hcg.cfg.builder import grammar_dir
     os.environ.setdefault("TREE_SITTER_LIB_DIR", str(grammar_dir()))
-    importlib.import_module("mando.graphs.tree_sitter_codeviews.tree_parser.custom_parser")
+    parser = importlib.import_module("mando.graphs.tree_sitter_codeviews.tree_parser.custom_parser")
+    parser._initialize_languages()  # compiles my-languages.so on first use, as `hcg build` does
     from dfg.analysis.frontend import parse
     tree = parse("pragma solidity ^0.4.24;\ncontract A { uint x; function f() public { x = 1; } }\n")
     return "%s, root=%s" % (os.environ["TREE_SITTER_LIB_DIR"], tree.root_node.type)
