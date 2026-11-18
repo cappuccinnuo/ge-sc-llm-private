@@ -1,0 +1,65 @@
+........................................................................ [ 10%]
+........................................................................ [ 20%]
+.............................F
+=================================== FAILURES ===================================
+__________________ test_cp24_equivalence_all_readable_inputs ___________________
+
+tmp_path = PosixPath('/tmp/cp3_production_v3/test_cp24_equivalence_all_read0')
+
+    def test_cp24_equivalence_all_readable_inputs(tmp_path):
+        old = cp23()
+        cp0 = read_checked_json(ROOT / "compile_repair/artifacts/cp0_v2/recon.json", CP0_SHA256)
+        addition = read_checked_json(
+            ROOT / "compile_repair/artifacts/cp0_1_compilers_v1/trusted_compilers_addition.json",
+            ADDITION_SHA256)
+        versions = sorted(set(cp0["compilers"]) | set(addition["compilers"]))
+        assert len(versions) == 96
+        assert sum((0, 4, 12) <= tuple(map(int, v.split("."))) < (0, 9, 0) for v in versions) == 92
+        records, excluded = [], []
+        sources = [(ROOT / row["path"], "mando", row) for row in cp0["inputs"]]
+        sources += [(p, "fixtures", None) for p in sorted(FIXTURES.rglob("*")) if p.is_file()]
+        for path, group, row in sources:
+            raw = path.read_bytes()
+            digest = hashlib.sha256(raw).hexdigest()
+            if row is not None:
+                assert digest == row["sha256"]
+            try:
+                previous = old.pragma_interval([raw])
+            except Unsupported as exc:
+                assert group == "fixtures"
+                excluded.append({"path": str(path.relative_to(ROOT)), "sha256": digest,
+                                 "exception_type": type(exc).__name__, "error": str(exc)})
+                continue
+            assert pragma_interval([raw]) == previous, str(path)
+            old_patches = old.pragma_patches(raw)
+            assert pragma_patches(raw) == old_patches, str(path)
+            known = row["metadata"]["version"] if row and row["metadata"] else None
+            regression = "mando" if row else None
+            plans = {}
+            for order in ("ascending", "descending"):
+                before = asdict(old.make_plan([raw], versions, known, regression, order))
+                after = asdict(make_plan([raw], versions, known, regression, order))
+                assert set(after) == {field.name for field in fields(EnvironmentPlan)}
+                assert after == before, (str(path), order)
+                plans[order] = after
+            records.append({"path": str(path.relative_to(ROOT)), "sha256": digest,
+                            "group": group, "interval": previous, "patches": old_patches,
+                            "plans": plans, "interval_equal": True, "patches_equal": True,
+                            "all_plan_fields_equal": True})
+        assert sum(r["group"] == "mando" for r in records) == 846
+>       assert {Path(r["path"]).name for r in excluded} == {
+            "comment_inside.sol", "line_comment_inside.sol", "missing_semicolon.sol", "union_pragma.sol"}
+E       AssertionError: assert {'comment_ins...ion.sol', ...} == {'comment_ins...n_pragma.sol'}
+E         Extra items in the left set:
+E         'swallowed_directive.sol'
+E         'unsupported_expression.sol'
+E         'conflicting_pragma.sol'
+E         'unterminated.sol'
+E         'union.sol'
+E         Use -v to get more diff
+
+compile_repair/tests/test_pragma_comments.py:89: AssertionError
+=========================== short test summary info ============================
+FAILED compile_repair/tests/test_pragma_comments.py::test_cp24_equivalence_all_readable_inputs
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 173 passed in 55.63s

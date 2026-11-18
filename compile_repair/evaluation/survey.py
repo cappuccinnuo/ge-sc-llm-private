@@ -633,3 +633,29 @@ def revalidate_cp0(output):
     write_json(output / "seal.json", {"schema": "compile-repair-cp0-1-seal-v1", "files": {
         p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.iterdir()) if p.is_file()}})
     return result
+
+def solidity_snippet_evidence(source):
+    """Classify input language lexically; retain malformed Solidity for solc.
+
+    Comments and string literals cannot claim a language. Recognizable pragma,
+    contract/interface/library or function declarations admit snippets, including
+    truncated declarations. Other text is reported separately, never repaired.
+    This conservative evidence rule is independent of compilation success.
+    """
+    from compile_repair.toolchain.solc import lexical_tokens
+    tokens = [(kind, raw) for _, _, kind, raw in lexical_tokens(source)]
+    for index, (kind, raw) in enumerate(tokens):
+        if kind != "word":
+            continue
+        rest = tokens[index + 1:index + 4]
+        if raw == b"pragma" and rest and rest[0][1] == b"solidity":
+            return {"is_solidity": True, "basis": "solidity_pragma", "token_index": index}
+        if raw in (b"contract", b"interface", b"library") and rest and rest[0][0] == "word":
+            if len(rest) == 1 or rest[1][1] in (b"{", b"is"):
+                return {"is_solidity": True, "basis": "solidity_declaration", "token_index": index}
+        if raw == b"function" and rest:
+            if rest[0][1] == b"(" or rest[0][0] == "word" and (
+                    len(rest) == 1 or rest[1][1] == b"("):
+                return {"is_solidity": True, "basis": "function_fragment", "token_index": index}
+    return {"is_solidity": False, "basis": "no_solidity_declaration_evidence",
+            "empty_or_comments_only": not tokens}

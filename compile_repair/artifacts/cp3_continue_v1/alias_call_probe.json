@@ -1,0 +1,769 @@
+{
+  "solc": {
+    "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+    "source_sha256": "59716ad0df7b719e503885c3141fec599e552310c332acc66daf6cb9eb057f8e",
+    "compiler": {
+      "version": "0.8.38",
+      "path": "/home/zhao/.solc-select/artifacts/solc-0.8.38/solc-0.8.38",
+      "sha256": "65c3180a336eabb6bdc4bbd49cc405aeb233976964ae6c11fba2a6c8be8f3243"
+    },
+    "command": [
+      "/home/zhao/.solc-select/artifacts/solc-0.8.38/solc-0.8.38",
+      "Main.sol",
+      "--combined-json",
+      "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+      "--allow-paths",
+      "."
+    ],
+    "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls",
+    "returncode": 0,
+    "error_first_line": null,
+    "stderr": "Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> Main.sol\n\nWarning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> A.sol\n\nWarning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing \"SPDX-License-Identifier: <SPDX-License>\" to each source file. Use \"SPDX-License-Identifier: UNLICENSED\" for non-open-source code. Please see https://spdx.org for more information.\n--> B.sol\n\nWarning: Function state mutability can be restricted to pure\n --> Main.sol:3:17:\n  |\n3 | contract Main { function useBoth(A a, B b) public view returns(uint) { return a.f()+b.f(); } }\n  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n",
+    "stdout_sha256": "73df4ec0f97ebd9608aaed8af5d46997b6901c82e2d1198cb364cdee9a23a3ff",
+    "elapsed_seconds": 0.006979700003284961,
+    "timed_out": false,
+    "cost_usd": 0.0,
+    "settings": []
+  },
+  "profile": {
+    "profile": "production",
+    "slither_version": "0.11.6",
+    "crytic_compile_version": "0.4.2"
+  },
+  "inputs": {
+    "root": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls",
+    "entry": "Main.sol",
+    "remappings": [],
+    "files": [
+      {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+        "sha256": "59716ad0df7b719e503885c3141fec599e552310c332acc66daf6cb9eb057f8e",
+        "bytes": 183
+      },
+      {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+        "sha256": "77bbe248c0fd29e61f798270f4dd5673ac12d3aab118f1af3cecc6d9f91af4aa",
+        "bytes": 92
+      },
+      {
+        "path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/B.sol",
+        "sha256": "6c3b6bc9664c787626f480b0a7bb4a17df06c3552fce1bd537c42bf11c278836",
+        "bytes": 92
+      }
+    ],
+    "source_units": [
+      [
+        "A.sol",
+        "A.sol"
+      ],
+      [
+        "B.sol",
+        "B.sol"
+      ],
+      [
+        "Main.sol",
+        "Main.sol"
+      ]
+    ],
+    "imports": [
+      {
+        "path": "./A.sol",
+        "literal_hex": "2e2f412e736f6c",
+        "start": 24,
+        "end": 55,
+        "literal_start": 45,
+        "literal_end": 54,
+        "line": 2,
+        "supported_literal": true,
+        "importer": "Main.sol",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+        "target_source_unit": "A.sol",
+        "resolved": true,
+        "target_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol"
+      },
+      {
+        "path": "./B.sol",
+        "literal_hex": "2e2f422e736f6c",
+        "start": 56,
+        "end": 87,
+        "literal_start": 77,
+        "literal_end": 86,
+        "line": 2,
+        "supported_literal": true,
+        "importer": "Main.sol",
+        "source_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+        "target_source_unit": "B.sol",
+        "resolved": true,
+        "target_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/B.sol"
+      }
+    ],
+    "issues": []
+  },
+  "uses_production_graph_serializer_for_native_observation": false,
+  "slither": {
+    "command": {
+      "target": "Main.sol",
+      "kwargs": {
+        "solc": "/home/zhao/.solc-select/artifacts/solc-0.8.38/solc-0.8.38",
+        "solc_disable_warnings": true,
+        "solc_working_dir": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls",
+        "solc_remaps": [],
+        "solc_args": "--allow-paths ."
+      }
+    },
+    "constructed": true,
+    "elapsed_seconds": 0.024797899997793138,
+    "api_subprocess_returncodes_observed": false,
+    "preceding_observed_solc_returncode": 0,
+    "cost_usd": 0,
+    "d3_a": true,
+    "d3_b": true
+  },
+  "native_contracts": [
+    {
+      "type": "Contract",
+      "name": "C",
+      "full_name": null,
+      "mapping": {
+        "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+        "start": 24,
+        "length": 67
+      },
+      "functions": [
+        {
+          "type": "FunctionContract",
+          "name": "f",
+          "full_name": "f()",
+          "mapping": {
+            "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+            "start": 37,
+            "length": 52
+          }
+        }
+      ]
+    },
+    {
+      "type": "Contract",
+      "name": "C",
+      "full_name": null,
+      "mapping": {
+        "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/B.sol",
+        "start": 24,
+        "length": 67
+      },
+      "functions": [
+        {
+          "type": "FunctionContract",
+          "name": "f",
+          "full_name": "f()",
+          "mapping": {
+            "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/B.sol",
+            "start": 37,
+            "length": 52
+          }
+        }
+      ]
+    },
+    {
+      "type": "Contract",
+      "name": "Main",
+      "full_name": null,
+      "mapping": {
+        "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+        "start": 88,
+        "length": 94
+      },
+      "functions": [
+        {
+          "type": "FunctionContract",
+          "name": "useBoth",
+          "full_name": "useBoth(C,C)",
+          "mapping": {
+            "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+            "start": 104,
+            "length": 76
+          }
+        }
+      ]
+    }
+  ],
+  "native_high_level_calls": [
+    {
+      "caller": {
+        "type": "FunctionContract",
+        "name": "useBoth",
+        "full_name": "useBoth(C,C)",
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+          "start": 104,
+          "length": 76
+        }
+      },
+      "node": {
+        "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+        "start": 159,
+        "length": 18
+      },
+      "ir": "TMP_0(uint256) = HIGH_LEVEL_CALL, dest:a(C), function:f, arguments:[]  ",
+      "destination": {
+        "type": "LocalVariable",
+        "name": "a",
+        "full_name": null,
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+          "start": 121,
+          "length": 3
+        }
+      },
+      "destination_type": {
+        "type": "Contract",
+        "name": "C",
+        "full_name": null,
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+          "start": 24,
+          "length": 67
+        }
+      },
+      "callee": {
+        "type": "FunctionContract",
+        "name": "f",
+        "full_name": "f()",
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+          "start": 37,
+          "length": 52
+        }
+      },
+      "callee_contract": {
+        "type": "Contract",
+        "name": "C",
+        "full_name": null,
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+          "start": 24,
+          "length": 67
+        }
+      }
+    },
+    {
+      "caller": {
+        "type": "FunctionContract",
+        "name": "useBoth",
+        "full_name": "useBoth(C,C)",
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+          "start": 104,
+          "length": 76
+        }
+      },
+      "node": {
+        "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+        "start": 159,
+        "length": 18
+      },
+      "ir": "TMP_1(uint256) = HIGH_LEVEL_CALL, dest:b(C), function:f, arguments:[]  ",
+      "destination": {
+        "type": "LocalVariable",
+        "name": "b",
+        "full_name": null,
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+          "start": 126,
+          "length": 3
+        }
+      },
+      "destination_type": {
+        "type": "Contract",
+        "name": "C",
+        "full_name": null,
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+          "start": 24,
+          "length": 67
+        }
+      },
+      "callee": {
+        "type": "FunctionContract",
+        "name": "f",
+        "full_name": "f()",
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+          "start": 37,
+          "length": 52
+        }
+      },
+      "callee_contract": {
+        "type": "Contract",
+        "name": "C",
+        "full_name": null,
+        "mapping": {
+          "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+          "start": 24,
+          "length": 67
+        }
+      }
+    }
+  ],
+  "compiler_ast_declarations_and_references": [
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+      "nodeType": "ContractDefinition",
+      "id": 37,
+      "name": "C",
+      "src": "24:67:0"
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/A.sol",
+      "nodeType": "VariableDeclaration",
+      "id": 31,
+      "name": "",
+      "src": "70:4:0",
+      "typeDescriptions": {
+        "typeIdentifier": "t_uint256",
+        "typeString": "uint256"
+      },
+      "typeName": {
+        "id": 30,
+        "name": "uint",
+        "nodeType": "ElementaryTypeName",
+        "src": "70:4:0",
+        "typeDescriptions": {
+          "typeIdentifier": "t_uint256",
+          "typeString": "uint256"
+        }
+      }
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/B.sol",
+      "nodeType": "ContractDefinition",
+      "id": 48,
+      "name": "C",
+      "src": "24:67:1"
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/B.sol",
+      "nodeType": "VariableDeclaration",
+      "id": 42,
+      "name": "",
+      "src": "70:4:1",
+      "typeDescriptions": {
+        "typeIdentifier": "t_uint256",
+        "typeString": "uint256"
+      },
+      "typeName": {
+        "id": 41,
+        "name": "uint",
+        "nodeType": "ElementaryTypeName",
+        "src": "70:4:1",
+        "typeDescriptions": {
+          "typeIdentifier": "t_uint256",
+          "typeString": "uint256"
+        }
+      }
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "Identifier",
+      "id": 2,
+      "name": "C",
+      "referencedDeclaration": 37,
+      "src": "32:1:2",
+      "typeDescriptions": {}
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "Identifier",
+      "id": 4,
+      "name": "C",
+      "referencedDeclaration": 48,
+      "src": "64:1:2",
+      "typeDescriptions": {}
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "ContractDefinition",
+      "id": 26,
+      "name": "Main",
+      "src": "88:94:2"
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "MemberAccess",
+      "id": 17,
+      "memberName": "f",
+      "referencedDeclaration": 36,
+      "src": "166:3:2",
+      "typeDescriptions": {
+        "typeIdentifier": "t_function_external_pure$__$returns$_t_uint256_$",
+        "typeString": "function () pure external returns (uint256)"
+      }
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "Identifier",
+      "id": 16,
+      "name": "a",
+      "referencedDeclaration": 8,
+      "src": "166:1:2",
+      "typeDescriptions": {
+        "typeIdentifier": "t_contract$_C_$37",
+        "typeString": "contract C"
+      }
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "MemberAccess",
+      "id": 20,
+      "memberName": "f",
+      "referencedDeclaration": 47,
+      "src": "172:3:2",
+      "typeDescriptions": {
+        "typeIdentifier": "t_function_external_pure$__$returns$_t_uint256_$",
+        "typeString": "function () pure external returns (uint256)"
+      }
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "Identifier",
+      "id": 19,
+      "name": "b",
+      "referencedDeclaration": 11,
+      "src": "172:1:2",
+      "typeDescriptions": {
+        "typeIdentifier": "t_contract$_C_$48",
+        "typeString": "contract C"
+      }
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "VariableDeclaration",
+      "id": 8,
+      "name": "a",
+      "src": "121:3:2",
+      "typeDescriptions": {
+        "typeIdentifier": "t_contract$_C_$37",
+        "typeString": "contract C"
+      },
+      "typeName": {
+        "id": 7,
+        "nodeType": "UserDefinedTypeName",
+        "pathNode": {
+          "id": 6,
+          "name": "A",
+          "nameLocations": [
+            "121:1:2"
+          ],
+          "nodeType": "IdentifierPath",
+          "referencedDeclaration": 37,
+          "src": "121:1:2"
+        },
+        "referencedDeclaration": 37,
+        "src": "121:1:2",
+        "typeDescriptions": {
+          "typeIdentifier": "t_contract$_C_$37",
+          "typeString": "contract C"
+        }
+      }
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "IdentifierPath",
+      "id": 6,
+      "name": "A",
+      "referencedDeclaration": 37,
+      "src": "121:1:2"
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "VariableDeclaration",
+      "id": 11,
+      "name": "b",
+      "src": "126:3:2",
+      "typeDescriptions": {
+        "typeIdentifier": "t_contract$_C_$48",
+        "typeString": "contract C"
+      },
+      "typeName": {
+        "id": 10,
+        "nodeType": "UserDefinedTypeName",
+        "pathNode": {
+          "id": 9,
+          "name": "B",
+          "nameLocations": [
+            "126:1:2"
+          ],
+          "nodeType": "IdentifierPath",
+          "referencedDeclaration": 48,
+          "src": "126:1:2"
+        },
+        "referencedDeclaration": 48,
+        "src": "126:1:2",
+        "typeDescriptions": {
+          "typeIdentifier": "t_contract$_C_$48",
+          "typeString": "contract C"
+        }
+      }
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "IdentifierPath",
+      "id": 9,
+      "name": "B",
+      "referencedDeclaration": 48,
+      "src": "126:1:2"
+    },
+    {
+      "filename": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_alias_calls/Main.sol",
+      "nodeType": "VariableDeclaration",
+      "id": 14,
+      "name": "",
+      "src": "151:4:2",
+      "typeDescriptions": {
+        "typeIdentifier": "t_uint256",
+        "typeString": "uint256"
+      },
+      "typeName": {
+        "id": 13,
+        "name": "uint",
+        "nodeType": "ElementaryTypeName",
+        "src": "151:4:2",
+        "typeDescriptions": {
+          "typeIdentifier": "t_uint256",
+          "typeString": "uint256"
+        }
+      }
+    }
+  ],
+  "serialized_project_graph": {
+    "schema": "compile-repair-project-graph-v1",
+    "declarations": [
+      {
+        "contract": "C",
+        "function": "f()",
+        "declaration_kind": "function",
+        "filename": "A.sol"
+      },
+      {
+        "contract": "C",
+        "function": "f()",
+        "declaration_kind": "function",
+        "filename": "B.sol"
+      },
+      {
+        "contract": "Main",
+        "function": "useBoth(C,C)",
+        "declaration_kind": "function",
+        "filename": "Main.sol"
+      }
+    ],
+    "nodes": [
+      {
+        "key5": [
+          "C",
+          "f()",
+          "ENTRYPOINT",
+          76,
+          1
+        ],
+        "node_type": "ENTRYPOINT",
+        "length": 13,
+        "ir": [],
+        "declaration_kind": "function",
+        "filename": "A.sol"
+      },
+      {
+        "key5": [
+          "C",
+          "f()",
+          "RETURN",
+          78,
+          1
+        ],
+        "node_type": "RETURN",
+        "length": 8,
+        "ir": [
+          "RETURN 1"
+        ],
+        "declaration_kind": "function",
+        "filename": "A.sol"
+      },
+      {
+        "key5": [
+          "C",
+          "f()",
+          "ENTRYPOINT",
+          76,
+          1
+        ],
+        "node_type": "ENTRYPOINT",
+        "length": 13,
+        "ir": [],
+        "declaration_kind": "function",
+        "filename": "B.sol"
+      },
+      {
+        "key5": [
+          "C",
+          "f()",
+          "RETURN",
+          78,
+          1
+        ],
+        "node_type": "RETURN",
+        "length": 8,
+        "ir": [
+          "RETURN 2"
+        ],
+        "declaration_kind": "function",
+        "filename": "B.sol"
+      },
+      {
+        "key5": [
+          "Main",
+          "useBoth(C,C)",
+          "ENTRYPOINT",
+          157,
+          1
+        ],
+        "node_type": "ENTRYPOINT",
+        "length": 23,
+        "ir": [],
+        "declaration_kind": "function",
+        "filename": "Main.sol"
+      },
+      {
+        "key5": [
+          "Main",
+          "useBoth(C,C)",
+          "RETURN",
+          159,
+          1
+        ],
+        "node_type": "RETURN",
+        "length": 18,
+        "ir": [
+          "TMP_0(uint256) = HIGH_LEVEL_CALL, dest:a(C), function:f, arguments:[]  ",
+          "TMP_1(uint256) = HIGH_LEVEL_CALL, dest:b(C), function:f, arguments:[]  ",
+          "TMP_2(uint256) = TMP_0 (c)+ TMP_1",
+          "RETURN TMP_2"
+        ],
+        "declaration_kind": "function",
+        "filename": "Main.sol"
+      }
+    ],
+    "cfg_edges": [
+      {
+        "source": {
+          "filename": "A.sol",
+          "key5": [
+            "C",
+            "f()",
+            "ENTRYPOINT",
+            76,
+            1
+          ]
+        },
+        "target": {
+          "filename": "A.sol",
+          "key5": [
+            "C",
+            "f()",
+            "RETURN",
+            78,
+            1
+          ]
+        },
+        "kind": "next"
+      },
+      {
+        "source": {
+          "filename": "B.sol",
+          "key5": [
+            "C",
+            "f()",
+            "ENTRYPOINT",
+            76,
+            1
+          ]
+        },
+        "target": {
+          "filename": "B.sol",
+          "key5": [
+            "C",
+            "f()",
+            "RETURN",
+            78,
+            1
+          ]
+        },
+        "kind": "next"
+      },
+      {
+        "source": {
+          "filename": "Main.sol",
+          "key5": [
+            "Main",
+            "useBoth(C,C)",
+            "ENTRYPOINT",
+            157,
+            1
+          ]
+        },
+        "target": {
+          "filename": "Main.sol",
+          "key5": [
+            "Main",
+            "useBoth(C,C)",
+            "RETURN",
+            159,
+            1
+          ]
+        },
+        "kind": "next"
+      }
+    ],
+    "calls": [
+      {
+        "node": {
+          "filename": "Main.sol",
+          "key5": [
+            "Main",
+            "useBoth(C,C)",
+            "RETURN",
+            159,
+            1
+          ]
+        },
+        "ir_index": 0,
+        "kind": "high-level",
+        "operation": "HighLevelCall",
+        "callee": {
+          "contract": "C",
+          "function": "f()",
+          "filename": "A.sol"
+        }
+      },
+      {
+        "node": {
+          "filename": "Main.sol",
+          "key5": [
+            "Main",
+            "useBoth(C,C)",
+            "RETURN",
+            159,
+            1
+          ]
+        },
+        "ir_index": 1,
+        "kind": "high-level",
+        "operation": "HighLevelCall",
+        "callee": {
+          "contract": "C",
+          "function": "f()",
+          "filename": "A.sol"
+        }
+      }
+    ]
+  }
+}

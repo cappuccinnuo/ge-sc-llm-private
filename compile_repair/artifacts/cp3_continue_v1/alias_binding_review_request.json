@@ -1,0 +1,57 @@
+{
+  "status": "awaiting_user_decision",
+  "date": "2026-11-17",
+  "author": "Codex",
+  "evidence": "alias_call_probe.json",
+  "evidence_sha256": "47095840160b431bc9494b67f010c9af9ad11406f6b7444cc39e06fab472789f",
+  "native_tool_version": {
+    "slither": "0.11.6",
+    "crytic_compile": "0.4.2",
+    "solc": "0.8.38"
+  },
+  "facts": {
+    "solc_returncode": 0,
+    "d3_a": true,
+    "d3_b": true,
+    "compiler_ast_expected": {
+      "a": "A.sol ContractDefinition id 37",
+      "b": "B.sol ContractDefinition id 48"
+    },
+    "native_slither_actual": {
+      "a": "A.sol C",
+      "b": "A.sol C"
+    },
+    "native_high_level_call_targets": [
+      "A.sol C.f()",
+      "A.sol C.f()"
+    ],
+    "root_cause_scope": "Native Slither contract-type binding, observed before graph_facts serialization; project filename namespace alone cannot correct this."
+  },
+  "installed_source_evidence": {
+    "path": "/home/zhao/miniconda3/envs/compile-repair-production/lib/python3.10/site-packages/slither/solc_parsing/solidity_types/type_parsing.py",
+    "sha256": "4fa51359aa2066a8e4328b2f58489cc6f6efb2f5d15f4fd6c93838d34e0f5047",
+    "function": "_find_from_type_name",
+    "lines": [
+      63,
+      68
+    ],
+    "observation": "Name-based first-match lookup among contracts; observed AST declaration identity is lost for same-named imported contracts."
+  },
+  "recommended": {
+    "scope": "Add a narrow project-only AST/Slither binding consistency acceptance check in toolchain/slither.py and matching pipeline/report handling; no package changes, source rewrites, installs or downloads.",
+    "check": "Use saved compiler AST declaration IDs and byte/file positions to compare directly declared contract-typed variables against their native Slither contract type. Cover compact and legacy AST. Explicitly report mismatch or inability to validate; do not guess a target.",
+    "result": "Keep original D3(a/b) measurements. A binding mismatch is a separately named project graph rejection / Slither tool limitation; do not publish a usable graph or success for that attempt. Continue only the existing allowed compiler candidates. Retain raw diagnostics.",
+    "compatibility": "Single-file and regression_6c paths and all old artifacts unchanged. Approved file-plus-key5 namespace remains.",
+    "validation": "Known alias fixture must be rejected with exact expected/actual file binding; ordinary project and single-file regressions pass; no deduplication or semantic source rewrite.",
+    "existing_results": "Preserve the interrupted segment and completed pilot. Re-evaluate affected project attempts in a fresh batch after approval; keep single-file observations and unaffected records only after identity/implementation review."
+  },
+  "alternative": "Keep current D3 and implementation unchanged, document the upstream limitation, and leave project acceptance/full CP3 paused for a later plan revision.",
+  "approval_basis": [
+    "User requires consultation before proposal changes",
+    "PROMPTS 4.1 requires stopping when evidence affects the plan",
+    "This adds an acceptance condition beyond current D3(a/b), so it is not covered solely by file-plus-key5 approval."
+  ],
+  "not_implemented": true,
+  "automatic_retry": false,
+  "cost_usd": 0
+}

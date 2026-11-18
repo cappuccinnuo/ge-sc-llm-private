@@ -84,10 +84,10 @@ def test_pragma_override_work_copy_is_auditable(tmp_path):
     assert nodes[0]['provenance']=='rewritten'
 
 
-def test_directory_cli_nonzero_and_no_output(tmp_path, capsys):
+def test_empty_directory_cli_nonzero_and_no_output(tmp_path, capsys):
     with pytest.raises(SystemExit) as failure:
         main(['repair',str(tmp_path),'--output',str(tmp_path/'output')])
-    assert failure.value.code!=0 and '暂不支持' in capsys.readouterr().err
+    assert failure.value.code!=0 and 'contains no .sol' in capsys.readouterr().err
     assert not (tmp_path/'output').exists()
 
 

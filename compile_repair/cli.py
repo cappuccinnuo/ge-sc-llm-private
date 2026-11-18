@@ -18,9 +18,10 @@ def main(argv=None, result_check=None):
     cp0.add_argument("--trusted-addition", type=Path, action="append", default=[])
     cp01 = sub.add_parser("revalidate-cp0", help="CP0.1 A3 replay of fixed CP0 versions")
     cp01.add_argument("--output", type=Path, required=True)
-    cp1 = sub.add_parser("repair", help="Repair single files or snippets with production Slither")
+    cp1 = sub.add_parser("repair", help="Repair files, snippets or projects with production Slither")
     cp1.add_argument("paths", type=Path, nargs="*")
     cp1.add_argument("--snippet", type=Path, action="append", default=[])
+    cp1.add_argument("--remapping", action="append", default=[])
     cp1.add_argument("--known-version")
     cp1.add_argument("--output", type=Path, required=True)
     cp1.add_argument("--order", choices=("ascending", "descending"), default="ascending")
@@ -29,7 +30,7 @@ def main(argv=None, result_check=None):
     if args.command == "repair":
         try:
             result = repair(args.paths, args.output, args.snippet, args.known_version, args.order, args.regression,
-                            result_check=result_check)
+                            result_check=result_check, remappings=args.remapping)
         except (ValueError, OSError) as exc:
             parser.error(str(exc))
     elif args.command == "survey":

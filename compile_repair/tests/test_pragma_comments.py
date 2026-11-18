@@ -87,7 +87,11 @@ def test_cp24_equivalence_all_readable_inputs(tmp_path):
                         "all_plan_fields_equal": True})
     assert sum(r["group"] == "mando" for r in records) == 846
     assert {Path(r["path"]).name for r in excluded} == {
-        "comment_inside.sol", "line_comment_inside.sol", "missing_semicolon.sol", "union_pragma.sol"}
+        "comment_inside.sol", "line_comment_inside.sol", "missing_semicolon.sol", "union_pragma.sol",
+        # CP3 adds explicit negative constraint fixtures; all readable inputs
+        # above still undergo exact old/new interval, patch and plan checks.
+        "swallowed_directive.sol", "unsupported_expression.sol", "conflicting_pragma.sol",
+        "unterminated.sol", "union.sol"}
     evidence = {"reference_sha256": REFERENCE_SHA, "compiler_versions": versions,
                 "plan_fields": [f.name for f in fields(EnvironmentPlan)],
                 "records": records, "excluded": excluded}

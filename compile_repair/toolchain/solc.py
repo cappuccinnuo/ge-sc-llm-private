@@ -247,3 +247,257 @@ def load_trusted_compilers():
         verify_binary(compiler)
     return compilers, cp0["inputs"], {"base": {"path": str(base), "sha256": CP0_SHA256},
                                    "additions": additions}
+
+
+# CP3 diagnostics: CLI stderr is authoritative. Standard JSON types/error codes
+# are supplementary probe evidence, never the compilation route (PROMPTS 4.5).
+_LEXICAL = re.compile(
+    rb'(?P<comment>//[^\r\n]*|/\*[\s\S]*?(?:\*/|$))'
+    rb'|(?P<string>"(?:\\[\s\S]|[^"\\])*"|\'(?:\\[\s\S]|[^\'\\])*\')'
+    rb'|(?P<word>[A-Za-z_$][A-Za-z0-9_$]*)|(?P<symbol>[^\s])')
+_DIAGNOSTIC = re.compile(
+    r'^(?:(?P<file>.*):(?P<line>\d+):(?P<column>\d+):\s*)?'
+    r'(?P<kind>[A-Za-z]+Error|Error|Warning|Compiler error|Internal compiler error|'
+    r'Unimplemented feature|Fatal error|Exception)'
+    r'(?:\s+\([^)]*\))?:\s*(?P<message>.*)$')
+_LOCATION = re.compile(r'^\s*-->[ \t]+(?P<file>.*?):(?P<line>\d+):(?P<column>\d+):?\s*$')
+
+
+def lexical_tokens(source):
+    """Yield byte-positioned words, literals and punctuation, excluding comments.
+
+    This is lexical evidence only, not a Solidity parser or version evaluator.
+    Byte offsets survive invalid UTF-8 and comments containing fake directives.
+    """
+    for match in _LEXICAL.finditer(source):
+        if match.lastgroup != "comment":
+            yield match.start(), match.end(), match.lastgroup, match.group()
+
+
+def diagnostic_template(message):
+    """Normalize variable values for statistics while preserving token wording."""
+    text = re.sub(r'"[^"\n]*"', '"<value>"', message)
+    text = re.sub(r'\b0x[0-9a-fA-F]+\b', '<hex>', text)
+    text = re.sub(r'\b\d+\.\d+\.\d+(?:\+[A-Za-z0-9.+-]+)?', '<version>', text)
+    text = re.sub(r'\b(int_const|rational_const) [0-9]+', r'\1 <number>', text)
+    return " ".join(text.split())
+
+
+def parse_diagnostics(stderr):
+    """Parse old/new CLI diagnostics, retaining absent locations and all errors.
+
+    Error types are not invented: Error remains Error. Source excerpts and
+    secondary Note locations cannot replace the primary diagnostic location.
+    """
+    records, current, primary_location = [], None, False
+    for line in stderr.splitlines():
+        found = _DIAGNOSTIC.match(line)
+        if found:
+            data = found.groupdict()
+            current = {"kind": data["kind"], "message": data["message"],
+                       "filename": data["file"],
+                       "line": int(data["line"]) if data["line"] else None,
+                       "column": int(data["column"]) if data["column"] else None,
+                       "location_format": "legacy" if data["line"] else "absent",
+                       "error_code": None}
+            records.append(current)
+            primary_location = False
+        elif current is not None:
+            location = _LOCATION.match(line)
+            if location and not primary_location and current["line"] is None:
+                data = location.groupdict()
+                current.update(filename=data["file"], line=int(data["line"]),
+                               column=int(data["column"]), location_format="modern")
+                primary_location = True
+            elif line.lstrip().startswith("Note:"):
+                primary_location = True
+            elif line.startswith("std::exception::what:"):
+                current["message"] += " " + line
+    if not records and stderr.strip():
+        records.append({"kind": "unknown", "message": error_first_line(stderr),
+                        "filename": None, "line": None, "column": None,
+                        "location_format": "absent", "error_code": None})
+    for row in records:
+        row["template"] = diagnostic_template(row["message"] or "")
+    return records
+
+
+def _diagnostic_offset(diagnostic, source):
+    lines = source.splitlines(keepends=True)
+    row, column = diagnostic.get("line"), diagnostic.get("column")
+    if row is None or column is None or not 1 <= row <= len(lines):
+        return None
+    return sum(len(line) for line in lines[:row - 1]) + column - 1
+
+
+def _in_base_list(diagnostic, source):
+    offset = _diagnostic_offset(diagnostic, source)
+    if offset is None:
+        return False
+    header, start, depth = [], None, 0
+    for lo, _, kind, token in lexical_tokens(source):
+        if depth == 0 and token in (b"contract", b"interface"):
+            start, header = lo, []
+        if start is not None:
+            header.append(token)
+        if token == b"{":
+            if start is not None and start <= offset < lo:
+                return b"is" in header
+            start = None
+            depth += 1
+        elif token == b"}":
+            depth = max(0, depth - 1)
+    return False
+
+
+def _unbalanced(source):
+    stack = []
+    pairs = {b"}": b"{", b")": b"(", b"]": b"["}
+    for _, _, kind, token in lexical_tokens(source):
+        if kind == "string":
+            continue
+        if token in pairs.values():
+            stack.append(token)
+        elif token in pairs:
+            if not stack or stack.pop() != pairs[token]:
+                return True
+    return bool(stack)
+
+
+def _import_at(diagnostic, source):
+    offset = _diagnostic_offset(diagnostic, source)
+    start, literals = None, []
+    for lo, hi, kind, token in lexical_tokens(source):
+        if token == b"import":
+            start, literals = lo, []
+        elif start is not None and kind == "string":
+            literals.append(token[1:-1].decode("latin1"))
+        elif start is not None and token == b";":
+            if offset is not None and start <= offset < hi and len(literals) == 1:
+                return literals[0]
+            start = None
+    return None
+
+
+def classify_diagnostic(diagnostic, source=b""):
+    """Classify one actual CLI message using text and its located source bytes.
+
+    Return an explicit category/template. Unmatched errors remain other; a
+    structural heuristic only refines a parser diagnostic, never valid source.
+    """
+    message, kind = diagnostic.get("message") or "", diagnostic.get("kind")
+    low = message.lower()
+    exact = {"JSONError": "json_error", "IOError": "io_error",
+             "InternalCompilerError": "internal_compiler_error",
+             "Exception": "compiler_exception", "FatalError": "fatal_error",
+             "DocstringParsingError": "docstring_error"}
+    if kind == "Warning":
+        category = "warning"
+    elif "stack too deep" in low:
+        category = "codegen_only"
+    elif kind in exact:
+        category = exact[kind]
+    elif kind == "Internal compiler error" or "internalcompilererror" in low:
+        category = "internal_compiler_error"
+    elif kind == "Fatal error":
+        category = "fatal_error"
+    elif kind == "Unimplemented feature" or "not yet supported" in low or kind == "UnimplementedFeatureError":
+        category = "unimplemented_feature"
+    elif re.search(r'\bsource ".+?" not found', message, re.I):
+        name = _import_at(diagnostic, source)
+        category = ("missing_relative_file" if name.startswith(("./", "../")) else
+                    "io_error" if name.startswith(("/", "file:", "http:", "https:")) else
+                    "unresolved_package_import") if name else "io_error"
+    elif re.search(r"file.*(?:not found|outside of allowed|permission)|cannot (?:open|read)", low):
+        category = "io_error"
+    elif "multiple spdx" in low or "already been selected" in low or "duplicate pragma" in low:
+        category = "multiple_license_or_pragma"
+    elif "already declared" in low or "defined twice" in low or "duplicate definition" in low:
+        category = "duplicate_definition"
+    elif "identifier not found or not unique" in low and _in_base_list(diagnostic, source):
+        category = "missing_base_contract"
+    elif "undeclared identifier" in low or "identifier not found" in low or "not found or not unique" in low:
+        category = "undeclared_identifier"
+    elif "documented parameter" in low or "documentation tag" in low or kind == "DocstringParsingError":
+        category = "docstring_error"
+    elif re.search(r"invalid (?:utf|character|escape)|unicode|invalid token", low):
+        category = "encoding"
+    elif re.search(r"^(?:expected |unexpected )|end of source", low) or kind == "ParserError":
+        delimiter = "end of source" in low or "expected token semicolon" in low or "expected ';'" in low
+        category = "unbalanced_structure" if delimiter or _unbalanced(source) else "parser_error_other"
+    elif "has to be in a" in low or "visibility" in low and "specified" in low or kind == "SyntaxError":
+        category = "syntax_error"
+    elif re.search(r"not (?:implicitly )?convertible|wrong argument count|invalid type|"
+                   r"member .+ not found|data location|type .* is not|operator .* not compatible|"
+                   r"invalid implicit conversion|different number of components|"
+                   r"trying to override|override|virtual", low) or kind == "TypeError":
+        category = "type_error_other"
+    elif kind == "DeclarationError":
+        category = "declaration_error"
+    else:
+        category = "other"
+    return dict(diagnostic, category=category,
+                failure=category != "warning", template=diagnostic_template(message))
+
+
+def pragma_evidence(source):
+    """Locate original top-level Solidity expression bytes for rejected plans.
+
+    Never evaluate or widen intervals here. Original spelling and hex bytes are
+    retained because a missing semicolon can swallow the following directive.
+    """
+    tokens = list(lexical_tokens(source))
+    depth, rows = 0, []
+    for i, (start, end, kind, token) in enumerate(tokens):
+        if token == b"{":
+            depth += 1
+        elif token == b"}":
+            depth = max(0, depth - 1)
+        elif depth == 0 and token == b"pragma" and i + 1 < len(tokens) and tokens[i + 1][3] == b"solidity":
+            begin, stop, words, terminated = tokens[i + 1][1], len(source), [], False
+            for lo, hi, k, t in tokens[i + 2:]:
+                if t in (b";", b"{", b"}"):
+                    stop, terminated = lo, t == b";"
+                    break
+                if k != "string":
+                    words.append(t)
+            raw = source[begin:stop]
+            rows.append({"start": begin, "end": stop, "expression": raw.decode("latin1"),
+                         "expression_hex": raw.hex(), "tokens": b" ".join(words).decode("latin1"),
+                         "terminated": terminated})
+    return rows
+
+
+def classify_constraints(message, sources):
+    """Subdivide unchanged Unsupported outcomes, retaining expression evidence."""
+    evidence = [dict(row, source_index=i) for i, raw in enumerate(sources)
+                for row in pragma_evidence(raw)]
+    if "unterminated pragma" in message:
+        category, subtype = "unterminated_pragma", "source_syntax"
+    elif "empty pragma intersection" in message:
+        category = "closure_version_conflict"
+        subtype = "compilation_unit" if "across compilation unit" in message else "single_file"
+    elif any(re.search(r"\b(import|pragma|contract|interface|library|abstract)\b", r["tokens"]) for r in evidence):
+        category, subtype = "pragma_missing_semicolon_candidate", "source_syntax"
+    elif any("| |" in r["tokens"] for r in evidence):
+        category, subtype = "unsupported_disjunction", "tool_limitation"
+    else:
+        category, subtype = "unsupported_expression", "unparsed_constraint"
+    return {"category": category, "subtype": subtype, "error_first_line": message,
+            "pragma_evidence": evidence}
+
+
+def classify_slither(analysis, sources=()):
+    """Separate tool failures from source errors without rewriting legal code."""
+    exception = analysis.get("exception_type")
+    candidates = []
+    if exception == "AssertionError" and analysis.get("version") in ("0.4.24", "0.4.25", "0.4.26"):
+        for i, raw in enumerate(sources):
+            code = b" ".join(t for _, _, kind, t in lexical_tokens(raw) if kind != "string")
+            if re.search(rb"\( bool [A-Za-z_$][A-Za-z0-9_$]* , \) = .+?\. call \. value \(", code):
+                candidates.append(i)
+    return {"category": "slither_incomplete", "subtype": exception or "d3_incomplete",
+            "error_template": diagnostic_template(analysis.get("error_first_line") or ""),
+            "repair_route": "tuple_call_equivalence_candidate" if candidates else "tool_limitation",
+            "candidate_source_indexes": candidates,
+            "equivalence_must_be_verified_before_rewrite": bool(candidates)}

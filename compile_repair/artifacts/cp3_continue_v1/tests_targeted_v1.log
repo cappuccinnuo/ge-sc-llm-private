@@ -1,0 +1,14 @@
+.............................................F.......................... [ 74%]
+.........................                                                [100%]
+=================================== FAILURES ===================================
+___________ test_located_base_is_not_an_arbitrary_missing_identifier ___________
+
+    def test_located_base_is_not_an_arbitrary_missing_identifier():
+        raw = (F/"missing_base.sol").read_bytes()
+>       offset = raw.index(b"Absent")
+E       ValueError: subsection not found
+
+compile_repair/tests/test_diagnostics.py:70: ValueError
+=========================== short test summary info ============================
+FAILED compile_repair/tests/test_diagnostics.py::test_located_base_is_not_an_arbitrary_missing_identifier
+1 failed, 96 passed in 20.58s

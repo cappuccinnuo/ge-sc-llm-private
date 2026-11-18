@@ -1587,3 +1587,110 @@ DAppSCAN的summary、首版本文本系列、import前25项和608项目明细与
 
 
 交付终检补记（修改 AI：Codex）：七份 doc_check_delivery_v1 全部通过；本条补记后再次检查的最终文档哈希见 cp3_delivery_v1/doc_check_final_invocation.json。四份原始工具日志按精确路径保留并豁免空白检查，其余文件检查通过；编译验收和 SOChecker 待确认状态均未改变。
+
+## 31. 2026-11-17 CompileRepair CP3 续做：项目管线与原生调用绑定缺口（修改 AI：Codex）
+
+### 31.1 任务、依据与范围
+
+本轮是用户批准结构差异后的同一 CP3 任务继续，分支 compile-repair，起点 dc6c5fb44041e1023daef1bfd7d9760f534c7f0a。遵循已读 PROMPTS r2.13 全文、§4.1/§4.5、HANDOVER 0–5、DECISIONS、既有 CHANGE_LOG 与 CP3 授权清单；此前任务已 pull，本轮无重复拉取。旧 CP0–CP2.4 和 cp3_preflight_v1/cp3_v1/cp3_delivery_v1 保持只读。
+
+新增生产文件 toolchain/project.py、evaluation/report.py；修改 toolchain/solc.py、toolchain/slither.py、pipeline.py、cli.py、evaluation/survey.py；测试新增 test_diagnostics.py、test_project.py、test_cp3_report.py 与 cp3_diagnostics/cp3_alias/cp3_alias_calls，调整 test_pipeline.py、test_cp1_1.py、test_pragma_comments.py。文档更新 CP3_REPORT、PROGRESS、HANDOVER、DECISIONS 和本节；证据全部在新批次 cp3_continue_v1。旧规则、core、scripts、原作者代码、根交接/训练文件和原语料未修改。
+
+### 31.2 实施方式和重要选择
+
+stderr 分类使用消息与实际位置，standard JSON 只用于类型/errorCode辅助探针。项目闭包只读取批准项目内的文件，不执行构建脚本、不补库、不用 basename 候选自动替换；CLI 与 Slither 共用相对入口、cwd、remaps、allow-paths。统一 repair_unit 复用原 make_plan、ordered_candidates、settings_retry、apply_patches/verify_provenance；没有复制或修改冻结版本策略。项目文件身份经批准后加入外层命名空间，单文件行为通过旧测试验证。
+
+片段语言检测只作词法证据判断，统计按单元与类别去重，保留零观察类别和 other 模板。源码、批量图和原始stderr留仓库外；Git只收身份和统计。DAppSCAN项目口径保持608个根，不能用更深层682个子目录替代。
+
+开发问题包括：类型消息中的expected type误匹配parser，修为行首模式；导入名改为UTF-8解码；手写Missing测试误引用Absent已修正；旧搬迁测试两处14模块假设更新为16且核对完整清单；旧pragma测试只增加五个已知不支持负向夹具，846输入与可读夹具的精确等价标准不变。一次工具脚本字符串引用失败没有执行写入，修正后运行；旧报告路径误写docs/后按实际根路径读取。失败日志均保留。新的原生类型错绑没有自行修复或转成跳过。
+
+### 31.3 实测与数据结论
+
+taxonomy_verified保留29类和125条breaking changes，记录30个观察模板。诊断探针548次combined-json、84次standard JSON、6组tuple前提；92版格式切换0.6.0，重复相同SPDX MIT从0.8.8拒绝，重复相同Solidity pragma均接受。codegen探针12次compiler/2次Slither，0.8.38的via-ir+optimizer通过所测Stack too deep夹具D3；未加入生产设置重试。
+
+输入清单31,307条，SOChecker236条无声明证据单列，31,071条进入完整序列；29,611取得文件的SHA核验完成。首段120条47.744秒正常结束；加权估计全量2.415小时，未抽样。后段752条后受控中断，rc=-2、304.657秒；另cp3_30208有9条记录调用。872完整单元临时结果为599旧D3成功/273失败、11,900次solc/599次Slither，冻结parse失败而新读取成功92；逐类数量、比例、SHA示例及7个other模板见partial_failure_summary。中断现场200,545,035字节已有哈希清单，不能当正常封存或最终统计。
+
+alias_call_probe中compiler AST的a/b分别指向A.sol id37、B.sol id48，Slither0.11.6原生类型对象和调用都落在A.sol；原D3(a/b)同时通过。证据不依赖本模块图序列化，说明现有D3不能保证这类调用目标正确。未证明所有同名合约均出错，也未用语料频率决定是否处理。
+
+### 31.4 用户批准、原文差异与待确认设计
+
+用户2026-11-17原话“同意，继续使用原定897条（推荐）”，对应authorization.json中保留的精确原文（含空格）；只接受附属846严格子集差异，不合并或重下载。随后原话“批准项目图使用文件名 + key5（推荐）”，对应project_identity_authorization；这是有证据、有授权的D4项目身份扩展，已实施并记录。
+
+待确认仅为alias_binding_review_request：增加项目AST/Slither类型绑定接受检查，保留D3事实，错绑或无法验证拒绝可用图输出、记工具限制；不改Slither安装或合法源码。该条件超出现有D3及文件名+key5批准范围，已按§4.1询问并停止。||并集、Slither子进程超时、codegen设置候选和tuple语义等价改写留后续CP，均未实现。
+
+### 31.5 验收、资源、未执行事项与停止
+
+生产完整套件v4为714 passed/6 skipped，mando268 passed/452 skipped，DFG2653 passed/9既有warnings；驱动耗时分别69.246、22.342、164.070秒，命令与rc见pytest收据。定向v2为110passed；随后项目补充验收24passed/1failed，真实类型错绑仍未通过，不能将旧完整测试通过当作当前全部验收通过。doc_check和冻结审计在本节后续补记记录实际结果。
+
+全量已停止，无自动重试。最终全量分类和CP3结束验收未完成。当前新增测试未通过，不满足PROMPTS“全部通过后提交”，本批次暂不提交、未push。没有下载、安装、升级、LLM、HGT训练、GPU锁或全局solc变更，CPU、0美元。若用户批准新检查，应先完成并验收，再用新批次处理受影响项目与中断/未执行单元；旧现场只读保留。
+
+
+交付检查补记（2026-11-17，修改 AI：Codex）：六份 doc_check_v1 全部通过；frozen_audit 检查28,908份保护跟踪文件、25,828份旧封存文件、354项code refs、96份编译器文件、production/mando的145/118份环境元数据、29,611份语料和10份文档，均未变化。生产文件16个，历史文档字节段保留。tracked git diff --check通过，新增代码/文档无空白问题；仅322份逐一列明且SHA固定的原始工具输出保留其原空白，见whitespace_review，不豁免代码或验收项。本条追加后的最终doc_check收据为doc_check_final_invocation.json。上述记录和范围检查不代表新增绑定测试通过；24passed/1failed与待确认状态保持，本批次未提交、未push。
+
+
+测量边界补记（修改 AI：Codex）：另有三次交互式诊断检查和一次初始项目 smoke check 未保留完整逐调用耗时/输出哈希；exploratory_observations.json 明确以 null 标示缺项，不混入正式548/84诊断矩阵及前提验收计数。development_issues.json登记了全部实质问题与解决或停止方法。新增绑定检查仍待确认，失败测试状态未变。
+
+## 32. 2026-11-17 CompileRepair CP3 续：项目绑定检查与全量恢复（修改 AI：Codex）
+
+### 32.1 任务、依据与范围
+
+收到用户“批准项目图绑定检查（推荐）”后继续同一CP3任务。PROMPTS r2.13 SHA保持f1505a4c623dc91174dfd61910870f94d73acf3e45e3c4364e81cbacbad92c83；分支compile-repair、HEAD dc6c5fb4。获批请求见旧alias_binding_review_request，新授权、基线与所有本次证据写cp3_binding_v1。旧cp3_continue_v1的seal与762成员全部核对，旧现场不修改。没有重新pull或push。
+
+### 32.2 实施方式、问题与处理
+
+生产只在slither.py新增直接合约类型检查，并调整pipeline.py成功条件和evaluation/report.py归类。按每个编译单元的AST引用ID找ContractDefinition，再用文件和字节起点核对原生类型，不按名称猜测。覆盖状态变量、参数、返回值、局部变量、结构字段、事件与自定义错误参数；数组/映射/表达式/函数类型内部不属于本次直接类型检查。旧/新AST形态均支持；缺失、歧义或无法核验会拒绝。保留D3(a/b)事实，项目graph_usable另行判定，拒绝时不保存成功图；继续既有候选版本，不改策略或安装包。
+
+旧失败测试按获批门槛改成精确拒绝断言：b应指B.sol而原生为A.sol，D3仍true但没有graph.json。新增四版本正例核对七条声明及A/B两条调用；合成新旧AST缺失原生变量/AST用例验证拒绝。检查函数型参数时发现其内部声明不属于直接变量容器，遍历显式止于FunctionTypeName，避免扩大检查范围；图节点及原序号不去重。一次只读记录路径误写docs外已按实际路径纠正，没有文件改动；Windows直接UNC读取被权限层拒绝后沿用已授权WSL访问。
+
+### 32.3 实测与续跑口径
+
+手写合法项目0.4.12与0.8.38均solc rc0、原生对象位置可核对，完整记录在binding_api_inspection。定向32passed，完整production723passed/6skipped（82.98秒pytest；83.296秒包装器）。mando及DFG检查进行中，最终结果后补。
+
+continuation_plan逐文件核对旧两段4,716份保存证据，872条完成记录与原序列前缀全同。343条项目全部新批次重验；529条单文件按原SHA复用，单文件成功体AST未改。余下30,199条从原第873条cp3_30208继续，原中断的9次编译单列保留，不伪造原段正常完成。
+
+### 32.4 授权、方案差异与限制
+
+本轮调整就是用户刚批准的额外项目图接受检查，无其他替代方案。D3不改写为false来掩盖错绑，工具限制不交代理改写合法源码。检查只是已知直接类型绑定的有限验证，不保证所有表达式、IR或嵌套类型语义。旧文件名+key5授权保持；源码、Slither安装与全局solc保持不动。
+
+### 32.5 验收、资源与当前状态
+
+全量完成统计、D6/CP4结论与最终保护审计待续跑后记录。本轮截至本段无下载、安装、LLM、HGT、GPU锁、全局solc或网络设置更改，费用0美元。测试/运行使用已批准production，兼容性/DFG用mando；CPU参数与原批次相同。全部强制记录与验收通过后本地提交，不自动push。
+
+
+32.3/32.5 阶段状态补记（修改 AI：Codex）：三套完整v1回归均已完成，production723passed/6skipped，mando271/458，DFG2653passed/9既有warnings，退出码均0；包装器耗时分别83.296、21.607、153.925秒，pytest_*_v1.json为准。HANDOVER当前表的“DFG进行中”同步为已完成，旧历史不改。
+
+343项目复验230成功/113未修复，outcome/选版/settings/flags保持，见revalidation_acceptance。既有MANDO846观察为843成功/3原有Slither侧失败，准确集合核对旧CP2_REPORT，见mando_subset_acceptance，未单独重跑。四组语料完成的阶段记录见completed_corpora_checkpoint_v1；DAppSCAN和Trace on-chain仍运行，这不代表整体CP3已完成。
+
+runtime_estimate_v2在7,703条有效观察时估计剩余2.388小时，只作运行说明，不设时限、不抽样、不改变原序列。schedule_verification核对新旧完整顺序hash及30,199条后缀完全相同。最终汇总、规定的任务结束无缓存检查、doc_check、保护审计与提交尚未执行。
+
+
+32.3/32.5 全量补记（修改 AI：Codex）：完整清单31,307条，其中SOChecker236条无Solidity声明证据单列；进入固定完整序列31,071条，成功21150、剩余失败9921。529个单文件观察复用，343个旧项目以新批次结果替换，再完成30,199条续跑；每单元只计一次，无抽样。
+
+有效结果对应solc调用115771次、Slither调用21298次；原中断9次编译与被替换的旧项目335次编译/230次Slither不计入有效结果调用数，原始记录保留。旧整文件parse失败而新pragma读取成功1012个单元；unsupported_disjunction为1个。项目Slither调用15771次，直接合约类型绑定核对34973条；D3为true但绑定检查拒绝的调用0次。
+
+343项目复验230成功/113未修复，状态、选版、设置与flags全部与原记录相同，230个成功项目均通过新增绑定门槛。三套完整回归通过：production723/6、mando271/458、DFG2653/9既有warnings；定向32通过。单文件导入缺字段仅在最终只读统计补计，12个已保存实例核对通过；生产/原结果未改。复核脚本一度把slither=null当dict，已修正读法，失败的启动前置检查没有创建运行；无实验重试，见development_issues。
+
+D6与CP4逐类清单完成，29类/125变化保留；最终统计与SHA来源在failure_summary、result_provenance、d6_cp4_final。强制doc_check与frozen_audit待随后补记，不提前写为通过；本地提交须在全部记录与检查通过后，未push。
+
+
+完整分类文档记录时间：2026-11-18T00:18:10-05:00（America/New_York，EST；依据本次脚本系统时间）。授权日期仍为2026-11-17。
+
+
+最终复核暂停（2026-11-18，修改 AI：Codex）：完整观测统计已生成，但CP3最终验收尚未通过。11个DAppSCAN项目入口以连字符开头，project_command与slither_arguments原样传入入口；315次solc调用将路径当选项拒绝。该问题属于参数组装，不属于源码损坏，原9,921个剩余失败包含这11项，当前统计仅为修正前观察。具体清单、命令与SHA、限定./前缀方案及新批次11单元重验请求见leading_dash_review_request.json；已向用户询问，尚未修改参数或重跑。当前批次、所有旧产物及其统计保持，修正后应另建批次、仅替换这11条观察，不把现有数字写成最终接受结果。
+
+三套最终无缓存回归均通过，但它们未覆盖本次发现的连字符入口问题，不能据此放行CP3。读取完成收据的自动审批一度超时，按工具允许仅重试一次只读检查后成功；随后WSL新命令暂报Wsl/Service/0x8007274c，使用只读UNC检查并在最小连接探测恢复后继续，没有重启WSL或修改网络。诊断提取首次漏读reason字段，随后只遍历续跑批次得10项；补入项目复验批次后确认共11项。这些是只读提取修正，没有重试编译。
+
+
+#### 32.5.1 完整观测检查与待确认暂停（2026-11-18，修改 AI：Codex）
+
+
+本批次收尾检查（修改 AI：Codex；时间：2026-11-18T00:21:18-05:00，America/New_York/EST）：完整31,071单元观察与两个新运行seal全部核验，复验批次2,385文件、续跑批次193,136文件，运行实现SHA与当前16模块一致。三套最终无缓存回归均通过：production723passed/6skipped（88.344秒）、mando271passed/458skipped（21.392秒）、DFG2653passed/9既有warnings（164.618秒），数据见pytest_*_final_v1.json。定向32passed沿用本轮既有收据，没有再次重跑。
+
+doc_check_v1检查7份正文，全部UTF-8/CJK通过；本次补记完成后以doc_check_v2.json复查最终字节。frozen_audit通过：28,908份受保护跟踪文件、25,828份旧封存文件、753份上一检查点受保护成员、29,611份外部语料文件和10份资料无变化；96个solc相关文件、两环境145/118份元数据、354条DFG引用及原生Slither类型解析器SHA保持。文档历史前缀全部保留。这些是分别定义的检查范围，可能重叠，不能相加作为独立文件总数。
+
+全量中34,973条直接合约类型声明被核对；D3为true但新增绑定检查拒绝的调用为0。139次未获绑定认证的项目调用全部属于Slither未构造成功，不能表述为139次错绑；手写alias用例独立证明已知错绑会拒绝图。原D3事实、源码和安装包均保持。
+
+CP3最终验收仍暂停：11个连字符入口被误当solc选项（315次调用），修正请求见leading_dash_review_request.json，尚未批准、未修改project.py、未重验。当前统计为修正前完整观察，不能宣称CP3已完成。按PROMPTS的中途停止记录要求整理本地检查点；提交身份以包含本条记录的CP3提交为准，未push。无安装、下载、LLM、训练、GPU锁、全局solc或网络修改。所有原始数据与本轮新运行证据保留，后续修正须使用新批次。
+
+
+2026-11-18收尾检查补记（修改 AI：Codex）：doc_check_v2七份正文全部通过；whitespace_review_v2通过，仅沿用旧批次322份精确SHA绑定的原始工具输出空白，没有新增代码或正文豁免。检查器v1误把git diff --no-index的正常差异退出码1当作空白错误，诊断输出实际为空；已保留v1，v2只修正退出码解释，所有实际空白诊断和异常仍拒绝，没有用v1暂存。该调整不改生产代码、不重跑测试或编译。本文补记后的最终字节由doc_check_v3核验；CP3仍等待11入口参数修正授权。

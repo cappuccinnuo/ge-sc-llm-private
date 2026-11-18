@@ -1,0 +1,51 @@
+.................F
+=================================== FAILURES ===================================
+________________ test_relocated_module_seals_without_git[False] ________________
+
+tmp_path = PosixPath('/tmp/cp3_production_v2/test_relocated_module_seals_wi0')
+missing_git = False
+
+    @pytest.mark.parametrize("missing_git", [False, True])
+    def test_relocated_module_seals_without_git(tmp_path, missing_git):
+        production_required()
+        # Copy our 16 implementation files (CP3 adds project/report) and two pinned manifests. Frozen
+        # modules are imported read-only from ROOT; no script or environment changes.
+        relocated = tmp_path / "distribution"
+        module = ROOT / "compile_repair"
+        files = list(module.glob("*.py")) + [p for folder in module.iterdir()
+            if folder.is_dir() and folder.name not in ("tests", "docs", "artifacts")
+            for p in folder.rglob("*.py")]
+        assert len(files) == 16
+        for source in files + [module / "artifacts/cp0_v2/recon.json",
+                               module / "artifacts/cp0_1_compilers_v1/trusted_compilers_addition.json"]:
+            target = relocated / source.relative_to(ROOT)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(str(source), str(target))
+        source = tmp_path / "input.sol"
+        source.write_bytes(b"pragma solidity 0.4.12; contract C {}")
+        output = tmp_path / "sealed"
+        env = dict(os.environ, PYTHONPATH=str(relocated) + os.pathsep + str(ROOT),
+                   PYTHONDONTWRITEBYTECODE="1", PYTHONNOUSERSITE="1")
+        for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR"):
+            env.pop(key, None)
+        if missing_git:
+            env["PATH"] = str(tmp_path / "no-executables")
+        argv = [sys.executable, "-B", "-m", "compile_repair.cli", "repair", str(source), "--output", str(output)]
+        result = subprocess.run(argv, cwd=str(relocated), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (tmp_path / "relocated_cli.json").write_text(json.dumps(dict(
+            command=argv, missing_git=missing_git, returncode=result.returncode,
+            stdout=result.stdout.decode(), stderr=result.stderr.decode()), indent=2), encoding="utf8")
+        assert result.returncode == 0, result.stderr.decode()
+        summary = json.loads((output / "summary.json").read_text())
+        seal = json.loads((output / "seal.json").read_text())
+        assert summary["status"] == "complete" and summary["flags"] == ["code_commit_unavailable"]
+        assert seal["code_commit"] is None
+>       assert len(seal["implementation_sha256"]) == 14
+E       AssertionError: assert 16 == 14
+E        +  where 16 = len({'compile_repair/__init__.py': 'bfe04fb6eacb683848bd6a27f8502103afe2f3e4cb3f8d08b0aa4f118b7ab7fb', 'compile_repair/cli...a85f7c39028f', 'compile_repair/core/model.py': '8178abc0775834e6f06d29ebc02b68791e24e0bcbe2bad37a23895a2d9fed472', ...})
+
+compile_repair/tests/test_cp1_1.py:208: AssertionError
+=========================== short test summary info ============================
+FAILED compile_repair/tests/test_cp1_1.py::test_relocated_module_seals_without_git[False]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 17 passed in 16.01s

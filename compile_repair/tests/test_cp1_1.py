@@ -173,14 +173,14 @@ def test_commit_unavailable_outside_git(tmp_path):
 @pytest.mark.parametrize("missing_git", [False, True])
 def test_relocated_module_seals_without_git(tmp_path, missing_git):
     production_required()
-    # Copy only our 14 implementation files and two pinned manifests. Frozen
+    # Copy our 16 implementation files (CP3 adds project/report) and two pinned manifests. Frozen
     # modules are imported read-only from ROOT; no script or environment changes.
     relocated = tmp_path / "distribution"
     module = ROOT / "compile_repair"
     files = list(module.glob("*.py")) + [p for folder in module.iterdir()
         if folder.is_dir() and folder.name not in ("tests", "docs", "artifacts")
         for p in folder.rglob("*.py")]
-    assert len(files) == 14
+    assert len(files) == 16
     for source in files + [module / "artifacts/cp0_v2/recon.json",
                            module / "artifacts/cp0_1_compilers_v1/trusted_compilers_addition.json"]:
         target = relocated / source.relative_to(ROOT)
@@ -205,7 +205,7 @@ def test_relocated_module_seals_without_git(tmp_path, missing_git):
     seal = json.loads((output / "seal.json").read_text())
     assert summary["status"] == "complete" and summary["flags"] == ["code_commit_unavailable"]
     assert seal["code_commit"] is None
-    assert len(seal["implementation_sha256"]) == 14
+    assert set(seal["implementation_sha256"]) == {str(p.relative_to(ROOT)) for p in files}
     for name, digest in seal["implementation_sha256"].items():
         assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == digest
     for name, digest in seal["files"].items():

@@ -1,0 +1,26 @@
+.................F
+=================================== FAILURES ===================================
+________________ test_relocated_module_seals_without_git[False] ________________
+
+tmp_path = PosixPath('/tmp/cp3_production_v1/test_relocated_module_seals_wi0')
+missing_git = False
+
+    @pytest.mark.parametrize("missing_git", [False, True])
+    def test_relocated_module_seals_without_git(tmp_path, missing_git):
+        production_required()
+        # Copy only our 14 implementation files and two pinned manifests. Frozen
+        # modules are imported read-only from ROOT; no script or environment changes.
+        relocated = tmp_path / "distribution"
+        module = ROOT / "compile_repair"
+        files = list(module.glob("*.py")) + [p for folder in module.iterdir()
+            if folder.is_dir() and folder.name not in ("tests", "docs", "artifacts")
+            for p in folder.rglob("*.py")]
+>       assert len(files) == 14
+E       AssertionError: assert 16 == 14
+E        +  where 16 = len([PosixPath('/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/__init__.py'), PosixPath('/home/zhao/SmartContra...air/core/__init__.py'), PosixPath('/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/core/provenance.py'), ...])
+
+compile_repair/tests/test_cp1_1.py:183: AssertionError
+=========================== short test summary info ============================
+FAILED compile_repair/tests/test_cp1_1.py::test_relocated_module_seals_without_git[False]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 17 passed in 12.35s

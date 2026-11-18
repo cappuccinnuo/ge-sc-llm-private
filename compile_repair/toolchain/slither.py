@@ -11,6 +11,7 @@ from collections import Counter
 from pathlib import Path
 
 from compile_repair.toolchain.solc import validate_settings, verify_binary
+from compile_repair.toolchain.project import project_command, slither_arguments, verify_project
 
 
 # D16 approved 2026-11-13; reject every pair outside these explicit profiles.
@@ -77,7 +78,7 @@ def _declarations(slither):
             yield "<top-level>", function, "top_level_function"
 
 
-def node_facts(slither, inputs):
+def node_facts(slither, inputs, project_root=None):
     """Return node_facts_v2 and D3(a) diagnostics for every declared CFG node.
 
     Assign ordinals in original function.nodes order before sorting records.
@@ -118,6 +119,8 @@ def node_facts(slither, inputs):
                 ir_lines.append(text)
             rows.append({"key5": key5, "ir": ir_lines,
                          "length": mapping["length"], "declaration_kind": kind})
+            if project_root is not None:
+                rows[-1]["filename"] = _project_filename(filename, project_root)
     for key in ["nodes", "declarations", "functions", "modifiers", "top_level_functions",
                 "missing_filename", "invalid_filename", "foreign_filename", "missing_start",
                 "ir_object_repr_replacements", "ir_object_repr_unresolved"]:
@@ -178,6 +181,153 @@ def contract_coverage(slither, inputs):
             "asts": evidence}
 
 
+
+def _ast_nodes(value):
+    """Walk saved compiler nodes, independent of compact versus legacy shape."""
+    if isinstance(value, dict):
+        if "nodeType" in value or "name" in value:
+            yield value
+        if value.get("nodeType", value.get("name")) != "FunctionTypeName":
+            for child in value.values():
+                yield from _ast_nodes(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _ast_nodes(child)
+
+
+def _binding_variables(unit):
+    """Enumerate declaration variables, including unnamed parameters/returns."""
+    variables = list(unit.variables_top_level)
+    functions = list(unit.functions_top_level)
+    structures = list(unit.structures_top_level)
+    events = list(unit.events_top_level)
+    errors = list(unit.custom_errors)
+    for contract in unit.contracts:
+        variables.extend(contract.state_variables_declared)
+        functions.extend(contract.functions_and_modifiers_declared)
+        structures.extend(contract.structures_declared)
+        events.extend(contract.events_declared)
+        errors.extend(contract.custom_errors_declared)
+    for function in functions:
+        variables.extend(function.variables + function.parameters + function.returns)
+    for structure in structures:
+        variables.extend(structure.elems_ordered)
+    for event in events:
+        variables.extend(event.elems)
+    for error in errors:
+        variables.extend(error.parameters)
+    # The public containers overlap. Visit each object once; distinct native
+    # objects at the same source position are all checked, never merged.
+    seen = set()
+    for variable in variables:
+        if id(variable) not in seen:
+            seen.add(id(variable))
+            yield variable
+
+
+def project_bindings(slither, inputs, root):
+    """Check directly declared contract types against saved solc declarations.
+
+    This additional project gate is not D3 or a proof of all Slither semantics.
+    Arrays, mappings, expressions and function-type internals are outside its
+    direct-type scope. An expected direct binding without inspectable evidence
+    fails closed. AST IDs are used only within their own compilation unit.
+    """
+    from slither.core.declarations.contract import Contract
+    allowed = {str(Path(p).resolve()) for p in inputs}
+    seen_files, rows = set(), []
+
+    def kind(node):
+        return node.get("nodeType", node.get("name"))
+
+    def attrs(node):
+        return node if "nodeType" in node else node.get("attributes", {})
+
+    def location(filename, node):
+        parts = node["src"].split(":")
+        if len(parts) != 3 or any(int(p) < 0 for p in parts):
+            raise ValueError("Invalid AST source location")
+        return {"filename": _project_filename(filename, root), "start": int(parts[0])}
+
+    def native_location(obj):
+        mapping = read_mapping(obj.source_mapping)
+        if not isinstance(mapping["start"], int) or mapping["start"] < 0:
+            raise ValueError("Missing native declaration offset")
+        return {"filename": _project_filename(mapping["filename"], root),
+                "start": mapping["start"]}
+
+    for unit_index, unit in enumerate(slither.compilation_units):
+        declarations, variables = {}, []
+        for filename, tree in unit.crytic_compile_compilation_unit.asts.items():
+            if not _input_filename(filename, allowed):
+                raise ValueError("Project AST outside declared inputs")
+            seen_files.add(str(Path(filename).resolve()))
+            if kind(tree) != "SourceUnit":
+                raise ValueError("Project binding check requires SourceUnit AST")
+            for node in _ast_nodes(tree):
+                if "id" in node:
+                    if node["id"] in declarations:
+                        raise ValueError("Ambiguous AST declaration identity")
+                    declarations[node["id"]] = (filename, node)
+                if kind(node) == "VariableDeclaration":
+                    variables.append((filename, node))
+        native = {}
+        for variable in _binding_variables(unit):
+            try:
+                loc = native_location(variable)
+            except (ValueError, AttributeError, TypeError):
+                # Missing expected positions are reported below. Irrelevant
+                # non-contract variables do not broaden this acceptance gate.
+                continue
+            native.setdefault((loc["filename"], loc["start"]), []).append(variable)
+        for filename, node in variables:
+            compact = "nodeType" in node
+            type_node = node.get("typeName") if compact else next(
+                (c for c in node.get("children", []) if kind(c) in (
+                    "UserDefinedTypeName", "ElementaryTypeName", "ArrayTypeName",
+                    "Mapping", "FunctionTypeName")), None)
+            declared_type = (node.get("typeDescriptions", {}).get("typeString", "")
+                             if compact else attrs(node).get("type", ""))
+            ref = attrs(type_node).get("referencedDeclaration") if type_node else None
+            if type_node and kind(type_node) == "UserDefinedTypeName":
+                ref = ref if ref is not None else type_node.get("pathNode", {}).get("referencedDeclaration")
+                target = declarations.get(ref)
+                if target is not None and kind(target[1]) != "ContractDefinition":
+                    continue
+            elif type_node is None and re.fullmatch(r"contract [^\[\]()]+", declared_type):
+                target = None  # Inferred old-style var: no declared reference.
+            else:
+                continue
+            loc = location(filename, node)
+            row = dict(compilation_unit=unit_index, variable=attrs(node).get("name"),
+                       declaration_id=node.get("id"), location=loc,
+                       referenced_declaration=ref, expected=None, actual=[], complete=False)
+            if target is None:
+                row["reason"] = "unresolved_ast_contract_reference"
+            else:
+                row["expected"] = location(*target)
+                matches = native.get((loc["filename"], loc["start"]), [])
+                for variable in matches:
+                    contract = getattr(getattr(variable, "type", None), "type", None)
+                    try:
+                        actual = native_location(contract) if isinstance(contract, Contract) else None
+                    except (ValueError, AttributeError, TypeError):
+                        actual = None
+                    row["actual"].append(actual)
+                row["complete"] = bool(matches) and all(x == row["expected"] for x in row["actual"])
+                if not row["complete"]:
+                    row["reason"] = ("native_variable_not_observed" if not matches else
+                                     "native_contract_type_unverifiable" if None in row["actual"] else
+                                     "contract_binding_mismatch")
+            rows.append(row)
+    if allowed - seen_files:
+        raise ValueError("Input AST not observed by project binding check")
+    return {"schema": "project-contract-bindings-v1", "complete": all(r["complete"] for r in rows),
+            "scope": "directly declared contract-typed variables",
+            "checked": len(rows), "bindings": rows,
+            "ast_source": "crytic_compile.compilation_units[*].asts"}
+
+
 def cp0_projection_sha256(slither):
     """CP0 projection ONLY for comparison with cp0_v2 invocations.jsonl.
 
@@ -215,19 +365,29 @@ def _graph_text(value):
     return text
 
 
-def _callee(ir):
+def _project_filename(filename, root):
+    """Use a project-relative filename as the approved outer key5 namespace."""
+    if not isinstance(filename, str) or not Path(filename).is_absolute():
+        raise ValueError("Project node requires an absolute source filename")
+    return Path(filename).resolve().relative_to(Path(root).resolve()).as_posix()
+
+
+def _callee(ir, project_root=None):
     from slither.core.declarations.function import Function
     function = getattr(ir, "function", None)
     if isinstance(function, Function):
         owner = getattr(function, "contract_declarer", None)
-        return {"contract": owner.name if owner is not None else "<top-level>",
-                "function": function.full_name}
+        result = {"contract": owner.name if owner is not None else "<top-level>",
+                  "function": function.full_name}
+        if project_root is not None:
+            result["filename"] = _project_filename(read_mapping(function.source_mapping)["filename"], project_root)
+        return result
     # Dynamic calls, builtins, events, public getters, and contract creation
     # need not resolve to a declared Function. Preserve their normalized IR.
     return {"text": _graph_text(ir)}
 
 
-def graph_facts(slither):
+def graph_facts(slither, project_root=None):
     """Serialize declared CFGs and every Call in original Slither order.
 
     Keys use D4 occurrence ordinals. Edges retain sons order and branch kind;
@@ -241,10 +401,15 @@ def graph_facts(slither):
                   HighLevelCall: "high-level", LowLevelCall: "low-level"}
     result = {"schema": "compile-repair-graph-v1", "declarations": [],
               "nodes": [], "cfg_edges": [], "calls": []}
+    if project_root is not None:
+        result["schema"] = "compile-repair-project-graph-v1"
     seen = set()
     for owner, function, kind in _declarations(slither):
         result["declarations"].append({"contract": owner, "function": function.full_name,
                                        "declaration_kind": kind})
+        if project_root is not None:
+            result["declarations"][-1]["filename"] = _project_filename(
+                read_mapping(function.source_mapping)["filename"], project_root)
         ordinals, keys = Counter(), {}
         for node in function.nodes:
             mapping = read_mapping(node.source_mapping)
@@ -252,19 +417,23 @@ def graph_facts(slither):
             start = mapping["start"]
             ordinals[(node_type, start)] += 1
             key = [owner, function.full_name, node_type, start, ordinals[(node_type, start)]]
-            if tuple(key) in seen:
-                raise ValueError("Duplicate graph key5: " + repr(key))
-            seen.add(tuple(key))
-            keys[id(node)] = key
+            filename = _project_filename(mapping["filename"], project_root) if project_root is not None else None
+            identity = (filename, tuple(key)) if project_root is not None else tuple(key)
+            if identity in seen:
+                raise ValueError("Duplicate graph key5: " + repr(identity))
+            seen.add(identity)
+            keys[id(node)] = {"filename": filename, "key5": key} if project_root is not None else key
             result["nodes"].append({"key5": key, "node_type": node_type,
                 "length": mapping["length"], "ir": [_graph_text(ir) for ir in node.irs],
                 "declaration_kind": kind})
+            if project_root is not None:
+                result["nodes"][-1]["filename"] = filename
         for node in function.nodes:
             key = keys[id(node)]
             sons = node.sons
             if any(id(son) not in keys for son in sons):
                 raise ValueError("CFG endpoint outside its declared function")
-            conditional = key[2] in ("IF", "IFLOOP")
+            conditional = (key["key5"] if project_root is not None else key)[2] in ("IF", "IFLOOP")
             branches = ([(node.son_true, "true"), (node.son_false, "false")]
                         if conditional else [])
             for son in sons:
@@ -287,11 +456,11 @@ def graph_facts(slither):
                     cls = type(ir)
                     result["calls"].append({"node": key, "ir_index": index,
                         "kind": call_kinds.get(cls, cls.__name__),
-                        "operation": cls.__name__, "callee": _callee(ir)})
+                        "operation": cls.__name__, "callee": _callee(ir, project_root)})
     return result
 
 
-def run_slither(compilation, profile="regression_6c", cp0_projection=False):
+def run_slither(compilation, profile="regression_6c", cp0_projection=False, project=None):
     """Construct Slither after observed solc rc=0; report D3(a) and D3(b).
 
     Regression reuses frozen _compile unchanged. Production retains its
@@ -302,6 +471,12 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
     before execution; analysis failures return diagnostics.
     """
     settings = validate_settings(compilation.settings)
+    if project is not None:
+        if profile != "production":
+            raise ValueError("Project compilation requires production profile")
+        verify_project(project)
+        if list(compilation.command) != project_command(project, compilation.compiler, settings):
+            raise ValueError("Project Slither parameters differ from observed solc")
     if profile == "regression_6c" and settings:
         raise ValueError("regression_6c does not accept compiler settings")
     if profile == "regression_6c":
@@ -334,6 +509,12 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
                   node_facts_schema="node_facts_v2")
     if settings:
         result["command"]["solc_args"] = " ".join(settings)
+    inputs = [Path(f.path) for f in project.files] if project is not None else [path]
+    project_root = project.root if project is not None else None
+    if project is not None:
+        target, kwargs = slither_arguments(project, compiler, settings)
+        result["command"].update(target=target, **kwargs)
+        result["project"] = project.manifest()
     start = time.monotonic()
     try:
         if profile == "production":
@@ -342,10 +523,12 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
             # not erase evidence of the platform actually used.
             from crytic_compile import CryticCompile
             from slither import Slither
-            kwargs = {"solc": compiler.path, "solc_disable_warnings": True}
-            if settings:
-                kwargs["solc_args"] = result["command"]["solc_args"]
-            crytic = CryticCompile(str(path), **kwargs)
+            if project is None:
+                target = str(path)
+                kwargs = {"solc": compiler.path, "solc_disable_warnings": True}
+                if settings:
+                    kwargs["solc_args"] = result["command"]["solc_args"]
+            crytic = CryticCompile(target, **kwargs)
             result["crytic_compile_platform"] = crytic.platform.NAME
             result["crytic_compile_platform_class"] = type(crytic.platform).__module__ + "." + type(crytic.platform).__name__
             result["command"]["construction"] = "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)"
@@ -358,8 +541,8 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
         # Check both clauses independently, retaining either diagnostic even
         # when the other cannot be inspected (e.g. an unreadable node mapping).
         errors = []
-        for clause, inspect in [("a", lambda: node_facts(slither, [path])),
-                                ("b", lambda: contract_coverage(slither, [path]))]:
+        for clause, inspect in [("a", lambda: node_facts(slither, inputs, project_root)),
+                                ("b", lambda: contract_coverage(slither, inputs))]:
             try:
                 facts = inspect()
                 if clause == "a":
@@ -383,10 +566,22 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False):
         result.update({"d3": False, "exception_type": type(exc).__name__,
                        "error_first_line": str(exc).splitlines()[0] if str(exc) else type(exc).__name__,
                        "detail": str(exc)})
-    if profile == "production" and result["d3"]:
-        result["graph"] = graph_facts(slither)
+    if project is not None:
+        result["project_binding"] = {"complete": False, "reason": "slither_not_constructed"}
+        if result["constructed"]:
+            try:
+                result["project_binding"] = project_bindings(slither, inputs, project_root)
+            except (ValueError, AttributeError, TypeError, KeyError) as exc:
+                result["project_binding"] = {
+                    "complete": False, "reason": "binding_check_unverifiable",
+                    "exception_type": type(exc).__name__, "detail": str(exc)}
+        result["graph_usable"] = result["d3"] and result["project_binding"]["complete"]
+    if profile == "production" and result["d3"] and result.get("graph_usable", True):
+        result["graph"] = graph_facts(slither, project_root)
     result["elapsed_seconds"] = time.monotonic() - start
     if hashlib.sha256(path.read_bytes()).hexdigest() != compilation.source_sha256:
         raise ValueError("Source changed during Slither analysis")
+    if project is not None:
+        verify_project(project)
     verify_binary(compiler)
     return result

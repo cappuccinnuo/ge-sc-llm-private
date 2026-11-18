@@ -1,0 +1,28 @@
+Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+--> /home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_diagnostics/duplicate_event.sol
+
+Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+--> compile_repair/tests/fixtures/cp3_diagnostics/duplicate_event.sol
+
+Error: Event with same name and parameter types defined twice.
+ --> /home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_diagnostics/duplicate_event.sol:2:51:
+  |
+2 | contract A { event E(uint x); } contract C is A { event E(uint x); }
+  |                                                   ^^^^^^^^^^^^^^^^
+Note: Other declaration is here:
+ --> /home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/tests/fixtures/cp3_diagnostics/duplicate_event.sol:2:14:
+  |
+2 | contract A { event E(uint x); } contract C is A { event E(uint x); }
+  |              ^^^^^^^^^^^^^^^^
+
+Error: Event with same name and parameter types defined twice.
+ --> compile_repair/tests/fixtures/cp3_diagnostics/duplicate_event.sol:2:51:
+  |
+2 | contract A { event E(uint x); } contract C is A { event E(uint x); }
+  |                                                   ^^^^^^^^^^^^^^^^
+Note: Other declaration is here:
+ --> compile_repair/tests/fixtures/cp3_diagnostics/duplicate_event.sol:2:14:
+  |
+2 | contract A { event E(uint x); } contract C is A { event E(uint x); }
+  |              ^^^^^^^^^^^^^^^^
+

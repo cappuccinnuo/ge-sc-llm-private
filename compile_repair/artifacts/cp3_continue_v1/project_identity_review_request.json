@@ -1,0 +1,36 @@
+{
+  "status": "awaiting_user_decision",
+  "date": "2026-11-17",
+  "author": "Codex",
+  "evidence": "project_identity_probe.json",
+  "evidence_sha256": "3b1bbc39baf47ef8b9d73ab865234b827eb75d933023356ecbf7c2b8b590502e",
+  "finding": {
+    "solc_version": "0.8.38",
+    "solc_returncode": 0,
+    "production_slither_constructed": true,
+    "d3_a": true,
+    "d3_b": true,
+    "graph_facts_exception": "Duplicate graph key5: ['C', 'f()', 'ENTRYPOINT', 76, 1]",
+    "cause": "Two legal imported files A.sol and B.sol declare C.f() at identical offsets; aliases keep Solidity declarations legal, but D4 key5 omits file identity."
+  },
+  "recommended": {
+    "name": "D4 project namespace extension",
+    "scope": "Project graph storage and provenance only; original key5 and all single-file/regression records unchanged",
+    "identity": "(project-relative source filename, existing key5)",
+    "schema": "New explicit project graph schema; node and CFG/call references carry the file namespace. Do not change occurrence ordinals or deduplicate. Absolute working paths are not graph identity.",
+    "unresolved_alias_policy": "If distinct source units still collapse to one filename/key5, stop and report; do not invent ordinals or silently drop nodes.",
+    "d3": "Unchanged; original successful compiler and both D3 clauses remain required.",
+    "tests": [
+      "Handwritten two-file same-name same-offset fixture retains both nodes and unambiguous edges/calls",
+      "Existing single-file graph and 6c facts stay byte-compatible",
+      "Each node provenance uses its own input file"
+    ]
+  },
+  "alternative": "Keep D4 unchanged; pause project graph integration and ask for a separately approved CP3 classification-only path that records D3 without graph serialization.",
+  "not_implemented": true,
+  "approval_basis": [
+    "User requires consultation before changing proposals",
+    "PROMPTS 4.1: if code facts affect the plan, stop and report; D4 currently fixes key5"
+  ],
+  "continued_independent_work": "Diagnostic taxonomy tests and hand-written compiler premise probes only; no corpus classification has started."
+}
