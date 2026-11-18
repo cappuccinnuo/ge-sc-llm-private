@@ -1,0 +1,396 @@
+{
+  "api_subprocess_returncodes_observed": false,
+  "command": {
+    "api": "Slither",
+    "construction": "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)",
+    "solc": "/home/zhao/.solc-select/artifacts/solc-0.5.17/solc-0.5.17",
+    "solc_args": "--allow-paths /home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy",
+    "solc_disable_warnings": true,
+    "solc_remaps": [],
+    "solc_working_dir": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy",
+    "target": "contracts/Entry.sol"
+  },
+  "compiler_sha256": "c35ce7a4d3ffa5747c178b1e24c8541b2e5d8a82c1db3719eb4433a1f19e16f3",
+  "constructed": true,
+  "contract_coverage": {
+    "actual": {
+      "Dependency": 1,
+      "Entry": 1
+    },
+    "ast_source": "crytic_compile.compilation_units[*].asts",
+    "asts": [
+      {
+        "ast_sha256": "42d417dc92a56bc6010d461a61651e788a8fffbda75fbee8c8e9f00aed5aaedc",
+        "contracts": {
+          "Entry": 1
+        },
+        "format": "compact",
+        "path": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy/contracts/Entry.sol"
+      },
+      {
+        "ast_sha256": "d538477b9c951f8fa0d79794fb049db44b63de4ff2f78d143313d917212be90b",
+        "contracts": {
+          "Dependency": 1
+        },
+        "format": "compact",
+        "path": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy/lib/Dependency.sol"
+      }
+    ],
+    "complete": true,
+    "expected": {
+      "Dependency": 1,
+      "Entry": 1
+    },
+    "missing": {},
+    "unexpected": {}
+  },
+  "cost_usd": 0.0,
+  "counts": {
+    "declarations": 2,
+    "foreign_filename": 0,
+    "functions": 2,
+    "invalid_filename": 0,
+    "ir_object_repr_replacements": 0,
+    "ir_object_repr_unresolved": 0,
+    "missing_filename": 0,
+    "missing_start": 0,
+    "modifiers": 0,
+    "nodes": 4,
+    "top_level_functions": 0
+  },
+  "crytic_compile_platform": "solc",
+  "crytic_compile_platform_class": "crytic_compile.platform.solc.Solc",
+  "crytic_compile_version": "0.4.2",
+  "d3": true,
+  "d3_a": true,
+  "d3_b": true,
+  "duplicate_key4": {},
+  "elapsed_seconds": 0.014614899992011487,
+  "empty_cfg": false,
+  "equivalent_solc_argv": [
+    "/home/zhao/.solc-select/artifacts/solc-0.5.17/solc-0.5.17",
+    "contracts/Entry.sol",
+    "--combined-json",
+    "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format",
+    "--allow-paths",
+    "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy"
+  ],
+  "error_first_line": null,
+  "graph": {
+    "calls": [
+      {
+        "callee": {
+          "contract": "Dependency",
+          "filename": "lib/Dependency.sol",
+          "function": "value()"
+        },
+        "ir_index": 0,
+        "kind": "high-level",
+        "node": {
+          "filename": "contracts/Entry.sol",
+          "key5": [
+            "Entry",
+            "callDependency(Dependency)",
+            "RETURN",
+            183,
+            1
+          ]
+        },
+        "operation": "HighLevelCall"
+      }
+    ],
+    "cfg_edges": [
+      {
+        "kind": "next",
+        "source": {
+          "filename": "contracts/Entry.sol",
+          "key5": [
+            "Entry",
+            "callDependency(Dependency)",
+            "ENTRYPOINT",
+            173,
+            1
+          ]
+        },
+        "target": {
+          "filename": "contracts/Entry.sol",
+          "key5": [
+            "Entry",
+            "callDependency(Dependency)",
+            "RETURN",
+            183,
+            1
+          ]
+        }
+      },
+      {
+        "kind": "next",
+        "source": {
+          "filename": "lib/Dependency.sol",
+          "key5": [
+            "Dependency",
+            "value()",
+            "ENTRYPOINT",
+            92,
+            1
+          ]
+        },
+        "target": {
+          "filename": "lib/Dependency.sol",
+          "key5": [
+            "Dependency",
+            "value()",
+            "RETURN",
+            102,
+            1
+          ]
+        }
+      }
+    ],
+    "declarations": [
+      {
+        "contract": "Entry",
+        "declaration_kind": "function",
+        "filename": "contracts/Entry.sol",
+        "function": "callDependency(Dependency)"
+      },
+      {
+        "contract": "Dependency",
+        "declaration_kind": "function",
+        "filename": "lib/Dependency.sol",
+        "function": "value()"
+      }
+    ],
+    "nodes": [
+      {
+        "declaration_kind": "function",
+        "filename": "contracts/Entry.sol",
+        "ir": [],
+        "key5": [
+          "Entry",
+          "callDependency(Dependency)",
+          "ENTRYPOINT",
+          173,
+          1
+        ],
+        "length": 38,
+        "node_type": "ENTRYPOINT"
+      },
+      {
+        "declaration_kind": "function",
+        "filename": "contracts/Entry.sol",
+        "ir": [
+          "TMP_0(uint256) = HIGH_LEVEL_CALL, dest:target(Dependency), function:value, arguments:[]  ",
+          "RETURN TMP_0"
+        ],
+        "key5": [
+          "Entry",
+          "callDependency(Dependency)",
+          "RETURN",
+          183,
+          1
+        ],
+        "length": 21,
+        "node_type": "RETURN"
+      },
+      {
+        "declaration_kind": "function",
+        "filename": "lib/Dependency.sol",
+        "ir": [],
+        "key5": [
+          "Dependency",
+          "value()",
+          "ENTRYPOINT",
+          92,
+          1
+        ],
+        "length": 25,
+        "node_type": "ENTRYPOINT"
+      },
+      {
+        "declaration_kind": "function",
+        "filename": "lib/Dependency.sol",
+        "ir": [
+          "RETURN 1"
+        ],
+        "key5": [
+          "Dependency",
+          "value()",
+          "RETURN",
+          102,
+          1
+        ],
+        "length": 8,
+        "node_type": "RETURN"
+      }
+    ],
+    "schema": "compile-repair-project-graph-v1"
+  },
+  "graph_usable": true,
+  "ir_diagnostics": [],
+  "mapping_complete": true,
+  "node_facts_schema": "node_facts_v2",
+  "nodes": [
+    {
+      "declaration_kind": "function",
+      "filename": "contracts/Entry.sol",
+      "ir": [
+        "TMP_0(uint256) = HIGH_LEVEL_CALL, dest:target(Dependency), function:value, arguments:[]  ",
+        "RETURN TMP_0"
+      ],
+      "key5": [
+        "Entry",
+        "callDependency(Dependency)",
+        "RETURN",
+        183,
+        1
+      ],
+      "length": 21
+    },
+    {
+      "declaration_kind": "function",
+      "filename": "contracts/Entry.sol",
+      "ir": [],
+      "key5": [
+        "Entry",
+        "callDependency(Dependency)",
+        "ENTRYPOINT",
+        173,
+        1
+      ],
+      "length": 38
+    },
+    {
+      "declaration_kind": "function",
+      "filename": "lib/Dependency.sol",
+      "ir": [
+        "RETURN 1"
+      ],
+      "key5": [
+        "Dependency",
+        "value()",
+        "RETURN",
+        102,
+        1
+      ],
+      "length": 8
+    },
+    {
+      "declaration_kind": "function",
+      "filename": "lib/Dependency.sol",
+      "ir": [],
+      "key5": [
+        "Dependency",
+        "value()",
+        "ENTRYPOINT",
+        92,
+        1
+      ],
+      "length": 25
+    }
+  ],
+  "preceding_observed_solc_returncode": 0,
+  "profile": "production",
+  "project": {
+    "entry": "contracts/Entry.sol",
+    "files": [
+      {
+        "bytes": 214,
+        "path": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy/contracts/Entry.sol",
+        "sha256": "7a81f27e2e01c6fc984d05c4e6c70d393ce29716af2625ffb5900338834ad464"
+      },
+      {
+        "bytes": 120,
+        "path": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy/lib/Dependency.sol",
+        "sha256": "dc9cd0de460f735a081424634ac11942ccb22903a1e4464f2e51f9c4171c233e"
+      }
+    ],
+    "imports": [
+      {
+        "end": 57,
+        "importer": "contracts/Entry.sol",
+        "line": 2,
+        "literal_end": 56,
+        "literal_hex": "2e2e2f6c69622f446570656e64656e63792e736f6c",
+        "literal_start": 33,
+        "path": "../lib/Dependency.sol",
+        "resolved": true,
+        "source_path": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/ordinary/contracts/Entry.sol",
+        "start": 26,
+        "supported_literal": true,
+        "target_path": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/ordinary/lib/Dependency.sol",
+        "target_source_unit": "lib/Dependency.sol"
+      }
+    ],
+    "issues": [],
+    "remappings": [],
+    "root": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy",
+    "source_units": [
+      [
+        "contracts/Entry.sol",
+        "contracts/Entry.sol"
+      ],
+      [
+        "lib/Dependency.sol",
+        "lib/Dependency.sol"
+      ]
+    ]
+  },
+  "project_binding": {
+    "ast_source": "crytic_compile.compilation_units[*].asts",
+    "bindings": [
+      {
+        "actual": [
+          {
+            "filename": "lib/Dependency.sol",
+            "start": 27
+          }
+        ],
+        "compilation_unit": 0,
+        "complete": true,
+        "declaration_id": 4,
+        "expected": {
+          "filename": "lib/Dependency.sol",
+          "start": 27
+        },
+        "location": {
+          "filename": "contracts/Entry.sol",
+          "start": 80
+        },
+        "referenced_declaration": 28,
+        "variable": "dependency"
+      },
+      {
+        "actual": [
+          {
+            "filename": "lib/Dependency.sol",
+            "start": 27
+          }
+        ],
+        "compilation_unit": 0,
+        "complete": true,
+        "declaration_id": 6,
+        "expected": {
+          "filename": "lib/Dependency.sol",
+          "start": 27
+        },
+        "location": {
+          "filename": "contracts/Entry.sol",
+          "start": 132
+        },
+        "referenced_declaration": 28,
+        "variable": "target"
+      }
+    ],
+    "checked": 2,
+    "complete": true,
+    "schema": "project-contract-bindings-v1",
+    "scope": "directly declared contract-typed variables"
+  },
+  "settings": [],
+  "slither_version": "0.11.6",
+  "source_path": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/pytest_path_probes_v1/test_ordinary_nested_entry_all2/project/copy/contracts/Entry.sol",
+  "source_sha256": "7a81f27e2e01c6fc984d05c4e6c70d393ce29716af2625ffb5900338834ad464",
+  "validation_errors": [],
+  "version": "0.5.17"
+}

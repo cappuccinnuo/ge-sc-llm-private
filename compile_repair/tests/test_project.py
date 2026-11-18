@@ -279,3 +279,45 @@ def test_leading_dash_entry_same_target_and_accepted_graph(tmp_path, version):
     assert calls[0]["node"]["filename"] == "-contracts/Entry.sol"
     assert calls[0]["callee"]["filename"] == "lib/Dependency.sol"
     verify_project(original)
+
+
+@pytest.mark.parametrize("version", ["0.4.12", "0.4.24", "0.5.17", "0.8.38"])
+def test_ordinary_nested_entry_allows_existing_sibling_import(tmp_path, version):
+    from dataclasses import asdict
+    production_required()
+    root = tmp_path / "ordinary"
+    (root / "contracts").mkdir(parents=True)
+    (root / "lib").mkdir()
+    fixture = F / "cp3_leading_dash"
+    (root / "contracts/Entry.sol").write_bytes(
+        (fixture / "-contracts/Entry.sol").read_bytes())
+    (root / "lib/Dependency.sol").write_bytes(
+        (fixture / "lib/Dependency.sol").read_bytes())
+    original = resolve_project(root, "contracts/Entry.sol")
+    store = ArtifactStore(tmp_path / "project")
+    project = materialize_project(original, store, "copy")
+    compiler = trusted_compilers()[version]
+    compiled = compile_project(project, compiler)
+    store.write_json("compiled.json", asdict(compiled))
+    assert compiled.returncode == 0
+    target, kwargs = slither_arguments(project, compiler)
+    assert target == "contracts/Entry.sol" and compiled.command[1] == target
+    assert list(compiled.command) == project_command(project, compiler)
+    allowed_root = str(Path(project.root).resolve())
+    assert compiled.command[compiled.command.index("--allow-paths") + 1] == allowed_root
+    assert kwargs["solc_args"] == "--allow-paths " + allowed_root
+    analysis = run_slither(compiled, profile="production", project=project)
+    store.write_json("analysis.json", analysis)
+    assert analysis["command"]["target"] == target
+    assert analysis["equivalent_solc_argv"] == compiled.command
+    assert analysis["constructed"] and analysis["d3_a"] and analysis["d3_b"]
+    assert analysis["d3"] and analysis["graph_usable"]
+    assert analysis["project_binding"]["complete"]
+    assert analysis["project_binding"]["checked"] == 2
+    assert {n["filename"] for n in analysis["nodes"]} == {
+        "contracts/Entry.sol", "lib/Dependency.sol"}
+    calls = [c for c in analysis["graph"]["calls"] if c["kind"] == "high-level"]
+    assert len(calls) == 1
+    assert calls[0]["node"]["filename"] == "contracts/Entry.sol"
+    assert calls[0]["callee"]["filename"] == "lib/Dependency.sol"
+    verify_project(original)

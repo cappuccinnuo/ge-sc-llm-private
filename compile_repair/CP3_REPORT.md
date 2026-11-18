@@ -448,3 +448,106 @@ run_entry_probes.py 计划运行四个新探针及四个既有普通入口检查
 Python3.7语法与未应用补丁的git apply --check通过，静态检查不替代四版本运行。tracked diff空白检查通过；唯一保留的是建议补丁.diff的四条空源行上下文，其单个前导空格属于统一diff格式，文件SHA与行号精确绑定于whitespace_review，不豁免生产代码、测试或正文的空白问题。补丁仍未应用。
 
 一次探针续跑已经使用，后续三个连字符版本与任何语料均未继续。当前等待allowed_paths_review_request对应参数及103项范围批准；完整回归、新汇总和最终验收未运行，CP3未完成。按中途停止要求提交本地证据检查点，提交号以包含本条记录的CP3提交及仓库外收据为准，未push。后续批准后须在新批次继续，不向本批次或任何旧批次覆盖写入。
+
+
+## CP3 最终续节：允许路径修正与完整分类结果（2026-11-18，修改 AI：Codex）
+
+### 任务、批准与实现
+
+本次从compile-repair/967d0890继续同一PROMPTS r2.13 CP3。用户原话“批准参数修正、探针与103项重验（推荐）”，authorization绑定请求SHA256 141e6bc425aee16c4c2198d2881f3d5b1187cff1667b00d74bf32fc72a08d43d、日期、0美元及精确清单；912成员基线先核验。旧cp3_entry_resume_v1、cp3_entry_v1、cp3_binding_v1及更早产物不改写。
+
+仅project.py把solc argv和Slither solc_args两处--allow-paths从相对点号改为解析后的项目根绝对路径。物理允许根仍相同，保留连字符入口./前缀、其他目标字符串、原始源字节、候选顺序和设置政策、D3及已批准项目绑定门槛。test_project.py只追加普通嵌套入口四版本检查，原八项测试和失败夹具均未改。生产模块仍16个；没有新增修复规则、补依赖或更换安装包。
+
+12项探针在0.4.12、0.4.24、0.5.17、0.8.38全部通过，覆盖普通根入口、连字符嵌套入口、普通嵌套入口，核对同参数编译、D3、直接类型绑定与调用文件身份。首个103项运行中cp3_05901已成功，却因脚本tuple/list比较误报而停止；新旧保存JSON计划和输入逐字段相同。保留原停止收据，恢复已完成结果分类后只继续102个未执行ID，manifest核验103项各一次；没有实验重试。首项精确单元结束时间缺失，分类elapsed_seconds为null并注明；原首段summary中0是分类列表计数，实际1编译/1Slither单列更正而不覆盖原文。
+
+只读汇总首次错误寻找历史中断段的正常seal，后按原已登记的interrupted_segment_preservation清单验证，该清单自身SHA与基线一致。正常完成段仍核对seal，所有结果与输入SHA校验保持。两次汇总收据都保留，修正不涉及编译或放宽接受标准。完整问题处理见CHANGE_LOG §35及driver_comparison_recovery、aggregate_inventory_correction。
+
+### 103项重验与有效统计口径
+
+原103项为79成功/24未修复，重验为89成功/14未修复，新增10成功；79个旧成功没有回退，全部从0.4.18恢复到更早允许候选：0.4.12为35项、0.4.13为2项、0.4.15为9项、0.4.16为33项。14项剩余为12个Slither构造工具限制（旧AST导入别名不受当前Slither支持）、1个类型错误、1个未声明标识符；不将这些问题交由本CP改写源码或强行跨版本区间。
+
+新观察453次显式编译/265次Slither，替换旧观察1032/187次；旧数据保持，另有此前335/230次被替换项目调用与9次中断编译单列，不重复计入有效结果。首段包装器18.600598秒、102项续段73.017230秒；它们是运行包装器壁钟，不作为未记录的首项精确耗时。103项输入闭包和JSON计划完全一致，只有已批准的调用路径参数变化。
+
+最终31,071个有效单元中21,160成功、9,911剩余，236条非Solidity单列，无抽样。仅103条使用本次重验结果，其他30,968条provenance与原记录逐字段相同；本报告不宣称全部原观察都用最终实现重新执行。每个结果均保留其实际运行批次、实现和版本来源，新旧替换路径/SHA在result_provenance与replacement_summary。
+
+| 语料 | 有效单元 | 成功 | 剩余失败 |
+|---|---:|---:|---:|
+| DAppSCAN | 21457 | 13576 | 7881 |
+| Trace_CVEs | 15 | 14 | 1 |
+| Trace_on_chain | 5000 | 4565 | 435 |
+| Trace_repo | 3092 | 2066 | 1026 |
+| SOChecker | 661 | 96 | 565 |
+| MANDO | 846 | 843 | 3 |
+
+
+有效编译115,192次、Slither21,376次，旧整文件parse失败但新pragma读取成功1012项，unsupported_disjunction为1项。项目Slither调用15,849次，直接合约类型声明核对34,980条；207次未获绑定认证全部为Slither未构造，不能称为207次错绑，D3为true而绑定检查拒绝仍为0。手写alias拒绝证据继续证明已知错绑被拒绝，但该有限检查不能证明全部IR语义。最大已完成Slither耗时68.116624秒，无强制超时；观察均完成不保证未来不会挂起。
+
+### 完整分类与每类证据
+
+以下比例分母为9,911个剩余失败单元，类别不互斥，比例不可相加解释为总失败率。每类最多3个以输入SHA标识的例证及对应结果SHA、路径均在本批次failure_summary.category_unit_counts.unit_examples；不足3个保留实际数量，零频类别不捏造例子。原分类表来自13种官方错误类型、四代breaking changes和路径/项目结构依据，当前频率不决定覆盖范围。
+
+| 类别 | 单元数 | 占剩余失败 | 语料分布 |
+|---|---:|---:|---|
+| closure_version_conflict | 4 | 0.0404% | DAppSCAN:3、SOChecker:1 |
+| codegen_only | 43 | 0.4339% | DAppSCAN:27、Trace_on_chain:1、Trace_repo:15 |
+| compiler_exception | 0 | 0.0000% | 未观察到 |
+| declaration_error | 0 | 0.0000% | 未观察到 |
+| docstring_error | 0 | 0.0000% | 未观察到 |
+| duplicate_definition | 26 | 0.2623% | DAppSCAN:12、SOChecker:14 |
+| encoding | 0 | 0.0000% | 未观察到 |
+| fatal_error | 0 | 0.0000% | 未观察到 |
+| internal_compiler_error | 5 | 0.0504% | DAppSCAN:5 |
+| io_error | 28 | 0.2825% | DAppSCAN:25、Trace_repo:3 |
+| json_error | 0 | 0.0000% | 未观察到 |
+| missing_base_contract | 13 | 0.1312% | DAppSCAN:2、SOChecker:11 |
+| missing_relative_file | 415 | 4.1873% | DAppSCAN:373、SOChecker:11、Trace_repo:31 |
+| multiple_license_or_pragma | 8 | 0.0807% | DAppSCAN:8 |
+| other | 199 | 2.0079% | DAppSCAN:15、SOChecker:180、Trace_CVEs:1、Trace_repo:3 |
+| parser_error_other | 892 | 9.0001% | DAppSCAN:78、MANDO:3、SOChecker:379、Trace_on_chain:432 |
+| pragma_missing_semicolon_candidate | 0 | 0.0000% | 未观察到 |
+| slither_incomplete | 24 | 0.2422% | DAppSCAN:14、MANDO:3、Trace_repo:7 |
+| slither_no_timeout | 0 | 0.0000% | 未观察到 |
+| syntax_error | 17 | 0.1715% | DAppSCAN:5、SOChecker:12 |
+| type_error_other | 25 | 0.2522% | DAppSCAN:9、SOChecker:14、Trace_CVEs:1、Trace_repo:1 |
+| unbalanced_structure | 84 | 0.8475% | DAppSCAN:5、SOChecker:78、Trace_on_chain:1 |
+| undeclared_identifier | 157 | 1.5841% | DAppSCAN:12、MANDO:3、SOChecker:142 |
+| unimplemented_feature | 0 | 0.0000% | 未观察到 |
+| unresolved_package_import | 8450 | 85.2588% | DAppSCAN:7450、SOChecker:20、Trace_repo:980 |
+| unsupported_disjunction | 1 | 0.0101% | DAppSCAN:1 |
+| unsupported_expression | 92 | 0.9283% | DAppSCAN:18、SOChecker:73、Trace_on_chain:1 |
+| unterminated_pragma | 1 | 0.0101% | SOChecker:1 |
+| warning | 0 | 0.0000% | 未观察到 |
+
+
+other的23种归一化模板及SHA例证在other_template_unit_counts逐项列出。包名和完整导入路径统计保留于unresolved_packages/unresolved_import_paths；每单元导入位置去重后，主要包包括@openzeppelin/contracts 14906次、@0x/contracts-utils 3092次、openzeppelin-solidity 2972次。相对导入同名候选为找不到934、唯一393、多个230次；这些是导入位置出现次数而非失败单元数。跨重叠入口闭包去重的物理源位置视图另在distinct_source_import_statistics，两个口径不混合。单文件定位诊断的包/路径身份仅从已保存且SHA核验的源码恢复，没有新增编译或修改旧结果，缺失身份记录为0。
+
+### D6路由、CP4算子与保留限制
+
+最终d6_cp4_final仍保留全部29类、125条breaking changes和10个零频类别，规则/代理路由、改动级别、D3/D7机械验证及CP4破坏算子沿用已建立且经过官方资料/手写前提验证的清单。本次只将频率更新并排序实现优先次序；不因语料中未出现而删除候选。能从可编译、D3成立基础上删除/修改构造的类别均列算子；纯Warning、运行语义、调用输入或不能一般构造的工具崩溃则说明不能伪造源码算子的原因。该清单是CP4的输入，CP4基准尚未运行。
+
+既有手写前提证据保持：92版诊断格式在0.6.0切换；重复合约定义92/92被拒绝，相同pragma不因此失败；重复SPDX从0.8.8拒绝；0.4.x tuple-call等价形态只列CP6候选；AST-only不足以让原生Slither绕开所测codegen失败，0.8.38的via-ir+optimizer组合在手写探针通过。这些旧证据未重复运行或回写。
+
+仍需后续处理的实质限制是：并集pragma、Slither子进程超时，以及绑定检查无法覆盖全部表达式/嵌套类型/IR语义。D19下限维持0.4.12，原区间允许0.4.11而不允许0.4.12的6项已单列，不自动扩展支持范围。模块目标仍是未来任意合约，语料只用于评估；本CP没有实现依赖恢复、结构补全、tuple改写或LLM代理。
+
+### 测试、资源和交付
+
+| 验证 | 结果 | 包装器秒数 |
+|---|---|---:|
+| 四版本路径探针 | 12passed，27deselected | 5.097138 |
+| production完整CompileRepair | 731passed，6skipped | 72.332530 |
+| mando完整CompileRepair | 271passed，466skipped | 20.864750 |
+| mando DFGv2完整回归 | 2653passed，9既有warnings | 156.669927 |
+| 只读最终汇总 | rc0，无编译调用 | 31.164432 |
+
+所有测试均使用-B -m pytest -q -p no:cacheprovider及新basetemp，完整命令/环境/退出码见收据；定向探针另带-x。103唯一执行、79旧成功不退化、候选与输入相同、30,968条原来源保持由runtime_acceptance验证。CP3实验与回归验收通过，最终保护审计、doc_check和提交身份在后续补记，不能用这里的已通过实验替代尚未完成的文档核验。
+
+本轮生产只改project.py，原Slither安装、全局solc、DFG和旧产物保持；0美元，无下载、安装、LLM、HGT或GPU锁操作。原语料只读，仓库只保存路径/哈希及诊断证据，运行原始资料在仓库外。完成全部交付检查后本地提交，不自动push，后续由独立审查接手。
+
+本批次最终统计SHA256：afd39e142a5b7418e1cd52dacf53eb94df9f5f5fdf6867249cbdeda99e8e70ae；D6/CP4清单SHA256：da3377a309b418eb7926617b5fec454b28ae2eefdbbf5e7b4ae5d0710dcbf220。
+
+
+2026-11-18 最终交付核验补记（修改 AI：Codex）：frozen_audit通过，28,908份保护跟踪文件、25,828份旧封存文件、905份上一检查点保护成员、29,611份外部语料及10份官方资料均未变；96份solc相关文件、两环境145/118份元数据、354条DFG引用及原生Slither解析器SHA保持。这些检查集合可能重叠，不相加作总文件数。历史文档均保留，生产仍16模块。Python3.7语法检查、tracked diff空白检查及本批次新文件空白检查通过，没有新增豁免。
+
+doc_check_v1对六份正文与五份原文快照共11份通过；本补记及当前状态更新后的最终字节由doc_check_v2再次核验，提交以该收据通过并绑定各文档SHA为前置条件。新证据由evidence_seal与delivery_inventory封存，acceptance_status汇总最终门槛。完整回归与保护检查已通过，此后只补交付记录，没有再跑实验或修改生产代码。
+
+CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-repair，实际提交号以包含本记录的CP3提交及仓库外delivery_commit_receipt为准；本轮未push，未实施CP4或新增修复规则。参数修正及103项批准全部落实，无新增待批准执行事项；已知工具与版本边界继续按本报告保留。

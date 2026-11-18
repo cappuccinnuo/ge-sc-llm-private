@@ -1,58 +1,61 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文0–5、PROMPTS r2.13 §4.1/§4.5、CP3_REPORT最新续节、cp3_entry_resume_v1/README与allowed_paths_review_request、DECISIONS、CHANGE_LOG §34。第6节历史只追加。
+> 新接手先读本文0–5、PROMPTS r2.13 §4.1/§4.5、CP3_REPORT最终续节、cp3_paths_v1/README与runtime_acceptance、DECISIONS、CHANGE_LOG §35。第6节历史只追加。
 
 ## 0. 一句话
 
-获准的一次探针续跑已执行：普通四版本通过，连字符0.4.12因允许目录拒绝而失败后停止；旧结果另有92项同类问题，等待参数修正与联合103项重验批准，CP3未完成。
+CP3本地实施与验收完成，等待独立审查：12项路径探针、103项限定重验和完整回归通过，最终21,160成功/9,911剩余；保护审计与文档检查收据封存于cp3_paths_v1，本轮不push。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 本轮起点 | compile-repair，8900abe8 | cp3_entry_resume_v1/baseline |
-| 一次续跑授权 | 已执行，原话“允许修正脚本并续跑一次（推荐）” | authorization |
-| 本轮代码 | 未修改生产、测试或夹具；仅执行脚本收据过滤current别名 | pre_execution_review |
-| 探针 | 4passed/1failed/27deselected，余下3连字符版本未运行 | entry_probes_v2 |
-| 新问题 | --allow-paths .拒绝项目根内现存兄弟目录导入 | 失败compiled.json |
-| 旧观察影响 | 92项/521次：79项后来成功、13项失败；1473条路径均存在于工作根 | allowed_paths_existing_evidence/source_verification |
-| 当前待确认 | 绝对项目根参数；12项探针通过后重验92+11=103项 | allowed_paths_review_request |
-| 当前交付 | 本地停止检查点；0语料重验，无新最终统计，未push | CHANGE_LOG §34 |
+| 本轮起点 | compile-repair，967d0890 | cp3_paths_v1/baseline |
+| 用户批准 | 参数修正、探针与103项重验，已落实 | authorization |
+| 生产改动 | 仅project.py两处允许目录改为绝对项目根 | 原批准补丁与当前diff |
+| 定向探针 | 12passed，保留原八项并追加四项普通嵌套入口 | path_probes |
+| 限定重验 | 103项各一次，89成功/14未修复，原79成功保持且选版提前 | runtime_acceptance/replacement_summary |
+| 最终全量口径 | 31,071有效：21,160成功/9,911剩余；236非Solidity单列 | failure_summary/result_provenance |
+| 原观察保留 | 仅替换103条，其余30,968条来源完全相同 | runtime_acceptance |
+| 完整回归 | production731/6；mando271/466；DFG2653passed/9既有warnings | pytest_*_final_v1 |
+| 当前检查 | 实验、保护、语法及空白检查通过；最终文档字节由doc_check_v2绑定 | acceptance_status、frozen_audit、doc_check_v2 |
+| 交付边界 | 本地提交，不自动push；后续CP未启动 | CHANGE_LOG §35 |
 
 ## 2. 分支与工作树
 
-使用/home/zhao/SmartContract/ge-sc-llm-compile的compile-repair。起点8900abe8d5587524366e32e7092a43f4b932ee31；同一CP3任务之前已pull，本次不重复同步。cp3_entry_v1、cp3_binding_v1及更早批次只读，本次新证据在cp3_entry_resume_v1。合并前两交付清单879成员先核验，文档历史保留。
+使用/home/zhao/SmartContract/ge-sc-llm-compile的compile-repair，起点967d0890b99de849a31de589ec0b08e12e52aa8b。本次继续同一CP3，没有再次pull或改其他分支。新批次cp3_paths_v1，前序912成员先核验，旧所有批次、语料和原运行均只读。
 
-授权脚本的v2临时目录在compile-repair-local/cp3_entry_v1/pytest_entry_probes_v2，为此前不存在的新目录；旧v1失败记录未覆盖。新收据只写cp3_entry_resume_v1，原版脚本和过滤别名的执行副本均保留。语料原目录只读，旧未跟踪临时文件不清理或暂存。
+仓库外compile-repair-local/cp3_paths_v1/revalidate_103仅执行了首项并保留脚本停止现场；该项已成功，分类在新证据中恢复。continue_remaining_102只执行剩余102项，manifest证明103个ID没有重复执行；首段summary零计数不能解释为没有调用，实际1编译/1Slither另记。旧未跟踪临时文件不清理、不混入交付。
 
 ## 3. 环境
 
-production为Python3.10.21、Slither0.11.6、crytic-compile0.4.2；mando为Python3.7.12、Slither0.8.0、crytic-compile0.2.4。使用既有92支持版本，不安装或改变全局solc。
+production为Python3.10.21、Slither0.11.6、crytic-compile0.4.2；mando为Python3.7.12、Slither0.8.0、crytic-compile0.2.4。沿用92个支持编译器快照，不安装、升级或改变全局solc。6c专用regression_6c路径未改，本轮未另跑全量6c重放。
 
-从仓库根运行，PYTHONDONTWRITEBYTECODE=1、PYTHONNOUSERSITE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2，TREE_SITTER_LIB_DIR沿用既有linux-x86_64路径。CPU、0美元，没有LLM、HGT或GPU锁操作；只读使用已授权下载的官方文档，未新下载。
+仓库根运行，PYTHONDONTWRITEBYTECODE=1、PYTHONNOUSERSITE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2，TREE_SITTER_LIB_DIR沿用既有linux-x86_64路径。0美元，CPU，无新下载/LLM/HGT/GPU锁/网络修改。
 
 ## 4. 必读与下一步
 
-1. 原入口修正及一次续跑批准已落实；一次运行在首个连字符探针失败后停止，不再自动重试。
-2. 旧版0.4.12实际接受./文件目标，但拒绝根内兄弟导入。不得移动依赖、简化夹具或放宽D3来制造通过。
-3. 建议仅project.py把两处--allow-paths同步为解析后的项目根绝对路径，物理范围仍为原项目根；proposed_project_allowed_paths.diff未应用，先等allowed_paths_review_request答复。
-4. 若批准，保留现有八项检查，加普通嵌套入口/兄弟导入四版本检查；12项全通过后新批次重验103项，异常即停。
-5. 103项为原11连字符入口与旧92目录拒绝单元的无重叠并集；79个旧成功也须重验其候选选版，不能只重跑失败项目。
-6. 旧31,071项和21,150/9,921保持修正前观察含义；新汇总须逐项绑定被替换结果SHA，其他项目不得自动重跑。
-7. 原./目标、候选顺序、编译设置政策、源码、D3和项目直接绑定门槛保持；当前生产仍16模块，本轮无生产改动。
-8. 面向未来任意合约，29类和125条breaking changes不按语料频率删减；并集pragma、Slither进程隔离及后续修复规则仍留后续CP。
-9. 原scripts、模型、根交接/训练文档、EdgeSem、语料及封存产物禁止修改。中途停止完成所有记录和doc_check后本地提交，不自动push。
+1. 参数和103项范围批准已实施，无新的执行审批待办。项目根绝对允许路径与./入口保持两类工具一致，输入、候选和成功门槛没有改变。
+2. 本轮两个脚本问题均保留原收据：tuple/list比较误报通过相同JSON字段确认恢复；历史中断段按原封存保全清单核验。没有重复实验或虚构正常完成seal，详见CHANGE_LOG §35。
+3. 最终分类只替换103条，保留其余30,968条原实现和版本来源；不能说31,071项全部用最终代码重新跑过。旧错误观察和被替换调用从有效计数剔除但不删除。
+4. 原79成功全从0.4.18提前：35到0.4.12、2到0.4.13、9到0.4.15、33到0.4.16。新增10项成功，14项剩余为12个Slither工具限制及2个源码编译错误。
+5. 原D3事实、文件名+key5、不去重及项目直接类型绑定检查保持。207次未获绑定认证全是Slither未构造，不能当成207次错绑；D3true而绑定拒绝为0，有限检查不保证全部IR语义。
+6. 面向未来任意合约，29类、125条breaking changes及10个零频类别保持；频率只排实现顺序。D6路由和CP4算子在d6_cp4_final，后续先独立审查CP3，再按新Prompt推进CP4。
+7. ||并集pragma、Slither进程隔离/截止时间、依赖补全、结构修复、tuple改写和LLM均未在本CP实现。D19下限仍0.4.12，6项相关区间已登记，未经批准不改支持范围。
+8. 原scripts、模型、根交接/训练文档、EdgeSem、语料及封存产物禁止修改。生产仍16模块，Python3.7兼容与分层测试已通过；保护审计与文档检查已纳入交付收据，不自动push。
 
 ## 5. 关键路径
 
 | 内容（compile_repair下） | 路径 |
 |---|---|
-| 本轮授权与基线 | artifacts/cp3_entry_resume_v1/authorization.json、baseline.json |
-| 探针失败与证据脚本差异 | cp3_entry_resume_v1/entry_probes_v2.json、pre_execution_review.json、probes_v2/ |
-| 旧结果只读影响与源码路径核验 | cp3_entry_resume_v1/allowed_paths_existing_evidence.json、allowed_paths_source_verification.json |
-| 未应用补丁与待确认请求 | cp3_entry_resume_v1/proposed_project_allowed_paths.diff、allowed_paths_review_request.json |
-| 原完整观察/来源/D6 | cp3_binding_v1/failure_summary.json、result_provenance.json、d6_cp4_final.json |
-| 报告与交接 | CP3_REPORT、PROGRESS、docs/CHANGE_LOG §34、DECISIONS |
+| 本轮批准与基线 | artifacts/cp3_paths_v1/authorization.json、baseline.json |
+| 12项探针与完整测试 | cp3_paths_v1/path_probes.json、probes/、pytest_*_final_v1.json |
+| 103项唯一执行验收 | cp3_paths_v1/runtime_acceptance.json、replacement_summary.json |
+| 脚本问题与恢复 | cp3_paths_v1/driver_comparison_recovery.json、aggregate_inventory_correction.json |
+| 最终分类和每项来源 | cp3_paths_v1/failure_summary.json、result_provenance.json |
+| D6路由与CP4算子 | cp3_paths_v1/d6_cp4_final.json |
+| 收尾检查与交付清单 | artifacts/cp3_paths_v1/acceptance_status.json、frozen_audit.json、doc_check_*、evidence_seal.json、delivery_inventory.json |
+| 报告与强制记录 | CP3_REPORT、PROGRESS、docs/CHANGE_LOG §35、DECISIONS |
 
 ---
 
@@ -503,3 +506,26 @@ CP3最终验收仍暂停：11个连字符入口被误当solc选项（315次调�
 Python3.7语法与未应用补丁的git apply --check通过，静态检查不替代四版本运行。tracked diff空白检查通过；唯一保留的是建议补丁.diff的四条空源行上下文，其单个前导空格属于统一diff格式，文件SHA与行号精确绑定于whitespace_review，不豁免生产代码、测试或正文的空白问题。补丁仍未应用。
 
 一次探针续跑已经使用，后续三个连字符版本与任何语料均未继续。当前等待allowed_paths_review_request对应参数及103项范围批准；完整回归、新汇总和最终验收未运行，CP3未完成。按中途停止要求提交本地证据检查点，提交号以包含本条记录的CP3提交及仓库外收据为准，未push。后续批准后须在新批次继续，不向本批次或任何旧批次覆盖写入。
+
+
+### 2026-11-18 CP3 参数修正、103项重验及最终分类完成实验验收（修改 AI：Codex）
+
+分支compile-repair，起始967d0890，依据PROMPTS r2.13及用户“批准参数修正、探针与103项重验（推荐）”。先核验912成员并写cp3_paths_v1授权，生产仅project.py两处--allow-paths变为绝对项目根；test_project.py追加四版本普通嵌套入口检查，原八项/夹具保持。本文0–5节已更新授权落实、最终数字、脚本问题、后续边界与关键路径，第6节历史只追加。
+
+12项探针全通过；103项各一次，89成功/14未修复，原79成功全保持且改选更早版本，另10项新成功。有效全量为31,071项、21,160成功/9,911剩余，236条非Solidity单列。只替换103条，30,968条原来源保持；完整分类、包路径统计、29类/125条breaking changes与CP4算子清单均已更新。
+
+首项已成功但脚本tuple/list比较误报，保存计划和输入逐字段全同，恢复已封存结果后仅继续102个未执行ID，未重试首项。历史中断段缺正常seal是原真实状态，汇总使用原已封存保全清单并核对SHA；失败收据保留，不制造seal。问题与解决方法见CHANGE_LOG §35，本次没有未经批准的方案或接受门槛变更。
+
+production731passed/6skipped、mando271passed/466skipped、DFG2653passed/9既有warnings全部通过；最终文档和保护检查后补。准备本地提交并交独立审查，不自动push，后续CP尚未开始。0美元，无安装、下载、LLM、训练、GPU锁或全局solc改动。
+
+
+### 2026-11-18 CP3 最终交付核验完成（修改 AI：Codex）
+
+本补记更新第0节当前结论、第1节检查状态、第4节第8条及第5节收据入口；其余历史逐字保留。
+
+
+2026-11-18 最终交付核验补记（修改 AI：Codex）：frozen_audit通过，28,908份保护跟踪文件、25,828份旧封存文件、905份上一检查点保护成员、29,611份外部语料及10份官方资料均未变；96份solc相关文件、两环境145/118份元数据、354条DFG引用及原生Slither解析器SHA保持。这些检查集合可能重叠，不相加作总文件数。历史文档均保留，生产仍16模块。Python3.7语法检查、tracked diff空白检查及本批次新文件空白检查通过，没有新增豁免。
+
+doc_check_v1对六份正文与五份原文快照共11份通过；本补记及当前状态更新后的最终字节由doc_check_v2再次核验，提交以该收据通过并绑定各文档SHA为前置条件。新证据由evidence_seal与delivery_inventory封存，acceptance_status汇总最终门槛。完整回归与保护检查已通过，此后只补交付记录，没有再跑实验或修改生产代码。
+
+CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-repair，实际提交号以包含本记录的CP3提交及仓库外delivery_commit_receipt为准；本轮未push，未实施CP4或新增修复规则。参数修正及103项批准全部落实，无新增待批准执行事项；已知工具与版本边界继续按本报告保留。

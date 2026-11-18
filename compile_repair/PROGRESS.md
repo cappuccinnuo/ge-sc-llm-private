@@ -431,3 +431,21 @@ CP3最终验收仍暂停：11个连字符入口被误当solc选项（315次调�
 Python3.7语法与未应用补丁的git apply --check通过，静态检查不替代四版本运行。tracked diff空白检查通过；唯一保留的是建议补丁.diff的四条空源行上下文，其单个前导空格属于统一diff格式，文件SHA与行号精确绑定于whitespace_review，不豁免生产代码、测试或正文的空白问题。补丁仍未应用。
 
 一次探针续跑已经使用，后续三个连字符版本与任何语料均未继续。当前等待allowed_paths_review_request对应参数及103项范围批准；完整回归、新汇总和最终验收未运行，CP3未完成。按中途停止要求提交本地证据检查点，提交号以包含本条记录的CP3提交及仓库外收据为准，未push。后续批准后须在新批次继续，不向本批次或任何旧批次覆盖写入。
+
+
+## CP3 绝对允许路径修正与最终重验（2026-11-18，修改 AI：Codex）
+
+用户批准“批准参数修正、探针与103项重验（推荐）”，从967d0890继续，先记录cp3_paths_v1/authorization和912成员基线。生产仅project.py两处--allow-paths改为项目根绝对路径，保留./入口和所有语义/候选判据；test_project.py追加普通嵌套入口四版本检查，原八项与夹具不变。新增证据脚本和五份强制记录，完整路径见delivery_inventory。
+
+12项探针全通过。103项各执行一次，原79成功保持并全部改选更早版本，另10项新成功，合计89成功/14未修复。14项为12项Slither工具限制及两个源码编译错误。首项因脚本tuple/list比较误报停止后，从已封存成功结果恢复分类，继续剩余102项，未重复实验；首段原0计数按分类完成条目解释，实际1编译/1Slither单列记录。历史中断段没有正常seal，汇总器改用其原封存保全清单验证；第一次只读汇总失败保留，未放宽哈希标准。问题与具体处理完整写CHANGE_LOG §35和driver_comparison_recovery、aggregate_inventory_correction。
+
+最终31,071有效单元为21,160成功、9,911剩余；236非Solidity单列。只替换103条，其他30,968条原来源保持。有效编译115,192次、Slither21,376次，29类/125条breaking changes及10零频类别保留；详细SHA例证、非互斥分类比例、各语料分布和CP4算子在failure_summary及d6_cp4_final。频率只排实现顺序，未来任意合约仍是模块目标。
+
+完整测试命令为各环境Python -B -m pytest -q -p no:cacheprovider：production compile_repair/tests 731/6，mando同目录271/466，mando scripts/DFG/dfg_v2/tests 2653passed/9既有warnings。收据列完整basetemp和耗时；本轮实验与回归已通过，最终保护审计/doc_check/交付状态后补。HANDOVER0–5及第6节、DECISIONS、CP3_REPORT同步；不安装、下载、调用LLM或训练，0美元，不自动push。并集pragma、Slither子进程超时、后续依赖/结构修复与CP4基准仍未实现。
+
+
+2026-11-18 最终交付核验补记（修改 AI：Codex）：frozen_audit通过，28,908份保护跟踪文件、25,828份旧封存文件、905份上一检查点保护成员、29,611份外部语料及10份官方资料均未变；96份solc相关文件、两环境145/118份元数据、354条DFG引用及原生Slither解析器SHA保持。这些检查集合可能重叠，不相加作总文件数。历史文档均保留，生产仍16模块。Python3.7语法检查、tracked diff空白检查及本批次新文件空白检查通过，没有新增豁免。
+
+doc_check_v1对六份正文与五份原文快照共11份通过；本补记及当前状态更新后的最终字节由doc_check_v2再次核验，提交以该收据通过并绑定各文档SHA为前置条件。新证据由evidence_seal与delivery_inventory封存，acceptance_status汇总最终门槛。完整回归与保护检查已通过，此后只补交付记录，没有再跑实验或修改生产代码。
+
+CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-repair，实际提交号以包含本记录的CP3提交及仓库外delivery_commit_receipt为准；本轮未push，未实施CP4或新增修复规则。参数修正及103项批准全部落实，无新增待批准执行事项；已知工具与版本边界继续按本报告保留。
