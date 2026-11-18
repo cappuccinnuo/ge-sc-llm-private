@@ -44,9 +44,7 @@ jobs:
           pip install torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
           pip install dgl==2.1.0 "numpy<2" requests "pydantic>=2"
           pip install --no-deps torchdata==0.7.1
-          pip install "numpy<2" "networkx>=3" tree-sitter==0.20.4 pydot==1.4.2 transformers==4.46.3 \
-            scikit-learn scipy pandas matplotlib tensorboard tabulate timebudget \
-            torch_geometric pytest
+          pip install "numpy<2" -r requirements.txt
       - name: hcg, dfg, nodesem, edgesem and mando unit tests (dfg.train against the sealed Prompt 8 folds/groups)
         run: |
           python -m pytest -q tests/hcg/test_units.py tests/dfg/test_units.py tests/dfg/test_train.py \
@@ -86,9 +84,7 @@ jobs:
           pip install torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
           pip install dgl==2.1.0 "numpy<2" requests "pydantic>=2"
           pip install --no-deps torchdata==0.7.1
-          pip install "numpy<2" "networkx>=3" tree-sitter==0.20.4 pydot==1.4.2 transformers==4.46.3 \
-            scikit-learn scipy pandas matplotlib tensorboard tabulate timebudget \
-            torch_geometric pytest
+          pip install "numpy<2" -r requirements.txt
       - name: Fetch pinned label sources
         run: python -m hcg fetch
       - name: hcg build from source (with CodeT5+ tokens), compared with the authors' graphs
@@ -126,7 +122,6 @@ jobs:
       - name: nodesem encoders, LLM generation and training smoke (access control node, CPU)
         if: matrix.category == 'access_control'
         run: |
-          pip install sentence-transformers==3.3.1
           CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install llama-cpp-python==0.3.19
           A="--categories access_control --tasks node --hcg out/hcg --dfg out/dfg --nodesem out/nodesem"
           python -m nodesem encode $A --device cpu

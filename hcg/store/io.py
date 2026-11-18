@@ -26,17 +26,27 @@ def read_gpickle(path):
         return pickle.load(handle)
 
 
-# Restricted reading (formerly scripts/labeling_v2/safe_graph.py, unchanged): only a
-# MultiDiGraph of plain dicts and NumPy arrays may be unpickled.
+# Restricted reading (formerly scripts/labeling_v2/safe_graph.py): only a MultiDiGraph of
+# plain dicts and NumPy arrays may be unpickled. networkx 3 also pickles the read-only
+# views it caches on a graph, and NumPy 2 names its reconstructor numpy._core.
+try:
+    from numpy._core.multiarray import _reconstruct as _np_reconstruct
+except ImportError:  # NumPy 1.x
+    from numpy.core.multiarray import _reconstruct as _np_reconstruct
+from networkx.classes import reportviews as _views
+
 _ALLOWED = {
     ("networkx.classes.multidigraph", "MultiDiGraph"): nx.MultiDiGraph,
     ("networkx.classes.coreviews", "MultiAdjacencyView"): MultiAdjacencyView,
     ("networkx.classes.reportviews", "NodeView"): NodeView,
     ("builtins", "dict"): dict,
-    ("numpy.core.multiarray", "_reconstruct"): np.core.multiarray._reconstruct,
+    ("numpy.core.multiarray", "_reconstruct"): _np_reconstruct,
+    ("numpy._core.multiarray", "_reconstruct"): _np_reconstruct,
     ("numpy", "ndarray"): np.ndarray,
     ("numpy", "dtype"): np.dtype,
 }
+_ALLOWED.update({("networkx.classes.reportviews", name): getattr(_views, name)
+                 for name in ("OutMultiEdgeView", "DiMultiDegreeView", "InMultiDegreeView", "OutMultiDegreeView")})
 
 
 class _RestrictedReader(pickle.Unpickler):
