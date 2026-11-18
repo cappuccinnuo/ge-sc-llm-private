@@ -17,10 +17,35 @@ mkdir -p "$CACHE/home" "$CACHE/huggingface"
 TTY=(-i)
 [ -t 0 ] && [ -t 1 ] && TTY=(-it)
 PASS=()
+# Reuse the trusted CA bundle from WSL Ubuntu.
+HOST_CA=/etc/ssl/certs/ca-certificates.crt
+
+if [ ! -r "$HOST_CA" ]; then
+    echo "Missing host CA bundle: $HOST_CA" >&2
+    exit 1
+fi
+
+PASS+=(
+    -v "$HOST_CA:/cache/host-ca-bundle.pem:ro"
+    -e REQUESTS_CA_BUNDLE=/cache/host-ca-bundle.pem
+    -e CURL_CA_BUNDLE=/cache/host-ca-bundle.pem
+    -e SSL_CERT_FILE=/cache/host-ca-bundle.pem
+)
+
 for name in http_proxy https_proxy no_proxy all_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY ALL_PROXY HF_ENDPOINT; do
     [ -n "${!name:-}" ] && PASS+=(-e "$name")
 done
 [ -f "$HOME/.gitconfig" ] && PASS+=(-v "$HOME/.gitconfig:/cache/home/.gitconfig:ro")
+
+# ScholarTools CA certificate
+if [ -f "$CACHE/scholar-ca-bundle.pem" ]; then
+    PASS+=(
+        -e SSL_CERT_FILE=/cache/scholar-ca-bundle.pem
+        -e GIT_SSL_CAINFO=/cache/scholar-ca-bundle.pem
+        -e REQUESTS_CA_BUNDLE=/cache/scholar-ca-bundle.pem
+        -e CURL_CA_BUNDLE=/cache/scholar-ca-bundle.pem
+    )
+fi
 exec docker run --rm "${TTY[@]}" --gpus all --ipc=host --network host \
     --user "$(id -u):$(id -g)" -e HOME=/cache/home "${PASS[@]}" \
     -v "$REPO":/work/repo -v "$CACHE":/cache -w /work/repo \
