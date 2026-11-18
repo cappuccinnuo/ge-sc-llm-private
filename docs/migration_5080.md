@@ -97,4 +97,4 @@ main 的 README 冲突保留当前仓库内的集成入口；auto_version_solc.p
 - 为 NumPy 2 / Python 3.12 / networkx 3 所做的修正：`mando/models/tools.py` 的 `np.Inf` → `np.inf`（NumPy 2 已移除）；受限读图函数允许 networkx 3 缓存在图上的只读视图和 NumPy 2 的 `numpy._core` 重建函数（此前对新建图会拒绝）；setuptools 列入依赖（Python 3.12 下 tree-sitter 编译语法需要其 distutils）。
 - `.gitignore` 的 `models/` 改为只匹配根目录，`mando/models/__init__.py` 此前因此未被提交，现已加入。
 - 尚未在 5080 上验证：NVIDIA DGL 容器官方说明面向 Hopper/Ampere，其 DGL 是否含 sm_120 内核由 `check_env.py` 的 DGL 检查确认；若不含，需要换基础镜像或自行编译 DGL。
-
+- 数值精度：NVIDIA 容器默认强制 TF32 矩阵乘（`TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=1`），在 5080 上 1024×1024 矩阵乘与 CPU 最大差 0.05；镜像改为 `NVIDIA_TF32_OVERRIDE=0`、`TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0`，训练使用完整 FP32（与 CPU/CI 和封存实验一致），`check_env.py` 显式检查 TF32 已关闭。

@@ -48,10 +48,17 @@ def gpu():
     built = torch.cuda.get_arch_list()
     if arch not in built and "compute_%d%d" % (major, minor) not in built:
         raise RuntimeError("PyTorch built for %s, not for this GPU (%s)" % (built, arch))
+    for name in ("NVIDIA_TF32_OVERRIDE", "TORCH_ALLOW_TF32_CUBLAS_OVERRIDE"):
+        print("      %-28s %s" % (name, os.environ.get(name, "(unset)")))
+    if os.environ.get("NVIDIA_TF32_OVERRIDE") != "0" or torch.backends.cuda.matmul.allow_tf32:
+        raise RuntimeError("TF32 is enabled, so GPU matmuls are not FP32; use the image's environment "
+                           "(NVIDIA_TF32_OVERRIDE=0, TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0)")
     x = torch.randn(1024, 1024, device="cuda")
-    torch.testing.assert_close((x @ x).cpu(), x.cpu() @ x.cpu(), rtol=1e-3, atol=1e-2)
+    # FP32 sums of 1024 products: only rounding-order differences from the CPU (TF32 gives ~5e-2).
+    torch.testing.assert_close((x @ x).cpu(), x.cpu() @ x.cpu(), rtol=1e-4, atol=1e-3)
     free, total = torch.cuda.mem_get_info()
-    return "%s, %s, %.1f/%.1f GB free" % (torch.cuda.get_device_name(0), arch, free / 2**30, total / 2**30)
+    return "%s, %s, FP32 matmul, %.1f/%.1f GB free" % (torch.cuda.get_device_name(0), arch, free / 2**30,
+                                                         total / 2**30)
 
 
 def dgl_kernels():

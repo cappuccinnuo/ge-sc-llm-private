@@ -34,4 +34,10 @@ RUN LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH:-} \
 RUN mkdir -p /opt/mando /cache && chmod 1777 /cache \
     && pip freeze > /opt/mando/pip-freeze.txt
 
+# Full FP32 like the CPU runs and the sealed experiments: NVIDIA's containers force TF32
+# matmuls (TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=1); NVIDIA_TF32_OVERRIDE=0 disables TF32 in all
+# kernels (cuBLAS and cuDNN). Last layer, so changing it never rebuilds llama.cpp.
+ENV TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0 \
+    NVIDIA_TF32_OVERRIDE=0
+
 WORKDIR /work/repo
