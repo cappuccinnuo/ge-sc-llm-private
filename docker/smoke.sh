@@ -13,6 +13,9 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 CAT="${1:-access_control}"
 OUT="${SMOKE_OUT:-runs/smoke}"
+# The label repositories `hcg fetch` checks out; the CLIs default to data/, the dataset
+# tests need it set explicitly (without it they skip).
+export MANDO_DATA_DIR="${MANDO_DATA_DIR:-$PWD/data}"
 ROOTS="--hcg $OUT/hcg --dfg $OUT/dfg"
 mkdir -p "$OUT"
 LOG="$OUT/smoke_$CAT.log"
@@ -27,10 +30,14 @@ step() {
 }
 
 step "environment" python docker/check_env.py
-step "unit tests" python -m pytest -q tests/hcg/test_units.py tests/dfg/test_units.py tests/dfg/test_train.py \
+step "unit tests" python -m pytest -q tests/hcg/test_units.py tests/hcg/test_models.py tests/dfg/test_units.py tests/dfg/test_train.py \
     tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando
-step "fetch Dataset A sources" python -m hcg fetch
+step "fetch label repositories and pinned models" python -m hcg fetch
 if [ "${SKIP_DATASET_TESTS:-0}" != 1 ]; then
+    step "dataset tests can run (label sources at \$MANDO_DATA_DIR)" python -c "
+from tests.dfg.test_dataset_a import _ready
+reason = _ready()
+assert reason is None, reason"
     step "dataset tests ($CAT)" python -m pytest -q tests/hcg/test_dataset_a.py tests/dfg/test_dataset_a.py \
         tests/nodesem/test_dataset_a.py tests/edgesem/test_dataset_a.py -k "$CAT"
 fi

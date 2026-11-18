@@ -1,4 +1,5 @@
-"""Public label sources: pinned repositories and annotation loading/projection."""
-from hcg.sources import annotations, repos
+"""Pinned external sources: annotation repositories (repos), annotation loading and
+projection (annotations), and verified pretrained-model downloads (models)."""
+from hcg.sources import annotations, models, repos
 
-__all__ = ["annotations", "repos"]
+__all__ = ["annotations", "models", "repos"]

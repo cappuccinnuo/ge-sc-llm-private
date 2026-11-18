@@ -34,9 +34,8 @@ def sha256_file(path):
 
 def model_path(cache_dir=None):
     """Download (once) the pinned GGUF and verify its size and SHA-256."""
-    from huggingface_hub import hf_hub_download
-    path = Path(hf_hub_download(MODEL["repo_id"], MODEL["filename"], revision=MODEL["revision"],
-                                cache_dir=cache_dir))
+    from hcg.sources.models import ensure
+    path = ensure(MODEL["repo_id"], MODEL["revision"], cache_dir) / MODEL["filename"]
     if path.stat().st_size != MODEL["bytes"] or sha256_file(path) != MODEL["sha256"]:
         raise ValueError("Downloaded GGUF differs from the pinned model")
     return path
