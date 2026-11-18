@@ -31,6 +31,17 @@ only `git pull`; the image is rebuilt only when `requirements.txt` or the Docker
 * **Memory**: WSL gets half of the Windows RAM by default; raise it in
   `%UserProfile%\.wslconfig` (`[wsl2]` `memory=...`) if builds are killed.
 
+* **Network**: the pipeline downloads the two label repositories from GitHub
+  (`hcg fetch`) and the encoder/LLM weights from Hugging Face. `docker/run.sh` gives the
+  container the host's network, its `http(s)_proxy`/`no_proxy`/`HF_ENDPOINT` variables
+  and `~/.gitconfig` (read-only), so whatever works in the WSL shell works inside. Check
+  from the shell first:
+  `git ls-remote https://github.com/smartbugs/smartbugs-curated.git HEAD` and
+  `curl -sI https://huggingface.co | head -1`. Behind a proxy, export it in the shell
+  (e.g. `export https_proxy=http://<host>:<port> http_proxy=$https_proxy`) before
+  `docker/run.sh`; the proxy must be reachable from WSL (with WSL's default NAT
+  networking that is the Windows host's address, not 127.0.0.1).
+
 ## 2. Code and image
 
 ```bash

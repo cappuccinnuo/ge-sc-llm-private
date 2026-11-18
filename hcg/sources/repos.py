@@ -15,8 +15,20 @@ REPOSITORIES = {
 
 
 def _git(directory, *args):
-    return subprocess.run(["git", "-C", str(directory)] + list(args), check=True,
-                          capture_output=True, text=True).stdout.strip()
+    result = subprocess.run(["git", "-C", str(directory)] + list(args), capture_output=True, text=True)
+    if result.returncode:
+        raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout,
+                                            "%s\n%s" % (result.stderr.strip(), " ".join(result.args)))
+    return result.stdout.strip()
+
+
+def _fetch(directory, url, commit):
+    try:
+        _git(directory, "fetch", "-q", "--depth", "1", "origin", commit)
+    except subprocess.CalledProcessError as error:
+        raise SystemExit("Could not fetch %s at %s:\n%s\nCheck that this machine (and, in Docker, the "
+                         "container) can reach GitHub; behind a proxy see docker/README.md."
+                         % (url, commit, error.stderr)) from None
 
 
 def head(directory):
@@ -38,7 +50,7 @@ def ensure(label_root):
             directory.mkdir(parents=True, exist_ok=True)
             _git(directory, "init", "-q")
             _git(directory, "remote", "add", "origin", url)
-        _git(directory, "fetch", "-q", "--depth", "1", "origin", commit)
+        _fetch(directory, url, commit)
         _git(directory, "checkout", "-q", "--detach", "FETCH_HEAD")
     return verify(label_root)
 
