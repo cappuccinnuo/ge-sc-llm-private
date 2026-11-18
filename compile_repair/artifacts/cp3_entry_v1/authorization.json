@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-18",
+  "source": "user reply call_995bb997592d440097cc147b2842d85d",
+  "user_quote": "批准限定修正与 11 个单元重验（推荐）",
+  "request_path": "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp3_binding_v1/leading_dash_review_request.json",
+  "request_sha256": "720b82ed018f97f1fe321585a218a23c362426408e0b18008b1d1336ea4c4bdf",
+  "approved_scope": {
+    "scope": [
+      "compile_repair/toolchain/project.py",
+      "compile_repair/tests/test_project.py",
+      "compile_repair/tests/fixtures/ hand-written leading-hyphen project",
+      "new evidence and mandatory documentation"
+    ],
+    "behavior": "Use one shared entry-argument normalizer: prefix ./ only if project.entry starts with -. Both solc argv and Slither target use it. All other target strings, source bytes, version/settings policy, D3 and binding gate remain unchanged.",
+    "tests": "Hand-written leading-hyphen entry with existing compilers 0.4.12, 0.4.24, 0.5.17 and 0.8.38; assert matching targets, compiler success, D3 and binding acceptance; existing plain-entry argv unchanged.",
+    "revalidation": "Preserve current full batch and summaries. Revalidate exactly these 11 units in a fresh batch under original candidate policy, stop on unexpected outcomes, then replace only those rows in a new summary with explicit provenance. No full-corpus rerun.",
+    "no_install_download_llm_or_global_solc_change": true,
+    "cost_usd_limit": 0
+  },
+  "cost_usd_limit": 0,
+  "prior_checkpoint_commit": "e3fb634f86fe10723cb9f4c49f517c84b26b1b22"
+}

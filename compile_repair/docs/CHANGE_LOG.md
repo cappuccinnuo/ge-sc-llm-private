@@ -1694,3 +1694,33 @@ CP3最终验收仍暂停：11个连字符入口被误当solc选项（315次调�
 
 
 2026-11-18收尾检查补记（修改 AI：Codex）：doc_check_v2七份正文全部通过；whitespace_review_v2通过，仅沿用旧批次322份精确SHA绑定的原始工具输出空白，没有新增代码或正文豁免。检查器v1误把git diff --no-index的正常差异退出码1当作空白错误，诊断输出实际为空；已保留v1，v2只修正退出码解释，所有实际空白诊断和异常仍拒绝，没有用v1暂存。该调整不改生产代码、不重跑测试或编译。本文补记后的最终字节由doc_check_v3核验；CP3仍等待11入口参数修正授权。
+
+
+## 33. 2026-11-18 CompileRepair CP3：连字符入口限定修正与探针初始化停止（修改 AI：Codex）
+
+### 33.1 任务、依据与范围
+
+用户批准“批准限定修正与 11 个单元重验（推荐）”，对应已封存 cp3_binding_v1/leading_dash_review_request.json，SHA256 720b82ed018f97f1fe321585a218a23c362426408e0b18008b1d1336ea4c4bdf。沿用已读 PROMPTS r2.13 §4.1/§4.5，本次继续同一 CP3，不重复 pull。起始分支 compile-repair、HEAD e3fb634f86fe10723cb9f4c49f517c84b26b1b22，先将授权、848成员基线和代码/文档快照写入新批次 cp3_entry_v1。生产只修改 toolchain/project.py；测试修改 tests/test_project.py，新增 tests/fixtures/cp3_leading_dash/-contracts/Entry.sol 与 lib/Dependency.sol；记录修改本 CHANGE_LOG、HANDOVER、DECISIONS、PROGRESS、CP3_REPORT，并新增本批次运行脚本、请求和收据。cp3_binding_v1及更早产物不改写、不覆盖。
+
+### 33.2 实施方式和问题处理
+
+project.py 新增一个共享入口参数函数，仅当 project.entry 以 - 开头时加 ./；project_command 与 slither_arguments 都调用它。普通入口、源文件内容、版本候选、设置、D3 与项目绑定检查保持。新增两文件手写项目包含相对导入、直接合约类型变量及跨文件调用；四个参数化测试使用已安装的 0.4.12、0.4.24、0.5.17、0.8.38，检查共同目标、编译退出码、D3、绑定和调用文件身份。生产模块数仍为16。
+
+Codex 编写的 run_entry_probes.py 漏建仓库外输出父目录，pytest 在首个普通入口测试初始化 tmp_path 时抛 FileNotFoundError。该错误发生在任何编译前，不是 solc/Slither 兼容性结论。已保留脚本、stdout/stderr、entry_probes.json；没有自动重试或重验语料。准备好的 run_entry_probes_v2.py 只补创建授权范围内的父目录，并改用新日志、证据与临时目录，不改测试/版本/验收条件；其执行等待 probe_setup_retry_request.json 对应答复。
+
+### 33.3 实测与数据结论
+
+首轮命令为生产 Python -B -m pytest -q -x -p no:cacheprovider compile_repair/tests/test_project.py -k 'leading_dash_entry_same_target or production_project_same_parameters'，完整命令和基目录见 entry_probes.json。退出码1、0 passed、1 setup error、27 deselected，包装器耗时4.196043秒；0次 solc、0次 Slither、0个语料重验，四版本探针与普通入口检查均未执行成功。这个数来自收据、pytest输出和不存在的仓库外输出根目录核验。现有31,071单元、21,150成功/9,921剩余失败仍是修正前观察，未生成或冒充新最终统计；其中11个调用错误待获准续跑并通过探针后再新批次重验。
+
+### 33.4 用户批准、原文差异与待确认设计
+
+2026-11-18 已定入口修正授权在 authorization.json，原用户原话与请求哈希完整保存。未修改既有 D3、D4、D5 或绑定门槛，没有提出额外替代修复方案。PROMPTS §4.1“失败就停，保留现场，不自动重试”适用于本次探针初始化失败，因此另行请求仅一次修正脚本后的八项检查；通过后沿用既有11单元重验批准，不重复索取该批准。费用上限0美元，不安装、不下载、不调用LLM，不修改全局solc。
+
+### 33.5 验收、资源、未执行事项与停止
+
+当前为停止检查点，入口代码已修改但四版本运行验收未通过，CP3尚未完成。完整production/mando/DFG回归本批次未运行；前批次723/6、271/458、2653/9warnings只能证明旧检查点，不能替代本次验证。11单元重验、新汇总和最终D6频率更新均未运行。正在完成中途停止要求的文档与范围检查，doc_check及保护结果在后续补记；此处不预写通过。没有新的安装、下载、LLM、HGT或GPU锁操作，不自动push。
+
+
+2026-11-18 停止检查点验收补记（修改 AI：Codex）：doc_check_v1对六份正文及五份原文快照共11份全部通过；本补记后的最终字节由doc_check_v2再次核验。frozen_audit通过：28,908份保护跟踪文件、25,828份旧封存文件、841份上一检查点保护成员、29,611份语料和10份资料均未变化；96份solc相关文件、两环境145/118份元数据、354条DFG代码引用和原生Slither解析器SHA保持。这些检查集合可能重叠，不相加计数。Python3.7语法解析与tracked diff --check通过，记录static_review；这些都是范围/静态检查，不能代替未完成的四版本运行验收。
+
+本轮仍停在探针初始化错误后的续跑确认，没有再次运行pytest、solc、Slither或11单元语料。将按中途停止记录要求提交本地检查点，实际提交号以包含本补记的CP3提交及仓库外提交收据为准，未push。现有失败脚本和输出封存；若用户随后允许续跑，须把已准备且SHA固定的run_entry_probes_v2.py原字节复制到新证据批次执行，维持旧批次只读，不覆盖任何旧文件。该脚本按自身目录写入新证据，并使用新的v2临时目录；测试、版本、条件和原11项批准范围保持。

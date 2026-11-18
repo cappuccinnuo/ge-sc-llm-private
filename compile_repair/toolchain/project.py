@@ -235,19 +235,24 @@ def verify_project(project):
             raise ValueError("Project source changed: " + source.path)
 
 
+def _entry_argument(project):
+    """Keep a relative entry beginning with '-' from becoming a compiler option."""
+    return "./" + project.entry if project.entry.startswith("-") else project.entry
+
+
 def project_command(project, compiler, settings=()):
     """Assemble the same combined-json argv as crytic-compile's solc platform."""
     from crytic_compile.platform.solc import _build_options, CompilerVersion
     settings = validate_settings(settings)
     options = _build_options(CompilerVersion("solc", compiler.version, False), False)
     return [compiler.path] + list(project.remappings) + [
-        project.entry, "--combined-json", options, "--allow-paths", "."] + list(settings)
+        _entry_argument(project), "--combined-json", options, "--allow-paths", "."] + list(settings)
 
 
 def slither_arguments(project, compiler, settings=()):
     """Return matching target/API kwargs for the production Slither invocation."""
     settings = validate_settings(settings)
-    return project.entry, {"solc": compiler.path, "solc_disable_warnings": True,
+    return _entry_argument(project), {"solc": compiler.path, "solc_disable_warnings": True,
         "solc_working_dir": project.root, "solc_remaps": list(project.remappings),
         "solc_args": " ".join(("--allow-paths", ".") + settings)}
 

@@ -1,0 +1,20 @@
+E
+==================================== ERRORS ====================================
+_ ERROR at setup of test_production_project_same_parameters_and_full_d3[0.4.12] _
+
+self = PosixPath('/home/zhao/SmartContract/compile-repair-local/cp3_entry_v1/pytest_entry_probes_v1')
+mode = 448, parents = False, exist_ok = False
+
+    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        """
+        Create a new directory at this given path.
+        """
+        try:
+>           self._accessor.mkdir(self, mode)
+E           FileNotFoundError: [Errno 2] No such file or directory: '/home/zhao/SmartContract/compile-repair-local/cp3_entry_v1/pytest_entry_probes_v1'
+
+../../miniconda3/envs/compile-repair-production/lib/python3.10/pathlib.py:1175: FileNotFoundError
+=========================== short test summary info ============================
+ERROR compile_repair/tests/test_project.py::test_production_project_same_parameters_and_full_d3[0.4.12]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+27 deselected, 1 error in 3.80s

@@ -1,0 +1,25 @@
+{
+  "schema": "cp3-entry-probe-setup-retry-request-v1",
+  "date": "2026-11-18",
+  "author": "Codex",
+  "status": "awaiting_user_decision",
+  "cause": "Harness omitted creation of the parent of pytest --basetemp; FileNotFoundError at first test setup.",
+  "failed_receipt": "compile_repair/artifacts/cp3_entry_v1/entry_probes.json",
+  "failed_receipt_sha256": "e96eafab551b2a27c7fb0b80a81360d95c0d2ac6ff26e404469f5bbe7dfcbaa1",
+  "observed": {
+    "tests_passed": 0,
+    "compiler_calls": 0,
+    "slither_calls": 0,
+    "corpus_revalidations": 0,
+    "local_output_root_exists": false
+  },
+  "concrete_fix": {
+    "script": "compile_repair/artifacts/cp3_entry_v1/run_entry_probes_v2.py",
+    "sha256": "e0febf623b9b04b3a98e279d6b7d5c9ac3c4018eabc7c1048a8230a527ab3ed7",
+    "change": "Create the authorized local output parent before pytest; use a fresh v2 basetemp, log names and evidence directory; all probe code, versions and expectations unchanged."
+  },
+  "requested_action": "Run the eight checks once (four approved leading-hyphen probes plus four existing ordinary-entry checks). Only if all eight pass, continue the previously authorized eleven-unit revalidation; preserve failed v1 records.",
+  "cost_usd_limit": 0,
+  "no_install_download_llm_or_global_solc_change": true,
+  "basis": "PROMPTS 4.1: failure stops with preserved evidence, no automatic retry."
+}
