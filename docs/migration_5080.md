@@ -92,9 +92,9 @@ main 的 README 冲突保留当前仓库内的集成入口；auto_version_solc.p
 
 ## 2026-11-17：RTX 5080 环境（docker/）
 
-- `docker/`：基于 NVIDIA DGL 25.08 容器（Ubuntu 24.04、CUDA 13.0、PyTorch 2.8、DGL 2.5、Python 3.12）的镜像（Dockerfile，含为 sm_120 编译的 llama-cpp-python 0.3.19）、`run.sh`（挂载仓库与缓存、GPU、以当前用户运行）、`check_env.py`（GPU 与算力、PyTorch 是否含 sm_120、DGL GPU 内核与 CPU 结果一致、tree-sitter 语法编译、llama.cpp GPU）、`smoke.sh`（单类别：环境检查 → 单元测试 → 该类别 Dataset A 等价性测试 → 各阶段 fold 0、2 轮，逐步计时，输出在 runs/smoke/）。使用说明见 `docker/README.md`。
+- `docker/`：基于 NVIDIA DGL 容器（默认 25.05：CUDA 12.9、DGL 2.5、Python 3.12；可用 `--build-arg BASE=nvcr.io/nvidia/dgl:25.08-py3` 改用 CUDA 13.0 的 25.08）的镜像（Dockerfile，含为 sm_120 编译的 llama-cpp-python 0.3.19）、`run.sh`（挂载仓库与缓存、GPU、以当前用户运行）、`check_env.py`（GPU 与算力、PyTorch 是否含 sm_120、DGL GPU 内核与 CPU 结果一致、tree-sitter 语法编译、llama.cpp GPU）、`smoke.sh`（单类别：环境检查 → 单元测试 → 该类别 Dataset A 等价性测试 → 各阶段 fold 0、2 轮，逐步计时，输出在 runs/smoke/）。使用说明见 `docker/README.md`。
 - `requirements.txt` 重写为 PyTorch + DGL 之上的全部依赖（CI 与 GPU 镜像共用）；CI 改为安装该文件。
 - 为 NumPy 2 / Python 3.12 / networkx 3 所做的修正：`mando/models/tools.py` 的 `np.Inf` → `np.inf`（NumPy 2 已移除）；受限读图函数允许 networkx 3 缓存在图上的只读视图和 NumPy 2 的 `numpy._core` 重建函数（此前对新建图会拒绝）；setuptools 列入依赖（Python 3.12 下 tree-sitter 编译语法需要其 distutils）。
 - `.gitignore` 的 `models/` 改为只匹配根目录，`mando/models/__init__.py` 此前因此未被提交，现已加入。
-- 尚未在 5080 上验证：DGL 25.08 容器官方说明面向 Hopper/Ampere，其 DGL 是否含 sm_120 内核由 `check_env.py` 的 DGL 检查确认；若不含，需要换基础镜像或自行编译 DGL。
+- 尚未在 5080 上验证：NVIDIA DGL 容器官方说明面向 Hopper/Ampere，其 DGL 是否含 sm_120 内核由 `check_env.py` 的 DGL 检查确认；若不含，需要换基础镜像或自行编译 DGL。
 

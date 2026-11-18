@@ -1,8 +1,8 @@
 # Running the pipeline on the RTX 5080 (WSL2 + Docker)
 
-The GPU environment is one image, built from NVIDIA's DGL 25.08 container (Ubuntu 24.04,
-CUDA 13.0, PyTorch 2.8, DGL 2.5, Python 3.12) plus `requirements.txt` and llama.cpp built
-for the 5080 (sm_120). The checkout is mounted into the container, so code updates need
+The GPU environment is one image, built from an NVIDIA DGL container (default 25.05:
+CUDA 12.9, DGL 2.5, Python 3.12; `--build-arg BASE=nvcr.io/nvidia/dgl:25.08-py3` for
+CUDA 13.0) plus `requirements.txt` and llama.cpp built for the 5080 (sm_120). The checkout is mounted into the container, so code updates need
 only `git pull`; the image is rebuilt only when `requirements.txt` or the Dockerfile change.
 
 | File | Purpose |
@@ -14,15 +14,19 @@ only `git pull`; the image is rebuilt only when `requirements.txt` or the Docker
 
 ## 1. Prerequisites (once)
 
-* **Windows NVIDIA driver** recent enough for CUDA 13: in WSL, `nvidia-smi` must show the
-  RTX 5080 and `CUDA Version: 13.0` or higher. Update the driver on Windows if not.
+* **Windows NVIDIA driver** recent enough for the base image's CUDA: in WSL, `nvidia-smi`
+  must show the RTX 5080 and a CUDA version at least that of the image (12.9 for 25.05,
+  13.0 for 25.08). Update the driver on Windows if not.
   Do not install a Linux NVIDIA driver inside WSL; WSL uses the Windows one.
 * **Docker with GPU support**, either Docker Desktop (Settings → Resources → WSL
   integration on for your Ubuntu distribution) or Docker Engine installed in WSL plus the
-  NVIDIA Container Toolkit. Check with
-  `docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu24.04 nvidia-smi -L`.
+  NVIDIA Container Toolkit. Check with the base image itself (it must list the GPU):
+  `docker run --rm --gpus all nvcr.io/nvidia/dgl:25.05-py3 nvidia-smi -L`.
+* **Docker without sudo**: `docker/run.sh` runs containers as your user so `data/` and
+  `runs/` stay yours; with `sudo` they would belong to root. Once:
+  `sudo usermod -aG docker $USER`, then `wsl --shutdown` in Windows and reopen WSL.
 * **Disk**: put the checkout on the WSL filesystem (e.g. `~/work`), not under `/mnt/c`,
-  which is many times slower. Plan for about 100 GB: image ~25 GB, models ~3 GB, data
+  which is many times slower. Plan for about 150 GB: image ~50 GB, models ~3 GB, data
   and runs the rest.
 * **Memory**: WSL gets half of the Windows RAM by default; raise it in
   `%UserProfile%\.wslconfig` (`[wsl2]` `memory=...`) if builds are killed.

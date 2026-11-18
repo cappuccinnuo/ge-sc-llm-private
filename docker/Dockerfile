@@ -2,10 +2,13 @@
 #
 #   docker build -f docker/Dockerfile -t mando-llm:5080 .     # from the repository root
 #
-# Base: NVIDIA's DGL 25.08 container (Ubuntu 24.04, CUDA 13.0, PyTorch 2.8, DGL 2.5,
-# Python 3.12), the last NVIDIA DGL container. The code is not copied in: docker/run.sh
-# mounts the checkout, so the image only changes when requirements.txt does.
-FROM nvcr.io/nvidia/dgl:25.08-py3
+# Base: an NVIDIA DGL container (DGL 2.5, Python 3.12, CUDA >= 12.8 for sm_120). Default
+# 25.05 (CUDA 12.9); 25.08 (CUDA 13.0) is the last one NVIDIA published:
+#   docker build -f docker/Dockerfile --build-arg BASE=nvcr.io/nvidia/dgl:25.08-py3 -t mando-llm:5080 .
+# The code is not copied in: docker/run.sh mounts the checkout, so the image only
+# changes when requirements.txt does.
+ARG BASE=nvcr.io/nvidia/dgl:25.05-py3
+FROM ${BASE}
 
 ENV DGLBACKEND=pytorch \
     PYTHONUNBUFFERED=1 \

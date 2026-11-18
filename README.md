@@ -39,8 +39,8 @@ Generated data goes to `data/` and training runs to `runs/` (both git-ignored).
 
 ## Setup
 
-* **GPU (RTX 5080, WSL2):** one Docker image based on NVIDIA's DGL 25.08 container
-  (CUDA 13.0, PyTorch 2.8, DGL 2.5, Python 3.12); see [`docker/README.md`](docker/README.md)
+* **GPU (RTX 5080, WSL2):** one Docker image based on an NVIDIA DGL container
+  (default 25.05: CUDA 12.9, DGL 2.5, Python 3.12); see [`docker/README.md`](docker/README.md)
   for prerequisites, the environment check, the smoke run and the full run.
 * **CPU (as in CI):** Python 3.11 with `torch==2.2.1` (CPU wheel), `dgl==2.1.0` and
   `numpy<2`, then `pip install -r requirements.txt` (plus llama-cpp-python for
