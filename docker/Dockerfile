@@ -30,6 +30,11 @@ RUN LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH:-} \
     CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=120" FORCE_CMAKE=1 \
     pip install llama-cpp-python==0.3.19
 
+# NVIDIA Apex ships in the base image; when it is importable, transformers silently
+# replaces T5LayerNorm with apex's FusedRMSNorm, which fails on the fp16 CodeT5+
+# encoder and would change the CODE/CTX features. Nothing in the pipeline uses apex.
+RUN pip uninstall -y apex
+
 # Record the resolved environment inside the image (docker/check_env.py prints it).
 RUN mkdir -p /opt/mando /cache && chmod 1777 /cache \
     && pip freeze > /opt/mando/pip-freeze.txt

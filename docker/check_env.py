@@ -6,6 +6,7 @@ passing) against the CPU result; the tree-sitter grammar build and a Solidity pa
 llama.cpp GPU offload. Exits non-zero on the first failed check.
 """
 import importlib
+import importlib.util
 import os
 import sys
 from pathlib import Path
@@ -95,6 +96,13 @@ def grammar():
     return "%s, root=%s" % (os.environ["TREE_SITTER_LIB_DIR"], tree.root_node.type)
 
 
+def no_apex():
+    if importlib.util.find_spec("apex") is not None:
+        raise RuntimeError("NVIDIA apex is installed: transformers would replace T5LayerNorm with apex's "
+                           "FusedRMSNorm (fails on the fp16 CodeT5+ encoder); rebuild the image")
+    return "transformers keeps its own T5LayerNorm"
+
+
 def llama():
     import llama_cpp
     if not llama_cpp.llama_supports_gpu_offload():
@@ -107,5 +115,6 @@ if __name__ == "__main__":
     check("GPU", gpu)
     check("DGL GPU kernels", dgl_kernels)
     check("tree-sitter grammar", grammar)
+    check("no apex", no_apex)
     check("llama.cpp", llama)
     print("environment ok")

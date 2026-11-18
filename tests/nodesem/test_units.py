@@ -118,3 +118,22 @@ def test_cli_rejects_unknown_category():
     from nodesem.__main__ import main
     with pytest.raises(SystemExit, match="unknown categories"):
         main(["analyze", "--categories", "nope"])
+
+
+def test_codet5_norm_guard_rejects_a_swapped_in_apex_norm():
+    """transformers replaces T5LayerNorm with apex's FusedRMSNorm when apex is importable."""
+    import types
+
+    import pytest
+    import torch
+    from transformers import T5Config, T5EncoderModel
+
+    from nodesem.encode import check_norms
+    model = T5EncoderModel(T5Config(vocab_size=32, d_model=8, d_kv=4, d_ff=16, num_layers=1, num_heads=2))
+    check_norms(model)
+
+    fused = types.new_class("FusedRMSNorm", (torch.nn.Module,))
+    fused.__module__ = "apex.normalization.fused_layer_norm"
+    model.encoder.final_layer_norm = fused()
+    with pytest.raises(RuntimeError, match="apex"):
+        check_norms(model)
