@@ -23,14 +23,14 @@ class EarlyStopping:
         self.counter = 0
         self.best_score = None
         self.early_stop = False
-        self.val_loss_min = np.Inf
+        self.val_loss_min = np.inf
         self.delta = delta
         self.path = path
         self.trace_func = trace_func
         # Best validation loss seen so far, and whether the most recent call was an
         # improvement. The caller reports these; printing them from here would fight
         # with the per-fold progress bar.
-        self.best_val_loss = np.Inf
+        self.best_val_loss = np.inf
         self.improved = False
 
     # EARLY STOP FIX (2026-10-08): original threshold-only bookkeeping retained.

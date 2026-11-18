@@ -30,6 +30,7 @@ compile_repair/               compile-repair subsystem (in development)
 tests/                        per-package tests: hcg/ dfg/ nodesem/ edgesem/ mando/ (+ reference data)
 data/upstream_mando_llm/      the authors' released graphs (reference for hcg)
 experiments/ge-sc-data/       Dataset A Solidity sources
+docker/                       GPU image, environment check and smoke run (RTX 5080 / WSL2)
 docs/                         migration_5080.md (rebuild log), history/ (earlier handovers and archives)
 .github/workflows/            CI: unit tests + every category end to end on CPU
 ```
@@ -38,11 +39,15 @@ Generated data goes to `data/` and training runs to `runs/` (both git-ignored).
 
 ## Setup
 
-The tested environment is the CI one (Python 3.11, CPU): torch 2.2.1, dgl 2.1.0,
-`numpy<2`, `networkx>=3`, tree-sitter 0.20.4, pydot 1.4.2, transformers 4.46.3, plus
-sentence-transformers 3.3.1 and llama-cpp-python 0.3.19 for NodeSem's teacher and LLM
-(see `.github/workflows/pipeline.yml`). A C compiler is needed once to build the
-tree-sitter grammar. GPU (RTX 5080) environment: see `docs/migration_5080.md`.
+* **GPU (RTX 5080, WSL2):** one Docker image based on an NVIDIA DGL container
+  (default 25.05: CUDA 12.9, DGL 2.5, Python 3.12); see [`docker/README.md`](docker/README.md)
+  for prerequisites, the environment check, the smoke run and the full run.
+* **CPU (as in CI):** Python 3.11 with `torch==2.2.1` (CPU wheel), `dgl==2.1.0` and
+  `numpy<2`, then `pip install -r requirements.txt` (plus llama-cpp-python for
+  `nodesem describe`, see the end of `requirements.txt`).
+
+`requirements.txt` holds every pin on top of PyTorch + DGL for both. A C compiler is
+needed once to build the tree-sitter grammar.
 
 ## Running everything
 

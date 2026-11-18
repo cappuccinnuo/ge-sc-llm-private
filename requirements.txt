@@ -1,47 +1,28 @@
-# MANDO-LLM reference environment.
-# The original experiments were run with Python 3.7.12, CUDA 11.1, DGL 0.6.1,
-# and the PyTorch 1.8 LTS wheel family. Install from the repository root with:
-#
-#   pip install -r requirements.txt
-#
-# If you need a CPU-only environment, replace dgl-cu111 with dgl and install
-# the matching CPU PyTorch/PyG wheels from the official indexes.
+# Python packages of the pipeline, installed on top of PyTorch + DGL:
+#   RTX 5080 / GPU: the NVIDIA DGL 25.08 container (PyTorch 2.8, DGL 2.5, CUDA 13, Python 3.12);
+#                   docker/Dockerfile installs this file and llama-cpp-python with CUDA.
+#   CI / CPU:       torch==2.2.1 (CPU wheel) + dgl==2.1.0 + "numpy<2" (Python 3.11), then this file.
+# torch, dgl, numpy, scipy, pandas and networkx come from that base install; pins below are
+# exact where results depend on the version (graph construction, tokenization, encoders).
 
---find-links https://download.pytorch.org/whl/lts/1.8/torch_lts.html
---find-links https://data.pyg.org/whl/torch-1.8.0+cu111.html
---find-links https://data.dgl.ai/wheels/repo.html
-
-# Core ML stack
-torch==1.8.0
-dgl-cu111==0.6.1
-torch-scatter==2.0.8
-torch-sparse==0.6.12
-torch-cluster==1.5.9
-torch-spline-conv==1.2.1
-torch-geometric==1.7.2
-
-# Data processing and metrics
-numpy==1.21.6
-scipy==1.7.3
-scikit-learn==1.0.2
-pandas==1.3.5
-networkx==2.6.3
-
-# Visualization and reporting
-matplotlib==3.5.3
-tensorboard==2.10.1
-tabulate==0.8.10
-timebudget==0.7.1
+tree-sitter==0.20.4            # Language(path, name) / build_library API of the vendored grammar
 pydot==1.4.2
+transformers==4.46.3           # CodeT5+ tokenizer and encoder (hcg tokens, nodesem)
+tokenizers==0.20.3
+sentence-transformers==3.3.1   # BGE teacher encoder (nodesem)
+networkx>=3
+requests
+pydantic>=2
+torch_geometric>=2.5           # imported by mando.models (MetaPath2Vec)
+scikit-learn
+scipy
+pandas
+tqdm
+tensorboard                    # mando.models.visualization (SummaryWriter)
+matplotlib
+pytest
+setuptools                     # provides distutils for the tree-sitter grammar build on Python 3.12
 
-# Tree-sitter graph generation
-tree-sitter==0.20.4
-
-# Token baseline experiments
-transformers==4.30.2
-
-# Solidity tooling
-slither-analyzer==0.8.0
-
-# Test tooling
-pytest==7.4.4
+# Not listed (needs a build flag): llama-cpp-python==0.3.19 for `nodesem describe`
+#   GPU: CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=120" pip install llama-cpp-python==0.3.19
+#   CPU: CMAKE_ARGS="-DGGML_NATIVE=OFF" pip install llama-cpp-python==0.3.19
