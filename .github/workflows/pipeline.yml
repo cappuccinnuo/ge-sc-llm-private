@@ -57,10 +57,10 @@ jobs:
           pip install dgl==2.1.0 "numpy<2" requests "pydantic>=2"
           pip install --no-deps torchdata==0.7.1
           pip install "numpy<2" -r requirements.txt
-      - name: hcg, dfg, nodesem, edgesem and mando unit tests (dfg.train against the sealed Prompt 8 folds/groups)
+      - name: hcg, dfg, nodesem, edgesem, mando and benchmark unit tests (dfg.train against the sealed Prompt 8 folds/groups)
         run: |
           python -m pytest -q tests/hcg/test_units.py tests/hcg/test_models.py tests/dfg/test_units.py tests/dfg/test_train.py \
-            tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando
+            tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando tests/benchmark
 
   category:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'full-ci')
@@ -128,6 +128,12 @@ jobs:
             --out out/runs --profiles G0 G3R --folds 0 --epochs 2 --device cpu
           python -m dfg train --categories ${{ matrix.category }} --hcg out/hcg --dfg out/dfg \
             --out out/runs_anon --profiles G0 G3R --folds 0 --epochs 2 --device cpu --features anonymous
+      - name: benchmark smoke (paper and grouped protocols, G0 and G3R, fold 0, 1 epoch; upstream trainers, 1 epoch)
+        run: |
+          python -m benchmark run --categories ${{ matrix.category }} --hcg out/hcg --dfg out/dfg \
+            --out out/runs_benchmark --protocols paper grouped --profiles G0 G3R --folds 0 --epochs 1 --device cpu
+          python -m benchmark run --categories ${{ matrix.category }} --hcg out/hcg --dfg out/dfg \
+            --out out/runs_benchmark --protocols upstream --epochs 1 --device cpu
       - name: nodesem analysis equals the unmodified NodeSem code and the sealed NodeSem evidence
         run: python -m pytest -q tests/nodesem/test_dataset_a.py -k ${{ matrix.category }}
       - name: nodesem analyze (facts, CODE text, CTX, STATIC) on the real build
@@ -162,6 +168,8 @@ jobs:
             out/runs_nodesem/report.md
             out/nodesem/A/*/*/summary.json
             out/runs_edgesem/report.md
+            out/runs_benchmark/report.md
+            out/runs_benchmark/evaluation.json
             out/edgesem/A/*/*/summary.json
             out/runs/*/task.json
           if-no-files-found: warn

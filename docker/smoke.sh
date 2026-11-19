@@ -31,7 +31,7 @@ step() {
 
 step "environment" python docker/check_env.py
 step "unit tests" python -m pytest -q tests/hcg/test_units.py tests/hcg/test_models.py tests/dfg/test_units.py tests/dfg/test_train.py \
-    tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando
+    tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando tests/benchmark
 step "fetch label repositories and pinned models" python -m hcg fetch
 if [ "${SKIP_DATASET_TESTS:-0}" != 1 ]; then
     step "dataset tests can run (label sources at \$MANDO_DATA_DIR)" python -c "

@@ -10,7 +10,9 @@ and refuses outputs that were built from different inputs.
 Solidity sources ──► hcg ──► dfg ──► nodesem ──► (training)
                       │       │  └──► edgesem ──► (training)
                       │       └──► dfg train  (DFG profiles; G0 = MANDO-LLM baseline)
-                      └──► mando classifiers (upstream baseline on the rebuilt graphs)
+                      ├──► mando classifiers (upstream baseline on the rebuilt graphs)
+                      └──► benchmark (baseline end to end: contract + line level, two-phase
+                                      detector, source lines; vs. the paper's tables)
 ```
 
 | Stage | What it adds | Output |
@@ -20,14 +22,16 @@ Solidity sources ──► hcg ──► dfg ──► nodesem ──► (traini
 | [`nodesem`](nodesem/README.md) | node semantics: code/context encoders, static facts, LLM descriptions (Qwen2.5-Coder) distilled into a student | `data/nodesem/`, `runs/nodesem/` |
 | [`edgesem`](edgesem/README.md) | edge semantics: MOD_APPLY / CALL_SITE / GUARDS relations, 74-bit edge attributes, edge-aware HGT | `data/edgesem/`, `runs/edgesem/` |
 | [`mando`](mando/README.md) | the upstream MANDO-LLM baseline: HGT models, tree-sitter graph construction, trainers, inference | — |
+| [`benchmark`](benchmark/README.md) | the baseline from source to final detection under the paper's and the grouped protocol, scored on nodes and source lines and set against the paper's Tables 3 and 5 | `runs/benchmark/` |
 
 ## Layout
 
 ```
 hcg/ dfg/ nodesem/ edgesem/   pipeline stages (each: README, CLI `python -m <stage>`, layered subpackages)
 mando/                        upstream MANDO-LLM baseline (models/, graphs/, classifiers, inference)
+benchmark/                    end-to-end evaluation of the pipeline against the paper
 compile_repair/               compile-repair subsystem (in development)
-tests/                        per-package tests: hcg/ dfg/ nodesem/ edgesem/ mando/ (+ reference data)
+tests/                        per-package tests: hcg/ dfg/ nodesem/ edgesem/ mando/ benchmark/ (+ reference data)
 data/upstream_mando_llm/      the authors' released graphs (reference for hcg)
 experiments/ge-sc-data/       Dataset A Solidity sources
 docker/                       GPU image, environment check and smoke run (RTX 5080 / WSL2)
@@ -63,6 +67,8 @@ python -m nodesem train --out runs/nodesem/all && python -m nodesem report runs/
 
 python -m edgesem build
 python -m edgesem train --out runs/edgesem/all && python -m edgesem report runs/edgesem/all
+
+python -m benchmark run --out runs/benchmark/full     # baseline end to end vs. the paper
 ```
 
 Training commands use the GPU when available (`--device`), resume interrupted runs and

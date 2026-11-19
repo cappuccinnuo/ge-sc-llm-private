@@ -11,6 +11,7 @@ only `git pull`; the image is rebuilt only when `requirements.txt` or the Docker
 | `run.sh` | run any command in the image with the GPU, the checkout and the cache mounted |
 | `check_env.py` | environment check: GPU, PyTorch for sm_120, DGL GPU kernels, grammar, llama.cpp |
 | `smoke.sh` | the whole pipeline on one category (fold 0, 2 epochs) after the equivalence tests |
+| `benchmark.sh` | the MANDO-LLM baseline from source to final detection on all 7 categories, against the paper |
 
 ## 1. Prerequisites (once)
 
@@ -86,7 +87,25 @@ What a failed check means:
 | tree-sitter grammar | no C compiler or setuptools in the image |
 | llama.cpp | llama-cpp-python was built without CUDA; check the `docker build` log |
 
-## 4. Full run
+## 4. Benchmark: source to detection, against the paper
+
+```bash
+QUICK=1 docker/run.sh docker/benchmark.sh     # plumbing: reentrancy, fold 0, 2 epochs (minutes)
+docker/run.sh docker/benchmark.sh             # all 7 categories, 4-10 h; run inside tmux
+```
+
+It rebuilds the graphs of every category from the Solidity sources (`hcg build` into
+`runs/benchmark/full/hcg`, checked against the paper's Table 1 and the authors' graphs),
+then trains and scores the MANDO-LLM baseline (G0) under the paper's protocol and the
+grouped protocol, with the authors' own trainers as a cross-check (55 fits per
+category). The result is `runs/benchmark/full/report.md` (contract level vs. paper
+Table 3, line level vs. Table 5, source-line scores, the two-phase detector) with
+`evaluation.json`, `findings/` and `benchmark.log`. Rerunning the same command resumes
+an interrupted run. To return the results, commit `report.md`, `evaluation.json`,
+`run.json`, `benchmark.log` and `findings/` of `runs/benchmark/full/` (not the per-fold
+files or `hcg/`, which are large). Details: [`benchmark/README.md`](../benchmark/README.md).
+
+## 5. Full run of the enhancements
 
 Run long jobs inside `tmux` (they resume if interrupted). In order:
 
