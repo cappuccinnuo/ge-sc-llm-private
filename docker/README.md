@@ -112,8 +112,13 @@ docker/run.sh python -m hcg fetch --dataset B --no-models   # the authors' DAppS
 docker/run.sh python -m hcg build --dataset B               # data/hcg/B/<category>, with tokens (~10 min)
 ```
 
-The composition is fixed in `hcg/datasets/dataset_b.json` (see `hcg/README.md`, Dataset B);
-the benchmark does not run on Dataset B yet.
+The composition is fixed in `hcg/datasets/dataset_b.json` (see `hcg/README.md`, Dataset B).
+The benchmark on Dataset B, against the paper's Tables 4 and 6, builds its own graphs:
+
+```bash
+QUICK=1 DATASET=B docker/run.sh docker/benchmark.sh   # plumbing: reentrancy, fold 0, 2 epochs
+DATASET=B docker/run.sh docker/benchmark.sh           # all 7 categories -> runs/benchmark/full_b
+```
 
 ## 5. Full run of the enhancements
 

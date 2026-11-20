@@ -51,6 +51,23 @@ SITE_TABLE = {
     ("direct", "jump_next"): ("jump_next", "next_line"),
 }
 
+# Sites Dataset A never reaches, named by inference rather than by the authors' graphs
+# (there are none to compare with). Dataset A output is unaffected: none of its edges
+# has these keys. All are try/catch edges (Solidity >= 0.6; CFG_solidity.py's
+# try_statement branch). L231/'next' (try or catch clause -> first statement of its
+# block) is a plain 'next' entering a block, which the authors' format calls next_line
+# (as for function -> first statement, L427). The others follow the convention the
+# authors' graphs use for loop-update and jump edges: the builder's own name as
+# controlflow_type, next_line as edge_type, so HGT sees ordinary control flow.
+INFERRED_SITES = {
+    ("L231", "next"): ("next_line", "next_line"),              # try/catch -> first stmt
+    ("L897", "catch_exception"): ("catch_exception", "next_line"),   # try stmt -> catch
+    ("L908", "finally_exit"): ("finally_exit", "next_line"),
+    ("L917", "try_exit"): ("try_exit", "next_line"),                 # try block -> after
+    ("L922", "catch_exit"): ("catch_exit", "next_line"),             # catch block -> after
+    ("L925", "catch_exit"): ("catch_exit", "next_line"),             # empty catch -> after
+}
+
 SYNTHETIC = ("end_if", "end_loop")
 _SUFFIX = re.compile(r"-(\d+)-(\d+)$")
 
@@ -63,6 +80,10 @@ def author_edge_names(site, emitted):
     """(controlflow_type, edge_type) for an edge created at site with emitted name."""
     try:
         return SITE_TABLE[(site, emitted)]
+    except KeyError:
+        pass
+    try:
+        return INFERRED_SITES[(site, emitted)]
     except KeyError:
         raise UnmappedEdge(
             "no verified authors' name for a %r edge created at %s of CFG_solidity.py; "

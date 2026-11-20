@@ -1,8 +1,9 @@
 # benchmark — the rebuilt pipeline from source to detection, against the paper
 
 `benchmark` runs the MANDO-LLM baseline end to end on the graphs `hcg` rebuilds from
-the Solidity sources and puts the results next to the paper's Dataset A tables
-(MANDO-LLM, TOSEM 2025: Table 3 contract level, Table 5 line level). It also runs the
+the Solidity sources and puts the results next to the paper's tables (MANDO-LLM,
+TOSEM 2025; Dataset A: Table 3 contract level, Table 5 line level; Dataset B:
+Tables 4 and 6, `--dataset B`). It also runs the
 two-phase detector the paper describes but does not evaluate (contract model, then line
 model on the flagged contracts) and scores everything on source lines as well as on
 graph nodes.
@@ -42,7 +43,7 @@ unseen contracts.
 
 ## What is scored
 
-* **Contract level** — Buggy-F1 and Macro-F1 of the held-out contracts (Table 3).
+* **Contract level** — Buggy-F1 and Macro-F1 of the held-out contracts (Table 3 / 4).
 * **Line level, nodes** — Buggy-F1 of the held-out nodes of vulnerable contracts: what
   the paper calls line level (Table 5).
 * **Line level, source lines** — the same predictions on lines. A node speaks for its
@@ -52,6 +53,10 @@ unseen contracts.
   speaks for count as misses (`line coverage` reports how many are reachable at all);
   `contracts hit` is the share of vulnerable contracts with at least one annotated line
   flagged.
+* **By source** — the contract, line and detector scores restricted to one source's
+  vulnerable contracts (SolidiFI, SmartBugs-curated, DAppSCAN; with all clean
+  contracts where the task needs them), pooled over folds. SolidiFI's injected
+  templates make its scores near-perfect; the other sources show real-world code.
 * **End to end** — the detector: lines of the contracts the contract model flags.
   Two references isolate the phases: the line model gated by the true contract label
   (`true contract gate`) and not gated at all (`no gate`).
