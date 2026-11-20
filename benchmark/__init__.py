@@ -7,6 +7,7 @@ Layers (each imports only from those above it):
     lines.py      node predictions -> source lines; line-level scores
     tracks.py     what is trained per category and protocol; training via dfg.train
     upstream.py   the authors' own trainers on the same graphs
+    audit.py      node labels vs the authors' released labels
     evaluate.py   scores, two-phase detector, per-contract findings of a run
     report.py     report.md next to the paper's numbers
     __main__.py   CLI: run, report

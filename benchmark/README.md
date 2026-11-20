@@ -94,6 +94,30 @@ runs/benchmark/<name>/
   `grouped` shows the same models without that and without duplicate leakage.
 * One seed (1) per run; `--seed` changes folds (paper) and initialization.
 
+## Why line level is ~99 here and ~95 in the paper
+
+`python -m benchmark audit --out <dir>` compares the node labels with the authors'
+released line-level graphs, node by node, without training. On Dataset A:
+
+* The labels differ only in 2-5 files per category, and 99.8% of the differing nodes
+  are in SolidiFI files whose BugLog has **overlapping intervals** (`buggy_12/18/26`).
+  The authors' conversion from BugLog lines to preprocessed lines breaks at the
+  overlap: in their graphs most injected bugs of those files are unlabelled (e.g.
+  front running `buggy_18.sol`: 95 annotated lines in theirs, 471 in the public
+  BugLog, 16 of theirs beyond the end of the file). The same template code is thus
+  vulnerable in most files and clean in these, which caps any model.
+* Denial of service has no such file in its corpus, no label difference, and the
+  smallest gap to the paper.
+* `ceiling` (the public labels scored against the authors') is 97.1-98.4, and the
+  paper's numbers sit 1-3 points below it; a model-free code lookup reaches 93-99.7
+  under the authors' labels and 98.6-99.8 under the public ones.
+
+So the public labels are not wrong; the authors' are, in these files. The ~99 itself
+is the benchmark's: almost every vulnerable test node is SolidiFI template code that
+also appears, labelled, in training. `run --labels author --tracks line --protocols
+paper` trains the same pipeline on the authors' labels to confirm the cause; the
+by-source table and Dataset B are where line-level differences can be measured.
+
 ## Layout
 
 ```
@@ -103,6 +127,7 @@ benchmark/
   lines.py      node predictions -> source lines, line scores, original line numbers
   tracks.py     tracks per category and protocol; training through dfg.train; run.json
   upstream.py   the authors' trainers
+  audit.py      node labels vs the authors' released labels; the authors' labels on a graph
   evaluate.py   scores, detector, findings
   report.py     report.md
   __main__.py   CLI
