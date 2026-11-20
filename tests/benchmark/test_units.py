@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from benchmark import evaluate, folds, lines, paper, report
+from benchmark import audit, evaluate, folds, lines, paper, report
 from hcg.datasets.registry import DATASET_A
 
 REPO = Path(__file__).resolve().parents[2]
@@ -111,6 +111,31 @@ def test_original_lines_map_back_through_comments_and_blank_lines():
     mapping = lines.original_lines(source)
     assert mapping == {1: [1], 2: [4], 3: [5], 4: [6]}
     assert lines.to_original({2, 3}, mapping) == [4, 5]
+
+
+# ---------------------------------------------------------------------- label audit
+
+def test_transplant_copies_matched_labels_only():
+    import networkx as nx
+    ours, theirs = nx.MultiDiGraph(), nx.MultiDiGraph()
+    for n, (label, vuln) in enumerate([("a", "[1]"), ("b", None), ("c", "[2]")]):
+        ours.add_node(n, source_file="f", label=label, node_info_vulnerabilities=vuln)
+    theirs.add_node(7, source_file="f", label="a", node_info_vulnerabilities=None)
+    theirs.add_node(8, source_file="f", label="b", node_info_vulnerabilities="[3]")
+    out, stats = audit.transplant(ours, theirs)
+    assert stats == {"matched": 2, "changed": 2, "unmatched": 1}
+    assert [out.nodes[n]["node_info_vulnerabilities"] for n in range(3)] == [None, "[3]", "[2]"]
+    assert ours.nodes[0]["node_info_vulnerabilities"] == "[1]"            # the input is not modified
+
+
+def test_overlapping_buglogs_and_lookup(tmp_path):
+    folder = tmp_path / "SolidiFI-benchmark/buggy_contracts/X"
+    folder.mkdir(parents=True)
+    (folder / "BugLog_1.csv").write_text("loc,length,bug type,approach\n5,3,x,y\n7,2,x,y\n")
+    (folder / "BugLog_2.csv").write_text("loc,length,bug type,approach\n5,2,x,y\n9,2,x,y\n")
+    assert audit.overlapping_buglogs(tmp_path, "X") == {1}
+    nodes = [("f%d" % i, "t", code, y) for i in range(20) for code, y in (("risky", 1), ("safe", 0))]
+    assert audit.lookup(nodes) == 100.0
 
 
 # ---------------------------------------------------------------------- two-phase detector

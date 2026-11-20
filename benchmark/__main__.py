@@ -1,9 +1,11 @@
-"""Command line: python -m benchmark {run,report}
+"""Command line: python -m benchmark {run,report,audit}
 
     python -m benchmark run --out runs/benchmark/full            # 7 categories, all protocols, G0
     python -m benchmark run --out runs/benchmark/b --dataset B   # Dataset B (python -m hcg build --dataset B)
     python -m benchmark run --out runs/benchmark/try --categories reentrancy --folds 0 --epochs 2
     python -m benchmark report runs/benchmark/full
+    python -m benchmark audit --out runs/benchmark/label_audit   # labels vs the authors' (no training)
+    python -m benchmark run --out runs/benchmark/author_labels --labels author --protocols paper --tracks line
 
 run trains what is missing (finished fits are skipped, so an interrupted run resumes),
 then scores the run and writes evaluation.json, report.md and findings/. It reads the
@@ -37,11 +39,17 @@ def build_parser():
                      help="fold indices of the paper/grouped tracks (default: all); upstream runs all folds")
     cmd.add_argument("--epochs", type=int, default=None, help="override the 50-epoch schedule (smoke runs)")
     cmd.add_argument("--seed", type=int, default=1)
+    cmd.add_argument("--tracks", nargs="+", default=list(tracks.TRACKS), choices=tracks.TRACKS)
+    cmd.add_argument("--labels", default="public", choices=tracks.LABELS,
+                     help="node labels: public annotations (default) or the authors' released ones (Dataset A)")
     cmd.add_argument("--device", default="cuda:0" if _cuda() else "cpu",
                      help="device of the paper/grouped tracks; the authors' trainers pick the GPU when present")
     _common(cmd)
     cmd = commands.add_parser("report", help="score a run and write report.md")
     cmd.add_argument("run", type=Path)
+    _common(cmd)
+    cmd = commands.add_parser("audit", help="node labels vs the authors' released labels (Dataset A, no training)")
+    cmd.add_argument("--out", type=Path, required=True)
     _common(cmd)
     return parser
 
@@ -77,11 +85,14 @@ def _categories(args):
 def run(args):
     dataset, names = _categories(args)
     paper.tables(dataset.name)            # refuse a dataset the paper has no tables for
+    if args.labels == "author" and dataset.name != "A":
+        raise SystemExit("the authors released node labels for Dataset A only")
     roots = tracks.Roots(args.hcg, args.dfg, args.label_root)
     overrides = None if args.epochs is None else dict(maximum_training_epochs=args.epochs,
                                                        schedule_epochs=args.epochs)
     settings = dict(protocols=args.protocols, profiles=args.profiles, folds=args.folds, seed=args.seed,
-                    epochs=args.epochs, device=str(args.device), categories=names)
+                    epochs=args.epochs, device=str(args.device), categories=names, tracks=args.tracks,
+                    labels=args.labels)
     tracks.run_manifest(args.out, dataset.name, names, roots, settings)
     epochs = args.epochs or task_config("node")["maximum_training_epochs"]
     for category in names:
@@ -89,9 +100,9 @@ def run(args):
         if engine:
             data = tracks.CategoryData(dataset.name, category, roots)
             for protocol in engine:
-                tracks.train(data.tracks(protocol, args.seed), args.out, args.profiles, args.folds,
-                             args.seed, args.device, overrides)
-        if "upstream" in args.protocols:
+                tracks.train(data.tracks(protocol, args.seed, args.labels, args.tracks), args.out, args.profiles,
+                             args.folds, args.seed, args.device, overrides)
+        if "upstream" in args.protocols and args.labels == "public":
             upstream.run(Path(args.hcg) / dataset.name / category, dataset.corpus(REPO, category),
                          category, args.out, epochs, args.seed)
     return _report(args.out, args.hcg, dataset.name, names)
@@ -108,6 +119,10 @@ def main(argv=None):
     if args.command == "run":
         return run(args)
     dataset, names = _categories(args)
+    if args.command == "audit":
+        from benchmark import audit
+        print(audit.run(args.hcg, args.label_root, args.out, names))
+        return 0
     return _report(args.run, args.hcg, dataset.name, names)
 
 
