@@ -234,7 +234,8 @@ def load_composed(corpus_dir, category, entries, label_root):
 
     ``entries`` are the category's composition rows: SolidiFI rows use the BugLog rule
     above on the benchmark copy, DAppSCAN rows ``dappscan_record`` on the cleaned
-    source, clean rows nothing. Same return value as ``load``.
+    source, clean rows nothing. The corpus copy (LF line endings, same lines) is the
+    text projected and returned. Same return value as ``load``.
     """
     corpus_dir, label_root = Path(corpus_dir), Path(label_root)
     annotations, sources, provenance = {}, {}, {}
@@ -243,20 +244,20 @@ def load_composed(corpus_dir, category, entries, label_root):
         canonical = label_root / entry["origin"]
         check = compare_sources(local, canonical)
         if entry["target"] == 0:
-            annotations[name], sources[name] = [], canonical
+            annotations[name], sources[name] = [], local
             provenance[name] = dict(check, dataset=entry["source"], origin=entry["origin"])
         elif entry["source"] == "SolidiFI":
             match = SOLIDIFI_FILE.fullmatch(Path(entry["origin"]).name)
             records, rows = _buglog_record(canonical.parent / ("BugLog_%s.csv" % match.group(1)),
                                            canonical, category.name)
-            annotations[name], sources[name] = records, canonical
+            annotations[name], sources[name] = records, local
             provenance[name] = dict(check, dataset="SolidiFI", origin=entry["origin"], buglog_rows=rows)
         elif entry["source"] == "DAppSCAN":
             records, kinds = dappscan_record([label_root / p for p in entry["labels"]], canonical,
                                              entry["swc"], category.name)
             if not records:
                 raise ValueError("vulnerable contract has no %s line label: %s" % (category.name, name))
-            annotations[name], sources[name] = records, canonical
+            annotations[name], sources[name] = records, local
             provenance[name] = dict(check, dataset="DAppSCAN", origin=entry["origin"], swc=kinds)
         else:
             raise ValueError("unknown source %r for %s" % (entry["source"], name))

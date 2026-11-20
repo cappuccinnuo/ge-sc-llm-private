@@ -77,18 +77,22 @@ How the composition follows from the paper's numbers:
   as many clean contracts. The paper does not say which clean contracts; they are
   drawn in a seeded order from the 2,742 (per category, as in Dataset A, whose clean
   contracts all come from this pool).
-- 13 DAppSCAN category entries (11 files) crash inside the authors' builder
-  (`UnboundLocalError` in its loop handling, one `AttributeError` in its call-graph
-  code) and are left out with the reason, so six categories hold 2-8 contracts fewer
-  than Table 2; time manipulation matches exactly.
+- 15 DAppSCAN category entries (13 files) are left out with the reason: 11 files
+  crash inside the authors' builder (`UnboundLocalError` in its loop handling, one
+  `AttributeError` in its call-graph code) and 2 cannot be read by the DFG front end
+  that NodeSem and EdgeSem use (a parser error; an ambiguous multi-line string). Six
+  categories hold 2-8 contracts fewer than Table 2; time manipulation matches exactly.
+  Clean contracts a stage cannot read are skipped and the next one drawn.
+- Corpus copies have LF line endings: the SmartBugs Wild pool files are CRLF, and the
+  authors' Dataset A corpus holds the same files converted (422 of 423).
 - try/catch (Solidity >= 0.6) creates edges Dataset A never has; their names are
   inferred (`cfg/author_schema.py::INFERRED_SITES`: `next_line` as HGT edge type)
   rather than verified against the authors' graphs. Dataset A is unaffected.
 - Labels: DAppSCAN files carry the authors' line labels of the category's SWC ids on
   their cleaned source; SolidiFI files their BugLog intervals; node labels follow the
   same endpoint rule as Dataset A.
-- Against Table 2: built 1,902 contracts vs 1,928, 264,181 nodes vs 226,940 (+16%),
-  49,855 vulnerable nodes vs 59,183 (-16%); per category nodes -5% to +33%,
+- Against Table 2: built 1,898 contracts vs 1,928, 264,758 nodes vs 226,940 (+17%),
+  49,844 vulnerable nodes vs 59,183 (-16%); per category nodes -6% to +34%,
   vulnerable nodes -31% to -4%. The node totals
   depend on which clean contracts are drawn, which the paper does not give; how it
   projected DAppSCAN labels onto nodes it does not say either.

@@ -12,14 +12,17 @@ So the buggy side is determined; only the choice of clean contracts is not:
 
 1. DAppSCAN: every distinct file the authors list for the category, as their
    cleaned source with their line labels for the category's SWC ids. Left out only
-   when the graph builder cannot turn it into the authors' graph format (or it has
-   no line for the category).
+   when a stage cannot read it (the graph builder cannot produce the authors' graph
+   format, or the DFG front end cannot parse it) or it has no line for the category.
 2. SolidiFI: all 50 contracts of the category's folder (Dataset A's folders).
 3. Clean contracts: as many as buggy ones (the paper's 1:1), drawn in seeded order
    from the 2,742 SmartBugs Wild contracts no SmartBugs tool flags (the authors'
    ge-sc repository; Dataset A's clean contracts all come from this pool), for each
-   category independently as in Dataset A, skipping unbuildable files and text
-   duplicates of a contract already taken.
+   category independently as in Dataset A, skipping files a stage cannot read and
+   text duplicates of a contract already taken.
+
+Corpus copies have LF line endings (``hcg.sources.composition.normalize``); the pool
+files are CRLF, and the authors' Dataset A corpus holds them converted the same way.
 
 Identical texts under different DAppSCAN paths (one file in several audited
 snapshots of a project) are kept, as in the paper; evaluations must keep them on
@@ -33,6 +36,7 @@ import hashlib
 import json
 import random
 import re
+import tempfile
 from pathlib import Path
 
 from hcg.datasets.registry import DATASET_B, SOLIDIFI_FILE
@@ -47,12 +51,14 @@ CONTRACTS_PREFIX = "DAppSCAN-source/contracts/"
 RULES = [
     "DAppSCAN: every distinct file of the authors' per-category list "
     "(dasp_categories/DASP_smart_contract_metadata.json), cleaned source + cleaned line labels "
-    "for the category's SWC ids; left out only when unbuildable or without a line",
+    "for the category's SWC ids; left out only when a stage cannot read it (HCG builder, DFG "
+    "front end) or without a line",
     "SolidiFI: all 50 contracts of the category's SolidiFI folder (Table 2 buggy count = "
     "distinct DAppSCAN files + 50 in every category)",
     "clean: as many as buggy contracts, seeded order from the 2,742 SmartBugs Wild clean "
     "contracts (ge-sc/data/smartbugs-wild-clean-contracts), per category independently; "
-    "unbuildable files and preprocessed-text duplicates skipped",
+    "files a stage cannot read and preprocessed-text duplicates skipped",
+    "corpus copies: CRLF -> LF (hcg.sources.composition.normalize)",
     "seeded order: random.Random('B:<category>:<source>:<seed>').shuffle(name-sorted candidates)",
 ]
 
@@ -61,20 +67,43 @@ def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def _copy(path):
+    """The bytes the corpus will hold (``composition.normalize``)."""
+    return composition.normalize(Path(path).read_bytes())
+
+
+def _hashes(path):
+    return dict(origin_sha256=_sha(path), sha256=hashlib.sha256(_copy(path)).hexdigest())
+
+
 def _text_key(path):
-    return hashlib.sha256(preprocess(Path(path).read_text(encoding="utf8", errors="replace"))
-                          .encode("utf8")).hexdigest()
+    return hashlib.sha256(preprocess(_copy(path).decode("utf8", errors="replace")).encode("utf8")).hexdigest()
 
 
-def _unbuildable(path):
-    """None if the graph builder turns the file into the authors' format, else why not."""
+def _unusable(path, name):
+    """None if every stage can read the corpus copy, else why not.
+
+    The HCG builder must produce the authors' graph format, and the DFG front end
+    (dfg.graph.projection, which NodeSem and EdgeSem read through) must parse the file
+    and find every graph node's text at its AST span. Dataset A passes both for every
+    file; checking here keeps one unreadable file from stopping a whole category later.
+    """
+    from dfg.graph.projection import Projector, ProjectionView
     from hcg.cfg.builder import build_contract
-    try:
-        graph = build_contract(path)
-    except Exception as error:  # noqa: BLE001 - every reason is recorded
-        return "graph builder: %s" % repr(error)[:160]
-    if graph.number_of_nodes() == 0:
-        return "graph builder: no nodes"
+    data = _copy(path)
+    with tempfile.TemporaryDirectory() as directory:
+        copy = Path(directory) / name
+        copy.write_bytes(data)
+        try:
+            graph = build_contract(copy)
+        except Exception as error:  # noqa: BLE001 - every reason is recorded
+            return "graph builder: %s" % repr(error)[:160]
+        if graph.number_of_nodes() == 0:
+            return "graph builder: no nodes"
+        try:
+            Projector(graph, ProjectionView(data.decode("utf8"), name))
+        except Exception as error:  # noqa: BLE001
+            return "DFG front end: %s" % repr(error)[:160]
     return None
 
 
@@ -94,13 +123,13 @@ def _dappscan(label_root, category, listed, swc_ids):
         label = "%s/DASP_cleaned_labels/%s.json" % (DASP_SOURCE, relative.with_suffix("").as_posix())
         source = Path(label_root) / origin
         records, kinds = dappscan_record([Path(label_root) / label], source, swc_ids, category)
-        reason = ("no line labelled with %s" % "/".join(swc_ids)) if not records else _unbuildable(source)
+        name = "dappscan_%s_%s" % (hashlib.sha256(path.encode("utf8")).hexdigest()[:10], relative.name)
+        reason = ("no line labelled with %s" % "/".join(swc_ids)) if not records else _unusable(source, name)
         if reason:
             excluded.append(dict(source="DAppSCAN", origin=origin, reason=reason))
             continue
-        name = "dappscan_%s_%s" % (hashlib.sha256(path.encode("utf8")).hexdigest()[:10], relative.name)
-        taken.append(dict(name=name, source="DAppSCAN", origin=origin, sha256=_sha(source), target=1,
-                          labels=[label], swc=kinds))
+        taken.append(dict(name=name, source="DAppSCAN", origin=origin, target=1, labels=[label], swc=kinds,
+                          **_hashes(source)))
     return taken, excluded
 
 
@@ -115,14 +144,13 @@ def _draw(label_root, candidates, count, source, target, seen, category, seed):
         path = Path(label_root) / origin
         key = _text_key(path)
         reason = ("same preprocessed text as %s" % seen[key]) if seen is not None and key in seen else None
-        reason = reason or _unbuildable(path)
+        reason = reason or _unusable(path, Path(origin).name)
         if reason:
             excluded.append(dict(source=source, origin=origin, reason=reason))
             continue
         if seen is not None:
             seen[key] = origin
-        taken.append(dict(name=Path(origin).name, source=source, origin=origin, sha256=_sha(path),
-                          target=target))
+        taken.append(dict(name=Path(origin).name, source=source, origin=origin, target=target, **_hashes(path)))
     return taken, excluded
 
 

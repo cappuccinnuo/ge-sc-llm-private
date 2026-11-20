@@ -56,22 +56,24 @@ def test_each_category_is_balanced_unique_and_follows_the_rules(category):
 
 # ------------------------------------------------------------------ mechanisms
 
-def _row(tmp_path, name, text, target=1, source="SolidiFI"):
+def _row(tmp_path, name, data, target=1, source="SolidiFI"):
     origin = tmp_path / "src" / name
     origin.parent.mkdir(parents=True, exist_ok=True)
-    origin.write_text(text)
+    origin.write_bytes(data)
     return dict(name=name, source=source, origin="src/" + name, target=target,
-                sha256=hashlib.sha256(text.encode()).hexdigest())
+                origin_sha256=hashlib.sha256(data).hexdigest(),
+                sha256=hashlib.sha256(composition.normalize(data)).hexdigest())
 
 
-def test_assemble_copies_exactly_the_composition_and_checks_hashes(tmp_path):
-    rows = [_row(tmp_path, "a.sol", "contract A {}"), _row(tmp_path, "b.sol", "contract B {}", 0)]
+def test_assemble_copies_exactly_the_composition_with_lf_and_checks_hashes(tmp_path):
+    rows = [_row(tmp_path, "a.sol", b"contract A {}\n"), _row(tmp_path, "b.sol", b"contract B {\r\n}\r\n", 0)]
     document = {"dataset": "X", "categories": {"c": {"contracts": rows}}}
     corpus = tmp_path / "corpus"
     corpus.mkdir()
     (corpus / "stray.sol").write_text("x")
     assert composition.assemble(document, "c", tmp_path, corpus) == ["a.sol", "b.sol"]
     assert sorted(p.name for p in corpus.glob("*.sol")) == ["a.sol", "b.sol"]
+    assert (corpus / "b.sol").read_bytes() == b"contract B {\n}\n"
     assert composition.targets(document, "c") == {"a.sol": 1, "b.sol": 0}
     (tmp_path / "src/a.sol").write_text("contract Changed {}")
     (corpus / "a.sol").unlink()
