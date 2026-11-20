@@ -1,0 +1,1425 @@
+
+=== environment
+      python                       3.12.3
+      torch                        2.8.0a0+5228986c39.nv25.05
+      dgl                          2.5
+      numpy                        1.26.4
+      networkx                     3.4.2
+      scipy                        1.15.2
+      transformers                 4.46.3
+      tokenizers                   0.20.3
+      sentence_transformers        3.3.1
+      torch_geometric              2.8.1
+      tree_sitter                  ?
+      pydot                        1.4.2
+      llama_cpp                    0.3.19
+      torch CUDA / cuDNN           12.9 / 91001
+      NVIDIA_TF32_OVERRIDE         0
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE 0
+ok    GPU                          NVIDIA GeForce RTX 5080, sm_120, FP32 matmul, 14.6/15.9 GB free
+ok    DGL GPU kernels              edge_softmax + u_mul_e/sum on GPU equal CPU
+ok    tree-sitter grammar          /work/repo/build/linux-x86_64, root=source_file
+ok    no apex                      transformers keeps its own T5LayerNorm
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 16302 MiB):
+  Device 0: NVIDIA GeForce RTX 5080, compute capability 12.0, VMM: yes, VRAM: 16302 MiB
+ok    llama.cpp                    GPU offload supported
+environment ok
+--- environment: 7 s
+
+=== unit tests
+Running 83 items in this shard
+........................................................................ [ 86%]
+...........                                                              [100%]
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36
+  /usr/local/lib/python3.12/dist-packages/outdated/__init__.py:36: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import parse_version
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google._upb._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+../../usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93
+  /usr/local/lib/python3.12/dist-packages/google/protobuf/internal/well_known_types.py:93: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/mando/test_early_stopping.py::EarlyStoppingTests::test_saved_absolute_best_weights_survive_later_updates
+  /work/repo/tests/mando/test_early_stopping.py:129: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/Scalar.cpp:22.)
+    self.assertEqual(model.weight.item(), 3.0)
+
+tests/benchmark/test_units.py: 12 warnings
+  /usr/local/lib/python3.12/dist-packages/sklearn/metrics/_classification.py:1565: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+    _warn_prf(average, modifier, f"{metric.capitalize()} is", len(result))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+83 passed, 17 warnings in 123.76s (0:02:03)
+--- unit tests: 125 s
+
+=== fetch label repositories and pinned models
+smartbug-dataset 230e649123477eff332742a59a1c7cc6dc286cab
+SolidiFI-benchmark 4b0573e1b3f7031396de6f48f7f3e7380222ad3a
+codet5p-770m-tokenizer /cache/huggingface/hub/models--Salesforce--codet5p-770m/snapshots/3f7cc6e80aee6612f41253b5ee28f09f86faa35f
+codet5p-110m-embedding /cache/huggingface/hub/models--Salesforce--codet5p-110m-embedding/snapshots/d9f3a534af4252f04b10cd9f78e05037542d10f6
+bge-small-en-v1.5 /cache/huggingface/hub/models--BAAI--bge-small-en-v1.5/snapshots/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a
+qwen2.5-coder-3b-instruct-gguf /cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-3B-Instruct-GGUF/snapshots/f74adce6aa16316c625447af059dbebe4983757c
+--- fetch label repositories and pinned models: 0 s
+
+=== hcg build ( access_control arithmetic denial_of_service front_running reentrancy time_manipulation unchecked_low_level_calls)
+[A/access_control] graphs: 114 contracts
+[A/access_control] labels
+[A/access_control] tokens
+Token indices sequence length is longer than the specified maximum sequence length for this model (1821 > 512). Running this sequence through the model will result in indexing errors
+[A/access_control] comparing with access_control_tree_sitter_cfg_cg_compressed_graphs.gpickle
+[A/arithmetic] graphs: 120 contracts
+[A/arithmetic] labels
+[A/arithmetic] tokens
+[A/arithmetic] comparing with arithmetic_tree_sitter_cfg_cg_compressed_graphs.gpickle
+[A/denial_of_service] graphs: 92 contracts
+[A/denial_of_service] labels
+[A/denial_of_service] tokens
+[A/denial_of_service] comparing with denial_of_service_tree_sitter_cfg_cg_compressed_graphs.gpickle
+[A/front_running] graphs: 88 contracts
+[A/front_running] labels
+[A/front_running] tokens
+[A/front_running] comparing with front_running_tree_sitter_cfg_cg_compressed_graphs.gpickle
+[A/reentrancy] graphs: 142 contracts
+[A/reentrancy] labels
+[A/reentrancy] tokens
+[A/reentrancy] comparing with reentrancy_tree_sitter_cfg_cg_compressed_graphs.gpickle
+[A/time_manipulation] graphs: 100 contracts
+[A/time_manipulation] labels
+[A/time_manipulation] tokens
+[A/time_manipulation] comparing with time_manipulation_tree_sitter_cfg_cg_compressed_graphs.gpickle
+[A/unchecked_low_level_calls] graphs: 190 contracts
+[A/unchecked_low_level_calls] labels
+[A/unchecked_low_level_calls] tokens
+[A/unchecked_low_level_calls] comparing with unchecked_low_level_calls_tree_sitter_cfg_cg_compressed_graphs.gpickle
+
+category                    contracts  vuln  nodes  edges pos.nodes line nodes = authors label diffs
+access_control                    114    57  13432  15538      3114       7710       yes         137
+arithmetic                        120    60  16157  17591      5722      10469       yes         327
+denial_of_service                  92    46  12909  14366      4106       8364       yes           0
+front_running                      88    44  19415  22278     10889      15138       yes         491
+reentrancy                        142    71  18312  19267      6784      12036       yes         216
+time_manipulation                 100    50  15699  18564      6020      10639       yes         220
+unchecked_low_level_calls         190    95  17525  20952      2435       9332       yes          91
+--- hcg build ( access_control arithmetic denial_of_service front_running reentrancy time_manipulation unchecked_low_level_calls): 140 s
+
+=== benchmark run (paper grouped upstream)
+access_control_contract: 114 files, 107 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+access_control_node: 57 files, 52 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+[paper] access_control_contract: 5 folds
+  access_control_contract fold 0 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2021
+    outer_test best buggy F1 90.00
+    time: fold_setup 1.6s, build 0.8s, fit 17.6s, score 1.4s, per_epoch 1.2s
+  access_control_contract fold 1 G0
+    epochs 15, best epoch 7, best inner_val loss 0.3022
+    outer_test best buggy F1 95.24
+    time: fold_setup 0.7s, build 0.6s, fit 17.1s, score 1.3s, per_epoch 1.1s
+  access_control_contract fold 2 G0
+    epochs 17, best epoch 9, best inner_val loss 0.1402
+    outer_test best buggy F1 91.67
+    time: fold_setup 0.7s, build 0.7s, fit 18.0s, score 1.0s, per_epoch 1.1s
+  access_control_contract fold 3 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2201
+    outer_test best buggy F1 95.65
+    time: fold_setup 0.7s, build 0.6s, fit 16.0s, score 1.4s, per_epoch 1.1s
+  access_control_contract fold 4 G0
+    epochs 16, best epoch 8, best inner_val loss 0.1423
+    outer_test best buggy F1 95.24
+    time: fold_setup 0.6s, build 0.7s, fit 18.2s, score 0.9s, per_epoch 1.1s
+[paper] access_control_line: 10 folds
+  access_control_line fold 0 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0422
+    outer_test best buggy F1 99.47
+    time: fold_setup 0.4s, build 0.3s, fit 22.0s, score 1.4s, per_epoch 1.1s
+  access_control_line fold 1 G0
+    epochs 44, best epoch 42, best inner_val loss 0.0062
+    outer_test best buggy F1 99.67
+    time: fold_setup 0.3s, build 0.3s, fit 42.8s, score 1.0s, per_epoch 1.0s
+  access_control_line fold 2 G0
+    epochs 42, best epoch 38, best inner_val loss 0.0487
+    outer_test best buggy F1 98.77
+    time: fold_setup 0.3s, build 0.4s, fit 45.1s, score 1.3s, per_epoch 1.1s
+  access_control_line fold 3 G0
+    epochs 37, best epoch 32, best inner_val loss 0.0922
+    outer_test best buggy F1 97.28
+    time: fold_setup 0.3s, build 0.3s, fit 37.5s, score 0.9s, per_epoch 1.0s
+  access_control_line fold 4 G0
+    epochs 20, best epoch 13, best inner_val loss 0.0150
+    outer_test best buggy F1 99.26
+    time: fold_setup 0.4s, build 0.3s, fit 20.1s, score 1.0s, per_epoch 1.0s
+  access_control_line fold 5 G0
+    epochs 32, best epoch 29, best inner_val loss 0.0447
+    outer_test best buggy F1 98.13
+    time: fold_setup 0.5s, build 0.4s, fit 30.5s, score 0.9s, per_epoch 0.9s
+  access_control_line fold 6 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0213
+    outer_test best buggy F1 99.51
+    time: fold_setup 0.4s, build 0.3s, fit 20.1s, score 1.3s, per_epoch 1.0s
+  access_control_line fold 7 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0424
+    outer_test best buggy F1 98.98
+    time: fold_setup 0.3s, build 0.3s, fit 21.4s, score 1.2s, per_epoch 1.1s
+  access_control_line fold 8 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0145
+    outer_test best buggy F1 99.51
+    time: fold_setup 0.4s, build 0.3s, fit 23.8s, score 1.1s, per_epoch 1.1s
+  access_control_line fold 9 G0
+    epochs 24, best epoch 16, best inner_val loss 0.0043
+    outer_test best buggy F1 99.84
+    time: fold_setup 0.3s, build 0.4s, fit 24.9s, score 1.3s, per_epoch 1.0s
+[paper] access_control_cascade: 5 folds
+  access_control_cascade fold 0 G0
+    epochs 31, best epoch 24, best inner_val loss 0.0517
+    outer_test best buggy F1 98.24
+    time: fold_setup 0.6s, build 0.7s, fit 33.7s, score 1.2s, per_epoch 1.1s
+  access_control_cascade fold 1 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0303
+    outer_test best buggy F1 98.37
+    time: fold_setup 0.6s, build 0.6s, fit 21.8s, score 1.5s, per_epoch 1.1s
+  access_control_cascade fold 2 G0
+    epochs 38, best epoch 34, best inner_val loss 0.0280
+    outer_test best buggy F1 98.83
+    time: fold_setup 0.7s, build 0.6s, fit 41.3s, score 1.3s, per_epoch 1.1s
+  access_control_cascade fold 3 G0
+    epochs 31, best epoch 24, best inner_val loss 0.0594
+    outer_test best buggy F1 98.42
+    time: fold_setup 0.7s, build 0.7s, fit 32.9s, score 1.1s, per_epoch 1.1s
+  access_control_cascade fold 4 G0
+    epochs 22, best epoch 15, best inner_val loss 0.0157
+    outer_test best buggy F1 99.44
+    time: fold_setup 0.7s, build 0.7s, fit 23.8s, score 1.7s, per_epoch 1.1s
+[grouped] access_control_contract: 5 folds
+  access_control_contract fold 0 G0
+    epochs 16, best epoch 8, best inner_val loss 0.2284
+    outer_test best buggy F1 85.71
+    time: fold_setup 0.9s, build 0.8s, fit 15.5s, score 1.0s, per_epoch 1.0s
+  access_control_contract fold 1 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2298
+    outer_test best buggy F1 95.24
+    time: fold_setup 0.7s, build 0.7s, fit 15.4s, score 1.4s, per_epoch 1.0s
+  access_control_contract fold 2 G0
+    epochs 28, best epoch 20, best inner_val loss 0.0059
+    outer_test best buggy F1 80.00
+    time: fold_setup 0.6s, build 0.7s, fit 30.3s, score 1.0s, per_epoch 1.1s
+  access_control_contract fold 3 G0
+    epochs 14, best epoch 6, best inner_val loss 0.3661
+    outer_test best buggy F1 95.65
+    time: fold_setup 0.7s, build 0.6s, fit 15.7s, score 1.4s, per_epoch 1.1s
+  access_control_contract fold 4 G0
+    epochs 20, best epoch 12, best inner_val loss 0.1738
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.7s, build 0.7s, fit 21.8s, score 1.1s, per_epoch 1.1s
+[grouped] access_control_line: 10 folds
+  access_control_line fold 0 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0244
+    outer_test best buggy F1 99.34
+    time: fold_setup 0.5s, build 0.4s, fit 22.4s, score 1.3s, per_epoch 1.1s
+  access_control_line fold 1 G0
+    epochs 19, best epoch 12, best inner_val loss 0.0286
+    outer_test best buggy F1 97.73
+    time: fold_setup 0.5s, build 0.5s, fit 19.8s, score 0.9s, per_epoch 1.0s
+  access_control_line fold 2 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0239
+    outer_test best buggy F1 99.38
+    time: fold_setup 0.4s, build 0.3s, fit 23.1s, score 1.0s, per_epoch 1.1s
+  access_control_line fold 3 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0299
+    outer_test best buggy F1 99.08
+    time: fold_setup 0.4s, build 0.3s, fit 21.3s, score 1.4s, per_epoch 1.0s
+  access_control_line fold 4 G0
+    epochs 18, best epoch 10, best inner_val loss 0.2093
+    outer_test best buggy F1 99.37
+    time: fold_setup 0.4s, build 0.4s, fit 18.7s, score 1.1s, per_epoch 1.0s
+  access_control_line fold 5 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0539
+    outer_test best buggy F1 98.85
+    time: fold_setup 0.4s, build 0.4s, fit 20.2s, score 1.2s, per_epoch 1.0s
+  access_control_line fold 6 G0
+    epochs 20, best epoch 13, best inner_val loss 0.0259
+    outer_test best buggy F1 99.38
+    time: fold_setup 0.3s, build 0.3s, fit 18.9s, score 1.3s, per_epoch 0.9s
+  access_control_line fold 7 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0271
+    outer_test best buggy F1 99.84
+    time: fold_setup 0.4s, build 0.3s, fit 22.2s, score 1.4s, per_epoch 1.1s
+  access_control_line fold 8 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0253
+    outer_test best buggy F1 94.77
+    time: fold_setup 0.3s, build 0.4s, fit 19.9s, score 1.0s, per_epoch 1.0s
+  access_control_line fold 9 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0250
+    outer_test best buggy F1 99.40
+    time: fold_setup 0.3s, build 0.5s, fit 20.4s, score 1.0s, per_epoch 1.0s
+[grouped] access_control_cascade: 5 folds
+  access_control_cascade fold 0 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0348
+    outer_test best buggy F1 99.15
+    time: fold_setup 0.6s, build 0.6s, fit 24.5s, score 1.0s, per_epoch 1.1s
+  access_control_cascade fold 1 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0260
+    outer_test best buggy F1 99.17
+    time: fold_setup 0.7s, build 0.6s, fit 20.5s, score 1.4s, per_epoch 1.0s
+  access_control_cascade fold 2 G0
+    epochs 19, best epoch 12, best inner_val loss 0.0268
+    outer_test best buggy F1 98.85
+    time: fold_setup 0.6s, build 0.7s, fit 19.8s, score 1.4s, per_epoch 1.0s
+  access_control_cascade fold 3 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0444
+    outer_test best buggy F1 99.45
+    time: fold_setup 0.7s, build 0.6s, fit 22.0s, score 1.0s, per_epoch 1.1s
+  access_control_cascade fold 4 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0259
+    outer_test best buggy F1 95.85
+    time: fold_setup 0.7s, build 0.7s, fit 21.6s, score 1.2s, per_epoch 1.0s
+[upstream] access_control_contract: 5 folds on cuda:0
+[upstream] access_control_contract: buggy F1 93.56, macro F1 93.83
+[upstream] access_control_line: 10 folds on cuda:0
+[upstream] access_control_line: buggy F1 99.01, macro F1 99.15
+arithmetic_contract: 120 files, 114 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+arithmetic_node: 60 files, 56 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+[paper] arithmetic_contract: 5 folds
+  arithmetic_contract fold 0 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0489
+    outer_test best buggy F1 95.65
+    time: fold_setup 0.9s, build 0.8s, fit 25.4s, score 1.2s, per_epoch 1.1s
+  arithmetic_contract fold 1 G0
+    epochs 18, best epoch 10, best inner_val loss 0.1930
+    outer_test best buggy F1 88.00
+    time: fold_setup 0.8s, build 0.7s, fit 19.4s, score 0.9s, per_epoch 1.1s
+  arithmetic_contract fold 2 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2394
+    outer_test best buggy F1 90.91
+    time: fold_setup 0.8s, build 0.8s, fit 16.8s, score 0.9s, per_epoch 1.1s
+  arithmetic_contract fold 3 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0858
+    outer_test best buggy F1 90.91
+    time: fold_setup 0.8s, build 0.8s, fit 18.7s, score 1.1s, per_epoch 1.1s
+  arithmetic_contract fold 4 G0
+    epochs 16, best epoch 8, best inner_val loss 0.1038
+    outer_test best buggy F1 96.00
+    time: fold_setup 0.8s, build 0.7s, fit 17.0s, score 1.2s, per_epoch 1.1s
+[paper] arithmetic_line: 10 folds
+  arithmetic_line fold 0 G0
+    epochs 32, best epoch 25, best inner_val loss 0.0022
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.5s, build 0.4s, fit 31.0s, score 0.9s, per_epoch 1.0s
+  arithmetic_line fold 1 G0
+    epochs 30, best epoch 22, best inner_val loss 0.0068
+    outer_test best buggy F1 99.85
+    time: fold_setup 0.5s, build 0.5s, fit 28.1s, score 1.3s, per_epoch 0.9s
+  arithmetic_line fold 2 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0764
+    outer_test best buggy F1 98.74
+    time: fold_setup 0.5s, build 0.4s, fit 19.0s, score 1.5s, per_epoch 0.9s
+  arithmetic_line fold 3 G0
+    epochs 26, best epoch 18, best inner_val loss 0.0664
+    outer_test best buggy F1 99.22
+    time: fold_setup 0.6s, build 0.4s, fit 25.5s, score 1.4s, per_epoch 1.0s
+  arithmetic_line fold 4 G0
+    epochs 28, best epoch 20, best inner_val loss 0.0288
+    outer_test best buggy F1 99.53
+    time: fold_setup 0.5s, build 0.4s, fit 26.5s, score 1.3s, per_epoch 0.9s
+  arithmetic_line fold 5 G0
+    epochs 30, best epoch 23, best inner_val loss 0.0058
+    outer_test best buggy F1 99.91
+    time: fold_setup 0.5s, build 0.4s, fit 28.8s, score 0.8s, per_epoch 1.0s
+  arithmetic_line fold 6 G0
+    epochs 30, best epoch 22, best inner_val loss 0.0291
+    outer_test best buggy F1 99.67
+    time: fold_setup 0.5s, build 0.4s, fit 31.2s, score 0.9s, per_epoch 1.0s
+  arithmetic_line fold 7 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0366
+    outer_test best buggy F1 99.52
+    time: fold_setup 0.5s, build 0.4s, fit 19.3s, score 1.1s, per_epoch 0.9s
+  arithmetic_line fold 8 G0
+    epochs 26, best epoch 19, best inner_val loss 0.0194
+    outer_test best buggy F1 99.41
+    time: fold_setup 0.5s, build 0.5s, fit 24.2s, score 1.0s, per_epoch 0.9s
+  arithmetic_line fold 9 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0309
+    outer_test best buggy F1 99.30
+    time: fold_setup 0.5s, build 0.4s, fit 23.8s, score 1.3s, per_epoch 0.9s
+[paper] arithmetic_cascade: 5 folds
+  arithmetic_cascade fold 0 G0
+    epochs 26, best epoch 18, best inner_val loss 0.0099
+    outer_test best buggy F1 98.83
+    time: fold_setup 0.8s, build 0.8s, fit 28.9s, score 1.1s, per_epoch 1.1s
+  arithmetic_cascade fold 1 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0989
+    outer_test best buggy F1 98.01
+    time: fold_setup 0.8s, build 0.8s, fit 23.0s, score 0.9s, per_epoch 1.1s
+  arithmetic_cascade fold 2 G0
+    epochs 27, best epoch 20, best inner_val loss 0.0402
+    outer_test best buggy F1 98.87
+    time: fold_setup 0.9s, build 0.8s, fit 28.4s, score 0.9s, per_epoch 1.1s
+  arithmetic_cascade fold 3 G0
+    epochs 29, best epoch 28, best inner_val loss 0.0407
+    outer_test best buggy F1 98.98
+    time: fold_setup 0.9s, build 0.8s, fit 31.3s, score 1.0s, per_epoch 1.1s
+  arithmetic_cascade fold 4 G0
+    epochs 28, best epoch 20, best inner_val loss 0.0155
+    outer_test best buggy F1 99.00
+    time: fold_setup 0.8s, build 0.8s, fit 29.5s, score 1.4s, per_epoch 1.1s
+[grouped] arithmetic_contract: 5 folds
+  arithmetic_contract fold 0 G0
+    epochs 15, best epoch 7, best inner_val loss 0.1318
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.8s, build 0.8s, fit 14.7s, score 1.4s, per_epoch 1.0s
+  arithmetic_contract fold 1 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0462
+    outer_test best buggy F1 95.65
+    time: fold_setup 0.9s, build 0.8s, fit 21.2s, score 1.3s, per_epoch 1.1s
+  arithmetic_contract fold 2 G0
+    epochs 16, best epoch 8, best inner_val loss 0.0827
+    outer_test best buggy F1 95.65
+    time: fold_setup 0.8s, build 0.7s, fit 17.5s, score 1.4s, per_epoch 1.1s
+  arithmetic_contract fold 3 G0
+    epochs 18, best epoch 10, best inner_val loss 0.0512
+    outer_test best buggy F1 90.91
+    time: fold_setup 0.8s, build 0.8s, fit 17.8s, score 1.4s, per_epoch 1.0s
+  arithmetic_contract fold 4 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2015
+    outer_test best buggy F1 90.91
+    time: fold_setup 0.8s, build 0.7s, fit 17.2s, score 1.0s, per_epoch 1.1s
+[grouped] arithmetic_line: 10 folds
+  arithmetic_line fold 0 G0
+    epochs 29, best epoch 21, best inner_val loss 0.0239
+    outer_test best buggy F1 98.81
+    time: fold_setup 0.5s, build 0.4s, fit 28.4s, score 1.2s, per_epoch 1.0s
+  arithmetic_line fold 1 G0
+    epochs 21, best epoch 14, best inner_val loss 0.0566
+    outer_test best buggy F1 99.32
+    time: fold_setup 0.5s, build 0.4s, fit 18.0s, score 0.9s, per_epoch 0.9s
+  arithmetic_line fold 2 G0
+    epochs 20, best epoch 13, best inner_val loss 0.0638
+    outer_test best buggy F1 98.95
+    time: fold_setup 0.5s, build 0.4s, fit 19.6s, score 0.9s, per_epoch 1.0s
+  arithmetic_line fold 3 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0331
+    outer_test best buggy F1 99.54
+    time: fold_setup 0.5s, build 0.4s, fit 24.7s, score 0.9s, per_epoch 1.0s
+  arithmetic_line fold 4 G0
+    epochs 42, best epoch 34, best inner_val loss 0.0322
+    outer_test best buggy F1 99.53
+    time: fold_setup 0.5s, build 0.4s, fit 41.0s, score 1.0s, per_epoch 1.0s
+  arithmetic_line fold 5 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0811
+    outer_test best buggy F1 99.38
+    time: fold_setup 0.5s, build 0.4s, fit 20.6s, score 1.1s, per_epoch 1.0s
+  arithmetic_line fold 6 G0
+    epochs 28, best epoch 20, best inner_val loss 0.0843
+    outer_test best buggy F1 99.33
+    time: fold_setup 0.5s, build 0.4s, fit 26.6s, score 1.2s, per_epoch 0.9s
+  arithmetic_line fold 7 G0
+    epochs 22, best epoch 15, best inner_val loss 0.0424
+    outer_test best buggy F1 98.70
+    time: fold_setup 0.5s, build 0.4s, fit 21.2s, score 0.9s, per_epoch 1.0s
+  arithmetic_line fold 8 G0
+    epochs 26, best epoch 18, best inner_val loss 0.0486
+    outer_test best buggy F1 98.73
+    time: fold_setup 0.5s, build 0.4s, fit 25.0s, score 0.9s, per_epoch 1.0s
+  arithmetic_line fold 9 G0
+    epochs 26, best epoch 18, best inner_val loss 0.0214
+    outer_test best buggy F1 99.29
+    time: fold_setup 0.5s, build 0.4s, fit 25.4s, score 1.0s, per_epoch 1.0s
+[grouped] arithmetic_cascade: 5 folds
+  arithmetic_cascade fold 0 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0284
+    outer_test best buggy F1 98.37
+    time: fold_setup 0.9s, build 0.8s, fit 26.6s, score 1.1s, per_epoch 1.1s
+  arithmetic_cascade fold 1 G0
+    epochs 28, best epoch 21, best inner_val loss 0.0228
+    outer_test best buggy F1 99.12
+    time: fold_setup 0.9s, build 0.8s, fit 30.4s, score 1.6s, per_epoch 1.1s
+  arithmetic_cascade fold 2 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0378
+    outer_test best buggy F1 98.47
+    time: fold_setup 0.8s, build 0.8s, fit 22.6s, score 1.3s, per_epoch 1.0s
+  arithmetic_cascade fold 3 G0
+    epochs 28, best epoch 20, best inner_val loss 0.0183
+    outer_test best buggy F1 98.69
+    time: fold_setup 0.9s, build 0.8s, fit 29.6s, score 1.0s, per_epoch 1.1s
+  arithmetic_cascade fold 4 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0301
+    outer_test best buggy F1 98.90
+    time: fold_setup 0.9s, build 0.8s, fit 26.9s, score 1.1s, per_epoch 1.1s
+[upstream] arithmetic_contract: 5 folds on cuda:0
+[upstream] arithmetic_contract: buggy F1 95.78, macro F1 95.82
+[upstream] arithmetic_line: 10 folds on cuda:0
+[upstream] arithmetic_line: buggy F1 99.57, macro F1 99.52
+denial_of_service_contract: 92 files, 86 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+denial_of_service_node: 46 files, 42 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+[paper] denial_of_service_contract: 5 folds
+  denial_of_service_contract fold 0 G0
+    epochs 16, best epoch 8, best inner_val loss 0.1947
+    outer_test best buggy F1 94.12
+    time: fold_setup 0.9s, build 0.8s, fit 17.2s, score 1.4s, per_epoch 1.1s
+  denial_of_service_contract fold 1 G0
+    epochs 18, best epoch 10, best inner_val loss 0.0886
+    outer_test best buggy F1 95.24
+    time: fold_setup 0.8s, build 0.7s, fit 18.1s, score 1.0s, per_epoch 1.0s
+  denial_of_service_contract fold 2 G0
+    epochs 30, best epoch 29, best inner_val loss 0.0047
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.8s, build 0.7s, fit 30.3s, score 1.3s, per_epoch 1.0s
+  denial_of_service_contract fold 3 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0834
+    outer_test best buggy F1 94.74
+    time: fold_setup 0.8s, build 0.7s, fit 17.1s, score 1.2s, per_epoch 1.0s
+  denial_of_service_contract fold 4 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0858
+    outer_test best buggy F1 94.74
+    time: fold_setup 0.8s, build 0.7s, fit 18.7s, score 1.3s, per_epoch 1.1s
+[paper] denial_of_service_line: 10 folds
+  denial_of_service_line fold 0 G0
+    epochs 20, best epoch 12, best inner_val loss 0.1150
+    outer_test best buggy F1 98.19
+    time: fold_setup 0.4s, build 0.4s, fit 19.9s, score 0.9s, per_epoch 1.0s
+  denial_of_service_line fold 1 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0406
+    outer_test best buggy F1 99.07
+    time: fold_setup 0.4s, build 0.4s, fit 20.9s, score 1.0s, per_epoch 1.0s
+  denial_of_service_line fold 2 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0308
+    outer_test best buggy F1 99.14
+    time: fold_setup 0.4s, build 0.4s, fit 20.1s, score 1.5s, per_epoch 1.0s
+  denial_of_service_line fold 3 G0
+    epochs 27, best epoch 19, best inner_val loss 0.0274
+    outer_test best buggy F1 99.51
+    time: fold_setup 0.4s, build 0.4s, fit 25.0s, score 1.0s, per_epoch 0.9s
+  denial_of_service_line fold 4 G0
+    epochs 24, best epoch 17, best inner_val loss 0.0405
+    outer_test best buggy F1 99.41
+    time: fold_setup 0.4s, build 0.4s, fit 23.6s, score 1.4s, per_epoch 1.0s
+  denial_of_service_line fold 5 G0
+    epochs 24, best epoch 16, best inner_val loss 0.0237
+    outer_test best buggy F1 99.72
+    time: fold_setup 0.4s, build 0.4s, fit 24.8s, score 1.1s, per_epoch 1.0s
+  denial_of_service_line fold 6 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0311
+    outer_test best buggy F1 99.02
+    time: fold_setup 0.5s, build 0.4s, fit 23.2s, score 1.0s, per_epoch 1.0s
+  denial_of_service_line fold 7 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0575
+    outer_test best buggy F1 98.02
+    time: fold_setup 0.4s, build 0.4s, fit 19.8s, score 1.6s, per_epoch 0.9s
+  denial_of_service_line fold 8 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0022
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.5s, build 0.4s, fit 25.3s, score 1.3s, per_epoch 1.0s
+  denial_of_service_line fold 9 G0
+    epochs 27, best epoch 19, best inner_val loss 0.0005
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.5s, build 0.4s, fit 25.5s, score 1.4s, per_epoch 0.9s
+[paper] denial_of_service_cascade: 5 folds
+  denial_of_service_cascade fold 0 G0
+    epochs 20, best epoch 12, best inner_val loss 0.1619
+    outer_test best buggy F1 92.28
+    time: fold_setup 0.8s, build 0.7s, fit 20.3s, score 1.0s, per_epoch 1.0s
+  denial_of_service_cascade fold 1 G0
+    epochs 22, best epoch 17, best inner_val loss 0.0471
+    outer_test best buggy F1 98.65
+    time: fold_setup 0.8s, build 0.7s, fit 22.4s, score 1.3s, per_epoch 1.0s
+  denial_of_service_cascade fold 2 G0
+    epochs 27, best epoch 20, best inner_val loss 0.0045
+    outer_test best buggy F1 98.65
+    time: fold_setup 0.8s, build 0.8s, fit 28.4s, score 1.0s, per_epoch 1.1s
+  denial_of_service_cascade fold 3 G0
+    epochs 21, best epoch 14, best inner_val loss 0.0185
+    outer_test best buggy F1 97.92
+    time: fold_setup 0.8s, build 0.7s, fit 22.1s, score 1.0s, per_epoch 1.1s
+  denial_of_service_cascade fold 4 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0163
+    outer_test best buggy F1 99.18
+    time: fold_setup 0.8s, build 0.8s, fit 22.6s, score 1.0s, per_epoch 1.0s
+[grouped] denial_of_service_contract: 5 folds
+  denial_of_service_contract fold 0 G0
+    epochs 18, best epoch 10, best inner_val loss 0.0601
+    outer_test best buggy F1 94.12
+    time: fold_setup 0.7s, build 0.7s, fit 18.1s, score 1.1s, per_epoch 1.0s
+  denial_of_service_contract fold 1 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0235
+    outer_test best buggy F1 90.00
+    time: fold_setup 0.8s, build 0.7s, fit 26.4s, score 1.3s, per_epoch 1.1s
+  denial_of_service_contract fold 2 G0
+    epochs 16, best epoch 8, best inner_val loss 0.1419
+    outer_test best buggy F1 88.89
+    time: fold_setup 0.7s, build 0.7s, fit 16.4s, score 1.5s, per_epoch 1.0s
+  denial_of_service_contract fold 3 G0
+    epochs 18, best epoch 10, best inner_val loss 0.0572
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.8s, build 0.7s, fit 18.6s, score 1.3s, per_epoch 1.0s
+  denial_of_service_contract fold 4 G0
+    epochs 19, best epoch 11, best inner_val loss 0.0217
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.8s, build 0.7s, fit 19.7s, score 1.4s, per_epoch 1.0s
+[grouped] denial_of_service_line: 10 folds
+  denial_of_service_line fold 0 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0445
+    outer_test best buggy F1 99.37
+    time: fold_setup 0.5s, build 0.4s, fit 21.3s, score 1.4s, per_epoch 1.0s
+  denial_of_service_line fold 1 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0322
+    outer_test best buggy F1 99.28
+    time: fold_setup 0.4s, build 0.4s, fit 21.9s, score 1.2s, per_epoch 1.0s
+  denial_of_service_line fold 2 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0546
+    outer_test best buggy F1 98.91
+    time: fold_setup 0.4s, build 0.4s, fit 22.0s, score 1.3s, per_epoch 1.0s
+  denial_of_service_line fold 3 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0260
+    outer_test best buggy F1 99.28
+    time: fold_setup 0.4s, build 0.5s, fit 20.4s, score 1.3s, per_epoch 0.9s
+  denial_of_service_line fold 4 G0
+    epochs 27, best epoch 19, best inner_val loss 0.0366
+    outer_test best buggy F1 98.64
+    time: fold_setup 0.4s, build 0.4s, fit 27.4s, score 0.9s, per_epoch 1.0s
+  denial_of_service_line fold 5 G0
+    epochs 21, best epoch 14, best inner_val loss 0.0449
+    outer_test best buggy F1 98.24
+    time: fold_setup 0.5s, build 0.4s, fit 20.7s, score 1.3s, per_epoch 1.0s
+  denial_of_service_line fold 6 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0368
+    outer_test best buggy F1 98.86
+    time: fold_setup 0.4s, build 0.3s, fit 21.9s, score 1.3s, per_epoch 1.0s
+  denial_of_service_line fold 7 G0
+    epochs 21, best epoch 16, best inner_val loss 0.0460
+    outer_test best buggy F1 99.35
+    time: fold_setup 0.4s, build 0.4s, fit 20.5s, score 1.3s, per_epoch 1.0s
+  denial_of_service_line fold 8 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0640
+    outer_test best buggy F1 99.26
+    time: fold_setup 0.4s, build 0.4s, fit 20.3s, score 1.2s, per_epoch 1.0s
+  denial_of_service_line fold 9 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0287
+    outer_test best buggy F1 99.46
+    time: fold_setup 0.4s, build 0.4s, fit 21.6s, score 1.6s, per_epoch 1.0s
+[grouped] denial_of_service_cascade: 5 folds
+  denial_of_service_cascade fold 0 G0
+    epochs 27, best epoch 25, best inner_val loss 0.0291
+    outer_test best buggy F1 97.48
+    time: fold_setup 0.8s, build 0.7s, fit 27.4s, score 1.3s, per_epoch 1.0s
+  denial_of_service_cascade fold 1 G0
+    epochs 22, best epoch 15, best inner_val loss 0.0395
+    outer_test best buggy F1 97.58
+    time: fold_setup 0.8s, build 0.7s, fit 22.3s, score 1.5s, per_epoch 1.0s
+  denial_of_service_cascade fold 2 G0
+    epochs 24, best epoch 16, best inner_val loss 0.0389
+    outer_test best buggy F1 97.78
+    time: fold_setup 0.8s, build 0.7s, fit 25.8s, score 1.4s, per_epoch 1.1s
+  denial_of_service_cascade fold 3 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0265
+    outer_test best buggy F1 98.48
+    time: fold_setup 0.9s, build 0.8s, fit 22.7s, score 1.1s, per_epoch 1.0s
+  denial_of_service_cascade fold 4 G0
+    epochs 24, best epoch 16, best inner_val loss 0.0146
+    outer_test best buggy F1 99.14
+    time: fold_setup 0.8s, build 0.7s, fit 24.0s, score 1.3s, per_epoch 1.0s
+[upstream] denial_of_service_contract: 5 folds on cuda:0
+[upstream] denial_of_service_contract: buggy F1 97.77, macro F1 97.82
+[upstream] denial_of_service_line: 10 folds on cuda:0
+[upstream] denial_of_service_line: buggy F1 99.28, macro F1 99.30
+front_running_contract: 88 files, 82 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+front_running_node: 44 files, 40 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+[paper] front_running_contract: 5 folds
+  front_running_contract fold 0 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0421
+    outer_test best buggy F1 100.00
+    time: fold_setup 1.4s, build 1.0s, fit 18.1s, score 1.4s, per_epoch 1.1s
+  front_running_contract fold 1 G0
+    epochs 14, best epoch 6, best inner_val loss 0.2191
+    outer_test best buggy F1 94.12
+    time: fold_setup 1.1s, build 0.9s, fit 13.8s, score 1.1s, per_epoch 1.0s
+  front_running_contract fold 2 G0
+    epochs 21, best epoch 20, best inner_val loss 0.0002
+    outer_test best buggy F1 100.00
+    time: fold_setup 1.0s, build 1.0s, fit 23.1s, score 1.0s, per_epoch 1.1s
+  front_running_contract fold 3 G0
+    epochs 13, best epoch 5, best inner_val loss 0.2469
+    outer_test best buggy F1 93.33
+    time: fold_setup 1.1s, build 0.9s, fit 14.1s, score 1.1s, per_epoch 1.1s
+  front_running_contract fold 4 G0
+    epochs 15, best epoch 7, best inner_val loss 0.1086
+    outer_test best buggy F1 94.12
+    time: fold_setup 1.0s, build 0.9s, fit 15.3s, score 1.0s, per_epoch 1.0s
+[paper] front_running_line: 10 folds
+  front_running_line fold 0 G0
+    epochs 24, best epoch 18, best inner_val loss 0.0060
+    outer_test best buggy F1 99.88
+    time: fold_setup 0.9s, build 0.8s, fit 23.4s, score 1.2s, per_epoch 1.0s
+  front_running_line fold 1 G0
+    epochs 30, best epoch 24, best inner_val loss 0.0040
+    outer_test best buggy F1 99.85
+    time: fold_setup 0.9s, build 0.8s, fit 29.2s, score 1.0s, per_epoch 1.0s
+  front_running_line fold 2 G0
+    epochs 31, best epoch 23, best inner_val loss 0.0221
+    outer_test best buggy F1 99.77
+    time: fold_setup 0.9s, build 0.8s, fit 29.3s, score 1.0s, per_epoch 0.9s
+  front_running_line fold 3 G0
+    epochs 28, best epoch 27, best inner_val loss 0.0036
+    outer_test best buggy F1 99.92
+    time: fold_setup 0.9s, build 0.8s, fit 27.3s, score 1.1s, per_epoch 1.0s
+  front_running_line fold 4 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0020
+    outer_test best buggy F1 99.96
+    time: fold_setup 0.8s, build 0.8s, fit 22.0s, score 0.9s, per_epoch 1.0s
+  front_running_line fold 5 G0
+    epochs 32, best epoch 26, best inner_val loss 0.0023
+    outer_test best buggy F1 99.95
+    time: fold_setup 0.9s, build 0.8s, fit 29.7s, score 1.1s, per_epoch 0.9s
+  front_running_line fold 6 G0
+    epochs 23, best epoch 17, best inner_val loss 0.0088
+    outer_test best buggy F1 99.87
+    time: fold_setup 0.9s, build 0.9s, fit 21.2s, score 1.3s, per_epoch 0.9s
+  front_running_line fold 7 G0
+    epochs 24, best epoch 17, best inner_val loss 0.1653
+    outer_test best buggy F1 98.30
+    time: fold_setup 0.8s, build 0.8s, fit 23.3s, score 1.0s, per_epoch 1.0s
+  front_running_line fold 8 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0161
+    outer_test best buggy F1 99.77
+    time: fold_setup 0.9s, build 0.8s, fit 23.6s, score 0.9s, per_epoch 0.9s
+  front_running_line fold 9 G0
+    epochs 30, best epoch 24, best inner_val loss 0.0010
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.8s, build 0.8s, fit 28.0s, score 1.2s, per_epoch 0.9s
+[paper] front_running_cascade: 5 folds
+  front_running_cascade fold 0 G0
+    epochs 31, best epoch 23, best inner_val loss 0.0111
+    outer_test best buggy F1 99.77
+    time: fold_setup 1.0s, build 0.9s, fit 31.8s, score 1.1s, per_epoch 1.0s
+  front_running_cascade fold 1 G0
+    epochs 28, best epoch 21, best inner_val loss 0.0070
+    outer_test best buggy F1 99.38
+    time: fold_setup 1.0s, build 0.9s, fit 28.8s, score 1.2s, per_epoch 1.0s
+  front_running_cascade fold 2 G0
+    epochs 25, best epoch 24, best inner_val loss 0.0016
+    outer_test best buggy F1 99.79
+    time: fold_setup 1.0s, build 0.9s, fit 26.0s, score 1.1s, per_epoch 1.0s
+  front_running_cascade fold 3 G0
+    epochs 30, best epoch 24, best inner_val loss 0.0336
+    outer_test best buggy F1 99.54
+    time: fold_setup 1.0s, build 0.9s, fit 30.2s, score 1.1s, per_epoch 1.0s
+  front_running_cascade fold 4 G0
+    epochs 26, best epoch 18, best inner_val loss 0.0352
+    outer_test best buggy F1 99.54
+    time: fold_setup 1.0s, build 0.9s, fit 27.6s, score 1.6s, per_epoch 1.1s
+[grouped] front_running_contract: 5 folds
+  front_running_contract fold 0 G0
+    epochs 15, best epoch 7, best inner_val loss 0.1275
+    outer_test best buggy F1 94.12
+    time: fold_setup 1.0s, build 0.9s, fit 16.5s, score 1.5s, per_epoch 1.1s
+  front_running_contract fold 1 G0
+    epochs 14, best epoch 6, best inner_val loss 0.2942
+    outer_test best buggy F1 94.12
+    time: fold_setup 1.0s, build 0.9s, fit 15.7s, score 0.9s, per_epoch 1.1s
+  front_running_contract fold 2 G0
+    epochs 13, best epoch 5, best inner_val loss 0.2770
+    outer_test best buggy F1 94.12
+    time: fold_setup 1.1s, build 0.9s, fit 13.7s, score 1.3s, per_epoch 1.1s
+  front_running_contract fold 3 G0
+    epochs 16, best epoch 8, best inner_val loss 0.0485
+    outer_test best buggy F1 100.00
+    time: fold_setup 1.0s, build 1.0s, fit 17.2s, score 1.4s, per_epoch 1.1s
+  front_running_contract fold 4 G0
+    epochs 14, best epoch 6, best inner_val loss 0.2634
+    outer_test best buggy F1 94.12
+    time: fold_setup 1.1s, build 0.9s, fit 14.5s, score 1.0s, per_epoch 1.0s
+[grouped] front_running_line: 10 folds
+  front_running_line fold 0 G0
+    epochs 27, best epoch 23, best inner_val loss 0.0081
+    outer_test best buggy F1 99.75
+    time: fold_setup 0.8s, build 0.8s, fit 26.1s, score 1.1s, per_epoch 1.0s
+  front_running_line fold 1 G0
+    epochs 33, best epoch 27, best inner_val loss 0.0292
+    outer_test best buggy F1 99.85
+    time: fold_setup 0.9s, build 0.8s, fit 30.8s, score 1.3s, per_epoch 0.9s
+  front_running_line fold 2 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0067
+    outer_test best buggy F1 99.87
+    time: fold_setup 0.8s, build 0.8s, fit 21.1s, score 1.2s, per_epoch 0.9s
+  front_running_line fold 3 G0
+    epochs 31, best epoch 30, best inner_val loss 0.0315
+    outer_test best buggy F1 99.95
+    time: fold_setup 0.9s, build 0.8s, fit 30.4s, score 1.3s, per_epoch 1.0s
+  front_running_line fold 4 G0
+    epochs 27, best epoch 19, best inner_val loss 0.0292
+    outer_test best buggy F1 99.89
+    time: fold_setup 0.9s, build 0.8s, fit 25.3s, score 0.9s, per_epoch 0.9s
+  front_running_line fold 5 G0
+    epochs 25, best epoch 18, best inner_val loss 0.0064
+    outer_test best buggy F1 99.69
+    time: fold_setup 0.9s, build 0.8s, fit 24.3s, score 1.2s, per_epoch 1.0s
+  front_running_line fold 6 G0
+    epochs 30, best epoch 29, best inner_val loss 0.0053
+    outer_test best buggy F1 99.77
+    time: fold_setup 0.9s, build 0.8s, fit 28.1s, score 1.4s, per_epoch 0.9s
+  front_running_line fold 7 G0
+    epochs 26, best epoch 25, best inner_val loss 0.0096
+    outer_test best buggy F1 99.92
+    time: fold_setup 0.8s, build 0.9s, fit 25.0s, score 1.2s, per_epoch 1.0s
+  front_running_line fold 8 G0
+    epochs 24, best epoch 16, best inner_val loss 0.0317
+    outer_test best buggy F1 99.55
+    time: fold_setup 0.9s, build 0.8s, fit 22.3s, score 1.0s, per_epoch 0.9s
+  front_running_line fold 9 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0059
+    outer_test best buggy F1 99.33
+    time: fold_setup 0.9s, build 0.8s, fit 23.8s, score 1.2s, per_epoch 0.9s
+[grouped] front_running_cascade: 5 folds
+  front_running_cascade fold 0 G0
+    epochs 33, best epoch 26, best inner_val loss 0.0113
+    outer_test best buggy F1 99.57
+    time: fold_setup 1.1s, build 0.9s, fit 34.9s, score 1.3s, per_epoch 1.1s
+  front_running_cascade fold 1 G0
+    epochs 31, best epoch 24, best inner_val loss 0.0359
+    outer_test best buggy F1 99.74
+    time: fold_setup 1.0s, build 0.9s, fit 32.6s, score 1.4s, per_epoch 1.1s
+  front_running_cascade fold 2 G0
+    epochs 26, best epoch 21, best inner_val loss 0.0081
+    outer_test best buggy F1 99.57
+    time: fold_setup 1.0s, build 1.0s, fit 26.5s, score 1.3s, per_epoch 1.0s
+  front_running_cascade fold 3 G0
+    epochs 26, best epoch 18, best inner_val loss 0.0403
+    outer_test best buggy F1 99.37
+    time: fold_setup 1.1s, build 0.9s, fit 27.0s, score 1.0s, per_epoch 1.0s
+  front_running_cascade fold 4 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0135
+    outer_test best buggy F1 99.21
+    time: fold_setup 1.1s, build 1.0s, fit 23.7s, score 1.3s, per_epoch 1.0s
+[upstream] front_running_contract: 5 folds on cuda:0
+[upstream] front_running_contract: buggy F1 96.31, macro F1 96.52
+[upstream] front_running_line: 10 folds on cuda:0
+[upstream] front_running_line: buggy F1 99.69, macro F1 99.49
+reentrancy_contract: 142 files, 124 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+reentrancy_node: 71 files, 57 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+[paper] reentrancy_contract: 5 folds
+  reentrancy_contract fold 0 G0
+    epochs 14, best epoch 6, best inner_val loss 0.2815
+    outer_test best buggy F1 84.62
+    time: fold_setup 1.1s, build 1.0s, fit 15.9s, score 1.5s, per_epoch 1.1s
+  reentrancy_contract fold 1 G0
+    epochs 18, best epoch 10, best inner_val loss 0.0219
+    outer_test best buggy F1 100.00
+    time: fold_setup 1.1s, build 0.9s, fit 21.4s, score 1.3s, per_epoch 1.2s
+  reentrancy_contract fold 2 G0
+    epochs 18, best epoch 10, best inner_val loss 0.0758
+    outer_test best buggy F1 100.00
+    time: fold_setup 1.1s, build 0.9s, fit 22.6s, score 1.1s, per_epoch 1.3s
+  reentrancy_contract fold 3 G0
+    epochs 15, best epoch 7, best inner_val loss 0.1132
+    outer_test best buggy F1 96.30
+    time: fold_setup 1.0s, build 0.9s, fit 18.2s, score 1.4s, per_epoch 1.2s
+  reentrancy_contract fold 4 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2005
+    outer_test best buggy F1 93.33
+    time: fold_setup 1.0s, build 0.9s, fit 18.6s, score 1.3s, per_epoch 1.2s
+[paper] reentrancy_line: 10 folds
+  reentrancy_line fold 0 G0
+    epochs 37, best epoch 30, best inner_val loss 0.0264
+    outer_test best buggy F1 99.65
+    time: fold_setup 0.6s, build 0.5s, fit 38.9s, score 1.5s, per_epoch 1.1s
+  reentrancy_line fold 1 G0
+    epochs 39, best epoch 33, best inner_val loss 0.0104
+    outer_test best buggy F1 99.78
+    time: fold_setup 0.6s, build 0.5s, fit 39.1s, score 1.1s, per_epoch 1.0s
+  reentrancy_line fold 2 G0
+    epochs 34, best epoch 27, best inner_val loss 0.0042
+    outer_test best buggy F1 99.94
+    time: fold_setup 0.6s, build 0.4s, fit 33.9s, score 1.2s, per_epoch 1.0s
+  reentrancy_line fold 3 G0
+    epochs 28, best epoch 22, best inner_val loss 0.0148
+    outer_test best buggy F1 99.80
+    time: fold_setup 0.6s, build 0.6s, fit 27.9s, score 1.2s, per_epoch 1.0s
+  reentrancy_line fold 4 G0
+    epochs 27, best epoch 19, best inner_val loss 0.0231
+    outer_test best buggy F1 99.64
+    time: fold_setup 0.6s, build 0.5s, fit 26.1s, score 0.9s, per_epoch 1.0s
+  reentrancy_line fold 5 G0
+    epochs 30, best epoch 22, best inner_val loss 0.0340
+    outer_test best buggy F1 99.38
+    time: fold_setup 0.6s, build 0.5s, fit 29.2s, score 1.1s, per_epoch 1.0s
+  reentrancy_line fold 6 G0
+    epochs 27, best epoch 19, best inner_val loss 0.0166
+    outer_test best buggy F1 99.57
+    time: fold_setup 0.6s, build 0.6s, fit 25.7s, score 1.2s, per_epoch 0.9s
+  reentrancy_line fold 7 G0
+    epochs 50, best epoch 49, best inner_val loss 0.0307
+    outer_test best buggy F1 99.24
+    time: fold_setup 0.6s, build 0.5s, fit 52.1s, score 1.4s, per_epoch 1.0s
+  reentrancy_line fold 8 G0
+    epochs 26, best epoch 19, best inner_val loss 0.0518
+    outer_test best buggy F1 99.20
+    time: fold_setup 0.6s, build 0.6s, fit 27.3s, score 1.3s, per_epoch 1.1s
+  reentrancy_line fold 9 G0
+    epochs 24, best epoch 16, best inner_val loss 0.0444
+    outer_test best buggy F1 98.73
+    time: fold_setup 0.6s, build 0.5s, fit 23.6s, score 1.1s, per_epoch 1.0s
+[paper] reentrancy_cascade: 5 folds
+  reentrancy_cascade fold 0 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0484
+    outer_test best buggy F1 98.50
+    time: fold_setup 1.1s, build 1.0s, fit 26.3s, score 1.4s, per_epoch 1.1s
+  reentrancy_cascade fold 1 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0304
+    outer_test best buggy F1 99.23
+    time: fold_setup 1.0s, build 0.9s, fit 25.1s, score 1.4s, per_epoch 1.1s
+  reentrancy_cascade fold 2 G0
+    epochs 30, best epoch 22, best inner_val loss 0.0281
+    outer_test best buggy F1 98.84
+    time: fold_setup 1.0s, build 0.9s, fit 34.8s, score 1.1s, per_epoch 1.2s
+  reentrancy_cascade fold 3 G0
+    epochs 42, best epoch 41, best inner_val loss 0.0128
+    outer_test best buggy F1 98.54
+    time: fold_setup 1.0s, build 0.9s, fit 47.7s, score 1.4s, per_epoch 1.1s
+  reentrancy_cascade fold 4 G0
+    epochs 32, best epoch 27, best inner_val loss 0.0246
+    outer_test best buggy F1 98.98
+    time: fold_setup 1.0s, build 0.9s, fit 36.0s, score 1.3s, per_epoch 1.1s
+[grouped] reentrancy_contract: 5 folds
+  reentrancy_contract fold 0 G0
+    epochs 14, best epoch 6, best inner_val loss 0.2111
+    outer_test best buggy F1 100.00
+    time: fold_setup 1.0s, build 0.9s, fit 16.5s, score 1.2s, per_epoch 1.2s
+  reentrancy_contract fold 1 G0
+    epochs 14, best epoch 6, best inner_val loss 0.2512
+    outer_test best buggy F1 92.86
+    time: fold_setup 1.0s, build 0.9s, fit 15.9s, score 1.1s, per_epoch 1.1s
+  reentrancy_contract fold 2 G0
+    epochs 14, best epoch 6, best inner_val loss 0.2253
+    outer_test best buggy F1 92.86
+    time: fold_setup 1.0s, build 0.9s, fit 16.3s, score 1.0s, per_epoch 1.2s
+  reentrancy_contract fold 3 G0
+    epochs 15, best epoch 7, best inner_val loss 0.1580
+    outer_test best buggy F1 92.31
+    time: fold_setup 1.0s, build 0.9s, fit 15.6s, score 1.2s, per_epoch 1.0s
+  reentrancy_contract fold 4 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2211
+    outer_test best buggy F1 96.55
+    time: fold_setup 1.2s, build 1.0s, fit 17.9s, score 1.4s, per_epoch 1.2s
+[grouped] reentrancy_line: 10 folds
+  reentrancy_line fold 0 G0
+    epochs 42, best epoch 40, best inner_val loss 0.0284
+    outer_test best buggy F1 99.12
+    time: fold_setup 0.6s, build 0.5s, fit 41.8s, score 1.2s, per_epoch 1.0s
+  reentrancy_line fold 1 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0669
+    outer_test best buggy F1 99.76
+    time: fold_setup 0.6s, build 0.5s, fit 21.6s, score 0.9s, per_epoch 1.0s
+  reentrancy_line fold 2 G0
+    epochs 26, best epoch 25, best inner_val loss 0.0130
+    outer_test best buggy F1 99.14
+    time: fold_setup 0.6s, build 0.5s, fit 25.3s, score 1.3s, per_epoch 1.0s
+  reentrancy_line fold 3 G0
+    epochs 30, best epoch 29, best inner_val loss 0.0229
+    outer_test best buggy F1 99.43
+    time: fold_setup 0.6s, build 0.5s, fit 30.4s, score 1.0s, per_epoch 1.0s
+  reentrancy_line fold 4 G0
+    epochs 43, best epoch 37, best inner_val loss 0.0376
+    outer_test best buggy F1 99.49
+    time: fold_setup 0.6s, build 0.5s, fit 42.0s, score 1.0s, per_epoch 1.0s
+  reentrancy_line fold 5 G0
+    epochs 37, best epoch 33, best inner_val loss 0.0176
+    outer_test best buggy F1 99.37
+    time: fold_setup 0.6s, build 0.5s, fit 37.0s, score 1.3s, per_epoch 1.0s
+  reentrancy_line fold 6 G0
+    epochs 27, best epoch 20, best inner_val loss 0.0347
+    outer_test best buggy F1 99.06
+    time: fold_setup 0.6s, build 0.5s, fit 27.7s, score 0.9s, per_epoch 1.0s
+  reentrancy_line fold 7 G0
+    epochs 45, best epoch 42, best inner_val loss 0.0201
+    outer_test best buggy F1 99.62
+    time: fold_setup 0.6s, build 0.5s, fit 44.9s, score 1.0s, per_epoch 1.0s
+  reentrancy_line fold 8 G0
+    epochs 41, best epoch 40, best inner_val loss 0.0242
+    outer_test best buggy F1 99.86
+    time: fold_setup 0.6s, build 0.5s, fit 40.5s, score 1.0s, per_epoch 1.0s
+  reentrancy_line fold 9 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0309
+    outer_test best buggy F1 99.66
+    time: fold_setup 0.6s, build 0.5s, fit 24.7s, score 1.1s, per_epoch 1.0s
+[grouped] reentrancy_cascade: 5 folds
+  reentrancy_cascade fold 0 G0
+    epochs 20, best epoch 15, best inner_val loss 0.0666
+    outer_test best buggy F1 98.23
+    time: fold_setup 1.0s, build 0.9s, fit 23.5s, score 1.1s, per_epoch 1.2s
+  reentrancy_cascade fold 1 G0
+    epochs 24, best epoch 16, best inner_val loss 0.0267
+    outer_test best buggy F1 99.01
+    time: fold_setup 1.0s, build 0.9s, fit 27.0s, score 1.1s, per_epoch 1.1s
+  reentrancy_cascade fold 2 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0254
+    outer_test best buggy F1 98.37
+    time: fold_setup 1.0s, build 0.9s, fit 23.9s, score 1.4s, per_epoch 1.1s
+  reentrancy_cascade fold 3 G0
+    epochs 27, best epoch 20, best inner_val loss 0.0266
+    outer_test best buggy F1 98.18
+    time: fold_setup 1.1s, build 0.9s, fit 30.0s, score 1.2s, per_epoch 1.1s
+  reentrancy_cascade fold 4 G0
+    epochs 24, best epoch 16, best inner_val loss 0.0257
+    outer_test best buggy F1 98.67
+    time: fold_setup 1.1s, build 0.9s, fit 27.4s, score 1.1s, per_epoch 1.1s
+[upstream] reentrancy_contract: 5 folds on cuda:0
+[upstream] reentrancy_contract: buggy F1 94.06, macro F1 94.35
+[upstream] reentrancy_line: 10 folds on cuda:0
+[upstream] reentrancy_line: buggy F1 99.38, macro F1 99.37
+time_manipulation_contract: 100 files, 93 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+time_manipulation_node: 50 files, 45 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+[paper] time_manipulation_contract: 5 folds
+  time_manipulation_contract fold 0 G0
+    epochs 14, best epoch 6, best inner_val loss 0.2784
+    outer_test best buggy F1 88.89
+    time: fold_setup 1.3s, build 0.9s, fit 15.8s, score 1.4s, per_epoch 1.1s
+  time_manipulation_contract fold 1 G0
+    epochs 18, best epoch 11, best inner_val loss 0.0021
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.9s, build 0.8s, fit 21.4s, score 1.3s, per_epoch 1.2s
+  time_manipulation_contract fold 2 G0
+    epochs 16, best epoch 8, best inner_val loss 0.0493
+    outer_test best buggy F1 94.74
+    time: fold_setup 0.9s, build 0.8s, fit 17.3s, score 1.3s, per_epoch 1.1s
+  time_manipulation_contract fold 3 G0
+    epochs 15, best epoch 7, best inner_val loss 0.0755
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.9s, build 0.8s, fit 16.8s, score 1.1s, per_epoch 1.1s
+  time_manipulation_contract fold 4 G0
+    epochs 14, best epoch 6, best inner_val loss 0.1991
+    outer_test best buggy F1 90.00
+    time: fold_setup 0.9s, build 0.8s, fit 16.0s, score 1.1s, per_epoch 1.1s
+[paper] time_manipulation_line: 10 folds
+  time_manipulation_line fold 0 G0
+    epochs 22, best epoch 17, best inner_val loss 0.0026
+    outer_test best buggy F1 99.92
+    time: fold_setup 0.5s, build 0.4s, fit 22.8s, score 1.4s, per_epoch 1.0s
+  time_manipulation_line fold 1 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0565
+    outer_test best buggy F1 99.06
+    time: fold_setup 0.5s, build 0.5s, fit 20.9s, score 1.1s, per_epoch 1.0s
+  time_manipulation_line fold 2 G0
+    epochs 28, best epoch 21, best inner_val loss 0.0027
+    outer_test best buggy F1 99.94
+    time: fold_setup 0.6s, build 0.4s, fit 30.0s, score 1.1s, per_epoch 1.1s
+  time_manipulation_line fold 3 G0
+    epochs 21, best epoch 14, best inner_val loss 0.0021
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.5s, build 0.5s, fit 21.0s, score 1.4s, per_epoch 1.0s
+  time_manipulation_line fold 4 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0268
+    outer_test best buggy F1 99.65
+    time: fold_setup 0.6s, build 0.4s, fit 20.6s, score 1.0s, per_epoch 1.0s
+  time_manipulation_line fold 5 G0
+    epochs 25, best epoch 17, best inner_val loss 0.0049
+    outer_test best buggy F1 99.85
+    time: fold_setup 0.6s, build 0.5s, fit 26.7s, score 1.3s, per_epoch 1.1s
+  time_manipulation_line fold 6 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0040
+    outer_test best buggy F1 99.84
+    time: fold_setup 0.6s, build 0.5s, fit 21.9s, score 0.9s, per_epoch 1.0s
+  time_manipulation_line fold 7 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0335
+    outer_test best buggy F1 99.48
+    time: fold_setup 0.6s, build 0.4s, fit 20.4s, score 1.0s, per_epoch 1.0s
+  time_manipulation_line fold 8 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0133
+    outer_test best buggy F1 99.68
+    time: fold_setup 0.6s, build 0.4s, fit 20.2s, score 1.0s, per_epoch 1.0s
+  time_manipulation_line fold 9 G0
+    epochs 34, best epoch 30, best inner_val loss 0.0011
+    outer_test best buggy F1 99.93
+    time: fold_setup 0.5s, build 0.5s, fit 33.3s, score 1.4s, per_epoch 1.0s
+[paper] time_manipulation_cascade: 5 folds
+  time_manipulation_cascade fold 0 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0402
+    outer_test best buggy F1 98.64
+    time: fold_setup 1.0s, build 0.8s, fit 22.6s, score 1.0s, per_epoch 1.1s
+  time_manipulation_cascade fold 1 G0
+    epochs 30, best epoch 29, best inner_val loss 0.0022
+    outer_test best buggy F1 99.04
+    time: fold_setup 0.9s, build 0.8s, fit 32.2s, score 1.1s, per_epoch 1.1s
+  time_manipulation_cascade fold 2 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0178
+    outer_test best buggy F1 99.32
+    time: fold_setup 0.9s, build 0.9s, fit 22.5s, score 1.3s, per_epoch 1.1s
+  time_manipulation_cascade fold 3 G0
+    epochs 24, best epoch 19, best inner_val loss 0.0074
+    outer_test best buggy F1 99.54
+    time: fold_setup 0.9s, build 0.9s, fit 26.9s, score 1.4s, per_epoch 1.1s
+  time_manipulation_cascade fold 4 G0
+    epochs 21, best epoch 14, best inner_val loss 0.0118
+    outer_test best buggy F1 99.60
+    time: fold_setup 0.9s, build 0.9s, fit 22.3s, score 1.2s, per_epoch 1.1s
+[grouped] time_manipulation_contract: 5 folds
+  time_manipulation_contract fold 0 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0168
+    outer_test best buggy F1 94.74
+    time: fold_setup 0.9s, build 0.8s, fit 26.7s, score 1.6s, per_epoch 1.2s
+  time_manipulation_contract fold 1 G0
+    epochs 15, best epoch 7, best inner_val loss 0.1440
+    outer_test best buggy F1 100.00
+    time: fold_setup 1.0s, build 0.8s, fit 16.8s, score 1.4s, per_epoch 1.1s
+  time_manipulation_contract fold 2 G0
+    epochs 16, best epoch 8, best inner_val loss 0.1412
+    outer_test best buggy F1 90.00
+    time: fold_setup 0.9s, build 0.9s, fit 18.4s, score 1.0s, per_epoch 1.1s
+  time_manipulation_contract fold 3 G0
+    epochs 22, best epoch 14, best inner_val loss 0.0262
+    outer_test best buggy F1 94.74
+    time: fold_setup 0.9s, build 0.8s, fit 24.5s, score 1.1s, per_epoch 1.1s
+  time_manipulation_contract fold 4 G0
+    epochs 15, best epoch 7, best inner_val loss 0.0977
+    outer_test best buggy F1 100.00
+    time: fold_setup 1.0s, build 0.8s, fit 15.7s, score 1.3s, per_epoch 1.0s
+[grouped] time_manipulation_line: 10 folds
+  time_manipulation_line fold 0 G0
+    epochs 28, best epoch 23, best inner_val loss 0.0146
+    outer_test best buggy F1 99.75
+    time: fold_setup 0.5s, build 0.5s, fit 29.1s, score 1.4s, per_epoch 1.0s
+  time_manipulation_line fold 1 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0200
+    outer_test best buggy F1 99.60
+    time: fold_setup 0.6s, build 0.5s, fit 21.3s, score 1.4s, per_epoch 1.0s
+  time_manipulation_line fold 2 G0
+    epochs 20, best epoch 14, best inner_val loss 0.0172
+    outer_test best buggy F1 99.91
+    time: fold_setup 0.5s, build 0.5s, fit 20.6s, score 1.1s, per_epoch 1.0s
+  time_manipulation_line fold 3 G0
+    epochs 20, best epoch 13, best inner_val loss 0.0245
+    outer_test best buggy F1 100.00
+    time: fold_setup 0.6s, build 0.5s, fit 18.9s, score 1.3s, per_epoch 0.9s
+  time_manipulation_line fold 4 G0
+    epochs 27, best epoch 19, best inner_val loss 0.0191
+    outer_test best buggy F1 99.50
+    time: fold_setup 0.6s, build 0.5s, fit 27.6s, score 0.9s, per_epoch 1.0s
+  time_manipulation_line fold 5 G0
+    epochs 20, best epoch 14, best inner_val loss 0.0211
+    outer_test best buggy F1 99.92
+    time: fold_setup 0.6s, build 0.5s, fit 20.5s, score 1.4s, per_epoch 1.0s
+  time_manipulation_line fold 6 G0
+    epochs 26, best epoch 18, best inner_val loss 0.0144
+    outer_test best buggy F1 99.68
+    time: fold_setup 0.5s, build 0.5s, fit 26.4s, score 1.4s, per_epoch 1.0s
+  time_manipulation_line fold 7 G0
+    epochs 20, best epoch 13, best inner_val loss 0.0176
+    outer_test best buggy F1 99.42
+    time: fold_setup 0.6s, build 0.5s, fit 19.9s, score 1.1s, per_epoch 1.0s
+  time_manipulation_line fold 8 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0160
+    outer_test best buggy F1 99.76
+    time: fold_setup 0.5s, build 0.5s, fit 21.4s, score 1.3s, per_epoch 1.1s
+  time_manipulation_line fold 9 G0
+    epochs 20, best epoch 13, best inner_val loss 0.0202
+    outer_test best buggy F1 99.66
+    time: fold_setup 0.6s, build 0.5s, fit 20.6s, score 0.9s, per_epoch 1.0s
+[grouped] time_manipulation_cascade: 5 folds
+  time_manipulation_cascade fold 0 G0
+    epochs 21, best epoch 13, best inner_val loss 0.0202
+    outer_test best buggy F1 99.71
+    time: fold_setup 0.9s, build 0.9s, fit 22.8s, score 1.3s, per_epoch 1.1s
+  time_manipulation_cascade fold 1 G0
+    epochs 22, best epoch 15, best inner_val loss 0.0142
+    outer_test best buggy F1 99.04
+    time: fold_setup 0.9s, build 0.9s, fit 24.2s, score 1.2s, per_epoch 1.1s
+  time_manipulation_cascade fold 2 G0
+    epochs 22, best epoch 15, best inner_val loss 0.0149
+    outer_test best buggy F1 99.12
+    time: fold_setup 1.0s, build 0.8s, fit 24.0s, score 1.3s, per_epoch 1.1s
+  time_manipulation_cascade fold 3 G0
+    epochs 20, best epoch 12, best inner_val loss 0.0225
+    outer_test best buggy F1 99.39
+    time: fold_setup 0.9s, build 0.8s, fit 21.5s, score 1.4s, per_epoch 1.1s
+  time_manipulation_cascade fold 4 G0
+    epochs 22, best epoch 15, best inner_val loss 0.0215
+    outer_test best buggy F1 99.18
+    time: fold_setup 0.9s, build 0.9s, fit 24.8s, score 1.1s, per_epoch 1.1s
+[upstream] time_manipulation_contract: 5 folds on cuda:0
+[upstream] time_manipulation_contract: buggy F1 94.73, macro F1 94.98
+[upstream] time_manipulation_line: 10 folds on cuda:0
+[upstream] time_manipulation_line: buggy F1 99.68, macro F1 99.64
+unchecked_low_level_calls_contract: 190 files, 169 duplicate groups, 5 folds, features original (- changed nodes, 0 fallback files)
+unchecked_low_level_calls_node: 95 files, 81 duplicate groups, 10 folds, features original (- changed nodes, 0 fallback files)
+[paper] unchecked_low_level_calls_contract: 5 folds
+  unchecked_low_level_calls_contract fold 0 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2634
+    outer_test best buggy F1 91.89
+    time: fold_setup 1.1s, build 0.9s, fit 16.3s, score 1.1s, per_epoch 1.1s
+  unchecked_low_level_calls_contract fold 1 G0
+    epochs 16, best epoch 8, best inner_val loss 0.2336
+    outer_test best buggy F1 94.74
+    time: fold_setup 1.1s, build 0.9s, fit 17.5s, score 1.1s, per_epoch 1.1s
+  unchecked_low_level_calls_contract fold 2 G0
+    epochs 14, best epoch 6, best inner_val loss 0.3818
+    outer_test best buggy F1 82.05
+    time: fold_setup 1.0s, build 0.9s, fit 15.2s, score 1.1s, per_epoch 1.1s
+  unchecked_low_level_calls_contract fold 3 G0
+    epochs 16, best epoch 8, best inner_val loss 0.1418
+    outer_test best buggy F1 94.74
+    time: fold_setup 1.0s, build 0.9s, fit 19.0s, score 1.2s, per_epoch 1.2s
+  unchecked_low_level_calls_contract fold 4 G0
+    epochs 18, best epoch 10, best inner_val loss 0.1104
+    outer_test best buggy F1 97.44
+    time: fold_setup 1.0s, build 0.9s, fit 19.8s, score 1.5s, per_epoch 1.1s
+[paper] unchecked_low_level_calls_line: 10 folds
+  unchecked_low_level_calls_line fold 0 G0
+    epochs 34, best epoch 27, best inner_val loss 0.0120
+    outer_test best buggy F1 99.54
+    time: fold_setup 0.6s, build 0.4s, fit 36.8s, score 1.1s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 1 G0
+    epochs 16, best epoch 8, best inner_val loss 0.1111
+    outer_test best buggy F1 96.97
+    time: fold_setup 0.5s, build 0.5s, fit 17.5s, score 1.0s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 2 G0
+    epochs 23, best epoch 15, best inner_val loss 0.0095
+    outer_test best buggy F1 99.70
+    time: fold_setup 0.5s, build 0.4s, fit 24.7s, score 1.2s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 3 G0
+    epochs 29, best epoch 22, best inner_val loss 0.0330
+    outer_test best buggy F1 97.73
+    time: fold_setup 0.5s, build 0.4s, fit 31.8s, score 1.1s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 4 G0
+    epochs 32, best epoch 25, best inner_val loss 0.0316
+    outer_test best buggy F1 98.06
+    time: fold_setup 0.6s, build 0.4s, fit 34.3s, score 1.4s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 5 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0531
+    outer_test best buggy F1 98.31
+    time: fold_setup 0.5s, build 0.5s, fit 18.3s, score 1.3s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 6 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0738
+    outer_test best buggy F1 97.09
+    time: fold_setup 0.5s, build 0.4s, fit 18.4s, score 1.1s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 7 G0
+    epochs 44, best epoch 43, best inner_val loss 0.0461
+    outer_test best buggy F1 98.15
+    time: fold_setup 0.5s, build 0.4s, fit 46.0s, score 1.3s, per_epoch 1.0s
+  unchecked_low_level_calls_line fold 8 G0
+    epochs 34, best epoch 27, best inner_val loss 0.0244
+    outer_test best buggy F1 98.62
+    time: fold_setup 0.5s, build 0.4s, fit 36.2s, score 1.2s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 9 G0
+    epochs 29, best epoch 23, best inner_val loss 0.0127
+    outer_test best buggy F1 99.75
+    time: fold_setup 0.5s, build 0.4s, fit 31.4s, score 1.5s, per_epoch 1.1s
+[paper] unchecked_low_level_calls_cascade: 5 folds
+  unchecked_low_level_calls_cascade fold 0 G0
+    epochs 16, best epoch 8, best inner_val loss 0.0958
+    outer_test best buggy F1 93.55
+    time: fold_setup 1.0s, build 1.0s, fit 18.2s, score 1.5s, per_epoch 1.1s
+  unchecked_low_level_calls_cascade fold 1 G0
+    epochs 31, best epoch 23, best inner_val loss 0.0239
+    outer_test best buggy F1 98.35
+    time: fold_setup 1.0s, build 0.9s, fit 35.3s, score 1.7s, per_epoch 1.1s
+  unchecked_low_level_calls_cascade fold 2 G0
+    epochs 35, best epoch 28, best inner_val loss 0.0297
+    outer_test best buggy F1 98.77
+    time: fold_setup 1.1s, build 1.0s, fit 40.7s, score 1.5s, per_epoch 1.2s
+  unchecked_low_level_calls_cascade fold 3 G0
+    epochs 32, best epoch 25, best inner_val loss 0.0330
+    outer_test best buggy F1 98.82
+    time: fold_setup 1.1s, build 1.0s, fit 37.7s, score 1.4s, per_epoch 1.2s
+  unchecked_low_level_calls_cascade fold 4 G0
+    epochs 37, best epoch 30, best inner_val loss 0.0229
+    outer_test best buggy F1 98.57
+    time: fold_setup 1.0s, build 0.9s, fit 42.9s, score 1.2s, per_epoch 1.2s
+[grouped] unchecked_low_level_calls_contract: 5 folds
+  unchecked_low_level_calls_contract fold 0 G0
+    epochs 17, best epoch 9, best inner_val loss 0.1310
+    outer_test best buggy F1 87.80
+    time: fold_setup 1.0s, build 1.0s, fit 20.6s, score 1.6s, per_epoch 1.2s
+  unchecked_low_level_calls_contract fold 1 G0
+    epochs 15, best epoch 7, best inner_val loss 0.2805
+    outer_test best buggy F1 94.74
+    time: fold_setup 1.0s, build 0.9s, fit 18.1s, score 1.1s, per_epoch 1.2s
+  unchecked_low_level_calls_contract fold 2 G0
+    epochs 19, best epoch 11, best inner_val loss 0.2397
+    outer_test best buggy F1 90.00
+    time: fold_setup 1.0s, build 0.9s, fit 22.7s, score 1.1s, per_epoch 1.2s
+  unchecked_low_level_calls_contract fold 3 G0
+    epochs 15, best epoch 7, best inner_val loss 0.3204
+    outer_test best buggy F1 88.89
+    time: fold_setup 1.0s, build 1.0s, fit 17.5s, score 1.1s, per_epoch 1.2s
+  unchecked_low_level_calls_contract fold 4 G0
+    epochs 15, best epoch 7, best inner_val loss 0.3642
+    outer_test best buggy F1 84.21
+    time: fold_setup 1.0s, build 0.8s, fit 17.3s, score 1.6s, per_epoch 1.1s
+[grouped] unchecked_low_level_calls_line: 10 folds
+  unchecked_low_level_calls_line fold 0 G0
+    epochs 34, best epoch 26, best inner_val loss 0.0127
+    outer_test best buggy F1 98.90
+    time: fold_setup 0.5s, build 0.4s, fit 36.6s, score 1.2s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 1 G0
+    epochs 36, best epoch 29, best inner_val loss 0.0209
+    outer_test best buggy F1 99.19
+    time: fold_setup 0.5s, build 0.4s, fit 39.0s, score 1.3s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 2 G0
+    epochs 35, best epoch 27, best inner_val loss 0.0245
+    outer_test best buggy F1 97.91
+    time: fold_setup 0.5s, build 0.5s, fit 37.4s, score 1.3s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 3 G0
+    epochs 33, best epoch 26, best inner_val loss 0.0186
+    outer_test best buggy F1 98.74
+    time: fold_setup 0.5s, build 0.5s, fit 33.7s, score 1.1s, per_epoch 1.0s
+  unchecked_low_level_calls_line fold 4 G0
+    epochs 41, best epoch 35, best inner_val loss 0.0111
+    outer_test best buggy F1 98.53
+    time: fold_setup 0.5s, build 0.4s, fit 43.4s, score 1.0s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 5 G0
+    epochs 35, best epoch 28, best inner_val loss 0.0182
+    outer_test best buggy F1 98.71
+    time: fold_setup 0.5s, build 0.4s, fit 37.8s, score 1.0s, per_epoch 1.1s
+  unchecked_low_level_calls_line fold 6 G0
+    epochs 17, best epoch 16, best inner_val loss 0.0644
+    outer_test best buggy F1 98.41
+    time: fold_setup 0.6s, build 0.4s, fit 17.5s, score 1.6s, per_epoch 1.0s
+  unchecked_low_level_calls_line fold 7 G0
+    epochs 42, best epoch 36, best inner_val loss 0.0197
+    outer_test best buggy F1 98.53
+    time: fold_setup 0.5s, build 0.4s, fit 41.8s, score 1.4s, per_epoch 1.0s
+  unchecked_low_level_calls_line fold 8 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0618
+    outer_test best buggy F1 98.03
+    time: fold_setup 0.5s, build 0.5s, fit 17.7s, score 1.0s, per_epoch 1.0s
+  unchecked_low_level_calls_line fold 9 G0
+    epochs 36, best epoch 29, best inner_val loss 0.0051
+    outer_test best buggy F1 98.37
+    time: fold_setup 0.5s, build 0.4s, fit 37.2s, score 1.0s, per_epoch 1.0s
+[grouped] unchecked_low_level_calls_cascade: 5 folds
+  unchecked_low_level_calls_cascade fold 0 G0
+    epochs 33, best epoch 25, best inner_val loss 0.0272
+    outer_test best buggy F1 98.05
+    time: fold_setup 1.1s, build 0.9s, fit 37.9s, score 1.2s, per_epoch 1.1s
+  unchecked_low_level_calls_cascade fold 1 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0657
+    outer_test best buggy F1 97.58
+    time: fold_setup 1.0s, build 0.9s, fit 19.4s, score 1.5s, per_epoch 1.1s
+  unchecked_low_level_calls_cascade fold 2 G0
+    epochs 17, best epoch 10, best inner_val loss 0.0701
+    outer_test best buggy F1 97.73
+    time: fold_setup 1.0s, build 0.9s, fit 20.0s, score 1.4s, per_epoch 1.2s
+  unchecked_low_level_calls_cascade fold 3 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0704
+    outer_test best buggy F1 98.41
+    time: fold_setup 1.0s, build 0.9s, fit 19.5s, score 1.5s, per_epoch 1.1s
+  unchecked_low_level_calls_cascade fold 4 G0
+    epochs 17, best epoch 9, best inner_val loss 0.0621
+    outer_test best buggy F1 97.86
+    time: fold_setup 1.1s, build 1.0s, fit 18.8s, score 1.5s, per_epoch 1.1s
+[upstream] unchecked_low_level_calls_contract: 5 folds on cuda:0
+[upstream] unchecked_low_level_calls_contract: buggy F1 92.06, macro F1 92.10
+[upstream] unchecked_low_level_calls_line: 10 folds on cuda:0
+[upstream] unchecked_low_level_calls_line: buggy F1 98.53, macro F1 98.99
+# Benchmark: rebuilt MANDO-LLM pipeline vs. the paper
+
+Reference: MANDO-LLM, ACM TOSEM 2025, Tables 3 and 5 (Dataset A), row `codet5p-770m` (the tokenizer the pipeline uses); `paper best LLM row` is the best of the paper's three tokenizer rows. Scores are fold means (± SD) of the best checkpoint in percent; Δ = ours − paper.
+
+Run settings: `{"categories": ["access_control", "arithmetic", "denial_of_service", "front_running", "reentrancy", "time_manipulation", "unchecked_low_level_calls"], "device": "cuda:0", "epochs": null, "folds": null, "profiles": ["G0"], "protocols": ["paper", "grouped", "upstream"], "seed": 1}`
+Code commit: `5118e21cd1105150beab560cc7de0310b5517cdb`
+
+## G0 — paper protocol (held-out fold selects the checkpoint and is scored, as the authors' trainers)
+
+### Contract level (paper Table 3)
+
+| category | folds | Buggy-F1 | paper | Δ | Macro-F1 | paper | Δ | paper best LLM row |
+|---|---|---|---|---|---|---|---|---|
+| access_control | 5 | 93.56 ± 2.56 | 86.71 | +6.85 | 93.83 ± 2.39 | 85.63 | +8.20 | 87.60 (starcoder) |
+| arithmetic | 5 | 92.29 ± 3.44 | 86.82 | +5.47 | 92.47 ± 3.50 | 85.64 | +6.83 | 88.02 (solidity-t5) |
+| denial_of_service | 5 | 95.77 ± 2.40 | 91.20 | +4.57 | 95.64 ± 2.44 | 89.90 | +5.74 | 91.20 (codet5p-770m) |
+| front_running | 5 | 96.31 ± 3.38 | 95.42 | +0.89 | 96.52 ± 3.18 | 95.54 | +0.98 | 95.42 (codet5p-770m) |
+| reentrancy | 5 | 94.85 ± 6.37 | 91.67 | +3.18 | 95.06 ± 5.85 | 91.49 | +3.57 | 94.26 (starcoder) |
+| time_manipulation | 5 | 94.73 ± 5.29 | 95.14 | -0.41 | 94.98 ± 5.03 | 94.56 | +0.42 | 96.18 (starcoder) |
+| unchecked_low_level_calls | 5 | 92.17 ± 5.99 | 82.23 | +9.94 | 92.10 ± 6.18 | 82.09 | +10.01 | 86.65 (solidity-t5) |
+| **mean** |  | 94.24 | 89.88 | +4.36 | 94.37 | 89.26 | +5.11 |  |
+
+### Line level (paper Table 5: node scores on vulnerable contracts; plus the same predictions on source lines)
+
+| category | folds | node Buggy-F1 | paper | Δ | paper best LLM row | source-line Buggy-F1 | P | R | line coverage % | contracts hit % |
+|---|---|---|---|---|---|---|---|---|---|---|
+| access_control | 10 | 99.04 ± 0.80 | 94.53 | +4.51 | 96.49 (starcoder) | 97.90 ± 2.31 | 97.29 | 98.54 | 99.8 | 75.3 |
+| arithmetic | 10 | 99.52 ± 0.37 | 94.33 | +5.19 | 95.42 (solidity-t5) | 99.58 ± 0.35 | 99.43 | 99.73 | 100.0 | 85.0 |
+| denial_of_service | 10 | 99.21 ± 0.68 | 98.19 | +1.02 | 98.23 (solidity-t5) | 95.50 ± 0.59 | 99.11 | 92.15 | 92.6 | 89.0 |
+| front_running | 10 | 99.73 ± 0.51 | 94.95 | +4.78 | 95.66 (starcoder) | 99.75 ± 0.51 | 99.57 | 99.92 | 100.0 | 93.0 |
+| reentrancy | 10 | 99.49 ± 0.36 | 96.78 | +2.71 | 96.78 (codet5p-770m) | 96.19 ± 0.81 | 98.84 | 93.68 | 94.0 | 84.8 |
+| time_manipulation | 10 | 99.73 ± 0.29 | 96.40 | +3.33 | 97.29 (solidity-t5) | 99.76 ± 0.24 | 99.72 | 99.80 | 100.0 | 94.0 |
+| unchecked_low_level_calls | 10 | 98.39 ± 1.02 | 96.62 | +1.77 | 96.62 (codet5p-770m) | 98.38 ± 1.01 | 99.12 | 97.66 | 100.0 | 67.3 |
+| **mean** |  | 99.30 | 95.97 | +3.33 |  | 98.15 |  |  |  |  |
+
+### End to end: contract model → line model on every held-out contract
+
+`detector`: lines of contracts the contract model flags; `true contract gate`: the line model on the truly vulnerable contracts only; `no gate`: the line model alone.
+
+| category | folds | contract Buggy-F1 | line Buggy-F1 (detector) | P | R | line, true contract gate | line, no gate | node Buggy-F1 (detector) | vulnerable contracts hit % |
+|---|---|---|---|---|---|---|---|---|---|
+| access_control | 5 | 93.56 | 97.94 ± 1.51 | 97.36 | 98.55 | 97.87 | 97.48 | 99.06 | 73.6 |
+| arithmetic | 5 | 92.29 | 99.39 ± 0.51 | 99.12 | 99.67 | 99.40 | 98.73 | 99.32 | 80.0 |
+| denial_of_service | 5 | 95.77 | 95.21 ± 0.96 | 98.57 | 92.07 | 95.39 | 94.08 | 98.72 | 86.9 |
+| front_running | 5 | 96.31 | 99.83 ± 0.14 | 99.75 | 99.92 | 99.83 | 99.66 | 99.82 | 90.8 |
+| reentrancy | 5 | 94.85 | 96.32 ± 0.09 | 99.02 | 93.77 | 96.30 | 95.76 | 99.49 | 84.8 |
+| time_manipulation | 5 | 94.73 | 99.67 ± 0.30 | 99.57 | 99.76 | 99.65 | 99.03 | 99.68 | 92.0 |
+| unchecked_low_level_calls | 5 | 92.17 | 98.19 ± 1.31 | 98.83 | 97.57 | 98.19 | 97.52 | 98.17 | 68.4 |
+
+## G0 — grouped protocol (duplicate-disjoint folds, checkpoint selected on inner validation)
+
+### Contract level (paper Table 3)
+
+| category | folds | Buggy-F1 | paper | Δ | Macro-F1 | paper | Δ | paper best LLM row |
+|---|---|---|---|---|---|---|---|---|
+| access_control | 5 | 91.32 ± 8.20 | 86.71 | +4.61 | 92.05 ± 7.24 | 85.63 | +6.42 | 87.60 (starcoder) |
+| arithmetic | 5 | 94.62 ± 3.83 | 86.82 | +7.80 | 94.97 ± 3.51 | 85.64 | +9.33 | 88.02 (solidity-t5) |
+| denial_of_service | 5 | 94.60 ± 5.30 | 91.20 | +3.40 | 94.52 ± 5.46 | 89.90 | +4.62 | 91.20 (codet5p-770m) |
+| front_running | 5 | 95.29 ± 2.63 | 95.42 | -0.13 | 95.48 ± 2.53 | 95.54 | -0.06 | 95.42 (codet5p-770m) |
+| reentrancy | 5 | 94.91 ± 3.31 | 91.67 | +3.24 | 95.06 ± 3.18 | 91.49 | +3.57 | 94.26 (starcoder) |
+| time_manipulation | 5 | 95.89 ± 4.22 | 95.14 | +0.75 | 95.99 ± 4.18 | 94.56 | +1.43 | 96.18 (starcoder) |
+| unchecked_low_level_calls | 5 | 89.13 ± 3.81 | 82.23 | +6.90 | 88.92 ± 3.91 | 82.09 | +6.83 | 86.65 (solidity-t5) |
+| **mean** |  | 93.68 | 89.88 | +3.80 | 93.86 | 89.26 | +4.59 |  |
+
+### Line level (paper Table 5: node scores on vulnerable contracts; plus the same predictions on source lines)
+
+| category | folds | node Buggy-F1 | paper | Δ | paper best LLM row | source-line Buggy-F1 | P | R | line coverage % | contracts hit % |
+|---|---|---|---|---|---|---|---|---|---|---|
+| access_control | 10 | 98.71 ± 1.49 | 94.53 | +4.18 | 96.49 (starcoder) | 97.53 ± 3.75 | 96.99 | 98.10 | 99.8 | 70.7 |
+| arithmetic | 10 | 99.16 ± 0.33 | 94.33 | +4.83 | 95.42 (solidity-t5) | 99.22 ± 0.39 | 99.09 | 99.37 | 100.0 | 80.5 |
+| denial_of_service | 10 | 99.06 ± 0.39 | 98.19 | +0.87 | 98.23 (solidity-t5) | 95.43 ± 0.40 | 98.99 | 92.13 | 92.7 | 90.0 |
+| front_running | 10 | 99.76 ± 0.19 | 94.95 | +4.81 | 95.66 (starcoder) | 99.79 ± 0.19 | 99.63 | 99.94 | 100.0 | 94.0 |
+| reentrancy | 10 | 99.45 ± 0.28 | 96.78 | +2.67 | 96.78 (codet5p-770m) | 96.31 ± 0.32 | 99.11 | 93.66 | 94.1 | 84.5 |
+| time_manipulation | 10 | 99.72 ± 0.19 | 96.40 | +3.32 | 97.29 (solidity-t5) | 99.74 ± 0.18 | 99.65 | 99.83 | 100.0 | 94.0 |
+| unchecked_low_level_calls | 10 | 98.53 ± 0.38 | 96.62 | +1.91 | 96.62 (codet5p-770m) | 98.53 ± 0.49 | 99.15 | 97.92 | 100.0 | 69.1 |
+| **mean** |  | 99.20 | 95.97 | +3.23 |  | 98.08 |  |  |  |  |
+
+### End to end: contract model → line model on every held-out contract
+
+`detector`: lines of contracts the contract model flags; `true contract gate`: the line model on the truly vulnerable contracts only; `no gate`: the line model alone.
+
+| category | folds | contract Buggy-F1 | line Buggy-F1 (detector) | P | R | line, true contract gate | line, no gate | node Buggy-F1 (detector) | vulnerable contracts hit % |
+|---|---|---|---|---|---|---|---|---|---|
+| access_control | 5 | 91.32 | 97.87 ± 2.32 | 97.52 | 98.23 | 97.82 | 97.45 | 98.87 | 70.3 |
+| arithmetic | 5 | 94.62 | 99.47 ± 0.28 | 99.24 | 99.70 | 99.47 | 98.75 | 99.39 | 80.0 |
+| denial_of_service | 5 | 94.60 | 95.43 ± 0.39 | 98.95 | 92.16 | 95.53 | 94.59 | 99.02 | 89.3 |
+| front_running | 5 | 95.29 | 99.75 ± 0.09 | 99.57 | 99.92 | 99.73 | 99.55 | 99.73 | 91.1 |
+| reentrancy | 5 | 94.91 | 96.09 ± 0.29 | 98.73 | 93.59 | 96.09 | 95.47 | 99.21 | 83.0 |
+| time_manipulation | 5 | 95.89 | 99.65 ± 0.15 | 99.58 | 99.72 | 99.66 | 99.16 | 99.65 | 90.0 |
+| unchecked_low_level_calls | 5 | 89.13 | 98.16 ± 0.32 | 99.16 | 97.19 | 98.14 | 97.76 | 98.16 | 50.5 |
+
+## The authors' trainers on the rebuilt graphs (paper protocol)
+
+| category | contract Buggy-F1 | paper | contract Macro-F1 | line (node) Buggy-F1 | paper |
+|---|---|---|---|---|---|
+| access_control | 93.56 ± 2.56 | 86.71 | 93.83 ± 2.39 | 99.01 ± 0.81 | 94.53 |
+| arithmetic | 95.78 ± 5.87 | 86.82 | 95.82 ± 5.91 | 99.57 ± 0.28 | 94.33 |
+| denial_of_service | 97.77 ± 3.06 | 91.20 | 97.82 ± 2.99 | 99.28 ± 0.67 | 98.19 |
+| front_running | 96.31 ± 3.38 | 95.42 | 96.52 ± 3.18 | 99.69 ± 0.61 | 94.95 |
+| reentrancy | 94.06 ± 5.86 | 91.67 | 94.35 ± 5.28 | 99.38 ± 0.42 | 96.78 |
+| time_manipulation | 94.73 ± 5.29 | 95.14 | 94.98 ± 5.03 | 99.68 ± 0.37 | 96.40 |
+| unchecked_low_level_calls | 92.06 ± 7.90 | 82.23 | 92.10 ± 7.89 | 98.53 ± 0.95 | 96.62 |
+
+Source lines are preprocessed lines spoken for by node label endpoints (`benchmark/lines.py`); `line coverage` is the share of annotated lines any node speaks for, `contracts hit` the share of vulnerable contracts with at least one annotated line flagged. Per-contract detector output: `findings/<protocol>/<profile>/<category>.json`.
+
+--- benchmark run (paper grouped upstream): 10636 s
+
+name, memory.used [MiB], memory.total [MiB]
+NVIDIA GeForce RTX 5080, 0 MiB, 16303 MiB
+benchmark ok; report: runs/benchmark/full_20261119/report.md; log: runs/benchmark/full_20261119/benchmark.log
