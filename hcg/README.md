@@ -1,13 +1,15 @@
 # hcg: heterogeneous contract graphs from source
 
 Upstream phase of the pipeline: raw Solidity → the graphs MANDO-LLM's HGT consumes,
-for every vulnerability category of a dataset (Dataset A: all seven).
+for every vulnerability category of a dataset (Datasets A and B: all seven).
 
 ```bash
 python -m hcg fetch                         # pinned SmartBugs + SolidiFI into data/ (or $MANDO_DATA_DIR)
 python -m hcg build                         # Dataset A, all seven categories, with tokens
 python -m hcg build --categories reentrancy --no-tokens
-python -m pytest tests/hcg                  # unit tests; Dataset A tests need $MANDO_DATA_DIR
+python -m hcg fetch --dataset B             # + the authors' DAppSCAN release and the clean pool
+python -m hcg build --dataset B             # assembles data/corpus/B, then builds
+python -m pytest tests/hcg                  # unit tests; dataset tests need $MANDO_DATA_DIR
 ```
 
 Output, per category, under `data/hcg/<dataset>/<category>/` (git-ignored):
@@ -21,17 +23,22 @@ Output, per category, under `data/hcg/<dataset>/<category>/` (git-ignored):
 | `line_node_ids.json` | line-level node i → contract-level node id |
 | `manifest.json` | counts, edge types, label-source commits, tokenizer revision, checks, SHA-256 |
 
-A build exits non-zero if its counts differ from the paper's Table 1 or if its
-structure or contract labels differ from the authors' released graphs.
+A Dataset A build exits non-zero if its counts differ from the paper's Table 1 or if
+its structure or contract labels differ from the authors' released graphs. Dataset B
+has no released graphs; its manifest and console show the paper's Table 2 counts
+next to the built ones.
 
 ## Layout
 
 ```
 hcg/
   __main__.py, pipeline.py   CLI; per-category orchestration and manifest
-  datasets/registry.py       Dataset / Category; Dataset A and its contract-label rule
-  sources/repos.py           pinned annotation repositories
-  sources/annotations.py     SmartBugs / SolidiFI loading, preprocessing, projection
+  datasets/registry.py       Dataset / Category; Datasets A and B, contract-label rule, paper counts
+  datasets/dataset_b.py      the rules that compose Dataset B (writes dataset_b.json)
+  datasets/dataset_b.json    the committed composition of Dataset B
+  sources/repos.py           pinned source repositories (partial checkout for the large ones)
+  sources/composition.py     composed corpora: read, assemble and hash-check a composition
+  sources/annotations.py     SmartBugs / SolidiFI / DAppSCAN loading, preprocessing, projection
   cfg/builder.py             runs process_graphs, records edge creation sites
   cfg/author_schema.py       creation site -> authors' edge names; attribute encoding
   labels/projection.py       node labels, contract labels, line-level subset
@@ -41,7 +48,53 @@ hcg/
 ```
 
 A new dataset is one `Dataset` entry in `datasets/registry.py`: where its corpus is,
-how a contract gets its 0/1 target, and optionally reference graphs and expected counts.
+how a contract gets its 0/1 target, which pinned sources it reads, and optionally
+reference graphs and expected counts. A dataset assembled from several sources also
+has a committed composition document.
+
+## Dataset B
+
+The paper's second corpus (Sec. 5.1, Table 2): DAppSCAN and SolidiFI buggy contracts
+mixed with clean SmartBugs Wild contracts at 1:1. The authors did not release the
+mixture; `datasets/dataset_b.py` reconstructs it and `datasets/dataset_b.json` freezes
+it (every contract with its source, path, SHA-256 and target, and every candidate
+left out with the reason). Sources, all pinned in `sources/repos.py`:
+
+| Source | Repository | What it provides |
+|---|---|---|
+| DAppSCAN | MANDO-Project/DASP-DAppSCAN-datasets (authors' release) | cleaned sources, line labels, `DASP_to_SWC.json`, per-category file lists |
+| SolidiFI | DependableSystemsLab/SolidiFI-benchmark | injected bugs and BugLogs (Dataset A's folders) |
+| clean | MANDO-Project/ge-sc, `data/smartbugs-wild-clean-contracts` | the paper's 2,742 SmartBugs Wild contracts no SmartBugs tool flags |
+
+How the composition follows from the paper's numbers:
+
+- The authors' per-category lists repeat a file once per labelled weakness. Without
+  repeats they hold **614** files, the paper's "614 buggy solidity files".
+- Table 2's buggy count of every category is that list **plus exactly 50**, the size of
+  each SolidiFI folder: 72+50=122, 136+50=186, 108+50=158, 76+50=126, 113+50=163,
+  36+50=86, 73+50=123.
+- So every category holds its distinct DAppSCAN files, all 50 SolidiFI contracts and
+  as many clean contracts. The paper does not say which clean contracts; they are
+  drawn in a seeded order from the 2,742 (per category, as in Dataset A, whose clean
+  contracts all come from this pool).
+- 20 DAppSCAN category entries (18 files) cannot be turned into the authors' graph
+  format by the pinned builder (newer Solidity syntax: an edge with no authors' name,
+  `UnmappedEdge`, or an error inside the builder) and are left out, so six categories hold 2-14
+  contracts fewer than Table 2; time manipulation matches exactly.
+- Labels: DAppSCAN files carry the authors' line labels of the category's SWC ids on
+  their cleaned source; SolidiFI files their BugLog intervals; node labels follow the
+  same endpoint rule as Dataset A.
+- Against Table 2: built 1,888 contracts vs 1,928, 262,520 nodes vs 226,940 (+16%),
+  49,711 vulnerable nodes vs 59,183 (-16%); per category nodes -6% to +33%,
+  vulnerable nodes -31% to -4%. The node totals
+  depend on which clean contracts are drawn, which the paper does not give; how it
+  projected DAppSCAN labels onto nodes it does not say either.
+- Identical texts under different DAppSCAN paths (a file in several audited
+  snapshots of one project) are kept, as in the paper; evaluations should keep
+  them on one side of a fold (the grouped protocol groups them).
+
+`python -m hcg compose --dataset B` rewrites the composition from the pinned sources;
+`tests/hcg/test_dataset_b.py` checks that this reproduces the committed file.
 
 ## Equivalence with the authors' graphs (Dataset A)
 
@@ -80,8 +133,7 @@ authors' (137 / 327 / 0 / 491 / 216 / 220 / 91 nodes; positives 3114 / 5722 / 41
 
 ## Not covered
 
-- DFG v2, NodeSem and EdgeSem still read the authors' graphs through their registered
-  tasks (reentrancy and access control). Pointing them at these outputs and registering
-  the other five categories is phase 2.
+- The training stages (`dfg`, `nodesem`, `edgesem`, `benchmark`) have been run on
+  Dataset A only; Dataset B's graphs are in the same format but untested there.
 - Token features follow the specification recorded in `scripts/DFG/dfg_v2/RECON.md`;
   they were not compared with the frozen local token files, which are not in git.

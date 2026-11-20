@@ -60,7 +60,37 @@ jobs:
       - name: hcg, dfg, nodesem, edgesem, mando and benchmark unit tests (dfg.train against the sealed Prompt 8 folds/groups)
         run: |
           python -m pytest -q tests/hcg/test_units.py tests/hcg/test_models.py tests/dfg/test_units.py tests/dfg/test_train.py \
-            tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando tests/benchmark
+            tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando tests/benchmark \
+            tests/hcg/test_dataset_b.py
+
+  dataset-b:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'full-ci')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/experiments/
+            !/compile_repair/
+            !/docs/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: |
+          pip install torch==2.2.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install dgl==2.1.0 "numpy<2" requests "pydantic>=2"
+          pip install --no-deps torchdata==0.7.1
+          pip install "numpy<2" -r requirements.txt
+      - name: fetch the pinned Dataset B sources
+        run: python -m hcg fetch --dataset B --no-models
+      - name: recompose Dataset B (must equal hcg/datasets/dataset_b.json) and build every category
+        run: python -m pytest -q tests/hcg/test_dataset_b.py
 
   category:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'full-ci')

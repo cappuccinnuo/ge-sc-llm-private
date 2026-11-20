@@ -1,8 +1,9 @@
 """Build one category end to end and record what was built.
 
+    [composed dataset: assemble the corpus from the committed composition]
     corpus .sol -> CFG + call graph (authors' format) -> annotations -> node labels
                 -> contract labels -> line-level subset -> [tokens] -> files + manifest
-                -> [comparison with the dataset's reference graphs]
+                -> [comparison with the dataset's reference graphs and counts]
 """
 import json
 import platform
@@ -17,7 +18,7 @@ from hcg.cfg import build_corpus
 from hcg.features import tokens as token_features
 from hcg.labels import contract_entries, label_nodes, line_level, project_annotations
 from hcg.sources import annotations as annotation_source
-from hcg.sources import repos
+from hcg.sources import composition, repos
 from hcg.store import CategoryOutput, dump_json, read_gpickle, sha256, write_gpickle
 
 REPO = Path(__file__).resolve().parents[1]
@@ -28,11 +29,16 @@ def build_category(dataset, category, out_root, label_root, tokenizer=None, log=
     category = dataset.category(category) if isinstance(category, str) else category
     out = CategoryOutput(Path(out_root) / dataset.name / category.name)
     corpus_dir = dataset.corpus(REPO, category.name)
+    label_commits = repos.verify(label_root, dataset.sources)
+    composed = composition.load(REPO / dataset.composition) if dataset.composition else None
+    if composed is not None:
+        if composed["sources"] != label_commits:
+            raise SystemExit("%s was composed from other source commits" % dataset.composition)
+        composition.assemble(composed, category.name, label_root, corpus_dir)
     files = sorted(corpus_dir.glob("*.sol"))
     if not files:
         raise SystemExit("no .sol files under %s" % corpus_dir)
     filenames = [p.name for p in files]
-    label_commits = repos.verify(label_root)
 
     log("[%s/%s] graphs: %d contracts" % (dataset.name, category.name, len(files)))
     graph, failures = build_corpus(files)
@@ -40,10 +46,15 @@ def build_category(dataset, category, out_root, label_root, tokenizer=None, log=
         raise SystemExit("could not parse %d contracts: %s" % (len(failures), failures[:5]))
 
     log("[%s/%s] labels" % (dataset.name, category.name))
-    smartbugs = annotation_source.load_smartbugs(label_root)
-    targets = dataset.contract_labeler(category.name, filenames, smartbugs)
-    records, sources, provenance = annotation_source.load(
-        corpus_dir, category, filenames, targets, label_root, smartbugs)
+    if composed is not None:
+        targets = composition.targets(composed, category.name)
+        records, sources, provenance = annotation_source.load_composed(
+            corpus_dir, category, composition.entries(composed, category.name), label_root)
+    else:
+        smartbugs = annotation_source.load_smartbugs(label_root)
+        targets = dataset.contract_labeler(category.name, filenames, smartbugs)
+        records, sources, provenance = annotation_source.load(
+            corpus_dir, category, filenames, targets, label_root, smartbugs)
     projected, sizes = project_annotations(records, sources)
     positives = label_nodes(graph, projected, sizes)
     entries = contract_entries(targets)
@@ -70,9 +81,12 @@ def build_category(dataset, category, out_root, label_root, tokenizer=None, log=
         "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "dataset": dataset.name, "category": category.name,
         "corpus": {"directory": str(corpus_dir.relative_to(REPO)), "contracts": len(files),
-                   "vulnerable_contracts": sum(targets.values())},
-        "label_policy": "author-endpoints over public annotations "
-                        "(Test_code/label_pipeline, 2026-10-10)",
+                   "vulnerable_contracts": sum(targets.values()),
+                   **({"composition": dataset.composition,
+                       "composition_sha256": sha256(REPO / dataset.composition),
+                       "by_source": _by_source(composition.entries(composed, category.name))}
+                      if composed is not None else {})},
+        "label_policy": dataset.label_policy,
         "label_sources": label_commits,
         "contract_level": _stats(graph, positives),
         "line_level": _stats(lines, positives_of(lines)),
@@ -101,14 +115,25 @@ def _stats(graph, positives):
             "positive_nodes": positives, "edge_types": dict(sorted(edge_types.items()))}
 
 
+def _by_source(rows):
+    counts = {}
+    for row in rows:
+        counts[row["source"]] = counts.get(row["source"], 0) + 1
+    return dict(sorted(counts.items()))
+
+
 def _checks(dataset, name, manifest, graph, entries, log):
     checks = {"failures": []}
+    got = {"contracts": manifest["corpus"]["contracts"],
+           "vulnerable_contracts": manifest["corpus"]["vulnerable_contracts"],
+           "nodes": manifest["contract_level"]["nodes"],
+           "edges": manifest["contract_level"]["edges"],
+           "positive_nodes": manifest["contract_level"]["positive_nodes"]}
+    reported = dataset.reported.get(name)
+    if reported:
+        checks["paper_counts"] = {k: {"paper": v, "built": got[k]} for k, v in reported.items()}
     expected = dataset.expected.get(name)
     if expected:
-        got = {"contracts": manifest["corpus"]["contracts"],
-               "vulnerable_contracts": manifest["corpus"]["vulnerable_contracts"],
-               "nodes": manifest["contract_level"]["nodes"],
-               "edges": manifest["contract_level"]["edges"]}
         checks["expected_counts"] = {k: {"expected": v, "built": got[k]}
                                      for k, v in expected.items()}
         checks["failures"] += ["%s: expected %s, built %s" % (k, v, got[k])
