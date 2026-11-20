@@ -125,6 +125,22 @@ class _Refs:
     def original(self, name):
         return {2: [12], 3: [13], 5: [15]}
 
+    def sources(self):
+        return sorted({s for s in self.source.values() if s != evaluate.CLEAN})
+
+
+def test_by_source_leaves_out_a_source_absent_from_the_held_out_folds():
+    contract = [dict(file="v", target=1, best=1, best_probability=.9), dict(file="c", target=0, best=0, best_probability=.1)]
+    nodes = [dict(file="v", node=0, target=1, best=1), dict(file="c", node=2, target=0, best=0)]
+    refs = _Refs()
+    refs.source = {"v": "SolidiFI", "c": evaluate.CLEAN, "w": "SmartBugs-curated"}
+    refs.file_labels = {"v": 1, "c": 0, "w": 1}
+    refs.node_lines = dict(_Refs.node_lines, line=_Refs.node_lines["contract"])
+    tasks = {"contract": {0: (None, {"outer_test": contract})}, "line": {0: (None, {"outer_test": nodes[:1]})},
+             "cascade": {0: (None, {"outer_test": nodes})}}
+    out = evaluate.by_source(tasks, refs)
+    assert set(out) == {"SolidiFI"} and set(out["SolidiFI"]) == {"contract", "line_nodes", "line_source", "detector_lines"}
+
 
 def test_cascade_gates_the_line_model_with_the_contract_verdict():
     contract = [dict(file="v", target=1, best=0, best_probability=.2),

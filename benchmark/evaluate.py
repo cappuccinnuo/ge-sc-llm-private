@@ -141,26 +141,31 @@ def _keep(rows, refs, source, with_clean):
 
 
 def by_source(tasks, refs):
-    """Pooled out-of-fold scores of each vulnerable source (see the module docstring)."""
+    """Pooled out-of-fold scores of each vulnerable source (see the module docstring).
+
+    A view is left out when the held-out folds hold no contract of that source (a
+    fold subset, or a category where one source has only a handful of contracts).
+    """
     contract = [r for _, p in tasks["contract"].values() for r in p["outer_test"]]
     line = [r for _, p in tasks["line"].values() for r in p["outer_test"]]
     paired = sorted(set(tasks["contract"]) & set(tasks["cascade"]))
+    verdict = {r["file"]: r["best"] for k in paired for r in tasks["contract"][k][1]["outer_test"]}
+    cascade = [r for k in paired for r in tasks["cascade"][k][1]["outer_test"]]
     out = {}
     for source in refs.sources():
         part = {}
-        if contract:
-            rows = _keep(contract, refs, source, True)
+        rows = _keep(contract, refs, source, True)
+        if any(refs.source[r["file"]] == source for r in rows):
             part["contract"] = metrics([r["target"] for r in rows], [r["best"] for r in rows])
-        if line:
-            rows = _keep(line, refs, source, False)
+        rows = _keep(line, refs, source, False)
+        if rows:
             part["line_nodes"] = metrics([r["target"] for r in rows], [r["best"] for r in rows])
             part["line_source"] = source_scores(rows, refs, "line", sorted({r["file"] for r in rows}))
-        if paired:
-            verdict = {r["file"]: r["best"] for k in paired for r in tasks["contract"][k][1]["outer_test"]}
-            rows = _gate(_keep([r for k in paired for r in tasks["cascade"][k][1]["outer_test"]], refs, source, True),
-                         verdict)
+        rows = _gate(_keep(cascade, refs, source, True), verdict)
+        if any(refs.source[r["file"]] == source for r in rows):
             part["detector_lines"] = source_scores(rows, refs, "contract", sorted({r["file"] for r in rows}))
-        out[source] = part
+        if part:
+            out[source] = part
     return out
 
 
