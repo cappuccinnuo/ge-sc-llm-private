@@ -7,6 +7,8 @@ build_dataset.project_annotations, Codex, 2026-10-10) without changing the rules
   per file, on the public benchmark copy of the file.
 * SmartBugs files: records of the target category only, on the curated copy; every
   same-name candidate must correspond to the local file.
+* DAppSCAN files (Dataset B): the line numbers of the target category's SWC entries in
+  the MANDO-LLM authors' cleaned label file, on the cleaned source they refer to.
 * Clean contracts carry no annotation.
 * A local file may differ from its canonical copy only in ways that leave the
   preprocessed text (or its line positions, for a changed pragma) identical.
@@ -203,6 +205,61 @@ def load(corpus_dir, category, filenames, targets, label_root, smartbugs):
         annotations[name], sources[name] = records, canonical
         provenance[name] = dict(valid[0][1], dataset="SmartBugs",
                                 paths=[row["path"] for _, _, row in valid])
+    return annotations, sources, provenance
+
+
+def dappscan_record(label_paths, source, swc_ids, category):
+    """One record: lines of the label files' SWC entries in ``swc_ids`` ([] if none).
+
+    Several label files are united: copies of one text in several DAppSCAN snapshots
+    of a project carry their labels to the copy that is kept.
+    """
+    count = len(_text(source).splitlines())
+    lines, kinds = set(), set()
+    for label_path in label_paths:
+        for entry in json.loads(_text(label_path))["SWCs"]:
+            swc = "-".join(entry["category"].split("-")[:2])
+            if swc not in swc_ids:
+                continue
+            numbers = entry["lineNumber"]
+            if not isinstance(numbers, list) or any(type(x) is not int or x < 1 or x > count for x in numbers):
+                raise ValueError("invalid line numbers for %s in %s" % (swc, label_path))
+            lines.update(numbers)
+            kinds.add(swc)
+    return ([{"category": category, "lines": sorted(lines)}] if lines else []), sorted(kinds)
+
+
+def load_composed(corpus_dir, category, entries, label_root):
+    """Per-file annotations of a composed corpus (``hcg.sources.composition``).
+
+    ``entries`` are the category's composition rows: SolidiFI rows use the BugLog rule
+    above on the benchmark copy, DAppSCAN rows ``dappscan_record`` on the cleaned
+    source, clean rows nothing. Same return value as ``load``.
+    """
+    corpus_dir, label_root = Path(corpus_dir), Path(label_root)
+    annotations, sources, provenance = {}, {}, {}
+    for entry in sorted(entries, key=lambda e: e["name"]):
+        name, local = entry["name"], corpus_dir / entry["name"]
+        canonical = label_root / entry["origin"]
+        check = compare_sources(local, canonical)
+        if entry["target"] == 0:
+            annotations[name], sources[name] = [], canonical
+            provenance[name] = dict(check, dataset=entry["source"], origin=entry["origin"])
+        elif entry["source"] == "SolidiFI":
+            match = SOLIDIFI_FILE.fullmatch(Path(entry["origin"]).name)
+            records, rows = _buglog_record(canonical.parent / ("BugLog_%s.csv" % match.group(1)),
+                                           canonical, category.name)
+            annotations[name], sources[name] = records, canonical
+            provenance[name] = dict(check, dataset="SolidiFI", origin=entry["origin"], buglog_rows=rows)
+        elif entry["source"] == "DAppSCAN":
+            records, kinds = dappscan_record([label_root / p for p in entry["labels"]], canonical,
+                                             entry["swc"], category.name)
+            if not records:
+                raise ValueError("vulnerable contract has no %s line label: %s" % (category.name, name))
+            annotations[name], sources[name] = records, canonical
+            provenance[name] = dict(check, dataset="DAppSCAN", origin=entry["origin"], swc=kinds)
+        else:
+            raise ValueError("unknown source %r for %s" % (entry["source"], name))
     return annotations, sources, provenance
 
 

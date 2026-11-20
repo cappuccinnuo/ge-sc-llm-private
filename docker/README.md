@@ -105,6 +105,16 @@ an interrupted run. To return the results, commit `report.md`, `evaluation.json`
 `run.json`, `benchmark.log` and `findings/` of `runs/benchmark/full/` (not the per-fold
 files or `hcg/`, which are large). Details: [`benchmark/README.md`](../benchmark/README.md).
 
+### Dataset B graphs
+
+```bash
+docker/run.sh python -m hcg fetch --dataset B --no-models   # the authors' DAppSCAN release, clean pool
+docker/run.sh python -m hcg build --dataset B               # data/hcg/B/<category>, with tokens (~10 min)
+```
+
+The composition is fixed in `hcg/datasets/dataset_b.json` (see `hcg/README.md`, Dataset B);
+the benchmark does not run on Dataset B yet.
+
 ## 5. Full run of the enhancements
 
 Run long jobs inside `tmux` (they resume if interrupted). In order:

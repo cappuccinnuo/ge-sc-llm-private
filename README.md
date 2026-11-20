@@ -33,7 +33,7 @@ benchmark/                    end-to-end evaluation of the pipeline against the 
 compile_repair/               compile-repair subsystem (in development)
 tests/                        per-package tests: hcg/ dfg/ nodesem/ edgesem/ mando/ benchmark/ (+ reference data)
 data/upstream_mando_llm/      the authors' released graphs (reference for hcg)
-experiments/ge-sc-data/       Dataset A Solidity sources
+experiments/ge-sc-data/       Dataset A Solidity sources (Dataset B: hcg/datasets/dataset_b.json -> data/corpus/B)
 docker/                       GPU image, environment check and smoke run (RTX 5080 / WSL2)
 docs/                         migration_5080.md (rebuild log), history/ (earlier handovers and archives)
 .github/workflows/            CI: unit tests + every category end to end on CPU
@@ -58,6 +58,7 @@ needed once to build the tree-sitter grammar.
 ```bash
 python -m hcg fetch                       # pinned SmartBugs-curated + SolidiFI, and the 4 pinned models (verified)
 python -m hcg build                       # 7 categories, with tokens
+python -m hcg fetch --dataset B && python -m hcg build --dataset B   # Dataset B (hcg/README.md)
 python -m dfg build
 python -m dfg train --out runs/dfg/all && python -m dfg report runs/dfg/all
 

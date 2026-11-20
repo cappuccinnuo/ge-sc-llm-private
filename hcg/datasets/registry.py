@@ -1,9 +1,10 @@
 """Datasets and their vulnerability categories.
 
 A dataset says where each category's contracts live, how a contract is assigned its
-0/1 target, and (optionally) reference graphs and expected counts to check a build
-against. Adding a dataset means adding one Dataset entry; nothing else in the
-package is dataset-specific.
+0/1 target, which pinned source repositories it reads, and (optionally) reference
+graphs and expected counts to check a build against. Adding a dataset means adding
+one Dataset entry; a dataset assembled from several sources also has a committed
+composition document (``hcg.sources.composition``).
 
 Dataset A is MANDO-LLM's seven-category corpus. Each category corpus is half clean
 contracts and half vulnerable ones, from two public sources:
@@ -14,6 +15,12 @@ contracts and half vulnerable ones, from two public sources:
 The SolidiFI folders were established by hashing every buggy_N.sol of each corpus
 against the benchmark; the names do not line up obviously (denial_of_service is
 Unhandled-Exceptions, access_control is tx.origin).
+
+Dataset B is MANDO-LLM's second corpus (paper Sec. 5.1, Table 2): DAppSCAN and SolidiFI
+buggy contracts mixed with SmartBugs Wild clean contracts at 1:1. The authors did not
+release the mixture, so it is composed by ``hcg.datasets.dataset_b`` from their
+DAppSCAN release and the public sources, and frozen in ``dataset_b.json``. Its
+Table 2 counts are reported next to a build, not enforced.
 """
 import re
 from dataclasses import dataclass, field
@@ -29,15 +36,24 @@ class Category:
     solidifi_dir: Optional[str] = None
 
 
+A_LABEL_POLICY = "author-endpoints over public annotations (Test_code/label_pipeline, 2026-10-10)"
+B_LABEL_POLICY = ("author-endpoints over the MANDO-LLM authors' DAppSCAN line labels and "
+                  "SolidiFI BugLogs (hcg/sources/annotations.py)")
+
+
 @dataclass(frozen=True)
 class Dataset:
     name: str
     categories: Tuple[Category, ...]
     corpus_dir: str                       # relative to repo; {category} is filled in
-    contract_labeler: Callable            # (category, filenames, smartbugs) -> {file: 0/1}
+    contract_labeler: Optional[Callable] = None  # (category, filenames, smartbugs) -> {file: 0/1}
     reference_graph: Optional[str] = None  # relative; {category}; authors' graph to match
     reference_labels: Optional[str] = None
-    expected: Dict[str, Dict[str, int]] = field(default_factory=dict)
+    expected: Dict[str, Dict[str, int]] = field(default_factory=dict)   # enforced
+    reported: Dict[str, Dict[str, int]] = field(default_factory=dict)   # shown next to a build
+    sources: Tuple[str, ...] = ("smartbug-dataset", "SolidiFI-benchmark")
+    composition: Optional[str] = None     # relative; committed composition document
+    label_policy: str = A_LABEL_POLICY
 
     def category(self, name):
         for item in self.categories:
@@ -101,7 +117,29 @@ DATASET_A = Dataset(
               for name, row in _PAPER_A.items()},
 )
 
-DATASETS = {DATASET_A.name: DATASET_A}
+# MANDO-LLM Table 2 (contracts, vulnerable contracts, nodes, edges, vulnerable nodes).
+_PAPER_B = {
+    "access_control": (244, 122, 22214, 27019, 5794),
+    "arithmetic": (372, 186, 51138, 64166, 10306),
+    "denial_of_service": (316, 158, 38631, 48891, 7280),
+    "front_running": (252, 126, 33007, 39629, 14486),
+    "reentrancy": (326, 163, 36579, 42519, 10429),
+    "time_manipulation": (172, 86, 21431, 25818, 7067),
+    "unchecked_low_level_calls": (246, 123, 23940, 29846, 3821),
+}
+
+DATASET_B = Dataset(
+    name="B",
+    categories=DATASET_A.categories,      # same seven categories and SolidiFI folders
+    corpus_dir="data/corpus/B/{category}",
+    reported={name: dict(zip(("contracts", "vulnerable_contracts", "nodes", "edges", "positive_nodes"), row))
+              for name, row in _PAPER_B.items()},
+    sources=("SolidiFI-benchmark", "DASP-DAppSCAN-datasets", "ge-sc"),
+    composition="hcg/datasets/dataset_b.json",
+    label_policy=B_LABEL_POLICY,
+)
+
+DATASETS = {DATASET_A.name: DATASET_A, DATASET_B.name: DATASET_B}
 
 
 def get_dataset(name):

@@ -75,6 +75,9 @@ def _categories(args):
 
 def run(args):
     dataset, names = _categories(args)
+    if dataset.name != "A":
+        raise SystemExit("benchmark/paper.py holds the paper's Dataset A tables only; "
+                         "Dataset %s needs its tables first" % dataset.name)
     roots = tracks.Roots(args.hcg, args.dfg, args.label_root)
     overrides = None if args.epochs is None else dict(maximum_training_epochs=args.epochs,
                                                        schedule_epochs=args.epochs)
