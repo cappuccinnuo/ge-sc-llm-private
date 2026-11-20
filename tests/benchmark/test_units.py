@@ -16,15 +16,21 @@ CORPUS = REPO / "experiments/ge-sc-data/source_code/reentrancy/source_files"
 
 # ---------------------------------------------------------------------- paper
 
-def test_paper_tables_cover_dataset_a_in_order():
+def test_paper_tables_cover_both_datasets_in_order():
     assert paper.CATEGORIES == tuple(c.name for c in DATASET_A.categories)
-    for level, table in paper.TABLES.items():
-        assert paper.SAME_TOKENIZER in table and set(paper.LLM_ROWS) <= set(table)
-        for row in table.values():
-            assert all(len(v) == 7 and all(0 < x <= 100 for x in v) for v in row.values())
-    assert paper.value("line", "codet5p-770m", "buggy_f1", "reentrancy") == 96.78
-    assert paper.value("line", "codet5p-770m", "macro_f1", "reentrancy") is None
-    assert paper.best_llm("contract", "buggy_f1", "reentrancy") == ("starcoder", 94.26)
+    for ds in ("A", "B"):
+        for level in ("contract", "line"):
+            table = paper.tables(ds)[level]
+            assert paper.SAME_TOKENIZER in table and set(paper.LLM_ROWS) <= set(table)
+            for row in table.values():
+                assert all(len(v) == 7 and all(0 < x <= 100 for x in v) for v in row.values())
+    assert paper.value("A", "line", "codet5p-770m", "buggy_f1", "reentrancy") == 96.78
+    assert paper.value("A", "line", "codet5p-770m", "macro_f1", "reentrancy") is None
+    assert paper.best_llm("A", "contract", "buggy_f1", "reentrancy") == ("starcoder", 94.26)
+    assert paper.value("B", "line", "codet5p-770m", "buggy_f1", "reentrancy") == 84.77
+    assert paper.value("B", "line", "codet5p-770m", "buggy_f1", "access_control") == 71.78
+    with pytest.raises(SystemExit):
+        paper.tables("C")
 
 
 # ---------------------------------------------------------------------- folds
@@ -112,11 +118,28 @@ def test_original_lines_map_back_through_comments_and_blank_lines():
 class _Refs:
     category = "t"
     file_labels = {"v": 1, "c": 0}
+    source = {"v": "SolidiFI", "c": evaluate.CLEAN}
     truth = {"v": {2}, "c": set()}
     node_lines = {"contract": {0: ("v", (2,)), 1: ("v", (5,)), 2: ("c", (3,))}}
 
     def original(self, name):
         return {2: [12], 3: [13], 5: [15]}
+
+    def sources(self):
+        return sorted({s for s in self.source.values() if s != evaluate.CLEAN})
+
+
+def test_by_source_leaves_out_a_source_absent_from_the_held_out_folds():
+    contract = [dict(file="v", target=1, best=1, best_probability=.9), dict(file="c", target=0, best=0, best_probability=.1)]
+    nodes = [dict(file="v", node=0, target=1, best=1), dict(file="c", node=2, target=0, best=0)]
+    refs = _Refs()
+    refs.source = {"v": "SolidiFI", "c": evaluate.CLEAN, "w": "SmartBugs-curated"}
+    refs.file_labels = {"v": 1, "c": 0, "w": 1}
+    refs.node_lines = dict(_Refs.node_lines, line=_Refs.node_lines["contract"])
+    tasks = {"contract": {0: (None, {"outer_test": contract})}, "line": {0: (None, {"outer_test": nodes[:1]})},
+             "cascade": {0: (None, {"outer_test": nodes})}}
+    out = evaluate.by_source(tasks, refs)
+    assert set(out) == {"SolidiFI"} and set(out["SolidiFI"]) == {"contract", "line_nodes", "line_source", "detector_lines"}
 
 
 def test_cascade_gates_the_line_model_with_the_contract_verdict():
@@ -181,13 +204,16 @@ def test_one_epoch_run_writes_scores_findings_and_report(mini_hcg, tmp_path):
                  "--device", "cpu"] + args) == 0
     scored = json.loads((out / "evaluation.json").read_text())["protocols"]["paper"]["G0"]["reentrancy"]
     assert scored["folds"] == {"contract": [0], "line": [0], "cascade": [0]}
-    assert {"contract", "line_nodes", "line_source", "cascade"} <= set(scored)
+    assert {"contract", "line_nodes", "line_source", "cascade", "by_source"} <= set(scored)
+    assert set(scored["by_source"]) == {"SolidiFI"}      # the fixture's vulnerable files are SolidiFI
+    assert set(scored["by_source"]["SolidiFI"]) == {"contract", "line_nodes", "line_source", "detector_lines"}
     assert set(scored["cascade"]) == {"gated", "oracle", "ungated", "folds"}
     found = json.loads((out / "findings/paper/G0/reentrancy.json").read_text())
     held_out = json.loads((out / "paper/reentrancy_contract/folds.json").read_text())["folds"][0]["outer_test_files"]
     assert sorted(f["file"] for f in found) == held_out
     text = (out / "report.md").read_text()
     assert "Contract level (paper Table 3)" in text and "| reentrancy | 1 |" in text
+    assert "By contract source" in text
     assert main(["run", "--out", str(out), "--protocols", "paper", "--folds", "0", "--epochs", "1",
                  "--device", "cpu"] + args) == 0     # finished fits are reused
     assert report.render(json.loads((out / "evaluation.json").read_text()), {}).startswith("# Benchmark")

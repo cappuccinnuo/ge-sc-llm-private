@@ -66,7 +66,7 @@ jobs:
   dataset-b:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'full-ci')
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
         with:
@@ -91,6 +91,33 @@ jobs:
         run: python -m hcg fetch --dataset B --no-models
       - name: recompose Dataset B (must equal hcg/datasets/dataset_b.json) and build every category
         run: python -m pytest -q tests/hcg/test_dataset_b.py
+      - name: every stage on Dataset B (time_manipulation, smallest; CPU smoke)
+        run: |
+          C="--dataset B --categories time_manipulation"
+          python -m hcg build $C --out out/hcg
+          python -m dfg build $C --hcg out/hcg --out out/dfg
+          python -m dfg train $C --hcg out/hcg --dfg out/dfg --out out/runs --profiles G0 G3R --folds 0 --epochs 2 --device cpu
+          python -m benchmark run $C --hcg out/hcg --dfg out/dfg --out out/runs_benchmark \
+            --protocols paper grouped --profiles G0 G3R --folds 0 --epochs 1 --device cpu
+          python -m benchmark run $C --hcg out/hcg --dfg out/dfg --out out/runs_benchmark --protocols upstream --epochs 1
+          python -m nodesem analyze $C --hcg out/hcg --dfg out/dfg --nodesem out/nodesem
+          python -m nodesem encode $C --tasks node --hcg out/hcg --dfg out/dfg --nodesem out/nodesem --device cpu
+          python -m nodesem train $C --tasks node --hcg out/hcg --dfg out/dfg --nodesem out/nodesem \
+            --configs S0o S2 S4 --folds 0 --epochs 2 --device cpu --out out/runs_nodesem
+          python -m edgesem build $C --hcg out/hcg --dfg out/dfg --edgesem out/edgesem
+          python -m edgesem train $C --hcg out/hcg --dfg out/dfg --edgesem out/edgesem --out out/runs_edgesem \
+            --profiles G3R G4R-A --folds 0 --epochs 2 --device cpu
+      - name: Upload the Dataset B manifests and smoke reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-dataset-b
+          path: |
+            out/hcg/B/*/manifest.json
+            out/runs/report.md
+            out/runs_benchmark/report.md
+            out/runs_nodesem/report.md
+            out/runs_edgesem/report.md
 
   category:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'full-ci')

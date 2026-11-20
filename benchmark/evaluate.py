@@ -10,6 +10,10 @@ in the paper):
                    model's nodes gated by the contract model of the same fold
                    (``gated``), by the true contract label (``oracle``) or not at all
                    (``ungated``), each as node and source-line scores;
+* ``by_source``    the same three views on the contracts of one source (SolidiFI,
+                   SmartBugs-curated, DAppSCAN), each against all clean contracts,
+                   pooled over folds (every contract is held out once): shows how
+                   much of a score comes from SolidiFI's injected templates;
 * ``findings``     the detector's final output per contract (pooled over folds; each
                    contract is held out once): contract verdict and flagged lines,
                    with the annotated lines, in original line numbers.
@@ -22,12 +26,14 @@ from pathlib import Path
 
 from benchmark import lines
 from dfg.utils import metrics
-from hcg.datasets.registry import get_dataset
+from hcg.datasets.registry import SOLIDIFI_FILE, get_dataset
+from hcg.sources import composition
 from hcg.store.io import read_gpickle
 
 REPO = Path(__file__).resolve().parents[1]
 SUMMARY_KEYS = ("buggy_f1", "macro_f1", "precision", "recall", "coverage", "hit_rate")
 GATES = ("gated", "oracle", "ungated")
+CLEAN = "clean"
 
 
 def summarize(fold_scores):
@@ -65,8 +71,23 @@ class CategoryRefs:
         self.truth = lines.truth_lines(json.loads((directory / "annotations.json").read_text()))
         self.node_lines = {"contract": lines.node_lines(read_gpickle(directory / "contract_level.gpickle")),
                            "line": lines.node_lines(read_gpickle(directory / "line_level.gpickle"))}
-        self._corpus = get_dataset(dataset).corpus(REPO, category)
+        spec = get_dataset(dataset)
+        self._corpus = spec.corpus(REPO, category)
         self._maps = {}
+        self.source = self._sources(spec, category)
+
+    def _sources(self, spec, category):
+        """{file: source}; clean contracts are CLEAN whatever pool they come from."""
+        if spec.composition:
+            rows = composition.entries(composition.load(REPO / spec.composition), category)
+            named = {r["name"]: r["source"] for r in rows}
+        else:
+            named = {f: "SolidiFI" if SOLIDIFI_FILE.fullmatch(f) else "SmartBugs-curated"
+                     for f in self.file_labels}
+        return {f: (named[f] if self.file_labels[f] else CLEAN) for f in self.file_labels}
+
+    def sources(self):
+        return sorted({s for s in self.source.values() if s != CLEAN})
 
     def original(self, name):
         if name not in self._maps:
@@ -115,6 +136,39 @@ def findings(contract_rows, node_rows, refs, fold):
     return out
 
 
+def _keep(rows, refs, source, with_clean):
+    return [r for r in rows if refs.source[r["file"]] == source or (with_clean and refs.source[r["file"]] == CLEAN)]
+
+
+def by_source(tasks, refs):
+    """Pooled out-of-fold scores of each vulnerable source (see the module docstring).
+
+    A view is left out when the held-out folds hold no contract of that source (a
+    fold subset, or a category where one source has only a handful of contracts).
+    """
+    contract = [r for _, p in tasks["contract"].values() for r in p["outer_test"]]
+    line = [r for _, p in tasks["line"].values() for r in p["outer_test"]]
+    paired = sorted(set(tasks["contract"]) & set(tasks["cascade"]))
+    verdict = {r["file"]: r["best"] for k in paired for r in tasks["contract"][k][1]["outer_test"]}
+    cascade = [r for k in paired for r in tasks["cascade"][k][1]["outer_test"]]
+    out = {}
+    for source in refs.sources():
+        part = {}
+        rows = _keep(contract, refs, source, True)
+        if any(refs.source[r["file"]] == source for r in rows):
+            part["contract"] = metrics([r["target"] for r in rows], [r["best"] for r in rows])
+        rows = _keep(line, refs, source, False)
+        if rows:
+            part["line_nodes"] = metrics([r["target"] for r in rows], [r["best"] for r in rows])
+            part["line_source"] = source_scores(rows, refs, "line", sorted({r["file"] for r in rows}))
+        rows = _gate(_keep(cascade, refs, source, True), verdict)
+        if any(refs.source[r["file"]] == source for r in rows):
+            part["detector_lines"] = source_scores(rows, refs, "contract", sorted({r["file"] for r in rows}))
+        if part:
+            out[source] = part
+    return out
+
+
 def evaluate_category(protocol_dir, refs, profile):
     """Scores (and findings) of one category, protocol and profile; None if nothing ran."""
     tasks = {name: fold_outputs(Path(protocol_dir) / ("%s_%s" % (refs.category, name)), profile)
@@ -139,6 +193,7 @@ def evaluate_category(protocol_dir, refs, profile):
         out["cascade"]["folds"] = paired
         out["findings"] = [row for k in paired for row in findings(
             tasks["contract"][k][1]["outer_test"], tasks["cascade"][k][1]["outer_test"], refs, k)]
+    out["by_source"] = by_source(tasks, refs)
     out["folds"] = {name: sorted(done) for name, done in tasks.items()}
     return out
 
@@ -146,7 +201,7 @@ def evaluate_category(protocol_dir, refs, profile):
 def evaluate(run_dir, hcg_root, dataset, categories):
     """evaluation.json and findings/<protocol>/<profile>/<category>.json of a run."""
     run_dir = Path(run_dir)
-    result = {"protocols": {}, "upstream": {}}
+    result = {"dataset": dataset, "protocols": {}, "upstream": {}}
     for category in categories:
         if not any(run_dir.glob("*/%s_*" % category)):
             continue

@@ -8,14 +8,18 @@ and 0/1 target, plus the candidates left out and why. ``assemble`` copies exactl
 those files into the corpus directory (git-ignored) and checks every hash, so a
 build always sees the committed selection, whatever machine it runs on.
 
+Copies are written with LF line endings (``normalize``), as the authors' Dataset A
+corpus holds the SmartBugs Wild pool files (which are CRLF); the HCG node text and
+the DFG/NodeSem source views must agree byte for byte.
+
 Row fields: ``name``, ``source`` (DAppSCAN | SolidiFI | SmartBugs-Wild-clean),
-``origin``, ``sha256``, ``target``; DAppSCAN rows also ``labels`` (the line-label
+``origin``, ``origin_sha256`` (the source file), ``sha256`` (the corpus copy),
+``target``; DAppSCAN rows also ``labels`` (the line-label
 files: its own and those of identical copies left out) and ``swc`` (the category's SWC
 ids its labels carry).
 """
 import hashlib
 import json
-import shutil
 from pathlib import Path
 
 VERSION = "hcg-composition-v1"
@@ -23,6 +27,11 @@ VERSION = "hcg-composition-v1"
 
 def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def normalize(data):
+    """The corpus copy of a source file's bytes: CRLF line endings become LF."""
+    return data.replace(b"\r\n", b"\n")
 
 
 def load(path):
@@ -58,9 +67,13 @@ def assemble(document, category, label_root, corpus_dir):
         if not origin.is_file():
             raise SystemExit("%s is missing; run: python -m hcg fetch --dataset %s"
                              % (origin, document["dataset"]))
-        if _sha(origin) != row["sha256"]:
+        data = origin.read_bytes()
+        if hashlib.sha256(data).hexdigest() != row["origin_sha256"]:
             raise ValueError("%s does not match its composition hash" % origin)
-        shutil.copyfile(origin, target)
+        copy = normalize(data)
+        if hashlib.sha256(copy).hexdigest() != row["sha256"]:
+            raise ValueError("the corpus copy of %s does not match its composition hash" % origin)
+        target.write_bytes(copy)
     return sorted(names)
 
 
