@@ -1,0 +1,62 @@
+{
+ "slither_targets": [
+  {
+   "function": "viaCast",
+   "op": "HighLevelCall",
+   "expression": "C(x).f() + C(y).f()",
+   "target_file": "B.sol"
+  },
+  {
+   "function": "viaCast",
+   "op": "HighLevelCall",
+   "expression": "C(x).f() + C(y).f()",
+   "target_file": "B.sol"
+  },
+  {
+   "function": "viaNew",
+   "op": "NewContract",
+   "expression": "new C().f()",
+   "target_file": "B.sol"
+  },
+  {
+   "function": "viaNew",
+   "op": "HighLevelCall",
+   "expression": "new C().f()",
+   "target_file": "B.sol"
+  }
+ ],
+ "solc_ast_references_in_Main": [
+  {
+   "name": "C",
+   "src": "32:1:2",
+   "file": "A.sol"
+  },
+  {
+   "name": "C",
+   "src": "64:1:2",
+   "file": "B.sol"
+  },
+  {
+   "name": "A",
+   "src": "183:1:2",
+   "file": "A.sol"
+  },
+  {
+   "name": "B",
+   "src": "194:1:2",
+   "file": "B.sol"
+  },
+  {
+   "name": null,
+   "src": "263:1:2",
+   "file": "B.sol"
+  },
+  {
+   "name": "B",
+   "src": "263:1:2",
+   "file": "B.sol"
+  }
+ ],
+ "gate_complete": true,
+ "gate_checked": 0
+}

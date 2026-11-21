@@ -449,3 +449,10 @@ Python3.7语法与未应用补丁的git apply --check通过，静态检查不替
 doc_check_v1对六份正文与五份原文快照共11份通过；本补记及当前状态更新后的最终字节由doc_check_v2再次核验，提交以该收据通过并绑定各文档SHA为前置条件。新证据由evidence_seal与delivery_inventory封存，acceptance_status汇总最终门槛。完整回归与保护检查已通过，此后只补交付记录，没有再跑实验或修改生产代码。
 
 CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-repair，实际提交号以包含本记录的CP3提交及仓库外delivery_commit_receipt为准；本轮未push，未实施CP4或新增修复规则。参数修正及103项批准全部落实，无新增待批准执行事项；已知工具与版本边界继续按本报告保留。
+
+
+## CP3 审查与方案 r2.14（Claude，2026-11-21）
+
+- CP3 大部分成立：诊断解析、pragma 子类、项目闭包与共用参数、文件名 + key5、连字符入口与绝对允许目录；执行中的问题处理得当。
+- 五个问题：类别按所有候选版本合并；Etherscan 标准 JSON 包装被当作源码；类型转换调用的同名错绑未被检查；通配符 pragma 被拒；MANDO 图未与 v5 对照。
+- PROMPTS r2.14：新增 1.17 节、4.5b 节 CP3.1、D21（同名合约的项目图不可用，待用户批准）。证据 `artifacts/cp3_review_v1/`；记录 `docs/CHANGE_LOG.md` §36。

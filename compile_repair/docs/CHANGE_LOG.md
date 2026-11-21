@@ -1806,3 +1806,47 @@ failure_summary保留每类计数、失败分母比例、语料分布、最多3�
 doc_check_v1对六份正文与五份原文快照共11份通过；本补记及当前状态更新后的最终字节由doc_check_v2再次核验，提交以该收据通过并绑定各文档SHA为前置条件。新证据由evidence_seal与delivery_inventory封存，acceptance_status汇总最终门槛。完整回归与保护检查已通过，此后只补交付记录，没有再跑实验或修改生产代码。
 
 CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-repair，实际提交号以包含本记录的CP3提交及仓库外delivery_commit_receipt为准；本轮未push，未实施CP4或新增修复规则。参数修正及103项批准全部落实，无新增待批准执行事项；已知工具与版本边界继续按本报告保留。
+
+
+## 36. 2026-11-21 CompileRepair CP3 审查与方案 r2.14（修改 AI：Claude）
+
+### 36.1 任务、依据与范围
+
+用户要求（2026-11-21）：Codex 已完成 CP3；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP4。起点 `compile-repair@6d7043e8b`（CP3 的六次提交 88b499e71…6d7043e8b）。审查对象：`toolchain/solc.py`、`toolchain/project.py`、`toolchain/slither.py`、`pipeline.py`、`evaluation/report.py`、`evaluation/survey.py`、`cli.py` 的差异，新测试与夹具，`cp3_paths_v1` 的汇总与 `cp3_binding_v1` 的 MANDO 验收，CP3_REPORT 全文、HANDOVER、DECISIONS、CHANGE_LOG §29–§35、PROGRESS。
+
+修改：`PROMPTS.md`（r2.13 → r2.14）；新增 `artifacts/cp3_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 4 节第 1 条补注，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（新增 D21，历史 3 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 36.2 实施方式和重要选择
+
+- 代码：逐个读新函数。诊断解析与 pragma 子类符合 r2.11–r2.13；project.py 只读解析闭包，未解析导入不编译；slither.py 的项目身份与绑定检查、pipeline 的多文件路径与单文件路径分开。
+- 统计口径：读 report.py 后发现类别按所有候选版本合并。只靠语料统计看不出影响大小，因为每单元的结果只在用户本机；改用仓库内的 MANDO 三个文件逐版本编译证明机制：它们在 0.4.24–0.4.26 rc 0，真正失败在 Slither，却被计入两个源码类。处理选择：增加“主因”口径而不是替换原口径——主因按阶段与跨版本持续性确定，原口径保留以便对照；只需重新汇总已保存结果，不重新编译。
+- Trace on-chain：5,000 个经过验证的链上合约中 432 个计入 parser_error_other，不合常理。按用户“仅本地研究使用”的批准，从固定提交取 CP3 给出的示例文件（SHA 与清单一致），确认它是 Etherscan 标准 JSON 输入包装；解包后用与模块相同的参数编译与构建 Slither，确认是不改源码的输入处理。处理选择：CP3.1 只新增类别、判定与统计，解包实现留 CP5（第 2 步项目组装），与 CP3“只分类不修复”的范围一致。
+- 绑定检查：用户已批准的检查只看合约类型变量。自写类型转换与 new 的用例，确认生产 Slither 同样按名称错绑，而检查 0 条时判为通过。可选做法：（a）扩展检查到所有 AST 引用并与 IR 逐一对照；（b）闭包含同名合约即判图不可用。选择（b）：判定只依赖 AST 中的定义名称，机械且保守；（a）需要把每个引用与 Slither IR 对应，容易出现新的漏检。它比已批准的条件更严，记为 D21 待用户批准。
+- pragma 写法：DAppSCAN 的 18 个 unsupported_expression 来自真实项目，自测常见写法，发现通配符与缺补丁号被拒。以真实 solc 逐版本作为判据，避免凭记忆实现 semver 规则。
+- MANDO：pipeline.py 改动约 180 行，CP3 只核对计数；补一次与 v5 的字节对照。
+
+### 36.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 诊断与报告测试 | 审查环境 70 项通过；test_project.py 在本机之外导入失败（路径依赖） | pytest |
+| MANDO 三个文件逐版本 | 0.4.12–0.4.15 Undeclared identifier，0.4.16–0.4.23 Expected token Comma，0.4.24–0.4.26 rc 0；CP3 计入 undeclared_identifier 与 parser_error_other | probe_mando_versions.json |
+| Trace cp3_23864 | `{{…}}` 包装，language Solidity，20 个源文件，optimizer 开、evmVersion paris | trace_wrapper_example.json |
+| 解包后 | solc 0.8.24、0.8.38 rc 0；Slither 20 个合约、265 个函数 | wrapper_unpack_probe.json |
+| 类型转换错绑 | solc：A→A.sol、B→B.sol；Slither：两次调用都→B.sol；绑定检查 0 条、complete=true | probe_alias_cast.json |
+| pragma 写法 | `0.4.x`、`0.4.X`、`0.5.*`、`^0.5` solc rc 0、模块拒绝；`^ 0.5.0`、`=0.5.12`、`~0.4.24` 等正常 | probe_pragma_forms.json |
+| MANDO 验收 | 只有 843 成功、3 个 Slither 侧失败的计数；无图字节对照 | cp3_binding_v1/mando_subset_acceptance.json |
+
+未证明：Trace on-chain 432 个解析错误中包装格式所占数量；92 个 unsupported_expression 中可由通配符扩展解决的数量；闭包含同名合约的项目数量；主因口径下的类别频率。以上由 CP3.1 统计。
+
+### 36.4 用户批准、原文差异与待确认设计
+
+- Codex 处理成立的部分：诊断、项目闭包、身份扩展、连字符入口、允许目录；执行中的 SOChecker 子集、同名 key5、同名错绑、连字符、允许目录、探针与驱动脚本错误都按共享上下文停下并经批准继续。
+- 新发现：五个问题，见 36.3。其中统计口径与 pragma 扩展不改变已定决策（前者只增加口径，后者只在原实现拒绝的表达式上改变结果）；输入格式是新增类别；同名合约的判定比已批准的接受条件更严，需要用户批准 D21。
+- 待用户批准：D21。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 36.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp3_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；从 Trace 固定提交取 1 个文件（约 94 KB，用户已批准的本地研究范围，不提交）；没有安装或 LLM 调用，费用 0。
+- 停止：CP4 不能开始。顺序为用户决定 D21 → Codex 执行 CP3.1 → Claude 审查 → CP4。本轮提交并 push 到 `compile-repair`。

@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.13（2026-11-17；r2.12、r2.11 同日；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.14（2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,12 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.14 相对 r2.13 的修改**（CP3 审查；证据 `artifacts/cp3_review_v1/README.md`）：
+1. CP3 的诊断解析、pragma 子类、项目闭包与共用调用参数、文件名 + key5、连字符入口与绝对允许目录经审查成立（新增 1.17 节）。执行中的问题都先停下、保留失败记录、经用户批准后在新批次继续，处理方式成立。
+2. 审查发现五个问题，CP4 之前由新增的 4.5b 节 CP3.1 解决：（a）类别统计把所有候选版本的错误并在一起，版本不支持某语法造成的错误被算作源码错误（MANDO 三个 Slither 侧失败也被计入 undeclared_identifier 与 parser_error_other），频率失真；（b）Etherscan 标准 JSON 输入包装（`{{ "language": "Solidity", "sources": … }}`）以 .sol 保存，被当作源码、计为 parser_error_other，分类表缺少这一输入格式类别；（c）项目绑定检查只覆盖声明的合约类型变量，类型转换调用（`A(x).f()`）同样被 Slither 错绑，而检查条目为 0 时判为通过；（d）solc 接受的通配符与缺补丁号的 pragma（`0.4.x`、`0.5.*`、`^0.5`）被拒；（e）流水线改写后没有 MANDO 图与 v5 的字节对照。
+3. 新增 D21（建议，待用户批准）：项目闭包中两个或更多合约定义同名时，项目图一律判为不可用（工具限制），不再只靠变量绑定检查。这是比已批准绑定检查更严的接受条件，需要用户批准。
+4. pragma 求值扩展到 solc 实际接受的通配符与缺补丁号写法，以真实 solc 作为判据逐版本验证；只在原实现拒绝的表达式上改变结果。`||` 仍按原计划延后。
 
 **r2.13 相对 r2.12 的修改**（CP2.4 审查；证据 `artifacts/cp2_4_review_v1/README.md`）：
 1. CP2.4 经独立复核成立（新增 1.16 节）：与 CP2.3 在其能读取的 1,656 个文件上区间与异常信息全同、补丁区间 1,661/1,661 全同；MANDO 846 个输入的 make_plan 升降序 1,692/1,692 全同；CLI 验收的两个注释输入成功、两个拒绝输入不调用工具。没有遗留需要在 CP3 之前修复的问题，下一步执行 4.5 节 CP3。
@@ -329,6 +335,17 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | 与 CP2.3 | 可读的 1,656 个文件区间与异常信息全同；补丁区间 1,661/1,661；MANDO make_plan 升降序 1,692/1,692 |
 | CLI | 块注释选 0.8.0、行注释选 0.5.0，成功且无改动；缺分号与 `||` 不调用工具，原因分别记录 |
 | 遗留 | 无需在 CP3 前修复；测试可移植性仍按 r2.12 第 3 条登记 |
+
+### 1.17 CP3 结果（2026-11-21 审查；证据 `artifacts/cp3_v1/`、`cp3_continue_v1/`、`cp3_binding_v1/`、`cp3_entry_v1/`、`cp3_entry_resume_v1/`、`cp3_paths_v1/`、`cp3_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 获取 | 10 份官方文档、三套语料 29,611 个文件逐文件核验；SOChecker 按用户批准使用 ours.json 的 897 条 |
+| 分类表 | 29 类、125 条 breaking changes；92 个版本实测诊断格式，0.6.0 起为箭头位置；缺分号措辞 0.4.24 起改变 |
+| 项目 | 闭包只读解析；solc 与 Slither 共用入口、工作目录、remapping、绝对 `--allow-paths`；项目图以相对文件名 + key5 为身份；变量类型绑定检查 |
+| 全量 | 31,071 个有效单元（另 236 条 SOChecker 非 Solidity）：21,160 成功、9,911 剩余；无抽样 |
+| 主要类别（原口径） | unresolved_package_import 8,450（85.3%）、parser_error_other 892、missing_relative_file 415、other 199、undeclared_identifier 157 |
+| 审查发现 | 类别按所有候选版本合并（MANDO 3 个 Slither 侧失败被计入两个源码类）；Etherscan 标准 JSON 包装被当作源码；类型转换调用的同名错绑未被检查；`0.4.x`、`0.5.*`、`^0.5` 被拒；MANDO 图未与 v5 字节对照 |
 
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
@@ -1010,6 +1027,52 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 ## 5. 结论
 - 按 D6 对分类表逐类判定：有可确定性实施、且能被 D3 与 D7 机械检查验证的修复，列为规则（写明修复方式、改动等级与验证方式）；否则交给代理。语料中的出现频率只用于排列实现顺序，不作为是否实现的条件。
 - 给出 CP4 基准的破坏算子清单：分类表中每一个能由删除或修改可编译代码构造出来的类别都要有算子，包括语料中未观察到的类别。
+```
+
+### 4.5b CP3.1：主因分类、输入格式、同名合约与 pragma 写法（r2.14 新增；CP4 之前必须完成）
+
+```text
+# CP3.1：修正 CP3 审查的五个问题，重新汇总分类
+
+依据：PROMPTS r2.14 的修改说明与 1.17 节；审查证据 compile_repair/artifacts/cp3_review_v1/README.md 及其脚本与 json（只读，不导入其中脚本；alias_cast/ 可复制为夹具）。CP0–CP3 的产物不改、不覆盖；新结果写入新批次 cp3_1_v1（仓库外的运行资料按 CP3 的方式另放）。不需要安装或下载；需要时停下。报告追加到 CP3_REPORT.md 的“CP3.1”一节。生产文件数保持 16，除非第 2 节确需在已有文件中增加函数。
+用户批准：第 3 节的 D21 需要用户批准；未批准时完成其余各节，在第 3 节前停下并写出请求。
+
+## 1. 主因分类（只改 evaluation/report.py；不重新编译）
+- 现状：classify_record 收集所有候选版本的诊断，aggregate_failures 按“任一候选出现过”计类。审查实测：MANDO 三个 pragma ^0.4.0 的文件在 0.4.12–0.4.23 solc 失败、0.4.24–0.4.26 rc 0，真正失败只在 Slither，却被计入 undeclared_identifier 与 parser_error_other。
+- 为每个剩余失败单元增加“主因”标签，规则按顺序：
+  1. 有输入格式、版本计划或项目组装阶段的记录（第 2 节、environment_plan、project_assembly）：主因取这些阶段的类别。
+  2. 否则若任一候选 solc rc 0：主因只取这些候选的 Slither 侧类别（slither_incomplete、绑定不可用），其他候选的 solc 诊断不计入主因。
+  3. 否则（全部候选 solc 失败）：主因取在每一个已尝试候选中都出现的类别（跨版本持续的源码问题）；交集为空时记为 version_dependent（统计用的桶，不是分类表新类别），并保留各版本的类别。
+- 报告两张表：主因表（D6 的实现顺序按此表）与原“任一候选”表（保留，标明口径）。每类都给单元数、比例、语料分布与示例；version_dependent 另给最常见的版本-类别组合。
+- 验收：MANDO 三个单元的主因只有 slither_incomplete；为三条规则各写合成记录测试；对 CP3 全部 31,071 个已保存结果重新汇总（逐成员先核对 SHA），不重新编译。
+
+## 2. Etherscan 标准 JSON 输入包装（输入格式类别；只分类，不解包修复）
+- 审查实测：Trace on-chain 单元 cp3_23864（SHA256 00eff580…）的内容是 `{{ "language": "Solidity", "settings": …, "sources": {…} }}`，含 20 个源文件与 optimizer、evmVersion 设置；解包后 solc 0.8.24/0.8.38 rc 0、生产 Slither 构建成功（cp3_review_v1/wrapper_unpack_probe.json）。CP3 把它计为 parser_error_other。
+- 分类表新增类别 standard_json_input：判定只用 JSON 解析，不用正则——去掉首尾空白后，若以 `{{` 开头、`}}` 结尾则去掉一层花括号；能解析为对象，且 sources（或不含 language 的顶层对象，即 Etherscan 的多文件格式）是“名称 → 含字符串 content 的对象”的映射。language 存在时必须为 Solidity。不满足即不是该类。
+- 流水线：在版本计划之前判定；命中时记录 stage=input_format（源文件数、源名称、settings 的键，不复制内容），不调用 solc 或 Slither，状态 unrepaired、原因 standard_json_input。解包、设置映射与编译留 CP5（第 2 步项目组装），在 D6 中写为确定性路线（不改源码，等级 none）。
+- 统计：对全部 31,307 个原始单元按上述规则只读判定，给出各语料数量，并说明这些单元在 CP3 中原来的类别。CP4 破坏算子加一项：把可编译的项目包装为该格式。
+- 前提核实：取最多 3 个判定为该类的单元，按 sources 解包到新批次的工作目录，用 project.py 的闭包与命令行路径编译，记录 solc 与生产 Slither 的结果（只是前提证据，不进入正式统计）。
+
+## 3. 同名合约（D21，需用户批准）
+- 审查实测（cp3_review_v1/probe_alias_cast.json）：两个文件各有 `contract C`，Main 用 `import {C as A}`、`import {C as B}`，以 `A(x).f()`、`B(y).f()`、`new B()` 调用。solc AST 中 A 引用 A.sol、B 引用 B.sol；生产 Slither 把两次调用都绑定到 B.sol。函数中没有合约类型变量，project_bindings 检查 0 条、complete=true，图被接受。
+- D21：项目闭包（编译单元内全部 AST）中有两个或更多同名的 ContractDefinition（contract、interface、library 都算）时，graph_usable=false，原因 duplicate_contract_names，归为工具限制；原有的变量绑定检查保留。判定只读 AST 中的定义名称，不猜引用。单文件路径不受影响（同一文件内的同名定义 solc 本身拒绝）。
+- 测试：把 alias_cast/ 复制为夹具（需要 0.8），在至少三个已安装的 0.8.x 版本（含 0.8.0 与 0.8.38）上期望 D3 为 true、graph_usable 为 false、不写 graph.json；原 cp3_alias、cp3_alias_calls 的期望不变或更严。
+- 影响：从已保存的 AST 统计 CP3 中闭包含同名合约的项目单元数及其中原为成功的数量（没有保存 AST 的单元用 solc 只生成 AST 的调用重新获取，单列为额外调用）；这些单元在新批次按新条件重新运行（不重新运行其他单元），新旧结果逐项替换并记录来源。
+
+## 4. pragma 的通配符与缺补丁号（只改 rules/environment.py 的表达式求值）
+- 审查实测（cp3_review_v1/probe_pragma_forms.json）：`0.4.x`、`0.4.X`、`0.5.*`、`^0.5` 由 solc rc 0，模块抛 `F: unsupported pragma expression`。
+- 扩展 _expression_interval，使 solc 接受的写法都能求值：缺补丁号或缺次版本号的版本（`0.5`、`^0.5`、`~0.4`、`>=0.5`），次版本号或补丁号为 x、X、* 的通配写法；空格分隔的多个比较取交集（已有）。语义以真实 solc 为准，不凭记忆实现：
+  - 判据矩阵：对每种写法（每种运算符与 `=`、`^`、`~`、`>`、`>=`、`<`、`<=` 组合缺补丁号、通配符等，至少 20 个表达式），在 92 个支持版本上各编译一个只含该 pragma 与空合约的文件；模块区间包含该版本 ⇔ solc 不报“requires different compiler version”。任一不一致即停下报告，不调整判据。
+  - `||` 仍为 unsupported_disjunction（原计划延后）；不支持的写法仍抛 Unsupported。
+- 等价：原实现能求值的表达式结果全部不变——MANDO 846 个输入、tests/fixtures、以及 CP3 全部单元中保存的 pragma 表达式原文逐一比较。make_plan 在 MANDO 846 个输入上升降序全同。
+- 影响：CP3 中原因是 unsupported pragma expression、而表达式现在可以求值的单元，在新批次重新运行并替换原结果。
+
+## 5. MANDO 回归（新批次，生产环境，升序，与 cr_store_mando_v5 相同的 CLI 参数）
+- 用当前代码（包含第 1–4 节的修改）重跑 846 个输入；预期 843 成功、3 个已知 Slither 侧失败，846/846 的状态、选定版本、设置与标志与 v5 相同，843/843 graph.json 与 v5 字节相同。不同即停下报告。
+
+## 6. 重新汇总与结论
+- 用第 1 节的规则对全部单元重新汇总（第 2–4 节替换的结果按记录来源替换，其他保持），给出主因表与“任一候选”表、各语料数量、类别示例，并按主因表重排 D6 的实现顺序；分类表保留全部类别，新增 standard_json_input。
+- 两个环境的模块测试与 DFG v2 测试都运行。逐项给出预期与实测；列出修改的函数与行数、生产文件数。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）

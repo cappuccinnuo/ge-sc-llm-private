@@ -1,25 +1,23 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文0–5、PROMPTS r2.13 §4.1/§4.5、CP3_REPORT最终续节、cp3_paths_v1/README与runtime_acceptance、DECISIONS、CHANGE_LOG §35。第6节历史只追加。
+> 新接手先读本文第 0–5 节、PROMPTS r2.14（§1.17、§4.5b CP3.1）、artifacts/cp3_review_v1/README.md、CP3_REPORT 最终续节、DECISIONS 与 CHANGE_LOG §35、§36。第 6 节历史只追加，记录规则见 README.md。
 
 ## 0. 一句话
 
-CP3本地实施与验收完成，等待独立审查：12项路径探针、103项限定重验和完整回归通过，最终21,160成功/9,911剩余；保护审计与文档检查收据封存于cp3_paths_v1，本轮不push。
+CP3 已由 Claude 审查：诊断、项目闭包与执行中问题的处理成立，但发现五个问题（类别按所有候选版本合并、Etherscan 标准 JSON 包装被当作源码、类型转换调用的同名错绑未被检查、通配符 pragma 被拒、MANDO 图未与 v5 对照）。下一步：用户决定 D21 → Codex 执行 4.5b 节 CP3.1 → Claude 审查 → CP4。
 
 ## 1. 当前状态
 
 | 项 | 状态 | 依据 |
 |---|---|---|
-| 本轮起点 | compile-repair，967d0890 | cp3_paths_v1/baseline |
-| 用户批准 | 参数修正、探针与103项重验，已落实 | authorization |
-| 生产改动 | 仅project.py两处允许目录改为绝对项目根 | 原批准补丁与当前diff |
-| 定向探针 | 12passed，保留原八项并追加四项普通嵌套入口 | path_probes |
-| 限定重验 | 103项各一次，89成功/14未修复，原79成功保持且选版提前 | runtime_acceptance/replacement_summary |
-| 最终全量口径 | 31,071有效：21,160成功/9,911剩余；236非Solidity单列 | failure_summary/result_provenance |
-| 原观察保留 | 仅替换103条，其余30,968条来源完全相同 | runtime_acceptance |
-| 完整回归 | production731/6；mando271/466；DFG2653passed/9既有warnings | pytest_*_final_v1 |
-| 当前检查 | 实验、保护、语法及空白检查通过；最终文档字节由doc_check_v2绑定 | acceptance_status、frozen_audit、doc_check_v2 |
-| 交付边界 | 本地提交，不自动push；后续CP未启动 | CHANGE_LOG §35 |
+| 方案与决定 | PROMPTS r2.14；D5/D16/D18/D20/D20a 已定；D21（同名合约的项目图不可用）待用户批准；D19 建议；D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
+| CP0–CP2.4 | 已审查通过 | 各审查目录 |
+| CP3 | 审查：大部分成立；五个问题由 CP3.1 解决 | cp3_review_v1/README.md |
+| CP3 全量（原口径） | 31,071 个有效单元：21,160 成功、9,911 剩余；类别频率按“任一候选”计，CP3.1 改为主因 | cp3_paths_v1/failure_summary.json |
+| 测试可移植性 | 7 个测试模块在用户本机之外收集失败（含 test_project.py，既有问题）；CI 或迁移时处理 | PROMPTS r2.12 修改说明第 3 条 |
+| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 | PROMPTS r2.11 修改说明第 4 条 |
+| 已知缺口 | `||` pragma；Slither 进程内无超时 | 后续 CP |
+| 下一步 | 用户决定 D21 → CP3.1 → 审查 → CP4 | PROMPTS §4.5b |
 
 ## 2. 分支与工作树
 
@@ -35,7 +33,7 @@ production为Python3.10.21、Slither0.11.6、crytic-compile0.4.2；mando为Pytho
 
 ## 4. 必读与下一步
 
-1. 参数和103项范围批准已实施，无新的执行审批待办。项目根绝对允许路径与./入口保持两类工具一致，输入、候选和成功门槛没有改变。
+1. 参数和103项范围批准已实施，无新的执行审批待办。项目根绝对允许路径与./入口保持两类工具一致，输入、候选和成功门槛没有改变。（2026-11-21 Claude 更新：CP3 审查发现五个问题，CP4 之前执行 CP3.1，D21 待用户批准，见 PROMPTS §4.5b。）
 2. 本轮两个脚本问题均保留原收据：tuple/list比较误报通过相同JSON字段确认恢复；历史中断段按原封存保全清单核验。没有重复实验或虚构正常完成seal，详见CHANGE_LOG §35。
 3. 最终分类只替换103条，保留其余30,968条原实现和版本来源；不能说31,071项全部用最终代码重新跑过。旧错误观察和被替换调用从有效计数剔除但不删除。
 4. 原79成功全从0.4.18提前：35到0.4.12、2到0.4.13、9到0.4.15、33到0.4.16。新增10项成功，14项剩余为12个Slither工具限制及2个源码编译错误。
@@ -48,6 +46,7 @@ production为Python3.10.21、Slither0.11.6、crytic-compile0.4.2；mando为Pytho
 
 | 内容（compile_repair下） | 路径 |
 |---|---|
+| CP3 审查证据（Claude） | artifacts/cp3_review_v1/README.md 及 probe_mando_versions、trace_wrapper_example、wrapper_unpack_probe、probe_alias_cast、probe_pragma_forms |
 | 本轮批准与基线 | artifacts/cp3_paths_v1/authorization.json、baseline.json |
 | 12项探针与完整测试 | cp3_paths_v1/path_probes.json、probes/、pytest_*_final_v1.json |
 | 103项唯一执行验收 | cp3_paths_v1/runtime_acceptance.json、replacement_summary.json |
@@ -529,3 +528,12 @@ production731passed/6skipped、mando271passed/466skipped、DFG2653passed/9既有
 doc_check_v1对六份正文与五份原文快照共11份通过；本补记及当前状态更新后的最终字节由doc_check_v2再次核验，提交以该收据通过并绑定各文档SHA为前置条件。新证据由evidence_seal与delivery_inventory封存，acceptance_status汇总最终门槛。完整回归与保护检查已通过，此后只补交付记录，没有再跑实验或修改生产代码。
 
 CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-repair，实际提交号以包含本记录的CP3提交及仓库外delivery_commit_receipt为准；本轮未push，未实施CP4或新增修复规则。参数修正及103项批准全部落实，无新增待批准执行事项；已知工具与版本边界继续按本报告保留。
+
+
+### 2026-11-21 CompileRepair CP3 审查与方案 r2.14（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP3（最终提交 6d7043e8b）。新增证据目录 `artifacts/cp3_review_v1/`，修改 `PROMPTS.md`（r2.13 → r2.14）。本文开头、第 0、1 节换成审查结论，第 4 节第 1 条补注，第 5 节加入证据路径。
+
+结论：诊断解析、pragma 子类、项目闭包与共用参数、文件名 + key5、连字符入口与绝对允许目录成立；执行中的问题都先停下、保留记录、经批准后在新批次继续。五个问题：（1）类别统计把所有候选版本的错误合并，MANDO 三个 Slither 侧失败被计入两个源码类；（2）Trace on-chain 中至少一个单元是 Etherscan 标准 JSON 包装，被计为解析错误，解包后可编译、Slither 成功；（3）类型转换调用的同名错绑不在绑定检查范围内，检查 0 条时判为通过；（4）`0.4.x`、`0.5.*`、`^0.5` 被拒而 solc 接受；（5）MANDO 图未与 v5 字节对照。新增 4.5b 节 CP3.1 与 D21（待批准）。
+
+下一步：用户决定 D21，Codex 执行 CP3.1，Claude 审查后进入 CP4。本轮没有模块代码改动或安装；按用户批准的本地研究范围从 Trace 固定提交取 1 个文件，只在审查工作区使用。详见 CHANGE_LOG §36。
