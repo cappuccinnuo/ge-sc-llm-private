@@ -76,32 +76,57 @@ def _pragma_spans(source):
 
 
 def _expression_interval(expressions):
-    """Evaluate constraints with frozen stage_f interval() semantics.
+    """Intersect Solidity comparators. Three-part bounds retain frozen stage_f semantics.
 
-    Copied evaluation only from scripts/DFG/state/stage_f/versioning.py:10-23,
-    SHA256 130251d6a9e46ec176ba183a0a66fa5a30210b43c1ab8faa2bfcf5a676d2ed18.
-    Directive location is independent; frozen parsing is used only in tests.
+    The partial/wildcard extensions and the two historical parser boundaries
+    are measured by the solc release matrix in artifacts/cp3_1_v1.
     """
     if not expressions:
         return None
     lo, hi = (0, 0, 0), (999, 0, 0)
-    pattern = r"(\^|~|>=|<=|>|<|=)?\s*(\d+)\.(\d+)\.(\d+)"
+    component = r"(\d+|[xX*])"
+    comparator = re.compile(r"(\^|~|>=|<=|>|<|=)?\s*(\d+)(?:\." + component +
+                            r"(?:\." + component + r")?)?")
     for expr in expressions:
-        if "||" in expr or not re.search(pattern, expr) or re.sub(pattern, "", expr).strip():
+        matches = list(comparator.finditer(expr))
+        if not matches or comparator.sub("", expr).strip():
             raise Unsupported("F: unsupported pragma expression")
-        for match in re.finditer(pattern, expr):
-            op = match.group(1) or "="
-            version = tuple(int(match.group(i)) for i in (2, 3, 4))
-            patch = (version[0], version[1], version[2] + 1)
-            if op in ("=", "^", "~"):
-                upper = (patch if op == "=" else (version[0], version[1] + 1, 0) if op == "~"
-                         else (version[0] + 1, 0, 0) if version[0]
-                         else (0, version[1] + 1, 0) if version[1] else patch)
-                lo, hi = max(lo, version), min(hi, upper)
-            elif op in (">", ">="):
-                lo = max(lo, patch if op == ">" else version)
+        for match in matches:
+            op, major_text, minor_text, patch_text = match.groups()
+            major = int(major_text)
+            has_minor = minor_text is not None and minor_text.isdigit()
+            has_patch = patch_text is not None and patch_text.isdigit()
+            if has_patch and not has_minor:
+                raise Unsupported("F: unsupported pragma expression")
+            minor = int(minor_text) if has_minor else 0
+            patch = int(patch_text) if has_patch else 0
+            lower = (major, minor, patch)
+            if has_patch:
+                following = (major, minor, patch + 1)
+            elif has_minor:
+                following = (major, minor + 1, 0)
             else:
-                hi = min(hi, patch if op == "<=" else version)
+                following = (major + 1, 0, 0)
+            if op == "^":
+                if major or not has_minor:
+                    following = (major + 1, 0, 0)
+                elif minor or not has_patch:
+                    following = (major, minor + 1, 0)
+            elif op == "~" and has_minor:
+                following = (major, minor + 1, 0)
+
+            # solc 0.4.x rejects the alphabetic wildcard in the minor slot.
+            if minor_text in ("x", "X"):
+                lo = max(lo, (0, 5, 0))
+            # Bare ^0 starts accepting supported releases at solc 0.5.14.
+            if op == "^" and major == 0 and minor_text is None:
+                lo = max(lo, (0, 5, 14))
+            if op in (None, "=", "^", "~"):
+                lo, hi = max(lo, lower), min(hi, following)
+            elif op in (">", ">="):
+                lo = max(lo, following if op == ">" else lower)
+            else:
+                hi = min(hi, following if op == "<=" else lower)
     if lo >= hi:
         raise Unsupported("F: empty pragma intersection")
     return lo, hi

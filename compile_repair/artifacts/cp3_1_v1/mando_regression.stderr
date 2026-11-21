@@ -1,0 +1,11 @@
+fatal: path 'compile_repair/artifacts/cr_store_mando_v5/seal.json' exists on disk, but not in '61c94e00'
+Traceback (most recent call last):
+  File "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp3_1_v1/mando_regression.py", line 5, in <module>
+    seal = json.loads(committed(old/'seal.json'))['files']
+  File "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp3_1_v1/batch.py", line 24, in committed
+    expected = subprocess.check_output(['git', 'show', commit+':'+str(path.relative_to(ROOT))], cwd=str(ROOT))
+  File "/home/zhao/miniconda3/envs/compile-repair-production/lib/python3.10/subprocess.py", line 421, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+  File "/home/zhao/miniconda3/envs/compile-repair-production/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', 'show', '61c94e00:compile_repair/artifacts/cr_store_mando_v5/seal.json']' returned non-zero exit status 128.

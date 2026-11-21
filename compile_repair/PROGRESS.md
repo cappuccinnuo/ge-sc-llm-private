@@ -456,3 +456,14 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 - CP3 大部分成立：诊断解析、pragma 子类、项目闭包与共用参数、文件名 + key5、连字符入口与绝对允许目录；执行中的问题处理得当。
 - 五个问题：类别按所有候选版本合并；Etherscan 标准 JSON 包装被当作源码；类型转换调用的同名错绑未被检查；通配符 pragma 被拒；MANDO 图未与 v5 对照。
 - PROMPTS r2.14：新增 1.17 节、4.5b 节 CP3.1、D21（同名合约的项目图不可用，待用户批准）。证据 `artifacts/cp3_review_v1/`；记录 `docs/CHANGE_LOG.md` §36。
+
+
+## CP3.1 修正与回归（2026-11-21，修改 AI：Codex）
+
+CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果逐项联系旧 CP3 与新批次。31,071 个有效单元中 21,223 成功、9,848 未修复，另有 236 个非 Solidity 输入。相对 CP3 新增 63 项成功。510 项有新结果，30,561 项沿用经哈希核对的 CP3 结果。
+
+五个生产文件及 tests/test_cp31.py、test_project.py、test_pragma_bytes.py 和三个 alias_cast 夹具完成本步。版本等价、AST 覆盖、输入格式、两张分类表、版本组合、D6 排序和 CP4 包装算子见 CP3_REPORT 的 CP3.1 一节及 artifacts/cp3_1_v1。每个结果的选用来源及 SHA 保存在 unit_attributions.jsonl.gz。
+
+正式替换 410 个包装、88 个旧 pragma 拒绝和 12 个确认重名单元。新通过的 63 项全部来自 pragma 扩展。18,389 个可判定项目中有 12 个确认重名，另 6,160 项 AST 不足，保留为未知。生产升序 MANDO 846/846 记录字段及 843/843 图字节与 v5 相同。82 种表达式在支持范围 92 版上全部核验。
+
+按 `python -B -m pytest -x -q -p no:cacheprovider` 执行完整模块和 DFG 测试。production 758 通过 / 6 跳过，mando 295 通过 / 469 跳过，DFG 2,653 通过 / 9 个既有警告。用户已批准 D21、矩阵语法拒绝单列及 AST 不足单列。矩阵预检、旧 v5 seal 的定位、旧测试期望更新与范围审计的环境选择均在 CHANGE_LOG §37 记录。下一步独立审查。无安装、下载或 LLM 调用。

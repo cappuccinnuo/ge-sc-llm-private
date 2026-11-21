@@ -1850,3 +1850,38 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp3_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；从 Trace 固定提交取 1 个文件（约 94 KB，用户已批准的本地研究范围，不提交）；没有安装或 LLM 调用，费用 0。
 - 停止：CP4 不能开始。顺序为用户决定 D21 → Codex 执行 CP3.1 → Claude 审查 → CP4。本轮提交并 push 到 `compile-repair`。
+
+
+## 37. 2026-11-21 CompileRepair CP3.1：主因分类、包装识别、项目图与版本回归（修改 AI：Codex）
+
+### 37.1 任务、依据与范围
+
+CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果逐项联系旧 CP3 与新批次。31,071 个有效单元中 21,223 成功、9,848 未修复，另有 236 个非 Solidity 输入。相对 CP3 新增 63 项成功。510 项有新结果，30,561 项沿用经哈希核对的 CP3 结果。
+
+先快进同步 6d7043e8 至 61c94e00，查阅共享上下文、§1.17、§3.10、§4.5b、交接 0–5、§35–36、DECISIONS 及 cp3_review_v1。生产改动为 evaluation/report.py、toolchain/project.py、toolchain/slither.py、pipeline.py 和 rules/environment.py。新增 tests/test_cp31.py、三份 cp31_alias_cast 手写夹具，更新 test_project.py 与 test_pragma_bytes.py。还更新 CP3_REPORT、PROGRESS、本节、HANDOVER 和 DECISIONS。结果在 artifacts/cp3_1_v1，完整文件清单见该批 delivery_inventory.json。外部语料原文和完整运行存储保存在仓库外。
+
+### 37.2 实施方式和重要选择
+
+主因使用早期阶段、可编译版本的 Slither 结果以及跨编译器类别交集；保留旧任一候选表、版本组合与逐项来源。标准 JSON 包装只需解析输入、检查 Solidity 语言及源内容类型，即可在版本计划前结束。先从 solc 闭包 AST 统计定义名称，再与原 D3、变量绑定事实并列记录。若 Slither 构造失败，CryticCompile 仍持有 AST 时也能给出重名原因。原始语料仅用于测量。部分版本号使用实测的上下界求值，`||` 沿用拒绝路径。模块与函数的变更行数、16 个生产文件的最终 SHA 见 scope_audit.json 和 CP3_REPORT。
+
+矩阵预检最初把 4 个历史负对照也计入，调用 solc 前停止。选择 92 个支持版本后，前 3,681 对发现旧 solc 的语法拒绝，收到确认后只测剩余 3,863 对。旧版 solc 的 --help 可在显示帮助后返回 1，AST 测量按实际帮助文本选择是否支持 stopAfter。正式回归的最初读入脚本误以为 v5 的 seal 单独受 Git 跟踪，改按受跟踪 README 登记的 seal SHA 核验，并对每个对照成员再核对 SHA。两环境首轮 suite 各有一条旧 `0.5` 负例失败，更新为同时验证冻结旧行为和新版预期。最终又核验了保留 CryticCompile AST 的生产实现。DFG 的代码引用取自已有 mando 环境，最初在 production 导入 torch 失败的范围检查日志也已保留。一次查询 WSL 运行日志遇到短时服务超时，随后读取同一运行的终态收据完成核对。
+
+### 37.3 实测与数据结论
+
+- 31,071 个旧结果在读取时逐一核对 SHA，原分类表全部类别的单元数得到复现。3 个 MANDO 工具侧失败的主因均只有 slither_incomplete。最终主因表有 221 个 version_dependent 单元。两表各类单元数、比例、分语料数量与 SHA 示例见 failure_summary.json 及 CP3_REPORT。
+- 31,307 个原始输入中识别出 410 个包装，全部来自 Trace on-chain，旧类别均只有 parser_error_other。它们在正式流程中停在 input_format。3 个前提样本共 4 组解包后工具运行，solc 与生产 Slither 均成功。30 类分类表与 125 条 breaking changes 均入 D6/CP4 文档，CP5 包装处理等级为 none。
+- 24,549 个项目单元中旧 AST 可直接核实 15,642 项，其余 8,907 项各一次只生成 AST 的调用。合并同源 SHA 的定义证据，18,389 项可判定，其中 12 项有重名，旧成功数 0；6,160 项资料不足。12 项限定重验维持未修复。
+- 82 × 92 的区间测量共 7,544 对，全数与获准的实际接受判据一致。137,792 次旧可求值表达式出现的结果保持，846 个 MANDO 输入的升降计划均相同。88 个旧拒绝单元获得候选，63 个成功，其中 DAppSCAN 18、SOChecker 45。其余 25 项有后续诊断。
+- 510 项替换实际调用 solc 1,050 次、Slither 63 次，逐项绑定原结果和新结果。生产 MANDO 回归 846/846 的状态、原因、选定版本、设置、标志与输入相同，843/843 图逐字节一致，另外 3 个已知失败无图。
+
+### 37.4 用户批准、原文差异与待确认设计
+
+2026-11-21 收到“同意 D21”、“同意按实测语法拒绝单列并继续”、“同意单列 AST 不足”。三项授权绑定原请求 SHA，分别见 authorization.json、pragma_authorization.json、ast_coverage_authorization.json。矩阵遇到的 360 次语法拒绝均为相同的 parser token 错误，原文仅看版本错误字符串会误计为适用。AST 未知单列后，全体重名数量只能给出至少 12 项，已知成功项目中的数量可精确给出为 0。D21 的保守性及此统计边界均在报告保留。D19 等既有待定项另行处理。
+
+### 37.5 验收、资源、未执行事项与停止
+
+production 模块 758 passed / 6 skipped，mando 模块 295 passed / 469 skipped，mando DFG v2 为 2,653 passed / 9 个既有警告。完整命令、耗时、最终运行与首轮问题均在批次收据。最终 MANDO 使用 CLI repair、原 846 路径、--regression mando、--order ascending，CLI 2 对应已核验的 3 项未修复。主要原始运行、额外 AST 调用和三个包装解包样本均在仓库外。费用 0 美元，未安装、下载或调用 LLM，未训练或操作 GPU 锁。
+
+保护核验通过，包括 354 条 DFG 引用、25,828 个历史封存成员、29,611 份外部语料、10 份官方文档、96 份 solc 文件和两环境的 145/118 份元数据。文档 UTF-8/CJK 检查以批次 doc_check.json 的最终字节哈希、命令和返回码为准，全部通过后提交。CP3.1 本地完成后交独立审查，未启动 CP4。本轮仅本地提交，提交标识由包含本节的 CP3.1 提交给出。
+
+2026-11-21 文档核验补记（修改 AI：Codex）。本节、交接、决策、进度、CP3 报告和批次 README 共六份文档均已通过 doc_check。最后追加本条记录后再次检查六份文件，最终字节与 SHA 见 doc_check.json。

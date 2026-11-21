@@ -1,0 +1,3837 @@
+{
+  "status": "complete_cp3.1_routes_and_cp4_operator_inventory",
+  "author": "Codex",
+  "basis_sha256": "2f0bdad79dcaf6490c9d8bff6d9573213a17f105e964a8925173f4e494fe0de7",
+  "new_rules_implemented": false,
+  "verification_common": [
+    "D3 solc/Slither/mapping/contract coverage",
+    "D7 original-byte precondition and provenance; rewrites only diagnostic lines",
+    "Approved project binding gate for project graphs"
+  ],
+  "categories": [
+    {
+      "category": "unresolved_package_import",
+      "route": "conditional_rule",
+      "repair": "恢复调用方或离线索引中可确定版本/身份的缺失包文件；不联网猜版本",
+      "change_level": "additive",
+      "mechanical_checks": "保留原文件；依赖SHA与来源清单；闭包D3/项目绑定检查；无法确定依赖时交代理分析",
+      "cp4_operator": "删除已记录依赖中的包文件",
+      "fallback": "agent_if_dependency_identity_unknown",
+      "sources": [
+        "error_types",
+        "cp3",
+        "imports",
+        "old_imports"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 8454,
+      "fraction_remaining_failures": 0.8584484159220146,
+      "any_candidate_units": 8457
+    },
+    {
+      "category": "missing_relative_file",
+      "route": "conditional_rule",
+      "repair": "依据项目内候选及声明/版本约束修正缺失的相对导入路径；唯一basename仅为候选证据",
+      "change_level": "rewrite",
+      "mechanical_checks": "仅改错误导入所在行；记录旧路径、新路径及候选身份；D3/项目绑定检查",
+      "cp4_operator": "删除或移动相对依赖，使原路径失效",
+      "fallback": "agent_if_ambiguous",
+      "sources": [
+        "error_types",
+        "cp3",
+        "imports",
+        "old_imports"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 412,
+      "fraction_remaining_failures": 0.04183590576766856,
+      "any_candidate_units": 415
+    },
+    {
+      "category": "undeclared_identifier",
+      "route": "conditional_rule",
+      "repair": "使用处唯一约束签名时增加声明型接口/事件/结构/合约桩，或明确文档中的旧内建名称迁移",
+      "change_level": "additive_or_local_rewrite",
+      "mechanical_checks": "无推测执行体；原字节与桩来源标记；改写仅错误行；D3与签名约束检查",
+      "cp4_operator": "删除被引用声明或替换为已移除内建拼写",
+      "fallback": "agent_if_type_or_behavior_underconstrained",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 25,
+      "fraction_remaining_failures": 0.002538586515028432,
+      "any_candidate_units": 160
+    },
+    {
+      "category": "missing_base_contract",
+      "route": "conditional_rule",
+      "repair": "恢复可确认的基类/声明，或类型约束充分时增加声明型基类桩",
+      "change_level": "additive",
+      "mechanical_checks": "不猜状态布局或执行体；基类须在旧编译器要求的位置可见；D3/偏移映射",
+      "cp4_operator": "删除基类定义并保留继承引用",
+      "fallback": "agent_if_base_behavior_unknown",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 2,
+      "fraction_remaining_failures": 0.00020308692120227456,
+      "any_candidate_units": 13
+    },
+    {
+      "category": "duplicate_definition",
+      "route": "conditional_rule",
+      "repair": "删除被编译器拒绝且逐字节相同的重复定义",
+      "change_level": "rewrite",
+      "mechanical_checks": "精确重复字节、错误定位行与删除范围核对；声明引用不歧义；D3与改写标记",
+      "cp4_operator": "复制同一完整定义到冲突作用域",
+      "fallback": "agent_if_nonidentical_or_unverifiable",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 19,
+      "fraction_remaining_failures": 0.0019293257514216085,
+      "any_candidate_units": 29
+    },
+    {
+      "category": "multiple_license_or_pragma",
+      "route": "conditional_rule",
+      "repair": "仅处理被当前版本拒绝的逐字节重复许可证/指令；相同Solidity pragma通常无需改",
+      "change_level": "rewrite",
+      "mechanical_checks": "保留不同许可证原文；冲突不擅自选一个；定位和字节核验；D3",
+      "cp4_operator": "复制相同SPDX到>=0.8.8或复制互斥ABI-coder指令",
+      "fallback": "agent_or_user_if_conflicting",
+      "sources": [
+        "error_types",
+        "cp3",
+        "layout"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 8,
+      "fraction_remaining_failures": 0.0008123476848090983,
+      "any_candidate_units": 8
+    },
+    {
+      "category": "encoding",
+      "route": "conditional_rule",
+      "repair": "只做可验证的字节编码/转义等价规范化",
+      "change_level": "rewrite",
+      "mechanical_checks": "注释非UTF8不是自动修复理由；核对替换后的字符串字节等价、诊断行和D3",
+      "cp4_operator": "将合法token或字符串转义改为非法字节/转义",
+      "fallback": "agent_if_intended_bytes_unknown",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "unbalanced_structure",
+      "route": "conditional_rule",
+      "repair": "仅补唯一可确定的末尾括号；不补推测执行逻辑",
+      "change_level": "additive",
+      "mechanical_checks": "词法栈唯一、原字节保留、新增范围标记、D3",
+      "cp4_operator": "删除末尾括号或截断声明边界",
+      "fallback": "agent_if_ambiguous",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 56,
+      "fraction_remaining_failures": 0.005686433793663688,
+      "any_candidate_units": 86
+    },
+    {
+      "category": "parser_error_other",
+      "route": "conditional_rule",
+      "repair": "逐项文档证明的局部等价语法/拼写迁移，其他解析错误交代理",
+      "change_level": "rewrite",
+      "mechanical_checks": "已知旧新语法等价前提、错误行、原文哈希、D3",
+      "cp4_operator": "替换有效token或采用已移除语法",
+      "fallback": "agent_otherwise",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 279,
+      "fraction_remaining_failures": 0.028330625507717304,
+      "any_candidate_units": 490
+    },
+    {
+      "category": "type_error_other",
+      "route": "conditional_rule",
+      "repair": "只有类型约束唯一且等价可机械检查时使用明确类型拼写/转换",
+      "change_level": "rewrite",
+      "mechanical_checks": "逐类类型与值域前提、错误行及D3；不能用任意强转消除错误",
+      "cp4_operator": "改变参数/表达式类型或删去必要显式转换",
+      "fallback": "agent_otherwise",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 6,
+      "fraction_remaining_failures": 0.0006092607636068237,
+      "any_candidate_units": 25
+    },
+    {
+      "category": "codegen_only",
+      "route": "conditional_rule",
+      "repair": "编译设置候选须同时满足solc与Slither；手写探针支持的via-ir+optimizer留后续实现",
+      "change_level": "none",
+      "mechanical_checks": "匹配两端argv；原源码哈希不变；D3；AST-only实测不构成可用退路",
+      "cp4_operator": "增加同时存活的局部值触发Stack too deep",
+      "fallback": "tool_limitation_if_settings_fail",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 39,
+      "fraction_remaining_failures": 0.003960194963444354,
+      "any_candidate_units": 43
+    },
+    {
+      "category": "closure_version_conflict",
+      "route": "conditional_rule",
+      "repair": "可确认依赖身份时恢复兼容原版本；不跨小版本任意覆盖pragma",
+      "change_level": "additive_or_import_rewrite",
+      "mechanical_checks": "所有文件区间交集与版本策略；依赖身份、错误行及D3",
+      "cp4_operator": "将一个依赖pragma改为与入口不相交区间",
+      "fallback": "agent_if_original_version_unknown",
+      "sources": [
+        "error_types",
+        "cp3",
+        "layout"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 4,
+      "fraction_remaining_failures": 0.00040617384240454913,
+      "any_candidate_units": 4
+    },
+    {
+      "category": "slither_incomplete",
+      "route": "conditional_rule",
+      "repair": "仅已逐类证明等价的0.4.x tuple-call形式列为CP6改写候选；其余工具限制",
+      "change_level": "rewrite_or_none",
+      "mechanical_checks": "已记录tuple探针、改写前提和行范围；D3；项目错绑保持合法源码并拒绝图",
+      "cp4_operator": "将可用等价bool-call改成solc接受但Slither拒绝的tuple-call",
+      "fallback": "tool_limitation_otherwise",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 24,
+      "fraction_remaining_failures": 0.002437043054427295,
+      "any_candidate_units": 24,
+      "duplicate_contract_names": "D21: tool limitation; do not rewrite legal source."
+    },
+    {
+      "category": "other",
+      "route": "diagnosis_required",
+      "repair": "逐项检查归一化模板后再决定类别与路由；不猜修复",
+      "change_level": "undetermined",
+      "mechanical_checks": "完整原始诊断保留仓库外；模板与SHA示例列入最终汇总",
+      "cp4_operator": null,
+      "fallback": "agent_after_cause_established",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": "非源码类别、非失败类别或尚无可确定复现原因；不臆造源码算子",
+      "observed_units": 36,
+      "fraction_remaining_failures": 0.0036555645816409425,
+      "any_candidate_units": 202
+    },
+    {
+      "category": "json_error",
+      "route": "caller_input_rule",
+      "repair": "修正调用方序列化/配置输入；当前CLI路径无standard JSON主编译",
+      "change_level": "none",
+      "mechanical_checks": "严格输入schema；源码字节不变；不改合法合约",
+      "cp4_operator": null,
+      "fallback": "caller_configuration",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": "非源码类别、非失败类别或尚无可确定复现原因；不臆造源码算子",
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "io_error",
+      "route": "conditional_rule",
+      "repair": "在批准路径范围内处理导入/路径配置；缺依赖转对应依赖类",
+      "change_level": "none_or_import_rewrite",
+      "mechanical_checks": "路径闭包、授权与原文校验；D3",
+      "cp4_operator": "修改导入路径为不存在路径",
+      "fallback": "agent_if_dependency_unknown",
+      "sources": [
+        "error_types",
+        "cp3",
+        "imports",
+        "old_imports"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 28,
+      "fraction_remaining_failures": 0.002843216896831844,
+      "any_candidate_units": 28
+    },
+    {
+      "category": "docstring_error",
+      "route": "conditional_rule",
+      "repair": "可唯一绑定时修正错误NatSpec参数/tag",
+      "change_level": "rewrite",
+      "mechanical_checks": "只改诊断注释行；声明名字精确匹配；D3",
+      "cp4_operator": "改变NatSpec参数名为不存在名字",
+      "fallback": "agent_if_ambiguous",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "syntax_error",
+      "route": "conditional_rule",
+      "repair": "有版本文档与唯一含义时补/改修饰词（例如明确旧默认visibility）；不擅改控制流",
+      "change_level": "additive_or_rewrite",
+      "mechanical_checks": "逐类语义前提、错误行、原字节映射及D3",
+      "cp4_operator": "删除必要visibility或将continue移出循环",
+      "fallback": "agent_otherwise",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 17
+    },
+    {
+      "category": "unimplemented_feature",
+      "route": "existing_environment_rule",
+      "repair": "只尝试既有允许编译器/设置；没有合法选择则工具限制",
+      "change_level": "none",
+      "mechanical_checks": "同一源码、明确候选区间、匹配Slither参数及D3",
+      "cp4_operator": "将声明改为选定编译器尚未支持的合法特性",
+      "fallback": "tool_limitation",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "internal_compiler_error",
+      "route": "tool_limitation",
+      "repair": "保留崩溃证据，只继续既有允许候选；不据崩溃猜源码修复",
+      "change_level": "none",
+      "mechanical_checks": "编译器hash/argv/退出码/原始诊断",
+      "cp4_operator": null,
+      "fallback": "tool_limitation",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": "非源码类别、非失败类别或尚无可确定复现原因；不臆造源码算子",
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 5
+    },
+    {
+      "category": "compiler_exception",
+      "route": "tool_limitation",
+      "repair": "保留异常并继续既有允许候选",
+      "change_level": "none",
+      "mechanical_checks": "版本/二进制hash/命令/结果；不改合法源码",
+      "cp4_operator": null,
+      "fallback": "tool_limitation",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": "非源码类别、非失败类别或尚无可确定复现原因；不臆造源码算子",
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "fatal_error",
+      "route": "tool_limitation",
+      "repair": "保留致命错误，不做任意源码改写",
+      "change_level": "none",
+      "mechanical_checks": "区分退出码与错误文案；保留原始证据",
+      "cp4_operator": null,
+      "fallback": "tool_limitation",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": "非源码类别、非失败类别或尚无可确定复现原因；不臆造源码算子",
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "warning",
+      "route": "no_repair",
+      "repair": "Warning本身不作为编译失败或修复触发",
+      "change_level": "none",
+      "mechanical_checks": "实际rc/D3判定；不因警告修改源码",
+      "cp4_operator": null,
+      "fallback": "none",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": "非源码类别、非失败类别或尚无可确定复现原因；不臆造源码算子",
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "unsupported_disjunction",
+      "route": "deferred_environment_rule",
+      "repair": "后续实现区间并集求值和合并后的确定性升序尝试，CP3仅计数",
+      "change_level": "none",
+      "mechanical_checks": "固定每段语义、去除版本候选重复（非图节点）、D3；当前版本策略保持",
+      "cp4_operator": "将支持的pragma改为合法||表达式",
+      "fallback": "tool_gap_until_later_cp",
+      "sources": [
+        "error_types",
+        "cp3",
+        "layout"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 1,
+      "fraction_remaining_failures": 0.00010154346060113728,
+      "any_candidate_units": 1
+    },
+    {
+      "category": "unsupported_expression",
+      "route": "diagnosis_required",
+      "repair": "区分非法pragma与模块不支持的合法表达式；前者代理、后者工具缺口",
+      "change_level": "rewrite_or_none",
+      "mechanical_checks": "保存表达式字节与pragma证据；不改当前冻结语义",
+      "cp4_operator": "修改版本表达式token",
+      "fallback": "agent_for_malformed_source",
+      "sources": [
+        "error_types",
+        "cp3",
+        "layout"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 4,
+      "fraction_remaining_failures": 0.00040617384240454913,
+      "any_candidate_units": 4
+    },
+    {
+      "category": "unterminated_pragma",
+      "route": "conditional_rule",
+      "repair": "仅唯一位置可确定时补pragma分号",
+      "change_level": "additive",
+      "mechanical_checks": "词法边界唯一、原字节保留；D3",
+      "cp4_operator": "删除pragma分号",
+      "fallback": "agent_if_ambiguous",
+      "sources": [
+        "error_types",
+        "cp3",
+        "layout"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 1,
+      "fraction_remaining_failures": 0.00010154346060113728,
+      "any_candidate_units": 1
+    },
+    {
+      "category": "pragma_missing_semicolon_candidate",
+      "route": "conditional_rule",
+      "repair": "检查吞入下一条指令的表达式，在唯一边界补分号",
+      "change_level": "additive",
+      "mechanical_checks": "保留原表达式和位置证据；不把关键字出现等同已证明缺分号；D3",
+      "cp4_operator": "删除import/pragma/声明前的pragma分号",
+      "fallback": "agent_if_ambiguous",
+      "sources": [
+        "error_types",
+        "cp3",
+        "layout"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "slither_no_timeout",
+      "route": "deferred_runtime_rule",
+      "repair": "后续采用子进程隔离与明确截止时间；CP3只报告暴露次数/观察到的挂起",
+      "change_level": "none",
+      "mechanical_checks": "记录启动/截止/终止/未完成状态，不把无记录当无风险",
+      "cp4_operator": null,
+      "fallback": "tool_gap_until_later_cp",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": "非源码类别、非失败类别或尚无可确定复现原因；不臆造源码算子",
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "declaration_error",
+      "route": "conditional_rule",
+      "repair": "名字/作用域可唯一恢复时处理声明；否则代理分析，不一律补桩",
+      "change_level": "additive_or_rewrite",
+      "mechanical_checks": "声明约束、错误行及D3；禁止仅改名后假定等价",
+      "cp4_operator": "将合法声明名改为版本禁止的名字",
+      "fallback": "agent_if_binding_unknown",
+      "sources": [
+        "error_types",
+        "cp3"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 0,
+      "fraction_remaining_failures": 0.0,
+      "any_candidate_units": 0
+    },
+    {
+      "category": "standard_json_input",
+      "route": "deterministic",
+      "repair": "CP5 解包并核验源字节，映射受支持的编译设置",
+      "change_level": "none",
+      "mechanical_checks": "逐源 SHA、D3 与项目图检查",
+      "cp4_operator": "将可编译项目及其设置包装为 standard JSON / Etherscan 多文件对象",
+      "fallback": null,
+      "sources": [
+        "etherscan_wrapper"
+      ],
+      "implementation_in_cp3": false,
+      "no_source_corruption_operator_reason": null,
+      "observed_units": 410,
+      "fraction_remaining_failures": 0.04163281884646629,
+      "any_candidate_units": 410
+    }
+  ],
+  "breaking_changes": [
+    {
+      "id": "v0.5.0-L24",
+      "category": "runtime",
+      "summary": "Signed right shifts round toward negative infinity",
+      "cause": "Signed right shifts round toward negative infinity",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 24
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L29",
+      "category": "runtime",
+      "summary": "Continue in do-while jumps to the condition",
+      "cause": "Continue in do-while jumps to the condition",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 29
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L33",
+      "category": "runtime",
+      "summary": "Low-level calls no longer pad a bytes argument",
+      "cause": "Low-level calls no longer pad a bytes argument",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 33
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L36",
+      "category": "runtime",
+      "summary": "View and pure external calls use STATICCALL on suitable EVMs",
+      "cause": "View and pure external calls use STATICCALL on suitable EVMs",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 36
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L40",
+      "category": "runtime",
+      "summary": "ABI encoding pads calldata bytes and strings correctly",
+      "cause": "ABI encoding pads calldata bytes and strings correctly",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 40
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L45",
+      "category": "runtime",
+      "summary": "ABI decoding checks bounds and padding before executing",
+      "cause": "ABI decoding checks bounds and padding before executing",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 45
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L49",
+      "category": "runtime",
+      "summary": "External calls forward available gas on suitable EVMs",
+      "cause": "External calls forward available gas on suitable EVMs",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 49
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L57",
+      "category": "type_error_other",
+      "summary": "Low-level calls and hashing require one bytes argument",
+      "cause": "Low-level calls and hashing require one bytes argument",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 57
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L69",
+      "category": "type_error_other",
+      "summary": "Low-level calls return success and return-data tuple",
+      "cause": "Low-level calls return success and return-data tuple",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 69
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L74",
+      "category": "undeclared_identifier",
+      "summary": "Local variables follow C99 declaration scope",
+      "cause": "Local variables follow C99 declaration scope",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Undeclared identifier|Identifier not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 74
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "delete a referenced declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L86",
+      "category": "syntax_error",
+      "summary": "Functions require explicit visibility",
+      "cause": "Functions require explicit visibility",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 86
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L90",
+      "category": "type_error_other",
+      "summary": "Reference-typed variables require explicit data location",
+      "cause": "Reference-typed variables require explicit data location",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 90
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L98",
+      "category": "type_error_other",
+      "summary": "Contract members no longer include address operations",
+      "cause": "Contract members no longer include address operations",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 98
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L105",
+      "category": "type_error_other",
+      "summary": "Unrelated contract casts are disallowed",
+      "cause": "Unrelated contract casts are disallowed",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 105
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L113",
+      "category": "type_error_other",
+      "summary": "Payable and nonpayable address types are distinct",
+      "cause": "Payable and nonpayable address types are distinct",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 113
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L124",
+      "category": "type_error_other",
+      "summary": "Fixed bytes and integer casts require equal widths or intermediate casts",
+      "cause": "Fixed bytes and integer casts require equal widths or intermediate casts",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 124
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L132",
+      "category": "type_error_other",
+      "summary": "Reading msg.value requires a payable public entry context",
+      "cause": "Reading msg.value requires a payable public entry context",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 132
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L137",
+      "category": "interface",
+      "summary": "Reading CLI standard input requires the dash target",
+      "cause": "Reading CLI standard input requires the dash target",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 137
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L150",
+      "category": "interface",
+      "summary": "The obsolete formal CLI mode is removed",
+      "cause": "The obsolete formal CLI mode is removed",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 150
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L155",
+      "category": "interface",
+      "summary": "The Julia CLI mode is renamed Yul",
+      "cause": "The Julia CLI mode is renamed Yul",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 155
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L158",
+      "category": "interface",
+      "summary": "Clone bytecode output options are removed",
+      "cause": "Clone bytecode output options are removed",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 158
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L161",
+      "category": "io_error",
+      "summary": "Import remapping cannot have an empty prefix",
+      "cause": "Import remapping cannot have an empty prefix",
+      "solc_error_types": [
+        "IOError"
+      ],
+      "message_templates": [
+        "File not found|Permission denied|File outside of allowed directories"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 161
+      },
+      "candidate_repair": "deterministic path/permission configuration within approved scope; no dependency download",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "modify an import path",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L163",
+      "category": "interface",
+      "summary": "AST mutability replaces legacy constant and payable fields",
+      "cause": "AST mutability replaces legacy constant and payable fields",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 163
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L166",
+      "category": "interface",
+      "summary": "AST function kind replaces the constructor boolean",
+      "cause": "AST function kind replaces the constructor boolean",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 166
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L170",
+      "category": "interface",
+      "summary": "Link placeholders use a hash of the qualified library name",
+      "cause": "Link placeholders use a hash of the qualified library name",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 170
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.5.0-L181",
+      "category": "syntax_error",
+      "summary": "Constructor declarations require the constructor keyword",
+      "cause": "Constructor declarations require the constructor keyword",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 181
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L183",
+      "category": "syntax_error",
+      "summary": "Base-constructor invocation requires parentheses",
+      "cause": "Base-constructor invocation requires parentheses",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 183
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L185",
+      "category": "duplicate_definition",
+      "summary": "Repeated base-constructor argument specifications are rejected",
+      "cause": "Repeated base-constructor argument specifications are rejected",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Identifier already declared|defined twice|same name and parameter types"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 185
+      },
+      "candidate_repair": "deterministic only for byte/token-identical declarations with preserved binding; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "duplicate a declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L188",
+      "category": "type_error_other",
+      "summary": "Wrong constructor argument counts are rejected",
+      "cause": "Wrong constructor argument counts are rejected",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 188
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L195",
+      "category": "type_error_other",
+      "summary": "callcode is removed; migration can change call semantics",
+      "cause": "callcode is removed; migration can change call semantics",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 195
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L198",
+      "category": "undeclared_identifier",
+      "summary": "suicide spelling is removed",
+      "cause": "suicide spelling is removed",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Undeclared identifier|Identifier not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 198
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "delete a referenced declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L200",
+      "category": "undeclared_identifier",
+      "summary": "sha3 spelling is removed",
+      "cause": "sha3 spelling is removed",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Undeclared identifier|Identifier not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 200
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "delete a referenced declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L202",
+      "category": "syntax_error",
+      "summary": "throw is removed",
+      "cause": "throw is removed",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 202
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L208",
+      "category": "type_error_other",
+      "summary": "Decimal-to-fixed-bytes literal casts require explicit intermediate types",
+      "cause": "Decimal-to-fixed-bytes literal casts require explicit intermediate types",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 208
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L211",
+      "category": "type_error_other",
+      "summary": "Hex-literal to fixed-bytes conversions require matching widths",
+      "cause": "Hex-literal to fixed-bytes conversions require matching widths",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 211
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L217",
+      "category": "parser_error_other",
+      "summary": "The years denomination is removed",
+      "cause": "The years denomination is removed",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 217
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L220",
+      "category": "parser_error_other",
+      "summary": "Numeric trailing dots require a following digit",
+      "cause": "Numeric trailing dots require a following digit",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 220
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L222",
+      "category": "type_error_other",
+      "summary": "Hex numbers cannot be combined with unit denominations",
+      "cause": "Hex numbers cannot be combined with unit denominations",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 222
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L225",
+      "category": "parser_error_other",
+      "summary": "Hex numeric prefixes must use lowercase x",
+      "cause": "Hex numeric prefixes must use lowercase x",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 225
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L230",
+      "category": "syntax_error",
+      "summary": "Empty struct declarations are rejected",
+      "cause": "Empty struct declarations are rejected",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 230
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L232",
+      "category": "syntax_error",
+      "summary": "Inferred var declarations are removed",
+      "cause": "Inferred var declarations are removed",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 232
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L234",
+      "category": "type_error_other",
+      "summary": "Tuple assignments require equal component counts",
+      "cause": "Tuple assignments require equal component counts",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 234
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L237",
+      "category": "type_error_other",
+      "summary": "Constants require compile-time constant expressions",
+      "cause": "Constants require compile-time constant expressions",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 237
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L239",
+      "category": "type_error_other",
+      "summary": "Multi-variable declarations require matching value counts",
+      "cause": "Multi-variable declarations require matching value counts",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 239
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L242",
+      "category": "type_error_other",
+      "summary": "Uninitialized storage references are rejected",
+      "cause": "Uninitialized storage references are rejected",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 242
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L244",
+      "category": "type_error_other",
+      "summary": "Empty tuple expressions are rejected",
+      "cause": "Empty tuple expressions are rejected",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 244
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L246",
+      "category": "type_error_other",
+      "summary": "Dependency-cycle analysis has a depth limit",
+      "cause": "Dependency-cycle analysis has a depth limit",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 246
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L249",
+      "category": "type_error_other",
+      "summary": "Fixed arrays cannot have zero length",
+      "cause": "Fixed arrays cannot have zero length",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 249
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L254",
+      "category": "parser_error_other",
+      "summary": "The constant function-mutability spelling is removed",
+      "cause": "The constant function-mutability spelling is removed",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 254
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L256",
+      "category": "type_error_other",
+      "summary": "Booleans cannot use arithmetic operators",
+      "cause": "Booleans cannot use arithmetic operators",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 256
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L258",
+      "category": "syntax_error",
+      "summary": "Unary plus is removed",
+      "cause": "Unary plus is removed",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 258
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L260",
+      "category": "type_error_other",
+      "summary": "Packed ABI encoding requires typed literal arguments",
+      "cause": "Packed ABI encoding requires typed literal arguments",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 260
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L263",
+      "category": "type_error_other",
+      "summary": "Functions returning values cannot use a bare return",
+      "cause": "Functions returning values cannot use a bare return",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 263
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L266",
+      "category": "parser_error_other",
+      "summary": "Loose assembly jumps and stack-only instructions are removed",
+      "cause": "Loose assembly jumps and stack-only instructions are removed",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 266
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L270",
+      "category": "syntax_error",
+      "summary": "Unimplemented functions cannot carry modifiers",
+      "cause": "Unimplemented functions cannot carry modifiers",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 270
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L272",
+      "category": "syntax_error",
+      "summary": "Function types cannot name their return values",
+      "cause": "Function types cannot name their return values",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 272
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L274",
+      "category": "syntax_error",
+      "summary": "Unbraced control-flow bodies cannot be variable declarations",
+      "cause": "Unbraced control-flow bodies cannot be variable declarations",
+      "solc_error_types": [
+        "SyntaxError"
+      ],
+      "message_templates": [
+        "outside of a for|not inside a loop|No visibility specified"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 274
+      },
+      "candidate_repair": "deterministic documented context correction only if behavior is preserved; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "move continue outside its loop",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L277",
+      "category": "parser_error_other",
+      "summary": "Calldata and constructor become keywords",
+      "cause": "Calldata and constructor become keywords",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 277
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.5.0-L279",
+      "category": "parser_error_other",
+      "summary": "Additional reserved words cannot be identifiers",
+      "cause": "Additional reserved words cannot be identifiers",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.5.0",
+        "path": "docs/050-breaking-changes.rst",
+        "line": 279
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L18",
+      "category": "runtime",
+      "summary": "Exponentiation results use the base type",
+      "cause": "Exponentiation results use the base type",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 18
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L30",
+      "category": "type_error_other",
+      "summary": "Overriding requires virtual and override with explicit competing bases",
+      "cause": "Overriding requires virtual and override with explicit competing bases",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 30
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L38",
+      "category": "type_error_other",
+      "summary": "Array length is readonly and mutation requires push or pop",
+      "cause": "Array length is readonly and mutation requires push or pop",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 38
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L44",
+      "category": "type_error_other",
+      "summary": "Incomplete contracts require abstract",
+      "cause": "Incomplete contracts require abstract",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 44
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L47",
+      "category": "type_error_other",
+      "summary": "Libraries must implement all declared functions",
+      "cause": "Libraries must implement all declared functions",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 47
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L49",
+      "category": "declaration_error",
+      "summary": "Assembly identifiers cannot end with storage suffixes",
+      "cause": "Assembly identifiers cannot end with storage suffixes",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Identifier <name> invalid or unavailable"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 49
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "rename a declaration to a forbidden identifier",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L51",
+      "category": "duplicate_definition",
+      "summary": "Assembly declarations cannot shadow outer declarations",
+      "cause": "Assembly declarations cannot shadow outer declarations",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Identifier already declared|defined twice|same name and parameter types"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 51
+      },
+      "candidate_repair": "deterministic only for byte/token-identical declarations with preserved binding; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "duplicate a declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L55",
+      "category": "duplicate_definition",
+      "summary": "State-variable shadowing across inheritance is rejected",
+      "cause": "State-variable shadowing across inheritance is rejected",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Identifier already declared|defined twice|same name and parameter types"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 55
+      },
+      "candidate_repair": "deterministic only for byte/token-identical declarations with preserved binding; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "duplicate a declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L66",
+      "category": "type_error_other",
+      "summary": "External function addresses require the address member",
+      "cause": "External function addresses require the address member",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 66
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L69",
+      "category": "type_error_other",
+      "summary": "Array push with a value no longer returns its length",
+      "cause": "Array push with a value no longer returns its length",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 69
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L71",
+      "category": "parser_error_other",
+      "summary": "Fallback declarations split into fallback and receive",
+      "cause": "Fallback declarations split into fallback and receive",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 71
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L75",
+      "category": "runtime",
+      "summary": "Receive handles empty calldata and is implicitly payable",
+      "cause": "Receive handles empty calldata and is implicitly payable",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 75
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L78",
+      "category": "runtime",
+      "summary": "Fallback handles unmatched calls and rejects value unless payable",
+      "cause": "Fallback handles unmatched calls and rejects value unless payable",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 78
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L91",
+      "category": "feature",
+      "summary": "Try-catch is newly available for failed external calls",
+      "cause": "Try-catch is newly available for failed external calls",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 91
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L92",
+      "category": "feature",
+      "summary": "Struct and enum declarations may be at file scope",
+      "cause": "Struct and enum declarations may be at file scope",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 92
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L93",
+      "category": "feature",
+      "summary": "Calldata arrays support slices",
+      "cause": "Calldata arrays support slices",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 93
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L95",
+      "category": "docstring_error",
+      "summary": "NatSpec return names receive declaration checks",
+      "cause": "NatSpec return names receive declaration checks",
+      "solc_error_types": [
+        "DocstringParsingError"
+      ],
+      "message_templates": [
+        "Documentation tag|Documented parameter|@return"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 95
+      },
+      "candidate_repair": "deterministic exact tag-name correction if binding is unique; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "alter a NatSpec parameter name",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.6.0-L96",
+      "category": "feature",
+      "summary": "Yul leave exits a function",
+      "cause": "Yul leave exits a function",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 96
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L97",
+      "category": "feature",
+      "summary": "The payable conversion accepts address values",
+      "cause": "The payable conversion accepts address values",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 97
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L111",
+      "category": "interface",
+      "summary": "The new error reporter becomes the default",
+      "cause": "The new error reporter becomes the default",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 111
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L117",
+      "category": "interface",
+      "summary": "Metadata uses IPFS by default with configurable hash mode",
+      "cause": "Metadata uses IPFS by default with configurable hash mode",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 117
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L132",
+      "category": "interface",
+      "summary": "The Yul optimizer is enabled with the general optimizer",
+      "cause": "The Yul optimizer is enabled with the general optimizer",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 132
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.6.0-L139",
+      "category": "interface",
+      "summary": "The C API transfers allocation and release responsibility to callers",
+      "cause": "The C API transfers allocation and release responsibility to callers",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.6.0",
+        "path": "docs/060-breaking-changes.rst",
+        "line": 139
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.7.0-L15",
+      "category": "runtime",
+      "summary": "Literal exponentiation and shifts use uint256 or int256",
+      "cause": "Literal exponentiation and shifts use uint256 or int256",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 15
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.7.0-L25",
+      "category": "parser_error_other",
+      "summary": "Call gas and value options use braces",
+      "cause": "Call gas and value options use braces",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 25
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L29",
+      "category": "undeclared_identifier",
+      "summary": "The now alias is deprecated in favor of block.timestamp",
+      "cause": "The now alias is deprecated in favor of block.timestamp",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Undeclared identifier|Identifier not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 29
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "delete a referenced declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L34",
+      "category": "docstring_error",
+      "summary": "Variable NatSpec is restricted to public state variables",
+      "cause": "Variable NatSpec is restricted to public state variables",
+      "solc_error_types": [
+        "DocstringParsingError"
+      ],
+      "message_templates": [
+        "Documentation tag|Documented parameter|@return"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 34
+      },
+      "candidate_repair": "deterministic exact tag-name correction if binding is unique; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "alter a NatSpec parameter name",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L37",
+      "category": "parser_error_other",
+      "summary": "Gwei becomes a keyword",
+      "cause": "Gwei becomes a keyword",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 37
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L40",
+      "category": "encoding",
+      "summary": "Ordinary string literals require printable ASCII",
+      "cause": "Ordinary string literals require printable ASCII",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Invalid character|Invalid escape|Invalid UTF-8|unicode"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 40
+      },
+      "candidate_repair": "deterministic BOM or proven escape representation correction; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "insert an illegal token byte or escape",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L43",
+      "category": "feature",
+      "summary": "Unicode-prefixed strings allow UTF-8 text",
+      "cause": "Unicode-prefixed strings allow UTF-8 text",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 43
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.7.0-L46",
+      "category": "feature",
+      "summary": "Overrides may restrict state mutability",
+      "cause": "Overrides may restrict state mutability",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 46
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.7.0-L57",
+      "category": "declaration_error",
+      "summary": "Assembly user identifiers cannot contain dots",
+      "cause": "Assembly user identifiers cannot contain dots",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Identifier <name> invalid or unavailable"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 57
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "rename a declaration to a forbidden identifier",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L60",
+      "category": "undeclared_identifier",
+      "summary": "Assembly storage metadata uses dot-slot and dot-offset syntax",
+      "cause": "Assembly storage metadata uses dot-slot and dot-offset syntax",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Undeclared identifier|Identifier not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 60
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "delete a referenced declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L69",
+      "category": "type_error_other",
+      "summary": "Mapping-containing structs and arrays must stay in storage",
+      "cause": "Mapping-containing structs and arrays must stay in storage",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 69
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L73",
+      "category": "type_error_other",
+      "summary": "Storage copies of mapping-containing aggregate values are rejected",
+      "cause": "Storage copies of mapping-containing aggregate values are rejected",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 73
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L81",
+      "category": "warning",
+      "summary": "Constructor visibility no longer controls abstractness",
+      "cause": "Constructor visibility no longer controls abstractness",
+      "solc_error_types": [
+        "Warning"
+      ],
+      "message_templates": [
+        "Warning: <message>"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 81
+      },
+      "candidate_repair": "no repair required",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.7.0-L85",
+      "category": "type_error_other",
+      "summary": "Library functions cannot be virtual",
+      "cause": "Library functions cannot be virtual",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 85
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L88",
+      "category": "duplicate_definition",
+      "summary": "Duplicate events in one inheritance hierarchy are rejected",
+      "cause": "Duplicate events in one inheritance hierarchy are rejected",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Identifier already declared|defined twice|same name and parameter types"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 88
+      },
+      "candidate_repair": "deterministic only for byte/token-identical declarations with preserved binding; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "duplicate a declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L91",
+      "category": "type_error_other",
+      "summary": "Using directives are no longer inherited",
+      "cause": "Using directives are no longer inherited",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 91
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L98",
+      "category": "type_error_other",
+      "summary": "Shift counts cannot be signed",
+      "cause": "Shift counts cannot be signed",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 98
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L101",
+      "category": "parser_error_other",
+      "summary": "Finney and szabo denominations are removed",
+      "cause": "Finney and szabo denominations are removed",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 101
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L108",
+      "category": "parser_error_other",
+      "summary": "Var is now rejected during parsing",
+      "cause": "Var is now rejected during parsing",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Expected <token> but got <token>|Expected token"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 108
+      },
+      "candidate_repair": "deterministic documented local syntax migration where equivalent; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "replace a valid token with an invalid token",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.7.0-L115",
+      "category": "interface",
+      "summary": "Hex strings have a distinct AST literal kind",
+      "cause": "Hex strings have a distinct AST literal kind",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 115
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.7.0-L116",
+      "category": "interface",
+      "summary": "Null AST members are omitted",
+      "cause": "Null AST members are omitted",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 116
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.7.0-L117",
+      "category": "interface",
+      "summary": "Constructor and function user documentation are consistent",
+      "cause": "Constructor and function user documentation are consistent",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.7.0",
+        "path": "docs/070-breaking-changes.rst",
+        "line": 117
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L16",
+      "category": "runtime",
+      "summary": "Arithmetic overflow and underflow revert unless unchecked",
+      "cause": "Arithmetic overflow and underflow revert unless unchecked",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 16
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L22",
+      "category": "runtime",
+      "summary": "ABI coder v2 becomes the default",
+      "cause": "ABI coder v2 becomes the default",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 22
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L33",
+      "category": "runtime",
+      "summary": "Exponentiation associates to the right",
+      "cause": "Exponentiation associates to the right",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 33
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L38",
+      "category": "runtime",
+      "summary": "Assertion and internal failures return panic data via REVERT",
+      "cause": "Assertion and internal failures return panic data via REVERT",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 38
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L46",
+      "category": "runtime",
+      "summary": "Invalid storage-byte-array encoding causes a panic",
+      "cause": "Invalid storage-byte-array encoding causes a panic",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 46
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L49",
+      "category": "runtime",
+      "summary": "Typed constants round in array-length expressions",
+      "cause": "Typed constants round in array-length expressions",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 49
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L53",
+      "category": "undeclared_identifier",
+      "summary": "The byte type alias is removed",
+      "cause": "The byte type alias is removed",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Undeclared identifier|Identifier not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 53
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "delete a referenced declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L60",
+      "category": "type_error_other",
+      "summary": "Literal casts enforce address width, integer bounds and enum range",
+      "cause": "Literal casts enforce address width, integer bounds and enum range",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 60
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L74",
+      "category": "type_error_other",
+      "summary": "Address literals are nonpayable unless explicitly converted",
+      "cause": "Address literals are nonpayable unless explicitly converted",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 74
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L78",
+      "category": "type_error_other",
+      "summary": "One explicit cast can change at most one type category",
+      "cause": "One explicit cast can change at most one type category",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 78
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L105",
+      "category": "type_error_other",
+      "summary": "Call options must occur in a single brace block",
+      "cause": "Call options must occur in a single brace block",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 105
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L107",
+      "category": "undeclared_identifier",
+      "summary": "High-level log0 through log4 functions are removed",
+      "cause": "High-level log0 through log4 functions are removed",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Undeclared identifier|Identifier not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 107
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "delete a referenced declaration",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L111",
+      "category": "type_error_other",
+      "summary": "Enums cannot contain more than 256 values",
+      "cause": "Enums cannot contain more than 256 values",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 111
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L115",
+      "category": "declaration_error",
+      "summary": "Special names are forbidden for most declarations",
+      "cause": "Special names are forbidden for most declarations",
+      "solc_error_types": [
+        "DeclarationError"
+      ],
+      "message_templates": [
+        "Identifier <name> invalid or unavailable"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 115
+      },
+      "candidate_repair": "deterministic declaration-only stub when its complete type is constrained; otherwise agent",
+      "change_level": "additive",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "rename a declaration to a forbidden identifier",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L119",
+      "category": "encoding",
+      "summary": "Backspace, form-feed and vertical-tab escapes are removed",
+      "cause": "Backspace, form-feed and vertical-tab escapes are removed",
+      "solc_error_types": [
+        "ParserError"
+      ],
+      "message_templates": [
+        "Invalid character|Invalid escape|Invalid UTF-8|unicode"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 119
+      },
+      "candidate_repair": "deterministic BOM or proven escape representation correction; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "insert an illegal token byte or escape",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L122",
+      "category": "type_error_other",
+      "summary": "Sender and origin are nonpayable address values",
+      "cause": "Sender and origin are nonpayable address values",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 122
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L129",
+      "category": "type_error_other",
+      "summary": "Address conversions normally produce nonpayable addresses",
+      "cause": "Address conversions normally produce nonpayable addresses",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 129
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L147",
+      "category": "type_error_other",
+      "summary": "The assembly chainid builtin requires view instead of pure",
+      "cause": "The assembly chainid builtin requires view instead of pure",
+      "solc_error_types": [
+        "TypeError"
+      ],
+      "message_templates": [
+        "not implicitly convertible|Invalid type|Wrong argument count|Member <name> not found"
+      ],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 147
+      },
+      "candidate_repair": "deterministic mechanically equivalent type spelling or cast only; otherwise agent",
+      "change_level": "rewrite",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": "change a parameter or expression type",
+      "compile_failure_class": true
+    },
+    {
+      "id": "v0.8.0-L152",
+      "category": "interface",
+      "summary": "Combined-JSON ABI and documentation values become JSON objects",
+      "cause": "Combined-JSON ABI and documentation values become JSON objects",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 152
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L155",
+      "category": "interface",
+      "summary": "Legacy AST output is removed",
+      "cause": "Legacy AST output is removed",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 155
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    },
+    {
+      "id": "v0.8.0-L158",
+      "category": "interface",
+      "summary": "The old error reporter is removed",
+      "cause": "The old error reporter is removed",
+      "solc_error_types": [],
+      "message_templates": [],
+      "error_codes": [],
+      "verified_versions": [],
+      "documentation": {
+        "tag": "v0.8.0",
+        "path": "docs/080-breaking-changes.rst",
+        "line": 158
+      },
+      "candidate_repair": "no source repair solely for this change; select a compatible compiler/tool interface; runtime semantics require separate assessment",
+      "change_level": "none",
+      "verification": [
+        "D3(a/b)",
+        "D7 byte and diagnostic-line checks"
+      ],
+      "cp4_operator": null,
+      "compile_failure_class": false
+    }
+  ],
+  "cp4_common_protocol": [
+    "从可编译且D3成立的基础单元构造",
+    "保存输入/变异SHA、随机种子、编译器/参数和准确编辑位置",
+    "破坏后实际触发目标错误才纳入该类别，未触发单列",
+    "语料零频次不删除算子",
+    "原始/破坏版本按项目隔离划分，避免泄漏",
+    "工具限制类不以改写合法源码作为恢复目标"
+  ],
+  "note": "CP3给出后续规则/基准清单，不在本轮实施CP4–CP6规则或调整冻结版本策略。",
+  "draft_sha256": "8a78b387adfe67e03422ab51333ef2ccf3a9d7b6878edea06d7f62e4649c3a72",
+  "frequency_summary_sha256": "b13086249ca05a61bef01bd611defcff1a9a78e0c508e68fa441d26d18ca7d75",
+  "implementation_priority_by_frequency_only": [
+    "unresolved_package_import",
+    "missing_relative_file",
+    "standard_json_input",
+    "parser_error_other",
+    "unbalanced_structure",
+    "codegen_only",
+    "other",
+    "io_error",
+    "undeclared_identifier",
+    "slither_incomplete",
+    "duplicate_definition",
+    "multiple_license_or_pragma",
+    "type_error_other",
+    "closure_version_conflict",
+    "unsupported_expression",
+    "missing_base_contract",
+    "unsupported_disjunction",
+    "unterminated_pragma",
+    "compiler_exception",
+    "declaration_error",
+    "docstring_error",
+    "encoding",
+    "fatal_error",
+    "internal_compiler_error",
+    "json_error",
+    "pragma_missing_semicolon_candidate",
+    "slither_no_timeout",
+    "syntax_error",
+    "unimplemented_feature",
+    "warning"
+  ],
+  "zero_frequency_categories_retained": [
+    "compiler_exception",
+    "declaration_error",
+    "docstring_error",
+    "encoding",
+    "fatal_error",
+    "internal_compiler_error",
+    "json_error",
+    "pragma_missing_semicolon_candidate",
+    "slither_no_timeout",
+    "syntax_error",
+    "unimplemented_feature",
+    "warning"
+  ],
+  "schema": "cp3.1-d6-priority",
+  "count_basis": "primary causes; version_dependent is a statistics bucket outside the taxonomy"
+}

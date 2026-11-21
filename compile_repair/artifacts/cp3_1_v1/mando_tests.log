@@ -1,0 +1,36 @@
+..............ss.ss..................................................... [  9%]
+...............................................................sss...... [ 18%]
+...........s............sssssss.............F
+=================================== FAILURES ===================================
+______________ test_constraint_semantics_and_exception_type[0.5] _______________
+
+expression = '0.5'
+
+    @pytest.mark.parametrize("expression", [
+        "^0.0.3", "^0.4.12", "^1.2.3", "~0.5.1", "=0.5.2", "0.5.2",
+        ">=0.4.12 <=0.5.3", ">0.4.12 <0.5.0", "^0.4.0 || ^0.5.0",
+        ">=0.5.0 <0.5.0", "*", "0.5", ">=0.5.0 nonsense",
+    ])
+    def test_constraint_semantics_and_exception_type(expression):
+        raw = ("pragma solidity " + expression + "; contract C {}").encode()
+        # The reference expression evaluator needs only a pragma node; parser error
+        # recovery must not determine whether the expression semantics are tested.
+        class Directive:
+            type = "pragma_directive"
+            start_byte = 0
+            end_byte = raw.index(b";") + 1
+        class Root:
+            named_children = [Directive()]
+>       assert outcome(lambda: pragma_interval([raw])) == outcome(
+            lambda: frozen_interval(raw.decode(), Root()))
+E       AssertionError: assert {'exception_t...), (0, 6, 0))} == {'exception_t...'value': None}
+E         Differing items:
+E         {'exception_type': None} != {'exception_type': 'Unsupported'}
+E         {'value': ((0, 5, 0), (0, 6, 0))} != {'value': None}
+E         Use -v to get more diff
+
+compile_repair/tests/test_pragma_bytes.py:106: AssertionError
+=========================== short test summary info ============================
+FAILED compile_repair/tests/test_pragma_bytes.py::test_constraint_semantics_and_exception_type[0.5]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 173 passed, 15 skipped in 35.62s

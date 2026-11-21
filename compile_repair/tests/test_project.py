@@ -110,25 +110,24 @@ def test_production_project_same_parameters_and_full_d3(tmp_path,version):
     assert analysis["command"]["solc_remaps"]==["@vendor/=vendor/"]
     verify_project(original)
 
-def test_approved_project_file_identity_preserves_duplicate_key5(tmp_path):
+@pytest.mark.parametrize("fixture,version", [
+    ("cp3_alias", "0.8.38"), ("cp31_alias_cast", "0.8.0"),
+    ("cp31_alias_cast", "0.8.24"), ("cp31_alias_cast", "0.8.38")])
+def test_duplicate_names_retain_d3_and_refuse_graph(tmp_path, fixture, version):
     production_required()
-    project=resolve_project(F/"cp3_alias","Main.sol")
-    unit=CompilationUnit("alias",project.files,known_version="0.8.38")
-    store=ArtifactStore(tmp_path/"alias")
+    project = resolve_project(F / fixture, "Main.sol")
+    unit = CompilationUnit("alias", project.files, known_version=version)
+    store = ArtifactStore(tmp_path / "alias")
     with store.journal("invocations.jsonl") as journal:
-        record=repair_unit(unit,trusted_compilers(),store,journal,project=project)
-    assert record.status=="success"
-    graph=json.loads((store.path/"units/alias/graph.json").read_text())
-    assert len(graph["nodes"])==4
-    keys=[json.dumps(n["key5"]) for n in graph["nodes"]]
-    assert len(set(keys))==2
-    ids={(n["filename"],json.dumps(n["key5"])) for n in graph["nodes"]}
-    assert len(ids)==4
-    for edge in graph["cfg_edges"]:
-        for side in ("source","target"):
-            assert (edge[side]["filename"],json.dumps(edge[side]["key5"])) in ids
-    assert set(record.provenance)=={f.path for f in project.files}
-    assert all(n["provenance"]=="original" for n in graph["nodes"])
+        record = repair_unit(unit, {version: trusted_compilers()[version]}, store, journal, project=project)
+    analysis = record.attempts[0]["slither"]
+    assert record.status == "unrepaired" and record.reason == "slither_side_failure"
+    assert analysis["d3_a"] and analysis["d3_b"] and analysis["d3"]
+    assert analysis["project_binding"]["complete"] and analysis["project_binding"]["checked"] == 0
+    assert analysis["duplicate_contract_names"] == ["C"] and not analysis["graph_usable"]
+    assert analysis["graph_unusable_reason"] == "duplicate_contract_names"
+    assert set(record.provenance) == {f.path for f in project.files}
+    assert not (store.path / "units/alias/graph.json").exists()
 
 def test_directory_cli_expands_entries_with_same_remapping(tmp_path):
     production_required()
@@ -181,8 +180,8 @@ def test_project_calls_reject_native_alias_binding(tmp_path):
     from compile_repair.evaluation.report import classify_record
     from dataclasses import asdict
     failures = classify_record(asdict(record))
-    assert failures[0]["subtype"] == "project_binding_rejected"
-    assert failures[0]["repair_route"] == "tool_limitation"
+    assert {row["subtype"] for row in failures} == {"project_binding_rejected", "duplicate_contract_names"}
+    assert all(row["repair_route"] == "tool_limitation" for row in failures)
 
 
 @pytest.mark.parametrize("version", ["0.4.12", "0.4.24", "0.5.17", "0.8.38"])

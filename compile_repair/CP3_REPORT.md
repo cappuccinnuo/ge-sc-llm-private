@@ -551,3 +551,123 @@ other的23种归一化模板及SHA例证在other_template_unit_counts逐项列�
 doc_check_v1对六份正文与五份原文快照共11份通过；本补记及当前状态更新后的最终字节由doc_check_v2再次核验，提交以该收据通过并绑定各文档SHA为前置条件。新证据由evidence_seal与delivery_inventory封存，acceptance_status汇总最终门槛。完整回归与保护检查已通过，此后只补交付记录，没有再跑实验或修改生产代码。
 
 CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-repair，实际提交号以包含本记录的CP3提交及仓库外delivery_commit_receipt为准；本轮未push，未实施CP4或新增修复规则。参数修正及103项批准全部落实，无新增待批准执行事项；已知工具与版本边界继续按本报告保留。
+
+
+## CP3.1 主因、输入包装、项目图与 pragma 回归（2026-11-21，修改 AI：Codex）
+
+基线为 `compile-repair@61c94e00`，任务为 PROMPTS r2.14 §4.5b。31,307 个原始单元中有 31,071 个进入正式统计，另有 236 个非 Solidity 输入。CP3.1 核对旧结果与输入的 SHA，复现旧版“任一候选”全表，然后在新批次替换 510 项，其余 30,561 项保留原结果来源。最终 21,223 项通过编译和 Slither 验证，9,848 项未修复，比 CP3 多 63 项成功。
+
+| 语料 | 有效单元 | 成功 | 未修复 |
+|---|---:|---:|---:|
+| DAppSCAN | 21457 | 13594 | 7863 |
+| Trace_CVEs | 15 | 14 | 1 |
+| Trace_on_chain | 5000 | 4565 | 435 |
+| Trace_repo | 3092 | 2066 | 1026 |
+| SOChecker | 661 | 141 | 520 |
+| MANDO | 846 | 843 | 3 |
+
+### 验收与实际结果
+
+1. 主因优先使用输入格式、版本计划或项目组装阶段的记录。有成功编译候选时只采纳该候选的 Slither 侧原因。所有候选均未编译成功时，对各版本的类别取交集，空交集归入 `version_dependent`。三个已知 MANDO 失败的主因均只有 `slither_incomplete`。各规则有合成记录测试，逐项来源见 `unit_attributions.jsonl.gz`。
+2. 正式入口在计划前用 JSON 解析识别标准输入、双层花括号包装以及顶层多源映射，记录源名称、数量与设置键。对 31,307 个原始输入逐一判定，Trace on-chain 中有 410 项命中，另五组均为 0。410 项旧类别都是 `parser_error_other`，现明确记为 `standard_json_input`，正式运行工具调用数为 0。前提探针选已知 cp3_23864 和按输入 SHA 排序的另外两项，在仓库外解包。前者的 20 个源文件在 0.8.24、0.8.38 下构建成功，另两项也在选定的 0.8.38 下构建成功。四次调用的 D3、图接受状态及参数均见 `wrapper_premises.json`，CP5 承担正式解包与设置映射。
+3. D21 对 AST 中 contract、interface、library 定义名计数，与原 D3 和变量绑定证据并存。三个版本（0.8.0、0.8.24、0.8.38）的 alias_cast 探针及原 cp3_alias 均保留 D3 为真、变量检查 0 条，图因 `duplicate_contract_names` 被拒，磁盘未生成 graph.json。cp3_alias_calls 继续检出原生错绑。24,549 个项目单元中，15,642 项有本单元的旧定义计数，对另外 8,907 项分别执行一次只请求 AST 的调用。含同内容 SHA 的既有定义证据合并后，18,389 项可判定，其中 12 项确认重名，原成功数 0。另 6,160 项的完整定义集合未知，原来均未修复，其中 6,039 项缺导入。12 项重验后仍未修复。生产图使用实际编译单元的 AST，跨观察复用证据仅用于历史语料统计。
+4. 92 版 × 82 个手写 pragma 的 7,544 组中，3,598 组接受，3,586 组因版本拒绝，360 组因旧解析器不接受该写法而拒绝。核对区间成员资格全部一致。例：`0.x` 在 0.4.x 报语法错误，`0.*` 在支持范围均可解析，`^0` 从 0.5.14 开始接受。原可求值表达式的 137,792 次出现全部等价，另记录旧拒绝的 230 次出现，覆盖语料、闭包和 79 份 fixture；按源码 SHA 缓存，共 350 种不同的遮盖后表达式。846 个 MANDO 输入的升降序计划共 1,692 次逐字段相同。92 个旧 `unsupported_expression` 单元中有 88 个现在可求值，其中 63 项成功、25 项继续归入实际失败原因，仍有 4 项不支持。
+5. 按 v5 的原输入顺序和 CLI 参数执行生产升序回归，逐项检查状态、原因、设置、标志、选版和输入。846/846 相同，843/843 份 graph.json 与 v5 字节相同，其余 3 项仍是已知 Slither 侧失败。CLI 返回 2，外层已校验失败身份与图缺席。最终收据为 `mando_regression_final.json`。
+6. 正式替换的 410 个包装、88 个 pragma 和 12 个确认重名编译单元互不重叠。该批执行了 1,050 次 solc 和 63 次 Slither，逐项记录新旧结果。两张表使用相同的 9,848 个失败作分母，各类别在每单元计一次，多个类别可同时出现。D6 与 CP4 清单保留 30 类和 125 条 breaking changes，新增包装为可编译项目的构造算子；主因频率仅决定实现顺序。版本相关桶不进入分类表。其余实现仍留后续 CP。
+
+以下示例为入口 SHA256 前 12 位，完整 SHA、单元 ID、语料、结果路径与结果 SHA 在本批次 failure_summary.json 的两张表中。未观察到的类别显示 0。
+
+### 主因表，供 D6 排序
+
+| 类别 | 单元数 | 占未修复 | 分语料单元数 | SHA256 示例 |
+|---|---:|---:|---|---|
+| unresolved_package_import | 8454 | 85.84% | DAppSCAN 7450、SOChecker 24、Trace_repo 980 | 0012f44e4922、001ecd2ed100、00339bccbd16 |
+| missing_relative_file | 412 | 4.18% | DAppSCAN 373、SOChecker 8、Trace_repo 31 | 00bff7de84ca、0188bbd59c0d、02c34131516c |
+| standard_json_input | 410 | 4.16% | Trace_on_chain 410 | 00eff580610f、010cb6d5735a、01b7db668edd |
+| parser_error_other | 279 | 2.83% | DAppSCAN 77、SOChecker 180、Trace_on_chain 22 | 003d520e682b、02a12acb7f10、035289f6a276 |
+| version_dependent | 221 | 2.24% | DAppSCAN 10、SOChecker 211 | 00230fa53244、0113a63861cb、014f555ccd83 |
+| unbalanced_structure | 56 | 0.57% | DAppSCAN 5、SOChecker 50、Trace_on_chain 1 | 00c2c8bda1c5、017067cfe41c、159db6c0d65e |
+| codegen_only | 39 | 0.40% | DAppSCAN 23、Trace_on_chain 1、Trace_repo 15 | 110e45856bfb、372c3f6e62ea、382f91cab895 |
+| other | 36 | 0.37% | DAppSCAN 8、SOChecker 24、Trace_CVEs 1、Trace_repo 3 | 05ba0fca36de、0f87aee0656f、164445483e8d |
+| io_error | 28 | 0.28% | DAppSCAN 25、Trace_repo 3 | 06cf16670f0c、0d719113fbf9、1224792e6eca |
+| undeclared_identifier | 25 | 0.25% | DAppSCAN 11、SOChecker 14 | 11420a30cb75、1a908011a327、2d5c1b61eb79 |
+| slither_incomplete | 24 | 0.24% | DAppSCAN 14、MANDO 3、Trace_repo 7 | 0e6268505838、468e0bf260a5、4da99768f17a |
+| duplicate_definition | 19 | 0.19% | DAppSCAN 10、SOChecker 9 | 135024035e17、27865fc413d2、2c71085a2a86 |
+| multiple_license_or_pragma | 8 | 0.08% | DAppSCAN 8 | 0a7d9b4158d7、2a9a04776730、33c4146f954a |
+| type_error_other | 6 | 0.06% | DAppSCAN 3、SOChecker 1、Trace_CVEs 1、Trace_repo 1 | 05ba0fca36de、14b294d583a0、48e0a8577662 |
+| closure_version_conflict | 4 | 0.04% | DAppSCAN 3、SOChecker 1 | 05ba0fca36de、0bbda4db0ee8、38049bf30972 |
+| unsupported_expression | 4 | 0.04% | SOChecker 3、Trace_on_chain 1 | 1f1340dbb049、3d171708f892、54f0effbc30a |
+| missing_base_contract | 2 | 0.02% | DAppSCAN 1、SOChecker 1 | 2f4d95b40a40、d9b8704c67e9 |
+| unsupported_disjunction | 1 | 0.01% | DAppSCAN 1 | 4881d540505e |
+| unterminated_pragma | 1 | 0.01% | SOChecker 1 | 9c106278ed59 |
+| compiler_exception | 0 | 0.00% | — | — |
+| declaration_error | 0 | 0.00% | — | — |
+| docstring_error | 0 | 0.00% | — | — |
+| encoding | 0 | 0.00% | — | — |
+| fatal_error | 0 | 0.00% | — | — |
+| internal_compiler_error | 0 | 0.00% | — | — |
+| json_error | 0 | 0.00% | — | — |
+| pragma_missing_semicolon_candidate | 0 | 0.00% | — | — |
+| slither_no_timeout | 0 | 0.00% | — | — |
+| syntax_error | 0 | 0.00% | — | — |
+| unimplemented_feature | 0 | 0.00% | — | — |
+| warning | 0 | 0.00% | — | — |
+
+### 任一候选表，保留各版本诊断
+
+| 类别 | 单元数 | 占未修复 | 分语料单元数 | SHA256 示例 |
+|---|---:|---:|---|---|
+| unresolved_package_import | 8457 | 85.88% | DAppSCAN 7450、SOChecker 27、Trace_repo 980 | 0012f44e4922、001ecd2ed100、00339bccbd16 |
+| parser_error_other | 490 | 4.98% | DAppSCAN 78、MANDO 3、SOChecker 387、Trace_on_chain 22 | 00230fa53244、003d520e682b、0113a63861cb |
+| missing_relative_file | 415 | 4.21% | DAppSCAN 373、SOChecker 11、Trace_repo 31 | 00bff7de84ca、0188bbd59c0d、02c34131516c |
+| standard_json_input | 410 | 4.16% | Trace_on_chain 410 | 00eff580610f、010cb6d5735a、01b7db668edd |
+| other | 202 | 2.05% | DAppSCAN 15、SOChecker 183、Trace_CVEs 1、Trace_repo 3 | 00230fa53244、0113a63861cb、014f555ccd83 |
+| undeclared_identifier | 160 | 1.62% | DAppSCAN 12、MANDO 3、SOChecker 145 | 00230fa53244、014f555ccd83、043ec1439ed0 |
+| unbalanced_structure | 86 | 0.87% | DAppSCAN 5、SOChecker 80、Trace_on_chain 1 | 00c2c8bda1c5、017067cfe41c、0ef30927f8fe |
+| codegen_only | 43 | 0.44% | DAppSCAN 27、Trace_on_chain 1、Trace_repo 15 | 0b5e6c5833e4、110e45856bfb、2a535cea3921 |
+| duplicate_definition | 29 | 0.29% | DAppSCAN 12、SOChecker 17 | 0add867157f3、0e0f218e9558、135024035e17 |
+| io_error | 28 | 0.28% | DAppSCAN 25、Trace_repo 3 | 06cf16670f0c、0d719113fbf9、1224792e6eca |
+| type_error_other | 25 | 0.25% | DAppSCAN 9、SOChecker 14、Trace_CVEs 1、Trace_repo 1 | 05ba0fca36de、0e0f218e9558、14b294d583a0 |
+| slither_incomplete | 24 | 0.24% | DAppSCAN 14、MANDO 3、Trace_repo 7 | 0e6268505838、468e0bf260a5、4da99768f17a |
+| syntax_error | 17 | 0.17% | DAppSCAN 5、SOChecker 12 | 097b49fae241、0b5e6c5833e4、11420a30cb75 |
+| missing_base_contract | 13 | 0.13% | DAppSCAN 2、SOChecker 11 | 097b49fae241、24db0472ca88、2856c2597c28 |
+| multiple_license_or_pragma | 8 | 0.08% | DAppSCAN 8 | 0a7d9b4158d7、2a9a04776730、33c4146f954a |
+| internal_compiler_error | 5 | 0.05% | DAppSCAN 5 | 5b97cf0d388d、7fe16b5211e2、928f6a956657 |
+| closure_version_conflict | 4 | 0.04% | DAppSCAN 3、SOChecker 1 | 05ba0fca36de、0bbda4db0ee8、38049bf30972 |
+| unsupported_expression | 4 | 0.04% | SOChecker 3、Trace_on_chain 1 | 1f1340dbb049、3d171708f892、54f0effbc30a |
+| unsupported_disjunction | 1 | 0.01% | DAppSCAN 1 | 4881d540505e |
+| unterminated_pragma | 1 | 0.01% | SOChecker 1 | 9c106278ed59 |
+| compiler_exception | 0 | 0.00% | — | — |
+| declaration_error | 0 | 0.00% | — | — |
+| docstring_error | 0 | 0.00% | — | — |
+| encoding | 0 | 0.00% | — | — |
+| fatal_error | 0 | 0.00% | — | — |
+| json_error | 0 | 0.00% | — | — |
+| pragma_missing_semicolon_candidate | 0 | 0.00% | — | — |
+| slither_no_timeout | 0 | 0.00% | — | — |
+| unimplemented_feature | 0 | 0.00% | — | — |
+| warning | 0 | 0.00% | — | — |
+
+### version_dependent 的版本差异
+
+共 221 项。下表按每个失败单元的完整候选序列分组，列出最常见的三种组合；完整前十及各版本组合的单元数在 failure_summary.json。
+
+| 单元数 | 版本及其诊断类别 |
+|---:|---|
+| 113 | 0.4.12 至 0.7.0（parser_error_other）；0.7.1 至 0.8.38（other、undeclared_identifier） |
+| 23 | 0.4.12 至 0.7.0（parser_error_other）；0.7.1 至 0.8.38（other） |
+| 14 | 0.4.12 至 0.7.3（parser_error_other）；0.7.4 至 0.8.38（unbalanced_structure） |
+
+### 实现、测试与交付
+
+| 生产文件 | 函数或模块范围的变更行数（新增 / 删除） |
+|---|---|
+| toolchain/project.py | module +3/−0，standard_json_input +23/−0，reject_constant +2/−0，source_map +4/−0 |
+| toolchain/slither.py | contract_coverage +5/−9，_ast_contract_names +5/−0，module +2/−0，run_slither +15/−1 |
+| rules/environment.py | _expression_interval +42/−17 |
+| pipeline.py | module +1/−1，repair_unit +6/−0 |
+| evaluation/report.py | classify_record +9/−2，module +4/−0，primary_causes +27/−0，aggregate_attributions +19/−0，table +5/−0 |
+
+共 16 个生产模块。完整测试为 production 758 通过、6 跳过，mando 295 通过、469 跳过，DFG v2 2,653 通过、9 个既有警告。CPU 上按 `python -B -m pytest -q -p no:cacheprovider` 运行，本次还指定 -x 和新 basetemp。首次模块测试发现旧断言要求拒绝 `0.5`，现同时断言旧行为及 CP3.1 明确要求的新区间，两次结果均保留。旧产物、工具链与语料的核验见 scope_audit.json。
+
+用户已批准 D21、语法拒绝单列和 AST 不足单列。AST 不足使全体重名项目数只能给出下限。D21 也会拒绝部分实际上绑定正确的重名项目图。原始失败、前提探针和两次 MANDO 字节核对各自保留，最终生产结果以 final 收据为准。费用 0 美元，未下载、安装或调用 LLM。交接记录见 CHANGE_LOG §37 及批次 README，提交与后续独立审查分开记录。

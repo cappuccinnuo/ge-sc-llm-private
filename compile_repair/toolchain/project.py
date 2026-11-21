@@ -3,6 +3,7 @@
 No package installation, basename repair, framework execution or source rewrite.
 A project records unresolved imports explicitly; compilers still decide syntax.
 """
+import json
 import hashlib
 import posixpath
 import re
@@ -33,6 +34,37 @@ class Project:
                 "files": [{"path": f.path, "sha256": f.sha256, "bytes": len(f.content)}
                           for f in self.files], "source_units": self.source_units,
                 "imports": self.imports, "issues": self.issues}
+
+
+def standard_json_input(raw):
+    """Describe Solidity standard JSON or Etherscan's source map without storing content."""
+    raw = raw.strip()
+    if not raw.startswith(b"{"):
+        return None
+    if raw.startswith(b"{{") and raw.endswith(b"}}"):
+        raw = raw[1:-1]
+    def reject_constant(value):
+        raise ValueError("Invalid JSON constant: " + value)
+
+    try:
+        obj = json.loads(raw, parse_constant=reject_constant)
+    except (ValueError, RecursionError):
+        return None
+    if not isinstance(obj, dict) or obj.get("language", "Solidity") != "Solidity":
+        return None
+    def source_map(value):
+        return isinstance(value, dict) and all(
+            isinstance(item, dict) and isinstance(item.get("content"), str)
+            for item in value.values())
+
+    sources = obj.get("sources")
+    if not source_map(sources):
+        if "language" in obj or not source_map(obj):
+            return None
+        sources = obj
+    settings = obj.get("settings")
+    return {"source_count": len(sources), "source_names": sorted(sources),
+            "settings_keys": sorted(settings) if isinstance(settings, dict) else []}
 
 
 def import_directives(source):

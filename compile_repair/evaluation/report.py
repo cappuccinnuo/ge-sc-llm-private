@@ -18,18 +18,22 @@ def classify_record(record):
     originals = [Path(s["path"]).read_bytes() for s in record["inputs"]]
     rows = []
     for attempt in record["attempts"]:
+        if attempt["stage"] == "input_format":
+            rows.append(dict(attempt, category="standard_json_input"))
+            continue
         if attempt["stage"] == "project_assembly":
             rows.extend(dict(issue, stage="project_assembly") for issue in attempt["issues"])
             continue
         if attempt["stage"] == "environment_plan":
-            rows.append(classify_constraints(attempt["error_first_line"], originals))
+            rows.append(dict(classify_constraints(attempt["error_first_line"], originals),
+                             stage="environment_plan"))
             continue
         compiled = attempt.get("solc")
         if not compiled:
             continue
         version = attempt["version"]
         if compiled["timed_out"]:
-            rows.append({"category": "other", "subtype": "solc_timeout", "version": version,
+            rows.append({"category": "other", "subtype": "solc_timeout", "stage": "solc", "version": version,
                          "template": "solc invocation timeout"})
         elif compiled["returncode"] != 0:
             for diagnostic in parse_diagnostics(compiled["stderr"]):
@@ -49,6 +53,9 @@ def classify_record(record):
                     rows.append(dict(row, version=version, stage="solc"))
         elif attempt.get("slither"):
             analysis = attempt["slither"]
+            if analysis.get("graph_unusable_reason") == "duplicate_contract_names":
+                rows.append({"category": "slither_incomplete", "subtype": "duplicate_contract_names",
+                             "stage": "slither", "version": version, "repair_route": "tool_limitation"})
             if not analysis.get("project_binding", {"complete": True})["complete"]:
                 rows.append({"category": "slither_incomplete", "stage": "slither",
                              "subtype": "project_binding_rejected", "version": version,
@@ -60,6 +67,35 @@ def classify_record(record):
     if not rows:
         rows.append({"category": "other", "template": record["reason"] or "no classified diagnostic"})
     return rows
+
+
+def primary_causes(record, failures=None):
+    """Attribute an unrepaired unit to the earliest blocking stage or common diagnostics."""
+    if record["status"] == "success":
+        return {"categories": [], "by_version": {}}
+    failures = classify_record(record) if failures is None else failures
+    for stage in ("input_format", "environment_plan", "project_assembly"):
+        labels = sorted({row["category"] for row in failures if row.get("stage") == stage})
+        if labels:
+            return {"categories": labels, "by_version": {}}
+    attempts = [attempt for attempt in record["attempts"] if attempt.get("solc")]
+    successful = {a["version"] for a in attempts if a["solc"]["returncode"] == 0}
+    if successful:
+        labels = {r["category"] for r in failures if r.get("stage") == "slither"
+                  and r["version"] in successful}
+        return {"categories": sorted(labels or {"slither_incomplete"}), "by_version": {}}
+    versions = {a["version"]: set() for a in attempts}
+    for row in failures:
+        if row.get("version") in versions:
+            versions[row["version"]].add(row["category"])
+    if not versions:
+        return {"categories": ["other"], "by_version": {}}
+    for labels in versions.values():
+        if not labels:
+            labels.add("other")
+    common = set.intersection(*versions.values())
+    return {"categories": sorted(common or {"version_dependent"}),
+            "by_version": {v: sorted(labels) for v, labels in versions.items()}}
 
 
 def aggregate_failures(classifications, categories):
@@ -111,3 +147,29 @@ def aggregate_failures(classifications, categories):
             "other_templates": dict(templates), "unresolved_packages": dict(packages),
             "unresolved_import_paths": dict(import_paths), "relative_basename_candidates": dict(candidates),
             "import_count_basis": "unique importer/byte-position/path per compilation unit; closures overlap"}
+
+
+def aggregate_attributions(classifications, categories):
+    """Report both candidate conventions from the same population and denominator."""
+    primary_rows, all_rows, combinations = [], [], Counter()
+    for item in classifications:
+        primary = item["primary"]
+        row = {key: item[key] for key in ("unit_id", "status", "corpus", "entry_sha256")}
+        any_rows = [{"category": category} for category in item["any_categories"]]
+        all_rows.append(dict(row, failures=any_rows))
+        primary_rows.append(dict(row, failures=[{"category": c} for c in primary["categories"]]))
+        if "version_dependent" in primary["categories"]:
+            for version, labels in primary["by_version"].items():
+                combinations[(version, tuple(labels))] += 1
+    def table(rows, names):
+        counts = aggregate_failures(rows, names)
+        return {key: counts[key] for key in (
+            "total", "success", "remaining_failures", "category_unit_counts",
+            "categories_are_nonexclusive")}
+
+    return {
+        "primary": table(primary_rows, list(categories) + ["version_dependent"]),
+        "any_candidate": table(all_rows, categories),
+        "version_dependent_combinations": [
+            {"version": version, "categories": list(labels), "units": count}
+            for (version, labels), count in sorted(combinations.items(), key=lambda pair: (-pair[1], pair[0]))]}

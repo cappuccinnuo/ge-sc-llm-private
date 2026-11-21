@@ -1,0 +1,12 @@
+{
+  "decision": "D21",
+  "status": "pending",
+  "base_commit": "61c94e00b1b5625a466596b96fc36b8e5f860674",
+  "source": "compile_repair/artifacts/cp3_review_v1/probe_alias_cast.json",
+  "source_sha256": "91a09a92e8dc82a2845255984826ba5896eb6cab23e4633a5962dea35a7e7c96",
+  "proposal": "Only for projects, mark graphs unusable when the compiled closure AST contains repeated ContractDefinition names (contract/interface/library), retaining raw D3 and the existing variable-binding test. Record duplicate_contract_names as a tool limitation.",
+  "evidence": "Solc resolves A and B to separate files but both high-level cast calls were bound to B.sol. The old variable check inspected zero declarations.",
+  "impact": "May reject correctly bound graphs as well. Inspect stored ASTs, record needed additional AST-only invocations separately, revalidate affected projects once and replace their evidence in a new batch.",
+  "cost_usd": 0,
+  "no_installation_or_download": true
+}

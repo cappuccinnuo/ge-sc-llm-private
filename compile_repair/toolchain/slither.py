@@ -136,16 +136,11 @@ def node_facts(slither, inputs, project_root=None):
             "nodes": sorted(rows, key=lambda r: json.dumps(r, sort_keys=True))}
 
 
-def contract_coverage(slither, inputs):
-    """Check D3(b) against saved legacy/compact solc AST contract multisets.
-
-    Include interfaces and libraries. Every input needs an observed SourceUnit
-    AST; absent or malformed AST data raises instead of yielding an empty pass.
-    Names retain their multiplicities across files and compilation units.
-    """
+def _ast_contract_names(crytic, inputs):
+    """Count named definitions from all expected source ASTs, including legacy format."""
     allowed = {str(Path(p).resolve()) for p in inputs}
-    expected, actual, seen, evidence = Counter(), Counter(), set(), []
-    for unit in slither.crytic_compile.compilation_units.values():
+    expected, seen, evidence = Counter(), set(), []
+    for unit in crytic.compilation_units.values():
         for filename, tree in unit.asts.items():
             if not _input_filename(filename, allowed):
                 continue
@@ -171,6 +166,14 @@ def contract_coverage(slither, inputs):
                              "ast_sha256": hashlib.sha256(json.dumps(tree, sort_keys=True).encode("utf8")).hexdigest()})
     if allowed - seen:
         raise ValueError("Input AST not observed: " + ", ".join(sorted(allowed - seen)))
+    return expected, evidence
+
+
+def contract_coverage(slither, inputs):
+    """Compare native contracts and the compiler AST multiset for D3(b)."""
+    expected, evidence = _ast_contract_names(slither.crytic_compile, inputs)
+    allowed = {str(Path(p).resolve()) for p in inputs}
+    actual = Counter()
     for contract in slither.contracts:
         mapping = read_mapping(contract.source_mapping)
         if _input_filename(mapping["filename"], allowed):
@@ -516,6 +519,7 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False, proj
         result["command"].update(target=target, **kwargs)
         result["project"] = project.manifest()
     start = time.monotonic()
+    crytic = None
     try:
         if profile == "production":
             # Compose the same public constructors/kwargs as Slither(str(path)).
@@ -575,7 +579,20 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False, proj
                 result["project_binding"] = {
                     "complete": False, "reason": "binding_check_unverifiable",
                     "exception_type": type(exc).__name__, "detail": str(exc)}
-        result["graph_usable"] = result["d3"] and result["project_binding"]["complete"]
+        names = result.get("contract_coverage", {}).get("expected")
+        # CryticCompile may retain the solc AST even if native Slither construction
+        # fails. D21 can still explain the unusable graph independently of D3.
+        if names is None and crytic is not None:
+            try:
+                names, _ = _ast_contract_names(crytic, inputs)
+            except (ValueError, AttributeError, TypeError):
+                names = None
+        names = names or {}
+        duplicates = sorted(name for name, count in names.items() if count > 1)
+        result["duplicate_contract_names"] = duplicates
+        result["graph_usable"] = result["d3"] and result["project_binding"]["complete"] and not duplicates
+        if duplicates:
+            result["graph_unusable_reason"] = "duplicate_contract_names"
     if profile == "production" and result["d3"] and result.get("graph_usable", True):
         result["graph"] = graph_facts(slither, project_root)
     result["elapsed_seconds"] = time.monotonic() - start

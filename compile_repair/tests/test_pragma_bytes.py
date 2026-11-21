@@ -103,8 +103,12 @@ def test_constraint_semantics_and_exception_type(expression):
         end_byte = raw.index(b";") + 1
     class Root:
         named_children = [Directive()]
-    assert outcome(lambda: pragma_interval([raw])) == outcome(
-        lambda: frozen_interval(raw.decode(), Root()))
+    previous = outcome(lambda: frozen_interval(raw.decode(), Root()))
+    if expression == "0.5":
+        assert previous["exception_type"] == "Unsupported"
+        assert pragma_interval([raw]) == ((0, 5, 0), (0, 6, 0))
+    else:
+        assert outcome(lambda: pragma_interval([raw])) == previous
 
 
 def test_masked_lookalikes_and_top_level_brace_depth():

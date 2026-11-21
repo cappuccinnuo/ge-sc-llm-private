@@ -1,60 +1,44 @@
 # CompileRepair 交接文档
 
-> 新接手先读本文第 0–5 节、PROMPTS r2.14（§1.17、§4.5b CP3.1）、artifacts/cp3_review_v1/README.md、CP3_REPORT 最终续节、DECISIONS 与 CHANGE_LOG §35、§36。第 6 节历史只追加，记录规则见 README.md。
+> 先读第 0–5 节、PROMPTS r2.14 §1.17 和 §4.5b、CP3_REPORT 的 CP3.1、CHANGE_LOG §37 及 artifacts/cp3_1_v1/README.md。
 
 ## 0. 一句话
 
-CP3 已由 Claude 审查：诊断、项目闭包与执行中问题的处理成立，但发现五个问题（类别按所有候选版本合并、Etherscan 标准 JSON 包装被当作源码、类型转换调用的同名错绑未被检查、通配符 pragma 被拒、MANDO 图未与 v5 对照）。下一步：用户决定 D21 → Codex 执行 4.5b 节 CP3.1 → Claude 审查 → CP4。
+CP3.1 在本机通过验收，等待独立审查。31,071 个有效单元中 21,223 成功、9,848 未修复。MANDO 的 843 份图与 v5 字节一致。
 
 ## 1. 当前状态
 
-| 项 | 状态 | 依据 |
-|---|---|---|
-| 方案与决定 | PROMPTS r2.14；D5/D16/D18/D20/D20a 已定；D21（同名合约的项目图不可用）待用户批准；D19 建议；D9/D10 待确认、D12/D13 待定 | PROMPTS、DECISIONS |
-| CP0–CP2.4 | 已审查通过 | 各审查目录 |
-| CP3 | 审查：大部分成立；五个问题由 CP3.1 解决 | cp3_review_v1/README.md |
-| CP3 全量（原口径） | 31,071 个有效单元：21,160 成功、9,911 剩余；类别频率按“任一候选”计，CP3.1 改为主因 | cp3_paths_v1/failure_summary.json |
-| 测试可移植性 | 7 个测试模块在用户本机之外收集失败（含 test_project.py，既有问题）；CI 或迁移时处理 | PROMPTS r2.12 修改说明第 3 条 |
-| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 | PROMPTS r2.11 修改说明第 4 条 |
-| 已知缺口 | `||` pragma；Slither 进程内无超时 | 后续 CP |
-| 下一步 | 用户决定 D21 → CP3.1 → 审查 → CP4 | PROMPTS §4.5b |
+| 项目 | 结果 |
+|---|---|
+| 用户决定 | D21 已定，矩阵语法拒绝与 AST 不足分别获准单列 |
+| 失败分类 | 新增主因表并保留任一候选表，3 个 MANDO 已知失败的主因只有 slither_incomplete |
+| 包装与 pragma | 410 个包装输入留待 CP5 处理，88 个旧 pragma 拒绝获得候选并新增 63 项成功 |
+| 项目图 | 重名时保留 D3 并拒绝图；确认 12 项，原先成功数 0，另有 6,160 项未知 |
+| 回归 | 846 项字段相同、843 份图字节相同。模块与 DFG 测试以及保护核验均通过 |
+| 计划 | CP0–CP2.4 已审查。CP3 的审查问题由本批处理，CP4 之前先独立审查 CP3.1 |
 
 ## 2. 分支与工作树
 
-使用/home/zhao/SmartContract/ge-sc-llm-compile的compile-repair，起点967d0890b99de849a31de589ec0b08e12e52aa8b。本次继续同一CP3，没有再次pull或改其他分支。新批次cp3_paths_v1，前序912成员先核验，旧所有批次、语料和原运行均只读。
-
-仓库外compile-repair-local/cp3_paths_v1/revalidate_103仅执行了首项并保留脚本停止现场；该项已成功，分类在新证据中恢复。continue_remaining_102只执行剩余102项，manifest证明103个ID没有重复执行；首段summary零计数不能解释为没有调用，实际1编译/1Slither另记。旧未跟踪临时文件不清理、不混入交付。
+工作树为 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair，本步快进至 61c94e00 后实施。旧 CP3 部分批次只记录历史观察，最新分类表与所选结果在 cp3_1_v1。外部运行在 /home/zhao/SmartContract/compile-repair-local/cp3_1_v1。
 
 ## 3. 环境
 
-production为Python3.10.21、Slither0.11.6、crytic-compile0.4.2；mando为Python3.7.12、Slither0.8.0、crytic-compile0.2.4。沿用92个支持编译器快照，不安装、升级或改变全局solc。6c专用regression_6c路径未改，本轮未另跑全量6c重放。
-
-仓库根运行，PYTHONDONTWRITEBYTECODE=1、PYTHONNOUSERSITE=1、OMP_NUM_THREADS=2、MKL_NUM_THREADS=2，TREE_SITTER_LIB_DIR沿用既有linux-x86_64路径。0美元，CPU，无新下载/LLM/HGT/GPU锁/网络修改。
+生产采用 Python 3.10、Slither 0.11.6 与 crytic-compile 0.4.2，支持快照 92 版。mando 采用 Python 3.7、Slither 0.8.0，承担兼容及 DFG 测试。regression_6c 的历史回归已结束。软件与外部语料沿用原授权。
 
 ## 4. 必读与下一步
 
-1. 参数和103项范围批准已实施，无新的执行审批待办。项目根绝对允许路径与./入口保持两类工具一致，输入、候选和成功门槛没有改变。（2026-11-21 Claude 更新：CP3 审查发现五个问题，CP4 之前执行 CP3.1，D21 待用户批准，见 PROMPTS §4.5b。）
-2. 本轮两个脚本问题均保留原收据：tuple/list比较误报通过相同JSON字段确认恢复；历史中断段按原封存保全清单核验。没有重复实验或虚构正常完成seal，详见CHANGE_LOG §35。
-3. 最终分类只替换103条，保留其余30,968条原实现和版本来源；不能说31,071项全部用最终代码重新跑过。旧错误观察和被替换调用从有效计数剔除但不删除。
-4. 原79成功全从0.4.18提前：35到0.4.12、2到0.4.13、9到0.4.15、33到0.4.16。新增10项成功，14项剩余为12个Slither工具限制及2个源码编译错误。
-5. 原D3事实、文件名+key5、不去重及项目直接类型绑定检查保持。207次未获绑定认证全是Slither未构造，不能当成207次错绑；D3true而绑定拒绝为0，有限检查不保证全部IR语义。
-6. 面向未来任意合约，29类、125条breaking changes及10个零频类别保持；频率只排实现顺序。D6路由和CP4算子在d6_cp4_final，后续先独立审查CP3，再按新Prompt推进CP4。
-7. ||并集pragma、Slither进程隔离/截止时间、依赖补全、结构修复、tuple改写和LLM均未在本CP实现。D19下限仍0.4.12，6项相关区间已登记，未经批准不改支持范围。
-8. 原scripts、模型、根交接/训练文档、EdgeSem、语料及封存产物禁止修改。生产仍16模块，Python3.7兼容与分层测试已通过；保护审计与文档检查已纳入交付收据，不自动push。
+独立审查应从两种统计口径、替换来源、项目 AST 覆盖率、pragma 矩阵和 v5 回归开始。6,160 项暂不能判定重名，分母与理由见 AST 统计。D21 保留合法源码、D3 和直接类型变量核对，可能同时拒绝实际绑定正确的重名项目。模块面向将来输入，频率只排列 D6 实施顺序。并集 pragma、Slither 超时和正式解包留后续 CP。D19、D9、D10、D12、D13 的既有状态见 DECISIONS。
 
 ## 5. 关键路径
 
-| 内容（compile_repair下） | 路径 |
+| 内容 | compile_repair 下的位置 |
 |---|---|
-| CP3 审查证据（Claude） | artifacts/cp3_review_v1/README.md 及 probe_mando_versions、trace_wrapper_example、wrapper_unpack_probe、probe_alias_cast、probe_pragma_forms |
-| 本轮批准与基线 | artifacts/cp3_paths_v1/authorization.json、baseline.json |
-| 12项探针与完整测试 | cp3_paths_v1/path_probes.json、probes/、pytest_*_final_v1.json |
-| 103项唯一执行验收 | cp3_paths_v1/runtime_acceptance.json、replacement_summary.json |
-| 脚本问题与恢复 | cp3_paths_v1/driver_comparison_recovery.json、aggregate_inventory_correction.json |
-| 最终分类和每项来源 | cp3_paths_v1/failure_summary.json、result_provenance.json |
-| D6路由与CP4算子 | cp3_paths_v1/d6_cp4_final.json |
-| 收尾检查与交付清单 | artifacts/cp3_paths_v1/acceptance_status.json、frozen_audit.json、doc_check_*、evidence_seal.json、delivery_inventory.json |
-| 报告与强制记录 | CP3_REPORT、PROGRESS、docs/CHANGE_LOG §35、DECISIONS |
+| 报告、变更与决定 | CP3_REPORT.md 的 CP3.1、docs/CHANGE_LOG.md §37、docs/DECISIONS.md |
+| 主因、任一候选及示例 | artifacts/cp3_1_v1/failure_summary.json、unit_attributions.jsonl.gz |
+| 逐项替换及 AST 未知 | 同批 replacement_provenance.json、ast_census.json、ast_coverage_authorization.json |
+| 包装与版本证据 | 同批 wrapper_scan.json、wrapper_premises.json、pragma_equivalence.json、pragma_matrix_check.json |
+| 回归与交付 | 同批 mando_regression_final.json、scope_audit.json、acceptance.json、delivery_inventory.json |
+| 旧基线与审查 | artifacts/cp3_paths_v1、artifacts/cp3_review_v1、artifacts/cr_store_mando_v5 |
 
 ---
 
@@ -537,3 +521,14 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 结论：诊断解析、pragma 子类、项目闭包与共用参数、文件名 + key5、连字符入口与绝对允许目录成立；执行中的问题都先停下、保留记录、经批准后在新批次继续。五个问题：（1）类别统计把所有候选版本的错误合并，MANDO 三个 Slither 侧失败被计入两个源码类；（2）Trace on-chain 中至少一个单元是 Etherscan 标准 JSON 包装，被计为解析错误，解包后可编译、Slither 成功；（3）类型转换调用的同名错绑不在绑定检查范围内，检查 0 条时判为通过；（4）`0.4.x`、`0.5.*`、`^0.5` 被拒而 solc 接受；（5）MANDO 图未与 v5 字节对照。新增 4.5b 节 CP3.1 与 D21（待批准）。
 
 下一步：用户决定 D21，Codex 执行 CP3.1，Claude 审查后进入 CP4。本轮没有模块代码改动或安装；按用户批准的本地研究范围从 Trace 固定提交取 1 个文件，只在审查工作区使用。详见 CHANGE_LOG §36。
+
+
+### 2026-11-21 CompileRepair CP3.1 本地验收（修改 AI：Codex）
+
+从 compile-repair@61c94e00 执行 r2.14 §4.5b，已更新本交接第 0–5 节。新增主因归属、输入包装记录、D21 保守门槛与部分版本表达式支持。报告、逐项替换及保护证据在新批次 cp3_1_v1。
+
+核对原 31,071 个有效结果，重验 510 个受影响单元，21,223 个成功，其中新增 63 个。D21 明确确认 12 项重名，另有 6,160 项没有完整 AST。新的 MANDO 生产回归 846/846 字段相同、843/843 图字节相同。两环境模块与 DFG 测试通过。
+
+用户“同意 D21”、“同意按实测语法拒绝单列并继续”、“同意单列 AST 不足”。包装的 3 个解包样本仅用于已验证的前提，正式处理仍在 CP5。下一步由独立审查据上述证据评估 CP3.1。
+
+问题处理与命令、全部验收数字见 CHANGE_LOG §37、CP3_REPORT 和本批 README。0 美元，无安装、下载、LLM 或训练。本轮本地提交，未 push。

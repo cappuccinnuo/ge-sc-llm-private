@@ -1,0 +1,23 @@
+{
+  "issue": "0.x on solc 0.4.12 returned rc1 with a non-version parser diagnostic; the literal predicate would call this version included despite syntax rejection.",
+  "record": {
+    "expression": "0.x",
+    "version": "0.4.12",
+    "executable_sha256": "221ae33e12bda5c8b796c9abae2b2eb73e46d9b12128bfee451b12856f8b47ee",
+    "command": [
+      "/home/zhao/.solc-select/artifacts/solc-0.4.12/solc-0.4.12",
+      "/home/zhao/SmartContract/compile-repair-local/cp3_1_v1/pragma_oracle/case_040.sol"
+    ],
+    "source_sha256": "fd77acf16271e375965633708746e475e9db4108dc0763188836496b80616650",
+    "returncode": 1,
+    "cost_usd": 0,
+    "requires_different_version": false,
+    "error_first_line": "/home/zhao/SmartContract/compile-repair-local/cp3_1_v1/pragma_oracle/case_040.sol:1:17: Error: Token incompatible with Solidity parser as part of pragma directive.",
+    "stderr": "/home/zhao/SmartContract/compile-repair-local/cp3_1_v1/pragma_oracle/case_040.sol:1:17: Error: Token incompatible with Solidity parser as part of pragma directive.\npragma solidity 0.x; contract Empty {}\n                ^\n",
+    "elapsed_seconds": 0.0015287999995052814
+  },
+  "completed_pairs": 3681,
+  "full_expressions": 40,
+  "log_sha256": "9af5851c844ed987360075a4bc665bb237c09318eba85ade00a27fcca2095d17",
+  "proposal": "Classify syntax rejection as a separate observed outcome; for supported expressions enforce the original version predicate on every parser-compatible version and report parser-incompatible rows explicitly. No fabricated success. Preserve existing measurements and execute only remaining pairs. If compiler behavior cannot be represented by a single interval, stop before policy changes."
+}
