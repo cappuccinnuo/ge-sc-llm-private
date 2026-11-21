@@ -23,7 +23,7 @@ def score(labels, logits):
     accuracy = (prediction == labels).sum() / len(prediction)
     micro_f1 = f1_score(labels, prediction, average='micro')
     macro_f1 = f1_score(labels, prediction, average='macro')
-    buggy_f1 = f1_score(labels, prediction, average=None)[1]
+    buggy_f1 = f1_score(labels, prediction, average="binary", pos_label=1, zero_division=0)
     return accuracy, micro_f1, macro_f1, buggy_f1
 
 
