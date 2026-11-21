@@ -1,0 +1,2416 @@
+{
+  "hcg_version": "1.0.0",
+  "created_utc": "2026-11-20T10:48:21+00:00",
+  "dataset": "B",
+  "category": "reentrancy",
+  "corpus": {
+    "directory": "data/corpus/B/reentrancy",
+    "contracts": 322,
+    "vulnerable_contracts": 161,
+    "composition": "hcg/datasets/dataset_b.json",
+    "composition_sha256": "25bc02036d716befc6c578d5a46ffcdf7e9c32fa829e6f1886ba66539541ce2a",
+    "by_source": {
+      "DAppSCAN": 111,
+      "SmartBugs-Wild-clean": 161,
+      "SolidiFI": 50
+    }
+  },
+  "label_policy": "author-endpoints over the MANDO-LLM authors' DAppSCAN line labels and SolidiFI BugLogs (hcg/sources/annotations.py)",
+  "label_sources": {
+    "SolidiFI-benchmark": "4b0573e1b3f7031396de6f48f7f3e7380222ad3a",
+    "DASP-DAppSCAN-datasets": "f6b91009bf1103147dcd24ab4f963618939e8be9",
+    "ge-sc": "c7b530358ddfef83aca43b7026833341541d788e"
+  },
+  "contract_level": {
+    "nodes": 47056,
+    "edges": 53899,
+    "contracts": 322,
+    "positive_nodes": 9308,
+    "edge_types": {
+      "end_if": 2340,
+      "external_call": 3289,
+      "first_next_line": 375,
+      "internal_call": 4402,
+      "neg_next": 3269,
+      "next_line": 28521,
+      "pos_next": 2364,
+      "recursive_method_call": 9339
+    }
+  },
+  "line_level": {
+    "nodes": 31597,
+    "edges": 35898,
+    "contracts": 161,
+    "positive_nodes": 9308,
+    "edge_types": {
+      "end_if": 1830,
+      "external_call": 1602,
+      "first_next_line": 178,
+      "internal_call": 3300,
+      "neg_next": 2793,
+      "next_line": 18869,
+      "pos_next": 1902,
+      "recursive_method_call": 5424
+    }
+  },
+  "tokens": {
+    "tokenizer": "Salesforce/codet5p-770m",
+    "revision": "3f7cc6e80aee6612f41253b5ee28f09f86faa35f",
+    "width": 512,
+    "max_length": 11133,
+    "truncated_nodes": 468
+  },
+  "source_provenance": {
+    "0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x00f458047c2eae96a7aea42c4f8b768c8e93b383.sol"
+    },
+    "0x0119d137982ec5d5ca3ecc2a2c234aae08192745.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x0119d137982ec5d5ca3ecc2a2c234aae08192745.sol"
+    },
+    "0x03b267325193fd0c15ca0d2a693e54213c2afcb6.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x03b267325193fd0c15ca0d2a693e54213c2afcb6.sol"
+    },
+    "0x060ccb9c1e0d3c7967fac46d67b6826a5df3bef3.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x060ccb9c1e0d3c7967fac46d67b6826a5df3bef3.sol"
+    },
+    "0x07af6ce1d3c5de4b34b903eeb7759cd112e5686a.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x07af6ce1d3c5de4b34b903eeb7759cd112e5686a.sol"
+    },
+    "0x08014573ff457d8e08d6fbf2813617def4f28e54.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x08014573ff457d8e08d6fbf2813617def4f28e54.sol"
+    },
+    "0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x0e8bc4a71814b91fe77b0a79768b2403422f99f7.sol"
+    },
+    "0x0ebb614204e47c09b6c3feb9aaecad8ee060e23e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x0ebb614204e47c09b6c3feb9aaecad8ee060e23e.sol"
+    },
+    "0x0ff43ec70b18de8289726e90466f7ec3e5bf0301.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x0ff43ec70b18de8289726e90466f7ec3e5bf0301.sol"
+    },
+    "0x1105536cc57be95a126e05c80262252b8c9998db.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x1105536cc57be95a126e05c80262252b8c9998db.sol"
+    },
+    "0x1294d23b74c103d0e6d9c8f98abe9383c7900735.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x1294d23b74c103d0e6d9c8f98abe9383c7900735.sol"
+    },
+    "0x14adde3af9d37f0736934c5075f23f092e05ad62.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x14adde3af9d37f0736934c5075f23f092e05ad62.sol"
+    },
+    "0x15240d2793532ada4ab25a96e98bc4fba151e52e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x15240d2793532ada4ab25a96e98bc4fba151e52e.sol"
+    },
+    "0x16cee4183eb48e3cb190356700de467c28c4a56f.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x16cee4183eb48e3cb190356700de467c28c4a56f.sol"
+    },
+    "0x185f2a8775822e124aff8aa9f1de4a142c85a381.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x185f2a8775822e124aff8aa9f1de4a142c85a381.sol"
+    },
+    "0x18e23c7b4dc003e02807f364131898ffe14489bd.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x18e23c7b4dc003e02807f364131898ffe14489bd.sol"
+    },
+    "0x1d11e5eae3112dbd44f99266872ff1d07c77dce8.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x1d11e5eae3112dbd44f99266872ff1d07c77dce8.sol"
+    },
+    "0x1fac0ec15ce07d3f19613955c3a028e432f1a618.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x1fac0ec15ce07d3f19613955c3a028e432f1a618.sol"
+    },
+    "0x1fd169a4f5c59acf79d0fd5d91d1201ef1bce9f1.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x1fd169a4f5c59acf79d0fd5d91d1201ef1bce9f1.sol"
+    },
+    "0x20957ff053190f2b4459e3baf8c7211a9d519c16.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x20957ff053190f2b4459e3baf8c7211a9d519c16.sol"
+    },
+    "0x20d11cb319552871969526f4c58b99c34df9e6ed.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x20d11cb319552871969526f4c58b99c34df9e6ed.sol"
+    },
+    "0x22a4d688748845e9d5d7394a0f05bc583adf4656.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x22a4d688748845e9d5d7394a0f05bc583adf4656.sol"
+    },
+    "0x230c018122e0e101e57889c4a067787678bcf853.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x230c018122e0e101e57889c4a067787678bcf853.sol"
+    },
+    "0x253ae2c6722a0640b5ee7f7542b93b50aece11cc.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x253ae2c6722a0640b5ee7f7542b93b50aece11cc.sol"
+    },
+    "0x264a504704a7098ab49d4f8c528423d509daf086.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x264a504704a7098ab49d4f8c528423d509daf086.sol"
+    },
+    "0x273abaa7397a055e0c3cd00737c795be8f817c40.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x273abaa7397a055e0c3cd00737c795be8f817c40.sol"
+    },
+    "0x27ce3baa5a759feaa1745bb01c4a1a72e0fbfd42.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x27ce3baa5a759feaa1745bb01c4a1a72e0fbfd42.sol"
+    },
+    "0x2860685847546b39f8c75a6dfb7d8d40d34b75f6.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x2860685847546b39f8c75a6dfb7d8d40d34b75f6.sol"
+    },
+    "0x2cc1d82c0bcc1028f792f56a930271ab00117ff8.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x2cc1d82c0bcc1028f792f56a930271ab00117ff8.sol"
+    },
+    "0x2e2e0b2ef981b0e3e5602128f0d520293ba7f338.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x2e2e0b2ef981b0e3e5602128f0d520293ba7f338.sol"
+    },
+    "0x305de070488c8469dfac957226c9c900c4bfba22.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x305de070488c8469dfac957226c9c900c4bfba22.sol"
+    },
+    "0x312b34333d7d21a412af8ae029125cf1aab81c8e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x312b34333d7d21a412af8ae029125cf1aab81c8e.sol"
+    },
+    "0x334a934fa07fce4fb7b1c89457fe9754c08f4d41.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x334a934fa07fce4fb7b1c89457fe9754c08f4d41.sol"
+    },
+    "0x346a8e2a7fe29e32b9174c408a84ef1c7ed7408f.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x346a8e2a7fe29e32b9174c408a84ef1c7ed7408f.sol"
+    },
+    "0x349c14bca4e70d5ea4a4c08e7cffce51708b4887.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x349c14bca4e70d5ea4a4c08e7cffce51708b4887.sol"
+    },
+    "0x3503be8049ff6ce3235a4c9087f4f6f5da63eac6.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x3503be8049ff6ce3235a4c9087f4f6f5da63eac6.sol"
+    },
+    "0x35a5cb585d51d836922b78a9bb1f5c04635c39b6.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x35a5cb585d51d836922b78a9bb1f5c04635c39b6.sol"
+    },
+    "0x3b18610670ab6d6df6eb0642c5f90416aa076995.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x3b18610670ab6d6df6eb0642c5f90416aa076995.sol"
+    },
+    "0x3ca51bd89078145a8a16f09fc254677550bdb566.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x3ca51bd89078145a8a16f09fc254677550bdb566.sol"
+    },
+    "0x3e159b739864768ecc80945670d3292d9c5bb14e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x3e159b739864768ecc80945670d3292d9c5bb14e.sol"
+    },
+    "0x3e713b8efbb62c214412adf4ad950c385e0de0a8.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x3e713b8efbb62c214412adf4ad950c385e0de0a8.sol"
+    },
+    "0x3f18b2e57acd6f6c111936577529ac0dce7148b8.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x3f18b2e57acd6f6c111936577529ac0dce7148b8.sol"
+    },
+    "0x40d52577830e01aaefa80659aa90ee8b34685f4e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x40d52577830e01aaefa80659aa90ee8b34685f4e.sol"
+    },
+    "0x40e6131e32e7a86e072d80d12ecb94d7e3d09fa1.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x40e6131e32e7a86e072d80d12ecb94d7e3d09fa1.sol"
+    },
+    "0x4310f1c214bd170e5ab0832534997689453c9a43.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4310f1c214bd170e5ab0832534997689453c9a43.sol"
+    },
+    "0x4319c142f7b6cd722fc3a49289b8a22a7a51ca1e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4319c142f7b6cd722fc3a49289b8a22a7a51ca1e.sol"
+    },
+    "0x4320dbe35dc99fe24c5fced479f6b7f5521dada3.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4320dbe35dc99fe24c5fced479f6b7f5521dada3.sol"
+    },
+    "0x44f920b8e9b703f87f52f22ac84a106ef464388c.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x44f920b8e9b703f87f52f22ac84a106ef464388c.sol"
+    },
+    "0x4726bf61c3a8df967b6f2c805659810e8d343218.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4726bf61c3a8df967b6f2c805659810e8d343218.sol"
+    },
+    "0x4737c18b0a376ebfb7b749b152f8186d77d6bf08.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4737c18b0a376ebfb7b749b152f8186d77d6bf08.sol"
+    },
+    "0x4a10061267a6bbb55e7a0ba9daa820ccdb38fb07.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4a10061267a6bbb55e7a0ba9daa820ccdb38fb07.sol"
+    },
+    "0x4a1dc7fe002a24c866e54e50907fe09402eee961.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4a1dc7fe002a24c866e54e50907fe09402eee961.sol"
+    },
+    "0x4a73ce2a1d78dee1000e87f7218791253aa66b1c.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4a73ce2a1d78dee1000e87f7218791253aa66b1c.sol"
+    },
+    "0x4bd14c9b1f4d3027b54aa8e4bcf8ad217ca5e75a.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4bd14c9b1f4d3027b54aa8e4bcf8ad217ca5e75a.sol"
+    },
+    "0x4cff781a8b262b30745a2140bf6e31869ce15717.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4cff781a8b262b30745a2140bf6e31869ce15717.sol"
+    },
+    "0x4e570c49b27aaa187a7fef9ca8b3bdd1e9e36fb2.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x4e570c49b27aaa187a7fef9ca8b3bdd1e9e36fb2.sol"
+    },
+    "0x522b0f328ca716b5b676cab767372d48853ff040.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x522b0f328ca716b5b676cab767372d48853ff040.sol"
+    },
+    "0x52436444ede8c4d18e585a6b3ab55727b5540d5e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x52436444ede8c4d18e585a6b3ab55727b5540d5e.sol"
+    },
+    "0x532d85bd4bd0233dfa0eed5b3fe8bcfbba0420a4.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x532d85bd4bd0233dfa0eed5b3fe8bcfbba0420a4.sol"
+    },
+    "0x535bfc6883442f2ebe26171c2716cb25b623792c.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x535bfc6883442f2ebe26171c2716cb25b623792c.sol"
+    },
+    "0x55dab76c74cce8fc64b9f7de91afdfb76eaef7b3.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x55dab76c74cce8fc64b9f7de91afdfb76eaef7b3.sol"
+    },
+    "0x5623796b934164857d8a320ead6e3b13f01c712e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x5623796b934164857d8a320ead6e3b13f01c712e.sol"
+    },
+    "0x5a8b0fa9f5ca7a79fc13ed248150e051537a2ba5.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x5a8b0fa9f5ca7a79fc13ed248150e051537a2ba5.sol"
+    },
+    "0x5c6554f85c23773fd991163cfd804ec78591ef0e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x5c6554f85c23773fd991163cfd804ec78591ef0e.sol"
+    },
+    "0x5e2b9e760685b8030af6e510a9ebd90a5cbf4263.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x5e2b9e760685b8030af6e510a9ebd90a5cbf4263.sol"
+    },
+    "0x61383ac89988b498df5363050ff07fe5c52ecdda.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x61383ac89988b498df5363050ff07fe5c52ecdda.sol"
+    },
+    "0x616a74e4895bfe762da00b95877f25bef0d0d3c8.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x616a74e4895bfe762da00b95877f25bef0d0d3c8.sol"
+    },
+    "0x651455a972659c7399b563005894628ac41c3750.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x651455a972659c7399b563005894628ac41c3750.sol"
+    },
+    "0x65b6b495730371a807915441ed337f09d039bc66.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x65b6b495730371a807915441ed337f09d039bc66.sol"
+    },
+    "0x66158309d118b797882c27ee40cb803c7e49173a.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x66158309d118b797882c27ee40cb803c7e49173a.sol"
+    },
+    "0x67a2f7c7ec5ba1c1be768d8065d71566cadfdeef.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x67a2f7c7ec5ba1c1be768d8065d71566cadfdeef.sol"
+    },
+    "0x682e075d92a0d5859abba7f3f73104725f1b3b05.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x682e075d92a0d5859abba7f3f73104725f1b3b05.sol"
+    },
+    "0x6863be0e7cf7ce860a574760e9020d519a8bdc47.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x6863be0e7cf7ce860a574760e9020d519a8bdc47.sol"
+    },
+    "0x6889799d2a2c709d226202ed76fd41858f2d05e6.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x6889799d2a2c709d226202ed76fd41858f2d05e6.sol"
+    },
+    "0x6b0f793067552dc9b59ddb98cdd440f85faff397.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x6b0f793067552dc9b59ddb98cdd440f85faff397.sol"
+    },
+    "0x6fa800102b18d53c2a9ba085355ad8cc725d234d.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x6fa800102b18d53c2a9ba085355ad8cc725d234d.sol"
+    },
+    "0x7095874d4126325013d839ecaeaa467ddf944a98.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x7095874d4126325013d839ecaeaa467ddf944a98.sol"
+    },
+    "0x7223b032180cdb06be7a3d634b1e10032111f367.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x7223b032180cdb06be7a3d634b1e10032111f367.sol"
+    },
+    "0x72ee07223ad92dfd9e37ce03ad795b1aeddd28b4.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x72ee07223ad92dfd9e37ce03ad795b1aeddd28b4.sol"
+    },
+    "0x7308535ebc52016943890481553552419ec84e06.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x7308535ebc52016943890481553552419ec84e06.sol"
+    },
+    "0x75d1d5b95558f6320f707943b85e951426521673.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x75d1d5b95558f6320f707943b85e951426521673.sol"
+    },
+    "0x773dcefa15b47e77c7955e5d0383bafecd672734.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x773dcefa15b47e77c7955e5d0383bafecd672734.sol"
+    },
+    "0x780005ce3ab898bb402c124b4f71ff084d550111.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x780005ce3ab898bb402c124b4f71ff084d550111.sol"
+    },
+    "0x7b3bd25abdf9ad61db39f645738c7b0f38e51d9f.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x7b3bd25abdf9ad61db39f645738c7b0f38e51d9f.sol"
+    },
+    "0x7f5a8e08a693ea75d6ee87de54886ec013f31e11.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x7f5a8e08a693ea75d6ee87de54886ec013f31e11.sol"
+    },
+    "0x82b30de6cecd124c3d34fd6cef12a6bdb79b2209.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x82b30de6cecd124c3d34fd6cef12a6bdb79b2209.sol"
+    },
+    "0x831b1cf1387c388ed8eae955e895d90b2adb2244.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x831b1cf1387c388ed8eae955e895d90b2adb2244.sol"
+    },
+    "0x83e401afd7438ec2b2827874eba920eb6a345cbb.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x83e401afd7438ec2b2827874eba920eb6a345cbb.sol"
+    },
+    "0x85954c0adde80c73b019a92c08e0d22f16ac4067.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x85954c0adde80c73b019a92c08e0d22f16ac4067.sol"
+    },
+    "0x896029f4e13e6d62ba0d97fb5b16110fca132c14.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x896029f4e13e6d62ba0d97fb5b16110fca132c14.sol"
+    },
+    "0x89700d6cd7b77d1f52c29ca776a1eae313320fc5.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x89700d6cd7b77d1f52c29ca776a1eae313320fc5.sol"
+    },
+    "0x8b4f27b50d622b74716944475bfce0a6b79de573.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x8b4f27b50d622b74716944475bfce0a6b79de573.sol"
+    },
+    "0x8b79656fc38a04044e495e22fad747126ca305c4.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x8b79656fc38a04044e495e22fad747126ca305c4.sol"
+    },
+    "0x90cc5df88b471e554aa63a18e2370f582709f1be.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x90cc5df88b471e554aa63a18e2370f582709f1be.sol"
+    },
+    "0x920f19beb49f656c1258683f759af673ada4d6c5.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x920f19beb49f656c1258683f759af673ada4d6c5.sol"
+    },
+    "0x9219d4a32d713396cb2799e7aa0203da7b0ba51b.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x9219d4a32d713396cb2799e7aa0203da7b0ba51b.sol"
+    },
+    "0x965757249ed04f11f3180170dc5edf4341189de7.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x965757249ed04f11f3180170dc5edf4341189de7.sol"
+    },
+    "0x97661d9fa4e639dbabbe1f30b114e9babad73bc3.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x97661d9fa4e639dbabbe1f30b114e9babad73bc3.sol"
+    },
+    "0x9a1bf361798ef6538ccb8137ea900c4d4b48ca3d.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x9a1bf361798ef6538ccb8137ea900c4d4b48ca3d.sol"
+    },
+    "0x9e4e85adcdc8149d96ec7845ca40c0ea1136f756.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x9e4e85adcdc8149d96ec7845ca40c0ea1136f756.sol"
+    },
+    "0x9ea321bff0f872eddcdbcfb1fe9ac3d644c82a12.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x9ea321bff0f872eddcdbcfb1fe9ac3d644c82a12.sol"
+    },
+    "0x9fcf7acdc11fd904c4b73a009909c7f00efc4844.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0x9fcf7acdc11fd904c4b73a009909c7f00efc4844.sol"
+    },
+    "0xa1b756be589441519b1a08e16bc4f60ab177d916.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xa1b756be589441519b1a08e16bc4f60ab177d916.sol"
+    },
+    "0xa206ea08e73d779cd7c429581af81c93287cc656.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xa206ea08e73d779cd7c429581af81c93287cc656.sol"
+    },
+    "0xa211785891eea553d98dedc901254797d5de756e.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xa211785891eea553d98dedc901254797d5de756e.sol"
+    },
+    "0xa487ee76c22b629c9c0319f61d34ff0abd821781.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xa487ee76c22b629c9c0319f61d34ff0abd821781.sol"
+    },
+    "0xa74476443119a942de498590fe1f2454d7d4ac0d.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xa74476443119a942de498590fe1f2454d7d4ac0d.sol"
+    },
+    "0xa77a2938712c2f91f9096d41dae7b4a79c60ebd7.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xa77a2938712c2f91f9096d41dae7b4a79c60ebd7.sol"
+    },
+    "0xa85c95aba6c298535890d6f1133632220d458e9a.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xa85c95aba6c298535890d6f1133632220d458e9a.sol"
+    },
+    "0xaa2529228a3bb2434939a92dea21ac736df125ce.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xaa2529228a3bb2434939a92dea21ac736df125ce.sol"
+    },
+    "0xae31b85bfe62747d0836b82608b4830361a3d37a.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xae31b85bfe62747d0836b82608b4830361a3d37a.sol"
+    },
+    "0xb02bd126cd5477b2c166f8a31fab75db0c074371.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xb02bd126cd5477b2c166f8a31fab75db0c074371.sol"
+    },
+    "0xb1a219e35ac1aab0ea8f7dae92b06142c1bff542.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xb1a219e35ac1aab0ea8f7dae92b06142c1bff542.sol"
+    },
+    "0xb442a174bdfa59511ee44669e69583b394a2bae5.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xb442a174bdfa59511ee44669e69583b394a2bae5.sol"
+    },
+    "0xb8366948b4a3f07bcbf14eb1739daa42a26b07c4.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xb8366948b4a3f07bcbf14eb1739daa42a26b07c4.sol"
+    },
+    "0xb9581a458bd0e135f534fcb7a23441c7dc097ddc.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xb9581a458bd0e135f534fcb7a23441c7dc097ddc.sol"
+    },
+    "0xba457affaf018df9c57e9c1a9f6304bd4995faf1.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xba457affaf018df9c57e9c1a9f6304bd4995faf1.sol"
+    },
+    "0xbb97e381f1d1e94ffa2a5844f6875e6146981009.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xbb97e381f1d1e94ffa2a5844f6875e6146981009.sol"
+    },
+    "0xc3fc3549e50c68662c21649f3f6d88e28271498f.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xc3fc3549e50c68662c21649f3f6d88e28271498f.sol"
+    },
+    "0xc4bcd64cb216d49fd3c643a32762f34626b45a1a.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xc4bcd64cb216d49fd3c643a32762f34626b45a1a.sol"
+    },
+    "0xc56b13ebbcffa67cfb7979b900b736b3fb480d78.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xc56b13ebbcffa67cfb7979b900b736b3fb480d78.sol"
+    },
+    "0xc7c06ac46f2b66e00960944882f9c35eec54bba0.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xc7c06ac46f2b66e00960944882f9c35eec54bba0.sol"
+    },
+    "0xc91972b9d87923d662b4cc4c13836a5fb5844da3.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xc91972b9d87923d662b4cc4c13836a5fb5844da3.sol"
+    },
+    "0xc9d73535debe2829b03faab04ff1022399afc122.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xc9d73535debe2829b03faab04ff1022399afc122.sol"
+    },
+    "0xcaa05e82bdcba9e25cd1a3bf1afb790c1758943d.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xcaa05e82bdcba9e25cd1a3bf1afb790c1758943d.sol"
+    },
+    "0xcb5eb4ad33fd2ff079d70c1bf31f99ea8aac73d7.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xcb5eb4ad33fd2ff079d70c1bf31f99ea8aac73d7.sol"
+    },
+    "0xcbfe11b78c2e6cb25c6eda2c6ff46cd4755c8fca.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xcbfe11b78c2e6cb25c6eda2c6ff46cd4755c8fca.sol"
+    },
+    "0xcc77bfc17ec7ce8a91b16e6e79695f9bb4fbf708.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xcc77bfc17ec7ce8a91b16e6e79695f9bb4fbf708.sol"
+    },
+    "0xccd9f8270e74a9ebbe1277183e388ca8bc4eca4b.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xccd9f8270e74a9ebbe1277183e388ca8bc4eca4b.sol"
+    },
+    "0xce5114d7fa8361f0c088ee26fa3a5446c4a1f50b.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xce5114d7fa8361f0c088ee26fa3a5446c4a1f50b.sol"
+    },
+    "0xd061acc723da38af8482f3d0abfa04560adf5c81.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xd061acc723da38af8482f3d0abfa04560adf5c81.sol"
+    },
+    "0xd2d111c0f3cf09777815b71dd3cac9d435bd760c.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xd2d111c0f3cf09777815b71dd3cac9d435bd760c.sol"
+    },
+    "0xd36a57a9e8d066792913b3a1fcd99eb3c042c82d.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xd36a57a9e8d066792913b3a1fcd99eb3c042c82d.sol"
+    },
+    "0xd3a09f00e9931af426aa21c763b21c843249ba1c.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xd3a09f00e9931af426aa21c763b21c843249ba1c.sol"
+    },
+    "0xd7a54004297cd80448f65442636e8190813af413.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xd7a54004297cd80448f65442636e8190813af413.sol"
+    },
+    "0xd84246471fdf41e9cb832ea36e33eb51eba56457.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xd84246471fdf41e9cb832ea36e33eb51eba56457.sol"
+    },
+    "0xda9b16706b1891b298d2dd4da3998343fa7e5820.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xda9b16706b1891b298d2dd4da3998343fa7e5820.sol"
+    },
+    "0xdb289a6c489ea324564e64783ecccb0d7fa9d00f.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xdb289a6c489ea324564e64783ecccb0d7fa9d00f.sol"
+    },
+    "0xdd690d8824c00c84d64606ffb12640e932c1af56.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xdd690d8824c00c84d64606ffb12640e932c1af56.sol"
+    },
+    "0xdee1a3bce0bba1c811f0a50d67ff4fb70e791f60.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xdee1a3bce0bba1c811f0a50d67ff4fb70e791f60.sol"
+    },
+    "0xe3e5ccc9c8ee95ddbeb08daa7c5001b88c0d632a.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xe3e5ccc9c8ee95ddbeb08daa7c5001b88c0d632a.sol"
+    },
+    "0xe42f17e0b566a1fd00fba4d7c2d7d47558b940b5.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xe42f17e0b566a1fd00fba4d7c2d7d47558b940b5.sol"
+    },
+    "0xe444e45b50a5aa8e295b4dd3b4c6436ea59e2818.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xe444e45b50a5aa8e295b4dd3b4c6436ea59e2818.sol"
+    },
+    "0xe6987cd613dfda0995a95b3e6acbabececd41376.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xe6987cd613dfda0995a95b3e6acbabececd41376.sol"
+    },
+    "0xe7121ff8c912047f144c53f68c4905afa3c946f1.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xe7121ff8c912047f144c53f68c4905afa3c946f1.sol"
+    },
+    "0xe87227adf0fd3f6e580e2825069a0f8e8da66ad0.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xe87227adf0fd3f6e580e2825069a0f8e8da66ad0.sol"
+    },
+    "0xe968ad47b1c071ea3905ef982833552a495d6213.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xe968ad47b1c071ea3905ef982833552a495d6213.sol"
+    },
+    "0xe9813b3ac3fd938d21e47d10987f58914e6ff1fd.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xe9813b3ac3fd938d21e47d10987f58914e6ff1fd.sol"
+    },
+    "0xec427520576a649139a6fa37763d2f607c91c70d.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xec427520576a649139a6fa37763d2f607c91c70d.sol"
+    },
+    "0xeda5d9c59fd296aba054706d731d07947efed171.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xeda5d9c59fd296aba054706d731d07947efed171.sol"
+    },
+    "0xedf44412b47a76e452fd133794e45d9485e4cd4b.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xedf44412b47a76e452fd133794e45d9485e4cd4b.sol"
+    },
+    "0xeeac3f8da16bb0485a4a11c5128b0518dac81448.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xeeac3f8da16bb0485a4a11c5128b0518dac81448.sol"
+    },
+    "0xeed10fa72cccf6887680ad2a48012a155beda82b.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xeed10fa72cccf6887680ad2a48012a155beda82b.sol"
+    },
+    "0xeee2d00eb7deb8dd6924187f5aa3496b7d06e62a.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xeee2d00eb7deb8dd6924187f5aa3496b7d06e62a.sol"
+    },
+    "0xef3a60acf98e40b826a29e647cd7b3538fb6849c.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xef3a60acf98e40b826a29e647cd7b3538fb6849c.sol"
+    },
+    "0xf27d2b20048a58f558368bbdc45d3f8ec342159c.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xf27d2b20048a58f558368bbdc45d3f8ec342159c.sol"
+    },
+    "0xf28ce732aaaaeadb10b5b9505d0fbf6dea676411.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xf28ce732aaaaeadb10b5b9505d0fbf6dea676411.sol"
+    },
+    "0xf3ac6c6a88de9cafd1fcd418b01da0184b442ea6.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xf3ac6c6a88de9cafd1fcd418b01da0184b442ea6.sol"
+    },
+    "0xf5b86b8a7d3ad269edff19e2f2d0c59b42aefb13.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xf5b86b8a7d3ad269edff19e2f2d0c59b42aefb13.sol"
+    },
+    "0xfaed077b92cecf624f134ed8d03652c9a9608a58.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xfaed077b92cecf624f134ed8d03652c9a9608a58.sol"
+    },
+    "0xff78f0cb8e93cafad39377d774e0ede1b48ee903.sol": {
+      "source_comparison": "line_endings_only",
+      "changed_blocks": 0,
+      "dataset": "SmartBugs-Wild-clean",
+      "origin": "ge-sc/data/smartbugs-wild-clean-contracts/0xff78f0cb8e93cafad39377d774e0ede1b48ee903.sol"
+    },
+    "buggy_1.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_1.sol",
+      "buglog_rows": 18
+    },
+    "buggy_10.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_10.sol",
+      "buglog_rows": 8
+    },
+    "buggy_11.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_11.sol",
+      "buglog_rows": 30
+    },
+    "buggy_12.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_12.sol",
+      "buglog_rows": 37
+    },
+    "buggy_13.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_13.sol",
+      "buglog_rows": 17
+    },
+    "buggy_14.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_14.sol",
+      "buglog_rows": 22
+    },
+    "buggy_15.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_15.sol",
+      "buglog_rows": 17
+    },
+    "buggy_16.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_16.sol",
+      "buglog_rows": 42
+    },
+    "buggy_17.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_17.sol",
+      "buglog_rows": 30
+    },
+    "buggy_18.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_18.sol",
+      "buglog_rows": 42
+    },
+    "buggy_19.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_19.sol",
+      "buglog_rows": 28
+    },
+    "buggy_2.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_2.sol",
+      "buglog_rows": 20
+    },
+    "buggy_20.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_20.sol",
+      "buglog_rows": 31
+    },
+    "buggy_21.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_21.sol",
+      "buglog_rows": 27
+    },
+    "buggy_22.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_22.sol",
+      "buglog_rows": 36
+    },
+    "buggy_23.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_23.sol",
+      "buglog_rows": 26
+    },
+    "buggy_24.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_24.sol",
+      "buglog_rows": 42
+    },
+    "buggy_25.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_25.sol",
+      "buglog_rows": 21
+    },
+    "buggy_26.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_26.sol",
+      "buglog_rows": 23
+    },
+    "buggy_27.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_27.sol",
+      "buglog_rows": 42
+    },
+    "buggy_28.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_28.sol",
+      "buglog_rows": 29
+    },
+    "buggy_29.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_29.sol",
+      "buglog_rows": 19
+    },
+    "buggy_3.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_3.sol",
+      "buglog_rows": 21
+    },
+    "buggy_30.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_30.sol",
+      "buglog_rows": 42
+    },
+    "buggy_31.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_31.sol",
+      "buglog_rows": 15
+    },
+    "buggy_32.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_32.sol",
+      "buglog_rows": 21
+    },
+    "buggy_33.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_33.sol",
+      "buglog_rows": 25
+    },
+    "buggy_34.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_34.sol",
+      "buglog_rows": 36
+    },
+    "buggy_35.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_35.sol",
+      "buglog_rows": 34
+    },
+    "buggy_36.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_36.sol",
+      "buglog_rows": 36
+    },
+    "buggy_37.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_37.sol",
+      "buglog_rows": 34
+    },
+    "buggy_38.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_38.sol",
+      "buglog_rows": 29
+    },
+    "buggy_39.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_39.sol",
+      "buglog_rows": 11
+    },
+    "buggy_4.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_4.sol",
+      "buglog_rows": 18
+    },
+    "buggy_40.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_40.sol",
+      "buglog_rows": 24
+    },
+    "buggy_41.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_41.sol",
+      "buglog_rows": 17
+    },
+    "buggy_42.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_42.sol",
+      "buglog_rows": 25
+    },
+    "buggy_43.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_43.sol",
+      "buglog_rows": 29
+    },
+    "buggy_44.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_44.sol",
+      "buglog_rows": 30
+    },
+    "buggy_45.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_45.sol",
+      "buglog_rows": 28
+    },
+    "buggy_46.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_46.sol",
+      "buglog_rows": 7
+    },
+    "buggy_47.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_47.sol",
+      "buglog_rows": 40
+    },
+    "buggy_48.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_48.sol",
+      "buglog_rows": 31
+    },
+    "buggy_49.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_49.sol",
+      "buglog_rows": 11
+    },
+    "buggy_5.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_5.sol",
+      "buglog_rows": 31
+    },
+    "buggy_50.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_50.sol",
+      "buglog_rows": 25
+    },
+    "buggy_6.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_6.sol",
+      "buglog_rows": 30
+    },
+    "buggy_7.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_7.sol",
+      "buglog_rows": 31
+    },
+    "buggy_8.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_8.sol",
+      "buglog_rows": 31
+    },
+    "buggy_9.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "SolidiFI",
+      "origin": "SolidiFI-benchmark/buggy_contracts/Re-entrancy/buggy_9.sol",
+      "buglog_rows": 24
+    },
+    "dappscan_013dd753ec_Fund.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/openzeppelin-Endaoment/endaoment-contracts-f60aa253d3d869ad6460877f23e6092acb313add/cleaned_Fund.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_016020c5a0_Exchange.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-GrowthDeFi WHEAT/wheat-v1-core-8360ac0a537589bb974e8a5a169bb3e7c95d2857/contracts/cleaned_Exchange.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_0c7c75ea0d_BufferBNBOptions.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-Buffer/code/Buffer-Protocol-1c648bb35feca23bc801ce76aba63ca66af5917e/contracts/Options/cleaned_BufferBNBOptions.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_0cdfc04a82_Hypervisor.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Gamma/hypervisor-41fd4abf79864478523e87924d4e80d80df04879/contracts/cleaned_Hypervisor.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_0d53937011_BaseRewards.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Iosiro-1inch Exchange Staking Rewards Smart Contract Audit/liquidity-protocol-c9c8bc600e8e7897f70f84b006de601d4f4bcbe3/cleaned_BaseRewards.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_0e0feabba8_BaseParaSwapSellAdapter.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-AAVE-ParaSwap Adapter/aave-protocol-v2-14e2ab47d95f42ec5ee486f367067e78a7588878/contracts/adapters/cleaned_BaseParaSwapSellAdapter.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_0ee3ac7e8a_code.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-COIN98/code/cleaned_code.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_109acdaca1_FountainBase.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Chainsulting-Furucombo-project2/trevi-b3f7fd332873321152db48c9d43fc23a60a29f1a/contracts/cleaned_FountainBase.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_120ba32cbc_MintingFactoryV2.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinfabrik-MintingFactoryV2, BaseUpgradableMarketplace & KODAV3UpgradableGatedMarketplace/known-origin-contracts-v3-d592c5f4fa4e0b6fc65a1fce43e302706aedf607/contracts/minter/cleaned_MintingFactoryV2.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_15d49cf90c_LimitOrderProtocol.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-1inch-Limit Order Protocol/limit-order-protocol-a14bde6a260458de5083cee117d734221e1cbc05/contracts/cleaned_LimitOrderProtocol.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_17a565e061_woonklyPOS.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinfabrik-Woonkly Security Audit (DEX STAKE)/STAKESmartContractPreRelease-main/cleaned_woonklyPOS.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_1edcc3ab97_SpaceMonkey.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinbae-SpaceMonkey/SpaceMonkey0x9298f766581650e81357f5C66C91cc003f2b75Aa/root/workspace/GXC/contracts/SPMK/cleaned_SpaceMonkey.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_1f15fff37b_MasterChef.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinbae-Pud.Fi Masterchef_Audit/MasterChef0x15Bee180BB39eE5c0166E63313C33984376930Db/contracts/cleaned_MasterChef.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_1f1c014355_CToken.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Chainsecurity-Compound  cToken unredacted/compound-protocol-4a54ec5c55b66ea67d44b76f3056f0ed7229db8c/contracts/cleaned_CToken.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_20fdb5f42b_FlashLoanLogic.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-AaveV3/code/aave-v3-core-14f6148e21b477d78347db6a1603039c9559e275/contracts/protocol/libraries/logic/cleaned_FlashLoanLogic.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_234002d9dc_acyc.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-ACYC Token Smart Contracts/AllCoinsYieldCapital0xB56A1f3310578f23120182Fb2e58c087EFE6e147/src/contracts/cleaned_acyc.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_23a5aa6299_WETHGateway.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-GearBox Protocol-GearBox Protocol/gearbox-contracts-0ac33ba87212ce056ac6b6357ad74161d417158a/contracts/core/cleaned_WETHGateway.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_26c4903dfc_UniswapFeature.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-0x_Exchange_v4/protocol-475b608338561a1dce3199bfb9fb59ee9372149b/contracts/zero-ex/contracts/src/features/cleaned_UniswapFeature.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_26e35d596f_TokensRelayer.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Chainsecurity-POA Network  OmniBridge/omnibridge-9e602a3719e32feabc18fc387b9474acfa28cfe2/contracts/upgradeable_contracts/components/common/cleaned_TokensRelayer.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_2b73b67bf1_BankingNode.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-BNPL/BNPL-0ee587a081668dcab166a3a275b8a6c4794ead4d/contracts/cleaned_BankingNode.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_2e842f72d1_Controller.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/openzeppelin-Opyn_Gamma_Protocol/GammaProtocol-d151621b33134789b29dc78eb89dad2b557b25b9/contracts/cleaned_Controller.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_3159adf938_MasterShiba.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-ShibaNova/Contracts-b6b1ce1fcaff83d360df8944309f49958842b7b8/shibanova/contracts/cleaned_MasterShiba.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_317a1f4cc8_Swap_Factory_Future.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-Arche/Arche_v1.0_Eros-909f35e0064d636aaf61954a6026fda7b2bade7f/cleaned_Swap_Factory_Future.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_33a5bed059_MasterChef.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-SushiSwap/sushiswap-180bc9b642bba79c1ee4a63f71a3a0d36e64aa63/contracts/cleaned_MasterChef.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_3478ba826b_YVaultAssetProxy.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Runtime_Vеrification-ElementFinance/elf-contracts-637c6f959315cbb11a164555e588520c7d89122b/contracts/cleaned_YVaultAssetProxy.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_36b78dd876_MasterChef.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/ImmuneBytes-Bird Money-Final Audit Report/bird-farm-contracts-dfd2502b73c8f54c9081682c3eb070fcd3c00629/contracts/cleaned_MasterChef.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_3b390eeba4_AdminImpl.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/openzeppelin-Solo_Margin_Protocol/solo-17df84db351d5438e1b7437572722b4f52c8b2b4/contracts/protocol/impl/cleaned_AdminImpl.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_3e1650b5e6_ARCToken.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/openzeppelin-Arcade_City_token/ac-token-dd4207e1538f96eb3cbbf9e714eb38015bfe7c5a/cleaned_ARCToken.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_3e2bfedc44_bVault.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-btdotfinance/bt-finance-6300bc1271b73a1755fae02594d25fdf6fa39a9c/contracts/vault/cleaned_bVault.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_4395cfb703_Amp.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Amp/amp-token-contracts-6871b6c64c712835b332e515cc553308dcbbc539/contracts/cleaned_Amp.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_44783239d6_code.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-ERC20_FAT/code/cleaned_code.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_479ba93d8d_StakingV2.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-TranchessV1.1/contract-core-68a86350313c1cb9e5467e791d3e9efaf228a0df/contracts/exchange/cleaned_StakingV2.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_4a2973b857_CFVault.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/SlowMist-CFFv2 Smart Contract Security Audit Report/cff-contract-v2-c86bef3f13c7585f547f9cd0ca900f94664e96b7/contracts/core/cleaned_CFVault.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_4a3f50bfb8_RobotLiabilityLib.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PepperSec-Aira-Robonomic/robonomics_contracts-cc35a91de187072214d215262d8371f0159c2498/contracts/robonomics/cleaned_RobotLiabilityLib.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_4a7c484242_MasterChef.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Alium Finance Smart Contract/alium-farm-e37d6af39af68049c2684085f025385407b4bd55/contracts/cleaned_MasterChef.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_4c6ecc9885_CurveV1.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-GearBox Protocol-GearBox Protocol/gearbox-contracts-0ac33ba87212ce056ac6b6357ad74161d417158a/contracts/adapters/cleaned_CurveV1.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_4d32c6d075_SkaleBalances.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Skale_Token/skale-manager-50c8f4e037f6bf578d62bd752516b17237b55811/contracts/delegation/cleaned_SkaleBalances.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_4edbc12add_AToken.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-Atlantis/atlantis-protocol-bsc-766acebba9316eced1c15abf6158b31f470a947f/contracts/cleaned_AToken.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_4f7c261129_UniProxy.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Gamma/hypervisor-41fd4abf79864478523e87924d4e80d80df04879/contracts/cleaned_UniProxy.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_5275c7f1ff_ProfitSplitter.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Bond Appetit-Bond Appetit/bondappetit-protocol-355180f0aca0b29d60d808f761052956b7a3a159/contracts/profit/cleaned_ProfitSplitter.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_574574660d_ve.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/BlockSec-blocksec_multichain_vemult_v1.0_signed/veMULTI-bac804399d1ea280e5bd8cdc9488b6fa6a0a7fcc/contracts/cleaned_ve.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_5b3febc804_yToken.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Yearn Finance-Yearn Vaults V3/yearn-vaults-e390c2a6b2ba6e2ecc8f3a72a1ea4adfabd17544/contracts/cleaned_yToken.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_5b7a6125c3_SkyRewardPool.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-DarkCrypto/darkcrypto-contracts-fee5be8d36459aebed2b84e6493875b3dc0366fd/contracts/distribution/cleaned_SkyRewardPool.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_5bfad6a60f_CCapableErc20.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-C.R.E.A.M. Finance-Flashloan/compound-protocol-e414160eb8a774140457c885bb099baae528df04/contracts/cleaned_CCapableErc20.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_5c935336b5_BorrowerOperations.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Trail_of_Bits-Liquity/dev-f0df3efa5a5f05b205752184cfce107c5bd6e06c/packages/contracts/contracts/cleaned_BorrowerOperations.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_5ca42e806b_moonship.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Moonship Smart Contract/contracts-74658f327c56d66dae8e9c96bffa3f98e806c831/cleaned_moonship.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_5e2f068569_ImpossibleWrappedToken.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/BlockSec-blocksec_impossible_finance_swap_v1.2/impossible-swap-core-29aaef89f996acdbee92b67c4d95fb608dc8b876/contracts/cleaned_ImpossibleWrappedToken.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_628510e6b8_RToken.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-Rikkei/rifi-protocol-b33243fb3a218cc195f0727fe1499cb57f5ea0b2/contracts/cleaned_RToken.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_62c3ddb00a_BCubePublicSale.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-BCUBE Smart Contract/b-cube-ico-13f9f8a991a65f3e0ca60a2078121fdd5a921fb0/contracts/cleaned_BCubePublicSale.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_62d4b8d977_PMintBurn.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-PlutosV1/plutos-eth-contract-0777815/contracts/cleaned_PMintBurn.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_636d7d9e56_Comptroller.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Chainsecurity-Compound  cToken unredacted/compound-protocol-4a54ec5c55b66ea67d44b76f3056f0ed7229db8c/contracts/cleaned_Comptroller.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_63dbc68574_FLAaveV2.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-DeFi_Saver/defisaver-v3-contracts-cb29669a84c2d6fffaf2231c0938eb407c060919/contracts/actions/flashloan/cleaned_FLAaveV2.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_651ee37ced_DynamicLiquidTokenConverter.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Zer0_zBanc/zBanc-48da0ac1eebbe31a74742f1ae4281b156f03a4bc/solidity/contracts/converter/types/liquid-token/cleaned_DynamicLiquidTokenConverter.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_6703eba9de_YearnV2YieldSource.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-PoolTogether_Sushi_and_Yearn_V2_Yield_Sources/pooltogether-yearnv2-yield-source-a34857f1555908a6263d2ebd189f0cb40e1858da/contracts/yield-source/cleaned_YearnV2YieldSource.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_685bb1ef25_LockableERC777.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Skale_Token/skale-manager-50c8f4e037f6bf578d62bd752516b17237b55811/contracts/ERC777/cleaned_LockableERC777.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_6877fa7688_YearnV2.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-GearBox Protocol-GearBox Protocol/gearbox-contracts-0ac33ba87212ce056ac6b6357ad74161d417158a/contracts/adapters/cleaned_YearnV2.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_6cb39bf4b6_TransactionManager.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Connext NXTP — Noncustodial Xchain Transfer Protocol/nxtp-0656436d654cfe0313fa3c2bbc81aa86232ade16/packages/contracts/contracts/cleaned_TransactionManager.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_70d77802f3_CryptoHeroesUniverse.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-CryptoHeroes/cryptoheroes-6cb0eaf8c88fdaab89d2b4c83535a189c7793001/cleaned_CryptoHeroesUniverse.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_789b294c8c_yWETH.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Yearn Finance-Yearn Protocol V1/yearn-protocol-9ff0dc0ea73642c529383d0675930a41bf033295/contracts/vaults/cleaned_yWETH.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_794519f67e_Pod.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-PoolTogether_Pods/pods-v3-contracts-879dc8b911fc506dd6bead1f36eade919ccfea57/contracts/cleaned_Pod.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_7a2e60eff4_ProfitSplitter.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Bond Appetit-Bond Appetit/bondappetit-protocol-88680691fe8d872c5fc26e9500d19cf7caaa9861/contracts/profit/cleaned_ProfitSplitter.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_7b25e819d1_MainWorkflow.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Inspex-SuperLauncher V.2/v2-core-ba2ce0aedbefd79d6f2154f7ccc4954bba33592a/cleaned_MainWorkflow.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_7bed433fc2_Holdefi.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-Holdefi/Holdefi-5a1e6e0d582120142e8a531f6806eba6665ef2f4/contracts/cleaned_Holdefi.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_7d7e98bf25_OKLGTokenLocker.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Solidity_Finance-OKLG - Smart Contract/contracts-e167d0d742d21bcc62d7a5b770a1f0ed1cf31eca/contracts/cleaned_OKLGTokenLocker.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_7fcdebfcd8_BaseParaSwapAdapter.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-AAVE-ParaSwap Adapter/aave-protocol-v2-14e2ab47d95f42ec5ee486f367067e78a7588878/contracts/adapters/cleaned_BaseParaSwapAdapter.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_7ff1d26095_Main.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-coalichain/CoaliSC-3f0920d650467279f7ceee08776bd74ecadd3237/cleaned_Main.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_87d48e23ac_PikaPerpV2.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-PikaPerpV2/PikaPerpV2-4a0965ff90ed099b7e2d3e8dda47cd589ee8e3a2/contracts/perp/cleaned_PikaPerpV2.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_89e8c25758_PRA.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/SlowMist-ForTube2.0 Smart Contract Security Audit Report/bond-854527d0ea7ad2ddd3504b4d4ae3fcb57cb6445d/contracts/cleaned_PRA.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_8d89f8abe1_MarketOracle.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Trail_of_Bits-ampleforth/market-oracle-888fccaf05786f3f7f49e18ff040f911d44906f4/contracts/cleaned_MarketOracle.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_8fde432876_LPool.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-OpenLeverage1.0/openleverage-contracts-e31d971bcb38ec8737cf1942b8fdf6a9452e5834/contracts/liquidity/cleaned_LPool.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_933c3838be_ReferralFeeReceiver.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Chainsulting-1inch/liquidity-protocol-master/contracts/cleaned_ReferralFeeReceiver.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_97686b7250_PoolService.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-GearBox Protocol-GearBox Protocol/gearbox-contracts-0ac33ba87212ce056ac6b6357ad74161d417158a/contracts/pool/cleaned_PoolService.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_985bf88a73_EternalHeroesFactory.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Skyweaver/Skyweaver-contracts-bde0c184db6168bf86656a48b12d5747950b54d9/contracts/shop/cleaned_EternalHeroesFactory.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_99c90999b0_GnosisSafe.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Runtime_Vеrification-GnosisSafe/safe-contracts-427d6f7e779431333c54bcb4d4cde31e4d57ce96/contracts/cleaned_GnosisSafe.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_9c7ba50ac9_MiniDOGE.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-MiniDOGE Smart Contract/code/cleaned_MiniDOGE.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_a3ff086f3b_SinglePool.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-DSG/core-6f607f77698936e132e4e9b5cb4d75580636d919/contracts/pools/cleaned_SinglePool.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_a569434907_CoreVoting.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Runtime_Vеrification-Element_Finance_Governance_Security_Audit_Report/council-3d751c959b42573c78ccd0bccbc80424bf6d9a90/contracts/cleaned_CoreVoting.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_a62931b235_CommunityVault.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinbae-Barnbridge_Vault/CommunityVault0xA3C299eEE1998F45c20010276684921EBE6423D9/contracts/cleaned_CommunityVault.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_a63cc9f476_UniswapV3.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-GearBox Protocol-GearBox Protocol/gearbox-contracts-0ac33ba87212ce056ac6b6357ad74161d417158a/contracts/adapters/cleaned_UniswapV3.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_ad857a9377_LCToken.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-ERC20_LuckyChip/core-0d957aa387d29297fc6ebfc69140440be6d791c1/contracts/token/cleaned_LCToken.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_b165da5bf3_LiquidityStaking.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-Tranchessv1.0/contract-core-5ac3d997da3ef37b0135565a11c5ebcc519862aa/contracts/governance/cleaned_LiquidityStaking.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_b35f3a2078_MasterMilker.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-MilkySwap/milkyswap-59f163e9959cf8bae4a521a9648219b553312e07/contracts/cleaned_MasterMilker.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_b37863b256_FeeCollector.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-1inch-Fee Collector/fee-collector-3c2626763fd829500496f15476d5e98fbdf4f574/contracts/cleaned_FeeCollector.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_b5458b651b_Vester.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Iosiro-Synthetix Vest Tool Smart Contract Audit/tokenvest-36573f264d42d4549b9f903a014783e01029c978/cleaned_Vester.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_b5a97c0b2c_Etherscan-0x9F599410D207f3D2828a8712e5e543AC2E040382.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinbae-TapCoins_Token_Contract/code/cleaned_Etherscan-0x9F599410D207f3D2828a8712e5e543AC2E040382.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_bb56e35281_contract.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Callisto_Network-McAfeeDex Security Audit/MCAFEEDEXCONTRACT-5db8389ce23ce11fb273c9573772287aa75ce43b/cleaned_contract.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_bb89d4268c_masterchef.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-KaoyaSwap/contracts-8273073f1d6914f372790399378f177573c52e37/cleaned_masterchef.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_be0dc75c56_Hermez.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Trail_of_Bits-hermez/contracts-d52ed73a0c7deaf06fcb0f981e14326f95cd1b78/contracts/hermez/cleaned_Hermez.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_c013df1ffc_LPGauge.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-StackerVC/StackerVC_VentureFund001-3cfb98b21f4731dfd62993feb7c7d1540837f59b/contracts/Token/cleaned_LPGauge.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_c5e1d53596_StakingProxyUniV3.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-Convex_Frax/frax-cvx-platform-2f8573ee796daa022c1050b4a749bf08049c439b/contracts/contracts/cleaned_StakingProxyUniV3.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_c775323bf9_wHakka.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinbae-Hakka_Finance_wHakka/code/cleaned_wHakka.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_c87f8542c9_StakingRewardsV3-1.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Keep3r.Network-Keep3r.Network/StakingRewardsV3-13ecc6966ae1a413f62224382bfd4d64b1a22351/contracts/cleaned_StakingRewardsV3-1.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_cfc5bcaf65_LighthouseLib.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PepperSec-Aira-Robonomic/robonomics_contracts-cc35a91de187072214d215262d8371f0159c2498/contracts/robonomics/cleaned_LighthouseLib.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_cff6fd104f_TempusController.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinspect-Tempus Audit/tempus-protocol-ee5964bd416770e00639a4053b45f346e4bf8b93/contracts/cleaned_TempusController.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_d3a7a6dc6d_Liquidator.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Trail_of_Bits-MapleFinance/liquidations-35c628e5ab45fbffaab7aef43a030a98b712a94a/contracts/cleaned_Liquidator.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_d45bfb86c6_FixedRateSwap.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-1inch-Fixed Rate Swap/fixed-rate-swap-0b5a75e9f56e7d21c290dd28c59dc140dcbcc1d5/contracts/cleaned_FixedRateSwap.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_d77d68d9ab_StakefishERC721Wrapper.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Runtime_Vеrification-stakefish_ethereum_staking_audit_report/eth2-validation-services-contract-d91928f3a270f6115831fe3a21a69eb98bf57b26/contracts/cleaned_StakefishERC721Wrapper.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_da1f48d844_Fundraiser.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/openzeppelin-COSMOS_Fundraiser/fundraiser-lib-693cf3f32e9fd679216372876dda86fa57a3277e/src/truffle/contracts/cleaned_Fundraiser.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_db5eac17be_Staking.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Inspex-Tokens, Farm & Shop/-SpeedStar-Audit-3e39d7acf9c1aa9f3a5511c161c2035ba7d6bc1f/contracts/farm/cleaned_Staking.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_e1886e3639_SNXFlashLoanTool.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Iosiro-SNX FlashBurn Smart Contract Audit/flashburn-3aa02a3d63d9e0110a5b6669a4a4011ceee3cf2b/packages/contracts/contracts/cleaned_SNXFlashLoanTool.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_e8bfce8f77_MasterChef.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/ImmuneBytes-Bird Money(MasterChef)-Audit Report/bird-farm-contracts-dfd2502b73c8f54c9081682c3eb070fcd3c00629/contracts/cleaned_MasterChef.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_eaa76acb53_stakin_contract.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Algovest/AlgoVestStaking0x090e69e7F48AFC059e480F297042DEA396B971e7/srv/tecmie/algovest/AVS-staking/contracts/cleaned_stakin_contract.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_f09346291b_HegicPool.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-Hegic(v8888)/Hegic-v8888-2dcd44dc1ae07881e94d52fa618f9704bfd4ffda/contracts/Pool/cleaned_HegicPool.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_f1b26d3fc9_BsktEthLPPool.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-BsktEthLPPool Smart Contract/code/cleaned_BsktEthLPPool.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_f35d5218fd_PowerBombAvaxCurve.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Hacken-Powerbomb-V1/powerbomb-lite-0f86ff1eecdd723be733a9b33ff4ffa3bbdadcee/hardhat/contracts/cleaned_PowerBombAvaxCurve.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_f59d9c0c52_AbyssEth2Depositor.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Abyss Finance-Abyss Eth2 Depositor/abyss-eth2depositor-a2d58dea4d79846dc682fe93ac3e0eca02323d11/contracts/cleaned_AbyssEth2Depositor.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_f74244e705_IdleCDO.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Idle_Finance/idle-tranches-d94ee7194e8cb17db13b16c338f3e780b62f5435/contracts/cleaned_IdleCDO.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_fd4886bca6_MasterChef.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-BabySwap/code/baby-swap-contract-cac289bf978d969c95721c2adb9f199cee72ffa6/contracts/farm/cleaned_MasterChef.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_fe020cea88_LendingPool.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-Aave_Protocol_V2/aave-protocol-v2-f756f44a8d6a328cd545335e46e7128939db88c4/contracts/lendingpool/cleaned_LendingPool.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_fe51a1eec9_UniswapV2.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-GearBox Protocol-GearBox Protocol/gearbox-contracts-0ac33ba87212ce056ac6b6357ad74161d417158a/contracts/adapters/cleaned_UniswapV2.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    },
+    "dappscan_fe71b1b3cc_TokenDrop.sol": {
+      "source_comparison": "byte_identical",
+      "changed_blocks": 0,
+      "dataset": "DAppSCAN",
+      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/consensys-PoolTogether_Pods/pods-v3-contracts-879dc8b911fc506dd6bead1f36eade919ccfea57/contracts/cleaned_TokenDrop.sol",
+      "swc": [
+        "SWC-107"
+      ]
+    }
+  },
+  "environment": {
+    "python": "3.12.3",
+    "networkx": "3.4.2"
+  },
+  "checks": {
+    "failures": [],
+    "paper_counts": {
+      "contracts": {
+        "paper": 326,
+        "built": 322
+      },
+      "vulnerable_contracts": {
+        "paper": 163,
+        "built": 161
+      },
+      "nodes": {
+        "paper": 36579,
+        "built": 47056
+      },
+      "edges": {
+        "paper": 42519,
+        "built": 53899
+      },
+      "positive_nodes": {
+        "paper": 10429,
+        "built": 9308
+      }
+    }
+  },
+  "output_sha256": {
+    "contract_level.gpickle": "18a99b6c28984c86bd3d82fa64022bbc119b0ad95ec6d1e340331369aefbe341",
+    "line_level.gpickle": "1e8620ab32b3bb9b5803a3ea7a5f4b6eb7ff98920a9a86962a2bb56d07bb3d36",
+    "graph_labels.json": "03fcfb2f61083a22de5a2489c86f4d6a0ffbb4fbabe064b71bf1175afa4f3d0c",
+    "annotations.json": "7aed3a3c384e5d08f94811371b74c435199ad7ebf7bd278fd2c0c1e667a07916",
+    "line_node_ids.json": "cb5734e5a116c5eada9076a08ab3419c746da7b06f80e8e58a50dc5148a24bc5"
+  }
+}
