@@ -1927,3 +1927,41 @@ production 模块 758 passed / 6 skipped，mando 模块 295 passed / 469 skipped
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp3_1_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；从 Trace 固定提交取 22 个文件（用户已批准的本地研究范围，不提交）；没有安装或 LLM 调用，费用 0。
 - 停止：CP4 不能开始。顺序为 Codex 执行 CP3.2 → Claude 审查 → CP4。本轮提交并 push 到 `compile-repair`。
+
+
+## 39. 2026-11-22 CompileRepair CP3.2 生产输入判定与版本依赖阻碍（修改 AI：Codex）
+
+### 39.1 任务、依据与范围
+
+用户要求阅读最新 PROMPTS，先 §4.1 再执行 CP3.2，任何替代方案先咨询并记录。工作树 compile-repair 已通过 `git pull --ff-only origin compile-repair` 同步至 992bec09。依据为 r2.15 §1.18、§3.10、§4.5c、HANDOVER 第 0–5 节、DECISIONS、CHANGE_LOG §37–38、cp3_1_review_v1 的 README、Trace 记录与包装探针结果。语料只读，CP0–CP3.1 产物只读。
+
+生产修改为 toolchain/project.py、evaluation/survey.py、pipeline.py、evaluation/report.py；测试为 tests/test_cp32.py。报告与记录为 CP3_REPORT.md、PROGRESS.md、docs/HANDOVER.md、docs/DECISIONS.md 和本节。新批次 artifacts/cp3_2_v1 包含原判定及停止证据（input_census、input_gate、input_observations、explain_gate、decision_request）、授权 authorization、生产判定与替换（classify_inputs、language_acceptance、language_classifications、input_results、replacement_provenance）、归因与统计（aggregate、unit_attributions、non_solidity、unmeasured、version_blockers、failure_summary、taxonomy、d6_cp4_final）、测试和保护（run_suite、三个配置的测试日志与收据、scope_check、audit_results、verification）、README、doc_check 和 seal。扩展名与完整文件清单见批次 seal 和 git 提交。没有改动 scripts、根交接、原作者代码或标签。
+
+### 39.2 实施方式和重要选择
+
+先用原函数做只读普查，逐入口校验原 SHA，碰到相同内容只复用语言判定，每个单元仍单独记账。全集对照发现 8 个 D3 成功单元会被拒，因而在接入生产前停下。复核了这 8 项旧清单、图以及一个无任何词元的 SOChecker 历史排除项。证据和建议单独存为 decision_request.json，获批后执行新口径。两次普查分别保存，旧文件不覆盖。
+
+完整移动 evaluation/survey.py 原词法函数，函数文本 SHA256 为 569b75cc5964c7ad30eec2eb4ce75952c52ce153b603fff4e61c9265c4fbee94。生产仅以入口字节判断 JSON、原 Solidity 正证据及 Vyper 语法。可验证的 Vyper 线索包括版本指令，或修饰器、函数和类型声明的组合。调用现有 lexical_tokens 核对线索在非注释、非字符串区域。BOM 处理保留原始 SHA，缺正文条目记录数量。入口未定状态写入 manifest 后可继续选版。历史 236 项的放行与编译结果分列，归因阶段依据已保存来源替换 23 条，其余观测保持原引用。版本阻碍只从无两种解析错误的候选取交集，主因与 D6 排序依据均保留。
+
+### 39.3 实测与数据结论
+
+| 核对项目 | 原值或预期 | 实测及依据 |
+|---|---|---|
+| 原词法硬判据 | 21,223 个成功都须判为 Solidity | 21,215。3 空、4 纯注释和 1 个仅含 struct 的文件被误排，8 条原成功记录及图均核对，见 input_gate、decision_request |
+| 批准后的判据 | 原成功完整放行，MANDO 全部有 Solidity 证据 | 21,223/21,223、846/846；全量 31,307 项逐项见 language_classifications |
+| 失败统计 | 原 31,071 个有效、9,848 个失败 | 有测量的 31,048 项中 21,223 成功、9,825 失败。23 项非 Solidity 均在 Trace on-chain，236 项未测均在 SOChecker，见 failure_summary 和 non_solidity |
+| 输入原因与包装 | 审查 Vyper 22 项；原包装 410 | 原 22 项及另 1 项旧结构不平衡均为 Vyper。5 项 JSON、17 项版本指令、1 项无版本注释。两个包装边界探针通过，全量新增命中 0 |
+| 版本依赖 | 增加可解析版本上的阻碍并保持主因 | 221 项均重核原诊断，183 项存在共同阻碍，38 项为 none。前三种完整组合 113、23、14 项，见 version_blockers |
+| D6 与证据 | 按主因排顺序，旧结果不覆盖 | 缺包 8,454、缺相对文件 412、包装 410、其他解析错误 257。31 类、125 个变更项。核对旧清单 31,071 条、642,763,760 字节及 354 个 DFG 引用，见 verification |
+
+输入清单 SHA256 为 `8d015af6a11df71293b38a64022901b33e0546ed360cc46b0b1b6dd21ba39295`。原归因存档 SHA256 为 `fa03bed0f429e8db902422ff750e6221e1dce478f688dade5f85b996f81a0bd9`。每个原始入口、旧结果和新替换的具体 SHA 可从本批归因或来源表取得。未测单元没有新的编译成功率结论。
+
+### 39.4 用户批准、原文差异与待确认设计
+
+2026-11-22 用户原话“批准三态判定及新旧统计口径”。相应调整是 §4.5c 第 1 节对语言未定输入和对历史 236 项的处理。源文件不含充分词法证据时放行，明确其他语言才排除。全部原成功项必须继续获准通过，同一套规则应用于所有来源。本次无需补编译，沿用 236 项历史排除口径，同时单列新口径的 236 项未测。原规则停止与新授权完整留存，DECISIONS 已记入当前状态与历史。对没有正证据的其他语言，生产仍可能进入编译；覆盖边界见报告。本轮没有新的待确认调整。
+
+### 39.5 验收、资源、未执行事项与停止
+
+两套模块和 DFG v2 全部运行，执行命令、环境和临时目录见各自 `*_tests.json`。从仓库根使用生产 Python 3.10 跑模块得到 796 通过、6 跳过（89.80 秒）；mando Python 3.7 跑模块 333 通过、469 跳过（26.84 秒），跑 DFG v2 得到 2,653 通过与 9 个警告（186.80 秒）。全量输入判定用 CPU，原规则扫描 21.818 秒，获批判定扫描 23.247 秒，最终独立数据核验 35.731 秒。生产模块仍 16 个，4 个有改动。冻结代码对照通过。
+
+doc_check 用 `python -B -m scripts.node_sem.doc_check --expect-cjk` 检查 6 份文档。HANDOVER、DECISIONS、批次 README 检查全文，CHANGE_LOG、PROGRESS、CP3_REPORT 从追加前的 270618、72228、85753 字节检查。六份均 passed=True，命令、SHA 和结果在本批 doc_check.json。费用 0 美元，无安装、下载、LLM 或 HGT 训练。没有重编译语料或重跑 MANDO；现有模块测试按其原有设计使用小型工具夹具。本轮以 `CP3.2` 开头的信息本地提交，提交号由 git 日志和交付消息提供。CP4 等独立审查。

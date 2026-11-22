@@ -1,26 +1,26 @@
 # CompileRepair 交接文档
 
-> 先读第 0–5 节、PROMPTS r2.15 §1.18 和 §4.5c、artifacts/cp3_1_review_v1/README.md、CP3_REPORT 的 CP3.1、CHANGE_LOG §37、§38。
+> 本轮交接先读第 0–5 节、PROMPTS r2.15 §4.5c、CP3_REPORT 的 CP3.2、CHANGE_LOG §39 和 cp3_2_v1/README.md。
 
 ## 0. 一句话
 
-CP3.1 已由 Claude 独立复核成立：主因口径、包装判定、D21、pragma 扩展与 MANDO 回归都符合方案。审查发现 Trace on-chain 剩余的 22 个解析错误全部是 Vyper，生产流水线没有输入语言判定；另补包装的 BOM 与 urls 边界、version_dependent 的阻碍。下一步：Codex 执行 4.5c 节 CP3.2 → Claude 审查 → CP4。
+CP3.2 已按用户批准的三态语言判据完成。21,223 个既有成功输入均可继续编译，23 个 Vyper 输入单列，236 个原排除输入列为未测。下一步是独立审查 CP3.2。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.15；D5/D16/D18/D20/D20a/D21 已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP3.1 | 已审查通过；CP3.1 证据 cp3_1_review_v1 |
-| CP3.1 全量 | 31,071 个有效单元：21,223 成功、9,848 未修复；主因表前五 unresolved_package_import 8,454、missing_relative_file 412、standard_json_input 410、parser_error_other 279、version_dependent 221 |
-| 遗留 | 22 个 Vyper 输入计入 Solidity 解析错误；包装判定的 BOM 与 urls 边界；version_dependent 缺少可解析版本上的阻碍；CP3.2 解决 |
-| 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
-| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | CP3.2 → 审查 → CP4 |
+| 方案与决定 | PROMPTS r2.15，用户于 2026-11-22 批准三态判定与新旧统计口径，授权在 cp3_2_v1/authorization.json |
+| CP0–CP3.1 | 已独立审查。上轮测量 21,223 成功、9,848 未修复、236 排除 |
+| CP3.2 原始输入 | 31,307 项，31,048 项有可用测量，其中 21,223 成功、9,825 未修复。23 项非 Solidity，236 项未测 |
+| 语言与包装 | 846/846 个 MANDO 输入有 Solidity 正证据。原有 410 个包装全保留，BOM 和缺内容包装均有回归测试 |
+| 版本归因 | 221 项主因为 version_dependent。183 项有共同阻碍，38 项为 none |
+| 测试与保护 | 生产模块 796 通过、6 跳过，mando 模块 333 通过、469 跳过，DFG 2,653 通过、9 个警告。生产文件 16 个，DFG 冻结代码引用 354 个相同 |
+| 下一步 | 独立审查 CP3.2，审查通过后进入 CP4。其他既有待定决策见 DECISIONS |
 
 ## 2. 分支与工作树
 
-工作树为 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair，本步快进至 61c94e00 后实施。旧 CP3 部分批次只记录历史观察，最新分类表与所选结果在 cp3_1_v1。外部运行在 /home/zhao/SmartContract/compile-repair-local/cp3_1_v1。
+专用工作树为 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair。CP3.2 从 992bec09 开始，git pull --ff-only origin compile-repair 已同步。新批次为 artifacts/cp3_2_v1。外部临时测试和 23 条新的输入阶段收据位于 /home/zhao/SmartContract/compile-repair-local/cp3_2_v1。
 
 ## 3. 环境
 
@@ -28,12 +28,16 @@ CP3.1 已由 Claude 独立复核成立：主因口径、包装判定、D21、pra
 
 ## 4. 必读与下一步
 
-独立审查应从两种统计口径、替换来源、项目 AST 覆盖率、pragma 矩阵和 v5 回归开始。6,160 项暂不能判定重名，分母与理由见 AST 统计。D21 保留合法源码、D3 和直接类型变量核对，可能同时拒绝实际绑定正确的重名项目。模块面向将来输入，频率只排列 D6 实施顺序。并集 pragma、Slither 超时和正式解包留后续 CP。D19、D9、D10、D12、D13 的既有状态见 DECISIONS。（2026-11-22 Claude 更新：CP3.1 审查已通过；CP4 之前先执行 CP3.2，见 PROMPTS §4.5c。）
+独立审查请先对照 decision_request.json、authorization.json 和 language_acceptance.json，再从 unit_attributions.jsonl.gz 抽查语言未定的成功项、236 个没有旧工具测量的输入、以及 23 项替换的来源。对 version_dependent 查看 version_blockers.json 的逐版本组合与示例诊断。D6 的实施顺序按 9,825 个已测失败单元排序。D21、6,160 项 AST 不足的历史边界及其他待定决策仍见 CP3.1 与 DECISIONS。
 
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP3.2 依据与授权 | artifacts/cp3_2_v1/input_gate.json、decision_request.json、authorization.json |
+| 三态结果与来源 | 同批 language_classifications.jsonl.gz、replacement_provenance.json、unit_attributions.jsonl.gz、unmeasured.jsonl.gz |
+| 最终统计与验收 | 同批 failure_summary.json、non_solidity.json、version_blockers.json、d6_cp4_final.json、verification.json、doc_check.json、seal.json |
+| CP3.2 报告与记录 | CP3_REPORT.md 的 CP3.2、docs/CHANGE_LOG.md §39 |
 | CP3.1 审查证据（Claude） | artifacts/cp3_1_review_v1/README.md、oracle_pragma.json、probe_wrapper_detect.json、trace_parser_units.json |
 | 报告、变更与决定 | CP3_REPORT.md 的 CP3.1、docs/CHANGE_LOG.md §37、docs/DECISIONS.md |
 | 主因、任一候选及示例 | artifacts/cp3_1_v1/failure_summary.json、unit_attributions.jsonl.gz |
@@ -545,3 +549,14 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 遗留：Trace on-chain 剩余 22 个 parser_error_other 全部是 Vyper（审查按用户批准的本地研究范围取这 22 个文件核对，SHA 与清单一致）；SOChecker 用的词法证据规则只在清单脚本中，生产流水线没有语言判定。另补两处：包装的 BOM 与 urls 边界；version_dependent 的阻碍。新增 4.5c 节 CP3.2，不需要新的用户决定。
 
 下一步：Codex 执行 CP3.2，Claude 审查后进入 CP4。本轮没有模块代码改动或安装。详见 CHANGE_LOG §38。
+
+
+### 2026-11-22 CompileRepair CP3.2 完成（修改 AI：Codex）
+
+本步从 compile-repair@992bec09 开始，先读取共享 §4.1、完整 r2.15、CP3.1 审查和交接。修改 toolchain/project.py、evaluation/survey.py、pipeline.py、evaluation/report.py，增加 tests/test_cp32.py，另建 artifacts/cp3_2_v1。本文更新导读及第 0、1、2、4、5 节，第 3 节环境继续适用。
+
+原词法规则在 31,307 项只读核对中误排 8 个已通过 D3 的入口。用户批准三态后，21,223 个原成功项全部获准通过，MANDO 846 项均有 Solidity 证据。23 项 Vyper 输入已单列，31,048 项既有测量完整沿用，236 项保留旧排除记录并按新口径列为未测。包装数量为 410，原有 221 个版本依赖主因均已重核诊断。数据见本批 language_acceptance.json、failure_summary.json 与 verification.json。
+
+用户 2026-11-22 原话“批准三态判定及新旧统计口径”。授权明确涉及对未知输入的放行和旧排除项的分母。原判据停止现场与新口径各有独立文件，生产不依赖数据集身份。下一步是独立审查，236 项尚无编译结果。
+
+两环境完整模块和 DFG v2 测试通过。三套日志分别为 production_tests.log、mando_tests.log、dfg_tests.log。对语料本身没有重新调用 solc 或 Slither，没有训练、安装、下载或 LLM 调用。CP3.2 仅在本地提交。

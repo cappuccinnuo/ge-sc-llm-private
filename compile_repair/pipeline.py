@@ -17,7 +17,7 @@ from compile_repair.rules.environment import (make_plan, mando_known_version,
 from compile_repair.toolchain.solc import compile_file, load_trusted_compilers, version_tuple, parse_diagnostics
 from compile_repair.toolchain.slither import check_profile, run_slither
 from compile_repair.toolchain.project import (compile_project, materialize_project,
-    verify_project, project_entries, resolve_project, ProjectIndex, parse_remapping, standard_json_input)
+    verify_project, project_entries, resolve_project, ProjectIndex, parse_remapping, input_format_evidence)
 from scripts.DFG.models import Unsupported
 
 
@@ -47,10 +47,12 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         working[f.path], maps[f.path] = apply_patches(f.content, ())
     record = ManifestRecord(unit.unit_id, inputs, "unrepaired", "no_candidate_compiler",
                             None, None, (), [], [], dict(maps))
-    wrapper = standard_json_input(source.content)
-    if wrapper is not None:
-        record.reason = "standard_json_input"
-        record.attempts.append(dict(wrapper, stage="input_format"))
+    language, wrapper = input_format_evidence(source.content)
+    inputs[0]["language_evidence"] = language
+    if wrapper is not None or language["status"] == "non_solidity":
+        record.reason = "standard_json_input" if wrapper is not None else "non_solidity_input"
+        details = wrapper if wrapper is not None else language
+        record.attempts.append(dict(details, stage="input_format"))
         store.write_json(prefix + "result.json", record)
         return record
     if project is not None:

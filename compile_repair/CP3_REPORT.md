@@ -671,3 +671,127 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 共 16 个生产模块。完整测试为 production 758 通过、6 跳过，mando 295 通过、469 跳过，DFG v2 2,653 通过、9 个既有警告。CPU 上按 `python -B -m pytest -q -p no:cacheprovider` 运行，本次还指定 -x 和新 basetemp。首次模块测试发现旧断言要求拒绝 `0.5`，现同时断言旧行为及 CP3.1 明确要求的新区间，两次结果均保留。旧产物、工具链与语料的核验见 scope_audit.json。
 
 用户已批准 D21、语法拒绝单列和 AST 不足单列。AST 不足使全体重名项目数只能给出下限。D21 也会拒绝部分实际上绑定正确的重名项目图。原始失败、前提探针和两次 MANDO 字节核对各自保留，最终生产结果以 final 收据为准。费用 0 美元，未下载、安装或调用 LLM。交接记录见 CHANGE_LOG §37 及批次 README，提交与后续独立审查分开记录。
+
+
+## CP3.2 生产输入语言判定、包装边界与版本阻碍（2026-11-22，修改 AI：Codex）
+
+### 实现与用户决定
+
+在 `compile-repair@992bec09` 同步 r2.15 后，先按 §4.1、§4.5c 和 CP3.1 独立审查记录，用原词法规则检查全部 31,307 个原始入口。原清单包含 22,065 个不同内容 SHA，每个入口各核对一次 SHA，逐单元行保留重复内容。最初规则把 103 个原有效输入标为非 Solidity，其中 DAppSCAN 79、Trace on-chain 23、Trace repo 1。SOChecker 原排除的 236 项逐字段一致，MANDO 846 项全部有 Solidity 正证据。
+
+硬判据首次未通过。原成功单元只有 21,215/21,223 可按该规则识别。误判的 8 项含 3 个空文件、4 个纯注释文件和 1 个仅含顶层结构体定义的文件。旧清单的 solc 退出码均为 0，D3(a)/(b) 均为真，逐项核验的图均为零节点。顶层结构体的示例是 `cp3_00741`，SHA256 为 `ef32a6f4399e6cda3948f2584258b688cd4ec7b26f236937b2831ce966da16da`。SOChecker 历史排除中也有一个纯空白片段。原规则对三个手写的独立 `struct`、`enum`、`error` 文件均返回缺少声明证据。逐项原判定、旧工具收据及各语言线索见批次 `input_gate.json` 和 `decision_request.json`。
+
+在生产改动前停止并咨询。2026-11-22 用户原话“批准三态判定及新旧统计口径”，授权与请求 SHA 在 `authorization.json`。新判据要求所有原成功单元获准进入流水线。明确的其他语言才排除，语言未定的输入沿用正常选版和编译。对原排除且获准放行的输入，本轮只记录未测状态。
+
+- `toolchain/project.py` 承接原样移动的 `solidity_snippet_evidence`，函数文本 SHA256 为 `569b75cc5964c7ad30eec2eb4ce75952c52ce153b603fff4e61c9265c4fbee94`。`evaluation/survey.py` 从新位置导入。三个状态为 `solidity`、`non_solidity`、`unknown`。非 Solidity 正证据包括 JSON 中明确的其他语言、Vyper 版本指令，或同时出现的 Vyper 修饰器、函数声明和类型声明。用于识别的行标记要落在注释或字符串之外。语法线索不足时保留未知状态。
+- 包装优先识别，共享一次严格 JSON 解析。UTF-8 BOM 可位于普通或双花括号包装之前。显式声明 Solidity 且 `sources` 为映射时，缺少字符串 `content` 的条目仍属于包装，完整记录 `content_missing=true` 与 `missing_source_count`。处理止于元数据，解包交 CP5。
+- `pipeline.repair_unit` 把语言状态和依据记录在入口的 `inputs[0].language_evidence`。排除项保存 `stage=input_format` 与 `reason=non_solidity_input`，计划为空、工具日志为空。未定项保留输入出处并进入原有候选循环。
+- `evaluation/report.py` 识别输入阶段的两个原因，按实测失败计算两种份额。对 `version_dependent` 仅补充可解析候选诊断的交集。D6 分类表增加范围外类别，等级 `none`。分类表共有 31 类，原 125 个变更条目保留。
+
+### 真实验收与原口径
+
+| 核对项 | 预期 | 实测 |
+|---|---|---|
+| 原成功单元 | 获批后 21,223 项全部放行 | 21,223/21,223，含 8 个语言未定 |
+| MANDO | 846 个均有 Solidity 正证据 | 846/846，分类可逐条查阅，不重放编译 |
+| SOChecker 旧排除 | 保留 236 项旧口径 | 236/236 原规则证据一致，新口径全部未测 |
+| 审查 Vyper | 22 项均按输入格式排除 | 22/22，另有 1 个旧主因为结构不平衡的输入 |
+| 包装与边界 | 两个新边界识别，其余样例兼容 | 12 个手写审查场景中 2 项按要求改变、10 项复现旧结果，原模块正负例全通过，真实 Trace 示例的 20 个源和设置键一致 |
+| 全量包装 | 逐一给出增减 | 原有 410 项全部命中，新增 0、丢失 0，均在 Trace on-chain |
+| 归档与来源 | 只替换输入判定改变的既有结果 | 23 条输入阶段新收据，31,048 条既有结果沿用。核验 31,071 个旧清单文件，共 642,763,760 字节 |
+| 版本归因 | 保留主因，将可解析版本阻碍单列 | 从旧工具诊断重核 221/221 个版本分组与交集，全量分类调用 solc/Slither 各 0 次 |
+
+全部 31,307 项中有 31,284 项放行。31,048 项有可用历史测量，21,223 项成功、9,825 项未修复。23 项明确为非 Solidity，236 项未测。CP3.1 原口径为 31,071 项有效、21,223 项成功、9,848 项未修复、236 项排除。本步的变化来自输入分类。下表中“未定”为语言状态，可以和成功、失败或未测重叠。
+
+| 语料 | 原始 | Solidity | 未定 | 非 Solidity | 已测成功 | 已测失败 | 未测 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| DAppSCAN | 21457 | 21378 | 79 | 0 | 13594 | 7863 | 0 |
+| Trace_CVEs | 15 | 15 | 0 | 0 | 14 | 1 | 0 |
+| Trace_on_chain | 5000 | 4977 | 0 | 23 | 4565 | 412 | 0 |
+| Trace_repo | 3092 | 3091 | 1 | 0 | 2066 | 1026 | 0 |
+| SOChecker | 897 | 661 | 236 | 0 | 141 | 520 | 236 |
+| MANDO | 846 | 846 | 0 | 0 | 843 | 3 | 0 |
+| 合计 | 31,307 | 30,968 | 316 | 23 | 21,223 | 9,825 | 236 |
+
+该表来自 `language_acceptance.json`、`failure_summary.json` 和 `unmeasured.jsonl.gz`。全部 MANDO 判定在 `language_classifications.jsonl.gz` 中按 `corpus=MANDO` 读取。新排除的 23 项均来自 Trace on-chain，原主因 22 项为 `parser_error_other`、1 项为 `unbalanced_structure`。23 项中 5 项由 JSON 语言字段识别，17 项由 Vyper 版本指令识别，1 项由修饰器、函数及声明共同识别。
+
+| 输入示例 | 证据 | 原主因 | 入口 SHA256 |
+|---|---|---|---|
+| cp3_21601 | JSON 声明 Vyper | parser_error_other | `c94ee551a48290014c08f90465ec6b21967a3125f7404b1941ec589e95e74e9a` |
+| cp3_22065 | 无版本注释，有 Vyper 函数与声明 | parser_error_other | `f55b932251808bea019a254cec3d95e82d7a5e86a4283b645dfbc94b0a44e4af` |
+| cp3_25855 | 首行 Vyper 版本指令 | unbalanced_structure | `5d40986c3a1dd9125adfec96b4aec8a7336eb319d3c4cdde3e55bb1096c11461` |
+
+### 主因、任一候选与 D6
+
+下表每项按单元计数。同一单元可有多个类别，旧分母为 9,848，新分母为 9,825。主因的 `version_dependent` 是附加统计桶。`non_solidity_input` 的 23 项在范围外输入表计数。各类份额、分语料计数及带旧结果路径的示例见 `failure_summary.json` 与 `non_solidity.json`。
+
+| 类别 | 旧主因 | 新主因 | 旧任一候选 | 新任一候选 |
+|---|---:|---:|---:|---:|
+| `unresolved_package_import` | 8454 | 8454 | 8457 | 8457 |
+| `missing_relative_file` | 412 | 412 | 415 | 415 |
+| `standard_json_input` | 410 | 410 | 410 | 410 |
+| `parser_error_other` | 279 | 257 | 490 | 468 |
+| `version_dependent` | 221 | 221 | — | — |
+| `unbalanced_structure` | 56 | 55 | 86 | 85 |
+| `codegen_only` | 39 | 39 | 43 | 43 |
+| `other` | 36 | 36 | 202 | 202 |
+| `io_error` | 28 | 28 | 28 | 28 |
+| `undeclared_identifier` | 25 | 25 | 160 | 160 |
+| `slither_incomplete` | 24 | 24 | 24 | 24 |
+| `duplicate_definition` | 19 | 19 | 29 | 29 |
+| `multiple_license_or_pragma` | 8 | 8 | 8 | 8 |
+| `type_error_other` | 6 | 6 | 25 | 25 |
+| `closure_version_conflict` | 4 | 4 | 4 | 4 |
+| `unsupported_expression` | 4 | 4 | 4 | 4 |
+| `missing_base_contract` | 2 | 2 | 13 | 13 |
+| `unsupported_disjunction` | 1 | 1 | 1 | 1 |
+| `unterminated_pragma` | 1 | 1 | 1 | 1 |
+| `syntax_error` | 0 | 0 | 17 | 17 |
+| `internal_compiler_error` | 0 | 0 | 5 | 5 |
+| `compiler_exception` | 0 | 0 | 0 | 0 |
+| `declaration_error` | 0 | 0 | 0 | 0 |
+| `docstring_error` | 0 | 0 | 0 | 0 |
+| `encoding` | 0 | 0 | 0 | 0 |
+| `fatal_error` | 0 | 0 | 0 | 0 |
+| `json_error` | 0 | 0 | 0 | 0 |
+| `non_solidity_input` | — | 0 | — | 0 |
+| `pragma_missing_semicolon_candidate` | 0 | 0 | 0 | 0 |
+| `slither_no_timeout` | 0 | 0 | 0 | 0 |
+| `unimplemented_feature` | 0 | 0 | 0 | 0 |
+| `warning` | 0 | 0 | 0 | 0 |
+
+D6 按主因重排现有范围内的修复类别，排在前面的是缺少包依赖 8,454（86.05%）、缺少相对文件 412、标准 JSON 包装 410、其他解析错误 257。完整排序与零频类别在 `d6_cp4_final.json`。频率供安排实施顺序，工具的适用范围面向未来输入。
+
+### 可解析版本上的阻碍
+
+在每个 `version_dependent` 单元内，剔除含 `parser_error_other` 或 `unbalanced_structure` 的候选后，取其余版本类别的交集。共 221 项，SOChecker 211、DAppSCAN 10。其中 183 项至少有一个共同阻碍。38 项记为 `none`，25 项没有可解析候选，13 项可解析候选的交集为空。下表计数可重叠，完整示例 SHA 与诊断出处见 `version_blockers.json`。
+
+| 阻碍 | 单元数 | 语料 | 示例单元 |
+|---|---:|---|---|
+| `other` | 157 | SOChecker 157 | cp3_29569 |
+| `undeclared_identifier` | 124 | SOChecker 124 | cp3_29569 |
+| `none` | 38 | DAppSCAN 10、SOChecker 28 | cp3_01003 |
+| `missing_base_contract` | 9 | SOChecker 9 | cp3_29629 |
+| `duplicate_definition` | 8 | SOChecker 8 | cp3_29642 |
+| `type_error_other` | 8 | SOChecker 8 | cp3_29699 |
+| `missing_relative_file` | 3 | SOChecker 3 | cp3_29720 |
+| `unresolved_package_import` | 3 | SOChecker 3 | cp3_30144 |
+
+三个最常见的完整版本组合均来自 SOChecker。以下解释取各组首个示例及其已保存 stderr。
+
+1. **113 项**，例如 `cp3_29569`。0.4.12–0.7.0 要求导入或合约定义。0.7.1–0.8.38 能解析文件级函数，随后报告不允许可见性和标识符未声明。共同阻碍为 `other` 与 `undeclared_identifier`。
+2. **23 项**，例如 `cp3_29609`。解析转折同样出现在 0.7.1。新版本对该示例报告文件级函数不可设置可见性，共同阻碍为 `other`。
+3. **14 项**，例如 `cp3_29879`。0.4.12–0.7.3 归入其他解析错误，示例遇到 `view` 时期待左花括号。0.7.4–0.8.38 归入结构不平衡，示例遇到 `=>` 时期待分号。两组都属于解析阻碍，没有候选进入交集，结果为 `none`。
+
+### 代码量、验证与后续
+
+| 生产文件 | 函数变动行（新增/删除） |
+|---|---|
+| evaluation/report.py | `classify_record` +2/−1，`parseable_version_blockers` +9/−0，`module` +2/−0，`aggregate_attributions` +14/−0 |
+| evaluation/survey.py | `module` +1/−1，`solidity_snippet_evidence` +0/−25 |
+| pipeline.py | `module` +1/−1，`repair_unit` +6/−4 |
+| toolchain/project.py | `standard_json_input` +3/−13，`solidity_snippet_evidence` +25/−0，`module` +22/−0，`_reject_json_constant` +2/−0，`_input_json` +9/−0，`reject_constant` +0/−2，`_source_wrapper` +13/−0，`source_map` +0/−4，`missing_count` +3/−0，`_vyper_basis` +14/−0，`input_format_evidence` +22/−0 |
+
+按函数归属的方法为 Python AST 加行差异，模块数字含函数间空行。生产文件共 16 个，4 个发生变动。新增测试文件 `tests/test_cp32.py`。两环境的模块与 DFG 均用 CPU 完整运行。production 796 通过、6 跳过，mando 333 通过、469 跳过，DFG v2 2,653 通过、9 条警告。DFG 的 354 个代码引用与冻结基线一致。运行命令及耗时见本批三份 `*_tests.json`，语料分类和测试夹具的工具调用分开记账。
+
+批次 `artifacts/cp3_2_v1/` 的 README 给出复现命令，`verification.json`、`doc_check.json` 和 `seal.json` 提供核验信息。原始语料、旧图和历史产物保持只读。未能提供正证据的其他语言仍可能被放行，236 个未测输入的编译结果尚未知。本步费用 0 美元。CP3.2 已提交本地交独立审查，CP4 待审查后开始。

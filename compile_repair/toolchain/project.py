@@ -36,35 +36,129 @@ class Project:
                 "imports": self.imports, "issues": self.issues}
 
 
-def standard_json_input(raw):
-    """Describe Solidity standard JSON or Etherscan's source map without storing content."""
+def solidity_snippet_evidence(source):
+    """Classify input language lexically; retain malformed Solidity for solc.
+
+    Comments and string literals cannot claim a language. Recognizable pragma,
+    contract/interface/library or function declarations admit snippets, including
+    truncated declarations. Other text is reported separately, never repaired.
+    This conservative evidence rule is independent of compilation success.
+    """
+    from compile_repair.toolchain.solc import lexical_tokens
+    tokens = [(kind, raw) for _, _, kind, raw in lexical_tokens(source)]
+    for index, (kind, raw) in enumerate(tokens):
+        if kind != "word":
+            continue
+        rest = tokens[index + 1:index + 4]
+        if raw == b"pragma" and rest and rest[0][1] == b"solidity":
+            return {"is_solidity": True, "basis": "solidity_pragma", "token_index": index}
+        if raw in (b"contract", b"interface", b"library") and rest and rest[0][0] == "word":
+            if len(rest) == 1 or rest[1][1] in (b"{", b"is"):
+                return {"is_solidity": True, "basis": "solidity_declaration", "token_index": index}
+        if raw == b"function" and rest:
+            if rest[0][1] == b"(" or rest[0][0] == "word" and (
+                    len(rest) == 1 or rest[1][1] == b"("):
+                return {"is_solidity": True, "basis": "function_fragment", "token_index": index}
+    return {"is_solidity": False, "basis": "no_solidity_declaration_evidence",
+            "empty_or_comments_only": not tokens}
+
+
+_NOT_JSON = object()
+
+
+def _reject_json_constant(value):
+    raise ValueError("Invalid JSON constant: " + value)
+
+
+def _input_json(raw):
     raw = raw.strip()
-    if not raw.startswith(b"{"):
-        return None
+    if raw.startswith(b"\xef\xbb\xbf"):
+        raw = raw[3:].strip()
+    if not raw or raw[:1] not in b'{["-0123456789tfn':
+        return _NOT_JSON
     if raw.startswith(b"{{") and raw.endswith(b"}}"):
         raw = raw[1:-1]
-    def reject_constant(value):
-        raise ValueError("Invalid JSON constant: " + value)
-
     try:
-        obj = json.loads(raw, parse_constant=reject_constant)
+        return json.loads(raw, parse_constant=_reject_json_constant)
     except (ValueError, RecursionError):
-        return None
+        return _NOT_JSON
+
+
+def _source_wrapper(obj):
     if not isinstance(obj, dict) or obj.get("language", "Solidity") != "Solidity":
         return None
-    def source_map(value):
-        return isinstance(value, dict) and all(
-            isinstance(item, dict) and isinstance(item.get("content"), str)
-            for item in value.values())
+
+    def missing_count(entries):
+        return sum(not isinstance(item, dict) or not isinstance(item.get("content"), str)
+                   for item in entries.values())
 
     sources = obj.get("sources")
-    if not source_map(sources):
-        if "language" in obj or not source_map(obj):
+    missing = 0
+    if isinstance(sources, dict):
+        missing = missing_count(sources)
+    if not isinstance(sources, dict) or (missing and "language" not in obj):
+        if "language" in obj or missing_count(obj):
             return None
-        sources = obj
+        sources, missing = obj, 0
     settings = obj.get("settings")
-    return {"source_count": len(sources), "source_names": sorted(sources),
-            "settings_keys": sorted(settings) if isinstance(settings, dict) else []}
+    metadata = {"source_count": len(sources), "source_names": sorted(sources),
+                "settings_keys": sorted(settings) if isinstance(settings, dict) else []}
+    if missing:
+        metadata.update(content_missing=True, missing_source_count=missing)
+    return metadata
+
+
+def standard_json_input(raw):
+    """Describe a Solidity source wrapper, counting entries CP5 cannot unpack."""
+    return _source_wrapper(_input_json(raw))
+
+
+_VYPER_LINES = {
+    "version": rb"^[ \t]*(#)[ \t]*(?:@version|pragma[ \t]+version)[ \t]+[~^<>=! \t]*[0-9]+\.[0-9]+(?:\.[0-9]+)?(?=[ \t\r\n]|$)",
+    "decorator": rb"^[ \t]*(@)(?:external|internal|deploy)[ \t]*(?:#[^\r\n]*)?\r?$",
+    "function": rb"^[ \t]*(def)[ \t]+[A-Za-z_]\w*[ \t]*\([^\r\n#]*\)[ \t]*(?:->[ \t]*[^:\r\n#]+)?[ \t]*:",
+    "declaration": rb"^[ \t]*(event[ \t]+[A-Za-z_]\w*[ \t]*:|[A-Za-z_]\w*[ \t]*:[ \t]*public[ \t]*\()",
+}
+
+
+def _vyper_basis(raw):
+    """Require a version directive or corroborating Vyper declarations outside literals/comments."""
+    if b"#" not in raw and b"@" not in raw:
+        return None
+    positions = {m.start(1): name for name, pattern in _VYPER_LINES.items()
+                 for m in re.finditer(pattern, raw, re.MULTILINE)}
+    if positions:
+        found = {positions[lo] for lo, _, kind, _ in lexical_tokens(raw)
+                 if lo in positions and kind != "string"}
+        if "version" in found:
+            return "vyper_version_directive"
+        if {"decorator", "function", "declaration"} <= found:
+            return "vyper_decorated_function_and_declaration"
+    return None
+
+
+def input_format_evidence(raw):
+    """Return entry language evidence and optional wrapper metadata, without running tools.
+
+    Unknown inputs continue through the same pipeline as recognized Solidity.
+    The original snippet rule supplies positive lexical evidence only.
+    """
+    obj = _input_json(raw)
+    wrapper = _source_wrapper(obj)
+    if wrapper is not None:
+        return {"status": "solidity", "basis": "source_wrapper"}, wrapper
+    if obj is not _NOT_JSON:
+        language = obj.get("language") if isinstance(obj, dict) else None
+        if isinstance(language, str) and language.strip():
+            status = "solidity" if language == "Solidity" else "non_solidity"
+            return {"status": status, "basis": "json_language", "language": language}, None
+        return {"status": "unknown", "basis": "no_json_language"}, None
+    vyper = _vyper_basis(raw)
+    if vyper:
+        return {"status": "non_solidity", "basis": vyper, "language": "Vyper"}, None
+    evidence = solidity_snippet_evidence(raw)
+    evidence["status"] = "solidity" if evidence.pop("is_solidity") else "unknown"
+    return evidence, None
 
 
 def import_directives(source):

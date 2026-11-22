@@ -19,7 +19,8 @@ def classify_record(record):
     rows = []
     for attempt in record["attempts"]:
         if attempt["stage"] == "input_format":
-            rows.append(dict(attempt, category="standard_json_input"))
+            category = "non_solidity_input" if record["reason"] == "non_solidity_input" else "standard_json_input"
+            rows.append(dict(attempt, category=category))
             continue
         if attempt["stage"] == "project_assembly":
             rows.extend(dict(issue, stage="project_assembly") for issue in attempt["issues"])
@@ -149,16 +150,36 @@ def aggregate_failures(classifications, categories):
             "import_count_basis": "unique importer/byte-position/path per compilation unit; closures overlap"}
 
 
+def parseable_version_blockers(by_version):
+    """Return shared labels on candidates without the two parser-blocking diagnostics.
+
+    An empty result means no common blocker was observed (including no parseable
+    candidate). This supplementary evidence never changes the primary cause.
+    """
+    parser_failures = {"parser_error_other", "unbalanced_structure"}
+    remaining = [set(labels) for labels in by_version.values() if parser_failures.isdisjoint(labels)]
+    return sorted(set.intersection(*remaining)) if remaining else []
+
+
 def aggregate_attributions(classifications, categories):
     """Report both candidate conventions from the same population and denominator."""
     primary_rows, all_rows, combinations = [], [], Counter()
+    blockers, exclusions, unmeasured = [], Counter(), Counter()
     for item in classifications:
         primary = item["primary"]
+        if "non_solidity_input" in primary["categories"]:
+            exclusions[item["corpus"]] += 1
+            continue
+        if item["status"] == "unmeasured":
+            unmeasured[item["corpus"]] += 1
+            continue
         row = {key: item[key] for key in ("unit_id", "status", "corpus", "entry_sha256")}
         any_rows = [{"category": category} for category in item["any_categories"]]
         all_rows.append(dict(row, failures=any_rows))
         primary_rows.append(dict(row, failures=[{"category": c} for c in primary["categories"]]))
         if "version_dependent" in primary["categories"]:
+            labels = parseable_version_blockers(primary["by_version"]) or ["none"]
+            blockers.append(dict(row, failures=[{"category": label} for label in labels]))
             for version, labels in primary["by_version"].items():
                 combinations[(version, tuple(labels))] += 1
     def table(rows, names):
@@ -170,6 +191,11 @@ def aggregate_attributions(classifications, categories):
     return {
         "primary": table(primary_rows, list(categories) + ["version_dependent"]),
         "any_candidate": table(all_rows, categories),
+        "non_solidity_by_corpus": dict(exclusions),
+        "unmeasured_by_corpus": dict(unmeasured),
+        "version_dependent_blockers": {
+            "units": len(blockers),
+            "category_unit_counts": aggregate_failures(blockers, ["none"])["category_unit_counts"]},
         "version_dependent_combinations": [
             {"version": version, "categories": list(labels), "units": count}
             for (version, labels), count in sorted(combinations.items(), key=lambda pair: (-pair[1], pair[0]))]}
