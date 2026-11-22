@@ -85,8 +85,8 @@ class TaskData:
 
 def _projects(dataset, category):
     """{file: audited project} of a composed dataset (folds keep a project together)."""
+    from dfg.inputs import REPO
     from hcg.datasets.registry import get_dataset
-    from hcg.pipeline import REPO
     from hcg.sources import composition
     spec = get_dataset(dataset)
     if not spec.composition:

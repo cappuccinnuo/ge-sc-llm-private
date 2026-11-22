@@ -75,11 +75,13 @@ Sources, all pinned in `sources/repos.py`:
   each SolidiFI folder: 72+50=122, 136+50=186, 108+50=158, 76+50=126, 113+50=163,
   36+50=86, 73+50=123.
 - So every category holds its distinct DAppSCAN files and all 50 SolidiFI contracts.
-  15 DAppSCAN category entries (13 files) are left out with the reason: 11 files
+  17 DAppSCAN category entries (15 files) are left out with the reason: 11 files
   crash inside the authors' builder (`UnboundLocalError` in its loop handling, one
-  `AttributeError` in its call-graph code) and 2 cannot be read by the DFG front end
-  that NodeSem and EdgeSem use (a parser error; an ambiguous multi-line string). Six
-  categories hold 2-8 buggy contracts fewer than Table 2; time manipulation matches.
+  `AttributeError` in its call-graph code), 2 cannot be read by the DFG front end
+  that NodeSem and EdgeSem use (a parser error; an ambiguous multi-line string) and 2
+  contain a guard EdgeSem cannot place on a graph node (a `do ... while` condition,
+  for which the authors' builder has no node; EdgeSem refuses a task with one). Six
+  categories hold 2-5 buggy contracts fewer than Table 2; time manipulation matches.
 
 **Clean side: counterparts per buggy source (not the paper's).** The paper draws every
 clean contract from SmartBugs Wild, but that pool holds only Solidity 0.4/0.5 (1,801
@@ -126,8 +128,8 @@ reached in `manifest.json` (`annotated_lines_reached`, overall and per source).
 - try/catch (Solidity >= 0.6) creates edges Dataset A never has; their names are
   inferred (`cfg/author_schema.py::INFERRED_SITES`: `next_line` as HGT edge type)
   rather than verified against the authors' graphs. Dataset A is unaffected.
-- Built 1,898 contracts (Table 2: 1,928), 301,944 nodes (226,940; the clean side
-  differs from the paper's) and 49,872 vulnerable nodes (59,183, -16%; per category
+- Built 1,894 contracts (Table 2: 1,928), 301,439 nodes (226,940; the clean side
+  differs from the paper's) and 49,869 vulnerable nodes (59,183, -16%; per category
   -31% to -4%; how the paper projected DAppSCAN labels onto nodes it does not say).
 - Identical texts under different DAppSCAN paths (a file in several audited
   snapshots of one project) are kept, as in the paper; the grouped protocol keeps

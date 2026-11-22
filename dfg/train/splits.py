@@ -1,13 +1,13 @@
 """Group-disjoint nested folds: duplicate groups never straddle train/val/test.
 
-Duplicate groups are connected components of two pair relations over a category's
+Duplicate groups are connected components of pair relations over a category's
 source files: *exact* (equal after removing all whitespace) and *near* (comments
 also removed, ``difflib.SequenceMatcher`` ratio >= 0.98 with autojunk, operands in
 source-identity order). A composed dataset may add a third, *project*: files of one
-audited project (Dataset B's DAppSCAN rows), which share code and style. Groups are assigned to K outer folds, then the remainder of
-each fold to inner train/validation (80/20), by deterministic greedy balancing of
-file class x cohort (SolidiFI or not) and positive/negative node counts, with SHA
-tie-breaks. Assignment never sees predictions or scores.
+audited project (Dataset B's DAppSCAN rows), which share code and style. Groups are
+assigned to K outer folds, then the remainder of each fold to inner train/validation
+(80/20), by deterministic greedy balancing of file class x cohort (SolidiFI or not) and
+positive/negative node counts, with SHA tie-breaks. Assignment never sees predictions or scores.
 """
 import collections
 import difflib

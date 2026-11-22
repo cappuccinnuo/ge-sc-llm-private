@@ -13,7 +13,8 @@ The buggy side is therefore the paper's:
 1. DAppSCAN: every distinct file the authors list for the category, as their
    cleaned source with their line labels for the category's SWC ids. Left out only
    when a stage cannot read it (the graph builder cannot produce the authors' graph
-   format, or the DFG front end cannot parse it) or it has no line for the category.
+   format, the DFG front end cannot parse it, or EdgeSem finds a guard that starts at
+   no graph node) or it has no line for the category.
 2. SolidiFI: all 50 contracts of the category's folder (Dataset A's folders).
 
 The clean side departs from the paper. Its SmartBugs Wild pool holds only Solidity
@@ -64,7 +65,7 @@ RULES = [
     "DAppSCAN: every distinct file of the authors' per-category list "
     "(dasp_categories/DASP_smart_contract_metadata.json), cleaned source + cleaned line labels "
     "for the category's SWC ids; left out only when a stage cannot read it (HCG builder, DFG "
-    "front end) or without a line",
+    "front end, EdgeSem guard mapping) or without a line",
     "SolidiFI: all 50 contracts of the category's SolidiFI folder (Table 2 buggy count = "
     "distinct DAppSCAN files + 50 in every category)",
     "DAppSCAN-clean: as many as DAppSCAN buggy files, seeded order from the release's files not "
@@ -99,12 +100,16 @@ def _text_key(path):
 def _unusable(path, name):
     """None if every stage can read the corpus copy, else why not.
 
-    The HCG builder must produce the authors' graph format, and the DFG front end
+    The HCG builder must produce the authors' graph format; the DFG front end
     (dfg.graph.projection, which NodeSem and EdgeSem read through) must parse the file
-    and find every graph node's text at its AST span. Dataset A passes both for every
-    file; checking here keeps one unreadable file from stopping a whole category later.
+    and find every graph node's text at its AST span; and every lexical guard EdgeSem
+    finds must start at a graph node (its F4 build refuses a task with one that does
+    not: a ``do ... while`` condition, which the authors' builder gives no node).
+    Dataset A passes all three for every file; checking here keeps one unreadable file
+    from stopping a whole category later.
     """
     from dfg.graph.projection import Projector, ProjectionView
+    from edgesem.graph.f4 import inspect_file
     from hcg.cfg.builder import build_contract
     data = _copy(path)
     with tempfile.TemporaryDirectory() as directory:
@@ -116,10 +121,18 @@ def _unusable(path, name):
             return "graph builder: %s" % repr(error)[:160]
         if graph.number_of_nodes() == 0:
             return "graph builder: no nodes"
+        text = data.decode("utf8")
         try:
-            Projector(graph, ProjectionView(data.decode("utf8"), name))
+            Projector(graph, ProjectionView(text, name))
         except Exception as error:  # noqa: BLE001
             return "DFG front end: %s" % repr(error)[:160]
+        try:
+            _, audit = inspect_file(name, text, graph)
+        except Exception as error:  # noqa: BLE001
+            return "EdgeSem F4: %s" % repr(error)[:160]
+        unmapped = audit["guards"]["counts"].get("nonmodifier_unmapped", 0)
+        if unmapped:
+            return "EdgeSem F4: %d guard record(s) start at no graph node" % unmapped
     return None
 
 

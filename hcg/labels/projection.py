@@ -46,9 +46,9 @@ def project_annotations(annotations, sources):
     projected, texts = {}, {}
     for name, records in annotations.items():
         text, line_map = preprocess_with_map(Path(sources[name]).read_text(encoding="utf8"))
-        projected[name] = project(records, line_map)
-        texts[name] = text.split("\n")[:len(line_map)]
-        texts[name] += [""] * (len(line_map) - len(texts[name]))
+        projected[name], texts[name] = project(records, line_map), text.split("\n")
+        if len(texts[name]) != len(line_map):
+            raise ValueError("%s: preprocessed text and line map differ in length" % name)
     return projected, texts
 
 

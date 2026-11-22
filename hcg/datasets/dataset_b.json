@@ -3,7 +3,7 @@
  "dataset": "B",
  "seed": 1,
  "rules": [
-  "DAppSCAN: every distinct file of the authors' per-category list (dasp_categories/DASP_smart_contract_metadata.json), cleaned source + cleaned line labels for the category's SWC ids; left out only when a stage cannot read it (HCG builder, DFG front end) or without a line",
+  "DAppSCAN: every distinct file of the authors' per-category list (dasp_categories/DASP_smart_contract_metadata.json), cleaned source + cleaned line labels for the category's SWC ids; left out only when a stage cannot read it (HCG builder, DFG front end, EdgeSem guard mapping) or without a line",
   "SolidiFI: all 50 contracts of the category's SolidiFI folder (Table 2 buggy count = distinct DAppSCAN files + 50 in every category)",
   "DAppSCAN-clean: as many as DAppSCAN buggy files, seeded order from the release's files not listed for the category and without a line labelled with its SWC ids",
   "SmartBugs-Wild-clean: as many as SolidiFI files, seeded order from the 2,742 SmartBugs Wild clean contracts (ge-sc/data/smartbugs-wild-clean-contracts)",
@@ -1174,6 +1174,16 @@
      "sha256": "d39eae71c0c22cffb40f96b0caeba3e47745593b63aab8ca50627d8e548e0eb2"
     },
     {
+     "name": "dappscan_3847c885ae_YieldFarmLP.sol",
+     "source": "DAppSCAN-clean",
+     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinbae-Barnbridge_YieldFarmLP/YieldFarm0xB3F7abF8FA1Df0fF61C5AC38d35e20490419f4bb/contracts/cleaned_YieldFarmLP.sol",
+     "target": 0,
+     "project": "Coinbae-Barnbridge_YieldFarmLP",
+     "pairs_with": "DAppSCAN",
+     "origin_sha256": "fbdf373ff37d03b74d0e94007dfe83a8716c8b3048a845d1a2eeb611dc399824",
+     "sha256": "fbdf373ff37d03b74d0e94007dfe83a8716c8b3048a845d1a2eeb611dc399824"
+    },
+    {
      "name": "dappscan_3879b5623c_GLONK.sol",
      "source": "DAppSCAN-clean",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Glonk Smart Contract/code/cleaned_GLONK.sol",
@@ -2063,16 +2073,6 @@
      "sha256": "d75e0782a0a9c47b25e4922e7e4a3d994bfc685a9763252f4b6d57f5ecd79a15"
     },
     {
-     "name": "dappscan_b78247822f_TeamsStorageController.sol",
-     "source": "DAppSCAN-clean",
-     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation/smart-contracts-c1efcabf8a56a4d0a1fa5185a095052c110bdd87/contracts/storage/cleaned_TeamsStorageController.sol",
-     "target": 0,
-     "project": "Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation",
-     "pairs_with": "DAppSCAN",
-     "origin_sha256": "e60fc390310d11e5e5ba617a272ef4dc91652cb8bba6af222f31ee4531fa44c5",
-     "sha256": "e60fc390310d11e5e5ba617a272ef4dc91652cb8bba6af222f31ee4531fa44c5"
-    },
-    {
      "name": "dappscan_b85be42e70_BMath.sol",
      "source": "DAppSCAN-clean",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Trail_of_Bits-BalancerCore/balancer-core-942a51e202cc5bf9158bad77162bc72aa0a8afaf/contracts/cleaned_BMath.sol",
@@ -2663,6 +2663,11 @@
      "source": "DAppSCAN",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Trail_of_Bits-RocketPool/rocketpool-a65b203cf99c7a991c2d85a7468a97bfb5dbba31/contracts/contract/minipool/cleaned_RocketMinipool.sol",
      "reason": "DFG front end: Unsupported('Solidity parser ERROR/MISSING')"
+    },
+    {
+     "source": "DAppSCAN-clean",
+     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation/smart-contracts-c1efcabf8a56a4d0a1fa5185a095052c110bdd87/contracts/storage/cleaned_TeamsStorageController.sol",
+     "reason": "EdgeSem F4: 6 guard record(s) start at no graph node"
     },
     {
      "source": "DAppSCAN-clean",
@@ -6946,12 +6951,12 @@
     "SWC-134"
    ],
    "counts": {
-    "contracts": 308,
-    "vulnerable_contracts": 154,
-    "dappscan": 104,
+    "contracts": 306,
+    "vulnerable_contracts": 153,
+    "dappscan": 103,
     "solidifi": 50,
-    "clean": 154,
-    "dappscan_clean": 104,
+    "clean": 153,
+    "dappscan_clean": 103,
     "wild_clean": 50,
     "dappscan_listed": 108,
     "dappscan_list_entries": 148,
@@ -9203,21 +9208,6 @@
      "sha256": "a328d0be7cba86b8d1f1aa21ae1a4939c00f65c773f34237d97498b458772f9d"
     },
     {
-     "name": "dappscan_89d4fcb28d_strategy-cmpd-dai-v1.sol",
-     "source": "DAppSCAN",
-     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Pickle Finance-All Strategies/protocol-9b0f330a16bc35c964211feae3b335ab398c01b6/cleaned_strategy-cmpd-dai-v1.sol",
-     "target": 1,
-     "labels": [
-      "DASP-DAppSCAN-datasets/DAppSCAN-source/DASP_cleaned_labels/QuillAudits-Pickle Finance-All Strategies/protocol-9b0f330a16bc35c964211feae3b335ab398c01b6/strategy-cmpd-dai-v1.json"
-     ],
-     "swc": [
-      "SWC-128"
-     ],
-     "project": "QuillAudits-Pickle Finance-All Strategies",
-     "origin_sha256": "8ffe07d95c86cfdc68bb22bf4b88126649b640295e7ffb234eebfd16ab9f8bdb",
-     "sha256": "8ffe07d95c86cfdc68bb22bf4b88126649b640295e7ffb234eebfd16ab9f8bdb"
-    },
-    {
      "name": "dappscan_89e8c25758_PRA.sol",
      "source": "DAppSCAN-clean",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/SlowMist-ForTube2.0 Smart Contract Security Audit Report/bond-854527d0ea7ad2ddd3504b4d4ae3fcb57cb6445d/contracts/cleaned_PRA.sol",
@@ -9681,16 +9671,6 @@
      "project": "consensys-Amp",
      "origin_sha256": "be01806134a408314953ac3e1eef65e148ce644ac4bcb88505c5cc93ef160e27",
      "sha256": "be01806134a408314953ac3e1eef65e148ce644ac4bcb88505c5cc93ef160e27"
-    },
-    {
-     "name": "dappscan_b78247822f_TeamsStorageController.sol",
-     "source": "DAppSCAN-clean",
-     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation/smart-contracts-c1efcabf8a56a4d0a1fa5185a095052c110bdd87/contracts/storage/cleaned_TeamsStorageController.sol",
-     "target": 0,
-     "project": "Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation",
-     "pairs_with": "DAppSCAN",
-     "origin_sha256": "e60fc390310d11e5e5ba617a272ef4dc91652cb8bba6af222f31ee4531fa44c5",
-     "sha256": "e60fc390310d11e5e5ba617a272ef4dc91652cb8bba6af222f31ee4531fa44c5"
     },
     {
      "name": "dappscan_b7ae56ec81_BasicMathLib.sol",
@@ -10426,6 +10406,11 @@
     },
     {
      "source": "DAppSCAN",
+     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/QuillAudits-Pickle Finance-All Strategies/protocol-9b0f330a16bc35c964211feae3b335ab398c01b6/cleaned_strategy-cmpd-dai-v1.sol",
+     "reason": "EdgeSem F4: 7 guard record(s) start at no graph node"
+    },
+    {
+     "source": "DAppSCAN",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/SlowMist-eden-network Smart Contract Security Audit Report/governance-e7b55f6e3f9c0d3ede7fd8bb39ae4fa7a4f4e79e/contracts/cleaned_DistributorGovernance.sol",
      "reason": "graph builder: UnboundLocalError(\"cannot access local variable 'update_node_id' where it is not associated with a value\")"
     },
@@ -10438,6 +10423,11 @@
      "source": "DAppSCAN-clean",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/openzeppelin-Notional_Governance_Contracts_v2/contracts-v2-c37c89c9729b830637558a09b6f22fc6a735da64/cleaned_NoteERC20.sol",
      "reason": "graph builder: UnboundLocalError(\"cannot access local variable 'update_node_id' where it is not associated with a value\")"
+    },
+    {
+     "source": "DAppSCAN-clean",
+     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation/smart-contracts-c1efcabf8a56a4d0a1fa5185a095052c110bdd87/contracts/storage/cleaned_TeamsStorageController.sol",
+     "reason": "EdgeSem F4: 6 guard record(s) start at no graph node"
     },
     {
      "source": "DAppSCAN-clean",
@@ -18692,12 +18682,12 @@
     "SWC-104"
    ],
    "counts": {
-    "contracts": 242,
-    "vulnerable_contracts": 121,
-    "dappscan": 71,
+    "contracts": 240,
+    "vulnerable_contracts": 120,
+    "dappscan": 70,
     "solidifi": 50,
-    "clean": 121,
-    "dappscan_clean": 71,
+    "clean": 120,
+    "dappscan_clean": 70,
     "wild_clean": 50,
     "dappscan_listed": 73,
     "dappscan_list_entries": 113,
@@ -19976,16 +19966,6 @@
      "sha256": "3bff2a529313cd1bcdb5ab3faf8e43c77caa9bf514d1178b18dd0050092fe96d"
     },
     {
-     "name": "dappscan_3e1650b5e6_ARCToken.sol",
-     "source": "DAppSCAN-clean",
-     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/openzeppelin-Arcade_City_token/ac-token-dd4207e1538f96eb3cbbf9e714eb38015bfe7c5a/cleaned_ARCToken.sol",
-     "target": 0,
-     "project": "openzeppelin-Arcade_City_token",
-     "pairs_with": "DAppSCAN",
-     "origin_sha256": "fc228acf028bd47eaf2e7649b9708cab8803d355ba0633ab33a04da3d662b007",
-     "sha256": "fc228acf028bd47eaf2e7649b9708cab8803d355ba0633ab33a04da3d662b007"
-    },
-    {
      "name": "dappscan_3e53e94b6b_Synthetix.sol",
      "source": "DAppSCAN-clean",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Iosiro-Synthetix Phase 2 Smart Contract Audit/synthetix-fdd4782ebebd7b4892c8a68000f76708d5d1aa7b/cleaned_Synthetix.sol",
@@ -20866,21 +20846,6 @@
      "sha256": "ff6c9ddb20d2b9654def5c02250d8c223d20aa74f9e969a52128496dc390d087"
     },
     {
-     "name": "dappscan_b78247822f_TeamsStorageController.sol",
-     "source": "DAppSCAN",
-     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation/smart-contracts-c1efcabf8a56a4d0a1fa5185a095052c110bdd87/contracts/storage/cleaned_TeamsStorageController.sol",
-     "target": 1,
-     "labels": [
-      "DASP-DAppSCAN-datasets/DAppSCAN-source/DASP_cleaned_labels/Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation/smart-contracts-c1efcabf8a56a4d0a1fa5185a095052c110bdd87/contracts/storage/TeamsStorageController.json"
-     ],
-     "swc": [
-      "SWC-104"
-     ],
-     "project": "Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation",
-     "origin_sha256": "e60fc390310d11e5e5ba617a272ef4dc91652cb8bba6af222f31ee4531fa44c5",
-     "sha256": "e60fc390310d11e5e5ba617a272ef4dc91652cb8bba6af222f31ee4531fa44c5"
-    },
-    {
      "name": "dappscan_bb89d4268c_masterchef.sol",
      "source": "DAppSCAN-clean",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/PeckShield-KaoyaSwap/contracts-8273073f1d6914f372790399378f177573c52e37/cleaned_masterchef.sol",
@@ -21332,6 +21297,11 @@
     }
    ],
    "excluded": [
+    {
+     "source": "DAppSCAN",
+     "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/Coinfabrik-DreamTeam Smart Contracts Audit for Players Compensation/smart-contracts-c1efcabf8a56a4d0a1fa5185a095052c110bdd87/contracts/storage/cleaned_TeamsStorageController.sol",
+     "reason": "EdgeSem F4: 6 guard record(s) start at no graph node"
+    },
     {
      "source": "DAppSCAN",
      "origin": "DASP-DAppSCAN-datasets/DAppSCAN-source/cleaned_SWCsource/HAECHI_AUDIT-Stacker_Venture/StackerVC_VentureFund001-fund-2/cleaned_FarmBossV1.sol",

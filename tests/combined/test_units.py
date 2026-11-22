@@ -68,6 +68,9 @@ def test_combined_model_joins_edgesem_graph_parts_and_nodesem_adapters(inputs, t
     config = _config(task)
     model = full.make_full_model(task, "reentrancy_" + task, graph_of, store, edges, attrs, 0, config)
     assert all(type(a) is NodeSemAdapter for a in model.adapt_ws)
+    # adapters are seeded by index: the node-type order must be NodeSem's (the G3R model's)
+    from dfg.model.model import make_model
+    assert model.ntypes_dict == make_model(task, graph, "G3R", "cpu").ntypes_dict
     assert model.in_size == full.SPEC.carrier_dim() and model.edge_profile == "G4R-AC"
     # graph, relation, edge-encoder and classifier tensors are EdgeSem's G4R-AC initialization ...
     carried, _ = full.carried_graph(graph, store)
