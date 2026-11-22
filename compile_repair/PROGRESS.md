@@ -483,3 +483,9 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 实测全部 21,223 个既有成功项均放行，846/846 个 MANDO 输入有 Solidity 证据。23 个 Vyper 输入退出失败分母，含原 22 个解析错误及 1 个结构不平衡。236 个原排除项在新口径中获准放行且未测。新失败分母 9,825，旧口径 9,848。新旧包装均为 410 个，版本依赖主因 221 个，其中 183 个有共同阻碍。完整表格、SHA 示例与 D6 排序见 CP3_REPORT 的 CP3.2 及本批 failure_summary.json、version_blockers.json、d6_cp4_final.json。
 
 使用各配置的 Python 从仓库根运行 `python -B -m pytest -x -q -p no:cacheprovider`，模块在 production 796 通过/6 跳过，在 mando 333 通过/469 跳过，DFG v2 在 mando 2,653 通过/9 警告。23 条输入格式收据的工具调用为零，另外 31,048 条原测量保留原出处。冻结旧清单哈希核验 31,071 条，代码引用 354 条一致，生产文件共 16 个。CHANGE_LOG §39 记录授权原话、限制与 doc_check；等待独立审查。
+
+
+## CP3.2 审查与方案 r2.16（Claude，2026-11-22）
+
+- CP3.2 复核成立：三态语言判定（用户批准）排除 23 个 Vyper，原成功单元全部放行；边界与真实输入判定正确，132 项测试通过。CP3 系列结束。
+- PROMPTS r2.16：新增 1.19 节与 4.6a 节 CP4 完整提示（基础单元、项目划分、算子、触发判定、评分函数与自检）。证据 `artifacts/cp3_2_review_v1/`；记录 `docs/CHANGE_LOG.md` §40。下一步 CP4。

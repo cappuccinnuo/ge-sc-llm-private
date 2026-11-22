@@ -1965,3 +1965,41 @@ production 模块 758 passed / 6 skipped，mando 模块 295 passed / 469 skipped
 两套模块和 DFG v2 全部运行，执行命令、环境和临时目录见各自 `*_tests.json`。从仓库根使用生产 Python 3.10 跑模块得到 796 通过、6 跳过（89.80 秒）；mando Python 3.7 跑模块 333 通过、469 跳过（26.84 秒），跑 DFG v2 得到 2,653 通过与 9 个警告（186.80 秒）。全量输入判定用 CPU，原规则扫描 21.818 秒，获批判定扫描 23.247 秒，最终独立数据核验 35.731 秒。生产模块仍 16 个，4 个有改动。冻结代码对照通过。
 
 doc_check 用 `python -B -m scripts.node_sem.doc_check --expect-cjk` 检查 6 份文档。HANDOVER、DECISIONS、批次 README 检查全文，CHANGE_LOG、PROGRESS、CP3_REPORT 从追加前的 270618、72228、85753 字节检查。六份均 passed=True，命令、SHA 和结果在本批 doc_check.json。费用 0 美元，无安装、下载、LLM 或 HGT 训练。没有重编译语料或重跑 MANDO；现有模块测试按其原有设计使用小型工具夹具。本轮以 `CP3.2` 开头的信息本地提交，提交号由 git 日志和交付消息提供。CP4 等独立审查。
+
+
+## 40. 2026-11-22 CompileRepair CP3.2 审查与方案 r2.16（修改 AI：Claude）
+
+### 40.1 任务、依据与范围
+
+用户要求（2026-11-22）：Codex 已完成 CP3.2；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后进入 CP4。起点 `compile-repair@7336436e7`。审查对象：`toolchain/project.py`、`pipeline.py`、`evaluation/report.py`、`evaluation/survey.py` 的差异，`tests/test_cp32.py`，`cp3_2_v1` 的汇总、决定请求与授权，CP3_REPORT 的 CP3.2 节、HANDOVER、DECISIONS、CHANGE_LOG §39、PROGRESS。
+
+修改：`PROMPTS.md`（r2.15 → r2.16）；新增 `artifacts/cp3_2_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 4 节补注，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 1 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 40.2 实施方式和重要选择
+
+- 偏离方案的判断：r2.15 要求“无 Solidity 证据即排除”，Codex 实现为三态。读决定请求与授权，确认是硬判据（原成功单元全部放行）首次失败后停下咨询、用户批准的结果。失败的 8 个单元是空文件、纯注释与只有顶层 struct 的文件，solc 接受、图为 0 个节点，说明原规则把“没有声明证据”当成了“不是 Solidity”。三态判定只在有正证据时排除，既满足硬判据，也覆盖全部 22 个 Vyper；判断为 Codex 的做法正确、原方案应修正。
+- 独立核对：自写 11 个边界输入（注释、NatSpec、字符串中的 Vyper 字样，BOM、urls、Yul 包装等）与真实输入（源码目录全部 .sol、测试夹具、22 个 Vyper、包装示例），逐个调用 `input_format_evidence`；核对汇总中的加减关系；在审查环境运行 CP3.x 测试。
+- CP4 提示：§4.6 原只有范围。按 CP3.2 的 cp4_common_protocol 与 23 个类别的 cp4_operator 细化：基础单元条件（排除 0 节点图与 unknown）、项目分组与固定哈希划分、AST 定位的确定性编辑、规模上限与分层抽样、触发判定（以环境步骤后的主因为准，换版本即可解决的样本单列）、评分函数（两段偏移映射组合后比较 kept 节点、边、调用，检查 lost 与 added），以及“精确还原必须满分、故意错误必须检出”的自检。评分函数放在 CP4，是为了 CP5 以后的每个修复阶段用同一把尺子。
+
+### 40.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 边界输入 | 11 例全部符合预期；无版本无声明的 Vyper 为 unknown（已知限制） | probe_language_adversarial.json |
+| 真实输入 | 1,694 个 Solidity 全部判为 solidity；22 个 Vyper 全部 non_solidity；包装示例 20 源、6 个 settings 键 | probe_language_real.json |
+| 统计 | 31,307 = 31,284 + 23；31,284 = 21,223 + 9,825 + 236；parser −22、unbalanced −1 | CP3_REPORT、failure_summary.json |
+| 测试 | 132 项通过 | 审查环境 pytest |
+
+未证明：236 个 SOChecker unknown 输入的编译结果；缺少正证据的其他语言输入在检测时的数量。
+
+### 40.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：按硬判据停下、在改生产代码前咨询、保留首次失败记录；批准后实现与批准一致。
+- 原方案修正：r2.15 第 4.5c 节第 1 节的排除规则过严，以用户批准的三态判定为准。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。CP4 不需要新的用户决定或授权。
+
+### 40.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp3_2_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP3 系列结束，可以开始 CP4。本轮提交并 push 到 `compile-repair`。

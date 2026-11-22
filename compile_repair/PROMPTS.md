@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.15（2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.16（2026-11-22；r2.15 同日；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.16 相对 r2.15 的修改**（CP3.2 审查；证据 `artifacts/cp3_2_review_v1/README.md`）：
+1. CP3.2 经独立复核成立（新增 1.19 节）。Codex 按硬判据发现 r2.15 的语言规则会误排除 8 个原成功单元（空文件、纯注释、只有顶层 struct），停下咨询，用户批准三态判定；审查确认三态判定正确，原方案规则过严。CP3 系列到此结束。
+2. 新增 4.6a 节 CP4 的完整提示（破坏-修复基准）：基础单元、项目分组与划分、算子与触发判定、真值、比较函数及其自检、规模与验收。
+3. 带入后续 CP 的已知限制：语言为 unknown 且只有解析类错误的输入，CP8 第一阶段调用 LLM 之前先做语言核对；SOChecker 236 个 unknown 输入在 CP10 运行；0 节点的“成功”图不作为基准的基础单元。
 
 **r2.15 相对 r2.14 的修改**（CP3.1 审查；证据 `artifacts/cp3_1_review_v1/README.md`）：
 1. CP3.1 经独立复核成立（新增 1.18 节）：主因口径、包装判定、D21、pragma 扩展（审查自写 740 组判据 0 处不一致）与 MANDO 回归（843 个图字节相同）都符合 4.5b 节。
@@ -363,6 +368,17 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | pragma | Codex 92 版 × 82 式 7,544 组与审查 37 版 × 20 式 740 组都与 solc 一致；原可求值表达式 137,792 次出现全等 |
 | MANDO | 846/846 记录、843/843 图字节与 v5 相同 |
 | 遗留 | Trace on-chain 剩余 22 个解析错误全部是 Vyper；包装判定的 BOM 与 urls 边界；version_dependent 缺少能解析版本上的阻碍 |
+
+### 1.19 CP3.2 结果（2026-11-22 审查；证据 `artifacts/cp3_2_v1/`、`cp3_2_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 语言判定 | 三态（solidity / non_solidity / unknown），只有明确的其他语言证据才排除；用户批准（原方案规则会误排除 8 个原成功单元） |
+| 排除 | 23 个，全部 Trace on-chain 的 Vyper（5 JSON 语言、17 版本指令、1 修饰器 + 函数 + 声明） |
+| 全量 | 31,307 原始 = 31,284 放行 + 23 排除；已测 31,048（21,223 成功、9,825 失败），SOChecker 236 未测 |
+| 主因前四 | unresolved_package_import 8,454、missing_relative_file 412、standard_json_input 410、parser_error_other 257 |
+| version_dependent | 221 个，183 个有可解析版本上的共同阻碍（other 157、undeclared_identifier 124） |
+| 审查 | 11 个边界输入与 1,694 个真实 Solidity 输入、22 个 Vyper 结果正确；132 项测试通过 |
 
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
@@ -1122,6 +1138,46 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 两个环境的模块测试与 DFG v2 测试都运行。逐项给出预期与实测；修改的函数与行数、生产文件数。MANDO 不需要重跑（语言判定对 846 个输入都为 Solidity 即说明不影响），但须给出这 846 个的判定结果。
 ```
 
+### 4.6a CP4：破坏-修复基准（r2.16 细化）
+
+```text
+# CP4：构造破坏-修复基准与评分函数（只构造与评分，不实现修复）
+
+依据：PROMPTS r2.16、3.7 节（改动等级与节点标记）、3.9 节（评估）、CP3.2 的 artifacts/cp3_2_v1/d6_cp4_final.json（cp4_common_protocol 与各类别的 cp4_operator）；审查证据 artifacts/cp3_2_review_v1/README.md。CP0–CP3.2 的产物不改、不覆盖，新结果写入新批次 cp4_v1（仓库外的语料与运行资料按 CP3 的方式另放）。语料按用户“仅本地研究使用”的批准使用；不需要安装、下载或 LLM 调用，需要时停下。报告写入新的 CP4_REPORT.md。
+代码：新增 evaluation/benchmark.py（算子、构造、触发判定、评分）；偏移映射的组合放在 core/provenance.py（新增函数，不改已有函数）；cli.py 只增加子命令。生产文件 16 → 17。不修改 rules/、toolchain/ 与 pipeline 的行为。
+
+## 1. 基础单元
+- 来源：CP3.2 汇总中状态为 success 的单元（MANDO 846、DAppSCAN、Trace_CVEs、Trace_on_chain、Trace_repo；SOChecker 成功项也可用，单列）。条件：D3 为真、graph.json 存在且节点数 > 0、语言为 solidity（排除 unknown 与 0 节点图）、项目单元的绑定检查与 D21 都通过。
+- 真值：基础单元已有的 graph.json 与记录（选定版本、设置、输入 SHA）。MANDO 的真值必须与 cr_store_mando_v5 字节相同（CP3.1 已证明），其他语料的真值取 CP3/CP3.1 结果中记录来源指向的文件并核对 SHA。真值不重新生成。
+
+## 2. 项目分组与划分
+- 分组：DAppSCAN 与 Trace_repo 按项目根；Trace_on_chain 按地址；Trace_CVEs 按 CVE；MANDO 与 SOChecker 按入口内容 SHA（相同内容的单元同组）。同组的全部样本落在同一划分中。
+- 划分：dev / test = 20% / 80%，按 SHA256(“cp4-split-v1:” + 组 ID) 的前 8 位十六进制数取模决定，结果写入清单。dev 供 CP5–CP9 开发规则与提示，test 只用于报告；CP7 的 K3 留一项目以同一分组为单位。
+
+## 3. 算子
+- 每个 cp4_operator 非空的类别实现一个确定性算子（d6_cp4_final.json 中共 23 个类别有算子；other、tool_limitation、no_repair、out_of_scope、slither_no_timeout 等没有算子的类别不构造，报告中列出原因）。算子只改字节，编辑位置由基础单元的 solc AST（ContractDefinition、InheritanceSpecifier、ImportDirective、EventDefinition、FunctionDefinition、PragmaDirective 等的 src）或 lexical_tokens 决定，不用正则在原始字节上猜位置。每个样本记录：算子名、目标类别、随机种子、基础单元、每处编辑（文件、起止字节、原字节 SHA、新字节）、破坏后各文件 SHA。
+- 适用性：算子对一个基础单元不适用（例如没有基类可删、版本系列不支持该错误）时记录 not_applicable 与原因，不强行构造。
+- 规模：每个算子在每个语料中最多 200 个样本，按选定版本的小版本系列分层抽样（种子固定，记录抽样表）；MANDO 全部适用单元都可入选但同样受 200 的上限。另取 200 个不破坏的基础单元作为对照组。
+
+## 4. 触发判定（是否纳入该类别）
+- 对每个破坏样本：先用基础单元的选定版本与设置编译，按 toolchain/solc.py 的分类得到类别；再用 pipeline 只跑环境步骤（第 1、6 步，不做任何修复）。
+- 纳入条件：环境步骤后的主因（CP3.1 规则）包含目标类别；目标类别属于编译阶段时，另要求选定版本上的分类也包含它（版本计划、项目组装与输入格式阶段的类别不调用编译器，只看主因）。环境步骤已经成功的样本（换版本即可解决）记为 resolved_by_environment，单列，不计入该类别；没有触发目标类别的样本记为 not_triggered，保留类别与诊断首行。
+- 对照组：环境步骤必须成功、选定版本与真值相同、graph.json 与真值字节相同。任何一个不同即停下报告。
+
+## 5. 评分函数（evaluation/benchmark.py，CP5 以后的每个修复阶段都用它）
+- 输入：真值图、修复后的图、破坏编辑（原 → 破坏的偏移映射）、修复改动记录（破坏 → 修复的偏移映射，来自 core/provenance）。组合两个映射，把真值节点的起点映射到修复后的坐标。
+- 输出（每个样本）：compiled（solc rc 0 且 D3 为真）；kept 节点（真值中不在破坏区间内的节点）中 key5（起点映射后）、节点类型、规范化 SlithIR 都相同的比例；kept 节点之间的 CFG 边与调用相同的比例；lost 节点（落在被删除区间内的真值节点）数；added 节点是否只落在修复新增的字节中、且新增字节只出现在破坏区间附近（同一顶层定义内或原删除位置所在的顶层位置）；修复改动等级。
+- 自检（验收的一部分）：
+  - 精确还原：把破坏编辑逆向应用（恢复原字节）作为“修复”，所有纳入样本的 kept 与边、调用比例必须为 1、lost 为 0、added 为 0；
+  - 已知错误修复：对每个算子手写至少一个故意错误的修复（例如改动 kept 区域中的一个语句），评分必须报告不等；
+  - 映射单元测试：插入、删除、替换及其组合的偏移映射与组合。
+
+## 6. 报告与验收
+- 每个算子：适用、纳入、resolved_by_environment、not_triggered 的数量（按语料与版本系列），构造规则说明与示例 SHA；对照组结果；dev/test 的组数与样本数；自检结果。
+- 预期：对照组 200/200 成功且图字节相同；精确还原自检全部为 1；已知错误修复全部被检出；MANDO 真值与 v5 字节相同。
+- 两个环境的模块测试与 DFG v2 测试都运行。逐项给出预期与实测；修改的函数与行数、生产文件数。
+```
+
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）
 
 | Prompt | 范围 | 代码位置 | 验收要点 |
@@ -1130,7 +1186,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 | CP5 项目组装与依赖 | 第 2–4 步：离线库索引（需授权下载库发布版并记录校验和）、DAI 两步兼容检查扩展到 0.4 与 CP3 统计的包、缺失文件搜索 | toolchain/project.py、rules/dependencies.py | 外部语料与基准上每步修复数；additive 检查全部通过 |
 | CP6 规范化、规则桩、结构补全、codegen 设置及分类表新增的确定性规则 | CP3 分类表中判定为可确定性修复的全部类别（第 5、7、8、9 步及新增类别） | rules/normalize.py、rules/stubs.py、rules/environment.py | 同上；规则桩只加声明，不加函数体 |
 | CP7 RAG 知识库 | K1（需授权下载对应版本文档）、K2（复用 CP5 索引）、K3（留一项目）；精确键与 BM25 检索 | rag/knowledge.py、rag/retrieve.py | 基准上正确知识进入前 k 的比例；K3 留一检查 |
-| CP8 第一阶段代理 | 3.5 节；先用模拟 LLM 完成全部测试，再在用户授权的模型与费用上限内小样本运行 | agents/llm.py、prompt.py、patch.py、stage1.py；pipeline 接入 | 补丁原文校验拒绝不匹配的改动；匿名化与注释遮蔽测试；基准与外部语料修复率、费用 |
+| CP8 第一阶段代理 | 3.5 节；先用模拟 LLM 完成全部测试，再在用户授权的模型与费用上限内小样本运行；语言为 unknown 且只有解析类错误时，调用 LLM 前先做语言核对（r2.16） | agents/llm.py、prompt.py、patch.py、stage1.py；pipeline 接入 | 补丁原文校验拒绝不匹配的改动；匿名化与注释遮蔽测试；基准与外部语料修复率、费用 |
 | CP9 第二阶段多代理 | 3.6 节 | agents/stage2.py | 与“第一阶段同等额外预算”的对照；交流轮只在全部失败时出现 |
 | CP10 全量评估与消融 | 3.9 节全部表格 | evaluation/report.py | 每一步贡献、消融、费用；报告可复现 |
 

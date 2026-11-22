@@ -1,22 +1,22 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.15 §4.5c、CP3_REPORT 的 CP3.2、CHANGE_LOG §39 和 cp3_2_v1/README.md。
+> 本轮交接先读第 0–5 节、PROMPTS r2.16 §1.19 与 §4.6a（CP4）、artifacts/cp3_2_review_v1/README.md、CHANGE_LOG §39、§40。
 
 ## 0. 一句话
 
-CP3.2 已按用户批准的三态语言判据完成。21,223 个既有成功输入均可继续编译，23 个 Vyper 输入单列，236 个原排除输入列为未测。下一步是独立审查 CP3.2。
+CP3.2 已由 Claude 独立复核成立，CP3 系列结束。三态语言判定（用户批准）正确排除 23 个 Vyper 输入，且没有误排除任何原成功单元。下一步：Codex 执行 4.6a 节 CP4（破坏-修复基准）→ Claude 审查 → CP5。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.15，用户于 2026-11-22 批准三态判定与新旧统计口径，授权在 cp3_2_v1/authorization.json |
-| CP0–CP3.1 | 已独立审查。上轮测量 21,223 成功、9,848 未修复、236 排除 |
-| CP3.2 原始输入 | 31,307 项，31,048 项有可用测量，其中 21,223 成功、9,825 未修复。23 项非 Solidity，236 项未测 |
-| 语言与包装 | 846/846 个 MANDO 输入有 Solidity 正证据。原有 410 个包装全保留，BOM 和缺内容包装均有回归测试 |
-| 版本归因 | 221 项主因为 version_dependent。183 项有共同阻碍，38 项为 none |
-| 测试与保护 | 生产模块 796 通过、6 跳过，mando 模块 333 通过、469 跳过，DFG 2,653 通过、9 个警告。生产文件 16 个，DFG 冻结代码引用 354 个相同 |
-| 下一步 | 独立审查 CP3.2，审查通过后进入 CP4。其他既有待定决策见 DECISIONS |
+| 方案与决定 | PROMPTS r2.16；D5/D16/D18/D20/D20a/D21 与 CP3.2 三态判定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP3.2 | 已审查通过；CP3.2 证据 cp3_2_review_v1 |
+| CP3.2 全量 | 31,307 原始 = 31,284 放行 + 23 排除；已测 21,223 成功、9,825 失败；SOChecker 236 未测 |
+| 带入后续的限制 | unknown 语言且只有解析错误的输入在 CP8 先做语言核对；236 个 unknown 在 CP10 运行；0 节点图不作 CP4 基础单元 |
+| 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
+| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
+| 下一步 | CP4 → 审查 → CP5 |
 
 ## 2. 分支与工作树
 
@@ -28,12 +28,13 @@ CP3.2 已按用户批准的三态语言判据完成。21,223 个既有成功输�
 
 ## 4. 必读与下一步
 
-独立审查请先对照 decision_request.json、authorization.json 和 language_acceptance.json，再从 unit_attributions.jsonl.gz 抽查语言未定的成功项、236 个没有旧工具测量的输入、以及 23 项替换的来源。对 version_dependent 查看 version_blockers.json 的逐版本组合与示例诊断。D6 的实施顺序按 9,825 个已测失败单元排序。D21、6,160 项 AST 不足的历史边界及其他待定决策仍见 CP3.1 与 DECISIONS。
+独立审查请先对照 decision_request.json、authorization.json 和 language_acceptance.json，再从 unit_attributions.jsonl.gz 抽查语言未定的成功项、236 个没有旧工具测量的输入、以及 23 项替换的来源。对 version_dependent 查看 version_blockers.json 的逐版本组合与示例诊断。D6 的实施顺序按 9,825 个已测失败单元排序。D21、6,160 项 AST 不足的历史边界及其他待定决策仍见 CP3.1 与 DECISIONS。（2026-11-22 Claude 更新：CP3.2 审查已通过，下一步 CP4，见 PROMPTS §4.6a。）
 
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP3.2 审查证据（Claude） | artifacts/cp3_2_review_v1/README.md、probe_language_adversarial.json、probe_language_real.json |
 | CP3.2 依据与授权 | artifacts/cp3_2_v1/input_gate.json、decision_request.json、authorization.json |
 | 三态结果与来源 | 同批 language_classifications.jsonl.gz、replacement_provenance.json、unit_attributions.jsonl.gz、unmeasured.jsonl.gz |
 | 最终统计与验收 | 同批 failure_summary.json、non_solidity.json、version_blockers.json、d6_cp4_final.json、verification.json、doc_check.json、seal.json |
@@ -560,3 +561,14 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 用户 2026-11-22 原话“批准三态判定及新旧统计口径”。授权明确涉及对未知输入的放行和旧排除项的分母。原判据停止现场与新口径各有独立文件，生产不依赖数据集身份。下一步是独立审查，236 项尚无编译结果。
 
 两环境完整模块和 DFG v2 测试通过。三套日志分别为 production_tests.log、mando_tests.log、dfg_tests.log。对语料本身没有重新调用 solc 或 Slither，没有训练、安装、下载或 LLM 调用。CP3.2 仅在本地提交。
+
+
+### 2026-11-22 CompileRepair CP3.2 审查与方案 r2.16（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP3.2（提交 7336436e7）。新增证据目录 `artifacts/cp3_2_review_v1/`，修改 `PROMPTS.md`（r2.15 → r2.16）。本文开头、第 0、1 节换成审查结论，第 4 节补注，第 5 节加入证据路径。
+
+结论：CP3.2 成立。Codex 按硬判据发现 r2.15 的规则会误排除 8 个原成功单元，停下咨询后按用户批准的三态判定实现；审查确认原方案过严、三态判定正确。11 个边界输入、1,694 个真实 Solidity 输入与 22 个 Vyper 的判定都正确，统计相互一致，132 项测试通过。CP3 系列结束。
+
+新增 4.6a 节 CP4 的完整提示。带入后续的三项已知限制写在 r2.16 修改说明第 3 条与 CP8 行。
+
+下一步：Codex 执行 CP4，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §40。

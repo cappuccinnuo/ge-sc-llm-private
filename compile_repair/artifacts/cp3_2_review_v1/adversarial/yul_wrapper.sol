@@ -1,0 +1,1 @@
+{"language":"Yul","sources":{"a.yul":{"content":"{}"}}}

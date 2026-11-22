@@ -1,0 +1,1 @@
+{"language":"Solidity","sources":{"a.sol":{"urls":["bzz-raw://x"]}}}
