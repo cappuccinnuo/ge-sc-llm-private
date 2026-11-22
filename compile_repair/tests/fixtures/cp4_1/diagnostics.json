@@ -1,0 +1,1639 @@
+[
+  {
+    "id": 1,
+    "template": "\"<value>\" and \"<value>\" are only available for objects of type \"<value>\", not \"<value>\".",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check(address a) public { a.transfer(0); } }"
+    }
+  },
+  {
+    "id": 2,
+    "template": "\"<value>\" has been deprecated. Use \"<value>\" instead.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check() public returns (uint) { return now; } }"
+    }
+  },
+  {
+    "id": 3,
+    "template": "Built-in binary operator != cannot be applied to types address and int_const <number>.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.18",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check(address a) public returns (bool) { return a != 0; } }"
+    }
+  },
+  {
+    "id": 4,
+    "template": "Built-in binary operator * cannot be applied to types uint256 and rational_const <number> / 10.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.18",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check(uint x) public returns (uint) { return x * 0.1; } }"
+    }
+  },
+  {
+    "id": 5,
+    "template": "Built-in binary operator * cannot be applied to types uint256 and rational_const <number> / 5.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.18",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check(uint x) public returns (uint) { return x * 0.8; } }"
+    }
+  },
+  {
+    "id": 6,
+    "template": "Built-in unary operator - cannot be applied to type uint256. Unary negation is only allowed for signed integers.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.18",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check(uint x) public returns (uint) { return -x; } }"
+    }
+  },
+  {
+    "id": 7,
+    "template": "Builtin function \"<value>\" must be called.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check() public { assembly { let t := msize } } }"
+    }
+  },
+  {
+    "id": 8,
+    "template": "Cannot call function via contract type name.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Left { function f() public {} } contract Right { function g() public { Left.f(); } }"
+    }
+  },
+  {
+    "id": 9,
+    "template": "Contract \"<value>\" does not use ABI coder v2 but wants to inherit from a contract which uses types that require it. Use \"<value>\" for the inheriting contract as well to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.5",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Types.sol": "pragma experimental ABIEncoderV2; contract A { struct S {uint x;} function f(S memory v) public {} }",
+      "Probe.sol": "import \"./Types.sol\"; contract B is A {}"
+    }
+  },
+  {
+    "id": 10,
+    "template": "Contract \"<value>\" does not use ABIEncoderV2 but wants to inherit from a contract which uses types that require it. Use \"<value>\" for the inheriting contract as well to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.4",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Types.sol": "pragma experimental ABIEncoderV2; contract A { struct S {uint x;} function f(S memory v) public {} }",
+      "Probe.sol": "import \"./Types.sol\"; contract B is A {}"
+    }
+  },
+  {
+    "id": 11,
+    "template": "Contract \"<value>\" should be marked as abstract.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.1",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f() public virtual; }"
+    }
+  },
+  {
+    "id": 12,
+    "template": "Contract with internal constructor cannot be created directly.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.12",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Left { function Left() internal {} } contract Right { function f() public { new Left(); } }"
+    }
+  },
+  {
+    "id": 13,
+    "template": "Declaration \"<value>\" not found in \"<value>\" (referenced as \"<value>\").",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.19",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "contract Other {}",
+      "Probe.sol": "import {Absent} from \"./Decl.sol\"; contract Probe {}"
+    }
+  },
+  {
+    "id": 14,
+    "template": "Decoding type struct AddressRegistry memory not supported.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "pragma abicoder v1; struct AddressRegistry { uint x; } contract Probe { function decode(bytes memory x) public { abi.decode(x, (AddressRegistry)); } }"
+    }
+  },
+  {
+    "id": 15,
+    "template": "Decoding type struct CampaignRemoteManager.CampaignCreationParams memory not supported.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.19",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "pragma abicoder v1; contract CampaignRemoteManager { struct CampaignCreationParams { uint x; } } contract Probe { function decode(bytes memory x) public { abi.decode(x, (CampaignRemoteManager.CampaignCreationParams)); } }"
+    }
+  },
+  {
+    "id": 16,
+    "template": "Decoding type struct CampaignRemoteManager.CampaignManagementParams memory not supported.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.19",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "pragma abicoder v1; contract CampaignRemoteManager { struct CampaignManagementParams { uint x; } } contract Probe { function decode(bytes memory x) public { abi.decode(x, (CampaignRemoteManager.CampaignManagementParams)); } }"
+    }
+  },
+  {
+    "id": 17,
+    "template": "Decoding type struct CampaignRemoteManager.Payload memory not supported.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.19",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "pragma abicoder v1; contract CampaignRemoteManager { struct Payload { uint x; } } contract Probe { function decode(bytes memory x) public { abi.decode(x, (CampaignRemoteManager.Payload)); } }"
+    }
+  },
+  {
+    "id": 18,
+    "template": "Decoding type struct CdpData memory not supported.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "pragma abicoder v1; struct CdpData { uint x; } contract Probe { function decode(bytes memory x) public { abi.decode(x, (CdpData)); } }"
+    }
+  },
+  {
+    "id": 19,
+    "template": "Decoding type struct ExchangeData memory not supported.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "pragma abicoder v1; struct ExchangeData { uint x; } contract Probe { function decode(bytes memory x) public { abi.decode(x, (ExchangeData)); } }"
+    }
+  },
+  {
+    "id": 20,
+    "template": "Defining empty structs is disallowed.",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { struct Packet {} }"
+    }
+  },
+  {
+    "id": 21,
+    "template": "Definition of base has to precede definition of derived contract",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe is Parent {} contract Parent {}"
+    }
+  },
+  {
+    "id": 22,
+    "template": "Different number of arguments in return statement than in returns declaration.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check() public returns (uint) { return; } }"
+    }
+  },
+  {
+    "id": 23,
+    "template": "Dynamically-sized keys for public mappings are not supported.",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { mapping(string => uint) public values; }"
+    }
+  },
+  {
+    "id": 24,
+    "template": "Event invocations have to be prefixed by \"<value>\".",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { event Seen(); function f() public { Seen(); } }"
+    }
+  },
+  {
+    "id": 25,
+    "template": "Explicit type conversion not allowed from \"<value>\" to \"<value>\".",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check(bytes calldata x) external returns (bytes1) { return bytes1(x[0:1]); } }"
+    }
+  },
+  {
+    "id": 26,
+    "template": "Free functions cannot be payable.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.1",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "function f() payable {}"
+    }
+  },
+  {
+    "id": 27,
+    "template": "Free functions cannot have visibility.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.1",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "function f() public {}"
+    }
+  },
+  {
+    "id": 28,
+    "template": "Free functions must be implemented.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.1",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "function f();"
+    }
+  },
+  {
+    "id": 29,
+    "template": "Function overload clash during conversion to external types for arguments.",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Other {} contract Probe { function f(Other x) external {} function f(address x) external {} }"
+    }
+  },
+  {
+    "id": 30,
+    "template": "Function, variable, struct or modifier declaration expected.",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.12",
+      "0.4.24",
+      "0.5.17",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f() public {} contract Next {}"
+    }
+  },
+  {
+    "id": 31,
+    "template": "Functions are not allowed to have the same name as the contract. If you intend this to be a constructor, use \"<value>\" to define it.",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.11",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function Probe() public {} }"
+    }
+  },
+  {
+    "id": 32,
+    "template": "Functions in interfaces must be declared external.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.26",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "interface I { function f() public; }"
+    }
+  },
+  {
+    "id": 33,
+    "template": "Identifier \"<value>\" not found.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.2",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check() public { assembly { let x := missing.slot } } }"
+    }
+  },
+  {
+    "id": 34,
+    "template": "Immutable variables cannot be read during contract creation time, which means they cannot be read in the constructor or any function or modifier called from it.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { uint immutable v; constructor() { v = 1; uint w = v; } }"
+    }
+  },
+  {
+    "id": 35,
+    "template": "Interfaces cannot inherit.",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "interface A {} interface B is A {}"
+    }
+  },
+  {
+    "id": 36,
+    "template": "Internal compiler error during compilation: std::exception::what: std::exception",
+    "mode": "archived_diagnostic",
+    "source": {
+      "kind": "approved_path_revalidation",
+      "result_path": "/home/zhao/SmartContract/compile-repair-local/cp3_paths_v1/continue_remaining_102/units/cp3_18372/result.json",
+      "result_sha256": "c889f494f3399bc10ae8112e84f85bff11ea06f65f38a0397b7150bf30506866",
+      "replaces": {
+        "kind": "continuation",
+        "result_path": "/home/zhao/SmartContract/compile-repair-local/cp3_binding_v1/segment_00872_31071/units/cp3_18372/result.json",
+        "result_sha256": "678b8f4285bd91666912bdb52771da57ad66638e9223238cd18dd0fae7a7aeab"
+      }
+    }
+  },
+  {
+    "id": 37,
+    "template": "Internal type is not allowed for public or external functions.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f(function() internal fn) external {} }"
+    }
+  },
+  {
+    "id": 38,
+    "template": "Invalid array length, expected integer literal or constant expression.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.22",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { uint n; uint[n] a; }"
+    }
+  },
+  {
+    "id": 39,
+    "template": "Library name expected.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.4",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Other {} contract Probe { using Other for uint; }"
+    }
+  },
+  {
+    "id": 40,
+    "template": "Location has to be calldata for external functions (remove the \"<value>\" or \"<value>\" keyword).",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f(uint[] memory a) external {} }"
+    }
+  },
+  {
+    "id": 41,
+    "template": "Member \"<value>\" is not available in struct Lib_RingBuffer.RingBuffer storage pointer outside of storage.",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.9",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "library L { struct Data { uint x; } function getContext(Data storage x) internal view returns(uint){return x.x;} } contract Probe { using L for L.Data; function f() public { L.Data memory t; t.getContext(); } }"
+    }
+  },
+  {
+    "id": 42,
+    "template": "Member \"<value>\" not unique after argument-dependent lookup in uint32.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "library A {function f(uint32) internal pure returns(uint){return 1;}} library B {function f(uint32) internal pure returns(uint){return 2;}} contract Probe {using A for uint32; using B for uint32; function g(uint32 x) public {x.f();}}"
+    }
+  },
+  {
+    "id": 43,
+    "template": "More than one constructor defined.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.23",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function Probe() public {} constructor() public {} }"
+    }
+  },
+  {
+    "id": 44,
+    "template": "Multiple matching identifiers. Resolving overloaded identifiers is not supported.",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.3",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f(uint x) public {} function f(bool x) public {} function g() public { assembly { let x := f } } }"
+    }
+  },
+  {
+    "id": 45,
+    "template": "Name has to refer to a struct, enum or contract.",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.1",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { uint x; function f() public { x y; } }"
+    }
+  },
+  {
+    "id": 46,
+    "template": "No matching declaration found after argument-dependent lookup.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.20",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f(bool x) internal {} function f(bytes memory x) internal {} function g() public { f(7); } }"
+    }
+  },
+  {
+    "id": 47,
+    "template": "Non-abstract contracts cannot have internal constructors. Remove the \"<value>\" keyword and make the contract abstract to fix this.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { constructor() internal {} }"
+    }
+  },
+  {
+    "id": 48,
+    "template": "Only constant variables are allowed at file level.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.4",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "uint x; contract Probe {}"
+    }
+  },
+  {
+    "id": 49,
+    "template": "Only state variables or file-level variables can have a docstring.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f() public { \n/// @dev local description\n uint x; } }"
+    }
+  },
+  {
+    "id": 50,
+    "template": "Overriding function changes state mutability from \"<value>\" to \"<value>\".",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.9",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract A {function f() public virtual {}} contract B is A {function f() public view override {}}"
+    }
+  },
+  {
+    "id": 51,
+    "template": "Overriding function return types differ.",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.12",
+      "0.4.24",
+      "0.5.17",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract A {function f() public virtual returns(uint){return 1;}} contract B is A {function f() public override returns(bool){return true;}}"
+    }
+  },
+  {
+    "id": 52,
+    "template": "Overriding function visibility differs.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.18",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract A {function f() public {}} contract B is A {function f() internal {}}"
+    }
+  },
+  {
+    "id": 53,
+    "template": "Overriding public state variable return types differ.",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "interface A {function x() external view returns(uint);} contract B is A {bool public override x;}"
+    }
+  },
+  {
+    "id": 54,
+    "template": "Referenced declaration is neither modifier nor base class.",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.11",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { uint x; function f() public x {} }"
+    }
+  },
+  {
+    "id": 55,
+    "template": "Source file requires different compiler version (current compiler is <version> - note that nightly builds are considered to be strictly less than the released version",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.12",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "pragma solidity 0.3.6; contract Probe {}"
+    }
+  },
+  {
+    "id": 56,
+    "template": "Storage location can only be given for array or struct types.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f(uint storage n) internal {} }"
+    }
+  },
+  {
+    "id": 57,
+    "template": "Structs cannot be defined in interfaces.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "interface A {struct Data {uint x;} }"
+    }
+  },
+  {
+    "id": 58,
+    "template": "The \"<value>\" instruction is only available for Istanbul-compatible VMs (you are currently compiling for \"<value>\").",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.12",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check() public { assembly { let t := chainid() } } }"
+    }
+  },
+  {
+    "id": 59,
+    "template": "The state mutability modifier \"<value>\" was removed in version <version>. Use \"<value>\" or \"<value>\" instead.",
+    "mode": "standard_json",
+    "versions": [
+      "0.5.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f() external constant returns(uint){return 0;} }"
+    }
+  },
+  {
+    "id": 60,
+    "template": "The type of return parameter 1, struct Campaign memory, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.19",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; struct Campaign { uint value; } interface Interface { function f() external returns (Campaign memory); }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { ref.f(); } }"
+    }
+  },
+  {
+    "id": 61,
+    "template": "The type of return parameter 1, struct IAaveGovernanceV2.ProposalWithoutVotes, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.5",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract IAaveGovernanceV2 { struct ProposalWithoutVotes { uint value; } } interface Interface { function f() external returns (IAaveGovernanceV2.ProposalWithoutVotes memory); }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { ref.f(); } }"
+    }
+  },
+  {
+    "id": 62,
+    "template": "The type of return parameter 1, struct IMasterChef.PoolInfo, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.9",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract IMasterChef { struct PoolInfo { uint value; } } interface Interface { function f() external returns (IMasterChef.PoolInfo memory); }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { ref.f(); } }"
+    }
+  },
+  {
+    "id": 63,
+    "template": "The type of return parameter 1, struct IMasterChef.UserInfo, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.9",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract IMasterChef { struct UserInfo { uint value; } } interface Interface { function f() external returns (IMasterChef.UserInfo memory); }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { ref.f(); } }"
+    }
+  },
+  {
+    "id": 64,
+    "template": "The type of return parameter 1, struct IVault.StrategyParams memory, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.18",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract IVault { struct StrategyParams { uint value; } } interface Interface { function f() external returns (IVault.StrategyParams memory); }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { ref.f(); } }"
+    }
+  },
+  {
+    "id": 65,
+    "template": "The type of return parameter 1, struct UserInfo memory, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.16",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; struct UserInfo { uint value; } interface Interface { function f() external returns (UserInfo memory); }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { ref.f(); } }"
+    }
+  },
+  {
+    "id": 66,
+    "template": "The type of return parameter 1, struct UserInfo, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; struct UserInfo { uint value; } interface Interface { function f() external returns (UserInfo memory); }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { ref.f(); } }"
+    }
+  },
+  {
+    "id": 67,
+    "template": "The type of this parameter, bytes[], is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2;  interface Interface { function f(bytes[] calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { bytes[] memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 68,
+    "template": "The type of this parameter, string[], is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2;  interface Interface { function f(string[] calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { string[] memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 69,
+    "template": "The type of this parameter, struct CampaignRemoteManager.CampaignCreationParams memory, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.19",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract CampaignRemoteManager { struct CampaignCreationParams { uint value; } } interface Interface { function f(CampaignRemoteManager.CampaignCreationParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { CampaignRemoteManager.CampaignCreationParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 70,
+    "template": "The type of this parameter, struct CampaignRemoteManager.CampaignManagementParams memory, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.19",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract CampaignRemoteManager { struct CampaignManagementParams { uint value; } } interface Interface { function f(CampaignRemoteManager.CampaignManagementParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { CampaignRemoteManager.CampaignManagementParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 71,
+    "template": "The type of this parameter, struct DataTypes.ExecuteBorrowParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct ExecuteBorrowParams { uint value; } } interface Interface { function f(DataTypes.ExecuteBorrowParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.ExecuteBorrowParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 72,
+    "template": "The type of this parameter, struct DataTypes.ExecuteLiquidationCallParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct ExecuteLiquidationCallParams { uint value; } } interface Interface { function f(DataTypes.ExecuteLiquidationCallParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.ExecuteLiquidationCallParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 73,
+    "template": "The type of this parameter, struct DataTypes.ExecuteRepayParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct ExecuteRepayParams { uint value; } } interface Interface { function f(DataTypes.ExecuteRepayParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.ExecuteRepayParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 74,
+    "template": "The type of this parameter, struct DataTypes.ExecuteSetUserEModeParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct ExecuteSetUserEModeParams { uint value; } } interface Interface { function f(DataTypes.ExecuteSetUserEModeParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.ExecuteSetUserEModeParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 75,
+    "template": "The type of this parameter, struct DataTypes.ExecuteSupplyParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct ExecuteSupplyParams { uint value; } } interface Interface { function f(DataTypes.ExecuteSupplyParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.ExecuteSupplyParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 76,
+    "template": "The type of this parameter, struct DataTypes.ExecuteWithdrawParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct ExecuteWithdrawParams { uint value; } } interface Interface { function f(DataTypes.ExecuteWithdrawParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.ExecuteWithdrawParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 77,
+    "template": "The type of this parameter, struct DataTypes.FinalizeTransferParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct FinalizeTransferParams { uint value; } } interface Interface { function f(DataTypes.FinalizeTransferParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.FinalizeTransferParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 78,
+    "template": "The type of this parameter, struct DataTypes.FlashloanParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct FlashloanParams { uint value; } } interface Interface { function f(DataTypes.FlashloanParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.FlashloanParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 79,
+    "template": "The type of this parameter, struct DataTypes.FlashloanSimpleParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract DataTypes { struct FlashloanSimpleParams { uint value; } } interface Interface { function f(DataTypes.FlashloanSimpleParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { DataTypes.FlashloanSimpleParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 80,
+    "template": "The type of this parameter, struct ILaPoste.MessageParams memory, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.19",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract ILaPoste { struct MessageParams { uint value; } } interface Interface { function f(ILaPoste.MessageParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { ILaPoste.MessageParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 81,
+    "template": "The type of this parameter, struct OracleTest.InitializeParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract OracleTest { struct InitializeParams { uint value; } } interface Interface { function f(OracleTest.InitializeParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { OracleTest.InitializeParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 82,
+    "template": "The type of this parameter, struct OracleTest.UpdateParams, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract OracleTest { struct UpdateParams { uint value; } } interface Interface { function f(OracleTest.UpdateParams calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { OracleTest.UpdateParams memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 83,
+    "template": "The type of this parameter, struct Reward.EpochInfo, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.11",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract Reward { struct EpochInfo { uint value; } } interface Interface { function f(Reward.EpochInfo calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { Reward.EpochInfo memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 84,
+    "template": "The type of this parameter, struct UserInfo memory, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.16",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; struct UserInfo { uint value; } interface Interface { function f(UserInfo calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { UserInfo memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 85,
+    "template": "The type of this parameter, struct UserInfo, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.7",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; struct UserInfo { uint value; } interface Interface { function f(UserInfo calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { UserInfo memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 86,
+    "template": "The type of this parameter, struct iOVM_L1CrossDomainMessenger.L2MessageInclusionProof, is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.5",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Decl.sol": "pragma experimental ABIEncoderV2; contract iOVM_L1CrossDomainMessenger { struct L2MessageInclusionProof { uint value; } } interface Interface { function f(iOVM_L1CrossDomainMessenger.L2MessageInclusionProof calldata x) external; }",
+      "Probe.sol": "pragma abicoder v1; import \"./Decl.sol\"; contract Probe { function g(Interface ref) public { iOVM_L1CrossDomainMessenger.L2MessageInclusionProof memory x; ref.f(x); } }"
+    }
+  },
+  {
+    "id": 87,
+    "template": "This type cannot be encoded.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.6",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { mapping(uint=>uint) m; function f() public { abi.encode(m); } }"
+    }
+  },
+  {
+    "id": 88,
+    "template": "This type is only supported in ABI coder v2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.5",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f(uint[][] memory x) public {} }"
+    }
+  },
+  {
+    "id": 89,
+    "template": "This type is only supported in ABIEncoderV2. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.6.11",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f(uint[][] memory x) public {} }"
+    }
+  },
+  {
+    "id": 90,
+    "template": "This type is only supported in the new experimental ABI encoder. Use \"<value>\" to enable the feature.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.22",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function f(uint[][] memory x) public {} }"
+    }
+  },
+  {
+    "id": 91,
+    "template": "True and false are not valid literals.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.16",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check() public { assembly { let x := true } } }"
+    }
+  },
+  {
+    "id": 92,
+    "template": "Unary operator - cannot be applied to type uint256",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check(uint x) public returns (uint) { return -x; } }"
+    }
+  },
+  {
+    "id": 93,
+    "template": "Unary operator - cannot be applied to type uint256. Unary negation is only allowed for signed integers.",
+    "mode": "standard_json",
+    "versions": [
+      "0.8.14",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function check(uint x) public returns (uint) { return -x; } }"
+    }
+  },
+  {
+    "id": 94,
+    "template": "Unknown pragma \"<value>\"",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "pragma abicoder v2; contract Probe {}"
+    }
+  },
+  {
+    "id": 95,
+    "template": "Using \"<value>\" is deprecated. Use \"<value>\" instead.",
+    "mode": "standard_json",
+    "versions": [
+      "0.7.0",
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "contract Probe { function g() public payable {} function f() public { this.g.value(0)(); } }"
+    }
+  },
+  {
+    "id": 96,
+    "template": "Variables cannot be declared in interfaces.",
+    "mode": "standard_json",
+    "versions": [
+      "0.4.24",
+      "0.5.17",
+      "0.6.12",
+      "0.7.6",
+      "0.8.0",
+      "0.8.38"
+    ],
+    "sources": {
+      "Probe.sol": "interface Probe {uint x;}"
+    }
+  }
+]

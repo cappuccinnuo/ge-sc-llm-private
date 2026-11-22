@@ -1,8 +1,10 @@
 """CP4 evaluation on checked source copies, deterministic groups and Slither truth graphs."""
 from collections import Counter, defaultdict, deque
 from dataclasses import asdict
+from functools import lru_cache
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from compile_repair.core.model import CompilationUnit, Patch, SourceFile
@@ -83,13 +85,13 @@ def control_observation(base, compilers, frozen_versions, store, journal):
 # These are compiler or input-format diagnostics. The analyzer-only category is
 # represented by independently archived failures (CP4 authorization), never a mutation.
 OPERATORS = {
-    "unresolved_package_import": "remove a resolved package dependency",
+    "unresolved_package_import": "remove an identified package and use its published import paths",
     "missing_relative_file": "remove a resolved relative dependency",
     "missing_base_contract": "delete the unique locally defined inherited base",
     "undeclared_identifier": "delete a referenced event declaration",
     "duplicate_definition": "copy a complete definition into its original scope",
     "multiple_license_or_pragma": "insert conflicting ABI coder directives on supported versions",
-    "encoding": "replace a declaration token's first byte with invalid UTF-8",
+    "encoding": "insert an invalid UTF-8 byte in a Solidity text literal",
     "unbalanced_structure": "remove the closing brace of a top-level definition",
     "parser_error_other": "replace a declaration identifier with a comma",
     "type_error_other": "replace a branch condition with an integer expression",
@@ -98,7 +100,7 @@ OPERATORS = {
     "io_error": "replace an import literal with a non-local, nonexistent file reference",
     "docstring_error": "document an absent parameter on a named function",
     "syntax_error": "remove an explicit required function visibility",
-    "unimplemented_feature": "declare a nested dynamic-array memory-to-storage copy on the legacy generator",
+    "unimplemented_feature": "assign a memory array of structs to storage on measured default generators",
     "unsupported_disjunction": "replace a pragma expression by a legal disjunction",
     "unsupported_expression": "replace a pragma expression by an unsupported token sequence",
     "unterminated_pragma": "remove the terminator of a Solidity pragma",
@@ -163,6 +165,20 @@ class SourceLayout:
             i += 1
         return i
 
+    def string_contents(self):
+        """Yield insertion offsets in Solidity text literals, excluding directives and inline assembly."""
+        skip = set(self.imports)
+        for i, word in enumerate(self.words):
+            if word == b"pragma":
+                skip.update(range(i, self._until(i + 1, (b";",))))
+            elif word == b"assembly":
+                opening = self._until(i + 1, (b"{", b";", b"}"))
+                skip.update(range(i, self.matches.get(opening, opening) + 1))
+        for i, (start, end, kind, value) in enumerate(self.tokens):
+            if kind == "string" and i not in skip and (i == 0 or self.words[i - 1] != b"hex"):
+                if len(value) >= 2 and value[:1] in (b"'", b'"') and value[:1] == value[-1:]:
+                    yield start + 1
+
     def bounds(self, first, last):
         return self.tokens[first][0], self.tokens[last][1]
 
@@ -215,11 +231,174 @@ def _settings_object(settings):
 _STACK_FUNCTION = (b"\nfunction cp4StackDepth(uint x) public returns (uint) {\n" +
     b"".join(b"uint cp4v%d = x + %d;\n" % (i,i) for i in range(1,19)) +
     b"return " + b" + ".join(b"cp4v%d" % i for i in range(1,19)) + b";\n}\n")
-_NESTED_COPY = (b"\nuint256[][] private cp4Matrix;\n"
-                b"function cp4CopyMatrix(uint256[][] memory value) public { cp4Matrix = value; }\n")
+
+# Each stable release in these inclusive ranges rejected this copy in the default
+# generator. Do not extrapolate beyond the measured snapshot (CP4.1).
+_STRUCT_COPY_REJECTED = frozenset(
+    "0.{}.{}".format(minor, patch)
+    for minor, first, last in ((4,12,26), (5,0,17), (6,0,12), (7,0,6), (8,0,38))
+    for patch in range(first, last + 1))
+_STRUCT_NAMES = {b"CP41Item", b"cp41Items", b"cp41Copy"}
+_STRUCT_COPY = (b"\nstruct CP41Item { uint n; } CP41Item[] private cp41Items;\n"
+                b"function cp41Copy() public { CP41Item[] memory m = new CP41Item[](1); cp41Items = m; }\n")
 
 
-def mutation_sites(base, sources, layouts, imports):
+@lru_cache(maxsize=1)
+def _benchmark_versions():
+    from compile_repair.toolchain.solc import load_trusted_compilers
+    compilers, _, _ = load_trusted_compilers()
+    return tuple(compilers)
+
+
+def _struct_copy_allowed(base, sources, name, offset, versions):
+    from compile_repair.rules.environment import FLOOR, make_plan, ordered_candidates
+    from compile_repair.toolchain.solc import version_tuple
+    if "--via-ir" in base["settings"] or base["version"] not in _STRUCT_COPY_REJECTED:
+        return False
+    available = {v for v in versions if version_tuple(v) >= FLOOR}
+    if base["version"] not in available:
+        return False
+    if available <= _STRUCT_COPY_REJECTED:
+        return True
+    # An expanded toolchain may add an unmeasured eligible compiler. Check the
+    # actual plans on both byte sequences, retaining the original priority version.
+    regression = "mando" if base.get("corpus") == "MANDO" else None
+    candidates = set(ordered_candidates(make_plan(sources.values(), available, regression=regression)))
+    if base.get("result"):
+        record = read_checked_json(base["result"]["result_path"], base["result"]["result_sha256"])
+        plan = record.get("plan") or {}
+        candidates.update(v for group in plan.get("groups", ()) for v in group)
+        if plan.get("priority"):
+            candidates.add(plan["priority"])
+    mutated = dict(sources)
+    raw = sources[name]
+    mutated[name] = raw[:offset] + _STRUCT_COPY + raw[offset:]
+    changed = set(ordered_candidates(make_plan(mutated.values(), available, regression=regression)))
+    return bool(candidates and changed and (candidates | changed) <= _STRUCT_COPY_REJECTED)
+
+
+_NPM_PART = re.compile(r"[a-z0-9][a-z0-9._~-]*\Z")
+
+
+def _package_layout(root, filename):
+    """Identify the on-disk package root and its published name from an explicit layout."""
+    parts = filename.split("/")
+    for i in range(len(parts) - 2, -1, -1):
+        part = parts[i]
+        if (part.startswith("@") and _NPM_PART.fullmatch(part[1:]) and i + 2 < len(parts)
+                and _NPM_PART.fullmatch(parts[i + 1])):
+            return "/".join(parts[:i + 2]), "/".join(parts[i:i + 2]), "scoped package directory"
+        if i and parts[i - 1] == "node_modules" and _NPM_PART.fullmatch(part):
+            return "/".join(parts[:i + 1]), part, "installed node_modules package"
+        if part in ("openzeppelin-solidity", "zeppelin-solidity") and parts[i + 1] == "contracts":
+            return "/".join(parts[:i + 1]), part, "named legacy package with contracts directory"
+        if part == "openzeppelin":
+            # Vendors use this short directory name for several incompatible releases.
+            # A local package manifest can identify the name and the actual package root.
+            for end in (i + 2, i + 1):
+                prefix = "/".join(parts[:end])
+                manifest = root / prefix / "package.json"
+                if not manifest.is_file() or root not in manifest.resolve().parents:
+                    continue
+                raw = manifest.read_bytes()
+                try:
+                    metadata = json.loads(raw)
+                except (UnicodeError, ValueError):
+                    continue
+                if not isinstance(metadata, dict) or metadata.get("private"):
+                    continue
+                published = metadata.get("name")
+                if published in ("@openzeppelin/contracts", "@openzeppelin/contracts-upgradeable",
+                                 "@openzeppelin/contracts-ethereum-package", "openzeppelin-solidity", "zeppelin-solidity"):
+                    return prefix, published, "package.json sha256 " + _digest(raw)
+    return None
+
+
+def _package_site(base, sources, imports):
+    """Plan one deterministic package removal, including every incoming relative import."""
+    from compile_repair.toolchain.project import source_unit_name
+    root = Path(base["project_root"]).resolve()
+    entry = next(iter(sources))
+    links = []
+    candidates = {}
+    for row in imports:
+        if not row.get("resolved"):
+            continue
+        owner = Path(row["source_path"]).relative_to(root).as_posix()
+        target = Path(row["target_path"]).relative_to(root).as_posix()
+        links.append((owner, target, row))
+        if row["path"].startswith(("./", "../")) and target not in candidates:
+            candidates[target] = _package_layout(root, target)
+    for prefix, package, proof in sorted({v for v in candidates.values() if v}):
+        # Keep the compilation entry even when it belongs to the imported package.
+        members = {name for name in sources if name != entry and name.startswith(prefix + "/")}
+        if not members:
+            continue
+        logical = {n: package + n[len(prefix):] for n in sorted(members)}
+        physical = {n: "node_modules/" + path for n, path in logical.items()}
+        if set(physical.values()) & (set(sources) - members):
+            continue
+        if any("/node_modules/" in path or any(c in path for c in ("\\", "'", '"', "\n", "\r"))
+               for path in logical.values()):
+            continue
+        remap = package + "/=node_modules/" + package + "/"
+        edits = {}
+        compatible = True
+        for owner, target, row in links:
+            relative = row["path"].startswith(("./", "../"))
+            if owner in members:
+                if target not in members and relative:
+                    compatible = False
+                    break
+                continue
+            if target not in members:
+                continue
+            if not relative or not row["supported_literal"]:
+                compatible = False
+                break
+            name = logical[target]
+            mapped = source_unit_name(row["importer"], name, tuple(base["remappings"]) + (remap,))
+            if mapped != physical[target]:
+                compatible = False
+                break
+            a,b = row["literal_start"],row["literal_end"]
+            token = sources[owner][a:b]
+            if len(token) < 2 or token[1:-1].hex() != row["literal_hex"] or token[:1] != token[-1:]:
+                raise ValueError("Import literal differs from checked project manifest")
+            key = (owner, a, b)
+            value = token[:1] + name.encode("utf8") + token[-1:]
+            if key in edits and value != edits[key]:
+                compatible = False
+                break
+            edits[key] = value
+        if compatible and edits:
+            return dict(package=package, layout_evidence=proof, logical_package_paths=logical,
+                        file_renames=physical, remapping=remap, import_edits=edits)
+    return None
+
+
+def _sample_edits(base, sources, site, operator):
+    """Return the damaged closure and every ordered patch, including deleted package files."""
+    file, _, _, plan, action, _ = site
+    if action != "package_dependency":
+        mutated, patch, _ = build_mutation(base, sources, site, operator)
+        return mutated, [(file,action,patch)]
+    work = dict(sources)
+    records = []
+    grouped = defaultdict(list)
+    for (name, start, end), replacement in sorted(plan["import_edits"].items(), reverse=True):
+        patch = Patch(start, end, sources[name][start:end], replacement, operator, reason=OPERATORS[operator])
+        grouped[name].append(patch)
+        records.append((name,"edit",patch))
+    for name, patches in grouped.items():
+        work[name], _ = apply_patches(sources[name], patches)
+    for name in sorted(plan["file_renames"]):
+        original = work.pop(name)
+        records.append((name,"delete_file",Patch(0,len(original),original,b"",operator,reason=OPERATORS[operator])))
+    return work, records
+
+
+def mutation_sites(base, sources, layouts, imports, versions=None):
     """Choose one deterministic, byte-anchored site per applicable operator in a verified closure.
 
     Return operator -> (file, start, end, replacement, action, stage). The wrapper's replacement
@@ -232,11 +411,15 @@ def mutation_sites(base, sources, layouts, imports):
     result = {}
     definitions = defaultdict(list)
     bases = []
+    struct_names_free = all(_STRUCT_NAMES.isdisjoint(layout.words) for layout in layouts.values())
     def site(op, file, start, end, replacement, stage="solc", action="edit"):
         result.setdefault(op,(file,start,end,replacement,action,stage))
 
     for file, layout in layouts.items():
         w,t,raw = layout.words,layout.tokens,sources[file]
+        string_offset = next(layout.string_contents(), None)
+        if string_offset is not None:
+            site("encoding", file, string_offset, string_offset, b"\xff")
         for first,name,opening,close in layout.definitions:
             bounds=layout.bounds(first,close)
             definitions[w[name]].append((file,bounds))
@@ -251,12 +434,14 @@ def mutation_sites(base, sources, layouts, imports):
             site("duplicate_definition",file,end,end,("copy",bounds))
             site("unbalanced_structure",file,t[close][0],end,b"")
             site("parser_error_other",file,t[name][0],t[name][1],b",")
-            site("encoding",file,t[name][0],t[name][0]+1,b"\xff")
             if w[name-1]==b"contract":
                 if b"cp4StackDepth" not in w:
                     site("codegen_only",file,t[close][0],t[close][0],_STACK_FUNCTION)
-                if version >= (0,5,0) and b"cp4Matrix" not in w and b"cp4CopyMatrix" not in w:
-                    site("unimplemented_feature",file,t[close][0],t[close][0],_NESTED_COPY)
+                offset = t[close][0]
+                if struct_names_free and "unimplemented_feature" not in result:
+                    available = versions if versions is not None else _benchmark_versions()
+                    if _struct_copy_allowed(base, sources, file, offset, available):
+                        site("unimplemented_feature", file, offset, offset, _STRUCT_COPY)
         for first,name,param_end,body in layout.functions:
             if b"cp4AbsentParameter" not in w:
                 site("docstring_error",file,t[first][0],t[first][0],b"\n/// @param cp4AbsentParameter benchmark\n")
@@ -308,6 +493,9 @@ def mutation_sites(base, sources, layouts, imports):
                 continue
             op="missing_relative_file" if imp["path"].startswith(("./","../")) else "unresolved_package_import"
             site(op,target,0,len(sources[target]),b"","project_assembly","delete_file")
+        package = _package_site(base, sources, imports)
+        if package:
+            result["unresolved_package_import"] = (entry, 0, 0, package, "package_dependency", "project_assembly")
     try:
         for data in sources.values():
             data.decode("utf8")
@@ -367,18 +555,26 @@ def assess_mutation(base, operator, seed, sources, site, compilers, frozen_versi
     from compile_repair.toolchain.solc import compile_file
 
     store=ArtifactStore(output)
-    mutated,patch,damage=build_mutation(base,sources,site,operator)
-    file,_,_,_,action,stage=site
-    entry,project=_materialize_closure(base,mutated,store,"damaged")
-    new_bytes=store.write_bytes("edit/replacement.bin",patch.replacement)
-    manifest={"operator":operator,"target":operator,"seed":seed,"base_unit":base["unit_id"],
-              "group":base["group"],"split":base["split"],"corpus":base["corpus"],"series":base["series"],
-              "truth_graph_sha256":base["graph_sha256"],"version":base["version"],"settings":base["settings"],
-              "stage":stage,"edit":{"file":file,"action":action,"start":patch.start,"end":patch.end,
-              "original_bytes_sha256":_digest(patch.expected),"new_bytes_path":str(new_bytes),
-              "new_bytes_sha256":_digest(patch.replacement),"new_length":len(patch.replacement)},
-              "original_sha256":{k:_digest(v) for k,v in sources.items()},
-              "damaged_sha256":{k:_digest(v) for k,v in mutated.items()}}
+    mutated, changes = _sample_edits(base, sources, site, operator)
+    _, _, _, plan, action, stage = site
+    entry, project = _materialize_closure(base, mutated, store, "damaged")
+    edits = []
+    for i, (name, kind, patch) in enumerate(changes):
+        filename = "edit/replacement.bin" if len(changes) == 1 else "edit/{:04d}.bin".format(i)
+        new_bytes = store.write_bytes(filename, patch.replacement)
+        edits.append(dict(file=name, action=kind, start=patch.start, end=patch.end,
+                          original_bytes_sha256=_digest(patch.expected), new_bytes_path=str(new_bytes),
+                          new_bytes_sha256=_digest(patch.replacement), new_length=len(patch.replacement)))
+    manifest = dict(operator=operator, target=operator, seed=seed, base_unit=base["unit_id"],
+                    group=base["group"], split=base["split"], corpus=base["corpus"], series=base["series"],
+                    truth_graph_sha256=base["graph_sha256"], version=base["version"], settings=base["settings"],
+                    stage=stage, original_sha256={k:_digest(v) for k,v in sources.items()},
+                    damaged_sha256={k:_digest(v) for k,v in mutated.items()})
+    if action == "package_dependency":
+        manifest.update({k:plan[k] for k in ("package","layout_evidence","file_renames","logical_package_paths","remapping")})
+        manifest["edits"] = edits
+    else:
+        manifest["edit"] = edits[0]
     store.write_json("mutation.json",manifest)
     selected_labels=[];selected=None;selected_first=None
     with store.journal("invocations.jsonl") as journal:
@@ -529,7 +725,113 @@ def _multiset_score(left,right):
             "ratio":matched/union if union else 1.0}
 
 
-def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair_maps, solc_returncode, d3):
+_IR_BYTECODE = re.compile(r"(?<=:= )(?P<prefix>0x)?(?P<hex>[0-9a-fA-F]{8,})(?=\((?:string|bytes)\)$)")
+_METADATA_KEYS = {b"ipfs", b"bzzr0", b"bzzr1", b"experimental", b"solc"}
+
+
+def _cbor_item(data, pos):
+    """Read a definite-length CBOR header. Bounds also limit work on invalid input."""
+    tag = data[pos]
+    pos += 1
+    length = tag & 31
+    if length < 24:
+        return tag >> 5, length, pos
+    if length > 27:
+        raise ValueError("Indefinite or reserved CBOR length")
+    size = 1 << (length - 24)
+    if pos + size > len(data):
+        raise ValueError("Truncated CBOR length")
+    return tag >> 5, int.from_bytes(data[pos:pos + size], "big"), pos + size
+
+
+def _solc_metadata(data):
+    """Recognize the complete Solidity trailer map, checking keys, types and lengths."""
+    try:
+        major, count, pos = _cbor_item(data, 0)
+        if major != 5 or not 0 < count <= len(_METADATA_KEYS):
+            return False
+        keys = set()
+        for _ in range(count):
+            major, size, pos = _cbor_item(data, pos)
+            key = data[pos:pos + size]
+            if major != 3 or len(key) != size or key not in _METADATA_KEYS or key in keys:
+                return False
+            pos += size
+            keys.add(key)
+            major, size, pos = _cbor_item(data, pos)
+            if key == b"experimental":
+                if major != 7 or size not in (20, 21):
+                    return False
+                continue
+            value = data[pos:pos + size]
+            if len(value) != size:
+                return False
+            pos += size
+            if key == b"solc":
+                if major == 3:
+                    if not value.decode("utf8"):
+                        return False
+                elif major != 2 or size != 3:
+                    return False
+            elif major != 2 or size != (34 if key == b"ipfs" else 32):
+                return False
+        return pos == len(data)
+    except (IndexError, ValueError):
+        return False
+
+
+def _without_metadata(match):
+    digits = match.group("hex")
+    if len(digits) % 2:
+        return match.group()
+    size = int(digits[-4:], 16)
+    start = len(digits) - 2 * (size + 2)
+    if start <= 0 or not size or not _solc_metadata(bytes.fromhex(digits[start:-4])):
+        return match.group()
+    return (match.group("prefix") or "") + digits[:start]
+
+
+def normalized_node_ir(operations):
+    """Keep application literals intact. Slither emits a type() operation before embedded code."""
+    if not any("SOLIDITY_CALL type()(" in op for op in operations):
+        return operations, False
+    result = []
+    changed = False
+    for op in operations:
+        value = _IR_BYTECODE.sub(_without_metadata, op) if ":=" in op else op
+        result.append(value)
+        changed |= value != op
+    return result, changed
+
+
+def _comparison_graph(graph, names, normalize):
+    """Map observed file identities, including call destinations, into truth coordinates."""
+    def reference(value):
+        if isinstance(value, dict) and "filename" in value:
+            return dict(value, filename=names.get(value["filename"], value["filename"]))
+        return value
+
+    nodes = []
+    changed = 0
+    for row in graph.get("nodes", ()):
+        node = reference(row)
+        if normalize:
+            ir, did_change = normalized_node_ir(row["ir"])
+            if did_change:
+                changed += 1
+                node = dict(node, ir=ir)
+        nodes.append(node)
+    if not names:
+        return dict(graph, nodes=nodes), changed
+    edges = [dict(edge, source=reference(edge["source"]), target=reference(edge["target"]))
+             for edge in graph.get("cfg_edges", ())]
+    calls = [dict(call, node=reference(call["node"]), callee=reference(call["callee"]))
+             for call in graph.get("calls", ())]
+    return dict(graph, nodes=nodes, cfg_edges=edges, calls=calls), changed
+
+
+def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair_maps, solc_returncode, d3,
+                 file_renames=None, normalize_creation_code=True):
     """Score actual graph facts under verified damage and repair provenance, without running tools.
 
     Source maps use project-relative names (the empty key for a single-file graph).
@@ -537,6 +839,18 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     multiplicities. Empty comparisons have ratio one; compilation and extra nodes are
     independently reported, so an absent result can never pass as an exact repair.
     """
+    renames = file_renames or {}
+    if any(old not in original or new not in repaired for old, new in renames.items()):
+        raise ValueError("Rename must refer to existing original and repaired files")
+    reverse = {new: old for old, new in renames.items()}
+    aligned = {reverse.get(name, name): data for name, data in repaired.items()}
+    if len(reverse) != len(renames) or len(aligned) != len(repaired):
+        raise ValueError("Ambiguous scoring file rename")
+    repaired = aligned
+    truth, changed_truth = _comparison_graph(truth, {}, normalize_creation_code)
+    changed_actual = 0
+    if actual is not None:
+        actual, changed_actual = _comparison_graph(actual, reverse, normalize_creation_code)
     maps,near,level=_correspondence(original,damaged,repaired,damage_maps,repair_maps)
     expected,observed=_nodes(truth),_nodes(actual or {})
     old_kept,new_kept={},{}
@@ -588,7 +902,8 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     kept=len(old_kept)
     compiled=solc_returncode==0 and d3 is True
     return {"compiled":compiled,"kept":{"units":kept,"equal":equal_kept,"ratio":equal_kept/kept if kept else 1.0},
-            "cfg_edges":edges,"calls":calls,"affected_by_damage":affected,"affected_by_deletion":deleted,
+            "cfg_edges":edges,"calls":calls,"metadata_normalized":bool(changed_truth or changed_actual),
+            "normalized_nodes":{"truth":changed_truth,"repaired":changed_actual},"affected_by_damage":affected,"affected_by_deletion":deleted,
             "lost":lost,"missing_kept":missing_kept,"added":len(extra),"added_only_in_repair_bytes":only_added,
             "added_bytes_near_damage":near,"change_level":level,
             "exact":bool(compiled and actual is not None and equal_kept==kept and not lost and not extra and
@@ -660,14 +975,19 @@ def score_request(request_path, output):
         names.add(n)
         for part,files in (("original",original),("damaged",damaged),("repaired",repaired)):
             raw=content(row.get(part))
-            if raw is not None:files[n]=raw
+            if raw is not None:
+                name = spec.get("file_renames", {}).get(n, n) if part == "repaired" else n
+                if name in files:
+                    raise ValueError("Duplicate physical source in score request: " + name)
+                files[name] = raw
         if row.get("damage_changes"):
             first[n]=replay(original.get(n,b""),damaged.get(n,b""),row["damage_changes"])
         if row.get("repair_changes"):
-            second[n]=replay(damaged.get(n,b""),repaired.get(n,b""),row["repair_changes"])
+            second[n]=replay(damaged.get(n,b""),repaired.get(spec.get("file_renames", {}).get(n,n),b""),row["repair_changes"])
     truth=json.loads(content(spec["truth_graph"]))
     candidate=content(spec.get("repaired_graph"))
     actual=json.loads(candidate) if candidate is not None else None
-    score=score_graphs(truth,actual,original,damaged,repaired,first,second,spec["solc_returncode"],spec["d3"])
+    score=score_graphs(truth,actual,original,damaged,repaired,first,second,spec["solc_returncode"],spec["d3"],
+                       file_renames=spec.get("file_renames"),normalize_creation_code=spec.get("normalize_creation_code",True))
     ArtifactStore(output).write_json("score.json",score)
     return {"status":"complete","summary":score}

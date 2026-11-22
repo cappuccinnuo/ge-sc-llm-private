@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.17 §1.20 与 §4.6b（CP4.1）、artifacts/cp4_review_v1/README.md、CP4_REPORT.md、CHANGE_LOG §41、§42。
+> 本轮先读第 0–5 节、PROMPTS r2.17 §4.6b、CP4_REPORT.md 的 CP4.1、CHANGE_LOG §43–44，以及 artifacts/cp4_1_v1/README.md。
 
 ## 0. 一句话
 
-CP4 已由 Claude 审查：基础筛选、划分、触发判定与自检成立，但发现四个问题（分类器把常见消息归为 other、两个算子没有产生目标错误、缺包依赖没有基准样本、嵌入创建码的元数据哈希会使后续评分误报）。下一步：Codex 执行 4.6b 节 CP4.1 → Claude 审查 → CP5。
+CP4.1 已完成 19,354 项触发判定，14,196 项纳入。两批缺包迁移各在首次 Slither 临时编号变化时停止。WSL 已恢复实际启动新命令。
 
 ## 1. 当前状态
 
@@ -15,24 +15,34 @@ CP4 已由 Claude 审查：基础筛选、划分、触发判定与自检成立�
 | CP4 | 16,136 个基础单元、17,432 个候选、11,858 个纳入；自检全部通过；五类 0 纳入，审查定位原因后由 CP4.1 解决 |
 | 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | CP4.1 → 审查 → CP5 |
+| CP4.1 | 96 个诊断模板完成证据分级，17,432 个旧候选重判完毕，1,922 个新增候选完成实测。迁移验收待决，见 CHANGE_LOG §44 |
+| 下一步 | 先处理迁移评分差异。CP4.1 通过后交独立审查，再进入 CP5 |
 
 ## 2. 分支与工作树
 
 专用工作树 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair。本轮从 06ad69c2 开始。新证据在 compile_repair/artifacts/cp4_v1/，外部源码副本和完整工具收据在 /home/zhao/SmartContract/compile-repair-local/cp4_v1/。首次运行与两次限定续跑各有独立目录或收据。
 
+CP4.1 从 e8ec530d 开始。新批次为 artifacts/cp4_1_v1/，逐项完整编译与图收据在仓库外 compile-repair-local/cp4_1_v1/。
+
 ## 3. 环境
 
 生产采用 Python 3.10、Slither 0.11.6、crytic-compile 0.4.2 和 92 版本 solc 快照。mando 的 Python 3.7、Slither 0.8.0 承担兼容与 DFG 测试。工具身份以 execution_settings.json 及前序授权信任清单为准。CPU 本地执行，费用 0 美元。
+
+2026-11-22 美东 08:34 的检查定位到 Hyper-V 新通道的 512 KiB 连续物理内存分配失败。原有用户会话保留。09:28、09:34 与 09:44 的独立新命令均返回 UID 1000，耗时分别为 0.356、0.402、0.305 秒。详见 runtime_recovery.json。
 
 ## 4. 必读与下一步
 
 复核先核对 CP4_REPORT.md、seal.json、archives.json 和三个授权文件。用 sample_plan.jsonl.gz 与 sample_receipts.jsonl.gz 按算子和单元匹配。对照检查原版本、设置和图，评分用首轮通过的 4,315 行及 identity_continuation 的 7,543 行。抽查 cp3_23979 的原始 IR 差异和同路径探针，确认评分保留了完整 metadata。后续开发使用 dev，test 只用于报告。此前的 D21、AST 不足和语言未定等限制仍记在 CP3_REPORT.md。（2026-11-22 Claude 更新：CP4 审查发现四个问题，CP5 之前执行 CP4.1，见 PROMPTS §4.6b。）
 
+续作先读 CP4_REPORT.md 的 CP4.1、migration_counter_review.json、两份 migration_difference 收据和 migration_stop_inventory.json。现有冻结抽样、观测与已完成的图可按 SHA256 复用。
+
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4.1 全量触发与缺包迁移 | artifacts/cp4_1_v1/population.json、operators.tsv、migration_stop_inventory.json、migration_counter_review.json |
+| CP4.1 代码、测试与 WSL 恢复 | 同批 migration_stop_scope.json、final_tests/、runtime_recovery.json |
+| CP4.1 清点、授权、启动故障 | artifacts/cp4_1_v1/old_other_templates.json、preflight_authorization.json、authorization.json、wsl_startup_diagnosis.json |
 | CP4 审查证据（Claude） | artifacts/cp4_review_v1/README.md、probe_operator_messages.json、fixtures/ |
 | CP4 报告、逐类分层与复现 | CP4_REPORT.md、artifacts/cp4_v1/README.md、strata.tsv、benchmark_counts.json |
 | CP4 样本与真值 | 同批 bases.jsonl.gz、base_exclusions.jsonl.gz、sample_plan.jsonl.gz、sample_receipts.jsonl.gz、controls.jsonl |
@@ -596,3 +606,19 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 结论：基础筛选、组哈希划分、分层抽样、两阶段触发判定、对照 200/200、精确还原 11,858/11,858 与故意错误 22/22 成立；精确还原首次失败时的停止与原路径重编处理正确。五个 0 纳入类别中，审查用 8 个手写夹具在 4 个版本上复现了原因：删除右花括号与同名函数的消息被分类器归为 other；encoding 与 unimplemented_feature 的算子没有产生目标错误；缺包依赖在合格基础单元中不存在。另外，嵌入创建码的元数据哈希随源路径与内容变化，CP5 以后的真实修复会被误判。新增 4.6b 节 CP4.1。
 
 下一步：Codex 执行 CP4.1，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §42。
+
+### 2026-11-22 CompileRepair CP4.1 原始诊断清点与 WSL 故障定位（修改 AI：Codex）
+
+工作树从 e8ec530d 执行 PROMPTS r2.17 §4.6b。第 0–5 节已补充进行中的阶段、批次、环境故障、必读事项及证据路径。三个生产文件中已有部分改动，逐项清单见 CHANGE_LOG §43.1。
+
+旧诊断去重得到 96 个模板，已准备 95 份源码夹具。剩余 1 个模板仅有通用内部异常消息，用户批准用历史收据验证。用户也批准从原始调用重判旧候选，17,432 项仍待执行。
+
+用户要求优先排查 WSL。普通管道和真实终端均在约 30 秒后超时，两个时刻均出现 VMBus 新通道的 order-7 分配失败。当前保留用户的现有会话，压缩内存和重启均未执行。
+
+本轮未执行两套模块测试、DFG v2 或新 solc/Slither 运行。CP4.1 尚未提交验收。文档检查与实际状态分别见 checkpoint_doc_check.json 和 wsl_startup_diagnosis.json。
+
+### 2026-11-22 CP4.1 全量触发与缺包迁移停止点（修改 AI：Codex）
+
+第 0–5 节已更新验收状态、分支基线、生产与 mando 环境、WSL 启动实测、续作条件与证据路径。两个环境及 DFG v2 的全部实测见新批次 final_tests/。生产文件共 17 个，354 项 DFG 代码身份匹配。
+
+原候选重判新增 952 项，新的编码、结构体数组和缺包算子纳入 511、761、114 项。原 200 个对照核对通过。两批的失败单元分别是 cp3_15167、cp3_15136。读取保存图可证明两个实例的差异都局限于 Slither 计数器编号。原计分与待确认的替代方案分别留在停止收据与迁移核验请求中。完整数字见 CP4_REPORT.md、population.json 与 migration_stop_inventory.json。

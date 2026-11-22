@@ -379,6 +379,70 @@ def _import_at(diagnostic, source):
     return None
 
 
+# Standard-JSON types for untyped CLI messages (see tests/fixtures/cp4_1).
+# Quoted identifiers and compiler versions have already been normalized.
+_CLI_DIAGNOSTIC_TYPES = {
+    'Declaration "<value>" not found in "<value>" (referenced as "<value>").': 'DeclarationError',
+    'Identifier "<value>" not found.': 'DeclarationError',
+    'More than one constructor defined.': 'DeclarationError',
+    'Multiple matching identifiers. Resolving overloaded identifiers is not supported.': 'DeclarationError',
+    'Non-abstract contracts cannot have internal constructors. Remove the "<value>" keyword and make the contract abstract to fix this.': 'DeclarationError',
+    'Builtin function "<value>" must be called.': 'ParserError',
+    'Function, variable, struct or modifier declaration expected.': 'ParserError',
+    'Only state variables or file-level variables can have a docstring.': 'ParserError',
+    'The state mutability modifier "<value>" was removed in version <version>. Use "<value>" or "<value>" instead.': 'ParserError',
+    'True and false are not valid literals.': 'ParserError',
+    'Defining empty structs is disallowed.': 'SyntaxError',
+    'Functions are not allowed to have the same name as the contract. If you intend this to be a constructor, use "<value>" to define it.': 'SyntaxError',
+    'Unknown pragma "<value>"': 'SyntaxError',
+    '"<value>" and "<value>" are only available for objects of type "<value>", not "<value>".': 'TypeError',
+    '"<value>" has been deprecated. Use "<value>" instead.': 'TypeError',
+    'Cannot call function via contract type name.': 'TypeError',
+    'Contract "<value>" should be marked as abstract.': 'TypeError',
+    'Contract with internal constructor cannot be created directly.': 'TypeError',
+    'Definition of base has to precede definition of derived contract': 'TypeError',
+    'Dynamically-sized keys for public mappings are not supported.': 'TypeError',
+    'Event invocations have to be prefixed by "<value>".': 'TypeError',
+    'Explicit type conversion not allowed from "<value>" to "<value>".': 'TypeError',
+    'Function overload clash during conversion to external types for arguments.': 'TypeError',
+    'Functions in interfaces must be declared external.': 'TypeError',
+    'Immutable variables cannot be read during contract creation time, which means they cannot be read in the constructor or any function or modifier called from it.': 'TypeError',
+    'Interfaces cannot inherit.': 'TypeError',
+    'Internal type is not allowed for public or external functions.': 'TypeError',
+    'Invalid array length, expected integer literal or constant expression.': 'TypeError',
+    'Library name expected.': 'TypeError',
+    'Location has to be calldata for external functions (remove the "<value>" or "<value>" keyword).': 'TypeError',
+    'Name has to refer to a struct, enum or contract.': 'TypeError',
+    'No matching declaration found after argument-dependent lookup.': 'TypeError',
+    'Overriding function changes state mutability from "<value>" to "<value>".': 'TypeError',
+    'Overriding function return types differ.': 'TypeError',
+    'Overriding function visibility differs.': 'TypeError',
+    'Overriding public state variable return types differ.': 'TypeError',
+    'Referenced declaration is neither modifier nor base class.': 'TypeError',
+    'Storage location can only be given for array or struct types.': 'TypeError',
+    'Structs cannot be defined in interfaces.': 'TypeError',
+    'This type cannot be encoded.': 'TypeError',
+    'Using "<value>" is deprecated. Use "<value>" instead.': 'TypeError',
+    'Variables cannot be declared in interfaces.': 'TypeError',
+}
+_CLI_TYPE_FAMILIES = re.compile(
+    r'^(?:(?:Built-in (?:binary|unary)|Unary|Binary) operator .+? cannot be applied to types? .+'
+    r'|Decoding type struct [\w.$]+(?: [\w]+)* not supported\.'
+    r'|Member "<value>" is not available in struct .+ outside of storage\.'
+    r'|Member "<value>" not unique after argument-dependent lookup in .+\.'
+    r'|The "<value>" instruction is only available for [\w-]+-compatible VMs .+)\Z'
+)
+
+
+def _cli_kind(kind, template):
+    """Supply a witnessed type for the generic CLI prefix, preserving explicitly typed errors."""
+    if kind != "Error":
+        return kind
+    if template in _CLI_DIAGNOSTIC_TYPES:
+        return _CLI_DIAGNOSTIC_TYPES[template]
+    return "TypeError" if _CLI_TYPE_FAMILIES.fullmatch(template) else kind
+
+
 def classify_diagnostic(diagnostic, source=b""):
     """Classify one actual CLI message using text and its located source bytes.
 
@@ -386,6 +450,8 @@ def classify_diagnostic(diagnostic, source=b""):
     structural heuristic only refines a parser diagnostic, never valid source.
     """
     message, kind = diagnostic.get("message") or "", diagnostic.get("kind")
+    template = diagnostic_template(message)
+    kind = _cli_kind(kind, template)
     low = message.lower()
     exact = {"JSONError": "json_error", "IOError": "io_error",
              "InternalCompilerError": "internal_compiler_error",
@@ -397,11 +463,14 @@ def classify_diagnostic(diagnostic, source=b""):
         category = "codegen_only"
     elif kind in exact:
         category = exact[kind]
-    elif kind == "Internal compiler error" or "internalcompilererror" in low:
+    elif (kind == "Internal compiler error" or "internalcompilererror" in low or
+          low.startswith("internal compiler error during compilation:")):
         category = "internal_compiler_error"
     elif kind == "Fatal error":
         category = "fatal_error"
-    elif kind == "Unimplemented feature" or "not yet supported" in low or kind == "UnimplementedFeatureError":
+    elif (kind in ("Unimplemented feature", "UnimplementedFeatureError") or "not yet supported" in low or
+          low.startswith("copying of type struct ") and
+          "is not supported in legacy (only supported by the ir pipeline)" in low):
         category = "unimplemented_feature"
     elif re.search(r'\bsource ".+?" not found', message, re.I):
         name = _import_at(diagnostic, source)
@@ -410,6 +479,14 @@ def classify_diagnostic(diagnostic, source=b""):
                     "unresolved_package_import") if name else "io_error"
     elif re.search(r"file.*(?:not found|outside of allowed|permission)|cannot (?:open|read)", low):
         category = "io_error"
+    elif low.startswith("source file requires different compiler version"):
+        category = "version_mismatch"
+    elif (re.search(r"only supported in (?:abi coder v2|abiencoderv2|the new experimental abi encoder)\b", low)
+          or re.search(r"does not use (?:abi coder v2|abiencoderv2) but wants to inherit", low)):
+        category = "abi_coder_required"
+    elif low.rstrip(".") in ("free functions cannot be payable", "free functions cannot have visibility",
+                              "free functions must be implemented", "only constant variables are allowed at file level"):
+        category = "file_level_member"
     elif "multiple spdx" in low or "already been selected" in low or "duplicate pragma" in low:
         category = "multiple_license_or_pragma"
     elif "already declared" in low or "defined twice" in low or "duplicate definition" in low:
@@ -437,7 +514,7 @@ def classify_diagnostic(diagnostic, source=b""):
     else:
         category = "other"
     return dict(diagnostic, category=category,
-                failure=category != "warning", template=diagnostic_template(message))
+                failure=category != "warning", template=template)
 
 
 def pragma_evidence(source):

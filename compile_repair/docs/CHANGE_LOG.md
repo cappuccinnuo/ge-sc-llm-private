@@ -2072,3 +2072,68 @@ doc_check 用 `python -B -m scripts.node_sem.doc_check --expect-cjk` 检查 6 �
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP5 不能开始。顺序为 Codex 执行 CP4.1 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。
+
+
+## 43. 2026-11-22 CompileRepair CP4.1 诊断清点与 WSL 启动故障（修改 AI：Codex）
+
+### 43.1 任务、依据与范围
+
+专用分支 `compile-repair` 已快进同步至 `e8ec530d81908b5f9cd592d3f1ecae89aa3e63a6`。已读 PROMPTS r2.17 全文、共享上下文 §4.1、§1.20、§4.6b、CP4 审查、交接和决策记录。本节记录 CP4.1 进行中的工作，以及用户要求优先排查的新命令启动超时。
+
+工作树中的实现草稿位于 `toolchain/solc.py`、`evaluation/benchmark.py`、`evaluation/report.py`。手写输入清单位于 `tests/fixtures/cp4_1/diagnostics.json`。在 `artifacts/cp4_1_v1/` 中，清点和探针脚本为 `batch.py`、`preflight.py`、`preflight_supported.py`、`inventory_diagnostics.py`、`make_fixtures.py`、`oracle.py`、`probe_compilers.py`、`survey_packages.py`、`replay.py`。清点、授权和故障证据为 `inventory_diagnostics.log`、`old_other_templates.json`、`preflight_authorization.json`、`authorization.json`、`wsl_startup_diagnosis.json`。交接、决策、进度和 CP4 报告同步记录本检查点。
+
+### 43.2 实施方式和重要选择
+
+清点脚本对照基线中的分类器，逐条读取 CP3 有效结果及 CP4 的环境和选定版本收据，按 `diagnostic_template` 聚合旧 `other`。新重判脚本从原种子、原修改区间、文件字节及 SHA256 重建工作副本，并通过 `classify_record`、`primary_causes` 和 `classify_trigger` 计算结果。修正后的预检分别核对 96 个可信安装和 92 个受支持版本。首轮预检将两个数字等同，在首个编译调用前停止。
+
+评分草稿为经过校验的 solc 元数据和项目文件改名保留单独的比较记录。编码算子草稿从 Solidity 字符串内部选取偏移。分类器已写入三个具名类别及历史内部异常的识别分支。上述改动的生产验收尚待运行。
+
+### 43.3 实测与数据结论
+
+清点覆盖 31,071 条 CP3 有测量的结果、17,432 条 CP4 环境结果和 11,560 次选定版本调用。三个范围内被旧分类器记为 `other` 的诊断出现次数分别为 13,321、59,569、3,004，合并去重得到 96 个模板。其中 1 个内部异常仅涉及 3 个 CP3 单元，另有 95 个模板已写手工输入。计数单位为诊断出现次数及模板，来源为 `old_other_templates.json`。
+
+美东 08:31:46 与 08:34:10，两次新命令分别通过普通管道和终端启动，30.145 秒与 30.253 秒后返回 `Wsl/Service/0x8007274c`。这两个时刻的 Ubuntu 内核日志均记录 `hvs_probe → vmbus_open → vmbus_alloc_ring` 的 order-7 页分配失败。DMA32、Normal 两个内存区均无 512 KiB 或更大的连续空闲块。同一时段 `MemAvailable` 为 7,361,876 KiB，`oom_kill` 为 0，WSL 管理查询和已有 SSH 服务仍可响应。能定位到新通道的分配失败，形成碎片的具体工作负载仍无法确定。带时间的调用、日志摘录和空闲块计数见 `wsl_startup_diagnosis.json`。
+
+### 43.4 用户批准、原文差异与待确认设计
+
+2026-11-22，用户原话“同意按冻结的 92 版继续”“同意单列内部异常的历史证据”“同意旧样本按原始观测重判”。旧候选沿用已实测的原始观测，仅做重新分类。新增候选、须执行的精确还原以及迁移还原仍须实际运行。新命令发生超时后，用户要求“你先审查以下现在还存在超时吗，排查原因”。本次仅开展系统诊断，三项工程决定分别登记在两份授权中。
+
+### 43.5 验收、资源、未执行事项与停止
+
+96 个模板的原始清点已完成。92 版测量、95 个源码夹具的类型观测、17,432 个候选重判、新样本与图评分、双环境模块测试和 DFG v2 测试均未运行。CP4.1 尚未验收。费用 0 美元，下载、安装、训练、LLM 调用、系统重启和内核参数修改均为 0。现有用户 Bash 会话保留。文档检查收据为 `artifacts/cp4_1_v1/checkpoint_doc_check.json`。
+
+文档检查已在 Windows 本机 Python 3.7 上运行仓库原有的 UTF-8 检查器，五份文档全部通过。交接与决策全文检查，其他三份检查本轮追加区间。生产验收仍待 WSL 命令启动恢复。
+
+本地检查点提交在暂存前遇到 Git 工作树索引锁。本轮保留锁文件，检查点留在工作树。生产文件按仓库测试口径计数为 17，17 个模块文件及 9 个批次脚本通过 Python 3.7 语法检查。交付状态和最终文档校验见本批 checkpoint_delivery.json。
+
+## 44. 2026-11-22 CompileRepair CP4.1 生产测量、真实包补样与迁移审查（修改 AI：Codex）
+
+### 44.1 任务、依据与范围
+
+按 PROMPTS r2.17 §4.6b 续做 §43 中断的工作。生产改动限于 toolchain/solc.py、evaluation/report.py、evaluation/benchmark.py。测试在 tests/test_cp41.py 和 tests/fixtures/cp4_1/。逐函数行数见 artifacts/cp4_1_v1/migration_stop_scope.json。采样、核验脚本与观测保存在同一新批次，逐项目源码、图及原始命令保存在仓库外。报告和交接入口见 CP4_REPORT.md、PROGRESS.md、docs/HANDOVER.md、docs/DECISIONS.md 与本批 README。
+
+### 44.2 实施方式和重要选择
+
+以 standard JSON 的实际类型、获批历史证据及可验证的同类消息给旧诊断归因。版本拒绝保留逐候选记录。D6 最终表沿用既有 route 与 change_level 词表，ABI coder 的无冲突 pragma 按 additive 处理，文件级成员仅在归属可证明时补附加作用域。按原种子及 SHA 读取已经实际发生的两阶段观测。新候选实际按生产流水线调用。项目装配先报告缺导入时，该阶段 solc 调用数为 0。
+
+对比图时校验字节码末尾 CBOR 的完整结构与已知 solc 字段，保存每个样本的规范化标志。文件改名映射作用于节点、CFG 两端和调用目标。缺包样本保持包名与发布布局可证，首批 28 项与补充 86 项的并集同原种子分层抽样匹配。
+
+### 44.3 实测与数据结论
+
+95 份源码夹具运行 642 次 standard JSON，加上历史证据共核查 96 个模板，1 个模板保留 other。CP3 有历史测量的 31,071 项重新归因后，主因 other 从 36 到 0，任一候选含 other 的单元从 202 到 2。冻结的旧候选 17,432 项新增纳入 952，新增候选 1,922 项纳入 1,386，全量纳入 14,196 项。两个创建码阳性例按规范化比分别为 299/299、6/6。各数的原始表在 diagnostic_mapping.json、cp3_before_after.json、population.json 和 creation_*.json。
+
+原 11,858 项重新评分、952 项新晋候选实编精确还原全部满分。首轮新候选完成了 1,274 项全部评分。两批新候选实际写出 1,281 份精确还原图和 9 份迁移图，停止时在途进程结束后均已按 SHA 登记，见 migration_stop_inventory.json。用户授权的 114 个缺包候选全部触发，迁移完整通过数仍待确认。
+
+### 44.4 用户批准、原文差异与待确认设计
+
+用户原话“同意交叉核对及条件口径”“同意补齐 86 项并保留原收据”。审查的 0.8.38 命令只请求 ABI，生产要求字节码。对同一审查夹具的两次调用得到不同结果。92 个支持版本在标准生产字节码设置下均拒绝目标结构体操作，选中的基础单元必须满足候选版本均在实测拒绝集合且未启用 via-IR。两份授权见 struct_codegen_authorization.json、package_sampling_authorization.json。
+
+cp3_15167、cp3_15136 分别因文件迁移后 Slither 自动编号改变而停止。对两组封存图进行只读核验，所见差异均可由双向唯一的编号映射解释。扩展迁移评分仍待用户确认。已保存原评分、原图、只读核对明细和 migration_counter_review.json。
+
+### 44.5 验收、资源、未执行事项与停止
+
+production 测试为 1,016 通过、6 跳过。mando 测试为 553 通过、469 跳过。DFG v2 为 2,653 通过、9 条告警。最终版本的局部测试为 201 通过。生产文件共 17 个，354 项冻结 DFG 代码引用匹配，底稿见 final_tests/、package_focused_tests.log、migration_stop_scope.json。运行使用 CPU，费用 0 美元。安装、下载、LLM 调用和训练均为 0。
+
+WSL 的 VMBus 建连曾在高负载下再次超时。保留的原生 Bash 完成了生产实验。对已读取的历史任务数据做有限文件缓存回收提示后，三次独立普通新命令均在 0.41 秒内成功。系统重启和内核参数写入均为 0。缓存提示与恢复的因果关系尚无独立对照。停止的原因及待确认项为迁移评分。
+
+六份中文文档通过仓库 doc_check。交接、决策与批次说明按全文检查，CHANGE_LOG、PROGRESS 和 CP4_REPORT 校验原先封存的前缀后检查此次追加区间。最终校验明细见 artifacts/cp4_1_v1/migration_stop_doc_check.json。

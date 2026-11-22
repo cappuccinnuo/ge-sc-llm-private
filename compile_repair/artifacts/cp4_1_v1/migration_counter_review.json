@@ -1,0 +1,25 @@
+{
+  "evidence_file": "supplement_migration_difference.json",
+  "evidence_sha256": "b572f1422ae4ec65b2b49abeb0cda183b694fdabcee27be4dae5be15d2cafd42",
+  "raw_stop": "supplement_restoration_stop.json",
+  "observed": {
+    "nodes": 82,
+    "different_ir_nodes": 19,
+    "compilation_unit_counters": 97,
+    "renumbered": 42,
+    "calls": 34,
+    "raw_kept": "2/4",
+    "raw_cfg": "3/3",
+    "raw_call_jaccard": "2/4"
+  },
+  "scope": "Only migration scoring for an explicitly verified file-rename map. Keep exact restore, historical scores and graph bytes untouched.",
+  "proposal": "Report both the original score and a strict renaming comparison. Admit only one-to-one, same-family renaming of Slither-generated TMP_N and REF_N for every node and textual call. Reject collisions with user-provided identifiers/literals, mismatched node correspondence, non-identifier changes, changed binding, op, type, edge, callee or use. Preserve all other acceptance gates. Reuse already sealed graph receipts and continue only unfinished migrations; no rerun of the trigger draw.",
+  "negative_tests": [
+    "renaming collision",
+    "changed operand or reference use",
+    "changed call target or edge",
+    "user identifier/literal resembling Slither names"
+  ],
+  "new_measurement_scope": "the two approved real-package cohorts, retaining finished observations; record any later first unexplained mismatch and stop",
+  "cost_usd": 0
+}

@@ -94,7 +94,11 @@ def primary_causes(record, failures=None):
     for labels in versions.values():
         if not labels:
             labels.add("other")
-    common = set.intersection(*versions.values())
+    # A pragma rejection says nothing about the source on a compatible compiler.
+    # Keep all observed labels in by_version, including candidates that only reject the version.
+    compatible = [labels - {"version_mismatch"} for labels in versions.values()
+                  if labels - {"version_mismatch"}]
+    common = set.intersection(*compatible) if compatible else set()
     return {"categories": sorted(common or {"version_dependent"}),
             "by_version": {v: sorted(labels) for v, labels in versions.items()}}
 
@@ -157,7 +161,8 @@ def parseable_version_blockers(by_version):
     candidate). This supplementary evidence never changes the primary cause.
     """
     parser_failures = {"parser_error_other", "unbalanced_structure"}
-    remaining = [set(labels) for labels in by_version.values() if parser_failures.isdisjoint(labels)]
+    remaining = [set(labels) - {"version_mismatch"} for labels in by_version.values()
+                 if parser_failures.isdisjoint(labels) and set(labels) - {"version_mismatch"}]
     return sorted(set.intersection(*remaining)) if remaining else []
 
 

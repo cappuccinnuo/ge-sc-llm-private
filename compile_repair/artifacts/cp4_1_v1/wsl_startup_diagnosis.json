@@ -1,0 +1,157 @@
+{
+  "collected_utc": "2026-11-22T13:36:48Z",
+  "date_local": "2026-11-22",
+  "timezone": "America/New_York",
+  "user_direction": "你先审查以下现在还存在超时吗，排查原因",
+  "base_commit": "e8ec530d81908b5f9cd592d3f1ecae89aa3e63a6",
+  "management": [
+    {
+      "start_utc": "2026-11-22T13:31:45.135Z",
+      "argv": [
+        "--list",
+        "--verbose"
+      ],
+      "seconds": 0.126,
+      "returncode": 0,
+      "output": "NAME            STATE           VERSION\r\n* Ubuntu-22.04    Running         2"
+    },
+    {
+      "start_utc": "2026-11-22T13:31:45.260Z",
+      "argv": [
+        "--version"
+      ],
+      "seconds": 0.1,
+      "returncode": 0,
+      "output": "WSL 版本: 2.7.13.0\r\n内核版本: 6.18.33.2-2\r\nWSLg 版本: 1.0.73.2\r\nMSRDC 版本: 1.2.7214\r\nDirect3D 版本: 1.611.1-81528511\r\nDXCore 版本: 10.0.26100.1-240331-1435.ge-release\r\nWindows: 10.0.19045.6466"
+    },
+    {
+      "start_utc": "2026-11-22T13:31:45.360Z",
+      "argv": [
+        "--status"
+      ],
+      "seconds": 0.108,
+      "returncode": 0,
+      "output": "默认分发: Ubuntu-22.04\r\n默认版本: 2"
+    }
+  ],
+  "piped_process": {
+    "start_utc": "2026-11-22T13:31:46.104Z",
+    "argv": [
+      "-d",
+      "Ubuntu-22.04",
+      "--cd",
+      "/",
+      "--exec",
+      "/bin/true"
+    ],
+    "seconds": 30.145,
+    "returncode": 4294967295,
+    "output": "由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。 \r\n错误代码: Wsl/Service/0x8007274c"
+  },
+  "console_process": {
+    "start_utc": "2026-11-22T13:34:10.3108310Z",
+    "argv": [
+      "-d",
+      "Ubuntu-22.04",
+      "--cd",
+      "/",
+      "--exec",
+      "/bin/echo",
+      "CP41_WSL_TTY_READY"
+    ],
+    "returncode": -1,
+    "seconds": 30.253,
+    "output_marker_observed": false,
+    "error": "Wsl/Service/0x8007274c"
+  },
+  "kernel": {
+    "source": "/var/log/kern.log",
+    "read_prefix_bytes": 195253,
+    "read_prefix_sha256": "5c1a87d6bdfa53431abd843e036514ca3be086e20d9fbaad5dbc262688ad93a1",
+    "zone_snapshot": {
+      "Nov 22 08:31:46": [
+        "kworker/0:2: page allocation failure: order:7, mode:0xdc0(GFP_KERNEL|__GFP_ZERO), nodemask=(null),cpuset=/,mems_allowed=0",
+        "Workqueue: hv_pri_chan vmbus_add_channel_work",
+        "vmbus_alloc_ring+0x78/0xd0",
+        "vmbus_open+0x29/0x80",
+        "hvs_probe+0x1f4/0x4c0",
+        "Node 0 DMA32: 1860*4kB (UME) 1131*8kB (UME) 1647*16kB (UME) 3536*32kB (UME) 1034*64kB (UME) 163*128kB (UME) 17*256kB (UME) 0*512kB 0*1024kB 0*2048kB 0*4096kB = 247384kB",
+        "Node 0 Normal: 2078*4kB (UMEH) 742*8kB (UMEH) 224*16kB (UMEH) 392*32kB (UMEH) 329*64kB (UMEH) 39*128kB (EH) 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 56424kB"
+      ],
+      "Nov 22 08:34:10": [
+        "kworker/0:2: page allocation failure: order:7, mode:0xdc0(GFP_KERNEL|__GFP_ZERO), nodemask=(null),cpuset=/,mems_allowed=0",
+        "Workqueue: hv_pri_chan vmbus_add_channel_work",
+        "vmbus_alloc_ring+0x78/0xd0",
+        "vmbus_open+0x29/0x80",
+        "hvs_probe+0x1f4/0x4c0",
+        "Node 0 DMA32: 1276*4kB (UME) 824*8kB (UME) 1512*16kB (UME) 3476*32kB (UME) 1013*64kB (UME) 162*128kB (UME) 16*256kB (UME) 0*512kB 0*1024kB 0*2048kB 0*4096kB = 236784kB",
+        "Node 0 Normal: 1863*4kB (UMEH) 740*8kB (UMEH) 228*16kB (UMEH) 381*32kB (UMEH) 327*64kB (UMEH) 39*128kB (EH) 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 55132kB"
+      ]
+    },
+    "order7_warnings_in_current_log_through_second_probe": {
+      "first": "Nov 22 06:58:13",
+      "last": "Nov 22 08:34:10",
+      "count": 25
+    },
+    "guest_relay_excerpt": "WSL (1944115 - Relay) ERROR: UtilAcceptVsock:246: Waiting for abnormally long accept(13)",
+    "relay_log": "/var/log/syslog",
+    "page_kib": 4,
+    "required_order": 7,
+    "required_contiguous_kib": 512
+  },
+  "guest_readings": {
+    "unc_live_proc_elapsed_s": 0.52,
+    "ssh_banner_roundtrip_s": 0.044,
+    "ssh_protocol": "OpenSSH_8.9p1 Ubuntu-3ubuntu0.17",
+    "ssh_authentication_attempted_in_this_check": false,
+    "MemAvailable_kib": 7361876,
+    "MemTotal_kib": 8054432,
+    "MemFree_kib": 258288,
+    "SwapFree_kib": 1986244,
+    "buddyinfo_free_block_counts_by_order": {
+      "DMA32": [
+        500,
+        9,
+        1202,
+        3430,
+        1001,
+        156,
+        14,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Normal": [
+        512,
+        161,
+        109,
+        285,
+        319,
+        39,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "vmstat_since_boot": {
+      "compact_stall": 64402,
+      "compact_fail": 56114,
+      "compact_success": 8288,
+      "oom_kill": 0
+    },
+    "observed_user_bash": 3,
+    "measured_solc_or_slither_runs": 0
+  },
+  "diagnosis": "新通道打开时，WSL2 Linux 内核在 Hyper-V VMBus 的环形缓冲区上申请 order-7 连续物理页失败，Relay 等待虚拟套接字接入，Windows 命令启动最终报 10060。",
+  "limit": "日志把超时定位到高阶空闲块耗尽；无法据此把内存碎片的形成归因于某个程序。现有 TCP 服务和共享文件在同一时段可读取。",
+  "changes": {
+    "distribution_restarts": 0,
+    "service_restarts": 0,
+    "terminated_user_sessions": 0,
+    "firewall_or_proxy_changes": 0,
+    "sysctl_changes": 0,
+    "other_software_changes": 0
+  }
+}

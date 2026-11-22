@@ -505,3 +505,19 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 - CP4 成立的部分：16,136 个基础单元、组哈希划分、两阶段触发判定、对照 200/200、精确还原 11,858/11,858、故意错误 22/22。
 - 四个问题：分类器缺少常见消息模板（右花括号、同名函数、ABI 编码器 v2 等，也影响 CP3 的 other）；encoding 与 unimplemented_feature 算子没有产生目标错误；缺包依赖无样本；嵌入创建码的元数据哈希会使后续评分误报。
 - PROMPTS r2.17：新增 1.20 节、4.6b 节 CP4.1。证据 `artifacts/cp4_review_v1/`；记录 `docs/CHANGE_LOG.md` §42。
+
+
+## CP4.1 诊断清点与 WSL 故障检查点（Codex，2026-11-22）
+
+- 已对 31,071 条 CP3 有测量的结果和 17,432 条 CP4 环境结果清点旧诊断，累计得到 96 个不同的 `other` 模板。95 个有源码夹具，1 个经用户批准仅用历史收据验证。旧候选重判口径也已获批准，执行数仍为 0。
+- 已在 `toolchain/solc.py`、`evaluation/report.py`、`evaluation/benchmark.py` 和 `tests/fixtures/cp4_1/` 编写部分实现。脚本和收据完整清单见 CHANGE_LOG §43.1。
+- 用户要求排查超时。两次新 WSL 命令均在约 30 秒后失败，Ubuntu 内核同时记录 Hyper-V 新通道缺少 512 KiB 连续空闲物理内存。原始检查收据为 `artifacts/cp4_1_v1/wsl_startup_diagnosis.json`。
+- 92 版 solc、生产 Slither、候选重判与还原、两个环境的模块测试及 DFG v2 测试本轮尚未运行。待 Windows 能成功启动该发行版的新命令后，先运行已获批的预检，再按 §4.6b 验收。
+
+## CP4.1 全量触发、还原和迁移复核（Codex，2026-11-22）
+
+- 在 toolchain/solc.py 和 evaluation/report.py 完成诊断类型及版本噪声汇总，在 evaluation/benchmark.py 实现字符串与结构体数组算子、真实包移除、改名和创建码尾部比较。测试位于 tests/test_cp41.py 和 tests/fixtures/cp4_1/。报告、决策及两份交接记录均已同步。
+- 19,354 项实测或原始观测重判中有 14,196 项触发。原 17,432 项新增纳入 952，1,922 个新候选纳入 1,386。旧 11,858 项评分满分，新纳入的 952 个旧候选也都通过实际精确还原。分层及证据见 artifacts/cp4_1_v1/population.json。
+- 生产与 mando 各执行 python -B -m pytest -x -q -p no:cacheprovider compile_repair/tests，分别通过 1,016 项与 553 项。mando 在仓库根执行同一命令的 scripts/DFG/dfg_v2/tests 目标，2,653 项通过。分项和跳过数见 final_tests/。
+- 用户批准 92 版生产字节码的条件口径，并批准把遗漏的 86 项包内相对依赖并回原种子抽样。两项迁移出现 Slither 全局编号变化，已收存原分并提交方案确认，见 migration_counter_review.json。
+- WSL 通过持续打开的本地 Bash 完成各项实验，美东 09:28、09:34、09:44 的普通新命令均成功。用户会话保留，直接启动与本地缓存处理依据见 runtime_recovery.json。

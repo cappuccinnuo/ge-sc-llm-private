@@ -1,0 +1,76 @@
+{
+  "session": "persistent native Ubuntu Bash; existing user sessions preserved",
+  "disabled_or_restarted": [],
+  "source_initial": "startup_recovery.json",
+  "previous_failure": "wsl_startup_diagnosis.json",
+  "ordinary_user_local_cache_advice": "runtime_cache_recovery.json",
+  "attempted_one_time_compaction": {
+    "start_utc": "2026-11-22T14:20:41.076Z",
+    "argv": [
+      "-d",
+      "Ubuntu-22.04",
+      "--user",
+      "root",
+      "--cd",
+      "/",
+      "--exec",
+      "/usr/sbin/sysctl",
+      "-w",
+      "vm.compact_memory=1"
+    ],
+    "seconds": 30.197,
+    "returncode": 4294967295,
+    "output": "由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。 \r\n错误代码: Wsl/Service/0x8007274c"
+  },
+  "compaction_executed": false,
+  "independent_host_launches_after_cache_advice": [
+    {
+      "start_utc": "2026-11-22T14:28:05.167Z",
+      "argv": [
+        "-d",
+        "Ubuntu-22.04",
+        "--cd",
+        "/",
+        "--exec",
+        "/usr/bin/id",
+        "-u"
+      ],
+      "seconds": 0.356,
+      "returncode": 0,
+      "output": "1000"
+    },
+    {
+      "start_utc": "2026-11-22T14:34:43.959Z",
+      "argv": [
+        "-d",
+        "Ubuntu-22.04",
+        "--cd",
+        "/",
+        "--exec",
+        "/usr/bin/id",
+        "-u"
+      ],
+      "seconds": 0.402,
+      "returncode": 0,
+      "output": "1000"
+    },
+    {
+      "start_utc": "2026-11-22T14:44:07.162Z",
+      "argv": [
+        "-d",
+        "Ubuntu-22.04",
+        "--cd",
+        "/",
+        "--exec",
+        "/usr/bin/id",
+        "-u"
+      ],
+      "seconds": 0.305,
+      "returncode": 0,
+      "output": "1000"
+    }
+  ],
+  "assessment": "Each Windows-to-WSL id -u call returned 1000. The cache hint applied only to completed CP4 data. Repeated successes confirm recovery at those times; no causal attribution or persistence guarantee from the observations.",
+  "guest_restarts": 0,
+  "global_settings_writes": 0
+}

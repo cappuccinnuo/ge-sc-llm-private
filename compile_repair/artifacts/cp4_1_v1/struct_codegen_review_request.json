@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-22",
+  "section": "PROMPTS r2.17 §4.6b.2",
+  "status": "requested",
+  "supported_snapshot": 92,
+  "measured_successes": 0,
+  "first_supported": null,
+  "old_codegen_message_count": 81,
+  "ir_only_message_versions": [
+    "0.8.28",
+    "0.8.29",
+    "0.8.30",
+    "0.8.31",
+    "0.8.32",
+    "0.8.33",
+    "0.8.34",
+    "0.8.35",
+    "0.8.36",
+    "0.8.37",
+    "0.8.38"
+  ],
+  "references": {
+    "compile_repair/artifacts/cp4_1_v1/struct_support.json": "04e09020e32a2a1c55ec235b2106c3c9053ac7140557521da39b899ca335149c",
+    "compile_repair/artifacts/cp4_review_v1/probe_operator_messages.py": "ca2dc3ece69474009fe618836bf6a63de1e597e3d4bdbe7248a7ec9cfd146f04",
+    "compile_repair/artifacts/cp4_review_v1/probe_operator_messages.json": "99811a37177ccb54baeb7fab8812a338974b023b29f67822b0594b7f8d28b17b",
+    "compile_repair/artifacts/cp4_review_v1/fixtures/struct_copy2.sol": "f016a81e5e6486e5a2db577c3506cfc047c57af20d1c1e1caf3a4ced590fa9ea"
+  },
+  "review_output_selection": [
+    "--combined-json",
+    "abi"
+  ],
+  "production_selection_for_0_8_38": [
+    "/home/zhao/.solc-select/artifacts/solc-0.8.38/solc-0.8.38",
+    "/home/zhao/SmartContract/compile-repair-local/cp4_1_v1/struct_support.sol",
+    "--combined-json",
+    "abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes",
+    "--allow-paths",
+    ".",
+    "/home/zhao/SmartContract/compile-repair-local/cp4_1_v1/struct_support.sol"
+  ],
+  "requested_actions": [
+    "Use the exact reviewed struct_copy2.sol bytes and the trusted 0.8.38 binary for an ABI-only versus unchanged production-output check in a new receipt.",
+    "If ABI succeeds and production rejects the operation, register first_supported=null for the 92-version snapshot. Admit a base only if its initial and damaged compiler plans are entirely within the measured rejection set and its selected codegen settings do not enable via-IR. Require the usual selected-version and environment primary observations.",
+    "Classify the new explicit legacy-generator diagnostic as unimplemented_feature. Keep the production compiler command, settings policy, graphs, and existing receipts unchanged. Stop on a different cross-check."
+  ],
+  "explanation": "The prior review requested only ABI. Production requests bytecode, source maps and AST for graph construction. Its 92 observed code-generation results supply no numeric transition. No later release is inferred.",
+  "commands_already_repeated": 0,
+  "cost_usd": 0
+}
