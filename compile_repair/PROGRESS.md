@@ -489,3 +489,12 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 
 - CP3.2 复核成立：三态语言判定（用户批准）排除 23 个 Vyper，原成功单元全部放行；边界与真实输入判定正确，132 项测试通过。CP3 系列结束。
 - PROMPTS r2.16：新增 1.19 节与 4.6a 节 CP4 完整提示（基础单元、项目划分、算子、触发判定、评分函数与自检）。证据 `artifacts/cp3_2_review_v1/`；记录 `docs/CHANGE_LOG.md` §40。下一步 CP4。
+
+
+## 2026-11-22 CompileRepair CP4 完成（修改 AI：Codex）
+
+实现 evaluation/benchmark.py、core/provenance.py 的两段偏移组合和 cli.py 的 benchmark、benchmark-score。加入 tests/test_benchmark.py，更新 tests/test_cp1_1.py 的迁移清单。本批为 artifacts/cp4_v1，逐算子构造规则、SHA 和全部语料／版本分层见 CP4_REPORT.md、strata.tsv。
+
+16,136 个基础单元、6,012 组。对照 200/200，MANDO 843/843 份成功图与 v5 同字节。构造 17,432 个候选，11,858 个纳入，743 个由环境解决，4,831 个未触发。精确还原 11,858/11,858，错误修复与缺节点负例合计检出 23/23，历史分析器失败另列 24。真实纳入覆盖 17 类，五类零样本保留。训练和 LLM 调用为 0。
+
+用户批准区分受影响节点与最终丢失、历史回放、测试清单 16 → 17，以及发生路径相关 metadata 差异后仅在历史工具路径核对相同工作字节的续跑。首轮生产测试失败与首轮逆向失败均保留。完整命令及两次续跑范围见本批 README、CHANGE_LOG §41。生产 815 passed, 6 skipped in 87.16s (0:01:27)。mando 352 passed, 469 skipped in 53.89s。DFG v2 2653 passed, 9 warnings in 227.31s (0:03:47)。 文档检查见 doc_check.json。下一步为独立审查。

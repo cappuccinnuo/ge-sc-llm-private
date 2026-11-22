@@ -113,3 +113,51 @@ def mark_span(provenance, start, length):
     if kinds == {"original"} and any(a.original_end != b.original_start for a, b in zip(spans, spans[1:])):
         return "rewritten"
     return next(iter(kinds))
+
+
+def compose_offsets(original, damaged, repaired, damage, repair):
+    """Compose two verified byte maps, including byte-exact restorations between matching anchors.
+
+    Return ordered segments in repaired coordinates. A restored interval has original
+    coordinates; unrelated insertions remain unmapped even if they contain the same bytes.
+    These scoring segments do not change either original patch log or its change level.
+    """
+    verify_provenance(original, damaged, damage)
+    verify_provenance(damaged, repaired, repair)
+    anchors = []
+    for second in repair.segments:
+        if second.original_start is None:
+            continue
+        for first in damage.segments:
+            if first.original_start is None:
+                continue
+            lo = max(first.new_start, second.original_start)
+            hi = min(first.new_end, second.original_end)
+            if lo >= hi:
+                continue
+            old = first.original_start + lo - first.new_start
+            new = second.new_start + lo - second.original_start
+            size = hi - lo
+            kind = "original" if first.kind == second.kind == "original" else "rewritten"
+            if kind == "rewritten" and original[old:old+size] == repaired[new:new+size]:
+                kind = "restored"
+            anchors.append(Segment(new, new+size, old, old+size, kind))
+
+    result = []
+    old_end = new_end = 0
+    # The sentinel supplies the right boundary for terminal or whole-file deletions.
+    for span in anchors + [Segment(len(repaired), len(repaired), len(original), len(original), "end")]:
+        old_start, new_start = span.original_start, span.new_start
+        if new_start > new_end:
+            bounded_left = old_end == new_end == 0 or (
+                old_end > 0 and new_end > 0 and original[old_end-1] == repaired[new_end-1])
+            bounded_right = old_start == len(original) and new_start == len(repaired) or (
+                old_start < len(original) and new_start < len(repaired) and original[old_start] == repaired[new_start])
+            exact = (bounded_left and bounded_right and old_start-old_end == new_start-new_end
+                     and original[old_end:old_start] == repaired[new_end:new_start])
+            result.append(Segment(new_end, new_start, old_end if exact else None,
+                                  old_start if exact else None, "restored" if exact else "added"))
+        if span.kind != "end":
+            result.append(span)
+        old_end, new_end = span.original_end, span.new_end
+    return tuple(result)

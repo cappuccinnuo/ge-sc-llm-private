@@ -173,14 +173,15 @@ def test_commit_unavailable_outside_git(tmp_path):
 @pytest.mark.parametrize("missing_git", [False, True])
 def test_relocated_module_seals_without_git(tmp_path, missing_git):
     production_required()
-    # Copy our 16 implementation files (CP3 adds project/report) and two pinned manifests. Frozen
-    # modules are imported read-only from ROOT; no script or environment changes.
+    # Relocate the CP4 implementation and the two pinned manifests. Frozen modules
+    # are imported read-only from ROOT.
     relocated = tmp_path / "distribution"
     module = ROOT / "compile_repair"
     files = list(module.glob("*.py")) + [p for folder in module.iterdir()
         if folder.is_dir() and folder.name not in ("tests", "docs", "artifacts")
         for p in folder.rglob("*.py")]
-    assert len(files) == 16
+    assert len(files) == 17
+    assert module / "evaluation" / "benchmark.py" in files
     for source in files + [module / "artifacts/cp0_v2/recon.json",
                            module / "artifacts/cp0_1_compilers_v1/trusted_compilers_addition.json"]:
         target = relocated / source.relative_to(ROOT)

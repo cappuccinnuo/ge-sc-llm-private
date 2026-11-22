@@ -2003,3 +2003,30 @@ doc_check 用 `python -B -m scripts.node_sem.doc_check --expect-cjk` 检查 6 �
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp3_2_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP3 系列结束，可以开始 CP4。本轮提交并 push 到 `compile-repair`。
+
+
+## 41. 2026-11-22 CompileRepair CP4 破坏样本、真值图与评分验收（修改 AI：Codex）
+
+### 41.1 任务、依据与范围
+
+在 compile-repair 分支 fast-forward 同步至 06ad69c26fcb13c163a55333ab95738bfaf71fdd，先读共享 §4.1，再读 r2.16 全文、CP3.2 独立审查、交接和变更。新增 evaluation/benchmark.py、tests/test_benchmark.py、CP4_REPORT.md 与 artifacts/cp4_v1/。修改 core/provenance.py、cli.py、tests/test_cp1_1.py、PROGRESS.md 及 docs 的 CHANGE_LOG、HANDOVER、DECISIONS。批次内脚本、收据、压缩明细和日志按 seal.json 枚举。冻结语料、既有产物与根目录记录均按原身份读取，未安装、下载依赖或训练。
+
+### 41.2 实施方式和重要选择
+
+在共享层增加 compose_offsets，以两段实际字节编辑核验偏移和恢复位置。评分按映射后的 key5 比对节点类型和规范化 IR，按重数比较 CFG 边和调用，记录受影响、最终丢失与新增节点及位置。复用 toolchain/solc.py 的 lexical_tokens 和 compile_file（文件 SHA256 362a6e8fad7159e8c277d50c96966c280615bca52208900f6cffd76a73f14c3e）、pipeline.py 的 repair_unit（3d0a27d7789dd73fcaa2549d15387cda22ac4b7fcbe48de84143a3af60112655）以及生产 run_slither。按编译器次版本分层抽取，先固定计划再运行。每个编辑字节、受损闭包和实际调用均有可校验的本地收据。Windows 新建 WSL 客户端间歇出现 0x8007274c 时，从共享文件核对原作业进展并保留原进程。
+
+精确逆编辑按样本验证，同一基础单元恢复出相同闭包后共用实际生产图。首轮 cp3_23979 精确还原只有 298/299 个节点一致，比较实际图和工具收据把差异定位到创建代码中的 IPFS 摘要。经授权，同路径只读观察验证图字节一致，原失败留存，续跑收据另建 identity_continuation。迁移测试也按 r2.16 的 17 文件要求更新了旧断言。
+
+### 41.3 实测与数据结论
+
+初始 31,307 项，21,223 项有成功历史。排除 5,087 个空图后，16,136 个基础单元通过门槛，分为 6,012 组。MANDO 843 份成功图与 v5 逐字节一致。200 个对照全部保持原版本、设置与图。17,432 个候选中纳入 11,858（dev 2,460、test 9,398），环境解决 743，未触发 4,831。17 类有真实纳入样本，另五类的零值、原因及 506 行语料/版本分层见 CP4_REPORT.md、benchmark_counts.json 和 strata.tsv。
+
+全部 11,858 个精确逆编辑均达到 kept、CFG、调用比例 1，最终丢失与新增为 0。22 个实际编译的错误修复和一个缺节点图均检出，另核对 24 个历史失败单元。候选执行 831.451 秒，选定版本单独调用 11,560 次 solc，环境步骤 172,620 次 solc、743 次 Slither，这些次数只统计候选阶段。其余阶段耗时与 SHA 见本批各阶段收据。
+
+### 41.4 用户批准、原文差异与待确认设计
+
+2026-11-22 用户原话“同意分别统计并验证恢复”“同意单列历史回放”。前者区分破坏影响与修复后的缺失，后者限定分析器类别使用历史收据与无害负例。用户随后回复“同意更新断言并续跑测试”和“同意先做同路径复核，通过后续跑”。前一次只调整测试文件清单，后一次保留 4,315 项通过结果，在新批次复核已失败的一项及 7,542 个未测项。metadata 和图评分要求完整保留。四项决定及证据见 DECISIONS 和本批三个授权文件。
+
+### 41.5 验收、资源、未执行事项与停止
+
+三个套件通过。生产 815 passed, 6 skipped in 87.16s (0:01:27)。mando 352 passed, 469 skipped in 53.89s。DFG v2 2653 passed, 9 warnings in 227.31s (0:03:47)。 各自命令和首次失败另有完整日志与 JSON。生产文件 16 → 17，新增/修改生产文件为 cli.py、provenance.py、benchmark.py，DFG 冻结代码引用 354 项一致。模块外已跟踪文件与旧批次均无改动。六份本轮文档通过 scripts.node_sem.doc_check --expect-cjk，详见 cp4_v1/doc_check.json。CPU 本机运行、费用 0 美元，LLM、训练、安装均为 0。证据封存 23fa2d392f9a776fe1c4636e2ddc7c8a36e96b1c8dfc67de5cbb70f0dbaeec7c。提交在本地 compile-repair，提交号可由 git log --format=%H -1 -- compile_repair/CP4_REPORT.md 查询。本步结束于 CP4 独立审查之前。

@@ -1,0 +1,100 @@
+{
+  "date": "2026-11-22",
+  "basis": "PROMPTS r2.16 §4.1 and §4.6a.5: stopped on first failed exact inverse",
+  "unit_id": "cp3_23979",
+  "operator": "codegen_only",
+  "split": "test",
+  "score": {
+    "compiled": true,
+    "kept": {
+      "units": 299,
+      "equal": 298,
+      "ratio": 0.9966555183946488
+    },
+    "cfg_edges": {
+      "truth": 254,
+      "repaired": 254,
+      "matched": 254,
+      "ratio": 1.0
+    },
+    "calls": {
+      "truth": 147,
+      "repaired": 147,
+      "matched": 147,
+      "ratio": 1.0
+    },
+    "affected_by_damage": 0,
+    "affected_by_deletion": 0,
+    "lost": 0,
+    "missing_kept": 0,
+    "added": 0,
+    "added_only_in_repair_bytes": true,
+    "added_bytes_near_damage": true,
+    "change_level": "rewrite",
+    "exact": false
+  },
+  "previous_result": {
+    "kind": "continuation",
+    "result_path": "/home/zhao/SmartContract/compile-repair-local/cp3_binding_v1/segment_00872_31071/units/cp3_23979/result.json",
+    "result_sha256": "8bac10e01daf242a3222af6effc4f1e03c7a7edb403a0a7fadf60bb51d5f375c"
+  },
+  "first_inverse_result": {
+    "compiler": "0.6.12",
+    "d3": true,
+    "graph_sha256": "89e5e4294d6564047c7e15d3555508f9e133256ec3f341447dc9b550343ea492",
+    "graph_source": "compiled_from_inverse",
+    "result_path": "/home/zhao/SmartContract/compile-repair-local/cp4_v1/exact/cp3_23979/units/inverse/result.json",
+    "result_sha256": "fc387f010b25f1a220d04738a3fab1cd33db27c23d7672b99ddd0cfe6768e85e",
+    "settings": [],
+    "solc_returncode": 0,
+    "truth_graph_sha256": "5ee61203a436eba7c120a845be0a08a6f27f2eb802035130ed940c9597b0de2a",
+    "unit_id": "cp3_23979"
+  },
+  "original_source_target": "/home/zhao/SmartContract/compile-repair-local/cp3_binding_v1/segment_00872_31071/units/cp3_23979/input.sol",
+  "relocated_source_target": "/home/zhao/SmartContract/compile-repair-local/cp4_v1/exact/cp3_23979/units/inverse/input.sol",
+  "both_working_inputs_sha256": "f8680d34c24522d5012b2c4c8e7c150469fe04d9e8c80017ee19456f97dc07fc",
+  "selected_version": "0.6.12",
+  "settings": [],
+  "compiler_sha256": "f6cb519b01dabc61cab4c184a3db11aa591d18151e362fcae850e42cffdfb09a",
+  "node_key5": [
+    "SmartChefFactory",
+    "deployPool(IBEP20,IBEP20,uint256,uint256,uint256,uint256,address)",
+    "VARIABLE",
+    41247,
+    1
+  ],
+  "changed_ir_index": 1,
+  "differing_nodes": 1,
+  "differing_ir_operations": 1,
+  "bytecode_bytes": 11199,
+  "metadata_trailer_bytes": 53,
+  "executable_prefix_bytes": 11146,
+  "executable_prefix_sha256": "902b0a7e24d24bf7b8e41c6079f0b8586a0e7aeb76501654a60f6d67d9b7b4dc",
+  "metadata_field": "ipfs multihash digest only",
+  "historical_digest": "a783c195f69c5191ca083ff743e1e6acd0b323305b2d54e65ce448d53953784d",
+  "relocated_digest": "44e6692db3faaca7fc8a4f980bfae6d476f406f71852f230dc7a8aca1cbbe8a2",
+  "no_other_graph_field_difference": true,
+  "causality": "Only the embedded metadata hash differs. Source-unit target path changed; same-path replay has not been run.",
+  "first_batch": {
+    "scored": 4316,
+    "passed": 4315,
+    "failed": 1,
+    "pending": 7542,
+    "graphs": 3255,
+    "graphs_byte_equal": 3254
+  },
+  "remaining": {
+    "samples": 7543,
+    "distinct_units": 2711,
+    "unit_kinds": {
+      "project": 1040,
+      "file": 1535,
+      "snippet": 136
+    }
+  },
+  "proposed": "First replay this failed unit once in production with the historical canonical tool target. Compare its bytes against the inverse working bytes before every compile; record all new results in a fresh external store. Only if all raw graph bytes and the strict score match, process remaining score pairs once; reuse the already passed 4315 scores. Use the same read-only canonical target for pending single-file compiles, the existing project method for projects. Verify original artifacts before and after. Stop on any discrepancy; no metadata removal, no change to scoring, compiler options or production code.",
+  "cost_ceiling_usd": 0,
+  "new_network_downloads": 0,
+  "training": false,
+  "llm_calls": 0
+}

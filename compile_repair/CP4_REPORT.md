@@ -1,0 +1,146 @@
+# CP4 破坏与修复评分基准
+
+2026-11-22 · Codex · PROMPTS r2.16 §4.6a · compile-repair · 起点 06ad69c2
+
+## 实现
+
+CP4 为后续修复阶段提供带真值的评测输入和评分入口。在已有成功合约的副本上制造编译或输入错误，用历史 Slither 图衡量修复后的结果。实际修复规则由后续阶段实现。
+
+新增 `evaluation/benchmark.py`，负责稳定分组、分层抽样、词法算子、两阶段触发判定与图评分。`core/provenance.py` 追加 `compose_offsets`，它核验两段编辑记录，以实际字节和左右边界恢复可证明的偏移对应关系。`cli.py` 增加 `benchmark` 和 `benchmark-score`。测试位于 `tests/test_benchmark.py` 和 `tests/test_cp1_1.py`。
+
+## 真实验收
+
+| 项目 | 预期 | 实测 |
+|---|---|---|
+| 历史真值 | MANDO 对齐 v5，项目满足 D3、绑定检查及 D21 | 846 项状态对齐，843 个成功项的图逐字节相同 |
+| 对照 | 200 个实测成功，版本、设置与图字节相同 | 200/200 |
+| 逆向还原 | 每个纳入样本的 kept、CFG、调用比例均为 1，lost 和 added 均为 0 | 11,858/11,858，涉及 5,965 个基础单元 |
+| 错误修复 | 逐算子发现不等 | 22/22 个实际编译的错误修复和 1/1 个缺节点图被检出 |
+| 历史回放 | 单列已保存的 Slither 失败 | 核对 24 份历史结果及其编译和图状态 |
+| 范围 | 17 个生产文件，冻结代码一致 | 16 → 17，DFG 的 354 项代码引用一致 |
+
+### 基础与划分
+
+31,307 个既有单元中有 21,223 个历史成功。5,087 个成功图没有节点，其中 8 项的语言也未定，两个排除原因有重叠。其余 16,136 个作为基准。DAppSCAN 9,233、Trace_CVEs 14、Trace_on_chain 4,565、Trace_repo 1,345、MANDO 843、SOChecker 136。清单记录入口、完整闭包的原结果引用、选定版本与设置、图 SHA 和节点数。 [基础筛选](artifacts/cp4_v1/base_summary.json)
+
+DAppSCAN、Trace_repo 按项目根，Trace_on_chain 按地址，Trace_CVEs 按 CVE，MANDO、SOChecker 使用同一内容 SHA 命名空间。对组 ID 加前缀 `cp4-split-v1:` 后取 SHA256 的前八位十六进制数，模 5 为零进 dev，其余进 test。采样种子 20261122。组决定划分，单元和样本比例由组大小决定。
+
+| 集合 | dev 组 | dev 样本 | test 组 | test 样本 |
+|---|---:|---:|---:|---:|
+| 基础单元 | 1,204 | 3,933 | 4,808 | 12,203 |
+| 未改动对照 | 40 | 48 | 125 | 152 |
+| 构造候选 | 649 | 3,652 | 2,592 | 13,780 |
+| 实际纳入 | 552 | 2,460 | 2,204 | 9,398 |
+
+### 各算子实测
+
+每个算子在每套语料中按编译器次版本系列分层抽取，上限 200。先固定抽样表，再运行各候选。同一个基础单元可以供不同算子使用。下表的示例为变异清单 SHA256 前 12 位，完整 SHA 和各类的两阶段诊断可在 JSON 中定位。506 行 TSV 给出各算子、语料与次版本系列的完整交叉统计。 [分层统计](artifacts/cp4_v1/strata.tsv) · [逐类示例与完整 SHA](artifacts/cp4_v1/benchmark_counts.json)
+
+| 目标类别 | 构造规则 | 适用 | 抽取 | 纳入 | 环境解决 | 未触发 | 示例 SHA |
+|---|---|---:|---:|---:|---:|---:|---|
+| unresolved_package_import | 移除可解析的包依赖文件 | 0 | 0 | 0 | 0 | 0 | 无适用项 |
+| missing_relative_file | 移除相对导入的依赖文件 | 7,059 | 400 | 400 | 0 | 0 | 1240e51381e7 |
+| missing_base_contract | 删除唯一的本地基类定义 | 10,989 | 821 | 723 | 0 | 98 | acb1e1f7a3cc |
+| undeclared_identifier | 删除另有引用的事件声明 | 10,115 | 828 | 734 | 33 | 61 | 5bc993201915 |
+| duplicate_definition | 在同一作用域复制完整定义 | 16,136 | 950 | 864 | 0 | 86 | db32225b43ba |
+| multiple_license_or_pragma | 插入冲突的 ABI coder 指令 | 6,595 | 635 | 616 | 0 | 19 | 9fb067b7744b |
+| encoding | 将声明名首字节替换为非法 UTF-8 | 16,136 | 950 | 0 | 0 | 950 | 6f87aa039275 |
+| unbalanced_structure | 删除顶层定义的结束花括号 | 16,136 | 950 | 0 | 0 | 950 | 61fec38a41d9 |
+| parser_error_other | 用逗号替换声明名 | 16,136 | 950 | 950 | 0 | 0 | 3c6e87dcaaff |
+| type_error_other | 将分支条件替换为整数表达式 | 11,985 | 831 | 755 | 0 | 76 | 0bbf4292486c |
+| codegen_only | 插入同时使用多个局部变量的函数 | 14,546 | 949 | 763 | 80 | 106 | f2883cba04ec |
+| closure_version_conflict | 将依赖 pragma 固定到入口区间外 | 7,046 | 400 | 400 | 0 | 0 | d65381df5604 |
+| io_error | 将导入指向不存在的文件 | 7,059 | 400 | 400 | 0 | 0 | 5ce3ec29b8c9 |
+| docstring_error | 在 NatSpec 注明不存在的参数 | 15,810 | 934 | 857 | 1 | 76 | d74f8bbc4245 |
+| syntax_error | 删除函数显式可见性 | 15,714 | 933 | 657 | 207 | 69 | 05928c8e20ab |
+| unimplemented_feature | 插入旧代码生成器上的嵌套动态数组赋值 | 12,256 | 921 | 0 | 422 | 499 | 0763f2a81d0b |
+| unsupported_disjunction | 将 pragma 改为合法析取表达式 | 16,058 | 931 | 931 | 0 | 0 | 657741887584 |
+| unsupported_expression | 将版本表达式换成不支持的符号 | 16,058 | 931 | 931 | 0 | 0 | 88bcadc09daf |
+| unterminated_pragma | 删除 pragma 终止分号 | 16,058 | 931 | 689 | 0 | 242 | 1a5dae8ae65f |
+| pragma_missing_semicolon_candidate | 删除下一条指令或声明前的 pragma 分号 | 16,045 | 929 | 238 | 0 | 691 | be71beb8bb0f |
+| declaration_error | 将函数改为相应版本禁止的同合约名 | 13,298 | 908 | 0 | 0 | 908 | 2b0b570d5555 |
+| standard_json_input | 将源文件和有效设置包装为 Standard JSON | 16,135 | 950 | 950 | 0 | 0 | 8fb20f0d78b4 |
+
+17,432 个候选中纳入 11,858，环境解决 743，未触发 4,831。11,560 项单独使用选定 solc 与设置探测，环境流水线另有 172,620 次可观测 solc 调用、743 次 Slither 分析。其余 5,872 项的目标在版本规划、项目组装或输入阶段，省去单独的选定编译器调用。收据保留两阶段类别、诊断首行和独立工作目录中的编辑字节证据。
+
+五个源码类别缺少可用于计算后续修复率的真实纳入样本。合格基础闭包内没有可删除的包依赖。950 个 encoding 均归入 parser_error_other。950 个 unbalanced_structure 中有 906 个主因为 other。921 个 unimplemented_feature 中有 422 个被环境解决，其余未通过目标归因。908 个 declaration_error 也未达到双重归因。各类诊断分布和未适用原因均已保留。
+
+slither_incomplete 使用历史失败收据和手写缺节点图。另有八类在 CP3.2 清单中没有源码算子。other 需要进一步诊断，json_error 属输入封装，internal_compiler_error、compiler_exception、fatal_error 属工具限制，warning 为警告，slither_no_timeout 尚无确定的源码构造，non_solidity_input 为其他语言输入。
+
+### 评分与停止现场
+
+compiled 取实际 solc 成功且 D3 为真。按文件将真值节点起点经两段编辑映射到修复位置，比较 key5、节点类型及规范化 SlithIR。保留节点间的 CFG 边与调用保留重数，以交集重数除以并集重数，双方均空时取 1。另计破坏影响数、恢复后缺失数、新增节点位置、新增字节与破坏区间的顶层定义关系，以及修复改动等级。
+
+逐样本读回破坏文件和替换字节，验证 SHA 后应用逆编辑。同一基础单元的每个逆编辑结果均与原闭包逐文件字节相同，因此可共享该闭包独立观测的生产图。累计比对 1,933,000 个保留节点、1,621,602 条 CFG 边和 816,743 条调用（按样本累计）。破坏时受影响节点 119,099，其中删除影响 119,081，最终 lost=0、added=0。5,965/5,965 份最终图亦与对应真值字节相同。 [最终验收](artifacts/cp4_v1/acceptance.json)
+
+首轮逆编辑运行测了 4,316 项。cp3_23979 / codegen_only 的字节已还原，298/299 个保留节点相同。两份图仅一条 IR 不同，嵌入的 11,199 字节创建代码只有末尾 CBOR 中的 IPFS 摘要不同。两次工具使用相同 solc 0.6.12、设置和输入字节，输入文件都叫 input.sol，绝对路径不同。获准后逐次核验工作字节，在历史工具源路径只读重编。实测图字节相同，299/299 节点、254/254 边、147/147 调用相同。4,315 项原通过结果保留，在新批次评分 7,543 项（含探针）。 [首轮](artifacts/cp4_v1/inverse_acceptance.json) · [差异](artifacts/cp4_v1/restoration_identity_request.json) · [同路径探针](artifacts/cp4_v1/identity_continuation/probe.json) · [续跑](artifacts/cp4_v1/identity_continuation/acceptance.json)
+
+手写项目在逆修复之外更改独立函数的返回值，22 个错误版本均能编译，评分均发现差异。历史类别用删去一个节点及其关联边调用的无害图，检测到一个保留节点缺失。该项另以 24 个旧单元核验失败归因。 [负例](artifacts/cp4_v1/wrong_repairs.json) · [历史回放](artifacts/cp4_v1/analyzer_history.json)
+
+## 测试与开发记录
+
+| 环境 / 套件 | 结果 |
+|---|---|
+| production | 815 passed, 6 skipped in 87.16s (0:01:27) |
+| mando | 352 passed, 469 skipped in 53.89s |
+| dfg | 2653 passed, 9 warnings in 227.31s (0:03:47) |
+
+生产首轮在旧迁移测试的 16 文件断言停止，36 项通过、1 项失败。获准更新为 17 且包含 benchmark.py，原迁移执行和逐文件 SHA 检查完整保留，使用新目录续跑。新建 WSL 客户端期间曾出现 0x8007274c，通过共享工作树核对既有日志与收据，原实验进程继续运行，每个候选只构造一次。
+
+生产代码逐函数行数在 acceptance.json 的 scope.changes_by_function。抽样执行时的源码快照与结项文件按字节前缀和新增函数名核验。
+
+| 生产路径 | 新增行 | 删除行 |
+|---|---:|---:|
+| compile_repair/cli.py | 15 | 0 |
+| compile_repair/core/provenance.py | 48 | 0 |
+| compile_repair/evaluation/benchmark.py | 673 | 0 |
+
+<details><summary>逐函数增删行数</summary>
+
+| 路径与函数 | 新增行 | 删除行 |
+|---|---:|---:|
+| compile_repair/cli.py · main | 15 | 0 |
+| compile_repair/core/provenance.py · 模块级 | 2 | 0 |
+| compile_repair/core/provenance.py · compose_offsets | 46 | 0 |
+| compile_repair/evaluation/benchmark.py · 模块级 | 102 | 0 |
+| compile_repair/evaluation/benchmark.py · _digest | 2 | 0 |
+| compile_repair/evaluation/benchmark.py · group_and_split | 6 | 0 |
+| compile_repair/evaluation/benchmark.py · stratified_sample | 17 | 0 |
+| compile_repair/evaluation/benchmark.py · environment_observation | 8 | 0 |
+| compile_repair/evaluation/benchmark.py · control_observation | 23 | 0 |
+| compile_repair/evaluation/benchmark.py · __init__ | 46 | 0 |
+| compile_repair/evaluation/benchmark.py · _until | 4 | 0 |
+| compile_repair/evaluation/benchmark.py · bounds | 2 | 0 |
+| compile_repair/evaluation/benchmark.py · top_regions | 19 | 0 |
+| compile_repair/evaluation/benchmark.py · base_contents | 12 | 0 |
+| compile_repair/evaluation/benchmark.py · _settings_object | 9 | 0 |
+| compile_repair/evaluation/benchmark.py · mutation_sites | 95 | 0 |
+| compile_repair/evaluation/benchmark.py · site | 2 | 0 |
+| compile_repair/evaluation/benchmark.py · build_mutation | 20 | 0 |
+| compile_repair/evaluation/benchmark.py · classify_trigger | 7 | 0 |
+| compile_repair/evaluation/benchmark.py · _materialize_closure | 9 | 0 |
+| compile_repair/evaluation/benchmark.py · assess_mutation | 65 | 0 |
+| compile_repair/evaluation/benchmark.py · _damaged_ranges | 16 | 0 |
+| compile_repair/evaluation/benchmark.py · _near | 9 | 0 |
+| compile_repair/evaluation/benchmark.py · _correspondence | 30 | 0 |
+| compile_repair/evaluation/benchmark.py · _identity | 4 | 0 |
+| compile_repair/evaluation/benchmark.py · _nodes | 8 | 0 |
+| compile_repair/evaluation/benchmark.py · _at_original | 2 | 0 |
+| compile_repair/evaluation/benchmark.py · _edges_and_calls | 12 | 0 |
+| compile_repair/evaluation/benchmark.py · _multiset_score | 5 | 0 |
+| compile_repair/evaluation/benchmark.py · score_graphs | 64 | 0 |
+| compile_repair/evaluation/benchmark.py · benchmark_entry | 31 | 0 |
+| compile_repair/evaluation/benchmark.py · score_request | 26 | 0 |
+| compile_repair/evaluation/benchmark.py · content | 7 | 0 |
+| compile_repair/evaluation/benchmark.py · decoded | 4 | 0 |
+| compile_repair/evaluation/benchmark.py · replay | 7 | 0 |
+
+</details>
+
+## 归档与复现
+
+证据 seal.json 的 SHA256 为 `23fa2d392f9a776fe1c4636e2ddc7c8a36e96b1c8dfc67de5cbb70f0dbaeec7c`。生产使用 Slither 0.11.6、crytic-compile 0.4.2，支持快照 92 个 solc。execution_settings.json 绑定信任清单，control_acceptance.json 指向含逐编译器可执行文件 SHA 的外部 seal。候选阶段使用 6 个进程，耗时 831.451 秒。对照 159.101 秒，首轮逆向评分 689.102 秒，补充逆向评分 486.799 秒。费用 0 美元。源码和替换字节只保存在已批准的本地目录。 [复现命令、CLI 请求与归档索引](artifacts/cp4_v1/README.md) · [封存](artifacts/cp4_v1/seal.json)
+
+## 停止位置与后续边界
+
+CP4 实施和验收完成，下一步为独立审查。CP5–CP9 可使用 dev 的 2,460 个纳入样本开发，test 的 9,398 个用于报告。五个零纳入类别及历史回放类别应分别报告。该基准测量图事实的保留程度，实际规则修复能力由后续阶段测量。

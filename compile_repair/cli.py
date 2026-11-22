@@ -26,6 +26,15 @@ def main(argv=None, result_check=None):
     cp1.add_argument("--output", type=Path, required=True)
     cp1.add_argument("--order", choices=("ascending", "descending"), default="ascending")
     cp1.add_argument("--regression", choices=("mando",))
+    benchmark = sub.add_parser("benchmark", help="Evaluate one CP4 source mutation or unmodified control")
+    benchmark.add_argument("--catalog", type=Path, required=True)
+    benchmark.add_argument("--unit-id", required=True)
+    benchmark.add_argument("--operator", required=True)
+    benchmark.add_argument("--seed", type=int, default=20261122)
+    benchmark.add_argument("--output", type=Path, required=True)
+    score = sub.add_parser("benchmark-score", help="Score graphs from a checked CP4 byte/provenance request")
+    score.add_argument("--request", type=Path, required=True)
+    score.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == "repair":
         try:
@@ -33,6 +42,12 @@ def main(argv=None, result_check=None):
                             result_check=result_check, remappings=args.remapping)
         except (ValueError, OSError) as exc:
             parser.error(str(exc))
+    elif args.command == "benchmark":
+        from compile_repair.evaluation.benchmark import benchmark_entry
+        result = benchmark_entry(args.catalog, args.unit_id, args.operator, args.output, args.seed)
+    elif args.command == "benchmark-score":
+        from compile_repair.evaluation.benchmark import score_request
+        result = score_request(args.request, args.output)
     elif args.command == "survey":
         result = survey(args.output, args.metadata_authorization, args.inventory_only, args.trusted_addition)
     elif args.command == "revalidate-cp0":

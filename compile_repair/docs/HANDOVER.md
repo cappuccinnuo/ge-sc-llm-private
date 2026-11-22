@@ -1,39 +1,43 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.16 §1.19 与 §4.6a（CP4）、artifacts/cp3_2_review_v1/README.md、CHANGE_LOG §39、§40。
+> 本轮交接先读第 0–5 节、PROMPTS r2.16 §4.1 与 §4.6a、CP4_REPORT.md、docs/CHANGE_LOG.md §41 和 artifacts/cp4_v1/README.md。
 
 ## 0. 一句话
 
-CP3.2 已由 Claude 独立复核成立，CP3 系列结束。三态语言判定（用户批准）正确排除 23 个 Vyper 输入，且没有误排除任何原成功单元。下一步：Codex 执行 4.6a 节 CP4（破坏-修复基准）→ Claude 审查 → CP5。
+CP4 已完成。11,858 个纳入样本的精确还原均通过，200 份未改动对照图字节相同，23 个错误修复或缺节点负例全部检出。下一步为独立审查，之后进入 CP5。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.16；D5/D16/D18/D20/D20a/D21 与 CP3.2 三态判定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP3.2 | 已审查通过；CP3.2 证据 cp3_2_review_v1 |
-| CP3.2 全量 | 31,307 原始 = 31,284 放行 + 23 排除；已测 21,223 成功、9,825 失败；SOChecker 236 未测 |
-| 带入后续的限制 | unknown 语言且只有解析错误的输入在 CP8 先做语言核对；236 个 unknown 在 CP10 运行；0 节点图不作 CP4 基础单元 |
-| 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
-| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | CP4 → 审查 → CP5 |
+| 方案与决定 | PROMPTS r2.16，D5/D16/D18/D20/D20a/D21 与三态语言判定已定。CP4 的四项授权及边界见 DECISIONS。D19 建议，D9/D10 待确认，D12/D13 待定 |
+| CP0–CP3.2 | 已通过独立审查。上游 31,307 项中有 21,223 个既有成功 |
+| CP4 | 16,136 个基础单元，17,432 个候选，11,858 个纳入，743 个环境解决，4,831 个未触发 |
+| 数据划分 | dev 2,460 个纳入样本、552 组，test 9,398 个、2,204 组，同组只入一个划分 |
+| 覆盖边界 | 17 个源码类别有真实纳入，五个零纳入，slither_incomplete 为 24 条历史回放与一个缺节点图负例 |
+| 下游提醒 | unknown 语言且只有解析错误的输入在 CP8 先核对语言。SOChecker 236 项仍待 CP10 测量。部分既有测试路径依赖本机 |
+| 下一步 | 审查 CP4 的样本身份、路径敏感性与评分后进入 CP5 |
 
 ## 2. 分支与工作树
 
-专用工作树为 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair。CP3.2 从 992bec09 开始，git pull --ff-only origin compile-repair 已同步。新批次为 artifacts/cp3_2_v1。外部临时测试和 23 条新的输入阶段收据位于 /home/zhao/SmartContract/compile-repair-local/cp3_2_v1。
+专用工作树 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair。本轮从 06ad69c2 开始。新证据在 compile_repair/artifacts/cp4_v1/，外部源码副本和完整工具收据在 /home/zhao/SmartContract/compile-repair-local/cp4_v1/。首次运行与两次限定续跑各有独立目录或收据。
 
 ## 3. 环境
 
-生产采用 Python 3.10、Slither 0.11.6 与 crytic-compile 0.4.2，支持快照 92 版。mando 采用 Python 3.7、Slither 0.8.0，承担兼容及 DFG 测试。regression_6c 的历史回归已结束。软件与外部语料沿用原授权。
+生产采用 Python 3.10、Slither 0.11.6、crytic-compile 0.4.2 和 92 版本 solc 快照。mando 的 Python 3.7、Slither 0.8.0 承担兼容与 DFG 测试。工具身份以 execution_settings.json 及前序授权信任清单为准。CPU 本地执行，费用 0 美元。
 
 ## 4. 必读与下一步
 
-独立审查请先对照 decision_request.json、authorization.json 和 language_acceptance.json，再从 unit_attributions.jsonl.gz 抽查语言未定的成功项、236 个没有旧工具测量的输入、以及 23 项替换的来源。对 version_dependent 查看 version_blockers.json 的逐版本组合与示例诊断。D6 的实施顺序按 9,825 个已测失败单元排序。D21、6,160 项 AST 不足的历史边界及其他待定决策仍见 CP3.1 与 DECISIONS。（2026-11-22 Claude 更新：CP3.2 审查已通过，下一步 CP4，见 PROMPTS §4.6a。）
+复核先核对 CP4_REPORT.md、seal.json、archives.json 和三个授权文件。用 sample_plan.jsonl.gz 与 sample_receipts.jsonl.gz 按算子和单元匹配。对照检查原版本、设置和图，评分用首轮通过的 4,315 行及 identity_continuation 的 7,543 行。抽查 cp3_23979 的原始 IR 差异和同路径探针，确认评分保留了完整 metadata。后续开发使用 dev，test 只用于报告。此前的 D21、AST 不足和语言未定等限制仍记在 CP3_REPORT.md。
 
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4 报告、逐类分层与复现 | CP4_REPORT.md、artifacts/cp4_v1/README.md、strata.tsv、benchmark_counts.json |
+| CP4 样本与真值 | 同批 bases.jsonl.gz、base_exclusions.jsonl.gz、sample_plan.jsonl.gz、sample_receipts.jsonl.gz、controls.jsonl |
+| CP4 评分与授权 | 同批 authorization.json、relocation_test_authorization.json、restoration_identity_authorization.json、inverse_acceptance.json、identity_continuation/、wrong_repairs.json、analyzer_history.json |
+| CP4 核验与交付 | 同批 acceptance.json、archives.json、seal.json、doc_check.json |
 | CP3.2 审查证据（Claude） | artifacts/cp3_2_review_v1/README.md、probe_language_adversarial.json、probe_language_real.json |
 | CP3.2 依据与授权 | artifacts/cp3_2_v1/input_gate.json、decision_request.json、authorization.json |
 | 三态结果与来源 | 同批 language_classifications.jsonl.gz、replacement_provenance.json、unit_attributions.jsonl.gz、unmeasured.jsonl.gz |
@@ -572,3 +576,14 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 新增 4.6a 节 CP4 的完整提示。带入后续的三项已知限制写在 r2.16 修改说明第 3 条与 CP8 行。
 
 下一步：Codex 执行 CP4，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §40。
+
+
+### 2026-11-22 CompileRepair CP4 完成（修改 AI：Codex）
+
+在 compile-repair 的 06ad69c2 同步后，先阅读共享 §4.1 和 r2.16 全文、CP3.2 审查及交接。新增 evaluation/benchmark.py 与 tests/test_benchmark.py，修改 core/provenance.py、cli.py、tests/test_cp1_1.py。报告为 CP4_REPORT.md，证据在 artifacts/cp4_v1，交接导读和第 0–5 节均已更新。
+
+16,136 个合格单元来自六套语料，MANDO 843 份成功图与 v5 字节相同。200 个对照通过，17,432 个候选中纳入 11,858。严格还原全部通过，22 个实际编译的错误修复和一个缺节点图均被检出。506 行分层计数保留五类零覆盖，24 条历史分析器失败单列。
+
+用户批准分计受影响与最终丢失节点，并批准分析器历史回放。迁移测试遇到旧 16 文件断言，获准精确调整为 17 并检查 benchmark.py。精确还原的首个偏差来自嵌入字节码的 metadata 摘要，经批准在历史源路径逐字节核验、只读重编，单项探针通过后完成 7,543 项续跑。详情与原话见 CHANGE_LOG §41、DECISIONS 和三个授权文件。
+
+生产 815 通过、6 跳过，mando 352 通过、469 跳过，DFG v2 2,653 通过、9 条警告。生产文件 17 个，354 项 DFG 引用一致，文档检查见本批 doc_check.json。CP4 本地提交，待独立审查，本轮无 GitHub 推送、训练、安装或 LLM 调用。

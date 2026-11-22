@@ -1,0 +1,57 @@
+{
+  "base_commit": "06ad69c26fcb13c163a55333ab95738bfaf71fdd",
+  "prompts": {
+    "revision": "r2.16",
+    "section": "4.6a.3 and 4.6a.5",
+    "sha256": "36b2f0e88585c0d439d4fa61917a11f37162e4f45bcb61f9e5cbf7907a9adef0"
+  },
+  "d6_sha256": "18eb739e72998b85ca83ffa7a182870ba9d25f1990a186ee4386faae5b715d8a",
+  "operators": 23,
+  "map_counterexample": {
+    "original": "abcdef",
+    "broken": "abef",
+    "restored": "abcdef",
+    "removed_original_offsets": [
+      2,
+      3
+    ],
+    "literal_original_to_broken": [
+      null,
+      null
+    ],
+    "exact_bytes": true,
+    "restored_segments": [
+      {
+        "new_start": 0,
+        "new_end": 2,
+        "original_start": 0,
+        "original_end": 2,
+        "kind": "original"
+      },
+      {
+        "new_start": 2,
+        "new_end": 4,
+        "original_start": null,
+        "original_end": null,
+        "kind": "added"
+      },
+      {
+        "new_start": 4,
+        "new_end": 6,
+        "original_start": 2,
+        "original_end": 4,
+        "kind": "original"
+      }
+    ]
+  },
+  "scoring_proposal": "Report affected_by_deletion for the damage and lost for original nodes still missing after repair. Recover coordinates from byte-identical restoration at the corresponding edit boundaries and compare the actual graph. Extra unrelated copies receive no restoration credit.",
+  "analyzer_proposal": {
+    "category": "slither_incomplete",
+    "basis": "The requested mutation deliberately makes compilable inputs defeat the production analyzer.",
+    "method": "Use hash-verified existing tool observations and a benign synthetic missing-graph-fact negative scoring test. Report these separately from live source mutations. No new crash-triggering rewrite or corpus reproduction.",
+    "other_operators": 22,
+    "scope": "Compiler input/diagnostic operators and the 200 unmodified controls proceed under their existing criteria."
+  },
+  "status": "requested_before_changes",
+  "independent_work": "Verify source/graph membership, grouping and unmodified controls."
+}
