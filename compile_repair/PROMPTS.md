@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.14（2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.15（2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.15 相对 r2.14 的修改**（CP3.1 审查；证据 `artifacts/cp3_1_review_v1/README.md`）：
+1. CP3.1 经独立复核成立（新增 1.18 节）：主因口径、包装判定、D21、pragma 扩展（审查自写 740 组判据 0 处不一致）与 MANDO 回归（843 个图字节相同）都符合 4.5b 节。
+2. 遗留一项、补充两处，CP4 之前由新增的 4.5c 节 CP3.2 解决：（a）生产流水线没有输入语言判定——Trace on-chain 剩余的 22 个 parser_error_other 全部是 Vyper（5 个 `language: Vyper` 的包装、17 个 Vyper 源码），而 SOChecker 的非 Solidity 输入用的是只在清单脚本中调用的词法证据规则；检测时 Vyper 会被送进修复阶段。（b）包装判定不识别前置 UTF-8 BOM 与只有 `urls` 的标准 JSON。（c）version_dependent 的 221 个单元只给出“各版本不同”，缺少能解析的版本上的阻碍，D6 排序看不到。
+3. 不需要新的用户决定：语言判定沿用 CP3 已批准的 SOChecker 词法证据规则，只是移到生产输入阶段并统一用于所有语料；判据是“任何已成功单元都不得被判为非 Solidity”。
 
 **r2.14 相对 r2.13 的修改**（CP3 审查；证据 `artifacts/cp3_review_v1/README.md`）：
 1. CP3 的诊断解析、pragma 子类、项目闭包与共用调用参数、文件名 + key5、连字符入口与绝对允许目录经审查成立（新增 1.17 节）。执行中的问题都先停下、保留失败记录、经用户批准后在新批次继续，处理方式成立。
@@ -346,6 +351,18 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | 全量 | 31,071 个有效单元（另 236 条 SOChecker 非 Solidity）：21,160 成功、9,911 剩余；无抽样 |
 | 主要类别（原口径） | unresolved_package_import 8,450（85.3%）、parser_error_other 892、missing_relative_file 415、other 199、undeclared_identifier 157 |
 | 审查发现 | 类别按所有候选版本合并（MANDO 3 个 Slither 侧失败被计入两个源码类）；Etherscan 标准 JSON 包装被当作源码；类型转换调用的同名错绑未被检查；`0.4.x`、`0.5.*`、`^0.5` 被拒；MANDO 图未与 v5 字节对照 |
+
+### 1.18 CP3.1 结果（2026-11-22 审查；证据 `artifacts/cp3_1_v1/`、`cp3_1_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 全量 | 31,071 个有效单元：21,223 成功（比 CP3 多 63）、9,848 未修复；替换 510 项（410 包装、88 pragma、12 重名），其余 30,561 项沿用原来源 |
+| 主因表前五 | unresolved_package_import 8,454（85.84%）、missing_relative_file 412、standard_json_input 410、parser_error_other 279、version_dependent 221 |
+| 包装 | Trace on-chain 410 个，其余语料 0；三个前提探针解包后构建成功 |
+| D21 | 18,389 个可判定项目中 12 个重名，原成功 0；6,160 个定义集合未知（原都未修复） |
+| pragma | Codex 92 版 × 82 式 7,544 组与审查 37 版 × 20 式 740 组都与 solc 一致；原可求值表达式 137,792 次出现全等 |
+| MANDO | 846/846 记录、843/843 图字节与 v5 相同 |
+| 遗留 | Trace on-chain 剩余 22 个解析错误全部是 Vyper；包装判定的 BOM 与 urls 边界；version_dependent 缺少能解析版本上的阻碍 |
 
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
@@ -1073,6 +1090,36 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 ## 6. 重新汇总与结论
 - 用第 1 节的规则对全部单元重新汇总（第 2–4 节替换的结果按记录来源替换，其他保持），给出主因表与“任一候选”表、各语料数量、类别示例，并按主因表重排 D6 的实现顺序；分类表保留全部类别，新增 standard_json_input。
 - 两个环境的模块测试与 DFG v2 测试都运行。逐项给出预期与实测；列出修改的函数与行数、生产文件数。
+```
+
+### 4.5c CP3.2：生产输入语言判定、包装边界与 version_dependent 的阻碍（r2.15 新增；CP4 之前必须完成）
+
+```text
+# CP3.2：把非 Solidity 判定移到生产输入阶段，补包装边界，补 version_dependent 的阻碍
+
+依据：PROMPTS r2.15 的修改说明与 1.18 节；审查证据 compile_repair/artifacts/cp3_1_review_v1/README.md、trace_parser_units.txt/json 与 probe_wrapper_detect.json（只读，不导入其中脚本）。CP0–CP3.1 的产物不改、不覆盖；新结果写入新批次 cp3_2_v1（仓库外资料按 CP3 的方式另放）。不需要安装或下载；需要时停下。报告追加到 CP3_REPORT.md 的“CP3.2”一节。生产文件数保持 16。
+
+## 1. 生产输入语言判定
+- 现状：evaluation/survey.py::solidity_snippet_evidence 只在 CP3 清单脚本中对 SOChecker 使用；pipeline.repair_unit 没有语言判定。审查确认 CP3.1 后 Trace on-chain 剩余 22 个 parser_error_other 全部是 Vyper：5 个为 `{{…}}` 且 language 为 Vyper，16 个有 `# @version` 或 `#pragma version` 注释，cp3_22065 无版本注释但有 Vyper 的 event/public/@external/def 写法；22 个都不含 `pragma solidity`。
+- 修改：
+  - 把 solidity_snippet_evidence 原样移到生产层（toolchain/project.py，与 standard_json_input 并列，因为两者都是输入格式判定），evaluation/survey.py 改为从那里导入；规则本身不改。
+  - pipeline 在版本计划之前、包装判定之后执行：可解析为 JSON 对象且 language 存在而不是 Solidity（如 Vyper、Yul）→ 原因 non_solidity_input；不是 JSON 且词法证据为非 Solidity → 原因 non_solidity_input。记录 stage=input_format 与判定依据（language 或 basis），不调用 solc 或 Slither。
+  - 分类表新增 non_solidity_input（路线：不在范围内，不修复；等级 none）。统计中，SOChecker 原先排除的 236 个与新判定的单元一起单列为“非 Solidity 输入”，不进入失败分母；同时给出只按原口径的数字以便对照。
+- 判据：对全部 31,307 个原始单元只读判定。CP3.1 中 21,223 个成功单元必须全部判为 Solidity；MANDO 846 个必须全部判为 Solidity；SOChecker 原先的 236 个判定不变。任何成功单元被判为非 Solidity 即停下报告，不改规则。给出新判为非 Solidity 的单元数（按语料）、各自原来的类别、示例 SHA。
+- 测试：Vyper 源码（有与无版本注释各一）、Vyper 与 Yul 的标准 JSON、只有 struct/enum/error 而无 pragma 的 Solidity 文件（记录规则的实际结果；若判为非 Solidity，列入报告的已知限制，不改规则）。
+
+## 2. 包装判定的两个边界（toolchain/project.py::standard_json_input）
+- 前置 UTF-8 BOM（EF BB BF）：去掉后再判定。
+- language 为 Solidity、sources 为映射但条目没有字符串 content（例如只有 urls）：仍判为 standard_json_input，记录 content_missing=true 与缺内容的源数；CP5 解包时作为不可解包的子情况处理。
+- 测试：两种情况各一；原有正负例（审查 probe_wrapper_detect.json 的 12 例与 Codex 的测试）结果不变。对 31,307 个原始单元重新判定，给出新增命中数（预期很少，可能为 0）。
+
+## 3. version_dependent 的阻碍（只改 evaluation/report.py，不重新编译）
+- 对主因为 version_dependent 的单元，另给“可解析版本上的阻碍”：取该单元诊断中不含 parser_error_other、unbalanced_structure 的候选版本，对这些版本的类别取交集；交集非空即为阻碍类别，为空或没有这样的版本记为 none。主因口径本身不变（仍为 version_dependent），阻碍只作为附加列与附加表。
+- 报告：阻碍类别的单元数与语料分布、示例；对最常见的三个版本组合给出解释（例如文件级函数从 0.7.1 起可以解析）。
+
+## 4. 重新汇总
+- 第 1、2 节判定改变的单元按记录来源替换（这些单元不调用工具），其他保持；第 3 节只增加列。给出新的主因表、任一候选表、非 Solidity 输入表与 version_dependent 阻碍表；按主因表重排 D6 的实现顺序。
+- 两个环境的模块测试与 DFG v2 测试都运行。逐项给出预期与实测；修改的函数与行数、生产文件数。MANDO 不需要重跑（语言判定对 846 个输入都为 Solidity 即说明不影响），但须给出这 846 个的判定结果。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）

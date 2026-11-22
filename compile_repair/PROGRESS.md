@@ -467,3 +467,10 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 正式替换 410 个包装、88 个旧 pragma 拒绝和 12 个确认重名单元。新通过的 63 项全部来自 pragma 扩展。18,389 个可判定项目中有 12 个确认重名，另 6,160 项 AST 不足，保留为未知。生产升序 MANDO 846/846 记录字段及 843/843 图字节与 v5 相同。82 种表达式在支持范围 92 版上全部核验。
 
 按 `python -B -m pytest -x -q -p no:cacheprovider` 执行完整模块和 DFG 测试。production 758 通过 / 6 跳过，mando 295 通过 / 469 跳过，DFG 2,653 通过 / 9 个既有警告。用户已批准 D21、矩阵语法拒绝单列及 AST 不足单列。矩阵预检、旧 v5 seal 的定位、旧测试期望更新与范围审计的环境选择均在 CHANGE_LOG §37 记录。下一步独立审查。无安装、下载或 LLM 调用。
+
+
+## CP3.1 审查与方案 r2.15（Claude，2026-11-22）
+
+- CP3.1 复核成立：主因口径、包装判定（410 个）、D21（重名 12 项、原成功 0）、pragma 扩展（审查 740 组判据 0 不一致）、MANDO 843/843 图字节相同。
+- 遗留：Trace on-chain 剩余 22 个解析错误全部是 Vyper，生产没有语言判定；包装的 BOM 与 urls 边界；version_dependent 缺少阻碍。
+- PROMPTS r2.15：新增 1.18 节、4.5c 节 CP3.2。证据 `artifacts/cp3_1_review_v1/`；记录 `docs/CHANGE_LOG.md` §38。

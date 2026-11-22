@@ -1885,3 +1885,45 @@ production 模块 758 passed / 6 skipped，mando 模块 295 passed / 469 skipped
 保护核验通过，包括 354 条 DFG 引用、25,828 个历史封存成员、29,611 份外部语料、10 份官方文档、96 份 solc 文件和两环境的 145/118 份元数据。文档 UTF-8/CJK 检查以批次 doc_check.json 的最终字节哈希、命令和返回码为准，全部通过后提交。CP3.1 本地完成后交独立审查，未启动 CP4。本轮仅本地提交，提交标识由包含本节的 CP3.1 提交给出。
 
 2026-11-21 文档核验补记（修改 AI：Codex）。本节、交接、决策、进度、CP3 报告和批次 README 共六份文档均已通过 doc_check。最后追加本条记录后再次检查六份文件，最终字节与 SHA 见 doc_check.json。
+
+
+## 38. 2026-11-22 CompileRepair CP3.1 审查与方案 r2.15（修改 AI：Claude）
+
+### 38.1 任务、依据与范围
+
+用户要求（2026-11-22）：Codex 已完成 CP3.1；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP4。起点 `compile-repair@1ba841cbc`。审查对象：`evaluation/report.py`、`toolchain/project.py`、`toolchain/slither.py`、`rules/environment.py`、`pipeline.py` 的差异，`tests/test_cp31.py` 等测试，`cp3_1_v1` 的汇总、MANDO 回归收据与 pragma 矩阵，CP3_REPORT 的 CP3.1 节、HANDOVER、DECISIONS、CHANGE_LOG §37、PROGRESS。
+
+修改：`PROMPTS.md`（r2.14 → r2.15）；新增 `artifacts/cp3_1_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 4 节补注，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 1 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 38.2 实施方式和重要选择
+
+- 代码：逐个读新函数，对照 4.5b 节的六节要求。
+- pragma：不复用 Codex 的矩阵，另写 20 个表达式（通配符、缺补丁号、`^0`、`0.x`、组合比较）在审查环境 37 个版本上与真实 solc 对照，并在当前提交上重跑一次。
+- 包装：用 12 个手写正负例检查 standard_json_input，发现 BOM 与只有 urls 两个边界。
+- 剩余的 Trace 解析错误：410 个包装之外还有 22 个 on-chain 单元计为 parser_error_other。按用户批准的本地研究范围从固定提交取这 22 个文件，只记录结构特征（不复制内容），确认全部是 Vyper。读代码发现 SOChecker 的非 Solidity 判定只在清单脚本中使用，生产流水线没有语言判定。处理选择：把已批准的同一规则移到生产输入阶段并统一使用，而不是为 Vyper 另写规则——这样不引入新的判定依据，并以“已成功单元全部判为 Solidity”作为硬判据。
+- version_dependent：最常见的组合与 0.7.1 起允许文件级函数一致。主因口径不改，只增加“可解析版本上的阻碍”一列，供 D6 排序参考。
+- MANDO：读 `mando_regression_final.json` 的 846 条逐项检查结果。
+
+### 38.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 主因规则 | 与 4.5b 节第 1 节一致；MANDO 三个单元只有 slither_incomplete | 代码、CP3_REPORT |
+| pragma 独立判据 | 20 式 × 37 版 = 740 组，0 不一致（含 `0.x` 在 0.4 系列被拒、`^0` 从 0.5.14 起接受） | oracle_pragma.json |
+| 包装正负例 | 双花括号、标准 JSON、多文件映射、空白识别；ABI、Yul、截断、NaN、源码不识别；BOM 与只有 urls 不识别 | probe_wrapper_detect.json |
+| 剩余 22 个 Trace 解析错误 | 5 个 Vyper 标准 JSON 包装、16 个带版本注释的 Vyper 源码、1 个无版本注释的 Vyper 源码；都不含 `pragma solidity`；SHA 与清单一致 | trace_parser_units.json |
+| MANDO | 843 条七项检查全部为真；3 条预期失败其余字段相同 | mando_regression_final.json |
+
+未证明：0.6、0.7 系列上的 pragma 判据（只由 Codex 的矩阵覆盖）；BOM 与只有 urls 的包装在语料中的数量；词法规则在全部语料上的误判数（CP3.2 统计）。
+
+### 38.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：CP3.1 六节全部实现；D21、语法拒绝单列、AST 不足单列都先经用户批准；旧测试的断言改为同时断言新旧行为并保留两次结果。
+- 新发现：Vyper 输入被当作 Solidity 解析错误（生产没有语言判定）；包装的两个边界；version_dependent 缺少阻碍。语言判定沿用已批准的规则，不需要新的用户决定。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 38.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp3_1_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；从 Trace 固定提交取 22 个文件（用户已批准的本地研究范围，不提交）；没有安装或 LLM 调用，费用 0。
+- 停止：CP4 不能开始。顺序为 Codex 执行 CP3.2 → Claude 审查 → CP4。本轮提交并 push 到 `compile-repair`。

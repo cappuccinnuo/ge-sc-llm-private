@@ -1,21 +1,22 @@
 # CompileRepair 交接文档
 
-> 先读第 0–5 节、PROMPTS r2.14 §1.17 和 §4.5b、CP3_REPORT 的 CP3.1、CHANGE_LOG §37 及 artifacts/cp3_1_v1/README.md。
+> 先读第 0–5 节、PROMPTS r2.15 §1.18 和 §4.5c、artifacts/cp3_1_review_v1/README.md、CP3_REPORT 的 CP3.1、CHANGE_LOG §37、§38。
 
 ## 0. 一句话
 
-CP3.1 在本机通过验收，等待独立审查。31,071 个有效单元中 21,223 成功、9,848 未修复。MANDO 的 843 份图与 v5 字节一致。
+CP3.1 已由 Claude 独立复核成立：主因口径、包装判定、D21、pragma 扩展与 MANDO 回归都符合方案。审查发现 Trace on-chain 剩余的 22 个解析错误全部是 Vyper，生产流水线没有输入语言判定；另补包装的 BOM 与 urls 边界、version_dependent 的阻碍。下一步：Codex 执行 4.5c 节 CP3.2 → Claude 审查 → CP4。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 用户决定 | D21 已定，矩阵语法拒绝与 AST 不足分别获准单列 |
-| 失败分类 | 新增主因表并保留任一候选表，3 个 MANDO 已知失败的主因只有 slither_incomplete |
-| 包装与 pragma | 410 个包装输入留待 CP5 处理，88 个旧 pragma 拒绝获得候选并新增 63 项成功 |
-| 项目图 | 重名时保留 D3 并拒绝图；确认 12 项，原先成功数 0，另有 6,160 项未知 |
-| 回归 | 846 项字段相同、843 份图字节相同。模块与 DFG 测试以及保护核验均通过 |
-| 计划 | CP0–CP2.4 已审查。CP3 的审查问题由本批处理，CP4 之前先独立审查 CP3.1 |
+| 方案与决定 | PROMPTS r2.15；D5/D16/D18/D20/D20a/D21 已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP3.1 | 已审查通过；CP3.1 证据 cp3_1_review_v1 |
+| CP3.1 全量 | 31,071 个有效单元：21,223 成功、9,848 未修复；主因表前五 unresolved_package_import 8,454、missing_relative_file 412、standard_json_input 410、parser_error_other 279、version_dependent 221 |
+| 遗留 | 22 个 Vyper 输入计入 Solidity 解析错误；包装判定的 BOM 与 urls 边界；version_dependent 缺少可解析版本上的阻碍；CP3.2 解决 |
+| 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
+| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
+| 下一步 | CP3.2 → 审查 → CP4 |
 
 ## 2. 分支与工作树
 
@@ -27,12 +28,13 @@ CP3.1 在本机通过验收，等待独立审查。31,071 个有效单元中 21,
 
 ## 4. 必读与下一步
 
-独立审查应从两种统计口径、替换来源、项目 AST 覆盖率、pragma 矩阵和 v5 回归开始。6,160 项暂不能判定重名，分母与理由见 AST 统计。D21 保留合法源码、D3 和直接类型变量核对，可能同时拒绝实际绑定正确的重名项目。模块面向将来输入，频率只排列 D6 实施顺序。并集 pragma、Slither 超时和正式解包留后续 CP。D19、D9、D10、D12、D13 的既有状态见 DECISIONS。
+独立审查应从两种统计口径、替换来源、项目 AST 覆盖率、pragma 矩阵和 v5 回归开始。6,160 项暂不能判定重名，分母与理由见 AST 统计。D21 保留合法源码、D3 和直接类型变量核对，可能同时拒绝实际绑定正确的重名项目。模块面向将来输入，频率只排列 D6 实施顺序。并集 pragma、Slither 超时和正式解包留后续 CP。D19、D9、D10、D12、D13 的既有状态见 DECISIONS。（2026-11-22 Claude 更新：CP3.1 审查已通过；CP4 之前先执行 CP3.2，见 PROMPTS §4.5c。）
 
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP3.1 审查证据（Claude） | artifacts/cp3_1_review_v1/README.md、oracle_pragma.json、probe_wrapper_detect.json、trace_parser_units.json |
 | 报告、变更与决定 | CP3_REPORT.md 的 CP3.1、docs/CHANGE_LOG.md §37、docs/DECISIONS.md |
 | 主因、任一候选及示例 | artifacts/cp3_1_v1/failure_summary.json、unit_attributions.jsonl.gz |
 | 逐项替换及 AST 未知 | 同批 replacement_provenance.json、ast_census.json、ast_coverage_authorization.json |
@@ -532,3 +534,14 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 用户“同意 D21”、“同意按实测语法拒绝单列并继续”、“同意单列 AST 不足”。包装的 3 个解包样本仅用于已验证的前提，正式处理仍在 CP5。下一步由独立审查据上述证据评估 CP3.1。
 
 问题处理与命令、全部验收数字见 CHANGE_LOG §37、CP3_REPORT 和本批 README。0 美元，无安装、下载、LLM 或训练。本轮本地提交，未 push。
+
+
+### 2026-11-22 CompileRepair CP3.1 审查与方案 r2.15（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP3.1（提交 1ba841cbc）。新增证据目录 `artifacts/cp3_1_review_v1/`，修改 `PROMPTS.md`（r2.14 → r2.15）。本文开头、第 0、1 节换成审查结论，第 4 节补注，第 5 节加入证据路径。
+
+结论：CP3.1 成立。主因规则与 4.5b 节一致，MANDO 三个单元只剩 slither_incomplete；包装判定只用 JSON 解析，410 个命中；D21 只读定义名称，确认重名 12 项、原成功 0 项；审查自写 20 个 pragma × 37 个版本共 740 组与 solc 0 处不一致；MANDO 843/843 图字节与 v5 相同。
+
+遗留：Trace on-chain 剩余 22 个 parser_error_other 全部是 Vyper（审查按用户批准的本地研究范围取这 22 个文件核对，SHA 与清单一致）；SOChecker 用的词法证据规则只在清单脚本中，生产流水线没有语言判定。另补两处：包装的 BOM 与 urls 边界；version_dependent 的阻碍。新增 4.5c 节 CP3.2，不需要新的用户决定。
+
+下一步：Codex 执行 CP3.2，Claude 审查后进入 CP4。本轮没有模块代码改动或安装。详见 CHANGE_LOG §38。
