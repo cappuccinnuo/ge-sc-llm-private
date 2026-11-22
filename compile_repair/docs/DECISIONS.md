@@ -4,7 +4,7 @@
 
 状态：已定（用户）＝用户明确决定；已定（证据）＝由证据确定，用户未反对；建议＝待用户确认；待定＝尚未讨论到；撤销。
 
-## 1. 当前决策（PROMPTS r2.16）
+## 1. 当前决策（PROMPTS r2.17）
 
 | 编号 | 内容（摘要） | 状态 | 最近变化 |
 |---|---|---|---|
@@ -410,3 +410,11 @@ D20a 已按用户授权执行：第 227 份另起进程，第 1 次观察到 Mul
 | 2026-11-22 | 同意单列历史回放 | 22 个源码或输入算子，分析器类别验证历史收据和缺节点负例。cp4_v1/authorization.json | Codex |
 | 2026-11-22 | 同意更新断言并续跑测试 | 迁移测试按 17 文件并包含 benchmark.py 检查，原失败与新日志分开。relocation_test_authorization.json | Codex |
 | 2026-11-22 | 同意先做同路径复核，通过后续跑 | 通过同路径的严格图字节与评分探针后重验失败的一项，并执行 7,542 个未测项。其余 4,315 个原通过样本和 200 个对照原样沿用。restoration_identity_authorization.json 和 identity_continuation/probe.json | Codex |
+
+
+### CP4 审查与 r2.17（修改 AI：Claude）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-22 | 分类表 | 新增 abi_coder_required、file_level_member、version_mismatch（后者只作版本噪声）；other 模板逐个按 standard JSON 类型与文档归类 | CHANGE_LOG §42.2；cp4_review_v1/probe_operator_messages.json | Claude |
+| 2026-11-22 | CP4 评分 | 比较 IR 时去掉嵌入字节码末尾的 solc 元数据 CBOR；graph.json 不改；评分增加文件改名映射 | CHANGE_LOG §42.2 | Claude |

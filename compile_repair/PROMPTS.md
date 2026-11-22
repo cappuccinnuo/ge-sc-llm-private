@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.16（2026-11-22；r2.15 同日；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.17（2026-11-22；r2.16、r2.15 同日；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,10 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.17 相对 r2.16 的修改**（CP4 审查；证据 `artifacts/cp4_review_v1/README.md`）：
+1. CP4 的基础筛选、划分、抽样、触发判定、对照、精确还原与错误修复自检经审查成立（新增 1.20 节）；精确还原首次失败时的停止与原路径重编处理正确。
+2. 审查发现四个问题，CP5 之前由新增的 4.6b 节 CP4.1 解决：（a）分类器把 `Function, variable, struct or modifier declaration expected.`、函数与合约同名、“需要 ABI 编码器 v2”等常见消息归为 other，CP4 的 unbalanced_structure 与 declaration_error 因此 0 纳入，CP3 真实语料的 other 也因此偏大；（b）encoding 算子把非法字节放在标识符里、unimplemented_feature 算子用了不属于未实现特性的写法，两者都没有产生目标错误；（c）真实失败的 86% 是缺包依赖，但基准中这一类 0 个样本，CP5 第 3、4 步没有带真值的评测；（d）IR 中嵌入的创建码末尾含源文件与内容相关的元数据哈希，CP5 以后的真实修复会使评分误报不相同。
 
 **r2.16 相对 r2.15 的修改**（CP3.2 审查；证据 `artifacts/cp3_2_review_v1/README.md`）：
 1. CP3.2 经独立复核成立（新增 1.19 节）。Codex 按硬判据发现 r2.15 的语言规则会误排除 8 个原成功单元（空文件、纯注释、只有顶层 struct），停下咨询，用户批准三态判定；审查确认三态判定正确，原方案规则过严。CP3 系列到此结束。
@@ -379,6 +383,17 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | 主因前四 | unresolved_package_import 8,454、missing_relative_file 412、standard_json_input 410、parser_error_other 257 |
 | version_dependent | 221 个，183 个有可解析版本上的共同阻碍（other 157、undeclared_identifier 124） |
 | 审查 | 11 个边界输入与 1,694 个真实 Solidity 输入、22 个 Vyper 结果正确；132 项测试通过 |
+
+### 1.20 CP4 结果（2026-11-22 审查；证据 `artifacts/cp4_v1/`、`cp4_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 基础单元 | 21,223 个成功中排除 5,087 个 0 节点图（含 8 个语言未定），16,136 个入选；MANDO 843 个真值与 v5 字节相同 |
+| 划分 | dev 1,204 组 / test 4,808 组；纳入样本 dev 2,460、test 9,398 |
+| 候选 | 17,432 个：纳入 11,858、环境解决 743、未触发 4,831 |
+| 0 纳入类别 | unresolved_package_import（0 适用）、encoding、unbalanced_structure、unimplemented_feature、declaration_error |
+| 自检 | 对照 200/200；精确还原 11,858/11,858；故意错误修复 22/22 被检出 |
+| 审查发现 | 分类器缺少常见消息模板；两个算子没有产生目标错误；缺包依赖无样本；嵌入创建码的元数据哈希 |
 
 ### 1.5 文献核对（对话中逐一读论文与发布代码）
 
@@ -1175,6 +1190,44 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 ## 6. 报告与验收
 - 每个算子：适用、纳入、resolved_by_environment、not_triggered 的数量（按语料与版本系列），构造规则说明与示例 SHA；对照组结果；dev/test 的组数与样本数；自检结果。
 - 预期：对照组 200/200 成功且图字节相同；精确还原自检全部为 1；已知错误修复全部被检出；MANDO 真值与 v5 字节相同。
+- 两个环境的模块测试与 DFG v2 测试都运行。逐项给出预期与实测；修改的函数与行数、生产文件数。
+```
+
+### 4.6b CP4.1：分类器模板、算子修正、缺包依赖样本与创建码规范化（r2.17 新增；CP5 之前必须完成）
+
+```text
+# CP4.1：修正 CP4 审查的四个问题，重跑受影响的触发判定与 CP3 汇总
+
+依据：PROMPTS r2.17 的修改说明与 1.20 节；审查证据 compile_repair/artifacts/cp4_review_v1/README.md、probe_operator_messages.json 与 fixtures/（只读，不导入其中脚本；夹具可以复制）。CP0–CP4 的产物不改、不覆盖；新结果写入新批次 cp4_1_v1（仓库外资料按 CP3 的方式另放）。不需要安装、下载或 LLM 调用；需要时停下。报告追加到 CP4_REPORT.md 的“CP4.1”一节。生产文件数保持 17。
+
+## 1. 分类器模板（toolchain/solc.py::classify_diagnostic）
+- 审查实测：`Function, variable, struct or modifier declaration expected.`（删除右花括号后 0.4.24–0.8.38 都如此）、`Functions are not allowed to have the same name as the contract…`、`This type is only supported in the new experimental ABI encoder` 都归为 other；declaration_error 规则依赖命令行不会输出的 DeclarationError 类型。
+- 做法：收集 CP3 全部已保存诊断与 CP4 全部候选诊断中当前归为 other 的消息模板（diagnostic_template 之后去重），逐个给出类别：
+  - 类型依据：为每个模板写一个最小夹具，在能给出类型的版本上用 standard JSON 取 type（只用于确定类别，不改变编译路径）；按 type 归入 parser / declaration / syntax / type 对应类别；以 “expected.” 结尾的解析消息并入解析规则，结构不平衡的判断仍用 _unbalanced。
+  - 新类别（需给出文档来源与 D6 路线）：abi_coder_required（“only supported in ABI coder v2 / ABIEncoderV2 / new experimental ABI encoder”，确定性：插入对应 pragma，等级 additive）；file_level_member（“Free functions cannot have visibility / cannot be payable / must be implemented”、“Only constant variables are allowed at file level” 等合约成员写在文件级的片段，路线由文档与夹具确定）；version_mismatch（“Source file requires different compiler version”，只出现在区间外候选上，统计时视为版本噪声，不作为主因）。
+  - 不能确定的模板保留 other，逐条写明原因。
+- 测试：每个新映射至少一个夹具，覆盖旧式与箭头两种位置格式；原有分类测试结果不变（列出因新模板而改变的原测试期望，并逐条说明）。
+
+## 2. 两个算子
+- encoding：在字符串字面量内部插入非法 UTF-8 字节（不放在标识符或注释中）。审查实测 0.4.24、0.5.17 报 `contains invalid UTF-8 sequence`，0.8.0、0.8.38 报 `Invalid character in string.`，模块都归为 encoding。
+- unimplemented_feature：插入“把 memory 结构体数组赋给 storage 结构体数组”的函数。审查实测 0.4.24、0.5.17、0.8.0 抛 UnimplementedFeatureError（`Copying of type struct … memory[] memory to storage not yet supported.`），0.8.38 编译成功。先用已安装的 92 个版本确定开始支持的版本，只对候选版本全部低于该版本的基础单元适用（否则记 not_applicable，避免环境步骤直接解决）。
+- unbalanced_structure 与 declaration_error 的算子不改，按第 1 节的分类器重新判定。
+
+## 3. 缺包依赖样本（unresolved_package_import）
+- 现状：语料中凡是包导入的单元都编译失败，合格基础闭包里没有包依赖，CP4 适用 0。
+- 算子：在合格基础项目的闭包中，找出以相对路径引入、但路径中含已知包目录段的文件（node_modules/<包>/…、@<scope>/<包>/…，或目录名为 openzeppelin、openzeppelin-solidity、zeppelin-solidity、@openzeppelin 的子树）。把导入它们的指令改为包形式的路径（例如 `@openzeppelin/contracts/<剩余路径>`，按包的实际发布布局，不确定时记 not_applicable），并从工作副本中删除这些文件。记录改名映射（原文件 → 包路径）。
+- 触发：环境步骤后的主因为 unresolved_package_import 才纳入。
+- 自检：精确还原（恢复原文件与原导入字符串）必须满分；“迁移还原”（把被删文件放到包路径下并加对应 remapping，导入保持包形式）用改名映射评分，kept、边、调用比例必须为 1（创建码按第 4 节规范化）。评分函数增加可选的文件改名映射参数。
+- 报告：各语料适用数、包名分布、纳入数；若适用仍很少，如实报告，不改用合成包名。
+
+## 4. 嵌入创建码的规范化（evaluation/benchmark.py 的评分，只影响比较，不改 graph.json）
+- 审查实测：cp3_23979（0.6.12）的一个 IR 操作嵌入 11,199 字节创建码，只有末尾 53 字节 CBOR 中的 IPFS 摘要随源路径不同；solc 元数据含源单元名与源内容哈希，真实修复必然改变它。
+- 做法：比较 IR 时，对其中的十六进制字节码常量，若末尾两字节给出的长度 L 指向一个合法的 CBOR 映射、且键属于 solc 元数据（ipfs、bzzr0、bzzr1、experimental、solc），则去掉这 L + 2 字节后再比较；不满足即原样比较。记录每个样本是否发生过规范化。
+- 测试：cp3_23979 的同一字节在不同路径编译，规范化后评分为 1、规范化前为 298/299；手写一个用 `new` 创建子合约的项目，只改子合约中的一个注释，规范化后 kept 比例为 1。统计基础单元中 IR 含创建码常量的单元数。
+
+## 5. 重跑与汇总
+- CP3：用第 1 节的分类器对已保存诊断重新分类与汇总（不重新编译），给出主因表、任一候选表与 other 模板表的新旧对照，按主因表重排 D6。
+- CP4：对全部 17,432 个原候选按原种子与编辑重跑触发判定（编辑字节不变），加上第 2、3 节的新候选；列出纳入状态改变的样本数（按算子）。新纳入样本全部做精确还原自检；第 4 节规范化后重算全部纳入样本的评分。对照组不变。
 - 两个环境的模块测试与 DFG v2 测试都运行。逐项给出预期与实测；修改的函数与行数、生产文件数。
 ```
 

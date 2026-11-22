@@ -1,22 +1,21 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.16 §4.1 与 §4.6a、CP4_REPORT.md、docs/CHANGE_LOG.md §41 和 artifacts/cp4_v1/README.md。
+> 本轮交接先读第 0–5 节、PROMPTS r2.17 §1.20 与 §4.6b（CP4.1）、artifacts/cp4_review_v1/README.md、CP4_REPORT.md、CHANGE_LOG §41、§42。
 
 ## 0. 一句话
 
-CP4 已完成。11,858 个纳入样本的精确还原均通过，200 份未改动对照图字节相同，23 个错误修复或缺节点负例全部检出。下一步为独立审查，之后进入 CP5。
+CP4 已由 Claude 审查：基础筛选、划分、触发判定与自检成立，但发现四个问题（分类器把常见消息归为 other、两个算子没有产生目标错误、缺包依赖没有基准样本、嵌入创建码的元数据哈希会使后续评分误报）。下一步：Codex 执行 4.6b 节 CP4.1 → Claude 审查 → CP5。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.16，D5/D16/D18/D20/D20a/D21 与三态语言判定已定。CP4 的四项授权及边界见 DECISIONS。D19 建议，D9/D10 待确认，D12/D13 待定 |
-| CP0–CP3.2 | 已通过独立审查。上游 31,307 项中有 21,223 个既有成功 |
-| CP4 | 16,136 个基础单元，17,432 个候选，11,858 个纳入，743 个环境解决，4,831 个未触发 |
-| 数据划分 | dev 2,460 个纳入样本、552 组，test 9,398 个、2,204 组，同组只入一个划分 |
-| 覆盖边界 | 17 个源码类别有真实纳入，五个零纳入，slither_incomplete 为 24 条历史回放与一个缺节点图负例 |
-| 下游提醒 | unknown 语言且只有解析错误的输入在 CP8 先核对语言。SOChecker 236 项仍待 CP10 测量。部分既有测试路径依赖本机 |
-| 下一步 | 审查 CP4 的样本身份、路径敏感性与评分后进入 CP5 |
+| 方案与决定 | PROMPTS r2.17；D5/D16/D18/D20/D20a/D21 与 CP3.2 三态判定、CP4 的四项用户决定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP3.2 | 已审查通过 |
+| CP4 | 16,136 个基础单元、17,432 个候选、11,858 个纳入；自检全部通过；五类 0 纳入，审查定位原因后由 CP4.1 解决 |
+| 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
+| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
+| 下一步 | CP4.1 → 审查 → CP5 |
 
 ## 2. 分支与工作树
 
@@ -28,12 +27,13 @@ CP4 已完成。11,858 个纳入样本的精确还原均通过，200 份未改�
 
 ## 4. 必读与下一步
 
-复核先核对 CP4_REPORT.md、seal.json、archives.json 和三个授权文件。用 sample_plan.jsonl.gz 与 sample_receipts.jsonl.gz 按算子和单元匹配。对照检查原版本、设置和图，评分用首轮通过的 4,315 行及 identity_continuation 的 7,543 行。抽查 cp3_23979 的原始 IR 差异和同路径探针，确认评分保留了完整 metadata。后续开发使用 dev，test 只用于报告。此前的 D21、AST 不足和语言未定等限制仍记在 CP3_REPORT.md。
+复核先核对 CP4_REPORT.md、seal.json、archives.json 和三个授权文件。用 sample_plan.jsonl.gz 与 sample_receipts.jsonl.gz 按算子和单元匹配。对照检查原版本、设置和图，评分用首轮通过的 4,315 行及 identity_continuation 的 7,543 行。抽查 cp3_23979 的原始 IR 差异和同路径探针，确认评分保留了完整 metadata。后续开发使用 dev，test 只用于报告。此前的 D21、AST 不足和语言未定等限制仍记在 CP3_REPORT.md。（2026-11-22 Claude 更新：CP4 审查发现四个问题，CP5 之前执行 CP4.1，见 PROMPTS §4.6b。）
 
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4 审查证据（Claude） | artifacts/cp4_review_v1/README.md、probe_operator_messages.json、fixtures/ |
 | CP4 报告、逐类分层与复现 | CP4_REPORT.md、artifacts/cp4_v1/README.md、strata.tsv、benchmark_counts.json |
 | CP4 样本与真值 | 同批 bases.jsonl.gz、base_exclusions.jsonl.gz、sample_plan.jsonl.gz、sample_receipts.jsonl.gz、controls.jsonl |
 | CP4 评分与授权 | 同批 authorization.json、relocation_test_authorization.json、restoration_identity_authorization.json、inverse_acceptance.json、identity_continuation/、wrong_repairs.json、analyzer_history.json |
@@ -587,3 +587,12 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 用户批准分计受影响与最终丢失节点，并批准分析器历史回放。迁移测试遇到旧 16 文件断言，获准精确调整为 17 并检查 benchmark.py。精确还原的首个偏差来自嵌入字节码的 metadata 摘要，经批准在历史源路径逐字节核验、只读重编，单项探针通过后完成 7,543 项续跑。详情与原话见 CHANGE_LOG §41、DECISIONS 和三个授权文件。
 
 生产 815 通过、6 跳过，mando 352 通过、469 跳过，DFG v2 2,653 通过、9 条警告。生产文件 17 个，354 项 DFG 引用一致，文档检查见本批 doc_check.json。CP4 本地提交，待独立审查，本轮无 GitHub 推送、训练、安装或 LLM 调用。
+
+
+### 2026-11-22 CompileRepair CP4 审查与方案 r2.17（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP4（提交 812f8ea01）。新增证据目录 `artifacts/cp4_review_v1/`，修改 `PROMPTS.md`（r2.16 → r2.17）。本文开头、第 0、1 节换成审查结论，第 4 节补注，第 5 节加入证据路径。
+
+结论：基础筛选、组哈希划分、分层抽样、两阶段触发判定、对照 200/200、精确还原 11,858/11,858 与故意错误 22/22 成立；精确还原首次失败时的停止与原路径重编处理正确。五个 0 纳入类别中，审查用 8 个手写夹具在 4 个版本上复现了原因：删除右花括号与同名函数的消息被分类器归为 other；encoding 与 unimplemented_feature 的算子没有产生目标错误；缺包依赖在合格基础单元中不存在。另外，嵌入创建码的元数据哈希随源路径与内容变化，CP5 以后的真实修复会被误判。新增 4.6b 节 CP4.1。
+
+下一步：Codex 执行 CP4.1，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §42。

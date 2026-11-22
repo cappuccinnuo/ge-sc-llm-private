@@ -2030,3 +2030,45 @@ doc_check 用 `python -B -m scripts.node_sem.doc_check --expect-cjk` 检查 6 �
 ### 41.5 验收、资源、未执行事项与停止
 
 三个套件通过。生产 815 passed, 6 skipped in 87.16s (0:01:27)。mando 352 passed, 469 skipped in 53.89s。DFG v2 2653 passed, 9 warnings in 227.31s (0:03:47)。 各自命令和首次失败另有完整日志与 JSON。生产文件 16 → 17，新增/修改生产文件为 cli.py、provenance.py、benchmark.py，DFG 冻结代码引用 354 项一致。模块外已跟踪文件与旧批次均无改动。六份本轮文档通过 scripts.node_sem.doc_check --expect-cjk，详见 cp4_v1/doc_check.json。CPU 本机运行、费用 0 美元，LLM、训练、安装均为 0。证据封存 23fa2d392f9a776fe1c4636e2ddc7c8a36e96b1c8dfc67de5cbb70f0dbaeec7c。提交在本地 compile-repair，提交号可由 git log --format=%H -1 -- compile_repair/CP4_REPORT.md 查询。本步结束于 CP4 独立审查之前。
+
+
+## 42. 2026-11-22 CompileRepair CP4 审查与方案 r2.17（修改 AI：Claude）
+
+### 42.1 任务、依据与范围
+
+用户要求（2026-11-22）：Codex 已完成 CP4；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP5。起点 `compile-repair@812f8ea01`。审查对象：`evaluation/benchmark.py`、`core/provenance.py::compose_offsets`、`cli.py`，`tests/test_benchmark.py`，`cp4_v1` 的计数、分类替换、示例、精确还原与身份请求，CP4_REPORT、HANDOVER、DECISIONS、CHANGE_LOG §41、PROGRESS。
+
+修改：`PROMPTS.md`（r2.16 → r2.17）；新增 `artifacts/cp4_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 4 节补注，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 2 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 42.2 实施方式和重要选择
+
+- 0 纳入的五类：从 `benchmark_counts.json` 的 category_substitutions 看出 unbalanced_structure 与 declaration_error 的样本大多被归为 other、encoding 全部归为 parser_error_other。为区分“算子错”与“分类器错”，写 8 个最小夹具，在 0.4.24、0.5.17、0.8.0、0.8.38 上编译，并用模块自己的 `parse_diagnostics` 与 `classify_diagnostic` 分类。结论：右花括号与同名函数是分类器缺少模板（消息不以 Expected 开头；依赖命令行不输出的类型）；encoding 与 unimplemented_feature 是算子位置或写法不对（字符串内的非法字节、结构体数组复制才产生目标错误）。
+- 分类器的影响范围：查 CP3 已保存的 other 模板，确认同样的消息出现在真实语料中（例如 17 个单元的右花括号消息、158 个单元的文件级函数可见性），所以修复分类器并重新汇总 CP3，而不只修基准。类型依据用 standard JSON（只用于定类，不改编译路径，与 r2.11 的结论不冲突）。
+- 缺包依赖：它占真实失败 86%，没有基准样本会使 CP5 无法用真值评测。选择“把以相对路径引入的已知包目录改为包导入并删除文件”，而不是合成假包名：前者对应 CP5 离线库索引要处理的真实情形。
+- 创建码：读身份请求，确认差异只在元数据 CBOR 的 IPFS 摘要。原路径重编只适用于精确还原；真实修复必然改变源字节，所以评分时按 solc 元数据格式规范化，graph.json 本身不改。
+
+### 42.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 右花括号缺失 | 4 个版本都报 `Function, variable, struct or modifier declaration expected.`，模块归为 other | probe_operator_messages.json |
+| 同名函数 | 0.5.17、0.8.0、0.8.38 报同名消息，模块归为 other | 同上 |
+| 字符串内非法 UTF-8 | 0.4.24、0.5.17 `contains invalid UTF-8 sequence`，0.8.0、0.8.38 `Invalid character in string.`，模块归为 encoding；标识符内为 parser_error_other | 同上 |
+| 嵌套动态数组参数 | 0.4.24、0.5.17 需要实验 ABI 编码器（other），0.8.x 编译成功 | 同上 |
+| 结构体数组复制 | 0.4.24、0.5.17、0.8.0 UnimplementedFeatureError，模块归为 unimplemented_feature；0.8.38 成功 | 同上 |
+| 真实语料 other 模板 | 含右花括号消息 17、同名函数 1、ABI 编码器 v2 5 + 5、文件级函数可见性 158、文件级常量 7 等 | cp3_binding_v1/failure_summary.json |
+| 创建码差异 | 11,199 字节中只有末尾 53 字节 CBOR 的 IPFS 摘要不同 | cp4_v1/restoration_identity_request.json |
+
+未证明：结构体数组复制开始支持的版本（审查环境没有 0.6、0.7 与大部分 0.8）；基础单元中含包目录子树的项目数；IR 含创建码常量的单元数（CP4.1 统计）。
+
+### 42.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：精确还原首次失败即停、定位、经批准后原路径重编；迁移测试与分析器类别的处理都先经用户批准。
+- 新发现：四个问题，见 42.2。分类表新增类别与评分规范化不改变已定决策，不需要新的用户批准。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 42.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP5 不能开始。顺序为 Codex 执行 CP4.1 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。
