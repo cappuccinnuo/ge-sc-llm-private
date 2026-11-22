@@ -21,7 +21,8 @@ from hcg.sources.annotations import dappscan_record
 
 DOCUMENT = composition.load(REPO / DATASET_B.composition)
 LABEL_ROOT = os.environ.get("MANDO_DATA_DIR")
-SOURCES = {"DAppSCAN", "SolidiFI", "SmartBugs-Wild-clean"}
+SOURCES = {"DAppSCAN", "SolidiFI", "DAppSCAN-clean", "SmartBugs-Wild-clean"}
+PAIRS = {"DAppSCAN-clean": "DAppSCAN", "SmartBugs-Wild-clean": "SolidiFI"}
 
 
 # ------------------------------------------------------------------ the document
@@ -41,14 +42,28 @@ def test_each_category_is_balanced_unique_and_follows_the_rules(category):
     rows, counts = part["contracts"], part["counts"]
     by_source = {s: [r for r in rows if r["source"] == s] for s in SOURCES}
     assert len({r["name"] for r in rows}) == len(rows) == counts["contracts"]
-    assert all(r["target"] == int(r["source"] != "SmartBugs-Wild-clean") for r in rows)
-    assert len(by_source["SmartBugs-Wild-clean"]) == counts["vulnerable_contracts"] == counts["clean"]
+    assert all(r["target"] == int(r["source"] not in PAIRS) for r in rows)
+    assert counts["vulnerable_contracts"] == counts["clean"] == counts["dappscan_clean"] + counts["wild_clean"]
     assert len(by_source["DAppSCAN"]) == counts["dappscan"] <= counts["dappscan_listed"]
+    # every buggy source has as many clean counterparts of its own kind
+    for clean, buggy in PAIRS.items():
+        assert len(by_source[clean]) == len(by_source[buggy])
+        assert all(r["pairs_with"] == buggy for r in by_source[clean])
+    assert not any("pairs_with" in r for r in by_source["DAppSCAN"] + by_source["SolidiFI"])
+    assert all(r["project"] and r["origin"].split("/")[3] == r["project"]
+               for r in by_source["DAppSCAN"] + by_source["DAppSCAN-clean"])
+    assert not any("project" in r for r in by_source["SolidiFI"] + by_source["SmartBugs-Wild-clean"])
+    # a clean DAppSCAN file is never one listed for the category
+    listed = {r["origin"] for r in by_source["DAppSCAN"]} | {e["origin"] for e in part["excluded"]
+                                                            if e["source"] == "DAppSCAN"}
+    assert not listed & {r["origin"] for r in by_source["DAppSCAN-clean"]}
     assert len(by_source["SolidiFI"]) == counts["solidifi"] == 50
     # Table 2's buggy count is the authors' distinct DAppSCAN files plus a full SolidiFI folder
     assert counts["dappscan_listed"] + 50 == DATASET_B.reported[category]["vulnerable_contracts"]
     assert all(re.fullmatch(r"dappscan_[0-9a-f]{10}_.+\.sol", r["name"]) and r["labels"] and
                set(r["swc"]) <= set(part["swc"]) for r in by_source["DAppSCAN"])
+    assert all(re.fullmatch(r"dappscan_[0-9a-f]{10}_.+\.sol", r["name"]) and "labels" not in r
+               for r in by_source["DAppSCAN-clean"])
     assert all(re.fullmatch(r"buggy_\d+\.sol", r["name"]) for r in by_source["SolidiFI"])
     taken = {r["origin"] for r in rows}
     assert not taken & {e["origin"] for e in part["excluded"]}

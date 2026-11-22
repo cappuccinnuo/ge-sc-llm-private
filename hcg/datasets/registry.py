@@ -16,11 +16,13 @@ The SolidiFI folders were established by hashing every buggy_N.sol of each corpu
 against the benchmark; the names do not line up obviously (denial_of_service is
 Unhandled-Exceptions, access_control is tx.origin).
 
-Dataset B is MANDO-LLM's second corpus (paper Sec. 5.1, Table 2): DAppSCAN and SolidiFI
-buggy contracts mixed with SmartBugs Wild clean contracts at 1:1. The authors did not
-release the mixture, so it is composed by ``hcg.datasets.dataset_b`` from their
-DAppSCAN release and the public sources, and frozen in ``dataset_b.json``. Its
-Table 2 counts are reported next to a build, not enforced.
+Dataset B is built from MANDO-LLM's second corpus (paper Sec. 5.1, Table 2): the same
+DAppSCAN and SolidiFI buggy contracts, 1:1 with clean contracts. Unlike the paper, each
+buggy source has clean counterparts of its own kind (DAppSCAN files without a weakness
+of the category; SmartBugs Wild for SolidiFI), so neither the Solidity version nor the
+source of a file predicts its target. It is composed by ``hcg.datasets.dataset_b`` from
+the authors' DAppSCAN release and the public sources and frozen in ``dataset_b.json``;
+node labels use the ``statement`` rule. Table 2's counts are reported, not enforced.
 """
 import re
 from dataclasses import dataclass, field
@@ -37,7 +39,8 @@ class Category:
 
 
 A_LABEL_POLICY = "author-endpoints over public annotations (Test_code/label_pipeline, 2026-10-10)"
-B_LABEL_POLICY = ("author-endpoints over the MANDO-LLM authors' DAppSCAN line labels and "
+B_LABEL_POLICY = ("statement rule (endpoints, then the enclosing statement or declaration header; "
+                  "hcg/labels/projection.py) over the MANDO-LLM authors' DAppSCAN line labels and "
                   "SolidiFI BugLogs (hcg/sources/annotations.py)")
 
 
@@ -54,6 +57,7 @@ class Dataset:
     sources: Tuple[str, ...] = ("smartbug-dataset", "SolidiFI-benchmark")
     composition: Optional[str] = None     # relative; committed composition document
     label_policy: str = A_LABEL_POLICY
+    node_labels: str = "endpoints"        # hcg.labels.projection.RULES
 
     def category(self, name):
         for item in self.categories:
@@ -137,6 +141,7 @@ DATASET_B = Dataset(
     sources=("SolidiFI-benchmark", "DASP-DAppSCAN-datasets", "ge-sc"),
     composition="hcg/datasets/dataset_b.json",
     label_policy=B_LABEL_POLICY,
+    node_labels="statement",
 )
 
 DATASETS = {DATASET_A.name: DATASET_A, DATASET_B.name: DATASET_B}

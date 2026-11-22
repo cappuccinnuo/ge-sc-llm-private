@@ -112,19 +112,83 @@ def _graph():
     return g
 
 
+TEXTS = {"a.sol": ["contract A {", "function f(", "uint x", ") public {", "g(", "}"],
+         "b.sol": ["contract B {", "h();", "}"]}
+
+
 def test_label_nodes_uses_endpoints_not_full_range():
     g = _graph()
     projected = {"a.sol": [{"category": "c", "lines": [4]}], "b.sol": []}
-    assert projection.label_nodes(g, projected, {"a.sol": 6, "b.sol": 3}) == 1
+    positives, reached = projection.label_nodes(g, projected, TEXTS)
+    assert positives == 1 and reached["a.sol"] == dict(endpoint=1, statement=0, header=0, unreached=0)
     assert g.nodes[0]["node_info_vulnerabilities"] is None   # 4 is inside, not an endpoint
     assert g.nodes[1]["node_info_vulnerabilities"] == schema.quote("[{'category': 'c', 'lines': [4]}]")
     assert g.nodes[2]["node_info_vulnerabilities"] is None   # marker 0 is allowed
 
 
-def test_label_nodes_rejects_out_of_bounds():
+def _statement_graph():
+    g = nx.MultiDiGraph(name="G")
+    g.add_node(0, source_file="a.sol", node_type="function_definition", node_source_code_lines=[[2, 6]])
+    g.add_node(1, source_file="a.sol", node_type="expression_statement", node_source_code_lines=[[5, 6]])
+    g.add_node(2, source_file="a.sol", node_type="contract_declaration", node_source_code_lines=[[1, 6]])
+    g.add_node(3, source_file="b.sol", node_type="expression_statement", node_source_code_lines=[[2, 2]])
+    return g
+
+
+@pytest.mark.parametrize("line, rule, vulnerable, step", [
+    (3, "endpoints", [], "unreached"),            # a parameter line: no endpoint
+    (3, "statement", [0], "header"),              # ... belongs to the function's header
+    (4, "statement", [0], "header"),              # the line opening the body is still header
+    (5, "statement", [1], "endpoint"),
+    (6, "statement", [0, 1, 2], "endpoint"),      # endpoints hit as before
+])
+def test_statement_rule_maps_a_line_to_the_node_it_belongs_to(line, rule, vulnerable, step):
+    g = _statement_graph()
+    projected = {"a.sol": [{"category": "c", "lines": [line]}], "b.sol": []}
+    positives, reached = projection.label_nodes(g, projected, TEXTS, rule)
+    assert sorted(n for n, d in g.nodes(data=True) if d["node_info_vulnerabilities"]) == vulnerable
+    assert positives == len(vulnerable) and reached["a.sol"][step] == 1
+
+
+def test_statement_rule_prefers_the_smallest_statement_and_never_labels_a_body_line_on_its_declaration():
+    g = _statement_graph()
+    g.add_node(4, source_file="a.sol", node_type="if", node_source_code_lines=[[4, 6]])
+    g.nodes[1]["node_source_code_lines"] = [[4, 6]]
+    g.add_node(5, source_file="a.sol", node_type="expression_statement", node_source_code_lines=[[5, 5]])
+    g.nodes[5]["node_source_code_lines"] = [[4, 5]]
+    # line 5: endpoint of node 5 only
+    _, reached = projection.label_nodes(g, {"a.sol": [{"category": "c", "lines": [5]}], "b.sol": []}, TEXTS,
+                                        "statement")
+    assert [n for n, d in g.nodes(data=True) if d["node_info_vulnerabilities"]] == [5]
+    g.remove_node(5)
+    g.nodes[4]["node_source_code_lines"] = [[4, 6]]
+    g.nodes[1]["node_source_code_lines"] = [[4, 6]]
+    g.add_node(6, source_file="a.sol", node_type="if", node_source_code_lines=[[4, 6]])
+    projection.label_nodes(g, {"a.sol": [{"category": "c", "lines": [5]}], "b.sol": []}, TEXTS, "statement")
+    assert [n for n, d in g.nodes(data=True) if d["node_info_vulnerabilities"]] == [1]   # smallest, lowest id
+    g = _statement_graph()
+    g.remove_node(1)
+    _, reached = projection.label_nodes(g, {"a.sol": [{"category": "c", "lines": [5]}], "b.sol": []}, TEXTS,
+                                        "statement")
+    assert all(d["node_info_vulnerabilities"] is None for _, d in g.nodes(data=True))
+    assert reached["a.sol"]["unreached"] == 1
+
+
+def test_reached_summary_totals_overall_and_per_source():
+    reached = {"a.sol": dict(endpoint=2, statement=1, header=0, unreached=1),
+               "b.sol": dict(endpoint=1, statement=0, header=1, unreached=0),
+               "c.sol": dict.fromkeys(projection.STEPS, 0)}
+    out = projection.reached_summary(reached, {"a.sol": "X", "b.sol": "Y", "c.sol": "Z"})
+    assert out["all"] == dict(endpoint=3, statement=1, header=1, unreached=1)
+    assert out["X"]["unreached"] == 1 and out["Y"]["header"] == 1 and "Z" not in out
+
+
+def test_label_nodes_rejects_out_of_bounds_and_unknown_rules():
     g = _graph()
     with pytest.raises(ValueError):
-        projection.label_nodes(g, {"a.sol": [], "b.sol": []}, {"a.sol": 3, "b.sol": 3})
+        projection.label_nodes(g, {"a.sol": [], "b.sol": []}, {"a.sol": ["x"] * 3, "b.sol": ["x"] * 3})
+    with pytest.raises(ValueError, match="unknown node-label rule"):
+        projection.label_nodes(g, {"a.sol": [], "b.sol": []}, TEXTS, "range")
 
 
 def test_line_level_keeps_target_contracts_and_renumbers():
@@ -138,8 +202,7 @@ def test_training_consumer_reads_quoted_labels():
     pytest.importorskip("dgl")
     from mando.models.graph_utils import get_node_label
     g = _graph()
-    projection.label_nodes(g, {"a.sol": [{"category": "c", "lines": [4]}], "b.sol": []},
-                           {"a.sol": 6, "b.sol": 3})
+    projection.label_nodes(g, {"a.sol": [{"category": "c", "lines": [4]}], "b.sol": []}, TEXTS)
     targets, _, _ = get_node_label(g)
     assert list(targets) == [0, 1, 0, 0]
 

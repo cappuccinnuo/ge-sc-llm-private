@@ -54,8 +54,9 @@ unseen contracts.
   `contracts hit` is the share of vulnerable contracts with at least one annotated line
   flagged.
 * **By source** — the contract, line and detector scores restricted to one source's
-  vulnerable contracts (SolidiFI, SmartBugs-curated, DAppSCAN; with all clean
-  contracts where the task needs them), pooled over folds. SolidiFI's injected
+  vulnerable contracts (SolidiFI, SmartBugs-curated, DAppSCAN; with their clean
+  counterparts where the task needs them: Dataset B pairs DAppSCAN with DAppSCAN-clean
+  and SolidiFI with SmartBugs Wild, Dataset A uses all clean contracts), pooled over folds. SolidiFI's injected
   templates make its scores near-perfect; the other sources show real-world code.
 * **End to end** — the detector: lines of the contracts the contract model flags.
   Two references isolate the phases: the line model gated by the true contract label
