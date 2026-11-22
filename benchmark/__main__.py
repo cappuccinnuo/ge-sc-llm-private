@@ -2,6 +2,7 @@
 
     python -m benchmark run --out runs/benchmark/full            # 7 categories, all protocols, G0
     python -m benchmark run --out runs/benchmark/b --dataset B   # Dataset B (python -m hcg build --dataset B)
+    python -m benchmark run --out runs/method/b_s1 --dataset B --protocols grouped --profiles G0 FULL --seed 1
     python -m benchmark run --out runs/benchmark/try --categories reentrancy --folds 0 --epochs 2
     python -m benchmark report runs/benchmark/full
     python -m benchmark audit --out runs/benchmark/label_audit   # labels vs the authors' (no training)
@@ -18,6 +19,7 @@ import os
 from pathlib import Path
 
 from benchmark import evaluate, paper, report, tracks, upstream
+from combined import PROFILE as FULL
 from dfg.schema import PROFILES
 from dfg.train.trainer import task_config
 from hcg.datasets import get_dataset
@@ -33,8 +35,9 @@ def build_parser():
     cmd = commands.add_parser("run", help="train what is missing, then score and report")
     cmd.add_argument("--out", type=Path, required=True, help="run directory, e.g. runs/benchmark/full")
     cmd.add_argument("--protocols", nargs="+", default=list(PROTOCOLS), choices=PROTOCOLS)
-    cmd.add_argument("--profiles", nargs="+", default=["G0"], choices=sorted(PROFILES),
-                     help="dfg profiles of the paper/grouped tracks (default: the MANDO-LLM baseline G0)")
+    cmd.add_argument("--profiles", nargs="+", default=["G0"], choices=sorted(PROFILES) + [FULL],
+                     help="profiles of the paper/grouped tracks: dfg profiles (default: the MANDO-LLM "
+                          "baseline G0) and FULL, the proposed method (combined)")
     cmd.add_argument("--folds", nargs="+", type=int, default=None,
                      help="fold indices of the paper/grouped tracks (default: all); upstream runs all folds")
     cmd.add_argument("--epochs", type=int, default=None, help="override the 50-epoch schedule (smoke runs)")
@@ -59,6 +62,8 @@ def _common(cmd):
     cmd.add_argument("--categories", nargs="+", default=["all"])
     cmd.add_argument("--hcg", type=Path, default=REPO / "data/hcg", help="hcg build output root")
     cmd.add_argument("--dfg", type=Path, default=REPO / "data/dfg", help="dfg build output root")
+    cmd.add_argument("--nodesem", type=Path, default=REPO / "data/nodesem", help="nodesem store root (FULL)")
+    cmd.add_argument("--edgesem", type=Path, default=REPO / "data/edgesem", help="edgesem store root (FULL)")
     cmd.add_argument("--label-root", type=Path,
                      default=Path(os.environ.get("MANDO_DATA_DIR", REPO / "data")),
                      help="holds smartbug-dataset/ (default $MANDO_DATA_DIR or <repo>/data)")
@@ -88,6 +93,10 @@ def run(args):
     if args.labels == "author" and dataset.name != "A":
         raise SystemExit("the authors released node labels for Dataset A only")
     roots = tracks.Roots(args.hcg, args.dfg, args.label_root)
+    inputs = None
+    if FULL in args.profiles:
+        from combined.train import Inputs
+        inputs = Inputs(dataset.name, args.dfg, args.nodesem, args.edgesem)
     overrides = None if args.epochs is None else dict(maximum_training_epochs=args.epochs,
                                                        schedule_epochs=args.epochs)
     settings = dict(protocols=args.protocols, profiles=args.profiles, folds=args.folds, seed=args.seed,
@@ -101,7 +110,7 @@ def run(args):
             data = tracks.CategoryData(dataset.name, category, roots)
             for protocol in engine:
                 tracks.train(data.tracks(protocol, args.seed, args.labels, args.tracks), args.out, args.profiles,
-                             args.folds, args.seed, args.device, overrides)
+                             args.folds, args.seed, args.device, overrides, inputs)
         if "upstream" in args.protocols and args.labels == "public":
             upstream.run(Path(args.hcg) / dataset.name / category, dataset.corpus(REPO, category),
                          category, args.out, epochs, args.seed)

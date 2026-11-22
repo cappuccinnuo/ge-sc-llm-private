@@ -12,6 +12,7 @@ only `git pull`; the image is rebuilt only when `requirements.txt` or the Docker
 | `check_env.py` | environment check: GPU, PyTorch for sm_120, DGL GPU kernels, grammar, llama.cpp |
 | `smoke.sh` | the whole pipeline on one category (fold 0, 2 epochs) after the equivalence tests |
 | `benchmark.sh` | the MANDO-LLM baseline from source to final detection on all 7 categories, against the paper |
+| `method.sh` | the proposed method (FULL) against the baseline (G0) on Dataset B, grouped protocol, several seeds |
 
 ## 1. Prerequisites (once)
 
@@ -113,7 +114,9 @@ docker/run.sh python -m hcg build --dataset B               # data/hcg/B/<catego
 ```
 
 The composition is fixed in `hcg/datasets/dataset_b.json` (see `hcg/README.md`, Dataset B).
-The benchmark on Dataset B, against the paper's Tables 4 and 6, builds its own graphs:
+Its buggy side is the paper's; its clean side pairs every buggy source with clean files
+of its own kind (DAppSCAN-clean, SmartBugs Wild), so its contract-level numbers are not
+those of the paper's Table 4. The benchmark on Dataset B builds its own graphs:
 
 ```bash
 QUICK=1 DATASET=B docker/run.sh docker/benchmark.sh   # plumbing: reentrancy, fold 0, 2 epochs
@@ -141,3 +144,32 @@ docker/run.sh python -m edgesem train --out runs/edgesem/all
 `dfg train`, `nodesem train` and `edgesem train` print a paired report at the end (also
 `python -m <stage> report <run dir>`). The `dfg`, `nodesem` and `edgesem` trainings are
 independent of each other once their inputs exist.
+
+## 6. The proposed method on Dataset B: FULL vs G0
+
+FULL is the three enhancements in one model (DFG G3R + NodeSem S6 + EdgeSem G4R-AC,
+[`combined/README.md`](../combined/README.md)); G0 is the MANDO-LLM baseline. Run inside
+`tmux`:
+
+```bash
+git pull
+QUICK=1 docker/run.sh docker/method.sh     # plumbing first: time_manipulation, fold 0, 2 epochs, 1 seed
+docker/run.sh docker/method.sh             # all 7 categories, seeds 1 2 3 -> runs/method/b
+```
+
+Steps (each finished stage leaves a marker in `runs/method/<name>/.done/`, each finished
+fit its `result.json`; rerunning the same command resumes):
+
+1. environment check and unit tests;
+2. `hcg fetch --dataset B` and every stage regenerated from the Solidity sources into the
+   run directory: `hcg build` (CodeT5+ tokens), `dfg build`, `nodesem analyze`,
+   `nodesem encode`, `nodesem describe` (Qwen2.5-Coder-3B over every Dataset B node: the
+   longest step), `nodesem encode --teacher`, `edgesem build`;
+3. per seed, `benchmark run --protocols grouped --profiles G0 FULL` (contract, line and
+   cascade tracks; both profiles on the same project-grouped folds) into `seed_<n>/`;
+4. `combined compare`: FULL vs G0 paired over (seed, fold) -> `compare.md`, `compare.json`.
+
+`SEEDS`, `CATEGORIES` and `NAME` override the defaults. To return the results, commit
+from `runs/method/b/`: `compare.md`, `compare.json`, `method.log`, and from every
+`seed_<n>/` `report.md`, `evaluation.json`, `run.json` and `findings/` (not `hcg/`, `dfg/`,
+`nodesem/`, `edgesem/` or the per-fold folders, which are large).

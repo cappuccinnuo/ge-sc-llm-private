@@ -57,10 +57,10 @@ jobs:
           pip install dgl==2.1.0 "numpy<2" requests "pydantic>=2"
           pip install --no-deps torchdata==0.7.1
           pip install "numpy<2" -r requirements.txt
-      - name: hcg, dfg, nodesem, edgesem, mando and benchmark unit tests (dfg.train against the sealed Prompt 8 folds/groups)
+      - name: hcg, dfg, nodesem, edgesem, combined, mando and benchmark unit tests (dfg.train against the sealed Prompt 8 folds/groups)
         run: |
           python -m pytest -q tests/hcg/test_units.py tests/hcg/test_models.py tests/dfg/test_units.py tests/dfg/test_train.py \
-            tests/nodesem/test_units.py tests/edgesem/test_units.py tests/mando tests/benchmark \
+            tests/nodesem/test_units.py tests/edgesem/test_units.py tests/combined tests/mando tests/benchmark \
             tests/hcg/test_dataset_b.py
 
   dataset-b:
