@@ -108,8 +108,12 @@ def _units(n):
 
 
 def _responses(directory):
-    return {p.parent.name: json.loads(p.read_text())["attempts"][0]["response"]["content"]
-            for p in Path(directory).glob("*/response.json")}
+    """{key: first attempt's text} of the sealed responses (None for a prompt that never fit)."""
+    out = {}
+    for path in Path(directory).glob("*/response.json"):
+        response = json.loads(path.read_text())["attempts"][0]["response"]
+        out[path.parent.name] = None if response is None else response["content"]
+    return out
 
 
 def test_parallel_workers_fill_the_same_cache_as_one_process(tmp_path):
@@ -159,6 +163,63 @@ def test_partial_teacher_rows_mark_units_not_generated_absent():
         gen.teacher_rows([row], {"r": {}}, units, {})
     out = gen.teacher_rows([row], {"r": {}}, units, {}, partial=True)
     assert out[0]["present"] is False and out[0]["flags"] == ["not_generated"]
+
+
+class OverflowBackend(FakeBackend):
+    """Prompts mentioning contract A1 are longer than the context window."""
+
+    def generate(self, prompt, schema):
+        import re
+        if re.search(r"contract A1\b", prompt[-1]["content"]):
+            self.calls += 1
+            raise gen.ContextOverflow("Requested tokens (4363) exceed context window of 4096")
+        return super().generate(prompt, schema)
+
+
+def test_a_prompt_longer_than_the_context_is_sealed_once_without_a_response(tmp_path):
+    units = _units(12)
+    long_key = next(k for k, u in units.items() if u["contract_header"] == "contract A1")
+    backend = OverflowBackend()
+    results = gen.generate(units, dict.fromkeys(units, False), tmp_path, backend, log=lambda *a: None)
+    assert results[long_key]["status"] == "context_overflow" and results[long_key]["parsed"] is None
+    assert all(r["status"] == "ok" for k, r in results.items() if k != long_key)
+    sealed = json.loads((tmp_path / long_key / "response.json").read_text())
+    assert len(sealed["attempts"]) == 1 and "exceed context window" in sealed["attempts"][0]["error"]
+    calls = backend.calls
+    gen.generate(units, dict.fromkeys(units, False), tmp_path, backend, log=lambda *a: None)
+    assert backend.calls == calls                                     # sealed: never retried
+    # the other prompts are unaffected: same cache as a run without the long prompt
+    plain = tmp_path / "plain"
+    gen.generate({k: v for k, v in units.items() if k != long_key}, dict.fromkeys(units, False), plain, FakeBackend(),
+                 log=lambda *a: None)
+    assert {k: v for k, v in _responses(tmp_path).items() if k != long_key} == _responses(plain)
+    # in parallel workers too (the error used to stop the whole pool)
+    many = gen.generate(units, dict.fromkeys(units, False), tmp_path / "many", log=lambda *a: None, workers=3,
+                        backend_factory=OverflowBackend)
+    assert {k: r["status"] for k, r in many.items()} == {k: r["status"] for k, r in results.items()}
+    row = dict(row_key="r", file="a.sol", node_type="expression_statement", source_sha256="s", code_sha256="c",
+               target_kind="statement", relative_line=1, prompt_map={}, cache_key=long_key)
+    out = gen.teacher_rows([row], {"r": {}}, units, results)
+    assert out[0]["present"] is False and out[0]["flags"] == ["context_overflow"]
+
+
+def test_llama_backend_maps_the_context_error_and_keeps_others():
+    backend = gen.LlamaBackend.__new__(gen.LlamaBackend)
+    backend.parameters = gen.PARAMETERS
+
+    class Model:
+        def __init__(self, message):
+            self.message = message
+
+        def create_chat_completion(self, **kwargs):
+            raise ValueError(self.message)
+    backend.model = Model("Requested tokens (4363) exceed context window of 4096")
+    with pytest.raises(gen.ContextOverflow):
+        backend.generate([], {})
+    backend.model = Model("something else")
+    with pytest.raises(ValueError) as info:
+        backend.generate([], {})
+    assert type(info.value) is ValueError
 
 
 def test_student_is_deterministic_and_fold_local():

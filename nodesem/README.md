@@ -78,6 +78,12 @@ can be copied into `llm_cache/` and is reused without regeneration.
   reused as they are. A prompt cut off mid-generation has no sealed response: its
   directory is moved to `llm_cache/_interrupted/` and it is generated again from scratch.
   A lock file (`llm_cache/.lock`) keeps two runs off one cache.
+- **Prompts longer than the context.** Every segment of a function carries the contract
+  header and all state variables, so on a large contract a prompt can exceed the 4,096
+  tokens of `n_ctx`. Such a prompt can never be generated; it is sealed once as
+  `context_overflow` (no response, not retried) and its rows get no teacher text
+  (flag `context_overflow`). `describe` logs how many there are. All other prompts and
+  their cache keys are unchanged.
 - **`--limit N`** (smoke runs) generates at most N new responses. The teacher text is
   then partial: rows of prompts not generated yet are absent, and the store's summary
   records `teacher.complete: false`. The combined model refuses such a store unless

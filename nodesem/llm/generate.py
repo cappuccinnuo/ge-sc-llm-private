@@ -4,7 +4,10 @@ Every function of every task becomes one or more prompt units (`prompts.produce`
 identical prompts are generated once. Responses are cached on disk by
 `protocol.cache_key` (prompt + model file SHA-256 + decoding parameters), so a run
 resumes, and a cache from an earlier run on the same sources is reused as is.
-Units for functions without a body and without target lines are skipped.
+Units for functions without a body and without target lines are skipped. A prompt
+longer than the model's context window (a segment of a large contract: every segment
+carries the contract header and all state variables) is sealed as ``context_overflow``
+without a response; its rows get no teacher text (flag ``context_overflow``).
 
 Interruption: a sealed response (``response.json`` + its seal) is final. A unit cut
 off mid-generation leaves only ``started.json``/``attempt*.json``; the next run moves
@@ -30,7 +33,7 @@ from pathlib import Path
 from nodesem.llm.checks import BLACKLIST
 from nodesem.llm.post import align
 from nodesem.llm.prompts import body_status, produce, skip_no_body
-from nodesem.llm.protocol import cache_key, digest, generate_cached, messages, read
+from nodesem.llm.protocol import ContextOverflow, cache_key, digest, generate_cached, messages, read
 from nodesem.llm.teacher import present_row, teacher_text
 
 MODEL = dict(repo_id="Qwen/Qwen2.5-Coder-3B-Instruct-GGUF", revision="f74adce6aa16316c625447af059dbebe4983757c",
@@ -71,9 +74,14 @@ class LlamaBackend:
     def generate(self, prompt, schema):
         import time
         start = time.monotonic()
-        result = self.model.create_chat_completion(
-            messages=prompt, response_format={"type": "json_object", "schema": schema},
-            **{k: self.parameters[k] for k in ("temperature", "top_k", "seed", "max_tokens", "repeat_penalty")})
+        try:
+            result = self.model.create_chat_completion(
+                messages=prompt, response_format={"type": "json_object", "schema": schema},
+                **{k: self.parameters[k] for k in ("temperature", "top_k", "seed", "max_tokens", "repeat_penalty")})
+        except ValueError as exc:   # llama-cpp-python: "Requested tokens (n) exceed context window of m"
+            if "exceed context window" in str(exc):
+                raise ContextOverflow(str(exc)) from exc
+            raise
         return dict(content=result["choices"][0]["message"]["content"],
                     finish_reason=result["choices"][0]["finish_reason"], usage=result["usage"],
                     elapsed_seconds=time.monotonic() - start)
@@ -200,7 +208,7 @@ def generate(units, schedule, cache_dir, backend=None, model_cache=None, log=pri
                 raise RuntimeError("%d units still missing after the workers finished" % len(pending))
         if pending and backend is None:
             backend = backend_factory() if backend_factory else LlamaBackend(model_path(model_cache), parameters)
-        results, fresh = {}, 0
+        results, fresh, overflow = {}, 0, 0
         for i, key in enumerate(sorted(units)):
             if limit is not None and fresh >= limit:
                 break
@@ -212,8 +220,12 @@ def generate(units, schedule, cache_dir, backend=None, model_cache=None, log=pri
                 raise ValueError("Cached response was produced under another model or decoding contract")
             results[key] = dict(status=result["status"], cache_key=key, parsed=result["parsed"])
             fresh += not result["cache_hit"]
+            overflow += result["status"] == "context_overflow"
             if not result["cache_hit"] and i % 50 == 0:
                 log("  generated %d/%d" % (i + 1, len(units)))
+        if overflow:
+            log("%d unit(s) longer than the %d-token context: no description (context_overflow)"
+                % (overflow, parameters["n_ctx"]))
     return results
 
 
@@ -238,9 +250,9 @@ def teacher_rows(rows, facts, units, results, partial=False):
             result = results[key]
             response = dict(parsed=None) if result["status"] == "skipped_no_body" else dict(parsed=result["parsed"])
             answer, _ = align(group, facts, units[key], response)
-            if result["status"] == "skipped_no_body":
+            if result["status"] in ("skipped_no_body", "context_overflow"):
                 for item in answer:
-                    item["flags"] = ["skipped_no_body"]
+                    item["flags"] = [result["status"]]
         for item in answer:
             item = present_row(item)
             item["text"] = teacher_text(item)
