@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮先读第 0–5 节、PROMPTS r2.17 §4.6b、CP4_REPORT.md 的 CP4.1、CHANGE_LOG §43–44，以及 artifacts/cp4_1_v1/README.md。
+> 本轮先读第 0–5 节、PROMPTS r2.17 §4.6b、CP4_REPORT.md 的 CP4.1、CHANGE_LOG §45，以及 artifacts/cp4_1_v1/migration_continuation/README.md。
 
 ## 0. 一句话
 
-CP4.1 已完成 19,354 项触发判定，14,196 项纳入。两批缺包迁移各在首次 Slither 临时编号变化时停止。WSL 已恢复实际启动新命令。
+CP4.1 自检通过。14,196 个纳入样本均通过精确还原，114 个真实缺包样本均通过迁移核验。下一步为独立审查。
 
 ## 1. 当前状态
 
@@ -15,31 +15,33 @@ CP4.1 已完成 19,354 项触发判定，14,196 项纳入。两批缺包迁移�
 | CP4 | 16,136 个基础单元、17,432 个候选、11,858 个纳入；自检全部通过；五类 0 纳入，审查定位原因后由 CP4.1 解决 |
 | 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| CP4.1 | 96 个诊断模板完成证据分级，17,432 个旧候选重判完毕，1,922 个新增候选完成实测。迁移验收待决，见 CHANGE_LOG §44 |
-| 下一步 | 先处理迁移评分差异。CP4.1 通过后交独立审查，再进入 CP5 |
+| CP4.1 | 96 个诊断模板完成证据分级，17,432 个旧候选重判完毕，1,922 个新增候选完成实测。精确还原 14,196/14,196，真实包迁移 114/114，见 CHANGE_LOG §45 |
+| 下一步 | 独立审查 CP4.1，优先复核四个授权项、61 个经生成名称核验的迁移图和完整调用数 |
 
 ## 2. 分支与工作树
 
 专用工作树 /home/zhao/SmartContract/ge-sc-llm-compile，分支 compile-repair。本轮从 06ad69c2 开始。新证据在 compile_repair/artifacts/cp4_v1/，外部源码副本和完整工具收据在 /home/zhao/SmartContract/compile-repair-local/cp4_v1/。首次运行与两次限定续跑各有独立目录或收据。
 
-CP4.1 从 e8ec530d 开始。新批次为 artifacts/cp4_1_v1/，逐项完整编译与图收据在仓库外 compile-repair-local/cp4_1_v1/。
+CP4.1 从 e8ec530d 开始。续作以 0f690e6f 为检查点，新结果在 artifacts/cp4_1_v1/migration_continuation/。逐项完整编译、图和 solc 原始输出在仓库外 compile-repair-local/cp4_1_v1/。
 
 ## 3. 环境
 
 生产采用 Python 3.10、Slither 0.11.6、crytic-compile 0.4.2 和 92 版本 solc 快照。mando 的 Python 3.7、Slither 0.8.0 承担兼容与 DFG 测试。工具身份以 execution_settings.json 及前序授权信任清单为准。CPU 本地执行，费用 0 美元。
 
-2026-11-22 美东 08:34 的检查定位到 Hyper-V 新通道的 512 KiB 连续物理内存分配失败。原有用户会话保留。09:28、09:34 与 09:44 的独立新命令均返回 UID 1000，耗时分别为 0.356、0.402、0.305 秒。详见 runtime_recovery.json。
+2026-11-22 美东 08:34 的检查定位到 Hyper-V 新通道的 512 KiB 连续物理内存分配失败。原有用户会话保留。09:28、09:34 与 09:44 的独立新命令均返回 UID 1000，耗时分别为 0.356、0.402、0.305 秒。详见 runtime_recovery.json。晚间同类超时曾复发，已有 Bash 完成了生产和回归。美东 21:20 的四次独立新命令分别耗时 0.344、0.343、0.312、0.359 秒。晚间诊断和临时内存整理收据在 migration_continuation/wsl_recovery.json。
 
 ## 4. 必读与下一步
 
 复核先核对 CP4_REPORT.md、seal.json、archives.json 和三个授权文件。用 sample_plan.jsonl.gz 与 sample_receipts.jsonl.gz 按算子和单元匹配。对照检查原版本、设置和图，评分用首轮通过的 4,315 行及 identity_continuation 的 7,543 行。抽查 cp3_23979 的原始 IR 差异和同路径探针，确认评分保留了完整 metadata。后续开发使用 dev，test 只用于报告。此前的 D21、AST 不足和语言未定等限制仍记在 CP3_REPORT.md。（2026-11-22 Claude 更新：CP4 审查发现四个问题，CP5 之前执行 CP4.1，见 PROMPTS §4.6b。）
 
-续作先读 CP4_REPORT.md 的 CP4.1、migration_counter_review.json、两份 migration_difference 收据和 migration_stop_inventory.json。现有冻结抽样、观测与已完成的图可按 SHA256 复用。
+本次审查先读 CP4_REPORT.md 的最终验收与 migration_continuation/README.md，再按 acceptance.json、packages.tsv 对回各阶段的通过行。抽查 cp3_03927 的元组使用、cp3_00706 的两份源文件清单和 AST、cp3_15161 的数组分配定义，并核对 8 个先尝试两版再成功的项目。
 
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4.1 最终验收与封存 | artifacts/cp4_1_v1/migration_continuation/ 下的 README.md、acceptance.json、packages.tsv、final_scope.json、doc_check.json、seal.json |
+| CP4.1 最终生产、mando 与 DFG 回归 | 同批 definition_continuation/suites/ 下的三组命令、日志与结果 |
 | CP4.1 全量触发与缺包迁移 | artifacts/cp4_1_v1/population.json、operators.tsv、migration_stop_inventory.json、migration_counter_review.json |
 | CP4.1 代码、测试与 WSL 恢复 | 同批 migration_stop_scope.json、final_tests/、runtime_recovery.json |
 | CP4.1 清点、授权、启动故障 | artifacts/cp4_1_v1/old_other_templates.json、preflight_authorization.json、authorization.json、wsl_startup_diagnosis.json |
@@ -622,3 +624,12 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 第 0–5 节已更新验收状态、分支基线、生产与 mando 环境、WSL 启动实测、续作条件与证据路径。两个环境及 DFG v2 的全部实测见新批次 final_tests/。生产文件共 17 个，354 项 DFG 代码身份匹配。
 
 原候选重判新增 952 项，新的编码、结构体数组和缺包算子纳入 511、761、114 项。原 200 个对照核对通过。两批的失败单元分别是 cp3_15167、cp3_15136。读取保存图可证明两个实例的差异都局限于 Slither 计数器编号。原计分与待确认的替代方案分别留在停止收据与迁移核验请求中。完整数字见 CP4_REPORT.md、population.json 与 migration_stop_inventory.json。
+
+
+### 2026-11-22 CP4.1 迁移评分与全量验收交接（修改 AI 为 Codex）
+
+第 0–5 节更新了结论、状态、分支检查点、WSL 实测、审查顺序和最终证据路径。检查点后的生产代码位于 evaluation/benchmark.py，回归夹具在 tests/test_cp41.py。批次 migration_continuation 保存四份授权、每次停点的两侧原始哈希、沿用既存图的记录和核验结果。
+
+14,196 项精确还原、114 项额外迁移全部通过。迁移逐字原分通过 53 项，生成名称按证据对齐后另有 61 项通过。前 9 对图直接沿用，补齐 105 对图实际调用 solc 242 次、Slither 210 次。两份 Yul AST 的来源另用 2 次 solc 原命令验证。程序首次使用错误路径口径时未启动工具，后来发现汇总脚本误设每图只试一个版本，两次现场均保留，详见 CHANGE_LOG §45.2。
+
+三个最终测试结果为 production 1,068/6、mando 605/469（通过/跳过）和 DFG 2,653 通过、9 条告警。运行与文档检查的完整收据在同批 definition_continuation/suites/ 和 doc_check.json。

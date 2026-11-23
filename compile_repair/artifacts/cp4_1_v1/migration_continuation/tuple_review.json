@@ -1,0 +1,67 @@
+{
+  "unit_id": "cp3_03927",
+  "scope": "Read-only comparison; original strict migration remains rejected.",
+  "stop_sha256": "999a5a26261749b6836b7433474c15e933848e31aa67c0b766bd9f4d795fd883",
+  "truth_sha256": "55a9acbb23b7b2e0308cf8444c501dce7fc92d660f51ade42087631c31c7b500",
+  "migration_sha256": "ed0d39fc59962ba6bff8c7757cb2bed23a19d233e892adf284462906e9c73b5f",
+  "tuple_names_before": {
+    "TUPLE_0": 3,
+    "TUPLE_2": 2,
+    "TUPLE_3": 3,
+    "TUPLE_4": 3
+  },
+  "tuple_names_after": {
+    "TUPLE_1": 3,
+    "TUPLE_2": 2,
+    "TUPLE_3": 3,
+    "TUPLE_4": 3
+  },
+  "changed": {
+    "TUPLE_0": "TUPLE_1"
+  },
+  "affected_ir_operations": 3,
+  "uses": "one tuple result definition and two UNPACK uses with unchanged indexes 0 and 1",
+  "verified_node_count": 167,
+  "verified_cfg_edges": 137,
+  "verified_calls": 81,
+  "changed_tmp_ref_names": 69,
+  "source_collision": false,
+  "raw": {
+    "compiled": true,
+    "kept": {
+      "units": 19,
+      "equal": 15,
+      "ratio": 0.7894736842105263
+    },
+    "cfg_edges": {
+      "truth": 13,
+      "repaired": 13,
+      "matched": 13,
+      "ratio": 1.0
+    },
+    "calls": {
+      "truth": 14,
+      "repaired": 14,
+      "matched": 11,
+      "ratio": 0.6470588235294118
+    },
+    "metadata_normalized": false,
+    "normalized_nodes": {
+      "truth": 0,
+      "repaired": 0
+    },
+    "affected_by_damage": 148,
+    "affected_by_deletion": 148,
+    "lost": 32,
+    "missing_kept": 0,
+    "added": 0,
+    "added_only_in_repair_bytes": true,
+    "added_bytes_near_damage": true,
+    "change_level": "additive",
+    "exact": false
+  },
+  "tool_source": "/home/zhao/miniconda3/envs/compile-repair-production/lib/python3.10/site-packages/slither/slithir/variables/tuple.py",
+  "tool_source_sha256": "486fb187f8bc71c817a906302bbd1724a66a01562cf095a5df09a9438739f4bc",
+  "selected_solc": "0.8.2",
+  "proposal": "Extend the verified families from TMP/REF to Slither's generated TUPLE counter only. Require the same full bijection, same-family witnessed definitions, source identifier/literal collision exclusion, matched types/arity, ordered UNPACK uses and indexes, CFG and calls. Keep both scores. Reuse physical receipts and complete only missing restorations."
+}

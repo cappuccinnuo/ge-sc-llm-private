@@ -39,7 +39,7 @@
 | CP4.1 原候选重判 | 对 17,432 项先核对种子、编辑、文件及收据 SHA，再根据原始实际观测重判 | 已定（用户） | 2026-11-22 |
 | CP4.1 结构体数组 | 同一审查夹具交叉比较 ABI 与生产字节码，以 92 版实测拒绝集合和非 via-IR 设置筛选 | 已定（用户） | 2026-11-22 |
 | CP4.1 真实包补样 | 保留 28 项，追加包内入口的 86 个已核实依赖闭包，合并抽样使用原种子及上限 | 已定（用户） | 2026-11-22 |
-| CP4.1 迁移临时编号 | 文件迁移时比较 Slither 自动 TMP 和 REF 编号的严格一一对应，同时保留原分 | 待用户确认 | 2026-11-22 |
+| CP4.1 迁移生成名称 | 保留原分，核验 TMP、REF、TUPLE 的全图对应。Yul 源文件编号另核对两份原始 solc 输出、AST 和源文件清单 | 已定 | 2026-11-22 |
 
 **CP3.2 输入语言与统计口径（用户已定，2026-11-22）**　显式其他语言 JSON 或 Vyper 正证据在输入阶段排除。缺少语言证据的输入标记未定并继续原流水线。沿用 236 项旧排除供对照，新口径中没有历史编译结果的放行项单列未测。授权和反例见 artifacts/cp3_2_v1/authorization.json、decision_request.json。
 
@@ -440,3 +440,13 @@ D20a 已按用户授权执行：第 227 份另起进程，第 1 次观察到 Mul
 | 同意交叉核对及条件口径 | 同一 0.8.38 二进制在仅请求 ABI 时成功，在生产字节码设置下失败。92 个支持版本都拒绝结构体数组算子，按实测集合与现有设置限制抽样。见 struct_codegen_authorization.json、struct_codegen_crosscheck.json。 |
 | 同意补齐 86 项并保留原收据 | 保留入口并移除可单独迁移的相对依赖，使用原种子重建完整 114 项清单，核对旧 28 个样本签名。见 package_sampling_authorization.json、supplement_sampling.json。 |
 | 迁移评分待确认 | 两份真实项目图仅出现 Slither 自动计数器换号。原分已保存，所提核验同时约束全图对应、命名冲突与其他图事实。见 migration_counter_review.json。 |
+
+
+### CP4.1 迁移评分及续跑决定（2026-11-22，修改 AI 为 Codex）
+
+| 用户原话 | 已定范围 | 授权位置（artifacts/cp4_1_v1/migration_continuation 下） |
+|---|---|---|
+| 批准严格的一一对应核验并续跑 | 文件迁移时保留原分，TMP、REF 必须在整图中同族、双向唯一、存在定义，声明、类型、操作、CFG 与调用完整匹配并排除源码和字面量碰撞。 | authorization.json |
+| 批准纳入 TUPLE_N 并续跑 | 对元组采用同一判据，逐项核对定义、解包顺序与索引。 | tuple_continuation/authorization.json |
+| 批准限定核验和最多 4 次 solc 调用，继续 | 仅对批准的两个候选验证 YulSwitch 源文件编号。旧 stdout、AST、闭包、字节及两份源文件清单均须吻合。实用 2 次，接收 1 项。 | yul_continuation/authorization.json |
+| 允许修正空格识别并续跑 | 按实际空格识别 NewArray 的临时变量定义，两侧指令的字符比较仍逐字执行。保留 51 项、复用停点的两张图，执行其余 62 对。 | definition_continuation/authorization.json |

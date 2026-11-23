@@ -827,11 +827,282 @@ def _comparison_graph(graph, names, normalize):
              for edge in graph.get("cfg_edges", ())]
     calls = [dict(call, node=reference(call["node"]), callee=reference(call["callee"]))
              for call in graph.get("calls", ())]
-    return dict(graph, nodes=nodes, cfg_edges=edges, calls=calls), changed
+    mapped = dict(graph, nodes=nodes, cfg_edges=edges, calls=calls)
+    if "declarations" in graph:
+        mapped["declarations"] = [reference(row) for row in graph["declarations"]]
+    return mapped, changed
+
+
+_IR_COUNTER = re.compile(r"(?<![\w$])((?:TMP|REF|TUPLE)_[0-9]+)(?![\w$])")
+_COUNTER_DEFINITION = re.compile(r"^((?:TMP|REF|TUPLE)_[0-9]+)(?:\(.*?\))? +(?:=|:=|->) ")
+_SOURCE_COUNTER = re.compile(rb"(?:TMP|REF|TUPLE)_[0-9]+|switch_expr_[0-9]+_[0-9]+_[0-9]+(?:_[\w$]+)?")
+_SOLIDITY_ESCAPE = re.compile(rb"\\(?:x([0-9a-fA-F]{2})|u([0-9a-fA-F]{4})|(\r\n|[\r\n])|(.))", re.S)
+_SHORT_ESCAPES = {b"\\": b"\\", b'"': b'"', b"'": b"'", b"n": b"\n", b"r": b"\r",
+                  b"t": b"\t", b"b": b"\b", b"f": b"\f", b"v": b"\v", b"0": b"\0"}
+
+
+def _literal_bytes(spelling, prefix):
+    """Decode Solidity literal bytes for counter collision detection."""
+    raw = spelling[1:-1]
+    if prefix == b"hex":
+        return bytes.fromhex(raw.replace(b"_", b"").decode("ascii"))
+
+    def unescape(match):
+        hex_byte, codepoint, line_end, simple = match.groups()
+        if hex_byte is not None:
+            return bytes.fromhex(hex_byte.decode("ascii"))
+        if codepoint is not None:
+            return chr(int(codepoint, 16)).encode("utf8")
+        if line_end is not None:
+            return b""
+        if simple not in _SHORT_ESCAPES or (simple == b"0" and raw[match.end():match.end()+1].isdigit()):
+            raise ValueError("unverified_source_literal")
+        return _SHORT_ESCAPES[simple]
+
+    return _SOLIDITY_ESCAPE.sub(unescape, raw)
+
+
+def _check_counter_names(source, protected):
+    """Check Solidity words and decoded literals, including adjacent literal fragments."""
+    prefix = None
+    joined = bytearray()
+    for _, _, kind, token in lexical_tokens(source):
+        if kind == "word" and token in protected:
+            raise ValueError("source_identifier_collision")
+        if kind == "word" and token in (b"hex", b"unicode"):
+            prefix = token
+            continue
+        if kind == "string":
+            value = _literal_bytes(token, prefix)
+            if protected.intersection(_SOURCE_COUNTER.findall(value)):
+                raise ValueError("source_literal_collision")
+            joined.extend(value)
+        else:
+            if token in (b"'", b'"'):
+                raise ValueError("unverified_source_literal")
+            if joined and protected.intersection(_SOURCE_COUNTER.findall(joined)):
+                raise ValueError("source_literal_collision")
+            joined.clear()
+        prefix = None
+    if joined and protected.intersection(_SOURCE_COUNTER.findall(joined)):
+        raise ValueError("source_literal_collision")
+
+
+def _outside_import_paths(source):
+    """Retain every byte except the contents of quoted, supported import paths."""
+    from compile_repair.toolchain.project import import_directives
+    start = 0
+    pieces = []
+    for directive in import_directives(source):
+        if directive["supported_literal"]:
+            pieces.append(source[start:directive["literal_start"] + 1])
+            start = directive["literal_end"] - 1
+    return pieces + [source[start:]]
+
+
+
+_YUL_SWITCH = re.compile(r"(?<![\w$])switch_expr_(\d+)_(\d+)_(\d+)(_[\w$]+)(?![\w$])")
+
+
+def _switch_sites(evidence, graph_digest, sources):
+    """Read source indices only from the original compiler stdout and Slither's recorded ASTs."""
+    raw, attempt = evidence["combined_json"], evidence["result"]["attempts"][-1]
+    solc, slither = attempt["solc"], attempt["slither"]
+    if (solc["returncode"] != 0 or slither["d3"] is not True or slither["graph_sha256"] != graph_digest
+            or _digest(raw) != solc["stdout_sha256"] or solc["compiler"]["sha256"] != slither["compiler_sha256"]):
+        raise ValueError("switch_compilation_receipt_mismatch")
+    data = json.loads(raw)
+    project = slither["project"]
+    root = Path(project["root"])
+    if not root.is_absolute() or solc["cwd"] != str(root):
+        raise ValueError("switch_source_root_mismatch")
+
+    def relative(path):
+        return (root / path).relative_to(root).as_posix()
+
+    files = {relative(row["path"]): row["sha256"] for row in project["files"]}
+    if len(files) != len(project["files"]) or files != {n:_digest(b) for n,b in sources.items()}:
+        raise ValueError("switch_source_closure_mismatch")
+    units = dict(project["source_units"])
+    recorded = {relative(row["path"]):row["ast_sha256"] for row in slither["contract_coverage"]["asts"]}
+    listed = data["sourceList"]
+    if (len(set(listed)) != len(listed) or set(listed) != set(data["sources"])
+            or set(listed) != set(units) or set(units.values()) != set(files)
+            or len(set(units.values())) != len(units) or set(recorded) != set(files)):
+        raise ValueError("switch_source_list_mismatch")
+    sites = {}
+    for index, logical in enumerate(listed):
+        name = units[logical]
+        tree = data["sources"][logical]["AST"]
+        if _digest(json.dumps(tree, sort_keys=True).encode("utf8")) != recorded[name]:
+            raise ValueError("switch_ast_digest_mismatch")
+        stack = [tree]
+        while stack:
+            item = stack.pop()
+            if isinstance(item, list):
+                stack.extend(item)
+            elif isinstance(item, dict):
+                stack.extend(item.values())
+                if item.get("nodeType") == "YulSwitch":
+                    start, length, source_index = map(int, item["src"].split(":"))
+                    span = sources[name][start:start + length]
+                    site = (name,start,length,source_index)
+                    if (index != source_index or start < 0 or length <= 0 or len(span) != length
+                            or not re.match(rb"switch\b", span) or site in sites):
+                        raise ValueError("switch_ast_src_mismatch")
+                    sites[site] = _digest(span)
+    return sites
+
+
+def _map_graph_ir(graph, replace):
+    """Map IR and its textual call representation with the same node's source identity."""
+    original = _nodes(graph)
+    nodes = [dict(n, ir=[replace(n["filename"], op) for op in n["ir"]]) for n in graph["nodes"]]
+    calls = []
+    for call in graph.get("calls", ()):
+        callee = call["callee"]
+        if "text" in callee:
+            name, key = _identity(call["node"])
+            ops = original[(name,key)]["ir"]
+            index = call.get("ir_index")
+            if type(index) is not int or not 0 <= index < len(ops) or ops[index] != callee["text"]:
+                raise ValueError("textual_call_disagrees_with_node_ir")
+            callee = dict(callee, text=replace(name, callee["text"]))
+        calls.append(dict(call, callee=callee))
+    return dict(graph, nodes=nodes, calls=calls)
+
+
+def _align_switch_indices(truth, actual, positions, sites, original, repaired, names):
+    """Align only source-list indices witnessed at the same Yul switch on both sides."""
+    left, right = _nodes(truth), _nodes(actual)
+    before, after = sites
+    forward, reverse, changes = {}, {}, {}
+    defined, used = set(), set()
+    for key, target in positions.items():
+        name = key[0]
+        physical = names.get(name, name)
+        for old, new in zip(left[key]["ir"], right[target]["ir"]):
+            old_tokens = list(_YUL_SWITCH.finditer(old))
+            new_tokens = list(_YUL_SWITCH.finditer(new))
+            if len(old_tokens) != len(new_tokens):
+                raise ValueError("switch_ir_token_count_mismatch")
+            for a, b in zip(old_tokens, new_tokens):
+                old_name, new_name = a.group(), b.group()
+                if (forward.setdefault((name,old_name),new_name) != new_name or
+                        reverse.setdefault((name,new_name),old_name) != old_name):
+                    raise ValueError("switch_mapping_not_bijective")
+                if old_name == new_name:
+                    continue
+                start, length, old_id = map(int, a.groups()[:3])
+                new_id = int(b.group(3))
+                site = (name,start,length,old_id)
+                if (a.groups()[:2] != b.groups()[:2] or a.group(4) != b.group(4) or site not in before
+                        or before[site] != after.get((physical,start,length,new_id))
+                        or not all(start <= offset < start+length for offset in (key[1][3], target[1][3]))):
+                    raise ValueError("switch_location_or_operand_mismatch")
+                identity = name, old_name
+                field = defined if a.start() == 0 and re.match(r"\([^)]*\) := ", old[a.end():]) else used
+                field.add(identity)
+                changes[identity] = dict(file=name, repaired_file=physical, old=old_name, new=new_name,
+                                         src_before="{}:{}:{}".format(start,length,old_id),
+                                         src_after="{}:{}:{}".format(start,length,new_id), span_sha256=before[site])
+    if changes.keys() - (defined & used):
+        raise ValueError("switch_definition_or_use_unverified")
+    if changes:
+        protected = {row[k].encode("ascii") for row in changes.values() for k in ("old","new")}
+        protected.update(b"switch_expr_" + row[k].replace(":", "_").encode("ascii")
+                         for row in changes.values() for k in ("src_before","src_after"))
+        _guard_migration_sources(original, repaired, protected)
+        def replace(name, text):
+            return _YUL_SWITCH.sub(lambda m: reverse[(name,m.group())], text)
+        actual = _map_graph_ir(actual, replace)
+    return actual, [changes[key] for key in sorted(changes)]
+
+
+def _guard_migration_sources(original, repaired, protected):
+    if original.keys() != repaired.keys():
+        raise ValueError("migration_source_set_differ")
+    for name, before in original.items():
+        after = repaired[name]
+        if before != after and _outside_import_paths(before) != _outside_import_paths(after):
+            raise ValueError("migration_changed_non_import_bytes")
+    for source in set(original.values()) | set(repaired.values()):
+        _check_counter_names(source, protected)
+
+
+def _counter_correspondence(expected, observed, positions):
+    """Derive one bijection from aligned IR instructions, including unchanged names and repeated uses."""
+    forward, reverse, defined = {}, {}, set()
+    for key, target in positions.items():
+        old, new = expected[key], observed[target]
+        if dict(old, filename=target[0], key5=list(target[1]), ir=[]) != dict(new, ir=[]):
+            raise ValueError("node_facts_differ")
+        if len(old["ir"]) != len(new["ir"]):
+            raise ValueError("ir_instruction_count_differ")
+        for left, right in zip(old["ir"], new["ir"]):
+            a, b = _IR_COUNTER.split(left), _IR_COUNTER.split(right)
+            if a[::2] != b[::2]:
+                raise ValueError("ir_operation_type_or_operand_differ")
+            for name, other in zip(a[1::2], b[1::2]):
+                if name.partition("_")[0] != other.partition("_")[0]:
+                    raise ValueError("counter_family_differ")
+                if forward.setdefault(name, other) != other or reverse.setdefault(other, name) != name:
+                    raise ValueError("counter_mapping_not_bijective")
+            definition = _COUNTER_DEFINITION.match(left)
+            if definition:
+                defined.add(definition.group(1))
+    changes = {name: other for name, other in forward.items() if name != other}
+    if not changes.keys() <= defined:
+        raise ValueError("counter_definition_unverified")
+    return changes, reverse
+
+
+def _migration_relations(graph, positions):
+    """Compare complete declarations, CFG and calls with endpoint identity and multiplicity."""
+    def endpoint(ref):
+        filename, key = positions[_identity(ref)]
+        return dict(ref if isinstance(ref, dict) else {}, filename=filename, key5=list(key))
+
+    nodes = _nodes(graph)
+    for call in graph.get("calls", ()):
+        if "text" in call["callee"]:
+            ops = nodes[_identity(call["node"])]["ir"]
+            index = call.get("ir_index")
+            if type(index) is not int or not 0 <= index < len(ops) or ops[index] != call["callee"]["text"]:
+                raise ValueError("textual_call_disagrees_with_node_ir")
+
+    def multiset(records):
+        return Counter(json.dumps(row, sort_keys=True, ensure_ascii=False) for row in records)
+
+    edges = (dict(edge, source=endpoint(edge["source"]), target=endpoint(edge["target"]))
+             for edge in graph.get("cfg_edges", ()))
+    calls = (dict(call, node=endpoint(call["node"])) for call in graph.get("calls", ()))
+    return multiset(graph.get("declarations", ())), multiset(edges), multiset(calls)
+
+
+def _verified_migration(truth, actual, positions, original, repaired):
+    expected, observed = _nodes(truth), _nodes(actual)
+    if (set(positions) != set(expected) or len(positions) != len(observed)
+            or set(positions.values()) != set(observed)):
+        raise ValueError("node_correspondence_incomplete")
+    ignored = {"nodes", "declarations", "cfg_edges", "calls"}
+    if {k:v for k,v in truth.items() if k not in ignored} != {k:v for k,v in actual.items() if k not in ignored}:
+        raise ValueError("graph_metadata_differ")
+    changes, reverse = _counter_correspondence(expected, observed, positions)
+    if changes:
+        protected = {name.encode("ascii") for pair in changes.items() for name in pair}
+        _guard_migration_sources(original, repaired, protected)
+        actual = _map_graph_ir(actual, lambda name, text: _IR_COUNTER.sub(lambda m: reverse[m.group()], text))
+    identity = {key:key for key in observed}
+    if _migration_relations(truth, positions) != _migration_relations(actual, identity):
+        raise ValueError("declarations_cfg_or_calls_differ")
+    return actual, {"status": "verified" if changes else "identical", "nodes": len(expected),
+                    "counter_count": len(reverse), "renamed": changes,
+                    "cfg_edges": len(truth.get("cfg_edges", ())), "calls": len(truth.get("calls", ()))}
 
 
 def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair_maps, solc_returncode, d3,
-                 file_renames=None, normalize_creation_code=True):
+                 file_renames=None, normalize_creation_code=True, migration_compilations=None):
     """Score actual graph facts under verified damage and repair provenance, without running tools.
 
     Source maps use project-relative names (the empty key for a single-file graph).
@@ -846,12 +1117,46 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     aligned = {reverse.get(name, name): data for name, data in repaired.items()}
     if len(reverse) != len(renames) or len(aligned) != len(repaired):
         raise ValueError("Ambiguous scoring file rename")
+    witness_input = None
+    if migration_compilations is not None and renames and actual is not None:
+        def graph_digest(graph):
+            return _digest((json.dumps(graph, sort_keys=True, ensure_ascii=False, indent=2) + "\n").encode("utf8"))
+        witness_input = [(migration_compilations.get(side), graph_digest(g), files)
+                         for side,g,files in (("truth",truth,original),("repaired",actual,repaired))]
     repaired = aligned
     truth, changed_truth = _comparison_graph(truth, {}, normalize_creation_code)
     changed_actual = 0
     if actual is not None:
         actual, changed_actual = _comparison_graph(actual, reverse, normalize_creation_code)
     maps,near,level=_correspondence(original,damaged,repaired,damage_maps,repair_maps)
+    normalization = {"metadata_normalized": bool(changed_truth or changed_actual),
+                     "normalized_nodes": {"truth": changed_truth, "repaired": changed_actual}}
+    compiled = solc_returncode == 0 and d3 is True
+    positions = {} if renames and actual is not None else None
+    raw = _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization, positions)
+    if positions is None:
+        return raw
+    try:
+        switches = []
+        if witness_input is not None:
+            compilers = [data["result"]["attempts"][-1]["solc"] for data, _, _ in witness_input]
+            if compilers[0]["compiler"] != compilers[1]["compiler"] or compilers[0]["settings"] != compilers[1]["settings"]:
+                raise ValueError("switch_compiler_or_settings_differ")
+            sites = [_switch_sites(data, digest, files) for data,digest,files in witness_input]
+            actual, switches = _align_switch_indices(truth, actual, positions, sites, original, repaired, renames)
+        verified, proof = _verified_migration(truth, actual, positions, original, repaired)
+        if switches:
+            proof.update(status="verified", yul_switches=switches)
+    except (ValueError, KeyError, TypeError, IndexError) as error:
+        return dict(raw, exact=False, raw_migration_score=raw,
+                    migration_counters={"status": "rejected", "reason": str(error)})
+    corrected = raw
+    if proof["renamed"] or switches:
+        corrected = _score_facts(truth, verified, original, repaired, maps, near, level, compiled, normalization)
+    return dict(corrected, raw_migration_score=raw, migration_counters=proof)
+
+
+def _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization, positions=None):
     expected,observed=_nodes(truth),_nodes(actual or {})
     old_kept,new_kept={},{}
     matched=set();affected=deleted=lost=missing_kept=equal_kept=0
@@ -877,6 +1182,8 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
         same=present and all(row[k]==observed[mapped][k] for k in ("node_type","ir"))
         if present:
             matched.add(mapped)
+            if positions is not None:
+                positions[identity] = mapped
         if changed:
             affected+=1
             lost+=int(not (same and can_recover))
@@ -900,10 +1207,8 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     e1,c1=_edges_and_calls(truth,old_kept);e2,c2=_edges_and_calls(actual or {},new_kept)
     edges,calls=_multiset_score(e1,e2),_multiset_score(c1,c2)
     kept=len(old_kept)
-    compiled=solc_returncode==0 and d3 is True
     return {"compiled":compiled,"kept":{"units":kept,"equal":equal_kept,"ratio":equal_kept/kept if kept else 1.0},
-            "cfg_edges":edges,"calls":calls,"metadata_normalized":bool(changed_truth or changed_actual),
-            "normalized_nodes":{"truth":changed_truth,"repaired":changed_actual},"affected_by_damage":affected,"affected_by_deletion":deleted,
+            "cfg_edges":edges,"calls":calls,**normalization,"affected_by_damage":affected,"affected_by_deletion":deleted,
             "lost":lost,"missing_kept":missing_kept,"added":len(extra),"added_only_in_repair_bytes":only_added,
             "added_bytes_near_damage":near,"change_level":level,
             "exact":bool(compiled and actual is not None and equal_kept==kept and not lost and not extra and
@@ -987,7 +1292,12 @@ def score_request(request_path, output):
     truth=json.loads(content(spec["truth_graph"]))
     candidate=content(spec.get("repaired_graph"))
     actual=json.loads(candidate) if candidate is not None else None
+    witnesses = spec.get("migration_compilations")
+    if witnesses is not None:
+        witnesses = {side: {"combined_json":content(ref["combined_json"]), "result":json.loads(content(ref["result"]))}
+                     for side,ref in witnesses.items()}
     score=score_graphs(truth,actual,original,damaged,repaired,first,second,spec["solc_returncode"],spec["d3"],
+                       migration_compilations=witnesses,
                        file_renames=spec.get("file_renames"),normalize_creation_code=spec.get("normalize_creation_code",True))
     ArtifactStore(output).write_json("score.json",score)
     return {"status":"complete","summary":score}

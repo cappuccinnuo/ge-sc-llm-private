@@ -521,3 +521,12 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 - 生产与 mando 各执行 python -B -m pytest -x -q -p no:cacheprovider compile_repair/tests，分别通过 1,016 项与 553 项。mando 在仓库根执行同一命令的 scripts/DFG/dfg_v2/tests 目标，2,653 项通过。分项和跳过数见 final_tests/。
 - 用户批准 92 版生产字节码的条件口径，并批准把遗漏的 86 项包内相对依赖并回原种子抽样。两项迁移出现 Slither 全局编号变化，已收存原分并提交方案确认，见 migration_counter_review.json。
 - WSL 通过持续打开的本地 Bash 完成各项实验，美东 09:28、09:34、09:44 的普通新命令均成功。用户会话保留，直接启动与本地缓存处理依据见 runtime_recovery.json。
+
+
+## CP4.1 迁移续作与最终验收（Codex，2026-11-22）
+
+在 evaluation/benchmark.py 实现文件迁移时的全图编号核验和带原始 solc 见证的 Yul 源文件编号核对，在 tests/test_cp41.py 增加正常路径及反例。CP4_REPORT.md、docs/DECISIONS.md、docs/HANDOVER.md 和 docs/CHANGE_LOG.md §45 已同步。原文比较口径的扩展分别获得用户确认，四份授权均在 artifacts/cp4_1_v1/migration_continuation/。
+
+最终按种子冻结的候选和收据逐项匹配。19,354 项中纳入 14,196 项，精确还原 14,196/14,196，对照 200/200。缺包样本迁移 114/114，原分满分 53 项，核验换号后另有 61 项满分。新增 105 对图产生 242 次 solc 和 210 次 Slither。Yul 原始输出核对另用 2 次 solc。收据核对程序的绝对路径问题、汇总程序对版本尝试数的错误预设和修正均在 CHANGE_LOG §45。
+
+仓库根目录以两个环境各自的 Python 执行 `python -B -m pytest -x -q -p no:cacheprovider compile_repair/tests`，production 1,068 通过、6 跳过，mando 605 通过、469 跳过。mando 对 `scripts/DFG/dfg_v2/tests` 执行同样命令，2,653 通过、9 条告警。生产文件 17 个，DFG 354 项代码身份匹配。WSL 的新建进程曾间歇超时，原生终端完成实验，美东 21:20 连续四次独立启动成功。下一步为独立审查。[最终核验](artifacts/cp4_1_v1/migration_continuation/acceptance.json) · [运行与文档清单](artifacts/cp4_1_v1/migration_continuation/README.md)

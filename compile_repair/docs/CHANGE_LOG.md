@@ -2137,3 +2137,32 @@ production 测试为 1,016 通过、6 跳过。mando 测试为 553 通过、469 
 WSL 的 VMBus 建连曾在高负载下再次超时。保留的原生 Bash 完成了生产实验。对已读取的历史任务数据做有限文件缓存回收提示后，三次独立普通新命令均在 0.41 秒内成功。系统重启和内核参数写入均为 0。缓存提示与恢复的因果关系尚无独立对照。停止的原因及待确认项为迁移评分。
 
 六份中文文档通过仓库 doc_check。交接、决策与批次说明按全文检查，CHANGE_LOG、PROGRESS 和 CP4_REPORT 校验原先封存的前缀后检查此次追加区间。最终校验明细见 artifacts/cp4_1_v1/migration_stop_doc_check.json。
+
+
+## 45. 2026-11-22 CompileRepair CP4.1 缺包迁移与全量验收（修改 AI 为 Codex）
+
+### 45.1 任务、依据与范围
+
+从 compile-repair 的 `0f690e6f` 继续 PROMPTS r2.17 §4.6b。代码只修改 evaluation/benchmark.py 和 tests/test_cp41.py。之前 128 份已封存的批次文件再次核验 SHA。续作结果在 artifacts/cp4_1_v1/migration_continuation，项目源码、原始图和编译器 stdout 继续存放在仓库外。全量基准、编译器快照和控制组均沿用原计划。
+
+### 45.2 实施方式和重要选择
+
+文件迁移的原分单列保存。先验证节点源文件、字节偏移、声明和文件改名，再逐条核对 SlithIR。TMP、REF、TUPLE 的定义与使用须形成同族双向映射，还须排除源码标识符、转义字面量和相邻字面量碰撞。全图检查带类型的操作、两端点、调用文本及重数。生成名称有差异时，只允许导入路径引起的源码字节变化。Yul 的文件编号额外要求原始编译器 stdout、AST、源文件清单及实际源码区间均相符。
+
+首次收据核对把 Slither 的绝对输入路径与样本的相对路径直接比较，在调用工具前停止。按记录的项目根解析并逐一校验 124 个文件之后，复用 9 对已有图。数组分配曾因赋值号前有两个空格而漏认两个定义，随后按实际格式识别，图比较仍保留空格。最终汇总初稿误以为一张图只会尝试一个编译器。按 D5 和实际调用日志，8 个单元的两个位置都尝试了 0.8.0、0.8.1、0.8.2，最后一版通过。最终脚本逐项对照版本计划、调用记录和每次返回码，保留了原汇总的报错日志。[路径核验](../artifacts/cp4_1_v1/migration_continuation/initial_receipt_check.json) · [汇总程序](../artifacts/cp4_1_v1/migration_continuation/final_acceptance_v2.py)
+
+### 45.3 实测与数据结论
+
+19,354 个候选中的 14,196 个纳入项逐项匹配，精确还原全部通过，200 个对照的原收据验证通过。114 个缺包样本有 DAppSCAN 112 项与 Trace_repo 2 项。迁移时 53 项原分满分，另有 61 项经生成名称核验后满分。61 项涉及 TMP、32 项涉及 REF、2 项涉及 TUPLE。其中 1 项还用 solc 证实了 Yul 源文件编号。所有迁移均核对了完整声明、节点、CFG 和调用。四份通过清单分别为 21、19、11、63 行。105 对新图实际使用 242 次 solc、210 次 Slither，另有 2 次核对 Yul AST 的 solc 调用。旧 9 对图复用了既有 18 次 solc 和 18 次 Slither 的收据。[全量统计](../artifacts/cp4_1_v1/migration_continuation/acceptance.json) · [逐项表](../artifacts/cp4_1_v1/migration_continuation/packages.tsv)
+
+### 45.4 用户批准、原文差异与待确认设计
+
+用户分别批准 TMP/REF 的严格核验、TUPLE 的相同核验、仅针对 Yul 源文件编号的最多 4 次见证，以及数组分配空格识别修正后的续跑。每次变更前的停点、用户原话和所授权的未完成范围均写入 DECISIONS、批次请求及授权文件。复用已通过和已生成的图，后续运行只补缺项。本步验收已完成，下一步为独立审查。[决定与证据清单](../artifacts/cp4_1_v1/migration_continuation/README.md)
+
+### 45.5 验收、资源、未执行事项与停止
+
+局部测试 253 通过。最终 production 模块 1,068 通过、6 跳过。mando 模块 605 通过、469 跳过。mando 的 DFG v2 为 2,653 通过、9 条告警。生产文件 17 个，354 项 DFG 代码身份逐项一致。本次只使用本地 CPU，费用 0 美元，安装、下载、训练和 LLM 调用均为 0。相对本轮检查点，benchmark.py 增 315 行、删 5 行，test_cp41.py 增 290 行。CP4.1 相对 e8ec530d 的逐函数差异见 final_scope.json。[测试记录](../artifacts/cp4_1_v1/migration_continuation/definition_continuation/suites/) · [范围核验](../artifacts/cp4_1_v1/migration_continuation/final_scope.json)
+
+WSL 的新通道数次因 512 KiB 连续页分配失败而超时。保留的原生 Bash 执行了全部生产测试和样本。晚间完成一次临时内存整理，随后仍观测到一次普通新命令超时。验收完成后对已封存的 684 个只读结果文件发送缓存释放提示，最后四次新命令用时 0.312–0.359 秒，均返回 UID 1000。各措施对恢复的独立贡献尚未测量。[WSL 实测](../artifacts/cp4_1_v1/migration_continuation/wsl_recovery.json)
+
+六份中文文档通过仓库 doc_check。HANDOVER、DECISIONS 和批次 README 按全文检查，CHANGE_LOG、CP4_REPORT 和 PROGRESS 先核对检查点原字节，再检查各自本轮的追加内容。逐份字节数和汉字数随本批封存。[文档检查](../artifacts/cp4_1_v1/migration_continuation/doc_check.json)
