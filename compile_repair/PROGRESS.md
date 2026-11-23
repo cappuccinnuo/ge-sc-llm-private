@@ -568,3 +568,10 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 - CP4.3 成立：kept 分母恢复、removed_by_repair 与 surviving、Yul switch 起点对齐、200 项移动与历史重算、276 项测试通过。
 - 未解决：生成名称对应一处不符即整体放弃，修复多改一个节点时 kept 由 6/7 跌到 3/7（r2.18 规则所致）。
 - PROMPTS r2.20：新增 1.23 节、4.6e 节 CP4.4。证据 `artifacts/cp4_3_review_v1/`；记录 `docs/CHANGE_LOG.md` §50。下一步 CP4.4。
+
+
+## CP4.4 普通修复的逐节点评分（2026-11-23，修改 AI 为 Codex）
+
+在 evaluation/benchmark.py 实现结构筛选、名称冲突与定义检查的逐节点排除。测试新增 tests/test_cp44.py，并同步 tests/test_cp42.py、tests/test_cp43.py 的名称状态断言。对另一个函数多改一个常量时，普通夹具得分由 3/7 修正为 6/7；三个真实函数的比例性测试中，每次只改一个 kept 节点均恰好少一个匹配。Yul 注释仅改变三个节点长度，按用户决定记录为结构排除，主指标为 16/16。
+
+14,196 个精确还原和 114 个迁移的指标均与 CP4.3 相同。200 项移动有 199 项指标相同；cp3_00291 的主 kept 改为 262/267，两个真实创建字节码差异保留，用户已确认这一项历史差值。两个环境的模块回归分别通过 1,080 与 612 项，mando 的 DFG v2 回归通过 2,653 项。新证据在 artifacts/cp4_4_v1，下一步为独立审查。[报告](CP4_REPORT.md) · [变更 §51](docs/CHANGE_LOG.md) · [最终验收](artifacts/cp4_4_v1/acceptance.json)

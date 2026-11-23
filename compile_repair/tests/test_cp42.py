@@ -63,7 +63,8 @@ def test_changed_use_is_not_an_alpha_renaming(bad):
     src = {"":b"contract A {}"}
     score = score_graphs(sample(old),sample(new),src,src,src,{},{},0,True)
     assert not score["exact"] and score["raw"]["kept"] == score["kept"]
-    assert score["counter_correspondence"]["status"] == "rejected"
+    assert score["counter_correspondence"]["status"] == "identical"
+    assert score["counter_correspondence"]["nodes"]["conflict"] == 1
 
 
 def test_partial_repair_with_renamed_file_scores_surviving_instructions():

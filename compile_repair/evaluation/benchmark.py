@@ -1,5 +1,5 @@
 """CP4 evaluation on checked source copies, deterministic groups and Slither truth graphs."""
-from collections import Counter, defaultdict, deque
+from collections import Counter, defaultdict, deque, namedtuple
 from dataclasses import asdict
 from functools import lru_cache
 import hashlib
@@ -1003,6 +1003,25 @@ def _mapped_switch(name, original, repaired, maps, old, new, sites, physical):
     return start, mapped, length, digest
 
 
+def _switch_proof(key, target, a, b, maps, sites, original, repaired, physical, kept):
+    """Return the byte-range proof for a changed switch name, or check an unchanged offset."""
+    name = key[0]
+    if a.group() == b.group():
+        if name in maps:
+            start, length = int(a.group(1)), int(a.group(2))
+            span = _at_original(maps[name][2], start)
+            if (span is not None and span.new_start != span.original_start and start <= key[1][3] < start + length
+                    and re.match(rb"switch\b", original[name][start:start + length])):
+                raise ValueError("switch_location_or_operand_mismatch")
+        return None
+    start, mapped, length, digest = _mapped_switch(name, original, repaired, maps, a, b, sites, physical)
+    if (not start <= key[1][3] < start + length or not mapped <= target[1][3] < mapped + length
+            or (start != mapped and not kept)):
+        raise ValueError("switch_location_or_operand_mismatch")
+    return dict(file=name, repaired_file=physical, old=a.group(), new=b.group(),
+                src_before=":".join(a.groups()[:3]), src_after=":".join(b.groups()[:3]), span_sha256=digest)
+
+
 def _align_switches(truth, actual, positions, sites, original, repaired, names, maps, kept_positions):
     """Match source offsets through byte provenance and file indices through compiler witnesses."""
     left, right = _nodes(truth), _nodes(actual)
@@ -1023,26 +1042,13 @@ def _align_switches(truth, actual, positions, sites, original, repaired, names, 
                 if (forward.setdefault((name,old_name),new_name) != new_name or
                         reverse.setdefault((name,new_name),old_name) != old_name):
                     raise ValueError("switch_mapping_not_bijective")
-                if old_name == new_name:
-                    # A retained old spelling cannot justify a stale offset at a translated switch.
-                    if name in maps:
-                        start, length = int(a.group(1)), int(a.group(2))
-                        span = _at_original(maps[name][2], start)
-                        if (span is not None and span.new_start != span.original_start
-                                and start <= key[1][3] < start + length
-                                and re.match(rb"switch\b", original[name][start:start + length])):
-                            raise ValueError("switch_location_or_operand_mismatch")
+                proof = _switch_proof(key, target, a, b, maps, sites, original, repaired, physical, key in kept_positions)
+                if proof is None:
                     continue
-                start, mapped, length, digest = _mapped_switch(name, original, repaired, maps, a, b, sites, physical)
-                if (not start <= key[1][3] < start + length or not mapped <= target[1][3] < mapped + length
-                        or (start != mapped and key not in kept_positions)):
-                    raise ValueError("switch_location_or_operand_mismatch")
                 identity = name, old_name
                 field = defined if a.start() == 0 and re.match(r"\([^)]*\) := ", old[a.end():]) else used
                 field.add(identity)
-                changes[identity] = dict(file=name, repaired_file=physical, old=old_name, new=new_name,
-                                         src_before=":".join(a.groups()[:3]), src_after=":".join(b.groups()[:3]),
-                                         span_sha256=digest)
+                changes[identity] = proof
     if changes.keys() - (defined & used):
         raise ValueError("switch_definition_or_use_unverified")
     if changes:
@@ -1065,6 +1071,119 @@ def _guard_counter_sources(original, repaired, protected, imports_only=True):
             raise ValueError("migration_changed_non_import_bytes")
     for source in set(original.values()) | set(repaired.values()):
         _check_counter_names(source, protected)
+
+
+_GENERATED_NAME = re.compile(r"(?<![\w$])((?:TMP|REF|TUPLE)_[0-9]+|switch_expr_\d+_\d+_\d+_[\w$]+)(?![\w$])")
+_NodeNames = namedtuple("_NodeNames", "pairs definitions switch_uses invalid_switches proofs")
+
+
+def _ordinary_node_names(key, target, old, new, maps, sites, original, repaired):
+    facts = dict(old, key5=list(target[1]), ir=[])
+    if "filename" in old:
+        facts["filename"] = target[0]
+    if facts != dict(new, ir=[]) or len(old["ir"]) != len(new["ir"]):
+        return None
+    pairs, definitions, switch_uses, invalid_switches, proofs = set(), set(), set(), set(), {}
+    for left, right in zip(old["ir"], new["ir"]):
+        a, b = _GENERATED_NAME.split(left), _GENERATED_NAME.split(right)
+        if a[::2] != b[::2]:
+            return None
+        definition = _COUNTER_DEFINITION.match(left)
+        if definition:
+            definitions.add((None, definition.group(1)))
+        for index in range(1, len(a), 2):
+            ltoken, rtoken = a[index], b[index]
+            lscope = key[0] if ltoken.startswith("switch_expr_") else None
+            rscope = key[0] if rtoken.startswith("switch_expr_") else None
+            lname, rname = (lscope, ltoken), (rscope, rtoken)
+            pairs.add((lname, rname))
+            if lscope is None or rscope is None:
+                continue
+            if index == 1 and not a[0] and re.match(r"\([^)]*\) := ", a[2]):
+                definitions.add(lname)
+            else:
+                switch_uses.add(lname)
+            try:
+                proof = _switch_proof(key, target, _YUL_SWITCH.fullmatch(ltoken), _YUL_SWITCH.fullmatch(rtoken),
+                                      maps, sites, original, repaired, key[0], True)
+            except ValueError:
+                invalid_switches.update((lname, rname))
+            else:
+                if proof:
+                    proofs[lname] = proof
+    return _NodeNames(pairs, definitions, switch_uses, invalid_switches, proofs)
+
+
+def _prune_name_nodes(nodes, counts):
+    """Remove every affected node at once for each reason, then recheck surviving definitions."""
+    while True:
+        forward, reverse = defaultdict(set), defaultdict(set)
+        defined, used, conflicts, invalid_switches = set(), set(), set(), set()
+        for node in nodes.values():
+            defined.update(node.definitions)
+            used.update(node.switch_uses)
+            invalid_switches.update(node.invalid_switches)
+            for a,b in node.pairs:
+                forward[a].add(b)
+                reverse[b].add(a)
+                if a[1].partition("_")[0] != b[1].partition("_")[0]:
+                    conflicts.update((a,b))
+        for mapping in (forward, reverse):
+            for name, peers in mapping.items():
+                if len(peers) > 1:
+                    conflicts.add(name)
+                    conflicts.update(peers)
+        if conflicts:
+            reason, rejected = "conflict", conflicts
+        else:
+            # Each left name now has exactly one right peer. Definitions refer to the truth side.
+            missing = {name for name, peers in forward.items() if name not in peers and
+                       (name not in defined or (name[0] is not None and name not in used))}
+            if missing:
+                reason, rejected = "definition", missing
+            elif invalid_switches:
+                reason, rejected = "switch", invalid_switches
+            else:
+                return {a:next(iter(bs)) for a,bs in forward.items()}
+        discard = [key for key,node in nodes.items()
+                   if any(a in rejected or (reason != "definition" and b in rejected) for a,b in node.pairs)]
+        counts[reason] += len(discard)
+        for key in discard:
+            del nodes[key]
+
+
+def _ordinary_correspondence(truth, actual, positions, maps, sites, original, repaired, counts):
+    expected, observed = _nodes(truth), _nodes(actual)
+    nodes, protected = {}, set()
+    for key,target in positions.items():
+        node = _ordinary_node_names(key,target,expected[key],observed[target],maps,sites,original,repaired)
+        if node is None:
+            counts["structural"] += 1
+            continue
+        nodes[key] = node
+        for a,b in node.pairs:
+            if a != b:
+                for scope,token in (a,b):
+                    protected.add(token.encode("ascii"))
+                    if scope is not None:
+                        protected.add("_".join(token.split("_")[:5]).encode("ascii"))
+    mapping = _prune_name_nodes(nodes, counts)
+    counts["participating"] = len(nodes)
+    if protected:
+        _guard_counter_sources(original, repaired, protected, imports_only=False)
+    renamed = {a[1]:b[1] for a,b in mapping.items() if a[0] is None and a != b}
+    switches = {}
+    for node in nodes.values():
+        switches.update(node.proofs)
+    if renamed or switches:
+        reverse = {b:a[1] for a,b in mapping.items()}
+        def replace(name, op):
+            def token(match):
+                value = match.group()
+                return reverse[(name if value.startswith("switch_expr_") else None, value)]
+            return _GENERATED_NAME.sub(token, op)
+        actual = _map_graph_ir(actual, replace, {positions[key] for key in nodes})
+    return actual, renamed, [switches[key] for key in sorted(switches)]
 
 
 def _counter_correspondence(expected, observed, positions):
@@ -1176,9 +1295,12 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     kept_positions = {}
     raw = _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization,
                        positions, kept_positions)
+    counts = dict(participating=0, structural=0, conflict=0, definition=0, switch=0)
     def result(score, status, reason, changes=None, switches=()):
         count = len(changes or {}) + len(switches)
         proof = dict(status=status, reason=reason, renamed_count=count, renamed=changes or {})
+        if not renames:
+            proof["nodes"] = counts
         if switches:
             proof["yul_switches"] = switches
         return dict(score, raw=raw, counter_correspondence=proof)
@@ -1192,6 +1314,14 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
             if compilers[0]["compiler"] != compilers[1]["compiler"] or compilers[0]["settings"] != compilers[1]["settings"]:
                 raise ValueError("switch_compiler_or_settings_differ")
             sites = [_switch_sites(data, digest, files) for data,digest,files in witness_input]
+        if not renames:
+            graph, changes, switches = _ordinary_correspondence(truth, actual, kept_positions, maps, sites,
+                                                               original, repaired, counts)
+            if not changes and not switches:
+                return result(raw, "identical", "no_verified_renames")
+            corrected = _score_facts(truth, graph, original, repaired, maps, near, level, compiled, normalization)
+            partial = any(counts[k] for k in ("conflict", "definition", "switch"))
+            return result(corrected, "partial" if partial else "verified", "aligned_generated_names", changes, switches)
         kept_graph, switches = _align_switches(truth, actual, kept_positions, sites, original, repaired,
                                              renames, maps, kept_positions)
         changes, reverse_names = _counter_correspondence(_nodes(truth), _nodes(kept_graph), kept_positions)

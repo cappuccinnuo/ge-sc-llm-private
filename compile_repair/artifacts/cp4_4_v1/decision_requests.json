@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-23",
+  "proposals": [
+    {
+      "subject": "Yul 注释夹具 B",
+      "evidence": [
+        "review_baseline.json",
+        "review_scores.json"
+      ],
+      "reason": "三处节点长度变化。原样分数只比较位置、类型与 IR，原位比较三项仍相等。",
+      "proposal": "三个结构不同的节点移出名称推导，保留既有主指标，报告分数和结构计数。拟按 16/16 验收。",
+      "alternative": "如将长度计入不等，先评估所有原样分数的影响范围。"
+    },
+    {
+      "subject": "历史移动 CP3 单元 00291",
+      "evidence": [
+        "moves_summary.json",
+        "movement_difference.json"
+      ],
+      "reason": "§4.6e 要求出现差异即停。新算法校验出独立的一处计数名与调用变化，主 kept 增加 1。",
+      "proposal": "仅接受该样本的已证明差值，保留两个创建字节码差异及全部原分；其余样本逐项保持相同。",
+      "alternative": "保留原门槛，检查点交付。"
+    }
+  ]
+}

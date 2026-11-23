@@ -1,0 +1,447 @@
+{
+  "partial": {
+    "A": {
+      "unequal": [],
+      "counts": {
+        "structural": 0,
+        "conflict": 0,
+        "definition": 0,
+        "switch": 0,
+        "participating": 7
+      }
+    },
+    "B": {
+      "unequal": [
+        {
+          "truth": [
+            "",
+            [
+              "A",
+              "k(address,uint256)",
+              "EXPRESSION",
+              187,
+              1
+            ]
+          ],
+          "candidate": [
+            "",
+            [
+              "A",
+              "k(address,uint256)",
+              "EXPRESSION",
+              301,
+              1
+            ]
+          ],
+          "ir_before": [
+            "REF_2(uint256) -> bal[a]",
+            "REF_3(uint256) -> bal[a]",
+            "TMP_3(uint256) = REF_3 (c)* 3",
+            "TMP_4(uint256) = TMP_3 (c)+ y",
+            "REF_2(uint256) (->bal) := TMP_4(uint256)"
+          ],
+          "ir_after": [
+            "REF_3(uint256) -> bal[a]",
+            "REF_4(uint256) -> bal[a]",
+            "TMP_7(uint256) = REF_4 (c)* 4",
+            "TMP_8(uint256) = TMP_7 (c)+ y",
+            "REF_3(uint256) (->bal) := TMP_8(uint256)"
+          ]
+        }
+      ],
+      "counts": {
+        "structural": 1,
+        "conflict": 0,
+        "definition": 0,
+        "switch": 0,
+        "participating": 6
+      }
+    },
+    "C": {
+      "unequal": [
+        {
+          "truth": [
+            "",
+            [
+              "A",
+              "k(address,uint256)",
+              "EXPRESSION",
+              187,
+              1
+            ]
+          ],
+          "candidate": [
+            "",
+            [
+              "A",
+              "k(address,uint256)",
+              "EXPRESSION",
+              187,
+              1
+            ]
+          ],
+          "ir_before": [
+            "REF_2(uint256) -> bal[a]",
+            "REF_3(uint256) -> bal[a]",
+            "TMP_3(uint256) = REF_3 (c)* 3",
+            "TMP_4(uint256) = TMP_3 (c)+ y",
+            "REF_2(uint256) (->bal) := TMP_4(uint256)"
+          ],
+          "ir_after": [
+            "REF_2(uint256) -> bal[a]",
+            "REF_3(uint256) -> bal[a]",
+            "TMP_3(uint256) = REF_3 (c)* 4",
+            "TMP_4(uint256) = TMP_3 (c)+ y",
+            "REF_2(uint256) (->bal) := TMP_4(uint256)"
+          ]
+        }
+      ],
+      "counts": {
+        "structural": 1,
+        "conflict": 0,
+        "definition": 0,
+        "switch": 0,
+        "participating": 6
+      }
+    }
+  },
+  "yul": {
+    "A": {
+      "unequal": [],
+      "counts": {
+        "structural": 0,
+        "conflict": 0,
+        "definition": 0,
+        "switch": 0,
+        "participating": 16
+      }
+    },
+    "B": {
+      "unequal": [],
+      "counts": {
+        "structural": 3,
+        "conflict": 0,
+        "definition": 0,
+        "switch": 0,
+        "participating": 13
+      }
+    },
+    "C": {
+      "unequal": [
+        {
+          "truth": [
+            "",
+            [
+              "A",
+              "f(uint256)",
+              "EXPRESSION",
+              129,
+              1
+            ]
+          ],
+          "candidate": [
+            "",
+            [
+              "A",
+              "f(uint256)",
+              "EXPRESSION",
+              203,
+              1
+            ]
+          ],
+          "ir_before": [
+            "switch_expr_122_144_0_f_asm_0(uint256) := x(uint256)"
+          ],
+          "ir_after": [
+            "switch_expr_196_144_0_f_asm_0(uint256) := x(uint256)"
+          ]
+        },
+        {
+          "truth": [
+            "",
+            [
+              "A",
+              "f(uint256)",
+              "IF",
+              143,
+              1
+            ]
+          ],
+          "candidate": [
+            "",
+            [
+              "A",
+              "f(uint256)",
+              "IF",
+              217,
+              1
+            ]
+          ],
+          "ir_before": [
+            "TMP_0(bool) = switch_expr_122_144_0_f_asm_0 == 0",
+            "CONDITION TMP_0"
+          ],
+          "ir_after": [
+            "TMP_2(bool) = switch_expr_196_144_0_f_asm_0 == 5",
+            "CONDITION TMP_2"
+          ]
+        }
+      ],
+      "counts": {
+        "structural": 1,
+        "conflict": 0,
+        "definition": 1,
+        "switch": 0,
+        "participating": 14
+      }
+    }
+  },
+  "wrong_counter_uses": {
+    "cross_node_use": {
+      "compiled": true,
+      "kept": {
+        "units": 6,
+        "equal": 2,
+        "ratio": 0.3333333333333333
+      },
+      "cfg_edges": {
+        "truth": 0,
+        "repaired": 0,
+        "matched": 0,
+        "ratio": 1.0
+      },
+      "calls": {
+        "truth": 0,
+        "repaired": 0,
+        "matched": 0,
+        "ratio": 1.0
+      },
+      "surviving": {
+        "kept": {
+          "units": 6,
+          "equal": 2,
+          "ratio": 0.3333333333333333
+        },
+        "cfg_edges": {
+          "truth": 0,
+          "repaired": 0,
+          "matched": 0,
+          "ratio": 1.0
+        },
+        "calls": {
+          "truth": 0,
+          "repaired": 0,
+          "matched": 0,
+          "ratio": 1.0
+        }
+      },
+      "removed_by_repair": 0,
+      "metadata_normalized": false,
+      "normalized_nodes": {
+        "truth": 0,
+        "repaired": 0
+      },
+      "affected_by_damage": 0,
+      "affected_by_deletion": 0,
+      "lost": 0,
+      "missing_kept": 0,
+      "added": 0,
+      "added_only_in_repair_bytes": true,
+      "added_bytes_near_damage": true,
+      "change_level": "none",
+      "exact": false,
+      "raw": {
+        "compiled": true,
+        "kept": {
+          "units": 6,
+          "equal": 0,
+          "ratio": 0.0
+        },
+        "cfg_edges": {
+          "truth": 0,
+          "repaired": 0,
+          "matched": 0,
+          "ratio": 1.0
+        },
+        "calls": {
+          "truth": 0,
+          "repaired": 0,
+          "matched": 0,
+          "ratio": 1.0
+        },
+        "surviving": {
+          "kept": {
+            "units": 6,
+            "equal": 0,
+            "ratio": 0.0
+          },
+          "cfg_edges": {
+            "truth": 0,
+            "repaired": 0,
+            "matched": 0,
+            "ratio": 1.0
+          },
+          "calls": {
+            "truth": 0,
+            "repaired": 0,
+            "matched": 0,
+            "ratio": 1.0
+          }
+        },
+        "removed_by_repair": 0,
+        "metadata_normalized": false,
+        "normalized_nodes": {
+          "truth": 0,
+          "repaired": 0
+        },
+        "affected_by_damage": 0,
+        "affected_by_deletion": 0,
+        "lost": 0,
+        "missing_kept": 0,
+        "added": 0,
+        "added_only_in_repair_bytes": true,
+        "added_bytes_near_damage": true,
+        "change_level": "none",
+        "exact": false
+      },
+      "counter_correspondence": {
+        "status": "partial",
+        "reason": "aligned_generated_names",
+        "renamed_count": 1,
+        "renamed": {
+          "TMP_3": "TMP_13"
+        },
+        "nodes": {
+          "participating": 2,
+          "structural": 0,
+          "conflict": 3,
+          "definition": 1,
+          "switch": 0
+        }
+      }
+    },
+    "swapped_definitions": {
+      "compiled": true,
+      "kept": {
+        "units": 6,
+        "equal": 2,
+        "ratio": 0.3333333333333333
+      },
+      "cfg_edges": {
+        "truth": 0,
+        "repaired": 0,
+        "matched": 0,
+        "ratio": 1.0
+      },
+      "calls": {
+        "truth": 0,
+        "repaired": 0,
+        "matched": 0,
+        "ratio": 1.0
+      },
+      "surviving": {
+        "kept": {
+          "units": 6,
+          "equal": 2,
+          "ratio": 0.3333333333333333
+        },
+        "cfg_edges": {
+          "truth": 0,
+          "repaired": 0,
+          "matched": 0,
+          "ratio": 1.0
+        },
+        "calls": {
+          "truth": 0,
+          "repaired": 0,
+          "matched": 0,
+          "ratio": 1.0
+        }
+      },
+      "removed_by_repair": 0,
+      "metadata_normalized": false,
+      "normalized_nodes": {
+        "truth": 0,
+        "repaired": 0
+      },
+      "affected_by_damage": 0,
+      "affected_by_deletion": 0,
+      "lost": 0,
+      "missing_kept": 0,
+      "added": 0,
+      "added_only_in_repair_bytes": true,
+      "added_bytes_near_damage": true,
+      "change_level": "none",
+      "exact": false,
+      "raw": {
+        "compiled": true,
+        "kept": {
+          "units": 6,
+          "equal": 0,
+          "ratio": 0.0
+        },
+        "cfg_edges": {
+          "truth": 0,
+          "repaired": 0,
+          "matched": 0,
+          "ratio": 1.0
+        },
+        "calls": {
+          "truth": 0,
+          "repaired": 0,
+          "matched": 0,
+          "ratio": 1.0
+        },
+        "surviving": {
+          "kept": {
+            "units": 6,
+            "equal": 0,
+            "ratio": 0.0
+          },
+          "cfg_edges": {
+            "truth": 0,
+            "repaired": 0,
+            "matched": 0,
+            "ratio": 1.0
+          },
+          "calls": {
+            "truth": 0,
+            "repaired": 0,
+            "matched": 0,
+            "ratio": 1.0
+          }
+        },
+        "removed_by_repair": 0,
+        "metadata_normalized": false,
+        "normalized_nodes": {
+          "truth": 0,
+          "repaired": 0
+        },
+        "affected_by_damage": 0,
+        "affected_by_deletion": 0,
+        "lost": 0,
+        "missing_kept": 0,
+        "added": 0,
+        "added_only_in_repair_bytes": true,
+        "added_bytes_near_damage": true,
+        "change_level": "none",
+        "exact": false
+      },
+      "counter_correspondence": {
+        "status": "partial",
+        "reason": "aligned_generated_names",
+        "renamed_count": 1,
+        "renamed": {
+          "TMP_3": "TMP_13"
+        },
+        "nodes": {
+          "participating": 2,
+          "structural": 0,
+          "conflict": 3,
+          "definition": 1,
+          "switch": 0
+        }
+      }
+    }
+  }
+}

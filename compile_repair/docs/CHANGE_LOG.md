@@ -2351,3 +2351,30 @@ Yul 名称通过与节点相同的组合偏移映射对齐。对起点平移要�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_3_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP5 不能开始。顺序为 Codex 执行 CP4.4 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。
+
+
+## 51. 2026-11-23 CompileRepair CP4.4 局部名称对应与评分比例性（修改 AI 为 Codex）
+
+### 51.1 任务、依据与范围
+
+用户指示从 §4.1 共享上下文开始实施 CP4.4。分支 `compile-repair` 快进同步后已是最新提交 `8739c653`。在已读 r2.19 的基础上核对了 r2.20 全部修订、§1.23、§4.6e、交接第 0–5 节、决定、变更 §49–50 及 CP4.3 的两类审查探针。生产只修改 evaluation/benchmark.py，修改 tests/test_cp42.py、tests/test_cp43.py，新增 tests/test_cp44.py。新产物为 artifacts/cp4_4_v1。本次另更新 CP4_REPORT、PROGRESS、HANDOVER、DECISIONS 及本节。[冻结输入 SHA256](../artifacts/cp4_4_v1/acceptance.json)
+
+### 51.2 实施方式和重要选择
+
+先用既有评分器和生产工具链生成两个审查夹具的八份真值或修复图，保存源码、solc、Slither 和图的哈希；实施后在同一组图上比较。普通评分只用节点事实、IR 数量与逐条非生成名称内容均相同的节点推导对应。冲突的两侧一起退出，定义丢失的使用节点也须退出；重算至稳定后，仅在参与节点及对应的文本调用上替换名称。源码碰撞使整项退回原分。Yul 的单次起点与范围核验复用同一个函数，文件迁移仍使用原来的全图流程。P 的各类移出数互斥，首次移出时计数。[逐函数变更](../artifacts/cp4_4_v1/scope.json)
+
+比例性夹具将三个入口字节在破坏阶段标记，并在每个方案中原位恢复，从而使每个 kept 节点都含有可真正改动的常量。另用跨节点定义与使用图验证局部冲突、级联移出、反转遍历顺序、源码转义字面量碰撞。长度变化和创建码的疑问均先记录证据再征求用户意见。[比例性](../artifacts/cp4_4_v1/proportionality.json) · [夹具与负例](../artifacts/cp4_4_v1/fixture_facts.json)
+
+### 51.3 实测与数据结论
+
+普通夹具 A/B/C 为 7/7、6/7、6/7，含注释和错误 case 的 Yul 三方案为 16/16、16/16、14/16。比例性对照为 3/3，三个单点改动均为 2/3，两个跨节点错误均为 2/6。既有 22 个错误修复与缺节点对照全部检出。14,196 个精确还原和 114 个迁移的历史指标全部匹配，迁移全图证明逐项相同。200 项移动中只有 cp3_00291 的部分指标改善，两个创建码差异仍保留。该样本的存活 kept 为 262/264，合约哈希输入的变化仍可见。移动、精确还原、迁移的只读重算分别用时 7.264、343.289、4.374 秒。[验收汇总](../artifacts/cp4_4_v1/acceptance.json) · [移动比较停点](../artifacts/cp4_4_v1/moves_summary.json)
+
+### 51.4 用户批准、原文差异与待确认设计
+
+按 §50.4，用户转交 CP4.4 即确认普通评分采用逐节点排除。实际编译表明 Yul 注释只使 3 个节点的源码长度增加 20 字节，类型与 IR 相同。用户回复“保留主指标，另列长度变化节点”。全部移动项按 §4.6e 比较后，单元 cp3_00291 的三个 TMP 改名恢复一个节点和一个调用，主 kept 由 261/267 到 262/267，存活调用由 120/121 到 121/121。比较在原门槛以退出码 2 停止。用户回复“接受这一个差值，继续验收”。最终核验精确限制到这个单元、这些指标和已保存的证据；已有评分和停点文件均可追查。[决策及证据哈希](../artifacts/cp4_4_v1/acceptance_authorization.json)
+
+### 51.5 验收、资源、未执行事项与停止
+
+从仓库根运行两套环境的 `python -B -m pytest -x -q -p no:cacheprovider compile_repair/tests`，另由 mando 运行同样命令的 `scripts/DFG/dfg_v2/tests` 目标，每次使用独立 basetemp。生产 1,080 通过、6 跳过，108.27 秒；mando 612 通过、474 跳过，45.71 秒；DFG v2 2,653 通过、9 条告警，191.22 秒。生产文件 17 个，354 个 DFG 引用一致。历史重算直接使用封存图，训练、LLM 调用及本次费用均为零。CP5 待独立审查后再开始。[套件结果](../artifacts/cp4_4_v1/suites/) · [科学证据封存](../artifacts/cp4_4_v1/evidence_seal.json)
+
+六份中文文档经 `doc_check --expect-cjk` 检查通过。CP4_REPORT、PROGRESS 和本文件先与起始提交核对原始字节前缀，再检查追加区间；HANDOVER、DECISIONS 与新批次 README 检查全文。封存同时覆盖 4 份生产或测试代码交付文件及 5 份模块文档。[文档检查](../artifacts/cp4_4_v1/doc_check.json) · [最终封存](../artifacts/cp4_4_v1/seal.json)

@@ -270,3 +270,50 @@ Yul switch 起点须通过节点使用的两阶段组合映射。旧范围必须
 从仓库根目录运行两套环境的模块回归及 mando 的 DFG v2 回归，production 1,076 项通过、6 项跳过，mando 609 项通过、473 项跳过，DFG v2 2,653 项通过、9 条告警。354 个冻结 DFG 引用逐项一致。手写夹具使用 solc 0.8.38、Slither 0.11.6、crytic-compile 0.4.2，编译器 SHA256 为 `65c3180a336eabb6bdc4bbd49cc405aeb233976964ae6c11fba2a6c8be8f3243`。三组历史重算的 solc 与 Slither 调用数均为 0。CPU 本地运行，费用 0 美元，训练和 LLM 调用均为 0。
 
 运行证据封存文件 `artifacts/cp4_3_v1/evidence_seal.json` 的 SHA256 为 `5bd5399c061f89789405785862dba7db470cff1bd962946cf0f7b2d82623d87e`。本轮按 r2.19 全部通过本地验收，后续为独立审查。[回归命令和复现步骤](artifacts/cp4_3_v1/README.md) · [最终验收](artifacts/cp4_3_v1/acceptance.json) · [封存](artifacts/cp4_3_v1/seal.json)
+
+
+## CP4.4 按节点核验普通修复的生成名称（2026-11-23，修改 AI 为 Codex）
+
+基线为 `8739c653`。普通评分现在只从结构相符的 kept 节点推导名称映射。遇到冲突时，冲突两侧涉及名字的节点同时退出；再检查改名定义及 Yul switch，直到参与集合稳定。退出的节点使用原样分数，源码标识符或解码字面量与候选名冲突时整项使用原分。分数保留 raw、参与节点数和各类移出数。迁移的全图证明沿用原判据。[分数与计数说明](artifacts/cp4_4_v1/README.md)
+
+### 手写夹具与负例
+
+| 验收项 | 预期及实测 |
+|---|---|
+| 普通 A，中性插入 | 7/7，verified。 |
+| 普通 B，插入并修改 k 的一个常量 | 由 CP4.3 的 3/7 变为 6/7，verified。只有 k 的一个表达式不同，另六个节点参与推导。 |
+| 普通 C，原位恢复并修改同一常量 | 6/7，identical。没有使用改名，真实改动仍检出。 |
+| Yul A，移动 helper | 16/16，两个嵌套 switch 通过字节映射。 |
+| Yul B，另在汇编块中加注释 | 16/16，13 项参与。ENTRYPOINT、ASSEMBLY、ENDASSEMBLY 的长度各增加 20 字节，三项按用户决定单列，依既有主指标原样比较时均相等。 |
+| Yul C，改错 case 常量 | 14/16，partial，exact 为 false。偏移 129 的表达式和偏移 143 的条件节点不等，一项结构不同，一项因其改名定义无法在剩余节点中核验而退出。 |
+| 逐节点比例性 | 三个真实函数中共有三个含常量的 kept 节点。中性插入为 3/3，每次只改其中一个常量的三次实测均为 2/3。 |
+| 故意错误 | CP4 的 22 个错误修复和一个缺节点对照均检出。CP4.1–CP4.3 的负例随模块测试通过。跨节点改用另一个计数名、只交换两个定义的结果名均为 2/6、exact false。两例各移出 3 个冲突节点，复核后再移出 1 个失去定义的使用节点。 |
+
+[六个场景的新旧分数](artifacts/cp4_4_v1/review_scores.json) · [节点证据](artifacts/cp4_4_v1/fixture_facts.json) · [比例性收据](artifacts/cp4_4_v1/proportionality.json)
+
+### 历史重算与已确认的差异
+
+14,196 个精确还原的指标全部匹配，状态全部为 identical。114 个文件迁移的完整评分和全图证明逐项相同。200 项移动中 199 项的指标与 CP4.3 相同，存活部分全等的仍为 199 项。三组历史重算的 solc 与 Slither 调用数均为零。
+
+唯一差值为 `cp3_00291`。两个含创建字节码的节点仍不相等。此前整项退回原分，连带使 `SafeMath.add` 的独立表达式和一个调用也得不到匹配；本次可以验证 TMP_0/1/2 分别对应 TMP_3/4/5。主 kept 为 262/267（原 261/267），存活 kept 为 262/264（原 261/264），存活调用为 121/121（原 120/121）。主调用的匹配数由 132 增至 133，两侧调用总数仍为 134、133，exact 仍为 false。首次比较按原门槛以退出码 2 停止，用户核对证据后接受这一项。最终验收同时保留原停点与授权。[逐节点与调用差异](artifacts/cp4_4_v1/movement_difference.json) · [批准记录](artifacts/cp4_4_v1/acceptance_authorization.json)
+
+### 实现、测试与封存
+
+生产只修改 `evaluation/benchmark.py`，新增 147 行、删除 17 行，生产文件仍为 17 个。逐函数增删见下表；模块层行数包括正则定义、节点记录和函数间隔。新增 `tests/test_cp44.py`，更新 CP4.2、CP4.3 测试中按新版含义判断局部冲突和 Yul 错位的断言，保留它们的原分和错误检测检查。
+
+| 范围 | 增加行 | 删除行 |
+|---|---:|---:|
+| `module` | 13 | 1 |
+| `_switch_proof` | 17 | 0 |
+| `_align_switches` | 3 | 16 |
+| `_ordinary_node_names` | 35 | 0 |
+| `_prune_name_nodes` | 36 | 0 |
+| `_ordinary_correspondence` | 27 | 0 |
+| `_ordinary_correspondence.replace` | 2 | 0 |
+| `_ordinary_correspondence.replace.token` | 3 | 0 |
+| `score_graphs` | 9 | 0 |
+| `score_graphs.result` | 2 | 0 |
+
+科学证据封存 evidence_seal.json 的 SHA256 为 `88064d946980babe9151c1ce3462bf54782a20b1136dc98874238562ee98350f`。
+
+生产环境模块测试 1,080 项通过、6 项跳过；mando 612 项通过、474 项跳过；DFG v2 为 2,653 项通过、9 条告警，354 个冻结 DFG 引用一致。审查夹具使用 Slither 0.11.6、crytic-compile 0.4.2 与 solc 0.8.38。编译器 SHA256 为 `65c3180a336eabb6bdc4bbd49cc405aeb233976964ae6c11fba2a6c8be8f3243`。CPU 本地运行，费用 0 美元。CP4.4 已按两项用户决定完成本地验收，待独立审查。[运行命令与复现步骤](artifacts/cp4_4_v1/README.md) · [最终验收](artifacts/cp4_4_v1/acceptance.json) · [最终封存](artifacts/cp4_4_v1/seal.json)
