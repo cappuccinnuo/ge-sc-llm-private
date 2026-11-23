@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.21（2026-11-23；r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.22（2026-11-23；r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.22 相对 r2.21 的修改**（CP4.5 审查；证据 `artifacts/cp4_5_review_v1/README.md`）：
+1. CP4.5 经审查成立（新增 1.25 节）：以定义为锚的名称对应在审查的四个旧名场景中都给出正确的节点数，并把相等计给正确的节点；写回形式（`(->目标)`、引用数组初始化、引用删除）的识别经用户批准，14,196 项精确还原、200 项移动与 114 项迁移重算与 CP4.4 相同。CP4 系列到此结束。
+2. 两项带入 CP5 的已知限制：写回形式按已观察到的写法逐一识别，未覆盖的写法会使相同的图被判为不相等（只会低估），CP5 第 0 节先在全部基础单元上自比核验；源码中出现生成名称（例如标识符 `TMP_4`）时整项退回原分，CP5 报告单列这类状态。
+3. 新增 4.6g 节 CP5 的完整提示（第 2–4 步：项目组装、离线库索引与依赖补全、缺失文件搜索），含两处用户决定（D22 版本身份与清单文件、D23 下载清单）的停止点。
 
 **r2.21 相对 r2.20 的修改**（CP4.4 审查；证据 `artifacts/cp4_4_review_v1/README.md`）：
 1. CP4.4 的按节点推导、比例性与重算经审查成立（新增 1.24 节）。
@@ -401,6 +406,16 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | version_dependent | 221 个，183 个有可解析版本上的共同阻碍（other 157、undeclared_identifier 124） |
 | 审查 | 11 个边界输入与 1,694 个真实 Solidity 输入、22 个 Vyper 结果正确；132 项测试通过 |
 
+### 1.25 CP4.5 结果（2026-11-23 审查；证据 `artifacts/cp4_5_v1/`、`cp4_5_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 名称对应 | 以真值中唯一的定义为锚；使用处须一致；无锚名称只在不冲突时按原名接受；不再用原样比较兜底 |
+| 写回形式 | 用户批准识别 `(->目标)` 写回、引用数组初始化与引用删除；首轮 678 项精确还原与 4 项移动因未识别写回而不等，识别后全部相同 |
+| 审查探针 | 旧名场景 3/3、2/3、2/5、2/3，均等于真正正确的节点数；比例性、Yul、删除未破坏函数的结果不变 |
+| 重算 | 精确还原 14,196/14,196 identical；移动 200 项与 CP4.4 相同；迁移 114 项不变；301 项测试通过 |
+| 带入 CP5 | 写回形式的覆盖需在全部基础单元上自比核验；源码含生成名称时退回原分 |
+
 ### 1.24 CP4.4 结果（2026-11-23 审查；证据 `artifacts/cp4_4_v1/`、`cp4_4_review_v1/`）
 
 | 项 | 结果 |
@@ -487,6 +502,8 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | D13 | 哪个创新点使用这些图，以及是否存数据依赖 | 待定，CP10 之后再议 |
 | D16 | Slither 版本（测量见 1.6、1.7 节）。Slither 0.8.0（`mando`）只用于 6c 精确重放回归；生产工具链放在独立环境，不改 `mando`。r2.4 推荐 0.11.6（Python ≥ 3.10、crytic-compile 0.4.2）：19 个语法探针全部通过，是仍在维护的最新版本；代价是 3 个 0.4.24 MANDO 文件崩溃（同类写法在 DAppSCAN 的 2,189 个 0.4 文件中 6 个；可用 3.2 节第 10 行的语义等价改写处理，记为 rewrite）、图结构增加隐式 RETURN 与 ENDASSEMBLY 节点。备选 0.9.6（Python ≥ 3.8、crytic-compile 0.3.11）：846/846 通过、结构与 0.8.0 几乎相同，但 0.8.7 起的 6 种合法写法无法分析，且不会再修复。r2.3 曾推荐 0.9.6，依据的探针集太窄。训练与检测必须使用同一版本 | 已定（用户 2026-11-13）：0.11.6 + crytic-compile 0.4.2，Python 3.10 独立环境 |
 | D18 | 编译器获取：推荐一次性安装 0.4.12 至官方快照最新版本（当前 0.8.38）的全部正式版本（尚缺 59 个），双哈希校验，独立追加信任清单；之后的新发布按授权追加。检测时不自动下载。安装后 3.3 节第 6 条 pragma 覆盖只用于官方没有可用构建或低于 0.4.12 的精确 pragma（例如 `pragma solidity 0.4.10;`） | 已定（用户 2026-11-13）；已安装，0.4.12–0.8.38 共 92/92 |
+| D22 | 依赖版本身份（CP5）：确定性方法可以读取项目内的清单文件（package.json、package-lock.json、yarn.lock、pnpm-lock.yaml、remappings.txt、foundry.toml、hardhat/truffle 配置中的 remapping 与依赖版本），作为 D10 所说“源码文本”的一部分；版本身份分三级：T1 锁文件给出精确版本，T2 清单给出版本范围，T3 没有清单。T1、T2 由第 3 步确定性补全；T3 在 DAI 式兼容检查（路径、pragma、导入符号、编译与 D3）通过时也由第 3 步补全，改动记为 additive 并在清单中标记 inferred，多个候选时按 dev 划分上选定的规则取一个；检查不通过或没有候选时交给代理 | 建议，待用户确认（CP5 第 1 节之后停下请求） |
+| D23 | 库发布版下载清单（CP5）：按 CP5 第 1 节的测量结果列出包名、版本范围、发布版数、压缩与解压大小，只下载 npm 注册表的发布包，用注册表给出的 integrity 与本地 SHA256 双重核对；原始包放在仓库外，仓库内只放清单与校验和 | 待用户授权（CP5 第 1 节之后停下请求） |
 | D19 | Slither 下限：维持 0.4.12。CP1 第 6 节在生产工具链上测得 0.4.11 两种工作目录 5/5 通过、0.4.0–0.4.10 全部缺文件名；把 0.4.11 加入候选会改变大量 `^0.4.x` 文件的选定版本，而受益的只有精确 `0.4.11` pragma（可经 pragma 覆盖处理），所以暂不扩展 | 建议（可由用户改）；CP3 按真实语料频率复议 |
 
 ---
@@ -1404,6 +1421,61 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 
 ## 4. 报告与验收
 - 修改的函数与行数；生产文件数（删除不再使用的函数）；两个环境的模块测试与 DFG v2 测试都运行，逐项给出预期与实测。
+```
+
+### 4.6g CP5：项目组装、离线库索引与依赖补全、缺失文件搜索（第 2–4 步；r2.22 细化）
+
+```text
+# CP5：让缺包依赖、缺失相对文件、standard JSON 包装与相关路径问题的单元可以编译，并在基准上用 CP4 的评分核验
+
+依据：PROMPTS r2.22（3.1、3.2 节第 2–4 步、3.7 节、D1、D7、D10、D22、D23）；CP3/CP3.1 的分类与统计（artifacts/cp3_binding_v1/failure_summary.json 的 distinct_source_import_statistics、cp4_1_v1/d6_routes.json 中 unresolved_package_import、missing_relative_file、standard_json_input、io_error、closure_version_conflict 的路线）；CP4–CP4.5 的基准与评分（evaluation/benchmark.py::score_graphs）；审查证据 artifacts/cp4_5_review_v1/README.md。CP0–CP4.5 的产物不改、不覆盖；新结果写入新批次 cp5_v1（仓库外资料按 CP3 的方式另放）。语料按用户“仅本地研究使用”的批准使用。报告写入新的 CP5_REPORT.md。
+
+代码：只改 toolchain/project.py（第 2 步与 standard JSON 解包）、新增 rules/dependencies.py（第 3、4 步与离线库索引的构建、校验、读取；3.10 节表内已有此文件）、pipeline.py（按 3.1 节接入第 2–4 步）、cli.py（只加子命令）、evaluation/report.py 与 evaluation/benchmark.py（只加汇总与基准接入，不改评分规则）。生产文件 17 → 18。rag 以后只读索引的磁盘格式，不导入 rules。不修改 rules/environment.py 的版本策略与 toolchain/solc.py 的分类。
+
+## 0. 前置核验（不需要授权，不编译）
+- 评分自比：对全部 16,136 个基础单元，用真值图对自身评分（原始、破坏、修复源码相同，偏移映射为空）。预期 16,136/16,136 为 exact、名称状态 identical、name_mismatch 与 disputed 为 0。任何一个不满足即停下，列出指令写法（写回形式未覆盖）。
+- 名称状态统计：CP4.5 全部历史评分中 rejected 的数量与原因（源码含生成名称等），写入报告。
+
+## 1. 测量（不下载、不改代码，只读语料与 CP3 结果）
+- 对 CP3 主因或任一候选含 unresolved_package_import、missing_relative_file、standard_json_input、io_error、closure_version_conflict 的全部单元，按项目统计：
+  - 清单文件：package.json（dependencies、devDependencies、别名写法如 "npm:"）、锁文件（package-lock.json、yarn.lock、pnpm-lock.yaml）、remappings.txt、foundry.toml、hardhat.config.*、truffle-config.*；每类的项目数，以及能从中确定精确版本（T1）、版本范围（T2）、都没有（T3）的项目数与单元数。
+  - 项目内已有的包副本：路径中含 node_modules/<包>、lib/<包>、或与导入前缀后缀相同的目录，能否覆盖该单元全部包导入。
+  - 每个单元的包集合；按包统计单元数；“若索引前 N 个包，有多少单元的全部包导入都被覆盖”（N = 5、10、20、40、全部）。区分 npm 上存在的包名与不是包的前缀（如 lib、interfaces、SomeFile.sol、contracts）。
+  - 每个包需要的导入路径集合，以及这些路径的 pragma 写法（用 rules/environment.py 读取）。
+  - standard JSON 包装：源数量、settings 中的键（remappings、optimizer、evmVersion、viaIR、libraries 等）与 urls/keccak256 字段的出现数。
+- 输出 cp5_v1/measurement.json 与 D22、D23 的请求文件（包名、建议的发布版范围与理由、发布版数、压缩与解压大小、注册表地址）。在这里停下，等待用户对 D22 的确认与 D23 的授权；未授权不得下载。
+
+## 2. 第 2 步：项目组装（toolchain/project.py；改动等级 none）
+- standard JSON 解包：把 sources 中每个源按源单元名写入工作副本（拒绝绝对路径、.. 越界、重复规范化路径、缺 content 只有 urls 的源）；给出 keccak256 时核对；settings.remappings 转为命令行 remapping；optimizer、evmVersion、viaIR 映射到 3.3 节第 3a 条已支持的编译设置，其余键记录但不使用；整个 sources 作为一个编译单元。记录原包装 SHA 与逐源 SHA；节点文件名为源单元名。
+- 项目内包副本与清单中的 remapping：导入前缀在项目内有唯一可覆盖全部导入的目录时，加 remapping（不复制、不改源码）。多个候选时不选，交给第 3 步或代理，记录候选。
+- 拒绝把 remapping 指向工作副本以外的位置。
+
+## 3. 第 3 步：离线库索引与依赖补全（rules/dependencies.py；改动等级 additive）
+- 索引构建（只在 D23 授权后、只用授权清单）：下载 npm 发布包到仓库外目录，核对注册表 integrity（sha512）并记录本地 SHA256；只抽取 .sol 文件；每个文件记录路径、SHA256、pragma 区间、导入、声明的合约/接口/库与函数签名（由 import_directives 与 lexical_tokens 等已有词法工具得到，不编译）。索引写成带 seal 的磁盘格式，修复时只读，不联网。
+- 候选发布版：按 D22 的三级身份：T1 只取锁文件版本；T2 取范围内的发布版；T3 取索引中的全部发布版。逐个做兼容检查（DAI 两步并扩展）：
+  - 路径：单元中该包的每个导入路径都在发布版中存在，且发布版内部的传递导入都能在发布版或同一单元已选的其他包中解析；
+  - pragma：单元自身文件与将加入的全部发布版文件的 pragma 区间交集，在 92 个支持版本中非空；
+  - 符号：`import {A, B} from` 与 `import "x" as y` 的命名符号在发布版文件中有声明；
+  - 编译与 D3：按 3.3 节的版本策略在交集上编译，D3 通过。
+- 选择：同一单元中每个包只用一个发布版。多个候选都通过时，在 dev 划分上比较三个预先写定的规则（区间内最新、区间内最旧、与单元选定编译器版本系列最接近的最新），以基准真值（CP4.1 的 114 个缺包样本中原始包文件的字节）与编译成功率为准选定一个，写入报告后固定；test 只报告。
+- 放置：发布版文件写入工作副本中的保留目录（例如 .compile_repair/deps/<包>@<版本>/），加对应 remapping；不改任何原文件（用 core/provenance 的 additive 检查机械核对）。清单记录包、版本、身份等级（T1/T2/T3 inferred）、integrity、逐文件 SHA。
+- 不适用：前缀不是 npm 包、索引中没有该包、兼容检查全部失败；记录原因，交给后续代理。
+
+## 4. 第 4 步：缺失文件搜索（rules/dependencies.py；改动等级 rewrite，只改导入路径字符串）
+- 对 missing_relative_file：在同一项目根内找候选文件，依据依次为：相同相对后缀、大小写不同、目录移动后文件名相同。候选须满足：声明导入所需的符号（命名导入的符号，或导入方使用而其他闭包文件未声明的合约名）、pragma 与单元区间相交。唯一候选才改写，只替换导入指令中路径字符串的字节（D7：错误定位到的行）；多个候选或零个记录并交给代理。
+- 相对路径指向包内文件（例如 ../node_modules/<包>/…）时，转第 3 步处理。
+- io_error 与 closure_version_conflict：只在能归入第 2–4 步的上述情形时处理，其余记录原因（不越过 3.3 节第 6 条覆盖 pragma）。
+
+## 5. 流水线接入（pipeline.py）
+- 按 3.1 节：第 1 步失败且分类含上述类别时，依次尝试第 2、3、4 步；每个被接受的改动回到编译，并重新运行第 1 步（依赖加入后区间可能变化）。接受条件按 3.1 节（错误数严格减少或全部消失）。每一步与每一轮写入清单。
+- MANDO 回归：843 个真值单元的图与 cr_store_mando_v5 字节相同，第 2–4 步不得触发。
+
+## 6. 评估与验收
+- 基准（evaluation/benchmark.py 的 score_graphs，不改评分规则）：unresolved_package_import（114）、missing_relative_file（400）、standard_json_input（950）、io_error（400）、closure_version_conflict（400）的纳入样本，dev 用于开发，test 只报告。每个算子报告：compiled、主 kept 与 surviving、CFG 边与调用比例、removed_by_repair（必须为 0）、exact 比例、名称状态分布、改动等级；缺包样本另报所选发布版与原始包文件字节相同的比例。
+- 外部语料：对 CP3 中上述主因的全部单元重跑（8,454 + 412 + 410 + 28 + 4）。按语料、按第 2/3/4 步、按身份等级报告 D3 通过数；重新汇总剩余失败的主因表（CP3.1 规则）。
+- 机械检查：全部 additive 改动的原字节保留检查通过；全部 rewrite 改动只落在导入路径字符串内；原文件只读。
+- 两个环境的模块测试与 DFG v2 测试都运行。逐项给出预期与实测；修改的函数与行数、生产文件数。
+- 资源：下载量与耗时按 D23 记录；不需要 LLM 调用。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）

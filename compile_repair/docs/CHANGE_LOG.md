@@ -2444,3 +2444,47 @@ Yul 名称通过与节点相同的组合偏移映射对齐。对起点平移要�
 ### 53.5 验收、资源与交接
 
 生产环境模块测试 1,102 项通过、6 项跳过；mando 634 项通过、474 项跳过；DFG v2 2,653 项通过、9 条告警。生产文件 17 个，仅 1 个变动；354 个冻结 DFG 引用一致。历史比对读取已有收据和图，模块测试使用本地工具，CPU、0 美元。无安装、下载、LLM 调用或训练。六份中文文档的检查结果及逐文件 SHA256 见 doc_check.json 和 seal.json。本轮为本地提交，提交身份用 Git 历史中的 CP4.5 前缀核对。等待独立审查。
+
+
+## 54. 2026-11-23 CompileRepair CP4.5 审查与方案 r2.22（修改 AI：Claude）
+
+### 54.1 任务、依据与范围
+
+用户要求（2026-11-23）：Codex 已完成 CP4.5；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；全部核实后进入 CP5。起点 `compile-repair@0b5fd600b`。审查对象：`evaluation/benchmark.py` 的差异（`_bound_reference_write`、`_ordinary_definition`、`_ordinary_node_names`、`_definition_anchors`、`_ordinary_correspondence`、`score_graphs`、`_score_facts`），`tests/test_cp45.py` 与 CP4.2–CP4.4 测试的断言改动，`cp4_5_v1` 与 `continuation/` 的 moves、exact、migration 结果与 write_semantics_request.json，CP4_REPORT 的 CP4.5 节、HANDOVER、DECISIONS、CHANGE_LOG §53、PROGRESS。
+
+修改：`PROMPTS.md`（r2.21 → r2.22：修改说明、1.25 节、D22 与 D23、4.6g 节 CP5）；新增 `artifacts/cp4_5_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 2 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 54.2 实施方式和重要选择
+
+- 核验：在 CP4.5 评分器上重跑 CP4.1–CP4.4 审查的全部探针；读名称核验输出确认被判为不一致的是旧名使用节点；读 `score_graphs` 确认相等计数取自核验集合，不再原样比较；逐项比较 CP4.4 与 CP4.5 续跑的 200 项移动，检查 14,196 项精确还原。
+- 写回形式：Codex 按观察到的写法识别。判断为可以接受：未覆盖的写法只会低估；但精确还原只覆盖抽样单元，所以 CP5 先在全部基础单元上做真值自比。这一步不需要编译，代价很小。
+- CP5 提示的选择：
+  - 先测量后下载。包有 158 个前缀，前 10 个占去重导入的 83%（cp3_binding_v1），但单元级覆盖率、清单文件与锁文件的存在情况都没有统计；下载范围与版本身份规则依赖这些数据，所以第 1 节测量后停下请用户决定。
+  - 版本身份（D22）：D6 路线要求“可确定版本/身份”时才确定性补全，而语料“几乎没有构建配置”。没有清单时，代理掌握的信息并不比离线索引多，所以建议 T3 在兼容检查通过时也由规则补全，标记 inferred，由下游按 D1 决定是否使用；多个候选时的选择规则在 dev 划分上用基准真值确定。这是新的设计点，交用户确认。
+  - 代码位置：索引的构建、校验与读取放在 rules/dependencies.py（3.10 节已有此文件），以后 rag 只读索引的磁盘格式，不导入 rules，因而不新增文件；生产文件 17 → 18。
+  - standard JSON 解包放在第 2 步（D6 路线为 deterministic、改动等级 none），沿用 r2.13“编译用命令行”的结论，只把 remapping 与已支持的编译设置映射过来。
+
+### 54.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 旧名场景 | 3/3、2/3、2/5、2/3，均等于真正正确的节点数 | rerun_review_probes.json |
+| 其余探针 | 7/7、6/7、6/7；Yul 16/16、16/16、14/16；删除未破坏函数 2/7；插到开头 2/2 | 同上 |
+| 移动 | 200 项与 CP4.4 逐项相同 | cp4_4_v1、cp4_5_v1/continuation 的 moves.jsonl.gz |
+| 精确还原 | 14,196 项 exact、identical | continuation/exact.jsonl.gz |
+| 测试 | test_cp45 到 test_benchmark 共 301 项通过、5 项跳过 | 审查环境 pytest |
+| 包分布 | 158 个前缀、13,264 个去重导入；前 5 个占 70%，前 10 个 83%，前 40 个 96% | cp3_binding_v1/failure_summary.json |
+
+未证明：单元级的包覆盖率、清单与锁文件的存在比例、离线索引能补全的单元数（CP5 第 1 节测量）。
+
+### 54.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：首轮差异按门槛停下，两次请求批准，保留首轮结果并另建续跑。
+- 新决定：D22（建议）与 D23（待授权），CP5 第 1 节后停下请求。
+- 已知限制：declaration_error 0 个样本；创建码哈希常量；写回形式覆盖待第 0 节核验；源码含生成名称时退回原分。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 54.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_5_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP4 系列结束，可以开始 CP5；CP5 第 1 节之后须停下等用户决定 D22、D23。本轮提交并 push 到 `compile-repair`。
