@@ -4,7 +4,7 @@
 
 状态：已定（用户）＝用户明确决定；已定（证据）＝由证据确定，用户未反对；建议＝待用户确认；待定＝尚未讨论到；撤销。
 
-## 1. 当前决策（PROMPTS r2.22）
+## 1. 当前决策（PROMPTS r2.23）
 
 | 编号 | 内容（摘要） | 状态 | 最近变化 |
 |---|---|---|---|
@@ -539,3 +539,12 @@ D20a 已按用户授权执行：第 227 份另起进程，第 1 次观察到 Mul
 | 2026-11-23 | 同意 D22 三级规则（推荐） | 缺包单元中 T1 全覆盖 73 个，至少含一个 T3 的有 8,396 个。包别名按声明文件的作用域取证。见 cp5_v1/d22_request.json。 |
 | 2026-11-23 | 批准限定的元数据查询（推荐） | 仅限官方 npm 注册表、已列出的 141 个候选名及最多 500 次发布包 HEAD，响应正文总限 128 MiB。发布包正文另列 D23 清单。见 cp5_v1/authorization.json。 |
 | 2026-11-23 | 批准这 172 版及硬上限（推荐） | 20 个包的精确版本、来源、SHA512 与大小限额按 cp5_v1/d23_download_request.json，批准及清单 SHA256 见 d23/authorization.json。发布包置于仓库外，费用 0 美元。 |
+
+
+### CP5 检查点审查与 r2.23（修改 AI：Claude）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-23 | D24 包装的 optimizer | 新增：包装自带的 optimizer 映射为 --optimize 与 --optimize-runs，只用于包装自带设置（同意 Codex 的 optimizer_request；建议，转交 CP5.1 即确认） | CHANGE_LOG §56.2；cp5_v1/optimizer_request.json | Claude |
+| 2026-11-23 | D23 续传 | 同意只下载清单中剩余 23 个精确 URL，沿用原上限（在 D23 授权范围内） | cp5_v1/d23/transport_stop.json | Claude |
+| 2026-11-23 | 第 3 步候选上限 | 先在 dev 测量实际组合数，再按测量设上限并记录 truncated；不按错误位置提前停止 | CHANGE_LOG §56.2；cp5_review_v1/combination_bound.json | Claude |

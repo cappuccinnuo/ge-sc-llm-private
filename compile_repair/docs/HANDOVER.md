@@ -1,23 +1,21 @@
 # CompileRepair 交接文档
 
-> 先读第 0–5 节、PROMPTS r2.22 §4.6g、CP5_REPORT.md、CHANGE_LOG §55，以及 artifacts/cp5_v1/d23/transport_stop.json 和 optimizer_request.json。
+> 本轮交接先读第 0–5 节、PROMPTS r2.23 §1.26、§2 的 D22–D24、§4.6g 与 §4.6h（CP5.1）、artifacts/cp5_review_v1/README.md、CP5_REPORT.md、CHANGE_LOG §55、§56。
 
 ## 0. 一句话
 
-CP5 已完成前置测量和 MANDO 逐图回归。D22 与 D23 已定，149/172 个发布版已核验。当前停在剩余 23 版续传和 optimizer 参数验证器的两项确认，完整修复率待测。
+CP5 是检查点，已由 Claude 审查：前置自比、测量、D22/D23 批准与下载核对、第 2–4 步实现与 MANDO 回归成立；149/172 个发布版已下载，完整评估未运行。审查发现四个问题（第 4 步无可评测样本、第 3 步无候选上限、规则选择样本太少、包装样本 kept 分母为 0），并同意 Codex 的 optimizer 方案（D24）与续传。下一步：Codex 执行 4.6h 节 CP5.1 → Claude 审查 → CP6。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.22；D5/D16/D18/D20/D20a/D21、CP3.2 三态判定、CP4–CP4.5 的用户决定已定；D22 已定、D23 限指定 172 版已授权；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| 方案与决定 | PROMPTS r2.23；D22、D23 用户已定；D24 建议（转交 CP5.1 即确认）；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP4.5 | 已审查通过 |
-| 基准与评分 | 纳入 14,196 个样本；评分以定义为锚，raw 并列；移动自检 199/200 |
-| 已知限制 | declaration_error 0 纳入；创建码哈希常量（cp3_00291）；写回形式按观察到的写法识别（CP5 第 0 节自比核验）；源码含生成名称时退回原分 |
-| 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
+| CP5 | 检查点：自比 16,136 全部 exact；测量 9,144 个单元；149/172 个发布版；18 个生产文件；MANDO 回归不变 |
+| 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；test_cp5.py 依赖用户本机编译器目录 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| CP5 | 真值自比 16,136/16,136，MANDO 回归 843/843 图相同。依赖清单已获批，下载收据 149/172 |
-| 下一步 | 确认限定续传与 optimizer 范围，建完整索引，在 dev 冻结策略后进行第 6 节全量验收 |
+| 下一步 | CP5.1 → 审查 → CP6 |
 
 ## 2. 分支与工作树
 
@@ -65,6 +63,7 @@ CP4.5 复核先查两份授权、comparison_stop_seal 与最终 acceptance，再
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP5 检查点审查证据（Claude） | artifacts/cp5_review_v1/README.md、combination_bound.json |
 | CP5 检查点 | CP5_REPORT.md、artifacts/cp5_v1/README.md、checkpoint_audit.json、d23/transport_stop.json、optimizer_request.json |
 | CP4.5 审查证据（Claude） | artifacts/cp4_5_review_v1/README.md、rerun_review_probes.json |
 | CP4.5 | artifacts/cp4_5_v1/README.md、comparison_stop_seal.json、continuation/、acceptance.json、seal.json |
@@ -757,3 +756,12 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 从 `26f44492` 同步 r2.22。已完成第 0–1 节、D22 确认与 D23 授权。第 2–4 步已接入流水线，在真实手写探针上通过。MANDO 的 843 个真值图逐字节相同，3 个历史失败状态一致。详见 `CP5_REPORT.md` 和 CHANGE_LOG §55。此处更新了文档开头、第 0 节、第 1 节的状态与下一步，以及第 5 节的证据路径。
 
 继续工作先读 `artifacts/cp5_v1/d23/transport_stop.json` 和 `optimizer_request.json`。149 份已核验归档位于仓库外，剩余 23 份需在得到续传确认后保留原累计上限。参数验证器改动也在等待确认。独立的测试、真值回归、四个评分接入样本已保存。完整索引经 seal 复核后，按冻结划分在 8 个缺包开发样本比较版本选择规则，再进行测试集报告及全量外部修复。
+
+
+### 2026-11-23 CompileRepair CP5 检查点审查与方案 r2.23（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP5（提交 3c7ae7ee5，报告写明为检查点）。新增证据目录 `artifacts/cp5_review_v1/`，修改 `PROMPTS.md`（r2.22 → r2.23）。本文开头、第 0、1 节换成审查结论，第 5 节加入证据路径。
+
+结论：已完成部分成立；CP5 未完成。发现四个问题；同意 optimizer 方案（新增 D24）与 23 个发布版的续传。新增 4.6h 节 CP5.1，完成索引、候选上限、规则选择、第 4 步评测与全量评估。
+
+下一步：Codex 执行 CP5.1，Claude 审查后进入 CP6。本轮没有模块代码改动、下载或安装。详见 CHANGE_LOG §56。

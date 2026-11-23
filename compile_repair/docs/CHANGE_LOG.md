@@ -2517,3 +2517,47 @@ Yul 名称通过与节点相同的组合偏移映射对齐。对起点平移要�
 候选选择测试完成后按待提交代码再次运行 MANDO。18 个生产文件与运行 seal 的 SHA 全部吻合，843 个成功图逐字节相同，三个历史失败状态一致。证据见 `final_mando/summary.json`。补入最终回归收据后，六份文档再次通过检查，最终结果见 `checkpoint_doc_final.json`。
 
 两个 MANDO 控制台日志中包含编译器原样引用的既有源码行，行首空格与 Tab 触发 Git 空白检查。交付采用无损 gzip，经解压逐字节比对，两份原件均保留在本地。原 SHA 与压缩文件 SHA 见 `log_archives.json`。交付版全部文件通过暂存区检查，文档终检见 `checkpoint_doc_delivery.json`。
+
+
+## 56. 2026-11-23 CompileRepair CP5 检查点审查与方案 r2.23（修改 AI：Claude）
+
+### 56.1 任务、依据与范围
+
+用户要求（2026-11-23）：Codex 已完成 CP5；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP6。起点 `compile-repair@3c7ae7ee5`。Codex 的报告写明这是检查点。审查对象：`rules/dependencies.py`（`relative_repairs`、`_release_sources`、`dependency_choices`）、`toolchain/project.py` 与 `pipeline.py` 的差异，`tests/test_cp5.py`，`cp5_v1` 的 self_summary、historical_status、measurement、measurement_units、d23_download_request、d23/download.jsonl、transport_stop、optimizer_request、multi_input_probe、dev_probes，CP5_REPORT、HANDOVER、DECISIONS、CHANGE_LOG §55、PROGRESS。
+
+修改：`PROMPTS.md`（r2.22 → r2.23：修改说明、1.26 节、D22/D23 状态、D24、3.3 节第 3a 条注明 D24 例外、4.6h 节 CP5.1）；新增 `artifacts/cp5_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 3 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 56.2 实施方式和重要选择
+
+- 数据：核对第 0 节与测量的加减关系；逐包比较批准清单与已下载收据。
+- 代码：读第 3、4 步的主要函数与 pipeline 的选择循环；“closest”规则的距离在 pipeline 中计算，确认三条规则都有实现与对照测试。
+- 第 4 步：读 CP4 的算子，确认缺相对文件算子删除文件、io_error 算子改为不存在的路径；结合两个开发探针的 `unresolved_imports`，判断第 4 步在基准上没有可评测样本。D6 路线写“删除或移动”，因此补“移动”变体。
+- 第 3 步：用下载清单与测量的待补包计算组合上限。计划中曾考虑“剩余错误都在项目文件里就停止尝试其他版本”，没有采用：发布版的选择会改变项目自身文件中的错误（新版本删除了项目调用的函数时，错误落在项目文件），按位置判断会漏掉可以成功的版本。改为先测量、再按测量设上限。
+- 规则选择：dev 只有 8 个缺包基准样本，加入 dev 划分真实单元的成功数作为主要依据；73 个 T1 单元来自同一项目，只作参考。
+- optimizer：图来自 AST，不受 optimizer 影响；104 个包装使用 viaIR，不开 optimizer 更容易出现 Stack too deep。包装自带的是作者的设置，同意 Codex 的方案，限定只用于包装自带设置，作为 3.3 节第 3a 条的例外（D24）。
+- 测试：`tests/test_cp5.py` 在收集时读取用户本机编译器目录与授权文件，审查环境无法运行（已知的可移植性限制）；临时路径映射后仍因编译器清单与官方发布不一致而失败，已撤除，以 Codex 记录为准。
+
+### 56.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 自比 | 16,136/16,136 exact、identical | self_summary.json |
+| 测量 | 8,469 = 73 + 0 + 8,396；9,308 个主因计数去重 9,138，加 6 个只在候选中出现，共 9,144 | measurement.json |
+| 下载 | 批准 172 个（20 个包，每包至多 12 或 13 个代表版本）；已核对 149 个 | d23_download_request.json、d23/download.jsonl |
+| 组合上限 | 单元待补包中在清单内的：1 个包 5,139、2 个 1,101、3 个 228、4 个 35；上限 ≥ 100 的 783 个、≥ 1,000 的 184 个、最大 13,824 | cp5_review_v1/combination_bound.json |
+| 开发探针 | 包装 cp3_00775 exact（kept 分母 0，418 个节点在破坏区间内全部恢复）；缺相对文件与 io_error 为 unresolved_imports；pragma 冲突为 no_candidate_compiler | dev_probes.jsonl |
+| 算子 | 缺相对文件为 delete_file；io_error 为 `file:cp4_nonexistent_dependency.sol` | evaluation/benchmark.py |
+
+未证明：第 3 步实际编译的组合数；真实缺相对文件单元中项目内有同名候选的比例；三条规则的优劣（CP5.1 测量）。
+
+### 56.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：第 1 节后停下请求 D22、D23 与元数据查询；下载失败即停、没有部分文件；optimizer 与方案冲突时停下请求。
+- 方案自身的不足：4.6g 没有规定第 3 步的候选上限、第 4 步的评测样本与包装样本的评分口径；以 4.6h 补齐。
+- 新决定：D24（建议，转交 CP5.1 即确认）；续传在 D23 范围内。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 56.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp5_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP6 不能开始。顺序为 Codex 执行 CP5.1 → Claude 审查 → CP6。本轮提交并 push 到 `compile-repair`。

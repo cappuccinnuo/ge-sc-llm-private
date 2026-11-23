@@ -603,3 +603,10 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 两套环境分别执行 `python -B -m pytest -q -p no:cacheprovider compile_repair/tests`。production 为 1,126 通过、6 跳过，mando 为 651 通过、481 跳过。mando 执行 `python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests`，2,653 通过。专用临时目录、命令、耗时与日志见 `artifacts/cp5_v1/implementation_checks/` 和 `dfg_tests.json`。
 
 剩余 23 个已列明的 npm 版本因 HTTP 连接中断停下。共享参数白名单的 optimizer 扩展等待确认。两个请求、先前 WSL 启动超时的处理，以及原始记录见 `CP5_REPORT.md` 和 CHANGE_LOG §55。完整离线索引、版本选择实验、2,264 项基准与 9,138 个外部单元的实测仍待完成。
+
+
+## CP5 检查点审查与方案 r2.23（Claude，2026-11-23）
+
+- CP5 为检查点：自比 16,136 全部 exact；测量 9,144 个单元；D22、D23 获批；149/172 个发布版已核对下载；MANDO 回归不变。完整评估未运行。
+- 发现：第 4 步无可评测样本；第 3 步无候选上限（组合上限最大 13,824）；规则选择样本太少；包装样本 kept 分母为 0。同意 optimizer 方案（D24）与续传。
+- PROMPTS r2.23：新增 1.26 节、D24、4.6h 节 CP5.1。证据 `artifacts/cp5_review_v1/`；记录 `docs/CHANGE_LOG.md` §56。下一步 CP5.1。
