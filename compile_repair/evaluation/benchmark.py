@@ -54,7 +54,7 @@ def environment_observation(base, entry, project, compilers, frozen_versions, st
     known = mando_known_version(raw, frozen_versions)[0] if regression else None
     sources = project.files if project else (SourceFile(str(entry), _digest(raw), raw, base["kind"]),)
     unit = CompilationUnit(unit_id, sources, known, regression)
-    return repair_unit(unit, compilers, store, journal, project=project)
+    return repair_unit(unit, compilers, store, journal, project=project, environment_only=True)
 
 
 def control_observation(base, compilers, frozen_versions, store, journal):
@@ -1557,3 +1557,86 @@ def score_request(request_path, output):
                        file_renames=spec.get("file_renames"),normalize_creation_code=spec.get("normalize_creation_code",True))
     ArtifactStore(output).write_json("score.json",score)
     return {"status":"complete","summary":score}
+
+
+def dependency_repair_observation(base, mutation, original, damaged, damage_maps, damaged_root,
+                                  compilers, frozen_versions, offline_index, policy, output):
+    """Run ordinary CP5 repair on the damaged inputs, then score against separately checked truth."""
+    store = ArtifactStore(output)
+    entry_name = next(iter(original))
+    damaged_root = Path(damaged_root)
+    for name, data in damaged.items():
+        if (damaged_root / (name or "input.sol")).read_bytes() != data:
+            raise ValueError("Damaged input differs from benchmark receipt")
+    entry = damaged_root / (entry_name or "input.sol")
+    regression = "mando" if base["corpus"] == "MANDO" else None
+    raw = damaged[entry_name]
+    known = mando_known_version(raw, frozen_versions)[0] if regression else None
+    project = resolve_project(damaged_root, entry, base["remappings"]) if base["project_root"] else None
+    sources = project.files if project else (SourceFile(str(entry), _digest(raw), raw, base["kind"]),)
+    unit = CompilationUnit(base["unit_id"], sources, known, regression)
+    with store.journal("invocations.jsonl") as journal:
+        result = repair_unit(unit, compilers, store, journal, project=project, offline_index=offline_index,
+                             dependency_policy=policy)
+    unit_dir = store.path / "units" / unit.unit_id
+    step_path = unit_dir / "repair_steps.json"
+    steps = json.loads(step_path.read_bytes()) if step_path.is_file() else []
+    accepted = [s for s in steps if s.get("accepted")]
+    receipt = store.path / accepted[-1]["receipt"] if accepted else unit_dir / "result.json"
+    project_file = receipt.parent / "project.json"
+    layout = json.loads(project_file.read_bytes()) if project_file.is_file() else None
+    released = {}
+    for step in accepted:
+        released.update(step.get("releases", {}))
+    final, repair_maps, renames = dict(damaged), {}, {}
+    if accepted:
+        if layout is None:
+            raise ValueError("CP5 candidate is missing its project receipt")
+        for source in result.inputs:
+            name = Path(source["path"]).relative_to(layout["root"]).as_posix()
+            raw = Path(source["path"]).read_bytes()
+            if _digest(raw) != source["sha256"]:
+                raise ValueError("Stored candidate source changed")
+            final[name] = raw
+            proof = result.provenance[source["path"]]
+            if proof.changes:
+                repair_maps[name] = proof
+        for old, logical in mutation.get("logical_package_paths", {}).items():
+            for package, release in released.items():
+                if not logical.startswith(package + "/"):
+                    continue
+                new = ".compile_repair/deps/" + package + "@" + release["version"] + logical[len(package):]
+                if new in final:
+                    renames[old] = new
+                    repair_maps[old] = repair_maps.pop(new)
+        if mutation["operator"] == "standard_json_input":
+            # The operator serializes the checked source units. Score the extraction
+            # as an inverse edit of the wrapper. Step 2 itself changes no Solidity bytes.
+            key = entry_name or "input.sol"
+            if key not in final or key not in dict(layout["source_units"]):
+                raise ValueError("Unpacked entry absent from the compiler's source-unit manifest")
+            before, after = damaged[entry_name], final[key]
+            repair_maps[entry_name] = apply_patches(before, (
+                Patch(0, len(before), before, after, "unpack_verified_source_unit"),))[1]
+            if entry_name != key:
+                del final[entry_name]
+                renames[entry_name] = key
+    graph_path = unit_dir / "graph.json"
+    actual = json.loads(graph_path.read_bytes()) if result.status == "success" else None
+    truth = read_checked_json(base["graph_path"], base["graph_sha256"])
+    last = next((r for r in reversed(result.attempts) if r.get("solc")), {})
+    slither = last.get("slither") or {}
+    score = score_graphs(truth, actual, original, damaged, final, damage_maps, repair_maps,
+                         last.get("solc", {}).get("returncode"), slither.get("d3") and result.status == "success",
+                         file_renames=renames)
+    levels = {p.level for p in result.provenance.values()}
+    physical = {old: bool(old in renames and final[renames[old]] == original[old])
+                for old in mutation.get("logical_package_paths", {})}
+    report = dict(unit_id=unit.unit_id, operator=mutation["operator"], corpus=base["corpus"], split=base["split"],
+                  status=result.status, reason=result.reason, policy=policy, selected_version=result.selected_version,
+                  score=score, releases=released, original_package_bytes_equal=physical,
+                  change_level="rewrite" if "rewrite" in levels else "additive" if "additive" in levels else "none",
+                  accepted_steps=[s["step"] for s in accepted], result_path=str(receipt), result_sha256=sha256(receipt),
+                  graph_sha256=sha256(graph_path) if actual is not None else None)
+    store.write_json("evaluation.json", report)
+    return report

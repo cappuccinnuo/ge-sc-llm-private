@@ -2488,3 +2488,32 @@ Yul 名称通过与节点相同的组合偏移映射对齐。对起点平移要�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_5_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP4 系列结束，可以开始 CP5；CP5 第 1 节之后须停下等用户决定 D22、D23。本轮提交并 push 到 `compile-repair`。
+
+
+## 55. CP5 项目组装、依赖版本与传输检查点（2026-11-23，修改 AI 为 Codex）
+
+### 55.1 任务、依据与范围
+
+在 `compile-repair@26f44492` 执行 PROMPTS r2.22 §4.6g。先按 §4.1 核对前置图和现有语料，再开发项目组装、离线依赖补全与缺相对文件搜索。产物单列于 `artifacts/cp5_v1/`，详细验收见 `CP5_REPORT.md`。
+
+### 55.2 实施方式和重要选择
+
+`toolchain/project.py` 将包装中的全部源单元交给同一 solc 和 Slither，校验源路径与内容，为项目内唯一目录生成 remapping。`rules/dependencies.py` 构建并校验只读索引，按包清单约束、导入闭包、pragma 和导入符号选择候选。第 4 步把改写限定在导入路径的原字节区间。`pipeline.py` 记录候选、每轮错误数及接受条件，按实际成功编译器比较候选。单文件的本地搜索范围限于调用方提供的源码。新增 `cli dependency-index` 与基准汇总接入。具体函数、行数和 SHA 见 `checkpoint_audit.json`。
+
+### 55.3 实测与数据结论
+
+16,136 个真值图自比全部 exact。9,144 个不同单元进入测量，五类主因涉及其中 9,138 个。8,469 个有待补包的单元中，73 个的依赖全部能由锁文件确定，8,396 个至少有一项须推断。410 个包装含 5,829 个源。真实 MANDO 回归的 843 个成功图与 v5 字节完全相同，均在第 1 步结束。3 个历史失败状态一致。基准 2,264 个样本的成员和划分已核对。四个开发探针中包装达到 exact，其余三个保留未修复。全部四项的 removed_by_repair 为 0。计数见 `measurement.json`、`mando_regression.json`、`benchmark_inventory.json` 和 `dev_probes.jsonl`。
+
+### 55.4 用户批准、原文差异与待确认设计
+
+用户分别确认“同意 D22 三级规则（推荐）”“批准限定的元数据查询（推荐）”“批准这 172 版及硬上限（推荐）”。授权分别记录在 `authorization.json` 与 `d23/authorization.json`。172 份官方 HEAD 均未提供压缩长度。D23 以逐包与累计上限约束下载和解包。280 个包装设置 optimizer，当前共享参数白名单与 §4.6g 的映射要求冲突。限定修改验证器的建议见 `optimizer_request.json`，等待用户确认。首批下载在 HTTP 状态前断开。剩余 23 版的限定续传另见 `d23/transport_stop.json`，同样等待确认。
+
+### 55.5 验收、资源、未执行事项与停止
+
+生产环境模块 1,126 项通过、6 项跳过，mando 模块 651 项通过、481 项跳过，DFG v2 为 2,653 项通过、9 条警告。生产模块 18 个，DFG 的 354 个代码引用均与基线一致。官方元数据传输 3,132,219 字节，已收取的 149 份归档共 80,004,759 字节，重新核验全部双哈希。完整索引、开发策略冻结、基准全量评分与外部语料重跑未运行。LLM 调用 0，费用 0 美元。测试命令与执行时间见 `implementation_checks/`、`dfg_tests.json` 和 `checkpoint_audit.json`。
+
+文档检查覆盖 CP5_REPORT、PROGRESS、CHANGE_LOG、DECISIONS、HANDOVER 和本批 README，共 6 份，全部通过。两份只追加的文档同时核对了提交前旧文本的逐字节前缀。初次及写入本段后的完整结果分别保存在 `checkpoint_doc_before_result.json`、`checkpoint_doc_check.json`。
+
+候选选择测试完成后按待提交代码再次运行 MANDO。18 个生产文件与运行 seal 的 SHA 全部吻合，843 个成功图逐字节相同，三个历史失败状态一致。证据见 `final_mando/summary.json`。补入最终回归收据后，六份文档再次通过检查，最终结果见 `checkpoint_doc_final.json`。
+
+两个 MANDO 控制台日志中包含编译器原样引用的既有源码行，行首空格与 Tab 触发 Git 空白检查。交付采用无损 gzip，经解压逐字节比对，两份原件均保留在本地。原 SHA 与压缩文件 SHA 见 `log_archives.json`。交付版全部文件通过暂存区检查，文档终检见 `checkpoint_doc_delivery.json`。

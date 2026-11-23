@@ -1,0 +1,165 @@
+{
+  "base": "26f44492c093311257f7b3de41ba3bee2e703ea3",
+  "code": {
+    "cli.py": {
+      "added_lines": 7,
+      "functions": [
+        "main"
+      ],
+      "removed_lines": 1,
+      "sha256": "d018d2e1fbb7254e03b1714e57e4ba80cb2924726cee06f97e78b0ff9d28432f"
+    },
+    "evaluation/benchmark.py": {
+      "added_lines": 84,
+      "functions": [
+        "dependency_repair_observation",
+        "environment_observation"
+      ],
+      "removed_lines": 1,
+      "sha256": "55db8fca0ea5ca030f4e72019635c190869d5454b970901b42806562650c3509"
+    },
+    "evaluation/report.py": {
+      "added_lines": 37,
+      "functions": [
+        "dependency_benchmark_summary"
+      ],
+      "removed_lines": 0,
+      "sha256": "c34af6d0a01d40f76de83dde4b104c06d679012671e5f9fdcbd21d9a8f58c1df"
+    },
+    "pipeline.py": {
+      "added_lines": 252,
+      "functions": [
+        "_environment",
+        "_failure_measure",
+        "repair",
+        "repair_unit"
+      ],
+      "removed_lines": 20,
+      "sha256": "8d6d2f7958ace2d1f98e31fdf0a3eefb06c6481ee50006a4cada8a1d9ba15cea"
+    },
+    "rules/dependencies.py": {
+      "added_lines": 585,
+      "functions": [
+        "OfflineIndex.__init__",
+        "OfflineIndex.content",
+        "_comparator",
+        "_indexed_source",
+        "_json_bytes",
+        "_manifest_alias",
+        "_owned_file",
+        "_pnpm_pins",
+        "_release_sources",
+        "_safe_name",
+        "_sha",
+        "_signatures",
+        "_suffix_rank",
+        "_version",
+        "_write",
+        "_yaml_pins",
+        "build_index",
+        "compatible_compilers",
+        "dependency_choices",
+        "import_symbols",
+        "manifest_identities",
+        "package_spec",
+        "relative_repairs",
+        "release_in_range",
+        "source_declarations"
+      ],
+      "removed_lines": 0,
+      "sha256": "3deb11f5ae53497b483c6d63ca6aa05375673984b0caa192e52a0d1bde417770"
+    },
+    "toolchain/project.py": {
+      "added_lines": 248,
+      "functions": [
+        "Project.manifest",
+        "ProjectIndex.__init__",
+        "_literal_config_remappings",
+        "_project_prefix_arguments",
+        "_relative_unit_name",
+        "_unique_json_pairs",
+        "assembly_remappings",
+        "contained_remappings",
+        "project_command",
+        "resolve_project",
+        "slither_arguments",
+        "unpack_sources",
+        "wrapper_settings"
+      ],
+      "removed_lines": 21,
+      "sha256": "008094db00f7c10671116fbc0baf266f1fa116c5fc9d8ef8abbf7b182b3eb3fa"
+    }
+  },
+  "cost_usd": 0,
+  "dev_probe_statuses": {
+    "success": 1,
+    "unrepaired": 3
+  },
+  "frozen_scoring_functions_unchanged": true,
+  "llm_calls": 0,
+  "mando_graphs_equal": 843,
+  "mando_historical_failures": 3,
+  "modules": 18,
+  "packed_bytes": 80004759,
+  "releases_verified": 149,
+  "remaining": 23,
+  "status": "partial_awaiting_two_decisions",
+  "tests": {
+    "dfg": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/dfg_v2/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp5_v1/tests_dfg"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 196.408,
+      "returncode": 0,
+      "summary": "2653 passed, 9 warnings in 195.42s (0:03:15)"
+    },
+    "mando": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "compile_repair/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp5_v1/implementation_checks/tests_mando"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 24.283,
+      "returncode": 0,
+      "summary": "651 passed, 481 skipped in 24.06s"
+    },
+    "production": {
+      "command": [
+        "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "compile_repair/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp5_v1/implementation_checks/tests_production"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 94.961,
+      "returncode": 0,
+      "summary": "1126 passed, 6 skipped in 94.58s (0:01:34)"
+    }
+  },
+  "unchanged_dfg_refs": 354,
+  "verified_release_elapsed_seconds": 155.055
+}

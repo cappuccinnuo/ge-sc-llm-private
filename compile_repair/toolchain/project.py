@@ -1,8 +1,4 @@
-"""PROMPTS 4.5/3.2 step 2: read-only import closures and matching CLI/API calls.
-
-No package installation, basename repair, framework execution or source rewrite.
-A project records unresolved imports explicitly; compilers still decide syntax.
-"""
+"""PROMPTS 3.2 step 2: read-only Solidity projects, source wrappers and local remappings."""
 import json
 import hashlib
 import posixpath
@@ -27,13 +23,17 @@ class Project:
     source_units: tuple
     imports: tuple
     issues: tuple
+    additional_entries: tuple = ()
 
     def manifest(self):
         """Return provenance and path metadata without copying source contents."""
-        return {"root": self.root, "entry": self.entry, "remappings": self.remappings,
+        result = {"root": self.root, "entry": self.entry, "remappings": self.remappings,
                 "files": [{"path": f.path, "sha256": f.sha256, "bytes": len(f.content)}
                           for f in self.files], "source_units": self.source_units,
                 "imports": self.imports, "issues": self.issues}
+        if self.additional_entries:
+            result["additional_entries"] = self.additional_entries
+        return result
 
 
 def solidity_snippet_evidence(source):
@@ -119,6 +119,103 @@ _VYPER_LINES = {
     "function": rb"^[ \t]*(def)[ \t]+[A-Za-z_]\w*[ \t]*\([^\r\n#]*\)[ \t]*(?:->[ \t]*[^:\r\n#]+)?[ \t]*:",
     "declaration": rb"^[ \t]*(event[ \t]+[A-Za-z_]\w*[ \t]*:|[A-Za-z_]\w*[ \t]*:[ \t]*public[ \t]*\()",
 }
+
+
+
+def _unique_json_pairs(items):
+    result = {}
+    for key,value in items:
+        if key in result:
+            raise ValueError("Duplicate key in Solidity input JSON")
+        result[key] = value
+    return result
+
+
+def _relative_unit_name(name):
+    if (not isinstance(name,str) or not name or name.startswith("/") or "\\" in name or
+            "\x00" in name or re.match(r"^[A-Za-z][\w+.-]*:",name)):
+        raise ValueError("Expected a relative source unit name")
+    normalized = posixpath.normpath(name)
+    if normalized in (".","..") or normalized.startswith("../"):
+        raise ValueError("Source unit outside project")
+    return normalized
+
+
+def contained_remappings(root, values):
+    """Validate literal VFS remappings against a local project and refuse escaping or symlink targets."""
+    if not isinstance(values,(list,tuple)):
+        raise ValueError("Expected a sequence of remappings")
+    checked=[]
+    for value in values:
+        _,_,target=parse_remapping(value)
+        if target and target not in (".","./"):
+            _relative_unit_name(target)
+        if target:
+            _,problem=_local_path(Path(root).resolve(),target)
+            if problem:raise ValueError("Unsafe remapping target: "+problem)
+        checked.append(value)
+    return tuple(checked)
+
+
+def unpack_sources(raw, store, prefix):
+    """Decode a Solidity source wrapper into an exclusive working directory and preserve source-unit identities."""
+    data=raw.strip()
+    if data.startswith(b"\xef\xbb\xbf"):data=data[3:].strip()
+    if data.startswith(b"{{") and data.endswith(b"}}"):data=data[1:-1]
+    obj=json.loads(data,object_pairs_hook=_unique_json_pairs,parse_constant=_reject_json_constant)
+    meta=_source_wrapper(obj)
+    if not meta or not meta["source_count"] or meta.get("content_missing"):
+        raise ValueError("No complete inline Solidity source set")
+    wrapped=isinstance(obj.get("sources"),dict) and set(obj["sources"])==set(meta["source_names"])
+    entries=obj["sources"] if wrapped else obj
+    settings=obj.get("settings",{}) if wrapped else {}
+    if not isinstance(settings,dict):raise ValueError("Invalid compiler settings object")
+    contents={};manifest=[]
+    for source_name,fields in entries.items():
+        name=_relative_unit_name(source_name)
+        if name in contents:raise ValueError("Duplicate normalized source unit: "+name)
+        content=fields["content"].encode("utf8")
+        if "keccak256" in fields:
+            from Crypto.Hash import keccak
+            expected=fields["keccak256"]
+            if not isinstance(expected,str) or not re.fullmatch(r"0[xX][0-9A-Fa-f]{64}",expected):
+                raise ValueError("Invalid source keccak256")
+            if keccak.new(digest_bits=256,data=content).hexdigest()!=expected[2:].lower():
+                raise ValueError("Source keccak256 mismatch: "+name)
+        contents[name]=content
+        manifest.append(dict(source_unit=source_name,filename=name,sha256=hashlib.sha256(content).hexdigest()))
+    if any(parent.as_posix() in contents for name in contents for parent in Path(name).parents):
+        raise ValueError("Source file also used as a directory")
+    root=store.path/prefix
+    remappings=contained_remappings(root,settings.get("remappings",[]))
+    flags,unused=wrapper_settings(settings)
+    names=sorted(contents)
+    paths=[store.write_bytes(prefix+"/"+n,contents[n]) for n in names]
+    index=ProjectIndex(root,paths)
+    assembled=resolve_project(root,names[0],remappings,index,additional_entries=names[1:])
+    return assembled,flags,dict(wrapper_sha256=hashlib.sha256(raw).hexdigest(),sources=manifest,
+                                remappings=remappings,settings=flags,unused_settings=unused)
+
+
+
+def wrapper_settings(settings):
+    """Map settings expressible by the production CLI and retain the remaining keys for the record."""
+    flags=[];unused={k:v for k,v in settings.items() if k not in ("remappings","optimizer","evmVersion","viaIR")}
+    optimizer=settings.get("optimizer",{})
+    if not isinstance(optimizer,dict):raise ValueError("Invalid optimizer settings")
+    enabled=optimizer.get("enabled",False)
+    if type(enabled) is not bool:raise ValueError("Invalid optimizer.enabled")
+    if enabled:flags.append("--optimize")
+    if "runs" in optimizer:
+        runs=optimizer["runs"]
+        if type(runs) is not int or not 0<=runs<=4294967295:raise ValueError("Invalid optimizer.runs")
+        flags.extend(("--optimize-runs",str(runs)))
+    unknown={k:v for k,v in optimizer.items() if k not in ("enabled","runs")}
+    if unknown:unused["optimizer"]=unknown
+    if "evmVersion" in settings:flags.extend(("--evm-version",settings["evmVersion"]))
+    if "viaIR" in settings and type(settings["viaIR"]) is not bool:raise ValueError("Invalid viaIR")
+    if settings.get("viaIR"):flags.append("--via-ir")
+    return validate_settings(tuple(flags)),unused
 
 
 def _vyper_basis(raw):
@@ -252,9 +349,9 @@ def project_entries(root):
 
 class ProjectIndex:
     """Reuse one deterministic project file inventory across entry closures."""
-    def __init__(self, root):
+    def __init__(self, root, entries=None):
         self.root = Path(root).resolve()
-        self.entries = project_entries(self.root)
+        self.entries = project_entries(self.root) if entries is None else tuple(entries)
         self.members = set(self.entries)
         self.names = {}
         for path in self.entries:
@@ -273,7 +370,7 @@ def _local_path(root, name):
     return resolved, None
 
 
-def resolve_project(root, entry, remappings=(), index=None):
+def resolve_project(root, entry, remappings=(), index=None, additional_entries=(), contents=None):
     """Resolve a transitive closure within one supplied project, without repairs.
 
     Missing paths, unsupported external imports and alias cycles are recorded.
@@ -287,20 +384,28 @@ def resolve_project(root, entry, remappings=(), index=None):
     entry_path = (root / entry_path).resolve() if not entry_path.is_absolute() else entry_path.resolve()
     if entry_path not in index.members:
         raise ValueError("Project entry must be a local .sol file under root")
-    remappings = tuple(remappings)
-    for value in remappings:
-        parse_remapping(value)
+    remappings = contained_remappings(root, remappings)
+    overlays = {}
+    for name, data in (contents or {}).items():
+        path, problem = _local_path(root, _relative_unit_name(name))
+        if problem or not isinstance(data, bytes) or path in overlays:
+            raise ValueError("Invalid project source overlay")
+        overlays[path] = data
     names = index.names
     entry_name = entry_path.relative_to(root).as_posix()
-    queue = [(entry_name, ())]; visited, files, imports, issues = {}, {}, [], []
+    extra = tuple(additional_entries)
+    if any(root / name not in index.members or _local_path(root, name)[1] for name in extra):
+        raise ValueError("Additional compiler input outside project inventory")
+    queue = [(n, ()) for n in reversed((entry_name,) + extra)]
+    visited, files, imports, issues = {}, {}, [], []
     while queue:
         unit_name, ancestry = queue.pop()
         if unit_name in visited:
             continue
         path, problem = _local_path(root, unit_name)
-        if problem or path is None or not path.is_file():
+        if problem or path is None or (path not in overlays and not path.is_file()):
             raise ValueError("Internal closure queue contains an unresolved import")
-        raw = path.read_bytes()
+        raw = overlays[path] if path in overlays else path.read_bytes()
         visited[unit_name] = path.relative_to(root).as_posix()
         files[str(path)] = SourceFile(str(path), hashlib.sha256(raw).hexdigest(), raw, "project")
         if str(path) in ancestry:
@@ -313,7 +418,7 @@ def resolve_project(root, entry, remappings=(), index=None):
             target, problem = _local_path(root, target_name)
             if not directive["supported_literal"]:
                 target, problem = None, "unsupported_import_escape"
-            found = target is not None and target.is_file()
+            found = target is not None and (target in overlays or target.is_file())
             relative = imported.startswith(("./", "../"))
             row = dict(directive, importer=unit_name, source_path=str(path),
                        target_source_unit=target_name, resolved=found,
@@ -335,7 +440,7 @@ def resolve_project(root, entry, remappings=(), index=None):
             imports.append(row)
     ordered = [files.pop(str(entry_path))] + [files[p] for p in sorted(files)]
     return Project(str(root), entry_name, remappings, tuple(ordered),
-                   tuple(sorted(visited.items())), tuple(imports), tuple(issues))
+                   tuple(sorted(visited.items())), tuple(imports), tuple(issues), extra)
 
 
 def materialize_project(project, store, prefix, contents=None):
@@ -366,12 +471,18 @@ def _entry_argument(project):
     return "./" + project.entry if project.entry.startswith("-") else project.entry
 
 
+def _project_prefix_arguments(project):
+    # crytic-compile 0.4.2 forwards this list as separate argv tokens before the
+    # main filename. This also compiles disconnected JSON sources in one invocation.
+    return list(project.remappings) + ["./"+n if n.startswith("-") else n for n in project.additional_entries]
+
+
 def project_command(project, compiler, settings=()):
     """Assemble the same combined-json argv as crytic-compile's solc platform."""
     from crytic_compile.platform.solc import _build_options, CompilerVersion
     settings = validate_settings(settings)
     options = _build_options(CompilerVersion("solc", compiler.version, False), False)
-    return [compiler.path] + list(project.remappings) + [
+    return [compiler.path] + _project_prefix_arguments(project) + [
         _entry_argument(project), "--combined-json", options, "--allow-paths",
         str(Path(project.root).resolve())] + list(settings)
 
@@ -379,9 +490,12 @@ def project_command(project, compiler, settings=()):
 def slither_arguments(project, compiler, settings=()):
     """Return matching target/API kwargs for the production Slither invocation."""
     settings = validate_settings(settings)
-    return _entry_argument(project), {"solc": compiler.path, "solc_disable_warnings": True,
-        "solc_working_dir": project.root, "solc_remaps": list(project.remappings),
-        "solc_args": " ".join(("--allow-paths", str(Path(project.root).resolve())) + settings)}
+    kwargs = {"solc": compiler.path, "solc_disable_warnings": True,
+              "solc_working_dir": project.root, "solc_remaps": _project_prefix_arguments(project),
+              "solc_args": " ".join(("--allow-paths", str(Path(project.root).resolve())) + settings)}
+    if not project.entry.endswith(".sol"):
+        kwargs["compile_force_framework"] = "solc"
+    return _entry_argument(project), kwargs
 
 
 def compile_project(project, compiler, timeout=120, settings=()):
@@ -405,3 +519,116 @@ def compile_project(project, compiler, timeout=120, settings=()):
         "timeout" if timed_out else error_first_line(text) if rc != 0 else None,
         text, hashlib.sha256(stdout).hexdigest(), time.monotonic() - start,
         timed_out, settings=settings)
+
+
+def _literal_config_remappings(path):
+    """Read literal configuration lists without importing or executing the project."""
+    raw = path.read_bytes()
+    if path.name == "remappings.txt":
+        return [line.strip() for line in raw.decode("utf-8-sig").splitlines()
+                if line.strip() and not line.lstrip().startswith("#")]
+    if path.name == "foundry.toml":
+        import tomli
+        config = tomli.loads(raw.decode("utf-8-sig"))
+        profiles = config.get("profile", {})
+        default = profiles.get("default", {}) if isinstance(profiles, dict) else {}
+        if not isinstance(default, dict):
+            raise ValueError("Invalid Foundry default profile")
+        return default.get("remappings", config.get("remappings", []))
+    if path.name == "package.json":
+        config = json.loads(raw)
+        return config.get("remappings", []) if isinstance(config, dict) else []
+    # Accept complete literal JS/TS arrays. Comments and quoted text containing
+    # a configuration example do not declare a remapping.
+    tokens = [value for _, _, _, value in lexical_tokens(raw)]
+    values = []
+    for i, token in enumerate(tokens[:-2]):
+        if token.strip(b"'\"") != b"remappings" or tokens[i+1:i+3] != [b":", b"["]:
+            continue
+        literal, expect_value = [], True
+        for part in tokens[i+3:]:
+            if part == b"]":
+                values.extend(literal)
+                break
+            if expect_value and len(part) >= 2 and part[0] in b"'\"" and part[0] == part[-1] and b"\\" not in part:
+                literal.append(part[1:-1].decode("utf8"))
+            elif expect_value or part != b",":
+                break
+            expect_value = not expect_value
+    return values
+
+
+def assembly_remappings(project, index):
+    """Propose local remappings with evidence for every suffix and ambiguous target."""
+    root = Path(project.root)
+    files = set(index.entries)
+    scopes = {root}
+    for issue in project.issues:
+        for parent in Path(issue["source_path"]).parents if "source_path" in issue else ():
+            if parent == root or root in parent.parents:
+                scopes.add(parent)
+    proposed, evidence, declared = [], [], {}
+    for folder in sorted(scopes):
+        configs = [folder / name for name in ("remappings.txt", "foundry.toml", "package.json")]
+        for stem in ("hardhat.config.", "truffle-config."):
+            configs.extend(folder / (stem + suffix) for suffix in ("js", "cjs", "mjs", "ts"))
+        for config in configs:
+            if not config.is_file() or config.resolve() != config:
+                continue
+            location = config.relative_to(root).as_posix()
+            try:
+                entries = _literal_config_remappings(config)
+                if not isinstance(entries, list):
+                    raise ValueError("Expected literal remapping array")
+                for value in entries:
+                    context, prefix, target = parse_remapping(value)
+                    if target and target not in (".", "./"):
+                        _relative_unit_name(target)
+                    base = "" if folder == root else folder.relative_to(root).as_posix() + "/"
+                    resolved = base + target
+                    token = (base + context + ":" if base or context else "") + prefix + "=" + resolved
+                    contained_remappings(root, (token,))
+                    declared.setdefault((base + context, prefix), set()).add(token)
+            except (ValueError, UnicodeError) as exc:
+                evidence.append(dict(config=location, reason=str(exc)))
+    for (context, prefix), values in sorted(declared.items()):
+        covered = [row for row in project.issues if row.get("importer", "").startswith(context)
+                   and "importer" in row and source_unit_name(row["importer"], row["path"]).startswith(prefix)]
+        if not covered:
+            continue
+        candidates = []
+        for value in sorted(values):
+            hits = [_local_path(root, source_unit_name(r["importer"], r["path"], (value,)))[0]
+                    for r in covered]
+            if all(p in files for p in hits):
+                candidates.append(value)
+        evidence.append(dict(origin="configuration", context=context, prefix=prefix,
+                             declared=sorted(values), candidates=candidates))
+        if len(candidates) == 1:
+            proposed.append(candidates[0])
+    unresolved = {row["package"] for row in project.issues if row.get("category") == "unresolved_package_import"}
+    for name in sorted(unresolved):
+        prefix = name + "/"
+        relevant = [r for r in project.imports if r["path"].startswith(prefix)]
+        roots = None
+        for row in relevant:
+            tail = row["path"][len(prefix):]
+            suffix = tuple(tail.split("/"))
+            candidates = set()
+            if suffix and all(s not in ("", ".", "..") for s in suffix):
+                for path in index.names.get(suffix[-1], ()):
+                    if row["resolved"] and path != Path(row["target_path"]):
+                        continue
+                    parts = path.relative_to(root).parts
+                    if tuple(parts[-len(suffix):]) == suffix:
+                        candidates.add("/".join(parts[:-len(suffix)]))
+            roots = candidates if roots is None else roots & candidates
+        roots = sorted(roots or ())
+        evidence.append(dict(origin="project_files", prefix=prefix, candidates=roots,
+                             imports=sorted({r["path"] for r in relevant})))
+        covered_by_config = all(not r.get("category") or any(
+            source_unit_name(r["importer"], r["path"], (m,)) != r["path"] for m in proposed)
+            for r in relevant)
+        if len(roots) == 1 and not covered_by_config:
+            proposed.append(prefix + "=" + (roots[0] + "/" if roots[0] else ""))
+    return tuple(v for v in dict.fromkeys(proposed) if v not in project.remappings), evidence

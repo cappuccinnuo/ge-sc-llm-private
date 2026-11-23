@@ -594,3 +594,12 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 - CP4.5 成立，CP4 系列结束：以定义为锚的名称对应不再高估（旧名场景均等于真正正确的节点数）；移动与精确还原的逐项数据与报告一致；301 项测试通过。
 - 带入 CP5：写回形式在全部基础单元上自比核验；源码含生成名称时退回原分，单列统计。
 - PROMPTS r2.22：新增 1.25 节、D22、D23 与 4.6g 节 CP5 完整提示。证据 `artifacts/cp4_5_review_v1/`；记录 `docs/CHANGE_LOG.md` §54。下一步 CP5（第 1 节后停下请用户决定）。
+
+
+## CP5 项目组装与离线补包检查点（2026-11-23，修改 AI 为 Codex）
+
+本轮从 `26f44492` 实施 r2.22 §4.6g。评分自比 16,136/16,136 通过。完成 9,144 个单元的测量及 D22、D23 授权登记。项目组装、离线库索引、依赖候选、导入路径修复及基准接入代码在 `toolchain/project.py`、`rules/dependencies.py`、`pipeline.py`、`cli.py`、`evaluation/benchmark.py` 和 `evaluation/report.py`。测试新增 `tests/test_cp5.py`，迁移检查按 18 个生产文件验收。MANDO 回归中 843 个真值图字节一致。对一个包装和三个失败类完成真实开发探针，属于接入验收。
+
+两套环境分别执行 `python -B -m pytest -q -p no:cacheprovider compile_repair/tests`。production 为 1,126 通过、6 跳过，mando 为 651 通过、481 跳过。mando 执行 `python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests`，2,653 通过。专用临时目录、命令、耗时与日志见 `artifacts/cp5_v1/implementation_checks/` 和 `dfg_tests.json`。
+
+剩余 23 个已列明的 npm 版本因 HTTP 连接中断停下。共享参数白名单的 optimizer 扩展等待确认。两个请求、先前 WSL 启动超时的处理，以及原始记录见 `CP5_REPORT.md` 和 CHANGE_LOG §55。完整离线索引、版本选择实验、2,264 项基准与 9,138 个外部单元的实测仍待完成。

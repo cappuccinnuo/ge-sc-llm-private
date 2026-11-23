@@ -4,13 +4,17 @@ import json
 from pathlib import Path
 
 from compile_repair.evaluation.survey import survey, revalidate_cp0
-from compile_repair.pipeline import repair
+from compile_repair.pipeline import build_index, repair
 
 
 def main(argv=None, result_check=None):
     """Parse CLI arguments; an optional per-input audit may stop/seal repair."""
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command")
+    index = sub.add_parser("dependency-index", help="Build a sealed offline Solidity release index")
+    index.add_argument("--catalog", type=Path, required=True)
+    index.add_argument("--catalog-sha256", required=True)
+    index.add_argument("--output", type=Path, required=True)
     cp0 = sub.add_parser("survey", help="CP0 inventory, compiler matrix and D3 survey")
     cp0.add_argument("--output", type=Path, required=True)
     cp0.add_argument("--metadata-authorization", type=Path, required=True)
@@ -48,6 +52,8 @@ def main(argv=None, result_check=None):
     elif args.command == "benchmark-score":
         from compile_repair.evaluation.benchmark import score_request
         result = score_request(args.request, args.output)
+    elif args.command == "dependency-index":
+        result = build_index(args.catalog, args.output, args.catalog_sha256)
     elif args.command == "survey":
         result = survey(args.output, args.metadata_authorization, args.inventory_only, args.trusted_addition)
     elif args.command == "revalidate-cp0":

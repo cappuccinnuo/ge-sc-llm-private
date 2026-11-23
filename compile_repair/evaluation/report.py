@@ -204,3 +204,40 @@ def aggregate_attributions(classifications, categories):
         "version_dependent_combinations": [
             {"version": version, "categories": list(labels), "units": count}
             for (version, labels), count in sorted(combinations.items(), key=lambda pair: (-pair[1], pair[0]))]}
+
+
+def dependency_benchmark_summary(rows):
+    """Aggregate the two denominators and all graph metrics without dropping failed repairs."""
+    groups = defaultdict(list)
+    for row in rows:
+        groups[(row["split"], row["operator"])].append(row)
+    output = {}
+    for (split, operator), samples in sorted(groups.items()):
+        scores = [r["score"] for r in samples]
+        item = dict(units=len(samples), compiled=sum(s["compiled"] for s in scores),
+                    exact=sum(s["exact"] for s in scores), exact_ratio=sum(s["exact"] for s in scores)/len(scores),
+                    removed_by_repair=sum(s["removed_by_repair"] for s in scores),
+                    names=dict(Counter(s["counter_correspondence"]["status"] for s in scores)),
+                    change_levels=dict(Counter(r["change_level"] for r in samples)))
+        for view in ("main", "surviving"):
+            stats = [s if view == "main" else s["surviving"] for s in scores]
+            item[view] = {}
+            for metric in ("kept", "cfg_edges", "calls"):
+                facts = [s[metric] for s in stats]
+                if metric == "kept":
+                    numerator = sum(f["equal"] for f in facts)
+                    denominator = sum(f["units"] for f in facts)
+                else:
+                    numerator = sum(f["matched"] for f in facts)
+                    denominator = sum(f["truth"] + f["repaired"] - f["matched"] for f in facts)
+                item[view][metric] = dict(numerator=numerator, denominator=denominator,
+                    pooled_ratio=numerator/denominator if denominator else 1.0,
+                    mean_unit_ratio=sum(f["ratio"] for f in facts)/len(facts))
+        if operator == "unresolved_package_import":
+            comparisons = [equal for row in samples for equal in row["original_package_bytes_equal"].values()]
+            item["original_package_files"] = dict(total=len(comparisons), equal=sum(comparisons),
+                                                  ratio=sum(comparisons)/len(comparisons) if comparisons else None)
+            item["units_with_all_original_package_bytes"] = sum(bool(r["original_package_bytes_equal"])
+                    and all(r["original_package_bytes_equal"].values()) for r in samples)
+        output.setdefault(split, {})[operator] = item
+    return output
