@@ -2309,3 +2309,45 @@ Yul 名称通过与节点相同的组合偏移映射对齐。对起点平移要�
 两套环境执行 `python -B -m pytest -x -q -p no:cacheprovider compile_repair/tests`，mando 执行相同命令的 `scripts/DFG/dfg_v2/tests` 目标，分别使用独立 basetemp。production 1,076 项通过、6 项跳过，mando 609 项通过、473 项跳过，DFG v2 2,653 项通过、9 条告警。生产文件 17 个，354 项 DFG 引用相同。CPU 本地运行，费用 0 美元，未安装或下载依赖，训练与 LLM 调用均为 0。CP4.3 本地提交，进入独立审查。CP5 尚未开始。[实际测试命令、日志和退出状态](../artifacts/cp4_3_v1/suites/) · [科学证据封存](../artifacts/cp4_3_v1/evidence_seal.json)
 
 六份中文文档已通过 `doc_check --expect-cjk`。对 CP4_REPORT、PROGRESS 和 CHANGE_LOG 先校验起始提交的字节前缀，再检查追加区间；HANDOVER、DECISIONS 和新批次 README 检查全文。移动、精确还原、文件迁移三次只读重算分别约用 9、364、8 秒，计时依据和 SHA 均在 acceptance.json。两套模块测试与 DFG v2 用时分别为 130.99、53.14、225.64 秒。[文档核验](../artifacts/cp4_3_v1/doc_check.json) · [最终封存](../artifacts/cp4_3_v1/seal.json)
+
+
+## 50. 2026-11-23 CompileRepair CP4.3 审查与方案 r2.20（修改 AI：Claude）
+
+### 50.1 任务、依据与范围
+
+用户要求（2026-11-23）：Codex 已完成 CP4.3；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP5。起点 `compile-repair@868d814c9`。审查对象：`evaluation/benchmark.py` 的差异（`_edges_and_calls`、`_mapped_switch`、`_align_switches`、`score_graphs`、`_score_facts`），`tests/test_cp43.py`，`cp4_3_v1` 的 moves.jsonl.gz、exact_summary.json、migration_summary.json，CP4_REPORT 的 CP4.3 节、HANDOVER、DECISIONS、CHANGE_LOG §49、PROGRESS。
+
+修改：`PROMPTS.md`（r2.19 → r2.20）；新增 `artifacts/cp4_3_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 1 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 50.2 实施方式和重要选择
+
+- 重跑 CP4.1、CP4.2 审查的两个探针，核对 kept 分母、removed_by_repair、surviving 与名称状态。
+- Codex 的 Yul 夹具只有一个 switch；审查另写含嵌套 switch 的夹具，并加入“汇编块内加注释”和“改错 case 常量”两种修复。前者被整体放弃，提示对应规则可能过严。
+- 为确认是否普遍，写第二个探针：中性插入之外再改动另一个函数中的一个常量。结果 kept 由 7/7 跌到 3/7，原因是 `_counter_correspondence` 遇到第一个不符节点即抛出。这是 r2.18 §4.6c 写明的规则，Codex 照此实现，问题在方案。
+- 处理方案：结构不同的节点本来就不相等，排除它们不会使任何节点被错误地计为相等；冲突与无法核验定义的名称只排除相关节点。被计为相等的节点仍须在一个全局一一对应下逐条相同，保证与原规则相同。源码中出现涉及名字时仍整体放弃。迁移的全图核验按用户决定不变。
+
+### 50.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 修复删除未破坏函数 | kept 2/7、边 1/6、调用 1/2、missing_kept 5、removed_by_repair 5、lost 2、exact false；surviving 1 | cp4_2_review_v1 探针重跑 |
+| 插到开头夹具 | kept 2/2，removed_by_repair 0，verified | cp4_1_review_v1 探针重跑 |
+| Yul 嵌套 switch | 插到开头 11/16 → 16/16（2 个 switch）；加注释 11/16（node_facts_differ）；改错常量 11/16（switch_span_not_preserved） | probe_yul_switch.json |
+| 一个节点真实改动 | 中性插入 7/7；加改动 3/7（rejected）；原位恢复加同一改动 6/7（rejected，无改名） | probe_partial_change.json |
+| 移动重算 | 200 项；removed_by_repair 合计 933，逐项等于 expected_moved_nodes；surviving 为 1 的 199 项；cp3_00291 为 rejected | moves.jsonl.gz |
+| 测试 | test_cp43/42/41、test_benchmark 共 276 项通过、4 项跳过 | 审查环境 pytest |
+
+未证明：CP5 真实修复中“插入并改动个别节点”的发生比例。
+
+### 50.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：按 r2.19 实现并逐项验收；用户转交即确认 Yul 起点对齐。
+- 方案自身的错误：r2.18 §4.6c“只要有一个 kept 节点不满足，就整体不改名”过严；以 §4.6e 为准。
+- 新设计点（DECISIONS 记为 Claude 建议）：按节点排除与 partial 状态；用户转交 CP4.4 即视为同意。
+- 已知限制：declaration_error 0 个样本；创建码哈希常量。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 50.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_3_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP5 不能开始。顺序为 Codex 执行 CP4.4 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。

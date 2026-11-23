@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.19（2026-11-22；r2.18、r2.17、r2.16、r2.15 同日；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.20（2026-11-23；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,10 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.20 相对 r2.19 的修改**（CP4.3 审查；证据 `artifacts/cp4_3_review_v1/README.md`）：
+1. CP4.3 的 kept 分母、removed_by_repair、surviving、Yul switch 起点对齐与重算经审查成立（新增 1.23 节）。
+2. 未解决一个由 r2.18 §4.6c 规则引起的问题：生成名称对应“只要有一个 kept 节点不满足就整体不改名”。修复多改一个 kept 节点时，全部编号平移的节点都按原分计为不相等（审查实测 kept 由 6/7 跌到 3/7）。CP5 之前由新增的 4.6e 节 CP4.4 改为按节点排除；§4.6c 第 2 节的该条以 §4.6e 为准。
 
 **r2.19 相对 r2.18 的修改**（CP4.2 审查；证据 `artifacts/cp4_2_review_v1/README.md`）：
 1. CP4.2 的生成名称对应、重算与 200 项移动自检经审查成立（新增 1.22 节）。
@@ -392,6 +396,15 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | 主因前四 | unresolved_package_import 8,454、missing_relative_file 412、standard_json_input 410、parser_error_other 257 |
 | version_dependent | 221 个，183 个有可解析版本上的共同阻碍（other 157、undeclared_identifier 124） |
 | 审查 | 11 个边界输入与 1,694 个真实 Solidity 输入、22 个 Vyper 结果正确；132 项测试通过 |
+
+### 1.23 CP4.3 结果（2026-11-23 审查；证据 `artifacts/cp4_3_v1/`、`cp4_3_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| kept 分母 | 恢复 CP4 定义；新增 removed_by_repair 与诊断块 surviving；审查探针 kept 2/7、removed_by_repair 5、surviving 为 1 |
+| Yul switch | 起点按组合偏移映射对齐；审查夹具 11/16 → 16/16，改错 case 常量被拒绝 |
+| 重算 | 移动 200 项 removed_by_repair 合计 933、surviving 199 项为 1；精确还原 14,196 与迁移 114 不变 |
+| 审查发现 | 名称对应一处不符即整体放弃，分数随一个无关改动跳变 |
 
 ### 1.22 CP4.2 结果（2026-11-22 审查；证据 `artifacts/cp4_2_v1/`、`cp4_2_review_v1/`）
 
@@ -1320,6 +1333,36 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 ## 4. 报告与验收
 - 修改的函数与行数；生产文件数；两个环境的模块测试与 DFG v2 测试都运行，逐项给出预期与实测。
 - 预期：第 1–3 节全部符合；创建码哈希常量（cp3_00291）作为已知限制写入报告。
+```
+
+### 4.6e CP4.4：生成名称对应按节点排除（r2.20 新增；CP5 之前必须完成）
+
+```text
+# CP4.4：一个节点不符时只排除相关节点，不放弃全部对应
+
+依据：PROMPTS r2.20 的修改说明与 1.23 节；审查证据 compile_repair/artifacts/cp4_3_review_v1/README.md、probe_partial_change.py / .json、probe_yul_switch.py / .json（只读，不导入其中脚本，可复制夹具）。CP0–CP4.3 的产物不改、不覆盖；新结果写入新批次 cp4_4_v1。不需要安装、下载或 LLM 调用；需要时停下。报告追加到 CP4_REPORT.md 的“CP4.4”一节。生产文件数保持 17，只改 evaluation/benchmark.py。迁移（有文件改名映射）的全图核验与验收结论不变（用户决定）。
+
+## 1. 问题
+- 现在普通评分中的 _counter_correspondence 与 _align_switches 遇到任一 kept 节点不符（事实、指令条数、非计数部分、switch 字节）即抛出，整体使用原分。审查实测：中性插入 kept 7/7；同时改动另一个函数中的一个常量，kept 3/7（原位恢复加同一改动为 6/7）；汇编块内加一行注释，kept 11/16。
+- 没有改名、只是有节点不同的修复，状态也记为 rejected。
+
+## 2. 做法（只用于普通评分）
+- 参与集合 P：kept 且存在的节点中，除 IR 外的事实相同、IR 条数相同、去掉计数名与 switch 名后逐条相同的节点。其余 kept 节点不参与推导，按原样比较（它们本来就不相等）。
+- 在 P 上推导一一对应（TMP/REF/TUPLE 同族；switch 名按 CP4.3 的偏移映射与字节核对）。按固定顺序反复执行，直到不再变化：
+  - 冲突：一个名字对应两个不同的名字，或两个名字对应同一个名字时，把含有这些名字（任一侧）的节点全部移出 P；
+  - 定义：被改名的名字必须在 P 中的节点里有定义，否则把使用它的节点移出 P；
+  - switch：起点映射、字节或后缀核对失败的 switch 名，把含有它的节点移出 P。
+- 只对 P 中的节点改名并比较；移出的节点按原样比较。源码中出现涉及的名字（现有检查）时仍整体使用原分。
+- 状态：identical（无改名）、verified（有改名，无节点因冲突、定义或 switch 被移出）、partial（有改名，且有节点因上述原因被移出）、rejected（源码检查失败或异常）。记录参与、结构不同、因冲突、因定义、因 switch 移出的节点数。
+
+## 3. 测试与自检
+- 审查探针：probe_partial_change 的 A 为 7/7（verified），B 为 6/7，C 为 6/7 且状态 identical；probe_yul_switch 的 A 为 16/16，B 只有被注释改动的节点不相等，C 的 exact 为 false 且改动的节点不相等。报告实测值并逐项说明。
+- 比例性：对一个含多个函数的夹具做中性插入，再逐个改动每个 kept 节点中的一个常量（每次一个），kept 的相等数必须恰好比中性插入少 1。
+- 故意错误：CP4–CP4.3 的全部故意错误仍被检出；新增两个：跨节点改用另一个计数名（定义在一个节点、使用在另一个节点）、交换两个计数名的定义位置，二者都不得计为相等。
+- 重算：200 项移动、14,196 项精确还原与 114 项迁移的主指标、surviving 与 exact 必须与 CP4.3 相同；如有不同（例如 cp3_00291），逐项列出并说明原因后停下报告。
+
+## 4. 报告与验收
+- 修改的函数与行数；生产文件数；两个环境的模块测试与 DFG v2 测试都运行，逐项给出预期与实测。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）

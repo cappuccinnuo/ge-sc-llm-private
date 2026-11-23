@@ -1,23 +1,22 @@
 # CompileRepair 交接文档
 
-> 先读第 0–5 节、PROMPTS r2.19 §1.22 与 §4.6d、CP4_REPORT 的 CP4.3、CHANGE_LOG §48–49 和 artifacts/cp4_3_v1/README.md。
+> 本轮交接先读第 0–5 节、PROMPTS r2.20 §1.23 与 §4.6e（CP4.4）、artifacts/cp4_3_review_v1/README.md、CP4_REPORT.md 的 CP4.3、CHANGE_LOG §49、§50。
 
 ## 0. 一句话
 
-CP4.3 已完成本地验收。删除原本完好的函数后主 kept 为 2/7。200 个移动样本中 199 个的存活部分完全吻合，另 1 个嵌入创建字节码有实质变化。下一步为独立审查。
+CP4.3 已由 Claude 审查：kept 分母、removed_by_repair、surviving、Yul switch 起点对齐与重算都成立，但生成名称对应“一处不符即整体放弃”，修复多改一个节点时分数跳变（实测 6/7 → 3/7）。这条规则来自 r2.18 §4.6c。下一步：Codex 执行 4.6e 节 CP4.4 → Claude 审查 → CP5。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.19；D5/D16/D18/D20/D20a/D21、CP3.2 三态判定、CP4–CP4.2 的用户决定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP4.1 | 已审查通过 |
-| CP4.2 | 生成名称对应、重算、移动自检成立；留两个评分问题由 CP4.3 解决 |
+| 方案与决定 | PROMPTS r2.20；D5/D16/D18/D20/D20a/D21、CP3.2 三态判定、CP4–CP4.3 的用户决定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP4.2 | 已审查通过（CP4.2 的问题由 CP4.3 解决） |
+| CP4.3 | 审查成立；留一个评分问题由 CP4.4 解决 |
 | 已知限制 | declaration_error 0 纳入；对嵌入创建码求哈希的常量无法规范化（cp3_00291，用户决定按实测计入） |
 | 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| CP4.3 | 14,196 项精确还原、114 项迁移与历史评分一致。生产、mando 和 DFG 回归通过。 |
-| 下一步 | 独立审查 CP4.3 后进入 CP5。 |
+| 下一步 | CP4.4 → 审查 → CP5 |
 
 ## 2. 分支与工作树
 
@@ -53,6 +52,7 @@ CP4.3 手写夹具使用现有 production 环境的 solc 0.8.38、Slither 0.11.6
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4.3 审查证据（Claude） | artifacts/cp4_3_review_v1/README.md、probe_partial_change.json、probe_yul_switch.json |
 | CP4.3 报告与验收 | CP4_REPORT.md、artifacts/cp4_3_v1/ 的 README.md、acceptance.json、fixtures.json、scope.json、doc_check.json、seal.json |
 | CP4.2 审查证据（Claude） | artifacts/cp4_2_review_v1/README.md、probe_repair_deletes_kept.json |
 | CP4.2 最终验收与停点证据 | artifacts/cp4_2_v1/README.md、acceptance.json、seal.json、measured_differences.json、exact_summary.json、migration_summary.json、checkpoint_79.json、final_tests/ |
@@ -691,3 +691,12 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 200/200 项主 kept 均小于 1，修复删除节点合计 933 个，每项均等于预期的移动节点数。199/200 项的存活节点、CFG 边和调用三个比例均为 1。14,196 个精确还原的主指标和 exact 均与 CP4.2 一致，名称状态全部为 identical。114 个迁移的主指标、raw 和全图结果也逐项相同。两组的 removed_by_repair 全部为 0。 修复误删完好函数的手写探针 kept 为 2/7、lost 为 2、removed_by_repair 为 5。真实字节差异继续保留原分。
 
 用户转交 CP4.3 确认了 §48.4 中的 Yul 口径。两套模块测试与 DFG 回归按仓库根路径执行，production 1,076 项通过、6 项跳过，mando 609 项通过、473 项跳过，DFG v2 2,653 项通过、9 条告警。所有结果已本地封存，独立审查后方可进入 CP5。资源与测试命令均可由变更 §49 和批次 README 复核。[批次记录](../artifacts/cp4_3_v1/README.md)
+
+
+### 2026-11-23 CompileRepair CP4.3 审查与方案 r2.20（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP4.3（提交 868d814c9）。新增证据目录 `artifacts/cp4_3_review_v1/`，修改 `PROMPTS.md`（r2.19 → r2.20）。本文开头、第 0、1 节换成审查结论，第 5 节加入证据路径。
+
+结论：CP4.2 审查的两个问题已正确解决；审查自写的 Yul 夹具与删除探针结果符合预期；移动、精确还原与迁移的重算数据与报告一致；276 项相关测试在审查环境通过。未解决：名称对应一处不符即整体放弃，分数不成比例。新增 4.6e 节 CP4.4。
+
+下一步：Codex 执行 CP4.4，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §50。
