@@ -51,6 +51,17 @@ def test_grouped_folds_reproduce_sealed_folds(task_id):
     assert [{r: f[r] for r in splits.ROLES} for f in mine["folds"]] == ref["folds"]
 
 
+def test_project_groups_join_the_files_of_one_project_only():
+    sources = {"a.sol": "contract A { uint x; }", "b.sol": "contract B { uint y; }",
+               "c.sol": "contract C { uint z; }", "d.sol": "contract D { bool w; }"}
+    plain, _ = splits.category_groups("t", "t_B", sources)
+    assert len(set(plain.values())) == 4
+    grouped, groups = splits.category_groups("t", "t_B", sources, {"a.sol": "P", "c.sol": "P", "d.sol": "Q"})
+    assert grouped["a.sol"] == grouped["c.sol"] and len(set(grouped.values())) == 3
+    assert sorted(len(g["members"]) for g in groups) == [1, 1, 2]
+    assert splits.category_groups("t", "t_B", sources, {})[0] == plain
+
+
 @pytest.mark.parametrize("category", sorted(SEALED["groups"]))
 def test_duplicate_groups_reproduce_sealed_partition(category):
     corpus = Path(str(CORPUS).format(category))

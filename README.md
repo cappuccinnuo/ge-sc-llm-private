@@ -9,6 +9,7 @@ and refuses outputs that were built from different inputs.
 ```
 Solidity sources ──► hcg ──► dfg ──► nodesem ──► (training)
                       │       │  └──► edgesem ──► (training)
+                      │       └──────────────────► combined (DFG + NodeSem + EdgeSem = FULL, vs G0)
                       │       └──► dfg train  (DFG profiles; G0 = MANDO-LLM baseline)
                       ├──► mando classifiers (upstream baseline on the rebuilt graphs)
                       └──► benchmark (baseline end to end: contract + line level, two-phase
@@ -21,6 +22,7 @@ Solidity sources ──► hcg ──► dfg ──► nodesem ──► (traini
 | [`dfg`](dfg/README.md) | data-flow layers L1 def-use, L2 state reads/writes, L3 environment flow; grouped nested CV training | `data/dfg/`, `runs/dfg/` |
 | [`nodesem`](nodesem/README.md) | node semantics: code/context encoders, static facts, LLM descriptions (Qwen2.5-Coder) distilled into a student | `data/nodesem/`, `runs/nodesem/` |
 | [`edgesem`](edgesem/README.md) | edge semantics: MOD_APPLY / CALL_SITE / GUARDS relations, 74-bit edge attributes, edge-aware HGT | `data/edgesem/`, `runs/edgesem/` |
+| [`combined`](combined/README.md) | the proposed method: DFG G3R + NodeSem S6 + EdgeSem G4R-AC in one model (benchmark profile FULL), compared with G0 over seeds | `runs/method/` |
 | [`mando`](mando/README.md) | the upstream MANDO-LLM baseline: HGT models, tree-sitter graph construction, trainers, inference | — |
 | [`benchmark`](benchmark/README.md) | the baseline from source to final detection under the paper's and the grouped protocol, scored on nodes and source lines and set against the paper's Tables 3 and 5 | `runs/benchmark/` |
 
@@ -28,10 +30,11 @@ Solidity sources ──► hcg ──► dfg ──► nodesem ──► (traini
 
 ```
 hcg/ dfg/ nodesem/ edgesem/   pipeline stages (each: README, CLI `python -m <stage>`, layered subpackages)
+combined/                     the proposed method: the three enhancements in one model, FULL vs G0
 mando/                        upstream MANDO-LLM baseline (models/, graphs/, classifiers, inference)
 benchmark/                    end-to-end evaluation of the pipeline against the paper
 compile_repair/               compile-repair subsystem (in development)
-tests/                        per-package tests: hcg/ dfg/ nodesem/ edgesem/ mando/ benchmark/ (+ reference data)
+tests/                        per-package tests: hcg/ dfg/ nodesem/ edgesem/ combined/ mando/ benchmark/ (+ reference data)
 data/upstream_mando_llm/      the authors' released graphs (reference for hcg)
 experiments/ge-sc-data/       Dataset A Solidity sources (Dataset B: hcg/datasets/dataset_b.json -> data/corpus/B)
 docker/                       GPU image, environment check and smoke run (RTX 5080 / WSL2)

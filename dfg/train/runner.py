@@ -67,7 +67,8 @@ class TaskData:
         # so transitive duplicates through files outside a node task still group.
         corpus = load_task(hcg_root, dataset, category, "contract", label_root).sources \
             if task != "contract" else inp.sources
-        group_of, groups = category_groups(category, "%s_%s" % (category, dataset), corpus)
+        group_of, groups = category_groups(category, "%s_%s" % (category, dataset), corpus,
+                                           _projects(dataset, category))
         rows = population(inp.graph, self.file_labels, group_of)
         self.folds = grouped_folds(self.task_id, rows, K_FOLDS[task])
         self.groups = len({r["group_id"] for r in rows})
@@ -80,6 +81,17 @@ class TaskData:
         if key not in self.graphs:
             raise FileNotFoundError("%s needs DFG graph %s; run `python -m dfg build`" % (profile, key))
         return self.graphs[key]
+
+
+def _projects(dataset, category):
+    """{file: audited project} of a composed dataset (folds keep a project together)."""
+    from dfg.inputs import REPO
+    from hcg.datasets.registry import get_dataset
+    from hcg.sources import composition
+    spec = get_dataset(dataset)
+    if not spec.composition:
+        return None
+    return composition.projects(composition.load(REPO / spec.composition), category)
 
 
 def _model(task, graph, profile, config, device):

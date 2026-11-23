@@ -55,7 +55,11 @@ def build_parser():
     _common(cmd)
     cmd.add_argument("--cache", type=Path, default=None, help="response cache (default <nodesem>/llm_cache)")
     cmd.add_argument("--model-cache", type=Path, default=None, help="Hugging Face cache for the GGUF")
-    cmd.add_argument("--limit", type=int, default=None, help="generate at most N new responses (smoke test)")
+    cmd.add_argument("--limit", type=int, default=None,
+                     help="generate at most N new responses (smoke test; teacher text then partial)")
+    cmd.add_argument("--workers", type=int, default=1,
+                     help="generation processes, each with its own model copy (~3 GB GPU memory each); "
+                          "the cache is the same for any number")
     cmd = commands.add_parser("train", help="grouped nested CV of feature configurations")
     _common(cmd)
     cmd.add_argument("--configs", nargs="+", default=["S0o", "S2", "S4"], choices=sorted(CONFIGS))
@@ -106,7 +110,8 @@ def main(argv=None):
         from nodesem.store import TaskStore
         items = [(load_context(dataset, c, t, args.hcg, args.dfg, args.label_root), TaskStore(args.nodesem, dataset, c, t))
                  for c, t in pairs]
-        describe_tasks(items, args.cache or args.nodesem / "llm_cache", model_cache=args.model_cache, limit=args.limit)
+        describe_tasks(items, args.cache or args.nodesem / "llm_cache", model_cache=args.model_cache, limit=args.limit,
+                       workers=args.workers)
     elif args.command == "train":
         from dfg.train.report import report
         from nodesem.train import train

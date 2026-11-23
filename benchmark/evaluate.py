@@ -11,8 +11,9 @@ in the paper):
                    (``gated``), by the true contract label (``oracle``) or not at all
                    (``ungated``), each as node and source-line scores;
 * ``by_source``    the same three views on the contracts of one source (SolidiFI,
-                   SmartBugs-curated, DAppSCAN), each against all clean contracts,
-                   pooled over folds (every contract is held out once): shows how
+                   SmartBugs-curated, DAppSCAN), each against its clean counterparts
+                   (Dataset B: DAppSCAN-clean / SmartBugs Wild; Dataset A: all clean
+                   contracts), pooled over folds (every contract is held out once): shows how
                    much of a score comes from SolidiFI's injected templates;
 * ``findings``     the detector's final output per contract (pooled over folds; each
                    contract is held out once): contract verdict and flagged lines,
@@ -74,17 +75,20 @@ class CategoryRefs:
         spec = get_dataset(dataset)
         self._corpus = spec.corpus(REPO, category)
         self._maps = {}
-        self.source = self._sources(spec, category)
+        self.source, self.pairs = self._sources(spec, category)
 
     def _sources(self, spec, category):
-        """{file: source}; clean contracts are CLEAN whatever pool they come from."""
+        """{file: source}, clean contracts CLEAN whatever pool they come from; and
+        {clean file: the buggy source it is a counterpart of} (composed datasets)."""
+        pairs = {}
         if spec.composition:
-            rows = composition.entries(composition.load(REPO / spec.composition), category)
-            named = {r["name"]: r["source"] for r in rows}
+            document = composition.load(REPO / spec.composition)
+            named = {r["name"]: r["source"] for r in composition.entries(document, category)}
+            pairs = composition.pairs(document, category)
         else:
             named = {f: "SolidiFI" if SOLIDIFI_FILE.fullmatch(f) else "SmartBugs-curated"
                      for f in self.file_labels}
-        return {f: (named[f] if self.file_labels[f] else CLEAN) for f in self.file_labels}
+        return {f: (named[f] if self.file_labels[f] else CLEAN) for f in self.file_labels}, pairs
 
     def sources(self):
         return sorted({s for s in self.source.values() if s != CLEAN})
@@ -137,7 +141,10 @@ def findings(contract_rows, node_rows, refs, fold):
 
 
 def _keep(rows, refs, source, with_clean):
-    return [r for r in rows if refs.source[r["file"]] == source or (with_clean and refs.source[r["file"]] == CLEAN)]
+    """Rows of one source's files, with the clean files that are its counterparts (all
+    clean files where the dataset pairs none)."""
+    return [r for r in rows if refs.source[r["file"]] == source or
+            (with_clean and refs.source[r["file"]] == CLEAN and refs.pairs.get(r["file"], source) == source)]
 
 
 def by_source(tasks, refs):

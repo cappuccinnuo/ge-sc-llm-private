@@ -117,8 +117,16 @@ def write(path, value):
     with Path(path).open("x", encoding="utf8") as stream:
         stream.write(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
 
+class ContextOverflow(ValueError):
+    """The prompt alone does not fit the model's context window (raised by a backend)."""
+
+
 def generate_cached(unit, backend, output, asset_sha, parameters, mode="describe_v2"):
-    """Reuse sealed completed responses; an interrupted unit needs explicit recovery."""
+    """Reuse sealed completed responses; an interrupted unit needs explicit recovery.
+
+    A prompt longer than the context window can never be generated under the decoding
+    contract; it is sealed once with status ``context_overflow`` and no response.
+    """
     key = cache_key(unit, asset_sha, parameters, mode)
     if mode == "describe_v2" and unit.get("cache_key") != key:
         raise ValueError("Unit/cache identity differs")
@@ -143,7 +151,11 @@ def generate_cached(unit, backend, output, asset_sha, parameters, mode="describe
             sent = [dict(m) for m in prompt]
             if attempt:
                 sent[-1]["content"] += "\nReturn valid JSON only."
-            response = backend.generate(sent, output_schema(mode))
+            try:
+                response = backend.generate(sent, output_schema(mode))
+            except ContextOverflow as exc:
+                attempts.append(dict(attempt=attempt, messages=sent, response=None, error=str(exc)))
+                break
             item = dict(attempt=attempt, messages=sent, response=response)
             try:
                 parsed = parse_response(response["content"], mode)
@@ -157,7 +169,8 @@ def generate_cached(unit, backend, output, asset_sha, parameters, mode="describe
         result = dict(version=VERSION, cache_key=key, template=mode, messages=prompt,
             parameters=parameters, asset_sha256=asset_sha, backend_mode=backend.mode,
             elapsed_seconds=time.monotonic()-started, attempts=attempts,
-            parsed=parsed, status="ok" if parsed is not None else "parse_failed", cache_hit=False)
+            parsed=parsed, status="ok" if parsed is not None else (
+                "context_overflow" if attempts and attempts[-1].get("error") else "parse_failed"), cache_hit=False)
         write(result_path, result)
         write(result_path.with_suffix(".seal.json"), dict(response=reference(result_path)))
         return result

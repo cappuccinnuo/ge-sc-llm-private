@@ -144,6 +144,7 @@ class _Refs:
     category = "t"
     file_labels = {"v": 1, "c": 0}
     source = {"v": "SolidiFI", "c": evaluate.CLEAN}
+    pairs = {}
     truth = {"v": {2}, "c": set()}
     node_lines = {"contract": {0: ("v", (2,)), 1: ("v", (5,)), 2: ("c", (3,))}}
 
@@ -165,6 +166,22 @@ def test_by_source_leaves_out_a_source_absent_from_the_held_out_folds():
              "cascade": {0: (None, {"outer_test": nodes})}}
     out = evaluate.by_source(tasks, refs)
     assert set(out) == {"SolidiFI"} and set(out["SolidiFI"]) == {"contract", "line_nodes", "line_source", "detector_lines"}
+
+
+def test_by_source_scores_a_source_against_its_own_clean_counterparts():
+    rows = [dict(file=f, target=t, best=b, best_probability=.5) for f, t, b in
+            (("v", 1, 1), ("d", 1, 1), ("c", 0, 1), ("e", 0, 0))]
+    refs = _Refs()
+    refs.file_labels = {"v": 1, "d": 1, "c": 0, "e": 0}
+    refs.source = {"v": "SolidiFI", "d": "DAppSCAN", "c": evaluate.CLEAN, "e": evaluate.CLEAN}
+    refs.node_lines = dict(contract={}, line={})
+    tasks = {"contract": {0: (None, {"outer_test": rows})}, "line": {}, "cascade": {}}
+    refs.pairs = {"c": "SolidiFI", "e": "DAppSCAN"}
+    out = evaluate.by_source(tasks, refs)
+    assert out["DAppSCAN"]["contract"]["buggy_f1"] == 100.0      # d vs its counterpart e only
+    assert out["SolidiFI"]["contract"]["precision"] == 50.0      # v vs c, which is flagged
+    refs.pairs = {}                                              # unpaired (Dataset A): all clean files
+    assert evaluate.by_source(tasks, refs)["DAppSCAN"]["contract"]["precision"] == 50.0
 
 
 def test_cascade_gates_the_line_model_with_the_contract_verdict():

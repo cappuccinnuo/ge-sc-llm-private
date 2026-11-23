@@ -16,7 +16,7 @@ import hcg
 from hcg import verify
 from hcg.cfg import build_corpus
 from hcg.features import tokens as token_features
-from hcg.labels import contract_entries, label_nodes, line_level, project_annotations
+from hcg.labels import contract_entries, label_nodes, line_level, project_annotations, reached_summary
 from hcg.sources import annotations as annotation_source
 from hcg.sources import composition, repos
 from hcg.store import CategoryOutput, dump_json, read_gpickle, sha256, write_gpickle
@@ -55,8 +55,8 @@ def build_category(dataset, category, out_root, label_root, tokenizer=None, log=
         targets = dataset.contract_labeler(category.name, filenames, smartbugs)
         records, sources, provenance = annotation_source.load(
             corpus_dir, category, filenames, targets, label_root, smartbugs)
-    projected, sizes = project_annotations(records, sources)
-    positives = label_nodes(graph, projected, sizes)
+    projected, texts = project_annotations(records, sources)
+    positives, reached = label_nodes(graph, projected, texts, dataset.node_labels)
     entries = contract_entries(targets)
     lines, line_ids = line_level(graph, targets)
 
@@ -87,6 +87,9 @@ def build_category(dataset, category, out_root, label_root, tokenizer=None, log=
                        "by_source": _by_source(composition.entries(composed, category.name))}
                       if composed is not None else {})},
         "label_policy": dataset.label_policy,
+        "node_label_rule": dataset.node_labels,
+        "annotated_lines_reached": reached_summary(reached, None if composed is None else {
+            r["name"]: r["source"] for r in composition.entries(composed, category.name)}),
         "label_sources": label_commits,
         "contract_level": _stats(graph, positives),
         "line_level": _stats(lines, positives_of(lines)),

@@ -21,7 +21,7 @@ def present_row(row):
         item["unverified"] = item["present"]  # Intent has no static prose reference.
     elif kind == "statement":
         valid = bool(item["summary"]) and not blocked and not any(
-            f in item["flags"] for f in ("missing", "parse_failed", "skipped_no_body"))
+            f in item["flags"] for f in ("missing", "parse_failed", "skipped_no_body", "context_overflow"))
         score = item["faithfulness"]
         item["present"] = valid and (score is None or score >= .5)
         item["unverified"] = item["present"] and score is None

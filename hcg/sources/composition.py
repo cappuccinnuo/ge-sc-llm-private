@@ -12,17 +12,19 @@ Copies are written with LF line endings (``normalize``), as the authors' Dataset
 corpus holds the SmartBugs Wild pool files (which are CRLF); the HCG node text and
 the DFG/NodeSem source views must agree byte for byte.
 
-Row fields: ``name``, ``source`` (DAppSCAN | SolidiFI | SmartBugs-Wild-clean),
-``origin``, ``origin_sha256`` (the source file), ``sha256`` (the corpus copy),
-``target``; DAppSCAN rows also ``labels`` (the line-label
+Row fields: ``name``, ``source`` (DAppSCAN | SolidiFI | DAppSCAN-clean |
+SmartBugs-Wild-clean), ``origin``, ``origin_sha256`` (the source file), ``sha256`` (the
+corpus copy), ``target``. Buggy DAppSCAN rows also have ``labels`` (the line-label
 files: its own and those of identical copies left out) and ``swc`` (the category's SWC
-ids its labels carry).
+ids its labels carry); every DAppSCAN row (buggy or clean) has ``project``, the
+audited project it comes from (folds keep a project on one side); clean rows have
+``pairs_with``, the buggy source they are the counterparts of.
 """
 import hashlib
 import json
 from pathlib import Path
 
-VERSION = "hcg-composition-v1"
+VERSION = "hcg-composition-v2"
 
 
 def _sha(path):
@@ -79,3 +81,13 @@ def assemble(document, category, label_root, corpus_dir):
 
 def targets(document, category):
     return {row["name"]: int(row["target"]) for row in entries(document, category)}
+
+
+def projects(document, category):
+    """{name: project} of the rows that come from an audited project."""
+    return {row["name"]: row["project"] for row in entries(document, category) if row.get("project")}
+
+
+def pairs(document, category):
+    """{name: buggy source} of the clean rows."""
+    return {row["name"]: row["pairs_with"] for row in entries(document, category) if row.get("pairs_with")}

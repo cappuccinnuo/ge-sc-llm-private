@@ -1,12 +1,13 @@
 """Group-disjoint nested folds: duplicate groups never straddle train/val/test.
 
-Duplicate groups are connected components of two pair relations over a category's
+Duplicate groups are connected components of pair relations over a category's
 source files: *exact* (equal after removing all whitespace) and *near* (comments
 also removed, ``difflib.SequenceMatcher`` ratio >= 0.98 with autojunk, operands in
-source-identity order). Groups are assigned to K outer folds, then the remainder of
-each fold to inner train/validation (80/20), by deterministic greedy balancing of
-file class x cohort (SolidiFI or not) and positive/negative node counts, with SHA
-tie-breaks. Assignment never sees predictions or scores.
+source-identity order). A composed dataset may add a third, *project*: files of one
+audited project (Dataset B's DAppSCAN rows), which share code and style. Groups are
+assigned to K outer folds, then the remainder of each fold to inner train/validation
+(80/20), by deterministic greedy balancing of file class x cohort (SolidiFI or not) and
+positive/negative node counts, with SHA tie-breaks. Assignment never sees predictions or scores.
 """
 import collections
 import difflib
@@ -114,7 +115,7 @@ def build_groups(source_ids, pairs):
             sid = parent[sid]
         return sid
 
-    for kind in ("exact", "near"):
+    for kind in sorted(pairs):
         for left, right in pairs[kind]:
             a, b = find(left), find(right)
             parent[max(a, b)] = min(a, b)
@@ -256,11 +257,24 @@ def cohort_of(file):
     return "SolidiFI" if re.fullmatch(r"buggy_\d+\.sol", file) else "nonSolidiFI"
 
 
-def category_groups(category, cohort, sources):
-    """Duplicate groups of one category: ({file: group_id}, groups)."""
+def project_pairs(identities, projects):
+    """Pairs chaining the files of each project ({file: project}; files without one: none)."""
+    members = collections.defaultdict(list)
+    for row in sorted(identities, key=lambda r: r["source_id"]):
+        if projects.get(row["file"]):
+            members[projects[row["file"]]].append(row["source_id"])
+    return [(ids[i], ids[i + 1]) for _, ids in sorted(members.items()) for i in range(len(ids) - 1)]
+
+
+def category_groups(category, cohort, sources, projects=None):
+    """Duplicate (and, with ``projects`` {file: project}, project) groups of one category:
+    ({file: group_id}, groups)."""
     identities = [source_identity(category, cohort, f, s) for f, s in sorted(sources.items())]
     texts = {r["source_id"]: sources[r["file"]] for r in identities}
-    groups = build_groups([r["source_id"] for r in identities], duplicate_pairs(identities, texts))
+    pairs = duplicate_pairs(identities, texts)
+    if projects:
+        pairs["project"] = project_pairs(identities, projects)
+    groups = build_groups([r["source_id"] for r in identities], pairs)
     by_id = {r["source_id"]: r["file"] for r in identities}
     return {by_id[sid]: g["group_id"] for g in groups for sid in g["members"]}, groups
 

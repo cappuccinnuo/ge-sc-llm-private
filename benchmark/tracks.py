@@ -13,7 +13,10 @@ the contract plan's folds and scored on every held-out contract, so that
 
 Fits run through ``dfg.train.runner.run_task`` unchanged: profile G0 is the
 MANDO-LLM HGT on the hcg graphs (CodeT5+ token features), other DFG profiles need
-``python -m dfg build``. Results land in ``<out>/<protocol>/<category>_<track>/``.
+``python -m dfg build``. Profile FULL is the proposed method (``combined``: DFG +
+NodeSem + EdgeSem), trained by ``combined.train`` on the same folds; it needs the
+dfg, nodesem and edgesem stores of the track's graph. Results land in
+``<out>/<protocol>/<category>_<track>/``.
 
 ``labels="author"`` (Dataset A) trains on the authors' released node labels instead
 of the public-annotation ones (``benchmark.audit.transplant``): the only change.
@@ -25,6 +28,7 @@ from pathlib import Path
 
 from benchmark import audit
 from benchmark import folds as plans
+from combined import PROFILE as FULL
 from dfg.train.runner import TaskData, run_task
 from hcg.store.io import sha256
 
@@ -50,6 +54,7 @@ class Track:
         self.category, self.name, self.protocol = category, name, protocol
         self.task = "contract" if name == "contract" else "node"
         self.task_id = "%s_%s" % (category, name)
+        self.graph_task = source.task          # whose graph (and stage stores) the track trains on
         self.folds, self._source = folds, source
         self.file_labels = source.file_labels
         self.feature_summary = source.feature_summary
@@ -93,14 +98,24 @@ class CategoryData:
 
 
 def train(tracks, out_root, profiles=("G0",), folds=None, seed=1, device="cpu",
-          config_overrides=None, log=print):
-    """Fit every (track, fold, profile) not done yet; ``folds`` filters fold indices."""
+          config_overrides=None, inputs=None, log=print):
+    """Fit every (track, fold, profile) not done yet; ``folds`` filters fold indices.
+
+    ``inputs`` (a ``combined.train.Inputs``) is needed when ``profiles`` holds FULL.
+    """
+    engine = [p for p in profiles if p != FULL]
+    if FULL in profiles and inputs is None:
+        raise ValueError("profile %s needs the stage stores (combined.train.Inputs)" % FULL)
     for track in tracks:
         chosen = None if folds is None else [k for k in folds if k < track.folds["k_folds"]]
         log("[%s] %s: %d folds" % (track.protocol, track.task_id,
                                    track.folds["k_folds"] if chosen is None else len(chosen)))
-        run_task(track, Path(out_root) / track.protocol, profiles, chosen, seed, device,
-                 config_overrides, save_checkpoints=False, log=log)
+        if engine:
+            run_task(track, Path(out_root) / track.protocol, engine, chosen, seed, device,
+                     config_overrides, save_checkpoints=False, log=log)
+        if FULL in profiles:
+            from combined.train import run_track
+            run_track(track, inputs, Path(out_root) / track.protocol, chosen, seed, device, config_overrides, log)
 
 
 def run_manifest(out_root, dataset, categories, roots, settings):
