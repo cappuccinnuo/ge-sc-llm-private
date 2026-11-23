@@ -2378,3 +2378,46 @@ Yul 名称通过与节点相同的组合偏移映射对齐。对起点平移要�
 从仓库根运行两套环境的 `python -B -m pytest -x -q -p no:cacheprovider compile_repair/tests`，另由 mando 运行同样命令的 `scripts/DFG/dfg_v2/tests` 目标，每次使用独立 basetemp。生产 1,080 通过、6 跳过，108.27 秒；mando 612 通过、474 跳过，45.71 秒；DFG v2 2,653 通过、9 条告警，191.22 秒。生产文件 17 个，354 个 DFG 引用一致。历史重算直接使用封存图，训练、LLM 调用及本次费用均为零。CP5 待独立审查后再开始。[套件结果](../artifacts/cp4_4_v1/suites/) · [科学证据封存](../artifacts/cp4_4_v1/evidence_seal.json)
 
 六份中文文档经 `doc_check --expect-cjk` 检查通过。CP4_REPORT、PROGRESS 和本文件先与起始提交核对原始字节前缀，再检查追加区间；HANDOVER、DECISIONS 与新批次 README 检查全文。封存同时覆盖 4 份生产或测试代码交付文件及 5 份模块文档。[文档检查](../artifacts/cp4_4_v1/doc_check.json) · [最终封存](../artifacts/cp4_4_v1/seal.json)
+
+
+## 52. 2026-11-23 CompileRepair CP4.4 审查与方案 r2.21（修改 AI：Claude）
+
+### 52.1 任务、依据与范围
+
+用户要求（2026-11-23）：Codex 已完成 CP4.4；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP5。起点 `compile-repair@2355afad1`。审查对象：`evaluation/benchmark.py` 的差异（`_switch_proof`、`_ordinary_node_names`、`_prune_name_nodes`、`_ordinary_correspondence`、`score_graphs`），`tests/test_cp44.py` 与 CP4.2、CP4.3 测试的断言改动，`cp4_4_v1` 的 moves.jsonl.gz 与 movement_difference.json，CP4_REPORT 的 CP4.4 节、HANDOVER、DECISIONS、CHANGE_LOG §51、PROGRESS。
+
+修改：`PROMPTS.md`（r2.20 → r2.21）；新增 `artifacts/cp4_4_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 1 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 52.2 实施方式和重要选择
+
+- 重跑 CP4.3 审查的两个探针，并逐项对比 CP4.3 与 CP4.4 的 200 项移动结果。
+- 读 `_prune_name_nodes`：冲突时冲突双方名称所在的节点全部移出，之后这些节点用原样比较。考虑到编号平移时字面相同并不代表读同一个值，写手写图探针（不调用编译器，以便精确控制名称）：定义节点平移正确、使用节点保留旧名。四个场景各写明真正正确的节点数，与评分对比。
+- 处理方案：冲突本身无法从图上判断哪一方错，但每个生成名称在函数中只定义一次，定义处给出它的映射。以定义为锚，使用处与锚不一致即不相等，与节点顺序无关，也不需要原样比较。没有锚的名称只在不与已锚名称冲突时按原名接受，覆盖未平移的情形。被改节点定义、其他节点使用的名称在平移时无法核验，使用节点也计为不相等；这是数据流上的真实依赖，报告中单列。
+- 原样比较兜底从 CP4.2（r2.18 §4.6c）起就在，高估不是 CP4.4 引入的；CP4.4 的按节点推导本身没有错误。
+
+### 52.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 正确平移 | 3/3，verified | probe_stale_name.json |
+| 一个旧名使用节点 | 2/3（正确 2），但被计为相等的是错误的使用节点，定义节点被计为不相等 | 同上 |
+| 三个旧名使用节点 | 4/5（正确 2），高估；原分为 3/5 | 同上 |
+| 未平移的错误使用 | 2/3（正确 2），identical | 同上 |
+| CP4.3 审查探针 | 7/7、6/7、6/7；Yul 16/16、16/16、14/16 | 重跑 |
+| 移动重算 | 200 项中只有 cp3_00291 改变（kept 262/267、调用匹配 133）；surviving 为 1 的 199 项 | cp4_3_v1、cp4_4_v1 的 moves.jsonl.gz |
+| 测试 | test_cp44 到 test_benchmark 共 279 项通过、5 项跳过 | 审查环境 pytest |
+
+未证明：真实修复中出现旧名使用节点的频率（真实图由 Slither 重新编号，这类情形只在修复改变数据流时出现）。
+
+### 52.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：按 r2.20 实现；cp3_00291 的差值按原门槛停下，经用户核对后接受。
+- 方案自身的错误：r2.18 §4.6c 与 r2.20 §4.6e 规定移出的节点“按原样比较”，在编号平移时不可靠；以 §4.6f 为准。
+- 新设计点（DECISIONS 记为 Claude 建议）：以定义为锚；用户转交 CP4.5 即视为同意。
+- 已知限制：declaration_error 0 个样本；创建码哈希常量。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 52.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_4_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP5 不能开始。顺序为 Codex 执行 CP4.5 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。
