@@ -4,7 +4,7 @@
 
 ## 0. 一句话
 
-CP4.2 已完成普通修复评分、历史重算和三组回归。函数移动测到 79/200，Yul 源码起点变化的验收口径待确认。详见第 5 节本批证据。
+CP4.2 已按四项用户决定完成本地验收。200 项固定 dev 函数移动全部编译并通过 D3，其中 198 项保留节点、CFG 边和调用全部相等。逐字 kept 低于 1 的有 81 项。核验后仍低于 1 的包括 1 项嵌入创建字节码变化、1 项 Yul 源码起点变化。所有低分均按实际数值计入 200 项分母。下一步为独立审查。
 
 ## 1. 当前状态
 
@@ -16,8 +16,8 @@ CP4.2 已完成普通修复评分、历史重算和三组回归。函数移动�
 | 已知限制 | declaration_error 0 纳入（同名函数实为 SyntaxError；CP3 主因 2 个单元） |
 | 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| CP4.2 移动自检 | 79/200 项已测，77 项保留节点、CFG 和调用全部相等。两项低分均保留。 |
-| 下一步 | 确认 Yul 停点的续跑范围，再完成移动自检并提交独立审查。 |
+| CP4.2 移动自检 | 200/200 项完成，198 项三个比例均为 1，2 项保留实测低分。 |
+| 下一步 | 独立审查 CP4.2，审查通过后进入 CP5。 |
 
 ## 2. 分支与工作树
 
@@ -41,13 +41,13 @@ CP4.2 在两个既有 Python 环境执行。三个最终套件的命令与结果
 
 本次审查先读 CP4_REPORT.md 的最终验收与 migration_continuation/README.md，再按 acceptance.json、packages.tsv 对回各阶段的通过行。抽查 cp3_03927 的元组使用、cp3_00706 的两份源文件清单和 AST、cp3_15161 的数组分配定义，并核对 8 个先尝试两版再成功的项目。
 
-续作先核对 checkpoint_79.json、observed_yul_positions.json 与未测清单，再查本批三份授权。实测满分、创建字节码差异及 Yul 偏移差异须分别报告。
+审查先读 acceptance.json 和 CP4_REPORT 的 CP4.2 最终表，抽查 measured_differences.json 及 moves_completed.jsonl，再核对四份授权与检查点。
 
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
-| CP4.2 代码、测试及移动停点 | artifacts/cp4_2_v1/README.md、checkpoint_79.json、exact_summary.json、migration_summary.json、observed_yul_positions.json、final_tests/ |
+| CP4.2 最终验收与停点证据 | artifacts/cp4_2_v1/README.md、acceptance.json、seal.json、measured_differences.json、exact_summary.json、migration_summary.json、checkpoint_79.json、final_tests/ |
 | CP4.1 审查证据（Claude） | artifacts/cp4_1_review_v1/README.md、probe_counter_shift.json、struct_copy_bin.json |
 | CP4.1 最终验收与封存 | artifacts/cp4_1_v1/migration_continuation/ 下的 README.md、acceptance.json、packages.tsv、final_scope.json、doc_check.json、seal.json |
 | CP4.1 最终生产、mando 与 DFG 回归 | 同批 definition_continuation/suites/ 下的三组命令、日志与结果 |
@@ -659,3 +659,9 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 14,196 个精确还原与 114 个迁移复评分数一致。函数移动检查点为 79/200，77 份三个比例均为 1。cp3_00291 的实际哈希输入变化，cp3_21529 的另一个函数含三个 Yul switch 名称因源码起点移动而变化，六个节点正式保留原分。创建字节码、NatSpec 与迁移的三项用户决定可由 DECISIONS 追查，Yul 后续验收另待确认。每份收据均保留输入、输出身份和实测分数。
 
 生产与 mando 两套模块测试分别通过 1,073 与 608 项，DFG v2 通过 2,653 项。成本 0 美元，CP5 待审查。完整命令、范围与封存记录见 CHANGE_LOG §47 以及本批 README。
+
+### 2026-11-22 CompileRepair CP4.2 完成本地验收（修改 AI 为 Codex）
+
+从检查点 387bb004 承接全部已有测量。用户确认 Yul 源码起点变化保留原分后，按原函数、版本和种子测量剩余 121 项。200 项固定 dev 函数移动全部编译并通过 D3，其中 198 项保留节点、CFG 边和调用全部相等。逐字 kept 低于 1 的有 81 项。核验后仍低于 1 的包括 1 项嵌入创建字节码变化、1 项 Yul 源码起点变化。所有低分均按实际数值计入 200 项分母。
+
+本次更新第 0–5 节的状态、复核顺序与路径。17 个生产文件及三个回归套件见本批 final_scope.json 和 final_tests/。审核者可用 README 的只读命令核对封存哈希，按 CP4_REPORT 最终表验证低分。所有工作本地执行，0 美元，阶段结束待独立审查。[最终验收](../artifacts/cp4_2_v1/acceptance.json)

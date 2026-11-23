@@ -25,7 +25,7 @@
 
 ## 本地复核
 
-从仓库根目录运行下列命令可核对这 79 份收据。命令只读已有记录。完整生产、mando 和 DFG 测试使用的实际命令、独立临时路径与退出状态见 `final_tests/*_tests.json`。重做测试时指定新的临时路径。历史有序列和摇号种子，旧结果使用了当时的绝对源码路径，复核时要能访问同一批外部文件。
+从仓库根目录运行下列命令可核对这 79 份收据。命令只读已有记录。完整生产、mando 和 DFG 测试使用的实际命令、独立临时路径与退出状态见 `final_tests/*_tests.json`。重做测试时指定新的临时路径。历史清单保留了顺序和抽样种子。旧结果使用了当时的绝对源码路径，复核时需要能访问同一批外部文件。
 
 ```bash
 export PYTHONPATH="$PWD" PYTHONDONTWRITEBYTECODE=1
@@ -38,3 +38,32 @@ mp=/home/zhao/miniconda3/envs/mando/bin/python
 "$mp" -B -m pytest -x -q -p no:cacheprovider compile_repair/tests
 "$mp" -B -m pytest -x -q -p no:cacheprovider scripts/DFG/dfg_v2/tests
 ```
+
+## 200 项最终结果
+
+200 项固定 dev 函数移动全部编译并通过 D3，其中 198 项保留节点、CFG 边和调用全部相等。逐字 kept 低于 1 的有 81 项。核验后仍低于 1 的包括 1 项嵌入创建字节码变化、1 项 Yul 源码起点变化。所有低分均按实际数值计入 200 项分母。
+
+项目单元共 87 个。按语料计数为 DAppSCAN 44、MANDO 44、SOChecker 21、Trace_CVEs 5、Trace_on_chain 43、Trace_repo 43。生成名称核验状态为 identical 119 项、verified 79 项、rejected 2 项。
+
+| 单元 | 已验证差异 | 保留节点 | CFG 边 | 调用 |
+|---|---|---:|---:|---:|
+| `cp3_00291` | 创建字节码摘要 | 261/264 | 247/247 | 132/133 |
+| `cp3_21529` | Yul 名称中的源码起点 | 616/622 | 592/592 | 244/244 |
+
+执行顺序为首轮、NatSpec 限定续跑、创建字节码差异确认后的续跑，以及从第 80 项开始的最后 121 项。完整 200 行收据和各项实际分数在 `moves_completed.jsonl`，逐项核对入口为 `final_audit.py`。该脚本会独占创建验收文件。仓库外源码及两侧图保留在各条收据指向的路径。历史前 79 项仍可用前文只读命令复核。下列命令从仓库根只读核对最终封存文件中登记的全部产物和交付文件。
+
+```bash
+python3 -B - <<'PY'
+from pathlib import Path
+import hashlib, json
+module = Path('compile_repair')
+batch = module / 'artifacts/cp4_2_v1'
+seal = json.loads((batch / 'seal.json').read_bytes())
+for root, records in ((batch, seal['batch_files_excluding_seal']), (module, seal['deliverables_sha256'])):
+    for name, expected in records.items():
+        assert hashlib.sha256((root / name).read_bytes()).hexdigest() == expected, name
+print('CP4.2 hashes verified')
+PY
+```
+
+[200 项收据](moves_completed.jsonl) · [例外的逐字节或源码段证据](measured_differences.json) · [汇总](acceptance.json)

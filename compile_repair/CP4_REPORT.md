@@ -219,3 +219,16 @@ CP3 主因的其他变化包括 parser_error_other 257→267、version_dependent
 逐项原分、校验结果、输入图 SHA、运行命令和逐函数行数在本批次中。[精确还原](artifacts/cp4_2_v1/exact_summary.json) · [迁移](artifacts/cp4_2_v1/migration_summary.json) · [代码范围](artifacts/cp4_2_v1/final_scope.json)
 
 在前 79 份有效移动测量中有 77 份的保留节点、CFG 边与调用全部相等。第 76 项 `cp3_00291` 的两个创建字节码常量各长 15,409 字节，内嵌 CBOR 摘要的 32 个字节不同。合约会计算这段字节的 Keccak-256，结果由 `f72818c5…` 变为 `f667a008…`。正式得分为 kept 261/264、CFG 247/247、调用 132/133。用户批准继续保留在原分母中。第 79 项 `cp3_21529` 的另外三个 Yul switch 源码各后移两字节。Slither 生成的变量名带有源码起点，涉及六个保留节点。按 §4.6c 保留正式得分 kept 616/622、CFG 592/592、调用 244/244。诊断副本逐段核对三处相同源码，仅对齐名称中的起点后其余事实全部吻合。生产规则只认可既有 AST 见证下的文件编号变化。余下 121 项待确认续跑。[创建字节哈希](artifacts/cp4_2_v1/observed_creation_hashes.json) · [Yul 证据](artifacts/cp4_2_v1/observed_yul_positions.json) · [79 项核验](artifacts/cp4_2_v1/checkpoint_79.json)
+
+### 函数移动最终验收
+
+200 项固定 dev 函数移动全部编译并通过 D3，其中 198 项保留节点、CFG 边和调用全部相等。逐字 kept 低于 1 的有 81 项。核验后仍低于 1 的包括 1 项嵌入创建字节码变化、1 项 Yul 源码起点变化。所有低分均按实际数值计入 200 项分母。
+
+项目单元共 87 个。按语料计数为 DAppSCAN 44、MANDO 44、SOChecker 21、Trace_CVEs 5、Trace_on_chain 43、Trace_repo 43。生成名称核验状态为 identical 119 项、verified 79 项、rejected 2 项。
+
+| 单元 | 已验证差异 | 保留节点 | CFG 边 | 调用 |
+|---|---|---:|---:|---:|
+| `cp3_00291` | 创建字节码摘要 | 261/264 | 247/247 | 132/133 |
+| `cp3_21529` | Yul 名称中的源码起点 | 616/622 | 592/592 | 244/244 |
+
+用户于 2026-11-22 确认 Yul 起点变化单列原分，检查点后的 121 项在新目录实测。诊断副本里的对齐仅用于说明原因。四项决定、逐单元工具和图收据、各项核验均已归档。CP4.2 通过按用户决定调整后的本地验收，下一步为独立审查。[验收](artifacts/cp4_2_v1/acceptance.json) · [低分证据](artifacts/cp4_2_v1/measured_differences.json) · [逐项结果](artifacts/cp4_2_v1/moves_completed.jsonl)

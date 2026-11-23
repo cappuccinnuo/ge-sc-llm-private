@@ -2237,3 +2237,7 @@ score_graphs 在普通修复上先算原分，再从共同存在、按偏移映�
 两套环境从仓库根执行模块回归，production 1,073 项通过、6 跳过，mando 608 项通过、471 跳过。mando 的 DFG v2 回归有 2,653 项通过、9 条告警。代码范围核对为 17 个生产文件、354 个 DFG 引用。CPU 本地运行，费用 0 美元，训练与 LLM 调用均为 0。第 79 项编译、D3 与图哈希核验通过。余下 121 项在本检查点尚未执行，CP5 待独立审查。[最终套件](../artifacts/cp4_2_v1/final_tests/) · [范围](../artifacts/cp4_2_v1/final_scope.json)
 
 本检查点六份中文文档经 doc_check 通过。CHANGE_LOG、PROGRESS 与 CP4_REPORT 在检查前核对基线的完整字节前缀，检查本次追加区间；交接、决定和新批 README 检查全文。79 个已测单元的原始 kept 有 38 个低于 1。收据和本地代码、文档哈希在本批检查点封存文件中。[文档检查](../artifacts/cp4_2_v1/checkpoint_doc_check.json)
+
+**第 79 项检查点后的最终验收。** 用户于 2026-11-22 回复“同意保留 Yul 原分并继续剩余 121 项”。正式评分规则沿用 §4.6c，保留前 79 项编译、D3 和图收据，余下单元在 position_continuation 单独目录运行。200 项固定 dev 函数移动全部编译并通过 D3，其中 198 项保留节点、CFG 边和调用全部相等。逐字 kept 低于 1 的有 81 项。核验后仍低于 1 的包括 1 项嵌入创建字节码变化、1 项 Yul 源码起点变化。所有低分均按实际数值计入 200 项分母。项目单元共 87 个。按语料计数为 DAppSCAN 44、MANDO 44、SOChecker 21、Trace_CVEs 5、Trace_on_chain 43、Trace_repo 43。生成名称核验状态为 identical 119 项、verified 79 项、rejected 2 项。三个回归套件均在最终生产代码上运行。临时副本只作诊断。独立审查待执行。详见本批验收、四份授权和 CHANGE_LOG §47.1–47.4。[验收](../artifacts/cp4_2_v1/acceptance.json) · [低分明细](../artifacts/cp4_2_v1/measured_differences.json) · [最后一次续跑授权](../artifacts/cp4_2_v1/yul_authorization.json)
+
+最终六份文档经 doc_check 通过，检查范围与前一检查点相同。四批移动实验共保存 214 份 solc 收据和 213 份 Slither 收据，按运行顺序分别为 60/59、30/30、3/3、121/121。首轮一项 NatSpec 关联错误在运行 Slither 前被编译器拒绝。214 包含首轮和重新带上注释的测量，最终分母为 200 个不同单元。14,196 个精确还原及 114 个迁移只从封存图重算。CPU 本地验收结束，独立审查待进行。[文档检查](../artifacts/cp4_2_v1/doc_check.json) · [最终封存](../artifacts/cp4_2_v1/seal.json)
