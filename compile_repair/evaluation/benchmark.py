@@ -1074,116 +1074,149 @@ def _guard_counter_sources(original, repaired, protected, imports_only=True):
 
 
 _GENERATED_NAME = re.compile(r"(?<![\w$])((?:TMP|REF|TUPLE)_[0-9]+|switch_expr_\d+_\d+_\d+_[\w$]+)(?![\w$])")
-_NodeNames = namedtuple("_NodeNames", "pairs definitions switch_uses invalid_switches proofs")
+_NodeNames = namedtuple("_NodeNames", "pairs definitions invalid_switches proofs")
+
+
+_REFERENCE_BINDING = re.compile(r"^(REF_[0-9]+)(?:\(.*\))? -> (.+)$")
+_DELETE_REFERENCE = re.compile(r"^(?:REF|TMP)_[0-9]+ = delete (REF_[0-9]+) *$")
+
+
+def _bound_reference_write(op, name, instructions, index):
+    """Only classify writes with a preceding local binding and, for delete, a matching selector."""
+    array = name.startswith("REF_") and re.fullmatch(r"REF_[0-9]+\(.+\) = \[.*\]", op)
+    deletion = _DELETE_REFERENCE.fullmatch(op)
+    if not array and not deletion:
+        return False
+    bound = False
+    selectors = []
+    for previous in instructions[:index]:
+        ref = _REFERENCE_BINDING.fullmatch(previous)
+        if ref and ref[1] == name:
+            bound = True
+        elif name.startswith("TMP_"):
+            prior = _COUNTER_DEFINITION.match(previous)
+            if prior and prior[1] == name and not _DELETE_REFERENCE.fullmatch(previous):
+                bound = True
+        if deletion and ref and ref[1] == deletion[1]:
+            selectors.append(bound and ref[2].startswith((name+"[", name+".")))
+    return bound if array else selectors == [True]
+
+
+def _ordinary_definition(op, instructions=(), index=0):
+    """Identify a binding; an annotated REF lvalue writes through an existing reference."""
+    counter = _COUNTER_DEFINITION.match(op)
+    if counter:
+        if counter[1].startswith("REF_") and "(->" in counter[0]:
+            return None
+        if _bound_reference_write(op, counter[1], instructions, index):
+            return None
+        return counter[1]
+    switch = _YUL_SWITCH.match(op)
+    if switch and re.match(r"\([^)]*\) := ", op[switch.end():]):
+        return switch[0]
+    return None
 
 
 def _ordinary_node_names(key, target, old, new, maps, sites, original, repaired):
-    facts = dict(old, key5=list(target[1]), ir=[])
-    if "filename" in old:
-        facts["filename"] = target[0]
-    if facts != dict(new, ir=[]) or len(old["ir"]) != len(new["ir"]):
+    if old["node_type"] != new["node_type"] or len(old["ir"]) != len(new["ir"]):
         return None
-    pairs, definitions, switch_uses, invalid_switches, proofs = set(), set(), set(), set(), {}
-    for left, right in zip(old["ir"], new["ir"]):
+    pairs, definitions, invalid, proofs = set(), [], set(), {}
+    for i, (left, right) in enumerate(zip(old["ir"], new["ir"])):
         a, b = _GENERATED_NAME.split(left), _GENERATED_NAME.split(right)
         if a[::2] != b[::2]:
             return None
-        definition = _COUNTER_DEFINITION.match(left)
-        if definition:
-            definitions.add((None, definition.group(1)))
-        for index in range(1, len(a), 2):
-            ltoken, rtoken = a[index], b[index]
+        old_def = _ordinary_definition(left, old["ir"], i)
+        new_def = _ordinary_definition(right, new["ir"], i)
+        for index, (ltoken, rtoken) in enumerate(zip(a[1::2], b[1::2])):
             lscope = key[0] if ltoken.startswith("switch_expr_") else None
             rscope = key[0] if rtoken.startswith("switch_expr_") else None
             lname, rname = (lscope, ltoken), (rscope, rtoken)
             pairs.add((lname, rname))
-            if lscope is None or rscope is None:
+            if index == 0 and old_def == ltoken:
+                peer = rname if new_def == rtoken and ltoken.partition("_")[0] == rtoken.partition("_")[0] else None
+                definitions.append((lname, peer))
+            if lscope is None:
                 continue
-            if index == 1 and not a[0] and re.match(r"\([^)]*\) := ", a[2]):
-                definitions.add(lname)
-            else:
-                switch_uses.add(lname)
+            x, y = _YUL_SWITCH.fullmatch(ltoken), _YUL_SWITCH.fullmatch(rtoken)
+            if not x or not y:
+                invalid.add(lname)
+                continue
             try:
-                proof = _switch_proof(key, target, _YUL_SWITCH.fullmatch(ltoken), _YUL_SWITCH.fullmatch(rtoken),
-                                      maps, sites, original, repaired, key[0], True)
+                proof = _switch_proof(key, target, x, y, maps, sites, original, repaired, key[0], True)
             except ValueError:
-                invalid_switches.update((lname, rname))
+                invalid.add(lname)
             else:
                 if proof:
                     proofs[lname] = proof
-    return _NodeNames(pairs, definitions, switch_uses, invalid_switches, proofs)
+    return _NodeNames(pairs, definitions, invalid, proofs)
 
 
-def _prune_name_nodes(nodes, counts):
-    """Remove every affected node at once for each reason, then recheck surviving definitions."""
-    while True:
-        forward, reverse = defaultdict(set), defaultdict(set)
-        defined, used, conflicts, invalid_switches = set(), set(), set(), set()
-        for node in nodes.values():
-            defined.update(node.definitions)
-            used.update(node.switch_uses)
-            invalid_switches.update(node.invalid_switches)
-            for a,b in node.pairs:
-                forward[a].add(b)
-                reverse[b].add(a)
-                if a[1].partition("_")[0] != b[1].partition("_")[0]:
-                    conflicts.update((a,b))
-        for mapping in (forward, reverse):
-            for name, peers in mapping.items():
-                if len(peers) > 1:
-                    conflicts.add(name)
-                    conflicts.update(peers)
-        if conflicts:
-            reason, rejected = "conflict", conflicts
+def _definition_anchors(nodes):
+    """Count definition occurrences (including repeats within one node), independent of graph order."""
+    definitions = defaultdict(list)
+    disputed = set()
+    for node in nodes.values():
+        disputed.update(node.invalid_switches)
+        for name, image in node.definitions:
+            definitions[name].append(image)
+    anchors, origins = {}, defaultdict(set)
+    for name, peers in definitions.items():
+        if len(peers) != 1 or peers[0] is None:
+            disputed.add(name)
         else:
-            # Each left name now has exactly one right peer. Definitions refer to the truth side.
-            missing = {name for name, peers in forward.items() if name not in peers and
-                       (name not in defined or (name[0] is not None and name not in used))}
-            if missing:
-                reason, rejected = "definition", missing
-            elif invalid_switches:
-                reason, rejected = "switch", invalid_switches
-            else:
-                return {a:next(iter(bs)) for a,bs in forward.items()}
-        discard = [key for key,node in nodes.items()
-                   if any(a in rejected or (reason != "definition" and b in rejected) for a,b in node.pairs)]
-        counts[reason] += len(discard)
-        for key in discard:
-            del nodes[key]
+            anchors[name] = peers[0]
+            origins[peers[0]].add(name)
+    for peers in origins.values():
+        if len(peers) > 1:
+            disputed.update(peers)
+    return {a:b for a,b in anchors.items() if a not in disputed}, disputed, set(origins)
 
 
 def _ordinary_correspondence(truth, actual, positions, maps, sites, original, repaired, counts):
     expected, observed = _nodes(truth), _nodes(actual)
-    nodes, protected = {}, set()
-    for key,target in positions.items():
-        node = _ordinary_node_names(key,target,expected[key],observed[target],maps,sites,original,repaired)
+    nodes, protected, excluded_defs = {}, set(), set()
+    for key, target in positions.items():
+        old = expected[key]
+        node = _ordinary_node_names(key, target, old, observed[target], maps, sites, original, repaired)
         if node is None:
             counts["structural"] += 1
+            for i, op in enumerate(old["ir"]):
+                token = _ordinary_definition(op, old["ir"], i)
+                if token:
+                    excluded_defs.add((key[0] if token.startswith("switch_expr_") else None, token))
             continue
         nodes[key] = node
-        for a,b in node.pairs:
+        for a, b in node.pairs:
             if a != b:
-                for scope,token in (a,b):
+                for scope, token in (a, b):
                     protected.add(token.encode("ascii"))
                     if scope is not None:
                         protected.add("_".join(token.split("_")[:5]).encode("ascii"))
-    mapping = _prune_name_nodes(nodes, counts)
-    counts["participating"] = len(nodes)
+    counts["candidate"] = len(nodes)
     if protected:
         _guard_counter_sources(original, repaired, protected, imports_only=False)
-    renamed = {a[1]:b[1] for a,b in mapping.items() if a[0] is None and a != b}
-    switches = {}
-    for node in nodes.values():
-        switches.update(node.proofs)
+    anchors, disputed, images = _definition_anchors(nodes)
+    equal, switches = set(), {}
+    for key, node in nodes.items():
+        if any(a in disputed for a, b in node.pairs):
+            counts["disputed"] += 1
+        if any(a != b and a in excluded_defs and a not in anchors and a not in disputed for a, b in node.pairs):
+            counts["unanchored_shift"] += 1
+        if all(a not in disputed and (anchors[a] == b if a in anchors else a == b and b not in images)
+               for a, b in node.pairs):
+            equal.add(key)
+        switches.update((a, proof) for a, proof in node.proofs.items() if a in anchors and proof["new"] == anchors[a][1])
+    counts["name_mismatch"] = len(nodes) - len(equal)
+    renamed = {a[1]:b[1] for a,b in anchors.items() if a[0] is None and a != b}
     if renamed or switches:
-        reverse = {b:a[1] for a,b in mapping.items()}
+        reverse = {b:a[1] for a,b in anchors.items() if a != b}
         def replace(name, op):
             def token(match):
                 value = match.group()
-                return reverse[(name if value.startswith("switch_expr_") else None, value)]
+                return reverse.get((name if value.startswith("switch_expr_") else None, value), value)
             return _GENERATED_NAME.sub(token, op)
-        actual = _map_graph_ir(actual, replace, {positions[key] for key in nodes})
-    return actual, renamed, [switches[key] for key in sorted(switches)]
+        actual = _map_graph_ir(actual, replace, {positions[key] for key in equal})
+    return actual, renamed, [switches[key] for key in sorted(switches)], equal
 
 
 def _counter_correspondence(expected, observed, positions):
@@ -1295,7 +1328,7 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     kept_positions = {}
     raw = _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization,
                        positions, kept_positions)
-    counts = dict(participating=0, structural=0, conflict=0, definition=0, switch=0)
+    counts = dict(candidate=0, structural=0, name_mismatch=0, disputed=0, unanchored_shift=0)
     def result(score, status, reason, changes=None, switches=()):
         count = len(changes or {}) + len(switches)
         proof = dict(status=status, reason=reason, renamed_count=count, renamed=changes or {})
@@ -1315,13 +1348,16 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
                 raise ValueError("switch_compiler_or_settings_differ")
             sites = [_switch_sites(data, digest, files) for data,digest,files in witness_input]
         if not renames:
-            graph, changes, switches = _ordinary_correspondence(truth, actual, kept_positions, maps, sites,
-                                                               original, repaired, counts)
-            if not changes and not switches:
+            graph, changes, switches, equal = _ordinary_correspondence(
+                truth, actual, kept_positions, maps, sites, original, repaired, counts)
+            if not changes and not switches and not counts["name_mismatch"]:
                 return result(raw, "identical", "no_verified_renames")
-            corrected = _score_facts(truth, graph, original, repaired, maps, near, level, compiled, normalization)
-            partial = any(counts[k] for k in ("conflict", "definition", "switch"))
-            return result(corrected, "partial" if partial else "verified", "aligned_generated_names", changes, switches)
+            corrected = _score_facts(truth, graph, original, repaired, maps, near, level, compiled, normalization,
+                                     equal_kept_positions=equal)
+            if not changes and not switches:
+                return result(corrected, "identical", "no_verified_renames")
+            status = "partial" if counts["name_mismatch"] else "verified"
+            return result(corrected, status, "aligned_generated_names", changes, switches)
         kept_graph, switches = _align_switches(truth, actual, kept_positions, sites, original, repaired,
                                              renames, maps, kept_positions)
         changes, reverse_names = _counter_correspondence(_nodes(truth), _nodes(kept_graph), kept_positions)
@@ -1357,7 +1393,8 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
                 counter_correspondence=kept_score["counter_correspondence"])
 
 
-def _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization, positions=None, kept_positions=None):
+def _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization,
+                 positions=None, kept_positions=None, equal_kept_positions=None):
     expected,observed=_nodes(truth),_nodes(actual or {})
     old_kept,new_kept={},{}
     removed = set()
@@ -1402,7 +1439,7 @@ def _score_facts(truth, actual, original, repaired, maps, near, level, compiled,
                 kept_positions[identity] = mapped
             if present:new_kept[mapped]=mapped
             else:missing_kept+=1
-            equal_kept+=int(same)
+            equal_kept += int(same if equal_kept_positions is None else identity in equal_kept_positions)
     extra=set(observed)-matched
     only_added=True
     for file,key in extra:

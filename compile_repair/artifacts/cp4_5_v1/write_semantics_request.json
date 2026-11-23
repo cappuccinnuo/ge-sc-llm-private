@@ -1,0 +1,26 @@
+{
+  "status": "historical_comparison_stopped",
+  "counts": {
+    "moves": {
+      "REF_delete_reference": 4,
+      "REF_array_initialization": 3
+    },
+    "exact": {
+      "REF_array_initialization": 51,
+      "REF_delete_reference": 1394,
+      "TMP_delete_reference": 1
+    }
+  },
+  "previous_approval": "Only explicit (->destination) REF write-through was authorized.",
+  "proposal": "For ordinary scoring only, also recognize two specific SlithIR writes: a typed array initialization through a previously bound REF in the same node, and a delete whose reference operand is bound to the named destination in that node. Verify names on every occurrence, preserve genuine multiple definitions and the raw score. Add positive, stale-use and genuine multi-definition cases, rerun all three historical comparisons and the suites in a new batch.",
+  "rows": {
+    "moves": {
+      "_summary.json": "b8be55618a42511325bdea6613e5a937ed17ae106f18b86110dacbd93534b3dc",
+      "_causes.jsonl.gz": "d14243ed4e69c381c42c5a3da78d8f76d7a5053462d87ba8043a9c87d643d3fa"
+    },
+    "exact": {
+      "_summary.json": "d33fc07bdee9dbc6939bf45f0b071b5de194c005cbb8f03368f5150d31e578ab",
+      "_causes.jsonl.gz": "d60820e157446b67705faf8a40704631ab9c279e237c5ec3b6bbcae7af4a3d9b"
+    }
+  }
+}

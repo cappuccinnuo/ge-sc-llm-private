@@ -1,0 +1,95 @@
+{
+  "authorizations": {
+    "authorization.json": "d2d90a2aac417b5de36a985cf56b90663f03ba0e81f318ec511dd5484cccfd48",
+    "continuation/authorization.json": "76cb5e2c2f323951fe8045d01366c56a51e8319f2805e669086790696cb981c1"
+  },
+  "changed_production": [
+    "compile_repair/evaluation/benchmark.py"
+  ],
+  "comparisons": {
+    "exact": {
+      "changed": 0,
+      "count": 14196,
+      "sha256": "e8c3a790ef519e8f9fee15e55620dc6e9a55e016e37cf79c98646fb8fd82ba0b",
+      "statuses": {
+        "identical": 14196
+      }
+    },
+    "migration": {
+      "changed": 0,
+      "count": 114,
+      "sha256": "2b2cd90cf25664a48d79c4ef68a88b3ab5ce5e3d9f0e5cf25b61f37dbd8d13e2",
+      "statuses": {
+        "identical": 58,
+        "verified": 56
+      }
+    },
+    "moves": {
+      "changed": 0,
+      "count": 200,
+      "sha256": "b57ea3eea09ff288d07742403618b5752e291e69d6c939be8071a6aa65050531",
+      "statuses": {
+        "identical": 119,
+        "verified": 81
+      }
+    }
+  },
+  "initial_stop_seal": "55dff23c2419f3ba099845ed5cd6d7b67a674bfff4d97c73ce70506e0b72bd67",
+  "status": "passed_after_authorized_continuation",
+  "suites": {
+    "dfg": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/dfg_v2/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp4_5_v1/continuation/tests_dfg"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 241.681,
+      "returncode": 0,
+      "summary": "2653 passed, 9 warnings in 238.72s (0:03:58)"
+    },
+    "mando": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "compile_repair/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp4_5_v1/continuation/tests_mando"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 65.651,
+      "returncode": 0,
+      "summary": "634 passed, 474 skipped in 64.99s (0:01:04)"
+    },
+    "production": {
+      "command": [
+        "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "compile_repair/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp4_5_v1/continuation/tests_production"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 136.605,
+      "returncode": 0,
+      "summary": "1102 passed, 6 skipped in 135.63s (0:02:15)"
+    }
+  }
+}

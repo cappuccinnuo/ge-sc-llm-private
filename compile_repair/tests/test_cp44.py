@@ -37,9 +37,9 @@ def test_counters_do_not_hide_changed_data_flow(wrong):
         return score_graphs(truth,actual,files,files,files,{},{},0,True)
     result=score()
     proof=result["counter_correspondence"]
-    assert not result["exact"] and result["kept"]==dict(units=6,equal=2,ratio=2/6)
-    assert proof["status"]=="partial" and proof["renamed"]=={"TMP_3":"TMP_13"}
-    assert proof["nodes"]==dict(participating=2,structural=0,conflict=3,definition=1,switch=0)
+    assert not result["exact"] and result["kept"]==dict(units=6,equal=5,ratio=5/6)
+    assert proof["status"]=="partial" and proof["renamed_count"]==4
+    assert proof["nodes"]==dict(candidate=6, structural=0, name_mismatch=1, disputed=0, unanchored_shift=0)
     # Node order must not choose the winner of a conflict.
     truth["nodes"].reverse()
     actual["nodes"].reverse()

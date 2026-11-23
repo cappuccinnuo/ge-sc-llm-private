@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.21 §1.24 与 §4.6f（CP4.5）、artifacts/cp4_4_review_v1/README.md、CP4_REPORT.md 的 CP4.4、CHANGE_LOG §51、§52。
+> 本轮先读第 0–5 节、PROMPTS r2.21 §4.6f、CP4_REPORT 的 CP4.5、CHANGE_LOG §53 及 artifacts/cp4_5_v1/README.md。
 
 ## 0. 一句话
 
-CP4.4 已由 Claude 审查：按节点推导、比例性与重算成立，但被移出推导的节点按原样比较，编号平移时保留旧名的错误使用节点会被计为相等（实测只有 2 个节点正确时评分 4/5）。下一步：Codex 执行 4.6f 节 CP4.5（以定义为锚的名称对应）→ Claude 审查 → CP5。
+CP4.5 已完成本地验收。旧名错误定位到具体使用节点；200 项移动、14,196 项精确还原和 114 项迁移均与 CP4.4 对齐，下一步为独立审查。
 
 ## 1. 当前状态
 
@@ -16,7 +16,8 @@ CP4.4 已由 Claude 审查：按节点推导、比例性与重算成立，但被
 | 已知限制 | declaration_error 0 纳入；对嵌入创建码求哈希的常量无法规范化（cp3_00291，用户决定按实测计入） |
 | 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | CP4.5 → 审查 → CP5 |
+| CP4.5 | 定义锚、两次已批准的写入识别与全量对比通过 |
+| 下一步 | 独立审查 CP4.5，审查后再安排 CP5 |
 
 ## 2. 分支与工作树
 
@@ -30,6 +31,8 @@ CP4.3 起点为 09a8355e。新批次在 artifacts/cp4_3_v1，真实夹具及临�
 
 CP4.4 以 8739c653 为基线。新结果在 artifacts/cp4_4_v1，真实手写夹具和工具输出位于同级仓库外 compile-repair-local/cp4_4_v1。
 
+CP4.5 从 c8ca807a 开始。首轮及逐项差异证据在 artifacts/cp4_5_v1；最终重验在其 continuation 子目录。
+
 ## 3. 环境
 
 生产采用 Python 3.10、Slither 0.11.6、crytic-compile 0.4.2 和 92 版本 solc 快照。mando 的 Python 3.7、Slither 0.8.0 承担兼容与 DFG 测试。工具身份以 execution_settings.json 及前序授权信任清单为准。CPU 本地执行，费用 0 美元。
@@ -41,6 +44,8 @@ CP4.2 在两个既有 Python 环境执行。三个最终套件的命令与结果
 CP4.3 手写夹具使用现有 production 环境的 solc 0.8.38、Slither 0.11.6 和 crytic-compile 0.4.2。200 项移动、14,196 项精确还原和 114 项迁移只复算评分。
 
 CP4.4 用既有 production 环境的 0.8.38 编译器生成审查夹具。历史对比直接读取原图，模块和 DFG 回归的完整命令位于本批 suites。
+
+CP4.5 历史核验只读已封存的图；手写夹具回归运行于既有生产环境，mando 执行另一组模块回归及 DFG v2。
 
 ## 4. 必读与下一步
 
@@ -54,10 +59,13 @@ CP4.4 用既有 production 环境的 0.8.38 编译器生成审查夹具。历史
 
 审查 CP4.4 时按 README 核验封存哈希；查看 review_scores.json 和 fixture_facts.json 中每个场景的参与与退出节点；最后对照 moves_summary.json 的原停点、movement_difference.json 的三个节点与一个调用，以及用户随后确认的范围。
 
+CP4.5 复核先查两份授权、comparison_stop_seal 与最终 acceptance，再检查三个旧名节点的身份、删除与数组写入的绑定证据及三组完整重算。
+
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4.5 | artifacts/cp4_5_v1/README.md、comparison_stop_seal.json、continuation/、acceptance.json、seal.json |
 | CP4.4 审查证据（Claude） | artifacts/cp4_4_review_v1/README.md、probe_stale_name.json |
 | CP4.4 报告、批准与最终验收 | CP4_REPORT.md、artifacts/cp4_4_v1/ 的 README.md、acceptance.json、acceptance_authorization.json、movement_difference.json、scope.json、doc_check.json、seal.json |
 | CP4.3 审查证据（Claude） | artifacts/cp4_3_review_v1/README.md、probe_partial_change.json、probe_yul_switch.json |
@@ -726,3 +734,8 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 结论：CP4.3 审查的比例性问题已解决（6/7），Yul 夹具与移动重算和报告一致，279 项测试通过。未解决：移出的节点按原样比较，错误修复中保留旧名的使用节点被计为相等，可能高估；参与推导比较的事实与主指标不一致。新增 4.6f 节 CP4.5。
 
 下一步：Codex 执行 CP4.5，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §52。
+
+
+### 2026-11-23 CP4.5 定义锚与历史验收（Codex）
+
+从 compile-repair@c8ca807a 执行 r2.21 §4.6f。此前旧名探针能给出相同总分却选错节点，现在按节点身份核验。完整重算中出现同节点写入被统计为多个定义，已逐项取证并先后取得两次用户决定。首轮 4 个移动和 678 个精确还原差异的完整收据已封存；新批次三组指标全部一致。前后两轮的 production、mando 和 DFG v2 回归分别保留。读 CP4_REPORT 的 CP4.5、CHANGE_LOG §53、`cp4_5_v1/README.md` 与最终验收。下一步为独立审查 CP4.5。

@@ -67,8 +67,9 @@ def test_yul_switch_offset_from_composed_mapping(tmp_path):
                 "switch_expr_"+str(after)+"_", "switch_expr_"+str(offset)+"_", 1)) for line in node["ir"]]
         bad = score(wrong)
         assert bad["counter_correspondence"]["status"] == "identical"
-        assert bad["counter_correspondence"]["nodes"]["switch"] > 0 and not bad["exact"]
-        assert bad["kept"] == bad["raw"]["kept"]
+        assert bad["counter_correspondence"]["nodes"]["disputed"] > 0 and not bad["exact"]
+        assert bad["kept"]["equal"] <= bad["raw"]["kept"]["equal"]
+        assert bad["kept"]["equal"] < result["kept"]["equal"]
         bad_results[label] = bad
     (tmp_path/"scores.json").write_text(json.dumps(dict(verified=result,rejected=bad_results)),encoding="utf8")
 
