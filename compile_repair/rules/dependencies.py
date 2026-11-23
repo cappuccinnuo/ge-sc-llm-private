@@ -242,7 +242,7 @@ def _yaml_pins(text,owner,package,spec):
     return set()
 
 
-def manifest_identities(root, importer, requested):
+def manifest_identities(root, importer, requested, mask_versions=False):
     """Read static dependency evidence only in ancestor manifests inside the supplied project."""
     root=Path(root).resolve()
     folder=(root/importer).parent
@@ -264,6 +264,9 @@ def manifest_identities(root, importer, requested):
             spec=next(iter(specs),None)
             break
     real,version_range=_manifest_alias(requested,spec)
+    if mask_versions:
+        # The reference experiment keeps package aliases and withholds both lock pins and ranges.
+        return dict(package=real, tier="T3", spec=None, manifests=receipts)
     pins=set()
     for directory in ancestors:
         lock=_owned_file(directory,"package-lock.json")
@@ -470,7 +473,7 @@ def _release_sources(offline, name, version, roots):
 
 
 def dependency_choices(project, inventory, offline, versions, overlays, policy, evidence, preferred=None,
-                       existing_releases=None):
+                       existing_releases=None, mask_versions=False):
     """Yield offline release combinations, including transitive packages and each identity constraint.
 
     A compatible lexical candidate still requires the pipeline's actual compiler and D3 check.
@@ -500,7 +503,7 @@ def dependency_choices(project, inventory, offline, versions, overlays, policy, 
         requested = min(rows)
         imports = rows[requested]
         try:
-            identities = [manifest_identities(root, imp["importer"], requested) for imp, _ in imports]
+            identities = [manifest_identities(root, imp["importer"], requested, mask_versions) for imp, _ in imports]
         except (ValueError, UnicodeError) as exc:
             evidence.append(dict(requested=requested, reason="invalid_manifest", detail=str(exc)))
             return

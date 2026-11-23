@@ -1,0 +1,43 @@
+.................................ss.ss.................................. [  6%]
+........................................................................ [ 12%]
+........................................................................ [ 18%]
+........................................................................ [ 24%]
+..................................................................ss...s [ 31%]
+s....s.......................................sssssss.s.sss.s............ [ 37%]
+........................................................................ [ 43%]
+.......sss.................s............sssssssF
+=================================== FAILURES ===================================
+___________________ test_frozen_equivalence_all_846_sources ____________________
+
+tmp_path = PosixPath('/home/zhao/SmartContract/compile-repair-local/cp5_1_v1/frozen_suites/tests_mando/test_frozen_equivalence_all_840')
+
+    def test_frozen_equivalence_all_846_sources(tmp_path):
+        cp0 = read_checked_json(ROOT / "compile_repair/artifacts/cp0_v2/recon.json", CP0_SHA256)
+        assert len(cp0["inputs"]) == 846
+        records = []
+        for row in cp0["inputs"]:
+            path = ROOT / row["path"]
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == row["sha256"]
+            text = path.read_bytes().decode("utf8")
+>           records.append(compare_frozen(path, parse(text).root_node, text))
+
+compile_repair/tests/test_pragma_bytes.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/DFG/frontend.py:35: in parse
+    parser.set_language(Language(str(library_path()), "solidity"))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def library_path():
+        root = Path(__file__).resolve().parents[2]
+        path = (Path(os.environ["TREE_SITTER_LIB_DIR"]) / "my-languages.so"
+                if os.environ.get("TREE_SITTER_LIB_DIR")
+                else root / "build/linux-x86_64/my-languages.so")
+        if not path.is_file():
+>           raise Unsupported("Missing existing tree-sitter library: " + str(path))
+E           scripts.DFG.models.Unsupported: Missing existing tree-sitter library: /home/zhao/SmartContract/ge-sc-llm-compile/build/linux-x86_64/my-languages.so
+
+scripts/DFG/frontend.py:30: Unsupported
+=========================== short test summary info ============================
+FAILED compile_repair/tests/test_pragma_bytes.py::test_frozen_equivalence_all_846_sources
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 519 passed, 32 skipped in 26.09s

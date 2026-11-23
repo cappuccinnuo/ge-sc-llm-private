@@ -1,0 +1,93 @@
+{
+  "stage": "interruption during uncapped development measurements",
+  "utc": "2026-11-23T13:22:41.472172+00:00",
+  "input_plan_sha256": "e2470ef528759b2e80be128be5c17a6112feb522dafd0e09e91c6342a125e321",
+  "expected_observations": 6948,
+  "published_prefix": 6940,
+  "ordered_prefix_exact": true,
+  "prefix_bytes": 11851722,
+  "prefix_sha256": "56b58fd52be7280aee9b6e85246ccdf8b51326b6e0028016c7adcf34d51005df",
+  "worker_native_log_sha256": "21010b5643f944e3bc25bccacf622479e269953b5b26a8d519308bb2704038ac",
+  "original_completion_claim_sha256": "156488057275189d842383faf3c77c53de5228271a0cebf1789c2ae2532770b7",
+  "external_finalization_journal_sha256": "7e96c27456c17f0df40143e0540efad1f4494c016a7c061c788b4c5a8f6abbab",
+  "remaining": [
+    {
+      "unit_id": "cp3_30233",
+      "policy": "oldest",
+      "store_exists": true,
+      "result_exists": false,
+      "steps_exist": false,
+      "journal_sha256": "332b57a945eaa2fe2228fac2b41ea29aeb44d615d3f2a658e49236c0a8202556",
+      "journal_count": 31,
+      "kinds": [
+        "solc"
+      ],
+      "exit_codes": [
+        1
+      ],
+      "timeouts": 0
+    },
+    {
+      "unit_id": "cp3_30233",
+      "policy": "closest",
+      "store_exists": false,
+      "result_exists": false,
+      "steps_exist": false
+    },
+    {
+      "unit_id": "cp3_30269",
+      "policy": "latest",
+      "store_exists": false,
+      "result_exists": false,
+      "steps_exist": false
+    },
+    {
+      "unit_id": "cp3_30269",
+      "policy": "oldest",
+      "store_exists": false,
+      "result_exists": false,
+      "steps_exist": false
+    },
+    {
+      "unit_id": "cp3_30269",
+      "policy": "closest",
+      "store_exists": false,
+      "result_exists": false,
+      "steps_exist": false
+    },
+    {
+      "unit_id": "cp3_30320",
+      "policy": "latest",
+      "store_exists": false,
+      "result_exists": false,
+      "steps_exist": false
+    },
+    {
+      "unit_id": "cp3_30320",
+      "policy": "oldest",
+      "store_exists": false,
+      "result_exists": false,
+      "steps_exist": false
+    },
+    {
+      "unit_id": "cp3_30320",
+      "policy": "closest",
+      "store_exists": false,
+      "result_exists": false,
+      "steps_exist": false
+    }
+  ],
+  "investigation": [
+    "The development worker and its waiting supervisor were absent from /proc. The finalization guard wrote measurement_not_complete and exited without starting final checks. No frozen policy or held-out stage exists.",
+    "The interrupted invocation journal ends with 31 normal solc failures, with no timeout or Slither call. The finalization time and the native log contain no Python exception for the exit. Kernel journal 13:06 to 13:14 UTC showed no OOM kill. WSL was still running with more than 9 days uptime. The termination cause is unconfirmed.",
+    "A later WSL launcher health check returned Wsl/Service/0x8007274c after a prior read-only Linux check succeeded; the shared filesystem remains readable. This later launcher error does not establish why the worker ended."
+  ],
+  "proposal": [
+    "Verify the saved hashes of all 6,940 result records and their repair steps, bind the exact source-script hashes, and keep an immutable lossless copy of the original prefix.",
+    "In new storage, repeat exactly the single incomplete (cp3_30233, oldest) case once and run the seven never-started pairs once. Its 31 previous commands remain separate and are excluded from its new uninterrupted measurement. No previously finished pair is rerun.",
+    "Append only the eight new rows to the checked prefix for the 6,948-row aggregate. Run the formally planned downstream stages once under the unchanged D3 and dev-only selection. Use a protected worker independent of the interactive shell, exclusive startup markers, and stop on a new failure."
+  ],
+  "cost_usd": 0,
+  "new_downloads": 0,
+  "llm_calls": 0
+}

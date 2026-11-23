@@ -135,9 +135,9 @@ def inventory(trusted):
 def validate_settings(settings):
     """Return ordered option tokens as a tuple; reject all non-whitelisted argv.
 
-    Accept only --via-ir and --evm-version followed by one name token. The
-    compiler validates EVM names for its release; whitespace, extra switches,
-    repeated options and arbitrary command fragments are rejected here.
+    Environment retries use --via-ir or --evm-version. D24 additionally
+    permits optimizer flags supplied by the source wrapper. Keep argument
+    tokens intact for both solc and Slither.
     """
     if not isinstance(settings, (tuple, list)) or not all(isinstance(s, str) for s in settings):
         raise ValueError("settings must be an ordered sequence of string tokens")
@@ -145,13 +145,20 @@ def validate_settings(settings):
     seen, index = set(), 0
     while index < len(settings):
         option = settings[index]
-        if option not in ("--evm-version", "--via-ir") or option in seen:
+        if option not in ("--evm-version", "--via-ir", "--optimize", "--optimize-runs") or option in seen:
             raise ValueError("Unsupported or repeated compiler setting: " + option)
         seen.add(option)
         index += 1
         if option == "--evm-version":
             if index == len(settings) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", settings[index]):
                 raise ValueError("--evm-version requires one name token")
+            index += 1
+        elif option == "--optimize-runs":
+            if index == len(settings) or not re.fullmatch(r"[0-9]+", settings[index]):
+                raise ValueError("--optimize-runs requires an unsigned decimal uint32")
+            digits = settings[index].lstrip("0") or "0"
+            if len(digits) > 10 or (len(digits) == 10 and digits > "4294967295"):
+                raise ValueError("--optimize-runs exceeds uint32")
             index += 1
     return settings
 

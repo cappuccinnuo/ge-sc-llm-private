@@ -15,6 +15,8 @@ COMPILER = Compiler("0.8.24", "/explicit/solc", "unused")
 
 
 @pytest.mark.parametrize("settings", [(), ("--via-ir",), ("--evm-version", "cancun"),
+    ("--optimize",), ("--optimize-runs", "0"), ("--optimize-runs", "4294967295"),
+    ("--via-ir", "--optimize-runs", "000200", "--optimize", "--evm-version", "cancun"),
     ("--via-ir", "--evm-version", "cancun"), ("--evm-version", "cancun", "--via-ir")])
 def test_settings_keep_token_order_and_default_command(settings):
     default = command(SOURCE, COMPILER)
@@ -22,7 +24,11 @@ def test_settings_keep_token_order_and_default_command(settings):
     assert validate_settings(list(settings)) == settings
 
 
-@pytest.mark.parametrize("settings", ["--via-ir", None, (1,), ("--optimize",),
+@pytest.mark.parametrize("settings", ["--via-ir", None, (1,), ("--optimize", "--optimize"),
+    ("--optimize-runs",), ("--optimize-runs", "-1"), ("--optimize-runs", "1.5"),
+    ("--optimize-runs", "+1"), ("--optimize-runs", "4294967296"), ("--optimize-runs", "1"*1000),
+    ("--optimize-runs", "１２"), ("--optimize-runs", "2 --via-ir"),
+    ("--optimize-runs", "1", "--optimize-runs", "1"),
     ("--evm-version",), ("--evm-version", "--via-ir"),
     ("--evm-version", "cancun --optimize"), ("--evm-version", "cancun\n--via-ir"),
     ("--evm-version=cancun",), ("--via-ir", "true"), ("--via-ir", "--via-ir"),

@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import subprocess
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -25,8 +26,14 @@ from compile_repair.toolchain.project import (compile_project, materialize_proje
 from scripts.DFG.models import Unsupported
 
 
+# Selected on the CP5.1 development split. Explicit None leaves calibration uncapped.
+DEFAULT_DEPENDENCY_POLICY = "oldest"
+DEFAULT_DEPENDENCY_LIMIT = 21
+
+
 def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn, project,
-                 project_compile_fn, prefix, initial_settings=(), origins=None, allow_override=True, already_copied=False):
+                 project_compile_fn, prefix, initial_settings=(), origins=None, allow_override=True, already_copied=False,
+                 permit_compile=True):
     """Attempt one file or project using the same version/settings policy.
 
     Project imports are assembled without dependency repair. All input copies,
@@ -105,6 +112,9 @@ def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn,
     any_solc_success = False
     base_series = tuple(plan.effective_interval[0][:2])
     for version in ordered_candidates(plan):
+        if not permit_compile:
+            record.reason = "dependency_combination_limit"
+            return record
         crossed = not plan.override and version != plan.priority and version_tuple(version)[:2] != base_series
         if crossed and "crossed_minor" not in record.flags:
             record.flags.append("crossed_minor")
@@ -215,8 +225,11 @@ def _failure_measure(record):
 def repair_unit(unit, compilers, store, journal, order="ascending",
                 compile_fn=compile_file, slither_fn=run_slither, project=None,
                 project_compile_fn=compile_project, *, project_index=None, offline_index=None,
-                dependency_policy="latest", environment_only=False):
+                dependency_policy=DEFAULT_DEPENDENCY_POLICY, environment_only=False,
+                dependency_limit=DEFAULT_DEPENDENCY_LIMIT, mask_versions=False):
     """Run environment selection, then deterministic project repairs on exclusive working copies."""
+    if dependency_limit is not None and (type(dependency_limit) is not int or dependency_limit < 1):
+        raise ValueError("dependency_limit must be a positive integer or None")
     prefix = "units/" + unit.unit_id + "/"
     tools = dict(order=order, compile_fn=compile_fn, slither_fn=slither_fn, project_compile_fn=project_compile_fn)
     record = _environment(unit, compilers, store, journal, project=project, prefix=prefix, **tools)
@@ -251,6 +264,9 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
     originals = {}
     overlays, origins, existing_releases = {}, {}, {}
     attempts = 0
+    compiled_combinations = 0
+    first_success = None
+    truncated = False
     accepted_prefix = None
 
     def select(result, step_record):
@@ -282,7 +298,8 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         next_unit = CompilationUnit(unit.unit_id, copy.files, unit.known_version, unit.regression)
         result = _environment(next_unit, compilers, store, journal, project=copy, prefix=branch,
                               initial_settings=settings, origins=maps, allow_override=False,
-                              already_copied=True, **tools)
+                              already_copied=True, permit_compile=(step != 3 or dependency_limit is None
+                                  or compiled_combinations < dependency_limit), **tools)
         after, _ = _failure_measure(result)
         accepted = result.status == "success" or (before is not None and after is not None and 0 < after < before
                    and result.reason not in ("slither_side_failure", "solc_timeout"))
@@ -310,7 +327,8 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             steps.append(dict(step=2, accepted=False, remapping_evidence=evidence, reason="no_applicable_remapping"))
         if isinstance(offline_index, (str, Path)):
             offline_index = OfflineIndex(offline_index)
-        if offline_index is not None and project.issues:
+        if offline_index is not None and project.issues and not truncated:
+            started = time.monotonic()
             evidence = []
             best, best_rank, timed_out = None, None, False
             try:
@@ -320,7 +338,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
                 preferred = None
             for candidate, additions, releases in dependency_choices(
                     project, index, offline_index, compilers, overlays, dependency_policy, evidence, preferred,
-                    existing_releases):
+                    existing_releases, mask_versions=mask_versions):
                 maps = dict(origins)
                 for name, data in additions.items():
                     if name not in origins:
@@ -331,6 +349,14 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
                 measurement = steps[-1]
                 success = result.status == "success"
                 measurement["d3_verified"] = success
+                if result.reason == "dependency_combination_limit":
+                    truncated = True
+                    break
+                if any(a.get("solc") is not None for a in result.attempts):
+                    compiled_combinations += 1
+                    measurement["combination_ordinal"] = compiled_combinations
+                    if success and first_success is None:
+                        first_success = compiled_combinations
                 if result.reason == "solc_timeout":
                     timed_out = True
                     break
@@ -353,11 +379,14 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
                 existing_releases = measurement["releases"]
                 changed = True
             steps.append(dict(step=3, operation="candidate_checks", policy=dependency_policy,
-                              preferred_compiler=preferred, evidence=evidence))
+                              preferred_compiler=preferred, evidence=evidence, limit=dependency_limit,
+                              compiled_combinations=compiled_combinations, first_d3_combination=first_success,
+                              truncated=truncated, elapsed_seconds=time.monotonic() - started))
             if record.status == "success" or timed_out:
                 break
         else:
-            steps.append(dict(step=3, accepted=False, reason="index_unavailable" if offline_index is None else "no_unresolved_imports"))
+            reason = "index_unavailable" if offline_index is None else "no_unresolved_imports"
+            steps.append(dict(step=3, accepted=False, reason="dependency_combination_limit" if truncated else reason))
         edits, patches, choices = relative_repairs(project, index, compilers, overlays, attempts+1)
         if edits:
             maps = dict(origins)
@@ -376,6 +405,8 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             steps.append(dict(step=4, accepted=False, path_search=choices, reason="no_unique_compatible_path"))
         if not changed:
             break
+    if truncated:
+        record.flags.append("dependency_search_truncated")
     if original_project:
         verify_project(original_project)
     if any(sha256(name) != digest for name, digest in originals.items()):
@@ -404,7 +435,7 @@ def _code_commit(root):
 
 def repair(paths, output, snippets=(), known_version=None, order="ascending", regression=None,
            *, compile_fn=compile_file, result_check=None, remappings=(), offline_index=None,
-           dependency_policy="latest"):
+           dependency_policy=DEFAULT_DEPENDENCY_POLICY, dependency_limit=DEFAULT_DEPENDENCY_LIMIT):
     """Run the common production entry for files/snippets/project directories; return batch summary.
 
     Directories expand to one unit per .sol entry and its transitive closure.
@@ -467,6 +498,7 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
             if offline_index is not None:
                 tools["dependency_index"] = offline_index.seal
                 summary["dependency_policy"] = dependency_policy
+                summary["dependency_limit"] = dependency_limit
             tools.update(check_profile("production"))
             compilers, frozen_rows, evidence = load_trusted_compilers()
             tools["compilers"] = {v: asdict(c) for v, c in compilers.items()}
@@ -490,7 +522,8 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
                     "known_version": unit.known_version, "metadata": metadata})
                 record = repair_unit(unit, compilers, store, journal, order,
                                      compile_fn=compile_fn, project=project, project_index=project_index,
-                                     offline_index=offline_index, dependency_policy=dependency_policy)
+                                     offline_index=offline_index, dependency_policy=dependency_policy,
+                                     dependency_limit=dependency_limit)
                 emit(manifest, record)
                 summary["units"].append({"unit_id": unit.unit_id, "input_sha256": digest,
                     "status": record.status, "reason": record.reason, "selected_version": record.selected_version})

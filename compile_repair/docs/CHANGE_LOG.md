@@ -2561,3 +2561,45 @@ Yul 名称通过与节点相同的组合偏移映射对齐。对起点平移要�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp5_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP6 不能开始。顺序为 Codex 执行 CP5.1 → Claude 审查 → CP6。本轮提交并 push 到 `compile-repair`。
+
+## 57. CP5.1 依赖组合、文件移动与完整索引（2026-11-23，修改 AI 为 Codex）
+
+### 57.1 任务、依据与范围
+
+在 `compile-repair` 上以 `git pull --ff-only origin compile-repair` 同步至 `5fe7671f`，按 PROMPTS r2.23 §4.1、§4.6g 和 §4.6h 续作。参照 `cp5_review_v1/README.md` 与 `combination_bound.json`。生产改动位于 `toolchain/solc.py`、`rules/dependencies.py`、`pipeline.py`、`evaluation/benchmark.py`、`evaluation/report.py`。测试为 `tests/test_settings.py`、`tests/test_cp51.py`。新实验、脚本与每种停点收据在 `artifacts/cp5_1_v1/`。详细结果追加到 `CP5_REPORT.md`。
+
+### 57.2 实施方式和重要选择
+
+共享设置验证器接受包装声明的优化器及 uint32 的 runs，保留原诊断逻辑。项目修复按一次实际进入 solc 的依赖组合记一个序号，多版和设置重试共用该序号。达到上限后遇到下一个需要编译的组合才记截断，清单保留已尝试版本。锁版本参照保留清单中的包别名，遮蔽锁文件与范围。新增移动算子固定目标目录，保存内容 SHA、原路径和新路径，将两次物理路径对应到 CP4.1 的文件改名评分。包装统计直接使用恢复节点、丢失节点、新增节点和 exact。复用的评分函数、改动函数及行数按输入提交核对，见 `checkpoint_audit.json`。
+
+### 57.3 实测与数据结论
+
+归档 172/172 通过双哈希。索引验证覆盖 13,073 份 Solidity 文件。9,138 个主因目标分为开发 2,316 和测试 6,822，来源分组在 CP4 的 16,136 份基础记录上逐项相符。移动算子按语料抽取 400 项，全部触发且全部通过精确逆操作。真实缺相对文件 412 项中 137 项有唯一同名候选，I/O 的 28 项中有 8 项。对照 `population.json`、`moved_summary.json`、`path_census.json`。缺包开发基准每种规则均有 7/8 成功，23 份库文件中最新与最近各恢复 1 份，最旧恢复 2 份，见 `package_dev_summary.json`。
+
+### 57.4 用户批准、原文差异与待确认设计
+
+D24 和 23 版续传按转交提示确认。TLS 中断后按用户原话“批准仅续传这 5 版一次”限定范围。一次新 WSL 启动超时，自动审批拒绝直接改用已有会话。取得“允许已运行会话按上述保护执行一次”后，执行时因遗漏代理环境变量，停在第一个版本的预登记，尚无网络调用。离线复核归档与五个代理目标后，取得“批准按已核验配置执行一次”，新批次各发一次 GET 并全部成功。三项授权的来源、日期、作用域及旧现场哈希已写入 DECISIONS 和批次文件。`@chainlink/contracts` 的精确锁版本加入代表抽样后为 13 版，采用 D23 已批准的具体清单。
+
+实测边界见 `assembly_only_example.json`。`cp3_09664` 的最新优先规则在第 3 步物化 1,280 个仍缺导入的组合，solc 调用 0 次，用时 148.84 秒。一次候选减少错误，随后组装通过 D3。K 维持原文的实际编译计数，组装耗时单列。
+
+### 57.5 验收、资源、未执行事项与停止
+
+生产回归 1,147 通过、6 跳过，mando 环境 667 通过、486 跳过，DFG v2 2,653 通过、9 条警告。MANDO 的 843 张图与 v5 相同，3 项历史失败一致。源码引用核对 354 项，生产 Python 文件保持 18 个。命令、耗时、工作树 SHA 与环境见 `checkpoint_audit.json`。共下载 8,882,233 个新增压缩字节，总存量 88,886,992 字节。CPU 本地执行，LLM 调用 0，费用 0 美元。
+
+开发集的生产 Slither 报告 readOracle 生成 IR 中断，cp3_19463 的三份成功收据仍有 D3(a)/(b) 和源码节点。已核对原始日志、三个图 SHA256 及 Slither 捕获异常的代码。选版和测试集在决定前暂停。用户确认“沿用 D3，单列 IR 缺失（推荐）”，随后恢复原流程。报告单列观察范围，计数和生产图代码沿用冻结定义。证据见 cp5_1_v1/partial_ir_review.json 和 partial_ir_decision.json。
+
+开发测量中断时，6,940 份收据与冻结计划前缀一致。cp3_30233 / oldest 已有 31 份编译器收据，另 7 个组合尚未开始。后续启动器健康检查出现 Wsl/Service/0x8007274c，退出原因尚未确定。用户批准核验和封存 6,940 份后只补齐八项。旧的调用记录与新单元耗时分开统计。见 development_interrupt.json、development_continuation/authorization.json。
+
+经用户批准，仅重启 Ubuntu-22.04。重启前复核四个空闲会话并保存完整前缀。Windows 和 WSL 的代理出口与直连阻断均按活动连接验证，普通用户无法读取 Windows 全部出站例外。首次用户服务启动缺少会话总线，尚未启动任何观测；改用已有 tmux 的专属套接字后，WSL 网络探针通过，受保护的续作进程按原清单启动。见 development_continuation/recovery_summary.json。
+
+独立运行器遗漏了已登记的 TREE_SITTER_LIB_DIR，两个解释器的首轮回归在同一个等价性测试停止。冻结库与 CP0 SHA256 一致。用户批准在新目录各补跑一次完整套件，所有后续子进程沿用该环境变量。选版证据、参数、图判据与首轮收据继续保留，见 test_environment_resume_v2/。
+
+基于已封存的移动清单与正式基准收据，逐项核验 400 个目标。189 个 D3 成功单元的导入都指向实际移动位置。另列图事实与编辑邻近范围对 exact 的影响，评分与开发规则均沿用原定义。见 verify_moved_targets.py 和 moved_path_outcomes.json。
+
+首轮生产与 mando 的两份 pytest 日志在第 24、25、28 行带有 pytest 输出的行尾空格，原始 SHA256 与续跑申请逐一吻合。交付时以 Git 暂存字节复核这两份日志，其余文件照常检查空白。
+
+全量运行时新 WSL 命令再次返回 0x8007274c，独立的 /bin/true 在 30.14 秒后报告同一错误，内核仍记录 Relay 等待 vsock。原 tmux 中两个分片继续写入。通过共享目录恢复只读核验，并核对 Windows Git 所见分支、基线提交、仓库身份设置和生产文件哈希。该通道可在保留现有会话的条件下完成本地交付。详见 test_environment_resume_v2/launcher_recurrence.json。
+
+真实外部语料按冻结的项目组划分后，开发集通过 D3 的单元为 1,131/2,316，测试集为 4,749/6,822。14 个达到组合上限的单元都在测试集。逐项匹配入口 SHA256 后，开发集 2,316 项的 D3 成败均与最旧优先的无上限测量一致。两张原始表的哈希与分组计数见 external_split_summary.json。
+
+最终验收采用冻结后的默认设置。正式默认规则为 `oldest`，K=21。 真实语料 5880/9,138 通过 D3，其中 14 个触发编译组合上限。基准开发集 236/550、测试集 1004/2114 通过编译和 D3。 外部全量与基准合计核验 24766 个候选轮，包含被拒绝的轮次。其中新增文件编辑 267614 次，导入字符串改写 1029 次。未改变的输入按原始文件 SHA 复核。各阶段和逐项调用收据索引见 `*_provenance.json`、`invocation_seals.json`。 两个分片按冻结输入顺序合并，逐行核验 9,138 个不同身份。最终测试与生产文件变化见 `final_audit.json`，详细表格见 `CP5_REPORT.md`。本轮本地提交，下一步为独立复核。

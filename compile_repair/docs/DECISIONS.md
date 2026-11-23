@@ -32,6 +32,7 @@
 | D21 | 项目闭包中两个或更多同名合约定义（contract、interface、library）时，项目图一律不可用，归为工具限制；原变量绑定检查保留。依据：生产 Slither 对类型转换调用同样按名称错绑，而变量绑定检查覆盖不到 | 已定（用户，2026-11-21 原话“同意 D21”） | 2026-11-21 |
 | D22 | 依赖版本按 T1 锁定、T2 范围、T3 推断三级处理。T3 须通过路径、传递导入、pragma、符号、编译与 D3 检查，记录 inferred。 | 已定（用户） | 2026-11-23 |
 | D23 | npm 发布包按带版本、大小、来源与完整性校验的清单授权；元数据查询单独获准。 | 已定（用户，限本清单） | 2026-11-23 |
+| D24 | 仅将 standard JSON 包装内显式给出的 optimizer 设置传给 solc 与 Slither，runs 接受无符号 32 位十进制。 | 已定（用户转交 CP5.1） | 2026-11-23 |
 | CP4 节点恢复 | 分开统计破坏时受影响节点和修复后丢失节点，按边界、字节和图事实核验恢复 | 已定（用户） | 2026-11-22 |
 | CP4 分析器类别 | slither_incomplete 只用可校验历史失败及无害缺节点负例，独立报告覆盖 | 已定（用户） | 2026-11-22 |
 | CP4 迁移验收 | 测试要求恰好 17 个生产文件且包含 benchmark.py，保留逐文件校验，新目录续跑生产套件 | 已定（用户） | 2026-11-22 |
@@ -548,3 +549,37 @@ D20a 已按用户授权执行：第 227 份另起进程，第 1 次观察到 Mul
 | 2026-11-23 | D24 包装的 optimizer | 新增：包装自带的 optimizer 映射为 --optimize 与 --optimize-runs，只用于包装自带设置（同意 Codex 的 optimizer_request；建议，转交 CP5.1 即确认） | CHANGE_LOG §56.2；cp5_v1/optimizer_request.json | Claude |
 | 2026-11-23 | D23 续传 | 同意只下载清单中剩余 23 个精确 URL，沿用原上限（在 D23 授权范围内） | cp5_v1/d23/transport_stop.json | Claude |
 | 2026-11-23 | 第 3 步候选上限 | 先在 dev 测量实际组合数，再按测量设上限并记录 truncated；不按错误位置提前停止 | CHANGE_LOG §56.2；cp5_review_v1/combination_bound.json | Claude |
+
+### CP5.1 转交与 D24（2026-11-23，记录者 Codex）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-23 | D24 与 D23 限定续传 | 用户转交 CP5.1，按 r2.23 §4.6h 第 0 节确认包装优化器白名单及 23 个指定 URL 的单次续传。费用上限 0 美元。 | artifacts/cp5_1_v1/authorization.json | Codex |
+
+### CP5.1 最后五个发布版的传输记录（2026-11-23，记录者 Codex）
+
+| 用户决定 | 执行范围和证据 |
+|---|---|
+| “批准仅续传这 5 版一次” | 原 23 项续传完成 18 项，TLS 在下一个版本握手时断开。复用 167 份已核验归档。剩余五项均为 `zeppelin-solidity`，版本为 1.6.0、1.8.0、1.9.0、1.11.0、1.12.0。见 `cp5_1_v1/last_five_authorization.json`。 |
+| “允许已运行会话按上述保护执行一次” | 新 WSL 进程曾在脚本启动前超时，自动审批因重复请求风险拒绝了切换会话。用户确认使用已有会话、独占批次及 GET 前登记。执行时缺少 `CP5_HTTPS_PROXY`，留下 1.6.0 的登记，创建连接前退出。见 `launcher_authorization.json`、`guard_stop.json`。 |
+| “批准按已核验配置执行一次” | 固定授权代理并在禁用网络套接字的条件下核对五个目标，新的批次绑定原登记与日志的 SHA256。五个官方 URL 各取得一次 HTTP 200。172 份重新双哈希核对，共 88,886,992 字节，费用 0 美元。见 `configured_five/authorization.json`、`configured_five/receipts.jsonl` 和 `download_summary.json`。 |
+
+### CP5.1 的 D3 与 SlithIR 覆盖（2026-11-23，记录者 Codex）
+
+用户决定“沿用 D3，单列 IR 缺失（推荐）”。本次 CP5.1 沿用冻结的 D3 和既定分母，按原计划选版、冻结 K 并评测。另列已证实的 SlithIR 缺失，记录依据、统计范围和局限。 开发单元 cp3_19463 的三个选版收据均通过 D3，Slither 却在 readOracle 的 IR 生成中报告原生异常。该函数的源码映射可以齐全而 IR 缺失。依据见 cp5_1_v1/partial_ir_review.json 与 partial_ir_decision.json。
+
+### CP5.1 开发测量中断后的限定续作（2026-11-23，记录者 Codex）
+
+用户决定“批准限定续跑，保留旧收据（推荐）”。6,940 份完整结果须先核验 SHA256。cp3_30233 的 oldest 在 31 次 solc 调用后中断，允许完整执行一次，其余 7 个未开始的组合各执行一次。两个批次分别计时，D3、开发选版与测试顺序沿用原定义。依据见 development_interrupt.json 与 development_continuation/authorization.json。
+
+用户另行决定“允许仅重启 Ubuntu 并恢复（推荐）”。核验 6,940 份结果和 6,940 份步骤，复查四个空闲 Bash 后，仅重启 Ubuntu-22.04。两端代理返回预期出口，直连均被阻断，Ubuntu 两条链的默认策略均为 drop。用户服务的会话总线缺失，首次服务启动在任何实验前退出；随后通过已有 tmux 专属套接字以普通用户运行。依据见 development_continuation/recovery_summary.json 和 bootstrap_transport.json。
+
+### CP5.1 冻结策略回归环境（2026-11-23，记录者 Codex）
+
+用户决定“批准补环境并限定续跑（推荐）”。两套环境显式传入 CP0 冻结库的目录 TREE_SITTER_LIB_DIR。先各自解析同一个无害夹具，再在新批次各完整运行模块套件一次，随后运行原定阶段。旧测试日志、停点与 6,948 份开发收据全部保留。见 test_environment_resume_v2/environment_request.json 与 authorization.json。
+
+### CP5.1 开发集冻结结果（记录者 Codex）
+
+| 日期 | 决定 | 依据 |
+|---|---|---|
+| 2026-11-23 | 正式默认规则为 `oldest`，K=21。 | 仅用真实开发集及 8 个开发缺包样本。冻结记录见 `policy.json` 和 `policy_application.json`。 |

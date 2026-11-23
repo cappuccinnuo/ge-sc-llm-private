@@ -1,0 +1,30 @@
+{
+  "utc": "2026-11-23T13:58:15.667832+00:00",
+  "user_quote": "允许仅重启 Ubuntu 并恢复（推荐）",
+  "distribution": "Ubuntu-22.04",
+  "stop_command_exit": 0,
+  "old_bash_pids_after_restart": [],
+  "measured": {
+    "ExpectedEgress": true,
+    "BridgeListening": true,
+    "WindowsDirectBlocked": true,
+    "DeadProxyBlocked": true,
+    "DefaultOutboundBlocked": true
+  },
+  "actual_listeners": [
+    "127.0.0.1:27897",
+    "172.18.144.1:17897",
+    "127.0.0.1:7897"
+  ],
+  "wsl_nft_chains": {
+    "inet claude_clash_guard/output": "drop",
+    "inet claude_clash_guard/forward": "drop"
+  },
+  "wsl_gateway_and_config": "172.18.144.1",
+  "wsl_guard_service_state": "active",
+  "wsl_user_manager_state": "active",
+  "guard_script_sha256": "fae591dd2ccb833cd6880aab28d0ff4f0bcdfb88251321317d46bc0c3ac747c5",
+  "verification_method": "Installed Probe/Probe-Once functions, TCP socket direct block test, live Windows TCP listeners and ActiveStore firewall profiles. Ubuntu root read nft -j list table inet claude_clash_guard; systemctl reports the guard active.",
+  "detailed_windows_allow_listing": "Get-NetFirewallRule -TracePolicyStore returned Windows error 5 for the ordinary user. The earlier administrator maintenance invocation produced no fresh complete verification receipt before session loss. Independent functional checks are recorded here.",
+  "registered_study_started": false
+}

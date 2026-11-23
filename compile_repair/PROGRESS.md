@@ -610,3 +610,9 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 - CP5 为检查点：自比 16,136 全部 exact；测量 9,144 个单元；D22、D23 获批；149/172 个发布版已核对下载；MANDO 回归不变。完整评估未运行。
 - 发现：第 4 步无可评测样本；第 3 步无候选上限（组合上限最大 13,824）；规则选择样本太少；包装样本 kept 分母为 0。同意 optimizer 方案（D24）与续传。
 - PROMPTS r2.23：新增 1.26 节、D24、4.6h 节 CP5.1。证据 `artifacts/cp5_review_v1/`；记录 `docs/CHANGE_LOG.md` §56。下一步 CP5.1。
+
+## CP5.1 离线索引、依赖组合与图评分（2026-11-23，修改 AI 为 Codex）
+
+D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D24 优化器设置、组合计数和截断、移动相对依赖文件、包装恢复节点指标已接入。开发及测试身份覆盖 9,138 个真实主因单元。移动算子 400 项全部触发，逐项真实精确还原均满分。生产、mando 与 DFG 套件以及 846 个 MANDO 回归的结果见 `artifacts/cp5_1_v1/checkpoint_audit.json`。传输故障、修正与用户指定的执行边界见 `docs/CHANGE_LOG.md` §57 和 `docs/DECISIONS.md`。
+
+正式默认规则为 `oldest`，K=21。 真实语料 5880/9,138 通过 D3，其中 14 个触发编译组合上限。基准开发集 236/550、测试集 1004/2114 通过编译和 D3。 400 项移动逆操作和最终 846 项 MANDO 回归通过。结果见 `CP5_REPORT.md`、`final_audit.json` 和 `external_summary.json`。

@@ -219,6 +219,12 @@ def dependency_benchmark_summary(rows):
                     removed_by_repair=sum(s["removed_by_repair"] for s in scores),
                     names=dict(Counter(s["counter_correspondence"]["status"] for s in scores)),
                     change_levels=dict(Counter(r["change_level"] for r in samples)))
+        if operator == "standard_json_input":
+            item["recovered_nodes"] = sum(s["affected_by_damage"] - s["lost"] for s in scores)
+            item["lost"] = sum(s["lost"] for s in scores)
+            item["added"] = sum(s["added"] for s in scores)
+            output.setdefault(split, {})[operator] = item
+            continue
         for view in ("main", "surviving"):
             stats = [s if view == "main" else s["surviving"] for s in scores]
             item[view] = {}

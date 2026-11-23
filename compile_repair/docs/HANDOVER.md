@@ -4,18 +4,19 @@
 
 ## 0. 一句话
 
-CP5 是检查点，已由 Claude 审查：前置自比、测量、D22/D23 批准与下载核对、第 2–4 步实现与 MANDO 回归成立；149/172 个发布版已下载，完整评估未运行。审查发现四个问题（第 4 步无可评测样本、第 3 步无候选上限、规则选择样本太少、包装样本 kept 分母为 0），并同意 Codex 的 optimizer 方案（D24）与续传。下一步：Codex 执行 4.6h 节 CP5.1 → Claude 审查 → CP6。
+CP5.1 从已审查的 CP5 检查点继续。172 个官方发布版的离线索引已封存，新移动算子的 400 项精确还原全部通过。正式默认规则为 `oldest`，K=21。 真实语料 5880/9,138 通过 D3，其中 14 个触发编译组合上限。基准开发集 236/550、测试集 1004/2114 通过编译和 D3。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.23；D22、D23 用户已定；D24 建议（转交 CP5.1 即确认）；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| 方案与决定 | PROMPTS r2.23；D22、D23、D24 用户已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP4.5 | 已审查通过 |
 | CP5 | 检查点：自比 16,136 全部 exact；测量 9,144 个单元；149/172 个发布版；18 个生产文件；MANDO 回归不变 |
+| CP5.1 | 20 个包的 172 版，13,073 个 .sol 文件。9,138 个主因目标已冻结分组。94 个开发移动样本和 306 个测试移动样本均经逆操作核验。见 cp5_1_v1/README.md。 |
 | 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；test_cp5.py 依赖用户本机编译器目录 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | CP5.1 → 审查 → CP6 |
+| 下一步 | 独立复核 CP5.1 的策略、基准和外部主因表，之后按方案进入 CP6。 |
 
 ## 2. 分支与工作树
 
@@ -31,6 +32,8 @@ CP4.4 以 8739c653 为基线。新结果在 artifacts/cp4_4_v1，真实手写夹
 
 CP4.5 从 c8ca807a 开始。首轮及逐项差异证据在 artifacts/cp4_5_v1；最终重验在其 continuation 子目录。
 
+CP5.1 从 `5fe7671f` 开始。新证据在 `artifacts/cp5_1_v1/`，语料、离线索引和编译工作副本见该批 README。
+
 ## 3. 环境
 
 生产采用 Python 3.10、Slither 0.11.6、crytic-compile 0.4.2 和 92 版本 solc 快照。mando 的 Python 3.7、Slither 0.8.0 承担兼容与 DFG 测试。工具身份以 execution_settings.json 及前序授权信任清单为准。CPU 本地执行，费用 0 美元。
@@ -44,6 +47,8 @@ CP4.3 手写夹具使用现有 production 环境的 solc 0.8.38、Slither 0.11.6
 CP4.4 用既有 production 环境的 0.8.38 编译器生成审查夹具。历史对比直接读取原图，模块和 DFG 回归的完整命令位于本批 suites。
 
 CP4.5 历史核验只读已封存的图；手写夹具回归运行于既有生产环境，mando 执行另一组模块回归及 DFG v2。
+
+CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用已有 WSL 代理，补传的停点及离线配置验证见 `guard_stop.json`。模块与 DFG 套件的命令和版本见 `checkpoint_audit.json`。
 
 ## 4. 必读与下一步
 
@@ -59,10 +64,13 @@ CP4.5 历史核验只读已封存的图；手写夹具回归运行于既有生�
 
 CP4.5 复核先查两份授权、comparison_stop_seal 与最终 acceptance，再检查三个旧名节点的身份、删除与数组写入的绑定证据及三组完整重算。
 
+CP5.1 复核先读 `CP5_REPORT.md` 的 CP5.1 一节与新批次 README。按 `index_verification.json` 核对索引，再查 `population.json`、`path_census.json`、`moved_summary.json` 和开发集的选版证据。
+
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP5.1 代码、实验与传输停点 | CP5_REPORT.md 的 CP5.1 节、artifacts/cp5_1_v1/README.md、docs/DECISIONS.md |
 | CP5 检查点审查证据（Claude） | artifacts/cp5_review_v1/README.md、combination_bound.json |
 | CP5 检查点 | CP5_REPORT.md、artifacts/cp5_v1/README.md、checkpoint_audit.json、d23/transport_stop.json、optimizer_request.json |
 | CP4.5 审查证据（Claude） | artifacts/cp4_5_review_v1/README.md、rerun_review_probes.json |
@@ -765,3 +773,25 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 结论：已完成部分成立；CP5 未完成。发现四个问题；同意 optimizer 方案（新增 D24）与 23 个发布版的续传。新增 4.6h 节 CP5.1，完成索引、候选上限、规则选择、第 4 步评测与全量评估。
 
 下一步：Codex 执行 CP5.1，Claude 审查后进入 CP6。本轮没有模块代码改动、下载或安装。详见 CHANGE_LOG §56。
+
+### 2026-11-23 CP5.1 完整依赖索引与开发评估（修改 AI 为 Codex）
+
+本轮更新第 0–1 节的当前状态与 D24、第 2–3 节的工作树和环境、第 4–5 节的复核顺序及批次路径。172 份归档全部复核。两处环境停点、请求前的独占登记及限定续作均保存在 `cp5_1_v1` 下。先核对 `index_verification.json` 和 `population.json`，然后按 `moved_summary.json` 对回 400 个真实逆操作。库文件字节恢复和 D3 成功分别见 `package_dev_summary.json`，完整规则选择依据以开发集结果为准。操作及变更见 CHANGE_LOG §57。
+
+解释图结果时应一并核对 partial_ir_review.json 和 partial_ir_decision.json。cp3_19463 在三个规则下的 D3 均通过，Slither 仍报告同一函数生成 IR 中断。用户已确认 CP5.1 沿用 D3，将已证实的局限单列。后续复核须区分节点源码映射覆盖与函数的 IR 是否生成。
+
+开发阶段的原始 6,940 份与剩余 8 份由 development_interrupt.json 和 development_continuation/ 授权及清单衔接。核对原始前缀 SHA256，再按单元和规则核对新记录。原进程退出时的 31 份 solc 调用独立保留。后续阶段在选版冻结后启动。
+
+恢复环境的依据在 development_continuation/recovery_summary.json。6,940 份结果和 6,940 份步骤共 474,552,564 字节，哈希均通过。原 Windows / WSL 代理与直连阻断经过实测，普通 Windows 身份无权逐条列出全部出站例外。后续工作在专属 tmux 中运行，持有独占登记。
+
+冻结规则后的首轮模块测试因缺少 TREE_SITTER_LIB_DIR 停止。CP0 登记路径为 /home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64，库 SHA256 为 f424e0d52ebcdda4932a973af5357874fedd0348c78d87b1575bf15ee539d967。首轮完整证据保存在 frozen_suites/，环境修正与两套回归另存 test_environment_resume_v2/。
+
+移动算子另有逐单元目标核对。189 个 D3 成功样本都指向原计划的移动位置，其中 187 个虽满足已记录的全部图指标，仍因编辑位置超出原损坏区间邻近范围而未达到 exact。核对 moved_path_outcomes.json 与 moved_inverse.jsonl 可分别复现路径结果和精确逆操作自检。
+
+首轮生产与 mando 的两份 pytest 日志在第 24、25、28 行带有 pytest 输出的行尾空格，原始 SHA256 与续跑申请逐一吻合。交付时以 Git 暂存字节复核这两份日志，其余文件照常检查空白。
+
+全量运行时新 WSL 命令再次返回 0x8007274c，独立的 /bin/true 在 30.14 秒后报告同一错误，内核仍记录 Relay 等待 vsock。原 tmux 中两个分片继续写入。通过共享目录恢复只读核验，并核对 Windows Git 所见分支、基线提交、仓库身份设置和生产文件哈希。该通道可在保留现有会话的条件下完成本地交付。详见 test_environment_resume_v2/launcher_recurrence.json。
+
+真实外部语料按冻结的项目组划分后，开发集通过 D3 的单元为 1,131/2,316，测试集为 4,749/6,822。14 个达到组合上限的单元都在测试集。逐项匹配入口 SHA256 后，开发集 2,316 项的 D3 成败均与最旧优先的无上限测量一致。两张原始表的哈希与分组计数见 external_split_summary.json。
+
+完成全量后，第 0–1 节同步为最终状态。正式默认规则为 `oldest`，K=21。 真实语料 5880/9,138 通过 D3，其中 14 个触发编译组合上限。基准开发集 236/550、测试集 1004/2114 通过编译和 D3。复核从 `policy.json`、`benchmark_summary.json`、`external_summary.json` 和 `frozen_mando/summary.json` 开始。

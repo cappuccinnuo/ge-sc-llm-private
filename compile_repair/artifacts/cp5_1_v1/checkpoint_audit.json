@@ -1,0 +1,130 @@
+{
+  "base": "5fe7671fb6ebe6c9393bf41e29c0cfea950861e8",
+  "changed": {
+    "evaluation/benchmark.py": {
+      "added": 54,
+      "functions": [
+        "_sample_edits",
+        "assess_mutation",
+        "build_mutation",
+        "classify_trigger",
+        "dependency_repair_observation",
+        "mutation_sites",
+        "relative_move_site"
+      ],
+      "removed": 6,
+      "sha256": "ef7fa9c54bd3eb2e4ce40552530f7bdb7eb9c8ffa8331a573a0e7b6004959603"
+    },
+    "evaluation/report.py": {
+      "added": 6,
+      "functions": [
+        "dependency_benchmark_summary"
+      ],
+      "removed": 0,
+      "sha256": "0c8ede4a3b15259106786cc38721b4ec97cdb93533b0a2a8bb3f05e94f988dd4"
+    },
+    "pipeline.py": {
+      "added": 36,
+      "functions": [
+        "_environment",
+        "repair",
+        "repair_unit"
+      ],
+      "removed": 9,
+      "sha256": "5281b56e56505294286ce62ab4c9ff4a273d1e8ad0e5df559787e83994e8cc91"
+    },
+    "rules/dependencies.py": {
+      "added": 6,
+      "functions": [
+        "dependency_choices",
+        "manifest_identities"
+      ],
+      "removed": 3,
+      "sha256": "64345d027cac0ed5aaea5081b9bd28c3a63c7681c0360b9d81c0e2db83df9faf"
+    },
+    "toolchain/solc.py": {
+      "added": 11,
+      "functions": [
+        "validate_settings"
+      ],
+      "removed": 4,
+      "sha256": "e07a356dc6b097f4149a3b85cd239a18c25f54e51b6e575dc99244f769107531"
+    }
+  },
+  "cost_usd": 0,
+  "dfg_refs": 354,
+  "index": {
+    "archive_catalog_sha256": "88ca4b2c498fdceb2c825bda086479679fc5db13b54f5032a0b108c67981d513",
+    "index_sha256": "a02cc091f958aa78fd61f33f2f166912b870b98c77ae6e0cd810bdd704689511",
+    "packages": 20,
+    "releases": 172,
+    "schema": "compile-repair-dependencies-v1",
+    "solidity_files": 13073,
+    "unpacked_bytes": 834378333
+  },
+  "llm_calls": 0,
+  "mando": {
+    "graphs_equal": 843,
+    "historical_failures": 3,
+    "steps_on_truths": 0
+  },
+  "mando_implementation_matches_worktree": true,
+  "moved_exact": 400,
+  "production_files": 18,
+  "suites": {
+    "dfg": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/dfg_v2/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp5_1_v1/suites/tests_dfg"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 201.974,
+      "returncode": 0,
+      "summary": "2653 passed, 9 warnings in 200.61s (0:03:20)"
+    },
+    "mando": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "compile_repair/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp5_1_v1/suites/tests_mando"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 24.593,
+      "returncode": 0,
+      "summary": "667 passed, 486 skipped in 24.33s"
+    },
+    "production": {
+      "command": [
+        "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-x",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "compile_repair/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp5_1_v1/final_suites/tests_production"
+      ],
+      "cwd": "/home/zhao/SmartContract/ge-sc-llm-compile",
+      "elapsed_seconds": 94.121,
+      "returncode": 0,
+      "summary": "1147 passed, 6 skipped in 93.74s (0:01:33)"
+    }
+  }
+}

@@ -87,6 +87,7 @@ def control_observation(base, compilers, frozen_versions, store, journal):
 OPERATORS = {
     "unresolved_package_import": "remove an identified package and use its published import paths",
     "missing_relative_file": "remove a resolved relative dependency",
+    "missing_relative_file_moved": "move a resolved relative dependency with its bytes unchanged",
     "missing_base_contract": "delete the unique locally defined inherited base",
     "undeclared_identifier": "delete a referenced event declaration",
     "duplicate_definition": "copy a complete definition into its original scope",
@@ -382,7 +383,7 @@ def _sample_edits(base, sources, site, operator):
     file, _, _, plan, action, _ = site
     if action != "package_dependency":
         mutated, patch, _ = build_mutation(base, sources, site, operator)
-        return mutated, [(file,action,patch)]
+        return mutated, [] if action == "move_file" else [(file,action,patch)]
     work = dict(sources)
     records = []
     grouped = defaultdict(list)
@@ -396,6 +397,27 @@ def _sample_edits(base, sources, site, operator):
         original = work.pop(name)
         records.append((name,"delete_file",Patch(0,len(original),original,b"",operator,reason=OPERATORS[operator])))
     return work, records
+
+
+def relative_move_site(base, sources, imports):
+    """Find the first resolved relative import of a non-entry file in CP4 input order."""
+    if not base["project_root"]:
+        return None
+    root = Path(base["project_root"])
+    entry = next(iter(sources))
+    for row in imports:
+        if not row["resolved"] or not row["path"].startswith(("./", "../")):
+            continue
+        name = Path(row["target_path"]).relative_to(root).as_posix()
+        if name == entry or name not in sources:
+            continue
+        destination = ".cp5_moved/" + Path(name).name
+        target = root / destination
+        if (destination in sources or target.exists() or target.is_symlink()
+                or target.parent.is_symlink() or (target.parent.exists() and not target.parent.is_dir())):
+            return None
+        return name, 0, 0, destination, "move_file", "project_assembly"
+    return None
 
 
 def mutation_sites(base, sources, layouts, imports, versions=None):
@@ -493,6 +515,9 @@ def mutation_sites(base, sources, layouts, imports, versions=None):
                 continue
             op="missing_relative_file" if imp["path"].startswith(("./","../")) else "unresolved_package_import"
             site(op,target,0,len(sources[target]),b"","project_assembly","delete_file")
+        moved = relative_move_site(base, sources, imports)
+        if moved is not None:
+            result["missing_relative_file_moved"] = moved
         package = _package_site(base, sources, imports)
         if package:
             result["unresolved_package_import"] = (entry, 0, 0, package, "package_dependency", "project_assembly")
@@ -510,6 +535,12 @@ def build_mutation(base, sources, site, operator):
     """Apply the selected edit and return the resulting closure, exact patch and damage provenance."""
     file,lo,hi,replacement,action,stage=site
     raw=sources[file]
+    if action == "move_file":
+        if file == next(iter(sources)) or replacement != ".cp5_moved/" + Path(file).name or replacement in sources:
+            raise ValueError("Invalid relative dependency move")
+        mutated = dict(sources)
+        mutated[replacement] = mutated.pop(file)
+        return mutated, None, apply_patches(raw, ())[1]
     if isinstance(replacement,tuple):
         if replacement[0]=="copy":
             a,b=replacement[1]
@@ -532,6 +563,8 @@ def classify_trigger(stage, target, result, primary, selected_labels):
     """Classify using the primary cause after all environment candidates and the independent selected probe."""
     if result.status == "success":
         return "resolved_by_environment"
+    if target == "missing_relative_file_moved":
+        target = "missing_relative_file"
     if target in primary and (stage != "solc" or target in selected_labels):
         return "included"
     return "not_triggered"
@@ -570,7 +603,11 @@ def assess_mutation(base, operator, seed, sources, site, compilers, frozen_versi
                     truth_graph_sha256=base["graph_sha256"], version=base["version"], settings=base["settings"],
                     stage=stage, original_sha256={k:_digest(v) for k,v in sources.items()},
                     damaged_sha256={k:_digest(v) for k,v in mutated.items()})
-    if action == "package_dependency":
+    if action == "move_file":
+        old = site[0]
+        manifest.update(target="missing_relative_file", file_renames={old: plan},
+                        move=dict(source=old, destination=plan, sha256=_digest(sources[old])))
+    elif action == "package_dependency":
         manifest.update({k:plan[k] for k in ("package","layout_evidence","file_renames","logical_package_paths","remapping")})
         manifest["edits"] = edits
     else:
@@ -1560,7 +1597,7 @@ def score_request(request_path, output):
 
 
 def dependency_repair_observation(base, mutation, original, damaged, damage_maps, damaged_root,
-                                  compilers, frozen_versions, offline_index, policy, output):
+                                  compilers, frozen_versions, offline_index, policy, output, dependency_limit=None):
     """Run ordinary CP5 repair on the damaged inputs, then score against separately checked truth."""
     store = ArtifactStore(output)
     entry_name = next(iter(original))
@@ -1568,6 +1605,13 @@ def dependency_repair_observation(base, mutation, original, damaged, damage_maps
     for name, data in damaged.items():
         if (damaged_root / (name or "input.sol")).read_bytes() != data:
             raise ValueError("Damaged input differs from benchmark receipt")
+    moved = mutation.get("file_renames", {}) if mutation["operator"] == "missing_relative_file_moved" else {}
+    logical_damage = dict(damaged)
+    for old, new in moved.items():
+        if (old in damaged or new in original or new not in damaged or damaged[new] != original[old]
+                or (damaged_root / old).exists() or (damaged_root / old).is_symlink()):
+            raise ValueError("Moved dependency differs from the recorded physical move")
+        logical_damage[old] = logical_damage.pop(new)
     entry = damaged_root / (entry_name or "input.sol")
     regression = "mando" if base["corpus"] == "MANDO" else None
     raw = damaged[entry_name]
@@ -1577,7 +1621,7 @@ def dependency_repair_observation(base, mutation, original, damaged, damage_maps
     unit = CompilationUnit(base["unit_id"], sources, known, regression)
     with store.journal("invocations.jsonl") as journal:
         result = repair_unit(unit, compilers, store, journal, project=project, offline_index=offline_index,
-                             dependency_policy=policy)
+                             dependency_policy=policy, dependency_limit=dependency_limit)
     unit_dir = store.path / "units" / unit.unit_id
     step_path = unit_dir / "repair_steps.json"
     steps = json.loads(step_path.read_bytes()) if step_path.is_file() else []
@@ -1588,7 +1632,7 @@ def dependency_repair_observation(base, mutation, original, damaged, damage_maps
     released = {}
     for step in accepted:
         released.update(step.get("releases", {}))
-    final, repair_maps, renames = dict(damaged), {}, {}
+    final, repair_maps, renames = dict(damaged), {}, dict(moved)
     if accepted:
         if layout is None:
             raise ValueError("CP5 candidate is missing its project receipt")
@@ -1626,7 +1670,10 @@ def dependency_repair_observation(base, mutation, original, damaged, damage_maps
     truth = read_checked_json(base["graph_path"], base["graph_sha256"])
     last = next((r for r in reversed(result.attempts) if r.get("solc")), {})
     slither = last.get("slither") or {}
-    score = score_graphs(truth, actual, original, damaged, final, damage_maps, repair_maps,
+    for old, new in moved.items():
+        if new in repair_maps:
+            repair_maps[old] = repair_maps.pop(new)
+    score = score_graphs(truth, actual, original, logical_damage, final, damage_maps, repair_maps,
                          last.get("solc", {}).get("returncode"), slither.get("d3") and result.status == "success",
                          file_renames=renames)
     levels = {p.level for p in result.provenance.values()}
@@ -1635,6 +1682,7 @@ def dependency_repair_observation(base, mutation, original, damaged, damage_maps
     report = dict(unit_id=unit.unit_id, operator=mutation["operator"], corpus=base["corpus"], split=base["split"],
                   status=result.status, reason=result.reason, policy=policy, selected_version=result.selected_version,
                   score=score, releases=released, original_package_bytes_equal=physical,
+                  truncated="dependency_search_truncated" in result.flags, dependency_limit=dependency_limit,
                   change_level="rewrite" if "rewrite" in levels else "additive" if "additive" in levels else "none",
                   accepted_steps=[s["step"] for s in accepted], result_path=str(receipt), result_sha256=sha256(receipt),
                   graph_sha256=sha256(graph_path) if actual is not None else None)
