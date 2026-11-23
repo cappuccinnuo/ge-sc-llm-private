@@ -1,22 +1,22 @@
 # CompileRepair 交接文档
 
-> 本轮先读第 0–5 节、PROMPTS r2.17 §4.6b、CP4_REPORT.md 的 CP4.1、CHANGE_LOG §45，以及 artifacts/cp4_1_v1/migration_continuation/README.md。
+> 本轮交接先读第 0–5 节、PROMPTS r2.18 §1.21 与 §4.6c（CP4.2）、artifacts/cp4_1_review_v1/README.md、CP4_REPORT.md 的 CP4.1、CHANGE_LOG §45、§46。
 
 ## 0. 一句话
 
-CP4.1 自检通过。14,196 个纳入样本均通过精确还原，114 个真实缺包样本均通过迁移核验。下一步为独立审查。
+CP4.1 已由 Claude 审查：分类器、算子、114 个真实缺包样本、创建码规范化与计数都成立，但发现一个未解决的问题：生成名称（TMP/REF/TUPLE）对应只用于迁移，普通修复在未改动代码之前增删代码时评分误报。下一步：Codex 执行 4.6c 节 CP4.2 → Claude 审查 → CP5。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.17；D5/D16/D18/D20/D20a/D21 与 CP3.2 三态判定、CP4 的四项用户决定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP3.2 | 已审查通过 |
-| CP4 | 16,136 个基础单元、17,432 个候选、11,858 个纳入；自检全部通过；五类 0 纳入，审查定位原因后由 CP4.1 解决 |
+| 方案与决定 | PROMPTS r2.18；D5/D16/D18/D20/D20a/D21、CP3.2 三态判定、CP4 与 CP4.1 的用户决定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP4 | 已审查通过 |
+| CP4.1 | 候选 19,354、纳入 14,196；精确还原 14,196/14,196；迁移 114/114；审查成立，留一个评分问题由 CP4.2 解决 |
+| 已知限制 | declaration_error 0 纳入（同名函数实为 SyntaxError；CP3 主因 2 个单元） |
 | 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| CP4.1 | 96 个诊断模板完成证据分级，17,432 个旧候选重判完毕，1,922 个新增候选完成实测。精确还原 14,196/14,196，真实包迁移 114/114，见 CHANGE_LOG §45 |
-| 下一步 | 独立审查 CP4.1，优先复核四个授权项、61 个经生成名称核验的迁移图和完整调用数 |
+| 下一步 | CP4.2 → 审查 → CP5 |
 
 ## 2. 分支与工作树
 
@@ -40,6 +40,7 @@ CP4.1 从 e8ec530d 开始。续作以 0f690e6f 为检查点，新结果在 artif
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4.1 审查证据（Claude） | artifacts/cp4_1_review_v1/README.md、probe_counter_shift.json、struct_copy_bin.json |
 | CP4.1 最终验收与封存 | artifacts/cp4_1_v1/migration_continuation/ 下的 README.md、acceptance.json、packages.tsv、final_scope.json、doc_check.json、seal.json |
 | CP4.1 最终生产、mando 与 DFG 回归 | 同批 definition_continuation/suites/ 下的三组命令、日志与结果 |
 | CP4.1 全量触发与缺包迁移 | artifacts/cp4_1_v1/population.json、operators.tsv、migration_stop_inventory.json、migration_counter_review.json |
@@ -633,3 +634,12 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 14,196 项精确还原、114 项额外迁移全部通过。迁移逐字原分通过 53 项，生成名称按证据对齐后另有 61 项通过。前 9 对图直接沿用，补齐 105 对图实际调用 solc 242 次、Slither 210 次。两份 Yul AST 的来源另用 2 次 solc 原命令验证。程序首次使用错误路径口径时未启动工具，后来发现汇总脚本误设每图只试一个版本，两次现场均保留，详见 CHANGE_LOG §45.2。
 
 三个最终测试结果为 production 1,068/6、mando 605/469（通过/跳过）和 DFG 2,653 通过、9 条告警。运行与文档检查的完整收据在同批 definition_continuation/suites/ 和 doc_check.json。
+
+
+### 2026-11-22 CompileRepair CP4.1 审查与方案 r2.18（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP4.1（提交 0f690e6f2、6950dc7b8）。新增证据目录 `artifacts/cp4_1_review_v1/`，修改 `PROMPTS.md`（r2.17 → r2.18）。本文开头、第 0、1 节换成审查结论，第 5 节加入证据路径。
+
+结论：计数相互一致；8 个审查夹具在新分类器下归类正确；结构体数组复制的生产路径结论正确（审查 CP4 时只测了 abi 输出，说法有误）；迁移核验严格；272 项相关测试在审查环境通过。未解决：生成名称对应只在有文件改名映射时使用，普通修复把编号平移的节点算作改变（实测 kept 0.5）。新增 4.6c 节 CP4.2。
+
+下一步：Codex 执行 CP4.2，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §46。

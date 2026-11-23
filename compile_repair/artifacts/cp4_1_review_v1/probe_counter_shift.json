@@ -1,0 +1,70 @@
+{
+ "restore_in_place": {
+  "exact": true,
+  "kept": {
+   "units": 2,
+   "equal": 2,
+   "ratio": 1.0
+  },
+  "cfg_edges": {
+   "truth": 1,
+   "repaired": 1,
+   "matched": 1,
+   "ratio": 1.0
+  },
+  "calls": {
+   "truth": 1,
+   "repaired": 1,
+   "matched": 1,
+   "ratio": 1.0
+  },
+  "lost": 0,
+  "added": 0
+ },
+ "insert_at_top": {
+  "exact": false,
+  "kept": {
+   "units": 2,
+   "equal": 1,
+   "ratio": 0.5
+  },
+  "cfg_edges": {
+   "truth": 1,
+   "repaired": 1,
+   "matched": 1,
+   "ratio": 1.0
+  },
+  "calls": {
+   "truth": 1,
+   "repaired": 1,
+   "matched": 1,
+   "ratio": 1.0
+  },
+  "lost": 3,
+  "added": 3
+ },
+ "g_ir": {
+  "original": [
+   [],
+   [
+    "REF_0(uint256) -> bal[a]",
+    "REF_1(uint256) -> bal[a]",
+    "TMP_0(uint256) = INTERNAL_CALL, A.h(uint256)(x)",
+    "TMP_1(uint256) = TMP_0 (c)* 2",
+    "TMP_2(uint256) = REF_1 (c)+ TMP_1",
+    "REF_0(uint256) (->bal) := TMP_2(uint256)"
+   ]
+  ],
+  "insert_at_top": [
+   [],
+   [
+    "REF_1(uint256) -> bal[a]",
+    "REF_2(uint256) -> bal[a]",
+    "TMP_4(uint256) = INTERNAL_CALL, A.h(uint256)(x)",
+    "TMP_5(uint256) = TMP_4 (c)* 2",
+    "TMP_6(uint256) = REF_2 (c)+ TMP_5",
+    "REF_1(uint256) (->bal) := TMP_6(uint256)"
+   ]
+  ]
+ }
+}

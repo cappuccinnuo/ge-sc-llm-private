@@ -2166,3 +2166,45 @@ WSL 的 VMBus 建连曾在高负载下再次超时。保留的原生 Bash 完成
 WSL 的新通道数次因 512 KiB 连续页分配失败而超时。保留的原生 Bash 执行了全部生产测试和样本。晚间完成一次临时内存整理，随后仍观测到一次普通新命令超时。验收完成后对已封存的 684 个只读结果文件发送缓存释放提示，最后四次新命令用时 0.312–0.359 秒，均返回 UID 1000。各措施对恢复的独立贡献尚未测量。[WSL 实测](../artifacts/cp4_1_v1/migration_continuation/wsl_recovery.json)
 
 六份中文文档通过仓库 doc_check。HANDOVER、DECISIONS 和批次 README 按全文检查，CHANGE_LOG、CP4_REPORT 和 PROGRESS 先核对检查点原字节，再检查各自本轮的追加内容。逐份字节数和汉字数随本批封存。[文档检查](../artifacts/cp4_1_v1/migration_continuation/doc_check.json)
+
+
+## 46. 2026-11-22 CompileRepair CP4.1 审查与方案 r2.18（修改 AI：Claude）
+
+### 46.1 任务、依据与范围
+
+用户要求（2026-11-22）：Codex 已完成 CP4.1；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP5。起点 `compile-repair@6950dc7b8`。审查对象：`toolchain/solc.py`、`evaluation/benchmark.py`、`evaluation/report.py` 的差异，`tests/test_cp41.py`，`cp4_1_v1` 的 operators.tsv、cp3_before_after.json、same_name_types.json、struct_codegen_crosscheck.json、migration_continuation/acceptance.json，CP4_REPORT 的 CP4.1 节、HANDOVER、DECISIONS、CHANGE_LOG §43–§45、PROGRESS。
+
+修改：`PROMPTS.md`（r2.17 → r2.18）；新增 `artifacts/cp4_1_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 2 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 46.2 实施方式和重要选择
+
+- 计数：用 operators.tsv 与 acceptance.json 逐项核对加减关系。
+- 分类器：用 CP4.1 的分类器重新运行 CP4 审查的 8 个夹具。
+- 结构体数组：Codex 的报告与审查 CP4 时的结论不同，因此在审查环境分别输出 abi 与 bin 复核，确认审查当时的探针只请求 abi，生产路径要求字节码，以 Codex 的结论为准。
+- 迁移核验：读 `_counter_correspondence`、`_verified_migration`、`_guard_migration_sources` 与 `score_graphs`，确认核验严格，但只在有文件改名映射时运行。为判断这是否影响普通修复，写端到端探针：用模块的 `graph_facts` 与 `score_graphs` 比较“原位置恢复被删函数”与“把同一函数插到合约开头”。
+- 处理方案的选择：考虑过在每个函数内按首次出现顺序重新编号。没有采用，因为同一函数内新增语句也会改变首次出现顺序；而沿用已批准的核验规则、只用 kept 节点推导一一对应，不受新增与删除节点影响，故意错误也仍被检出。
+
+### 46.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 候选与纳入 | 19,354 = 17,432 + 1,922；14,196 = 11,858 + 952 + 1,386；1,386 = 114 + 511 + 761 = 1,300 + 86 | operators.tsv、acceptance.json |
+| 分类器 | 删除右花括号 4 个版本 → unbalanced_structure；嵌套动态数组 0.4.24、0.5.17 → abi_coder_required；同名函数 0.5.17 以后 → syntax_error | probe_operator_messages_cp41.json |
+| 结构体数组 | 0.8.38 输出 abi 时 rc 0，输出 bin 时 rc 1（legacy 代码生成不支持） | struct_copy_bin.json |
+| 测试 | test_cp41.py 与 test_benchmark.py 共 272 项通过 | 审查环境 pytest |
+| 编号平移 | 原位置恢复 kept 1.0；插到开头 kept 0.5，g() 的 TMP_0…2 → TMP_4…6、REF_0、1 → REF_1、2 | probe_counter_shift.json |
+
+未证明：真实修复中编号平移的发生比例（CP4.2 的移动自检给出）；Yul switch 名称在普通修复中的平移情况。
+
+### 46.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：遇到结构体数组、迁移编号与 Yul 源编号时停下、给出证据并经批准后处理；没有改用合成包名。
+- 审查自身的错误：CP4 审查 README 第 3 条“0.8.38 编译成功”只基于 abi 输出，已在 cp4_1_review_v1 更正（不改旧证据目录）。
+- 新的设计点：把已批准的迁移核验规则推广到所有评分（DECISIONS 记为 Claude 建议）。规则本身已经用户批准，推广只改变适用范围；如用户不同意，CP4.2 只保留 raw 分数并在 CP5 报告中标出受影响样本。
+- 已知限制：declaration_error 0 个基准样本。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 46.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_1_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP5 不能开始。顺序为 Codex 执行 CP4.2 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。

@@ -530,3 +530,10 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 最终按种子冻结的候选和收据逐项匹配。19,354 项中纳入 14,196 项，精确还原 14,196/14,196，对照 200/200。缺包样本迁移 114/114，原分满分 53 项，核验换号后另有 61 项满分。新增 105 对图产生 242 次 solc 和 210 次 Slither。Yul 原始输出核对另用 2 次 solc。收据核对程序的绝对路径问题、汇总程序对版本尝试数的错误预设和修正均在 CHANGE_LOG §45。
 
 仓库根目录以两个环境各自的 Python 执行 `python -B -m pytest -x -q -p no:cacheprovider compile_repair/tests`，production 1,068 通过、6 跳过，mando 605 通过、469 跳过。mando 对 `scripts/DFG/dfg_v2/tests` 执行同样命令，2,653 通过、9 条告警。生产文件 17 个，DFG 354 项代码身份匹配。WSL 的新建进程曾间歇超时，原生终端完成实验，美东 21:20 连续四次独立启动成功。下一步为独立审查。[最终核验](artifacts/cp4_1_v1/migration_continuation/acceptance.json) · [运行与文档清单](artifacts/cp4_1_v1/migration_continuation/README.md)
+
+
+## CP4.1 审查与方案 r2.18（Claude，2026-11-22）
+
+- CP4.1 成立的部分：分类器模板与新类别、encoding 511 与 unimplemented_feature 761、114 个真实缺包样本、创建码规范化、精确还原 14,196/14,196、迁移 114/114、计数一致、272 项测试通过。
+- 未解决：生成名称对应只用于迁移，普通修复在未改动代码之前增删代码时评分误报（实测 kept 0.5）。
+- PROMPTS r2.18：新增 1.21 节、4.6c 节 CP4.2。证据 `artifacts/cp4_1_review_v1/`；记录 `docs/CHANGE_LOG.md` §46。下一步 CP4.2。

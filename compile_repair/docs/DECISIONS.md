@@ -4,7 +4,7 @@
 
 状态：已定（用户）＝用户明确决定；已定（证据）＝由证据确定，用户未反对；建议＝待用户确认；待定＝尚未讨论到；撤销。
 
-## 1. 当前决策（PROMPTS r2.17）
+## 1. 当前决策（PROMPTS r2.18）
 
 | 编号 | 内容（摘要） | 状态 | 最近变化 |
 |---|---|---|---|
@@ -450,3 +450,11 @@ D20a 已按用户授权执行：第 227 份另起进程，第 1 次观察到 Mul
 | 批准纳入 TUPLE_N 并续跑 | 对元组采用同一判据，逐项核对定义、解包顺序与索引。 | tuple_continuation/authorization.json |
 | 批准限定核验和最多 4 次 solc 调用，继续 | 仅对批准的两个候选验证 YulSwitch 源文件编号。旧 stdout、AST、闭包、字节及两份源文件清单均须吻合。实用 2 次，接收 1 项。 | yul_continuation/authorization.json |
 | 允许修正空格识别并续跑 | 按实际空格识别 NewArray 的临时变量定义，两侧指令的字符比较仍逐字执行。保留 51 项、复用停点的两张图，执行其余 62 对。 | definition_continuation/authorization.json |
+
+
+### CP4.1 审查与 r2.18（修改 AI：Claude）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-22 | 评分中的生成名称 | 用户已批准的迁移核验规则推广到所有评分，只作用于 kept 节点；不满足即整体用原样分数；raw 分数并列保留（Claude 建议，CP4.2 实施） | CHANGE_LOG §46.2；cp4_1_review_v1/probe_counter_shift.json | Claude |
+| 2026-11-22 | declaration_error | 0 个基准样本，接受为已知限制，D6 中注明 | CHANGE_LOG §46.4 | Claude |
