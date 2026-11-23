@@ -174,3 +174,13 @@ def test_run_track_writes_resumable_results_next_to_g0(inputs, tmp_path):
     assert again == first                                                    # resumed, not refitted
     with pytest.raises(ValueError, match="other inputs or settings"):
         train.run_track(track, stages, tmp_path, seed=2, config_overrides=overrides, log=lambda *_: None)
+
+
+def test_inputs_refuse_a_smoke_teacher_unless_allowed(monkeypatch):
+    from combined import train
+    smoke = SimpleNamespace(matrices=lambda: dict(teacher=None), summary=lambda: dict(teacher=dict(complete=False)))
+    monkeypatch.setattr(train, "TaskStore", lambda *args: smoke)
+    monkeypatch.setattr(train, "load_inputs", lambda *args: ("edges", "attrs", None))
+    with pytest.raises(ValueError, match="limited"):
+        train.Inputs("B", "dfg", "nodesem", "edgesem").load("reentrancy", "node", "reentrancy_line")
+    assert train.Inputs("B", "dfg", "nodesem", "edgesem", True).load("reentrancy", "node", "x")[1:] == ("edges", "attrs")

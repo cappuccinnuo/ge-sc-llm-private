@@ -33,6 +33,7 @@ class Inputs:
     dfg: Path
     nodesem: Path
     edgesem: Path
+    partial_teacher: bool = False       # accept a smoke-run teacher (describe --limit)
 
     def load(self, category, graph_task, task_id):
         """(NodeSem store, F4 edges, edge attributes) of the graph a track trains on."""
@@ -40,6 +41,9 @@ class Inputs:
         if "teacher" not in store.matrices():
             raise ValueError("%s: NodeSem %s needs the teacher vectors; run `python -m nodesem describe` and "
                              "`python -m nodesem encode --teacher`" % (task_id, NODE_CONFIG))
+        if not store.summary().get("teacher", {}).get("complete", True) and not self.partial_teacher:
+            raise ValueError("%s: the teacher text comes from a limited (smoke) describe run; rerun "
+                             "`python -m nodesem describe` without --limit" % task_id)
         edges, attrs, _ = load_inputs(self.dataset, category, graph_task, self.dfg, self.edgesem, task_id)
         return store, edges, attrs
 

@@ -97,8 +97,13 @@ def encode_task(store, device="cuda", batch_size=32, cache_dir=None, teacher=Fal
     log("%s: encoded %s" % (summary["task_id"], "teacher" if teacher else "code, ctx"))
 
 
-def describe_tasks(contexts_and_stores, cache_dir, backend=None, model_cache=None, log=print, limit=None):
-    """LLM descriptions for all given tasks (shared prompt cache), then teacher text per task."""
+def describe_tasks(contexts_and_stores, cache_dir, backend=None, model_cache=None, log=print, limit=None,
+                   workers=1, backend_factory=None):
+    """LLM descriptions for all given tasks (shared prompt cache), then teacher text per task.
+
+    With ``limit`` (smoke runs) the teacher text is partial: rows of units not generated
+    are absent, and the store's summary records ``teacher.complete = false``.
+    """
     from nodesem.llm.generate import generate, plan_units, teacher_rows
     from nodesem.store import read_jsonl, write_jsonl
     inputs = []
@@ -106,13 +111,15 @@ def describe_tasks(contexts_and_stores, cache_dir, backend=None, model_cache=Non
         analysis = dict(text=read_jsonl(store.path / "text.jsonl"), facts=read_jsonl(store.path / "facts.jsonl"))
         inputs.append((context, analysis))
     units, rows_by_task, schedule = plan_units(inputs)
-    results = generate(units, schedule, cache_dir, backend, model_cache, log, limit=limit)
-    if limit is not None:
-        log("limit reached: %d responses available; teacher text not written" % len(results))
-        return results
+    results = generate(units, schedule, cache_dir, backend, model_cache, log, limit=limit, workers=workers,
+                       backend_factory=backend_factory)
+    complete = all(k in results for k in units)
+    if not complete:
+        log("limit reached: %d of %d units available; teacher text is partial" % (len(results), len(units)))
     for (context, analysis), (_, store) in zip(inputs, contexts_and_stores):
         facts = {r["row_key"]: r["facts"] for r in analysis["facts"]}
-        rows = teacher_rows(rows_by_task[context["task_id"]], facts, units, results)
+        rows = teacher_rows(rows_by_task[context["task_id"]], facts, units, results, partial=not complete)
         write_jsonl(store.path / "teacher.jsonl", rows)
-        store.write_summary(dict(teacher=dict(present=sum(r["present"] for r in rows), rows=len(rows))))
+        store.write_summary(dict(teacher=dict(present=sum(r["present"] for r in rows), rows=len(rows),
+                                              complete=complete)))
         log("%s: teacher text present for %d of %d rows" % (context["task_id"], sum(r["present"] for r in rows), len(rows)))

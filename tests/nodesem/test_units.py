@@ -1,4 +1,7 @@
 """NodeSem unit tests: configurations, carrier, initialization rules, LLM cache, students, CLI."""
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 import torch
@@ -92,6 +95,70 @@ def test_generation_is_cached_and_skips_bodyless_units(tmp_path):
     assert backend.calls == 1 and first[key]["parsed"] == again[key]["parsed"]
     skipped = gen.generate(units, {key: True}, tmp_path / "other", backend, log=lambda *a: None)
     assert skipped[key]["status"] == "skipped_no_body" and backend.calls == 1
+
+
+def _units(n):
+    units = {}
+    for i in range(n):
+        unit = dict(contract_header="contract A%d" % i, state_vars="uint x;", function_with_lines="1: function f() {}",
+                    target_lines=[1])
+        key = cache_key(unit, gen.MODEL["sha256"], gen.PARAMETERS)
+        units[key] = dict(unit, cache_key=key, messages=messages(unit), occurrences=[])
+    return units
+
+
+def _responses(directory):
+    return {p.parent.name: json.loads(p.read_text())["attempts"][0]["response"]["content"]
+            for p in Path(directory).glob("*/response.json")}
+
+
+def test_parallel_workers_fill_the_same_cache_as_one_process(tmp_path):
+    units = _units(12)
+    schedule = dict.fromkeys(units, False)
+    one = gen.generate(units, schedule, tmp_path / "one", FakeBackend(), log=lambda *a: None)
+    many = gen.generate(units, schedule, tmp_path / "many", log=lambda *a: None, workers=3, backend_factory=FakeBackend)
+    assert {k: v["parsed"] for k, v in one.items()} == {k: v["parsed"] for k, v in many.items()}
+    assert _responses(tmp_path / "one") == _responses(tmp_path / "many") and len(_responses(tmp_path / "one")) == 12
+    assert sorted(k for w in range(3) for k in gen.share(sorted(units), w, 3)) == sorted(units)   # disjoint, complete
+    assert not (tmp_path / "many" / ".lock").exists()
+
+
+def test_a_unit_cut_off_mid_generation_is_moved_aside_and_generated_again(tmp_path):
+    units = _units(2)
+    first, second = sorted(units)
+    (tmp_path / first).mkdir()
+    (tmp_path / first / "started.json").write_text("{}")          # interrupted: no sealed response
+    backend = FakeBackend()
+    results = gen.generate(units, dict.fromkeys(units, False), tmp_path, backend, log=lambda *a: None)
+    assert backend.calls == 2 and results[first]["status"] == "ok"
+    assert [p.name.split(".")[0] for p in (tmp_path / "_interrupted").iterdir()] == [first]
+    assert (tmp_path / first / "response.json").exists() and (tmp_path / second / "response.json").exists()
+
+
+def test_cache_lock_refuses_a_second_live_run_and_takes_over_a_stale_one(tmp_path):
+    import subprocess
+    import sys
+    units = _units(1)
+    live = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+    try:
+        (tmp_path / ".lock").write_text(json.dumps(dict(pid=live.pid)))
+        with pytest.raises(RuntimeError, match="another describe run"):
+            gen.generate(units, dict.fromkeys(units, False), tmp_path, FakeBackend(), log=lambda *a: None)
+    finally:
+        live.kill()
+        live.wait()
+    gen.generate(units, dict.fromkeys(units, False), tmp_path, FakeBackend(), log=lambda *a: None)
+    assert not (tmp_path / ".lock").exists()
+
+
+def test_partial_teacher_rows_mark_units_not_generated_absent():
+    row = dict(row_key="r", file="a.sol", node_type="expression_statement", source_sha256="s", code_sha256="c",
+               target_kind="statement", relative_line=1, prompt_map={}, cache_key="k", function_id="f", segment=0)
+    units = {"k": dict(target_lines=[1])}
+    with pytest.raises(KeyError):
+        gen.teacher_rows([row], {"r": {}}, units, {})
+    out = gen.teacher_rows([row], {"r": {}}, units, {}, partial=True)
+    assert out[0]["present"] is False and out[0]["flags"] == ["not_generated"]
 
 
 def test_student_is_deterministic_and_fold_local():

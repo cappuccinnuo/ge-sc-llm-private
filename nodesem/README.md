@@ -54,7 +54,7 @@ nodesem/
 python -m hcg build && python -m dfg build      # prerequisites (with tokens, L1-L3)
 python -m nodesem analyze                        # CPU, ~1-2 min per task
 python -m nodesem encode                         # CodeT5+ (GPU recommended)
-python -m nodesem describe                       # Qwen2.5-Coder-3B (GPU; hours for 7 classes)
+python -m nodesem describe --workers 4           # Qwen2.5-Coder-3B (GPU; hours for 7 classes)
 python -m nodesem encode --teacher               # BGE
 python -m nodesem train --configs S0o S2 S4 S6 S5 S8 --out runs/nodesem/all
 python -m nodesem report runs/nodesem/all        # paired with S0o@G3R
@@ -67,6 +67,21 @@ the GGUF SHA-256 and the decoding parameters. On reentrancy and access control t
 prompts are identical to the earlier NodeSem run, so its cache
 (`scripts/node_sem/artifacts/llm_v3/cache/describe_v2/` on the original machine)
 can be copied into `llm_cache/` and is reused without regeneration.
+
+- **Speed.** One process generates one response at a time, and with a 3B model most of
+  each token is CPU-side work (JSON-schema constrained sampling, Python), so the GPU
+  idles between tokens. `--workers N` runs N processes, each with its own model copy
+  (about 3 GB of GPU memory each), on fixed shares of the pending prompts. A prompt's
+  response does not depend on which worker or in which order it is generated, so the
+  cache is the same for any N.
+- **Interrupting.** Stop it at any time and rerun the same command. Sealed responses are
+  reused as they are. A prompt cut off mid-generation has no sealed response: its
+  directory is moved to `llm_cache/_interrupted/` and it is generated again from scratch.
+  A lock file (`llm_cache/.lock`) keeps two runs off one cache.
+- **`--limit N`** (smoke runs) generates at most N new responses. The teacher text is
+  then partial: rows of prompts not generated yet are absent, and the store's summary
+  records `teacher.complete: false`. The combined model refuses such a store unless
+  `benchmark run --partial-teacher` is given.
 
 Training uses `dfg.train` (folds, epoch engine, scoring). Per fold and profile every
 configuration starts from the DFG fold initial state: graph and classifier tensors

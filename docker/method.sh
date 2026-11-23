@@ -16,19 +16,22 @@
 #    first -> compare.md / compare.json.
 #
 # Settings (environment): NAME (run directory under runs/method, default b or quick),
-# CATEGORIES (default all), SEEDS (default "1 2 3"). Every finished stage leaves a marker in
-# the run directory and every finished fit its result.json, so rerunning the same command
-# resumes where it stopped.
+# CATEGORIES (default all), SEEDS (default "1 2 3"), WORKERS (describe processes, each with
+# its own model copy of ~3 GB GPU memory; default 4). Every finished stage leaves a marker
+# in the run directory, every finished LLM response and fit its sealed file, so rerunning
+# the same command after an interruption resumes where it stopped (an LLM unit cut off
+# mid-generation is generated again from scratch).
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 export MANDO_DATA_DIR="${MANDO_DATA_DIR:-$PWD/data}"
 DATASET=B
 if [ "${QUICK:-0}" = 1 ]; then
     NAME="${NAME:-quick}"; CATEGORIES="${CATEGORIES:-time_manipulation}"; SEEDS="${SEEDS:-1}"
-    EXTRA="--folds 0 --epochs 2"; DESCRIBE="--limit 200"
+    EXTRA="--folds 0 --epochs 2 --partial-teacher"; DESCRIBE="--limit 200"
 else
     NAME="${NAME:-b}"; CATEGORIES="${CATEGORIES:-all}"; SEEDS="${SEEDS:-1 2 3}"; EXTRA=""; DESCRIBE=""
 fi
+WORKERS="${WORKERS:-4}"
 OUT="runs/method/$NAME"
 mkdir -p "$OUT/.done"
 LOG="$OUT/method.log"
@@ -73,7 +76,7 @@ once nodesem_analyze "nodesem analyze" python -m nodesem analyze $C $STORES --no
 once nodesem_encode "nodesem encode (CodeT5+)" python -m nodesem encode $C $STORES --nodesem "$OUT/nodesem"
 # shellcheck disable=SC2086
 once nodesem_describe "nodesem describe (Qwen2.5-Coder-3B)" python -u -m nodesem describe $C $STORES \
-    --nodesem "$OUT/nodesem" $DESCRIBE
+    --nodesem "$OUT/nodesem" --workers "$WORKERS" $DESCRIBE
 # shellcheck disable=SC2086
 once nodesem_teacher "nodesem encode --teacher (BGE)" python -m nodesem encode $C $STORES --nodesem "$OUT/nodesem" --teacher
 # shellcheck disable=SC2086

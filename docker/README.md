@@ -164,12 +164,15 @@ fit its `result.json`; rerunning the same command resumes):
 2. `hcg fetch --dataset B` and every stage regenerated from the Solidity sources into the
    run directory: `hcg build` (CodeT5+ tokens), `dfg build`, `nodesem analyze`,
    `nodesem encode`, `nodesem describe` (Qwen2.5-Coder-3B over every Dataset B node: the
-   longest step), `nodesem encode --teacher`, `edgesem build`;
+   longest step; `WORKERS` processes, default 4, each with its own model copy of ~3 GB GPU
+   memory), `nodesem encode --teacher`, `edgesem build`;
 3. per seed, `benchmark run --protocols grouped --profiles G0 FULL` (contract, line and
    cascade tracks; both profiles on the same project-grouped folds) into `seed_<n>/`;
 4. `combined compare`: FULL vs G0 paired over (seed, fold) -> `compare.md`, `compare.json`.
 
-`SEEDS`, `CATEGORIES` and `NAME` override the defaults. To return the results, commit
+`SEEDS`, `CATEGORIES`, `NAME` and `WORKERS` override the defaults. Stopping the run
+(Ctrl-C) is safe at any point. Rerun the same command: every sealed LLM response and
+every finished fit is kept, and a response cut off mid-generation is generated again. To return the results, commit
 from `runs/method/b/`: `compare.md`, `compare.json`, `method.log`, and from every
 `seed_<n>/` `report.md`, `evaluation.json`, `run.json` and `findings/` (not `hcg/`, `dfg/`,
 `nodesem/`, `edgesem/` or the per-fold folders, which are large).

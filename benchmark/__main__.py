@@ -64,6 +64,8 @@ def _common(cmd):
     cmd.add_argument("--dfg", type=Path, default=REPO / "data/dfg", help="dfg build output root")
     cmd.add_argument("--nodesem", type=Path, default=REPO / "data/nodesem", help="nodesem store root (FULL)")
     cmd.add_argument("--edgesem", type=Path, default=REPO / "data/edgesem", help="edgesem store root (FULL)")
+    cmd.add_argument("--partial-teacher", action="store_true",
+                     help="FULL: accept teacher text of a limited describe run (plumbing runs only)")
     cmd.add_argument("--label-root", type=Path,
                      default=Path(os.environ.get("MANDO_DATA_DIR", REPO / "data")),
                      help="holds smartbug-dataset/ (default $MANDO_DATA_DIR or <repo>/data)")
@@ -96,7 +98,7 @@ def run(args):
     inputs = None
     if FULL in args.profiles:
         from combined.train import Inputs
-        inputs = Inputs(dataset.name, args.dfg, args.nodesem, args.edgesem)
+        inputs = Inputs(dataset.name, args.dfg, args.nodesem, args.edgesem, args.partial_teacher)
     overrides = None if args.epochs is None else dict(maximum_training_epochs=args.epochs,
                                                        schedule_epochs=args.epochs)
     settings = dict(protocols=args.protocols, profiles=args.profiles, folds=args.folds, seed=args.seed,
