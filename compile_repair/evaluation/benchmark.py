@@ -704,7 +704,7 @@ def _at_original(segments, offset):
     return next((s for s in segments if s.original_start is not None and s.original_start<=offset<s.original_end),None)
 
 
-def _edges_and_calls(graph, keys):
+def _edges_and_calls(graph, keys, removed_functions=()):
     edges,calls=Counter(),Counter()
     for edge in graph.get("cfg_edges",[]):
         src,dst=_identity(edge["source"]),_identity(edge["target"])
@@ -712,6 +712,11 @@ def _edges_and_calls(graph, keys):
             edges[(keys[src],keys[dst],edge["kind"])]+=1
     for call in graph.get("calls",[]):
         site=_identity(call["node"])
+        callee=call.get("callee")
+        if removed_functions and isinstance(callee, dict):
+            destination=(callee.get("filename",""),callee.get("contract"),callee.get("function"))
+            if destination in removed_functions:
+                continue
         if site in keys:
             detail={k:v for k,v in call.items() if k!="node"}
             calls[(keys[site],json.dumps(detail,sort_keys=True,ensure_ascii=False))]+=1
@@ -973,16 +978,42 @@ def _map_graph_ir(graph, replace, selected=None):
     return dict(graph, nodes=nodes, calls=calls)
 
 
-def _align_switch_indices(truth, actual, positions, sites, original, repaired, names, kept_only=False):
-    """Align only source-list indices witnessed at the same Yul switch on both sides."""
+def _mapped_switch(name, original, repaired, maps, old, new, sites, physical):
+    start, length, old_id = map(int, old.groups()[:3])
+    mapped = start
+    if name in maps:
+        segment = _at_original(maps[name][2], start)
+        if (segment is None or segment.kind not in ("original", "restored")
+                or start + length > segment.original_end):
+            raise ValueError("switch_span_not_preserved")
+        mapped = segment.new_start + start - segment.original_start
+    new_id = int(new.group(3))
+    expected = "switch_expr_{}_{}_{}{}".format(mapped, length, new_id, old.group(4))
+    canonical = "switch_expr_{}_{}_{}{}".format(start, length, old_id, old.group(4))
+    if old.group() != canonical or new.group() != expected or not re.fullmatch(r"_[\w$]+_asm_[0-9]+", old.group(4)):
+        raise ValueError("switch_location_or_operand_mismatch")
+    span = original[name][start:start + length]
+    if (len(span) != length or not re.match(rb"switch\b", span)
+            or span != repaired[name][mapped:mapped + length]):
+        raise ValueError("switch_source_bytes_mismatch")
+    digest = _digest(span)
+    if old_id != new_id and (sites is None or sites[0].get((name,start,length,old_id)) != digest
+                             or sites[1].get((physical,mapped,length,new_id)) != digest):
+        raise ValueError("switch_source_index_unverified")
+    return start, mapped, length, digest
+
+
+def _align_switches(truth, actual, positions, sites, original, repaired, names, maps, kept_positions):
+    """Match source offsets through byte provenance and file indices through compiler witnesses."""
     left, right = _nodes(truth), _nodes(actual)
-    before, after = sites
     forward, reverse, changes = {}, {}, {}
     defined, used = set(), set()
     for key, target in positions.items():
         name = key[0]
         physical = names.get(name, name)
         for old, new in zip(left[key]["ir"], right[target]["ir"]):
+            if "switch_expr_" not in old and "switch_expr_" not in new:
+                continue
             old_tokens = list(_YUL_SWITCH.finditer(old))
             new_tokens = list(_YUL_SWITCH.finditer(new))
             if len(old_tokens) != len(new_tokens):
@@ -993,30 +1024,35 @@ def _align_switch_indices(truth, actual, positions, sites, original, repaired, n
                         reverse.setdefault((name,new_name),old_name) != old_name):
                     raise ValueError("switch_mapping_not_bijective")
                 if old_name == new_name:
+                    # A retained old spelling cannot justify a stale offset at a translated switch.
+                    if name in maps:
+                        start, length = int(a.group(1)), int(a.group(2))
+                        span = _at_original(maps[name][2], start)
+                        if (span is not None and span.new_start != span.original_start
+                                and start <= key[1][3] < start + length
+                                and re.match(rb"switch\b", original[name][start:start + length])):
+                            raise ValueError("switch_location_or_operand_mismatch")
                     continue
-                start, length, old_id = map(int, a.groups()[:3])
-                new_id = int(b.group(3))
-                site = (name,start,length,old_id)
-                if (a.groups()[:2] != b.groups()[:2] or a.group(4) != b.group(4) or site not in before
-                        or before[site] != after.get((physical,start,length,new_id))
-                        or not all(start <= offset < start+length for offset in (key[1][3], target[1][3]))):
+                start, mapped, length, digest = _mapped_switch(name, original, repaired, maps, a, b, sites, physical)
+                if (not start <= key[1][3] < start + length or not mapped <= target[1][3] < mapped + length
+                        or (start != mapped and key not in kept_positions)):
                     raise ValueError("switch_location_or_operand_mismatch")
                 identity = name, old_name
                 field = defined if a.start() == 0 and re.match(r"\([^)]*\) := ", old[a.end():]) else used
                 field.add(identity)
                 changes[identity] = dict(file=name, repaired_file=physical, old=old_name, new=new_name,
-                                         src_before="{}:{}:{}".format(start,length,old_id),
-                                         src_after="{}:{}:{}".format(start,length,new_id), span_sha256=before[site])
+                                         src_before=":".join(a.groups()[:3]), src_after=":".join(b.groups()[:3]),
+                                         span_sha256=digest)
     if changes.keys() - (defined & used):
         raise ValueError("switch_definition_or_use_unverified")
     if changes:
         protected = {row[k].encode("ascii") for row in changes.values() for k in ("old","new")}
         protected.update(b"switch_expr_" + row[k].replace(":", "_").encode("ascii")
                          for row in changes.values() for k in ("src_before","src_after"))
-        _guard_counter_sources(original, repaired, protected, imports_only=not kept_only)
+        _guard_counter_sources(original, repaired, protected, imports_only=positions is not kept_positions)
         def replace(name, text):
             return _YUL_SWITCH.sub(lambda m: reverse[(name,m.group())], text)
-        actual = _map_graph_ir(actual, replace, set(positions.values()) if kept_only else None)
+        actual = _map_graph_ir(actual, replace, set(positions.values()))
     return actual, [changes[key] for key in sorted(changes)]
 
 
@@ -1156,10 +1192,8 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
             if compilers[0]["compiler"] != compilers[1]["compiler"] or compilers[0]["settings"] != compilers[1]["settings"]:
                 raise ValueError("switch_compiler_or_settings_differ")
             sites = [_switch_sites(data, digest, files) for data,digest,files in witness_input]
-        kept_graph, switches = (actual, [])
-        if sites is not None:
-            kept_graph, switches = _align_switch_indices(truth, actual, kept_positions, sites, original,
-                                                        repaired, renames, kept_only=True)
+        kept_graph, switches = _align_switches(truth, actual, kept_positions, sites, original, repaired,
+                                             renames, maps, kept_positions)
         changes, reverse_names = _counter_correspondence(_nodes(truth), _nodes(kept_graph), kept_positions)
         if changes:
             protected = {name.encode("ascii") for pair in changes.items() for name in pair}
@@ -1176,11 +1210,10 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     if positions is None:
         return kept_score
     try:
-        switches = []
-        if witness_input is not None:
-            if sites is None:
-                raise ValueError(kept_score["counter_correspondence"]["reason"])
-            actual, switches = _align_switch_indices(truth, actual, positions, sites, original, repaired, renames)
+        if witness_input is not None and sites is None:
+            raise ValueError(kept_score["counter_correspondence"]["reason"])
+        actual, switches = _align_switches(truth, actual, positions, sites, original, repaired,
+                                           renames, maps, kept_positions)
         verified, proof = _verified_migration(truth, actual, positions, original, repaired)
         if switches:
             proof.update(status="verified", yul_switches=switches)
@@ -1197,6 +1230,8 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
 def _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization, positions=None, kept_positions=None):
     expected,observed=_nodes(truth),_nodes(actual or {})
     old_kept,new_kept={},{}
+    removed = set()
+    live_functions, unmapped_functions = set(), set()
     matched=set();affected=deleted=lost=missing_kept=equal_kept=0
     for identity,row in expected.items():
         file,key=identity;offset=key[3]
@@ -1216,21 +1251,23 @@ def _score_facts(truth, actual, original, repaired, maps, near, level, compiled,
                 target=span.new_start+offset-span.original_start if span is not None else None
                 can_recover=span is not None and span.kind in ("original","restored")
         mapped=(file,key[:3]+(target,)+key[4:])
-        present=mapped in observed and file in repaired and target is not None
+        byte_survives = target is not None and file in repaired
+        function = (file, key[0], key[1])
+        (live_functions if byte_survives else unmapped_functions).add(function)
+        present=mapped in observed and byte_survives
         same=present and all(row[k]==observed[mapped][k] for k in ("node_type","ir"))
         if present:
             matched.add(mapped)
             if positions is not None:
                 positions[identity] = mapped
-        if not changed and target is None:
-            # An original byte removed by the repair has no surviving node position.
-            lost+=1
-        elif changed:
+        if changed:
             affected+=1
             lost+=int(not (same and can_recover))
         else:
             # Missing expected keys still contribute to the truth edge/call denominator.
             old_kept[identity]=mapped if present else ("absent",identity)
+            if not byte_survives:
+                removed.add(identity)
             if present and kept_positions is not None:
                 kept_positions[identity] = mapped
             if present:new_kept[mapped]=mapped
@@ -1247,15 +1284,24 @@ def _score_facts(truth, actual, original, repaired, maps, near, level, compiled,
             offset=max(0,min(offset,len(repaired[file])-1));length=1
         parts=[s for s in second.segments if s.new_start<offset+length and offset<s.new_end]
         only_added=only_added and bool(parts) and all(s.original_start is None for s in parts)
-    e1,c1=_edges_and_calls(truth,old_kept);e2,c2=_edges_and_calls(actual or {},new_kept)
-    edges,calls=_multiset_score(e1,e2),_multiset_score(c1,c2)
-    kept=len(old_kept)
-    return {"compiled":compiled,"kept":{"units":kept,"equal":equal_kept,"ratio":equal_kept/kept if kept else 1.0},
-            "cfg_edges":edges,"calls":calls,**normalization,"affected_by_damage":affected,"affected_by_deletion":deleted,
+    def retention(keys, removed_functions=()):
+        e1,c1 = _edges_and_calls(truth, keys, removed_functions)
+        e2,c2 = _edges_and_calls(actual or {}, new_kept, removed_functions)
+        count = len(keys)
+        return {"kept":{"units":count, "equal":equal_kept, "ratio":equal_kept/count if count else 1.0},
+                "cfg_edges":_multiset_score(e1,e2), "calls":_multiset_score(c1,c2)}
+
+    main = retention(old_kept)
+    # Resolved callees are functions. Textual calls are facts of their call-site node.
+    removed_functions = unmapped_functions - live_functions
+    surviving = (retention({k:v for k,v in old_kept.items() if k not in removed}, removed_functions)
+                 if removed or removed_functions else main)
+    return {"compiled":compiled, **main, "surviving":surviving, "removed_by_repair":len(removed),
+            **normalization,"affected_by_damage":affected,"affected_by_deletion":deleted,
             "lost":lost,"missing_kept":missing_kept,"added":len(extra),"added_only_in_repair_bytes":only_added,
             "added_bytes_near_damage":near,"change_level":level,
-            "exact":bool(compiled and actual is not None and equal_kept==kept and not lost and not extra and
-                         near and edges["ratio"]==1 and calls["ratio"]==1)}
+            "exact":bool(compiled and actual is not None and equal_kept==len(old_kept) and not removed and not lost
+                         and not extra and near and main["cfg_edges"]["ratio"]==1 and main["calls"]["ratio"]==1)}
 
 def benchmark_entry(catalog, unit_id, operator, output, seed=20261122):
     """Run one control or one of the compiler/input operators on a catalogued base in a new store."""

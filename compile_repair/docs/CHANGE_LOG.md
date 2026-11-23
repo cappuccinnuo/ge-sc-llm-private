@@ -2282,3 +2282,30 @@ score_graphs 在普通修复上先算原分，再从共同存在、按偏移映�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_2_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP5 不能开始。顺序为 Codex 执行 CP4.3 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。
+
+
+## 49. 2026-11-23 CompileRepair CP4.3 修复删除评分和 Yul 源码起点（修改 AI 为 Codex）
+
+### 49.1 任务、依据与范围
+
+用户于 2026-11-22 转交 CP4.3。专用分支 `compile-repair` 执行 `git pull --ff-only origin compile-repair` 后为 `09a8355e`。先读 §4.1，再核对 r2.19 全部修订、§1.22、§3.7、§3.10、§4.6d、交接第 0–5 节、决定、CP4.2 报告及变更 §47–48，并查阅 CP4.2 的审查探针与收据。生产文件为 evaluation/benchmark.py，测试为 tests/test_cp43.py 与 tests/test_cp42.py。证据在 artifacts/cp4_3_v1，另追加 CP4_REPORT、PROGRESS、交接、决定和本节。既有批次按原始哈希核对。[输入及审查文件 SHA256](../artifacts/cp4_3_v1/acceptance.json)
+
+### 49.2 实施方式和重要选择
+
+修复中被删的完好字节影响两个结果。主指标保留真值节点和相关边、调用作为分母，诊断块仅选取仍能映射的原始节点。对应字节存在但图节点缺失时，两种分母都保留它。解析到声明的调用用文件、合约和函数全名识别目标，诊断时排除原节点字节全部消失的函数。文本型调用依据调用点的 IR 校验。四类修复事实分别通过 removed_by_repair、missing_kept、lost、added 追查。完整真值来自既有图，范围对应来自 core/provenance.py 的 compose_offsets。[生产文件与源码哈希](../artifacts/cp4_3_v1/scope.json)
+
+Yul 名称通过与节点相同的组合偏移映射对齐。对起点平移要求完整单段、源内容相同、后缀与操作数相同、具有定义和使用，并核对源码标识符和解码字面量。变更源编号复用 CP4.1 的 AST 核验。历史负例使用 SHA 已核对的 CP4.2 驱动与原有工具收据。默认沙箱第一次查询 WSL Git 时返回 E_ACCESSDENIED，随后在受管 WSL 权限下完成核对。工具层因终端输入过大拒绝过一次编辑，该输入未执行，随后将分母与 Yul 的局部修改分开写入工作树。实验验收均在首轮完成。
+
+### 49.3 实测与数据结论
+
+审查中的错误修复现为 kept 2/7、CFG 1/6、调用 1/2；5 个修复删除与 2 个破坏区丢失可独立计数。手写 Yul 夹具中 97 → 152 的起点映射通过，两种伪造起点均拒绝。200/200 项主 kept 均小于 1，修复删除节点合计 933 个，每项均等于预期的移动节点数。199/200 项的存活节点、CFG 边和调用三个比例均为 1。14,196 个精确还原的主指标和 exact 均与 CP4.2 一致，名称状态全部为 identical。114 个迁移的主指标、raw 和全图结果也逐项相同。两组的 removed_by_repair 全部为 0。 对原 22 个错误修复、新删函数错误，以及既有缺节点控制分别核验。cp3_21529 存活 kept 为 622/622，cp3_00291 为 261/264。三个重算任务的耗时以进程输出日志创建至汇总写成的秒数估计，具体计数、采样身份和收据在验收文件中。[数据汇总](../artifacts/cp4_3_v1/acceptance.json) · [错误修复](../artifacts/cp4_3_v1/negative.json)
+
+### 49.4 用户批准、原文差异与待确认设计
+
+按 §48.4 对用户转交 CP4.3 的确认方式，Yul 起点可以通过可核验的源码映射得到核验分，同时记录原分。创建字节码摘要的既有决定继续生效。移动自检按 r2.19 分别报告主指标及存活诊断；相对于 r2.18 的处理原因见 §48。执行中采用了规范要求的判据，无新增设计待决定。[授权](../artifacts/cp4_3_v1/authorization.json) · [决策](DECISIONS.md)
+
+### 49.5 验收、资源、未执行事项与停止
+
+两套环境执行 `python -B -m pytest -x -q -p no:cacheprovider compile_repair/tests`，mando 执行相同命令的 `scripts/DFG/dfg_v2/tests` 目标，分别使用独立 basetemp。production 1,076 项通过、6 项跳过，mando 609 项通过、473 项跳过，DFG v2 2,653 项通过、9 条告警。生产文件 17 个，354 项 DFG 引用相同。CPU 本地运行，费用 0 美元，未安装或下载依赖，训练与 LLM 调用均为 0。CP4.3 本地提交，进入独立审查。CP5 尚未开始。[实际测试命令、日志和退出状态](../artifacts/cp4_3_v1/suites/) · [科学证据封存](../artifacts/cp4_3_v1/evidence_seal.json)
+
+六份中文文档已通过 `doc_check --expect-cjk`。对 CP4_REPORT、PROGRESS 和 CHANGE_LOG 先校验起始提交的字节前缀，再检查追加区间；HANDOVER、DECISIONS 和新批次 README 检查全文。移动、精确还原、文件迁移三次只读重算分别约用 9、364、8 秒，计时依据和 SHA 均在 acceptance.json。两套模块测试与 DFG v2 用时分别为 130.99、53.14、225.64 秒。[文档核验](../artifacts/cp4_3_v1/doc_check.json) · [最终封存](../artifacts/cp4_3_v1/seal.json)

@@ -554,3 +554,10 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 - CP4.2 成立的部分：生成名称对应推广到所有评分、精确还原与迁移重算不变、移动自检 198/200、275 项测试通过。
 - 发现：修复删除未破坏的原代码时 kept、边、调用比例仍为 1（r2.18 措辞所致）；Yul switch 起点可按偏移映射对齐。创建码哈希常量接受为已知限制。
 - PROMPTS r2.19：新增 1.22 节、4.6d 节 CP4.3。证据 `artifacts/cp4_2_review_v1/`；记录 `docs/CHANGE_LOG.md` §48。下一步 CP4.3。
+
+
+## CP4.3 完成本地验收（2026-11-23，修改 AI 为 Codex）
+
+生产仅修改 evaluation/benchmark.py，将修复删除的完好节点保留在主分母，并公开 removed_by_repair 与 surviving。Yul switch 的起点按组合映射对齐，源编号变化仍核验 AST。新增 tests/test_cp43.py，扩展 tests/test_cp42.py。依据为用户转交的 PROMPTS r2.19 §4.6d。审批及报告写入本模块的交接、决定和变更 §49。
+
+200/200 项主 kept 均小于 1，修复删除节点合计 933 个，每项均等于预期的移动节点数。199/200 项的存活节点、CFG 边和调用三个比例均为 1。14,196 个精确还原的主指标和 exact 均与 CP4.2 一致，名称状态全部为 identical。114 个迁移的主指标、raw 和全图结果也逐项相同。两组的 removed_by_repair 全部为 0。 审查删除探针为 2/7，5 个修复删除节点与 2 个破坏区丢失分别登记。cp3_00291 的字节码常量差异保留实测分数。两个环境从仓库根运行模块 pytest，DFG v2 在 mando 运行，production 1,076 项通过、6 项跳过，mando 609 项通过、473 项跳过，DFG v2 2,653 项通过、9 条告警。证据位于新批次 cp4_3_v1。下一步为独立审查。[CP4.3 报告](CP4_REPORT.md) · [最终核验](artifacts/cp4_3_v1/acceptance.json)

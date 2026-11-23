@@ -232,3 +232,41 @@ CP3 主因的其他变化包括 parser_error_other 257→267、version_dependent
 | `cp3_21529` | Yul 名称中的源码起点 | 616/622 | 592/592 | 244/244 |
 
 用户于 2026-11-22 确认 Yul 起点变化单列原分，检查点后的 121 项在新目录实测。诊断副本里的对齐仅用于说明原因。四项决定、逐单元工具和图收据、各项核验均已归档。CP4.2 通过按用户决定调整后的本地验收，下一步为独立审查。[验收](artifacts/cp4_2_v1/acceptance.json) · [低分证据](artifacts/cp4_2_v1/measured_differences.json) · [逐项结果](artifacts/cp4_2_v1/moves_completed.jsonl)
+
+
+## CP4.3 修复删除的主指标和 Yul 源码起点（2026-11-23，修改 AI 为 Codex）
+
+在 `compile-repair@09a8355e` 的 CP4.2 之上执行 PROMPTS r2.19 §4.6d。主 kept 恢复以破坏时的全部未受影响节点为分母。修复删除的节点单列为 `removed_by_repair`，并进入 `missing_kept`。破坏区内未恢复的节点仍计入 `lost`。诊断块 `surviving` 单独给出原字节仍有映射时的节点、CFG 和调用比例。真实生产评分和 `benchmark-score` 使用同一入口，生成名称核验同时更新两组比例，逐字结果保存在 `raw` 中。
+
+Yul switch 起点须通过节点使用的两阶段组合映射。旧范围必须全在同一个 original 或 restored 片段内，映射后核对源码字节、名称后缀、定义和使用。对于源文件编号变化，还须验证两侧既有编译收据与 AST。用户于 2026-11-22 转交 CP4.3，按 §48.4 确认了该项，原始计分和前一批证明均可回查。[执行依据](artifacts/cp4_3_v1/authorization.json)
+
+### 逐项验收
+
+| 验收项 | 预期 | 实测 |
+|---|---|---|
+| 修复删除未破坏函数 | 删除的 5 个节点进入主分母，exact 为 false | kept 2/7、CFG 1/6、调用 1/2；missing_kept 与 removed_by_repair 均为 5，lost 为 2。存活部分三个比例全部为 1。 |
+| CP4.1 插到开头夹具 | 保留 2 个 kept 节点，修复删除数为 0 | kept 2/2，removed_by_repair 为 0；原位恢复也为 2/2。 |
+| 手写内联汇编 | 函数前插后能对齐；起点差一个字节时拒绝 | 源码起点 97 → 152，长度 45；核验后 kept 为 1。把 152 写成 153 或仍写 97 均被拒绝并记录原因。 |
+| 200 项历史移动 | 删除数逐项吻合，存活部分 199 项全等 | 200/200 项主 kept 均小于 1，修复删除节点合计 933 个，每项均等于预期的移动节点数。199/200 项的存活节点、CFG 边和调用三个比例均为 1。 |
+| 14,196 个精确还原及 114 个迁移 | 旧主指标和 exact 不变，修复删除数为 0 | 14,196 个精确还原的主指标和 exact 均与 CP4.2 一致，名称状态全部为 identical。114 个迁移的主指标、raw 和全图结果也逐项相同。两组的 removed_by_repair 全部为 0。 |
+| 故意错误 | 既有错误继续检出，新增删除错误拉低主分数 | CP4 的 22 个错误修复和 1 个缺节点对照全数检出；CP4.1 和 CP4.2 的拒绝用例在全套回归中通过。新删除夹具 exact 为 false，主 kept 为 2/7。 |
+
+`cp3_21529` 的三个 Yul 源码起点各移动两字节，主 kept 为 622/625，存活 kept 为 622/622，存活 CFG 与调用均为 1。`cp3_00291` 的主 kept 为 261/267，存活 kept 为 261/264，存活 CFG 为 247/247，存活调用为 120/121。后者的嵌入创建字节码确有摘要字节变化，合约会对其取哈希，CP5 报告应继续保留该实测差异。[逐单元结果](artifacts/cp4_3_v1/moves.jsonl.gz) · [夹具与工具身份](artifacts/cp4_3_v1/fixtures.json) · [历史差异证据](artifacts/cp4_2_v1/observed_creation_hashes.json)
+
+### 改动、回归与封存
+
+生产仅改 `evaluation/benchmark.py`，新增 81 行、删除 35 行，生产 Python 文件仍为 17 个。新增 `tests/test_cp43.py`，在 `tests/test_cp42.py` 的既有夹具中增加分母断言。按当前与原文件的函数归属分别统计，模块行表示函数外的空行。
+| 函数或范围 | 新增行 | 删除行 |
+|---|---:|---:|
+| `_edges_and_calls` | 6 | 1 |
+| `_align_switch_indices` | 0 | 13 |
+| `_mapped_switch` | 23 | 0 |
+| `module` | 2 | 0 |
+| `_align_switches` | 19 | 0 |
+| `score_graphs` | 6 | 9 |
+| `_score_facts` | 19 | 12 |
+| `_score_facts.retention` | 6 | 0 |
+
+从仓库根目录运行两套环境的模块回归及 mando 的 DFG v2 回归，production 1,076 项通过、6 项跳过，mando 609 项通过、473 项跳过，DFG v2 2,653 项通过、9 条告警。354 个冻结 DFG 引用逐项一致。手写夹具使用 solc 0.8.38、Slither 0.11.6、crytic-compile 0.4.2，编译器 SHA256 为 `65c3180a336eabb6bdc4bbd49cc405aeb233976964ae6c11fba2a6c8be8f3243`。三组历史重算的 solc 与 Slither 调用数均为 0。CPU 本地运行，费用 0 美元，训练和 LLM 调用均为 0。
+
+运行证据封存文件 `artifacts/cp4_3_v1/evidence_seal.json` 的 SHA256 为 `5bd5399c061f89789405785862dba7db470cff1bd962946cf0f7b2d82623d87e`。本轮按 r2.19 全部通过本地验收，后续为独立审查。[回归命令和复现步骤](artifacts/cp4_3_v1/README.md) · [最终验收](artifacts/cp4_3_v1/acceptance.json) · [封存](artifacts/cp4_3_v1/seal.json)

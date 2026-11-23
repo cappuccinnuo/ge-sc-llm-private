@@ -41,6 +41,8 @@ def test_review_placement(tmp_path, at_top):
     score = score_graphs(graph(SOURCE,tmp_path/"truth",compiler),graph(fixed,tmp_path/"actual",compiler),
                          {"":SOURCE},{"":damaged},{"":fixed},{"":first},{"":second},0,True)
     assert score["raw"]["kept"]["ratio"] == (0.5 if at_top else 1)
+    assert score["kept"] == {"units":2, "equal":2, "ratio":1.0} and score["removed_by_repair"] == 0
+    assert all(s["ratio"] == 1 for s in score["surviving"].values())
     assert all(score[k]["ratio"] == 1 for k in ("kept","cfg_edges","calls"))
     assert score["counter_correspondence"]["status"] == ("verified" if at_top else "identical")
     assert score["lost"] == score["raw"]["lost"] == (3 if at_top else 0)
