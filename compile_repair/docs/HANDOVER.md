@@ -4,7 +4,7 @@
 
 ## 0. 一句话
 
-CP4.1 已由 Claude 审查：分类器、算子、114 个真实缺包样本、创建码规范化与计数都成立，但发现一个未解决的问题：生成名称（TMP/REF/TUPLE）对应只用于迁移，普通修复在未改动代码之前增删代码时评分误报。下一步：Codex 执行 4.6c 节 CP4.2 → Claude 审查 → CP5。
+CP4.2 已完成普通修复评分、历史重算和三组回归。函数移动测到 79/200，Yul 源码起点变化的验收口径待确认。详见第 5 节本批证据。
 
 ## 1. 当前状态
 
@@ -16,7 +16,8 @@ CP4.1 已由 Claude 审查：分类器、算子、114 个真实缺包样本、�
 | 已知限制 | declaration_error 0 纳入（同名函数实为 SyntaxError；CP3 主因 2 个单元） |
 | 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | CP4.2 → 审查 → CP5 |
+| CP4.2 移动自检 | 79/200 项已测，77 项保留节点、CFG 和调用全部相等。两项低分均保留。 |
+| 下一步 | 确认 Yul 停点的续跑范围，再完成移动自检并提交独立审查。 |
 
 ## 2. 分支与工作树
 
@@ -24,11 +25,15 @@ CP4.1 已由 Claude 审查：分类器、算子、114 个真实缺包样本、�
 
 CP4.1 从 e8ec530d 开始。续作以 0f690e6f 为检查点，新结果在 artifacts/cp4_1_v1/migration_continuation/。逐项完整编译、图和 solc 原始输出在仓库外 compile-repair-local/cp4_1_v1/。
 
+CP4.2 输入提交 30df6664，证据目录 artifacts/cp4_2_v1；完整工具输出和图在同级仓库外 compile-repair-local/cp4_2_v1。
+
 ## 3. 环境
 
 生产采用 Python 3.10、Slither 0.11.6、crytic-compile 0.4.2 和 92 版本 solc 快照。mando 的 Python 3.7、Slither 0.8.0 承担兼容与 DFG 测试。工具身份以 execution_settings.json 及前序授权信任清单为准。CPU 本地执行，费用 0 美元。
 
 2026-11-22 美东 08:34 的检查定位到 Hyper-V 新通道的 512 KiB 连续物理内存分配失败。原有用户会话保留。09:28、09:34 与 09:44 的独立新命令均返回 UID 1000，耗时分别为 0.356、0.402、0.305 秒。详见 runtime_recovery.json。晚间同类超时曾复发，已有 Bash 完成了生产和回归。美东 21:20 的四次独立新命令分别耗时 0.344、0.343、0.312、0.359 秒。晚间诊断和临时内存整理收据在 migration_continuation/wsl_recovery.json。
+
+CP4.2 在两个既有 Python 环境执行。三个最终套件的命令与结果在本批 final_tests 下。
 
 ## 4. 必读与下一步
 
@@ -36,10 +41,13 @@ CP4.1 从 e8ec530d 开始。续作以 0f690e6f 为检查点，新结果在 artif
 
 本次审查先读 CP4_REPORT.md 的最终验收与 migration_continuation/README.md，再按 acceptance.json、packages.tsv 对回各阶段的通过行。抽查 cp3_03927 的元组使用、cp3_00706 的两份源文件清单和 AST、cp3_15161 的数组分配定义，并核对 8 个先尝试两版再成功的项目。
 
+续作先核对 checkpoint_79.json、observed_yul_positions.json 与未测清单，再查本批三份授权。实测满分、创建字节码差异及 Yul 偏移差异须分别报告。
+
 ## 5. 关键路径
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4.2 代码、测试及移动停点 | artifacts/cp4_2_v1/README.md、checkpoint_79.json、exact_summary.json、migration_summary.json、observed_yul_positions.json、final_tests/ |
 | CP4.1 审查证据（Claude） | artifacts/cp4_1_review_v1/README.md、probe_counter_shift.json、struct_copy_bin.json |
 | CP4.1 最终验收与封存 | artifacts/cp4_1_v1/migration_continuation/ 下的 README.md、acceptance.json、packages.tsv、final_scope.json、doc_check.json、seal.json |
 | CP4.1 最终生产、mando 与 DFG 回归 | 同批 definition_continuation/suites/ 下的三组命令、日志与结果 |
@@ -643,3 +651,11 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 结论：计数相互一致；8 个审查夹具在新分类器下归类正确；结构体数组复制的生产路径结论正确（审查 CP4 时只测了 abi 输出，说法有误）；迁移核验严格；272 项相关测试在审查环境通过。未解决：生成名称对应只在有文件改名映射时使用，普通修复把编号平移的节点算作改变（实测 kept 0.5）。新增 4.6c 节 CP4.2。
 
 下一步：Codex 执行 CP4.2，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §46。
+
+### 2026-11-22 CompileRepair CP4.2 函数移动检查点（修改 AI 为 Codex）
+
+基线为 compile-repair 的 30df6664，按 PROMPTS r2.18 §4.1、§4.6c 和 CP4.1 审查夹具执行。生产仅修改 evaluation/benchmark.py，更新 tests/test_cp41.py，新增 tests/test_cp42.py。证据在 artifacts/cp4_2_v1，本文第 0–5 节更新本次状态、证据位置与审查顺序。
+
+14,196 个精确还原与 114 个迁移复评分数一致。函数移动检查点为 79/200，77 份三个比例均为 1。cp3_00291 的实际哈希输入变化，cp3_21529 的另一个函数含三个 Yul switch 名称因源码起点移动而变化，六个节点正式保留原分。创建字节码、NatSpec 与迁移的三项用户决定可由 DECISIONS 追查，Yul 后续验收另待确认。每份收据均保留输入、输出身份和实测分数。
+
+生产与 mando 两套模块测试分别通过 1,073 与 608 项，DFG v2 通过 2,653 项。成本 0 美元，CP5 待审查。完整命令、范围与封存记录见 CHANGE_LOG §47 以及本批 README。

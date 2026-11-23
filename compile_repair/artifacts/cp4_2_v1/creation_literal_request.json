@@ -1,0 +1,42 @@
+{
+  "unit_id": "cp3_00291",
+  "version": "0.5.16",
+  "raw_kept": {
+    "units": 264,
+    "equal": 261,
+    "ratio": 0.9886363636363636
+  },
+  "raw_calls": {
+    "truth": 133,
+    "repaired": 133,
+    "matched": 132,
+    "ratio": 0.9850746268656716
+  },
+  "cfg": {
+    "truth": 247,
+    "repaired": 247,
+    "matched": 247,
+    "ratio": 1.0
+  },
+  "total_bytes": 15409,
+  "changed_bytes": 32,
+  "first": 15284,
+  "last": 15315,
+  "passed_cbor_structure_and_length_on_both_sides": [
+    {
+      "start": 15275,
+      "end": 15325,
+      "length_bytes": 2,
+      "trailing_bytes": 82
+    }
+  ],
+  "has_hash_of_creation_code": true,
+  "literal_sha256": [
+    "4f7822dacd2421bae441b9d3359bd27272e9d82df89be618e042a1dd826ab31f",
+    "dad7921aac9edfd10180f28bd79b06271c60b2fbcaab4d9b95d43ff98764a71b"
+  ],
+  "moved_lost": 3,
+  "moved_added": 3,
+  "cause": "The kept IR embeds different literal creation bytecode. Identical complete literals cannot be claimed; CP4.1 recognizes only a final CBOR trailer.",
+  "proposal": "Keep the strict raw result, the frozen denominator and all prior observations. Count a known below-one result only with a checked byte-level explanation. Continue the remaining 124. Do not add a normalization rule; stop for other unexplained differences."
+}

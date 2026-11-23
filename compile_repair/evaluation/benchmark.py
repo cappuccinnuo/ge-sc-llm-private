@@ -954,14 +954,15 @@ def _switch_sites(evidence, graph_digest, sources):
     return sites
 
 
-def _map_graph_ir(graph, replace):
+def _map_graph_ir(graph, replace, selected=None):
     """Map IR and its textual call representation with the same node's source identity."""
     original = _nodes(graph)
-    nodes = [dict(n, ir=[replace(n["filename"], op) for op in n["ir"]]) for n in graph["nodes"]]
+    nodes = [dict(n, ir=[replace(n.get("filename", ""), op) for op in n["ir"]])
+             if selected is None or _identity(n) in selected else n for n in graph["nodes"]]
     calls = []
     for call in graph.get("calls", ()):
         callee = call["callee"]
-        if "text" in callee:
+        if "text" in callee and (selected is None or _identity(call["node"]) in selected):
             name, key = _identity(call["node"])
             ops = original[(name,key)]["ir"]
             index = call.get("ir_index")
@@ -972,7 +973,7 @@ def _map_graph_ir(graph, replace):
     return dict(graph, nodes=nodes, calls=calls)
 
 
-def _align_switch_indices(truth, actual, positions, sites, original, repaired, names):
+def _align_switch_indices(truth, actual, positions, sites, original, repaired, names, kept_only=False):
     """Align only source-list indices witnessed at the same Yul switch on both sides."""
     left, right = _nodes(truth), _nodes(actual)
     before, after = sites
@@ -1012,17 +1013,17 @@ def _align_switch_indices(truth, actual, positions, sites, original, repaired, n
         protected = {row[k].encode("ascii") for row in changes.values() for k in ("old","new")}
         protected.update(b"switch_expr_" + row[k].replace(":", "_").encode("ascii")
                          for row in changes.values() for k in ("src_before","src_after"))
-        _guard_migration_sources(original, repaired, protected)
+        _guard_counter_sources(original, repaired, protected, imports_only=not kept_only)
         def replace(name, text):
             return _YUL_SWITCH.sub(lambda m: reverse[(name,m.group())], text)
-        actual = _map_graph_ir(actual, replace)
+        actual = _map_graph_ir(actual, replace, set(positions.values()) if kept_only else None)
     return actual, [changes[key] for key in sorted(changes)]
 
 
-def _guard_migration_sources(original, repaired, protected):
-    if original.keys() != repaired.keys():
+def _guard_counter_sources(original, repaired, protected, imports_only=True):
+    if imports_only and original.keys() != repaired.keys():
         raise ValueError("migration_source_set_differ")
-    for name, before in original.items():
+    for name, before in (original.items() if imports_only else ()):
         after = repaired[name]
         if before != after and _outside_import_paths(before) != _outside_import_paths(after):
             raise ValueError("migration_changed_non_import_bytes")
@@ -1035,7 +1036,10 @@ def _counter_correspondence(expected, observed, positions):
     forward, reverse, defined = {}, {}, set()
     for key, target in positions.items():
         old, new = expected[key], observed[target]
-        if dict(old, filename=target[0], key5=list(target[1]), ir=[]) != dict(new, ir=[]):
+        facts = dict(old, key5=list(target[1]), ir=[])
+        if "filename" in old:
+            facts["filename"] = target[0]
+        if facts != dict(new, ir=[]):
             raise ValueError("node_facts_differ")
         if len(old["ir"]) != len(new["ir"]):
             raise ValueError("ir_instruction_count_differ")
@@ -1091,7 +1095,7 @@ def _verified_migration(truth, actual, positions, original, repaired):
     changes, reverse = _counter_correspondence(expected, observed, positions)
     if changes:
         protected = {name.encode("ascii") for pair in changes.items() for name in pair}
-        _guard_migration_sources(original, repaired, protected)
+        _guard_counter_sources(original, repaired, protected)
         actual = _map_graph_ir(actual, lambda name, text: _IR_COUNTER.sub(lambda m: reverse[m.group()], text))
     identity = {key:key for key in observed}
     if _migration_relations(truth, positions) != _migration_relations(actual, identity):
@@ -1118,7 +1122,7 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     if len(reverse) != len(renames) or len(aligned) != len(repaired):
         raise ValueError("Ambiguous scoring file rename")
     witness_input = None
-    if migration_compilations is not None and renames and actual is not None:
+    if migration_compilations is not None and actual is not None:
         def graph_digest(graph):
             return _digest((json.dumps(graph, sort_keys=True, ensure_ascii=False, indent=2) + "\n").encode("utf8"))
         witness_input = [(migration_compilations.get(side), graph_digest(g), files)
@@ -1133,30 +1137,64 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
                      "normalized_nodes": {"truth": changed_truth, "repaired": changed_actual}}
     compiled = solc_returncode == 0 and d3 is True
     positions = {} if renames and actual is not None else None
-    raw = _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization, positions)
-    if positions is None:
-        return raw
+    kept_positions = {}
+    raw = _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization,
+                       positions, kept_positions)
+    def result(score, status, reason, changes=None, switches=()):
+        count = len(changes or {}) + len(switches)
+        proof = dict(status=status, reason=reason, renamed_count=count, renamed=changes or {})
+        if switches:
+            proof["yul_switches"] = switches
+        return dict(score, raw=raw, counter_correspondence=proof)
+
+    if actual is None:
+        return result(raw, "rejected", "missing_repaired_graph")
     try:
-        switches = []
+        sites = None
         if witness_input is not None:
             compilers = [data["result"]["attempts"][-1]["solc"] for data, _, _ in witness_input]
             if compilers[0]["compiler"] != compilers[1]["compiler"] or compilers[0]["settings"] != compilers[1]["settings"]:
                 raise ValueError("switch_compiler_or_settings_differ")
             sites = [_switch_sites(data, digest, files) for data,digest,files in witness_input]
+        kept_graph, switches = (actual, [])
+        if sites is not None:
+            kept_graph, switches = _align_switch_indices(truth, actual, kept_positions, sites, original,
+                                                        repaired, renames, kept_only=True)
+        changes, reverse_names = _counter_correspondence(_nodes(truth), _nodes(kept_graph), kept_positions)
+        if changes:
+            protected = {name.encode("ascii") for pair in changes.items() for name in pair}
+            _guard_counter_sources(original, repaired, protected, imports_only=False)
+            kept_graph = _map_graph_ir(kept_graph, lambda name, text: _IR_COUNTER.sub(
+                lambda m: reverse_names[m.group()], text), set(kept_positions.values()))
+        if changes or switches:
+            corrected = _score_facts(truth, kept_graph, original, repaired, maps, near, level, compiled, normalization)
+            kept_score = result(corrected, "verified", "aligned_generated_names", changes, switches)
+        else:
+            kept_score = result(raw, "identical", "no_generated_name_changes")
+    except (ValueError, KeyError, TypeError, IndexError) as error:
+        kept_score = result(raw, "rejected", str(error))
+    if positions is None:
+        return kept_score
+    try:
+        switches = []
+        if witness_input is not None:
+            if sites is None:
+                raise ValueError(kept_score["counter_correspondence"]["reason"])
             actual, switches = _align_switch_indices(truth, actual, positions, sites, original, repaired, renames)
         verified, proof = _verified_migration(truth, actual, positions, original, repaired)
         if switches:
             proof.update(status="verified", yul_switches=switches)
     except (ValueError, KeyError, TypeError, IndexError) as error:
-        return dict(raw, exact=False, raw_migration_score=raw,
+        return dict(kept_score, exact=False, raw_migration_score=raw,
                     migration_counters={"status": "rejected", "reason": str(error)})
     corrected = raw
     if proof["renamed"] or switches:
         corrected = _score_facts(truth, verified, original, repaired, maps, near, level, compiled, normalization)
-    return dict(corrected, raw_migration_score=raw, migration_counters=proof)
+    return dict(corrected, raw=raw, raw_migration_score=raw, migration_counters=proof,
+                counter_correspondence=kept_score["counter_correspondence"])
 
 
-def _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization, positions=None):
+def _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization, positions=None, kept_positions=None):
     expected,observed=_nodes(truth),_nodes(actual or {})
     old_kept,new_kept={},{}
     matched=set();affected=deleted=lost=missing_kept=equal_kept=0
@@ -1184,12 +1222,17 @@ def _score_facts(truth, actual, original, repaired, maps, near, level, compiled,
             matched.add(mapped)
             if positions is not None:
                 positions[identity] = mapped
-        if changed:
+        if not changed and target is None:
+            # An original byte removed by the repair has no surviving node position.
+            lost+=1
+        elif changed:
             affected+=1
             lost+=int(not (same and can_recover))
         else:
             # Missing expected keys still contribute to the truth edge/call denominator.
             old_kept[identity]=mapped if present else ("absent",identity)
+            if present and kept_positions is not None:
+                kept_positions[identity] = mapped
             if present:new_kept[mapped]=mapped
             else:missing_kept+=1
             equal_kept+=int(same)

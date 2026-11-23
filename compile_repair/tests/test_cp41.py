@@ -222,7 +222,7 @@ def test_migration_counter_bijection_keeps_both_scores_and_graphs():
     same_location = _counter_graph(_MIGRATION_PATH, ("TMP_73","REF_12","TMP_31","TMP_9"))
     src = {_MIGRATION_PATH:_COUNTER_SOURCE}
     plain = score_graphs(old, same_location, src, src, src, {}, {}, 0, True)
-    assert not plain["exact"] and "raw_migration_score" not in plain
+    assert plain["exact"] and not plain["raw"]["exact"] and "raw_migration_score" not in plain
 
 
 @pytest.mark.parametrize("difference", [

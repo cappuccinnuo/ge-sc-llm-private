@@ -201,3 +201,21 @@ CP3 主因的其他变化包括 parser_error_other 257→267、version_dependent
 | 生产文件与回归 | CP4.1 对基线 `e8ec530d` 改动 3 个生产文件，分别为 benchmark.py +657/−27、report.py +7/−2、solc.py +80/−3。此次续作只修改 benchmark.py 和既有 test_cp41.py 的代码。生产文件总数为 17，原有 354 项 DFG 代码身份均匹配。最终 production 1,068 通过、6 跳过，mando 605 通过、469 跳过，DFG v2 为 2,653 通过、9 条告警。 |
 
 完整方法、授权、逐函数行数和可重查的收据分别见本批说明与范围核验。评分程序在源文件改名时检查节点位置、指令、声明、所有边和调用端点，也核对源码标识符及解码字面量。缺完整收据或无法解释的差异仍会拒绝该次图对应。这里测量的是已知逆向编辑对图事实的还原能力。未知输入的自动修复率留待后续阶段测量。[批次说明](artifacts/cp4_1_v1/migration_continuation/README.md) · [代码范围与逐函数行数](artifacts/cp4_1_v1/migration_continuation/final_scope.json)
+
+
+## CP4.2 普通修复的生成名称对应（2026-11-22，修改 AI 为 Codex）
+
+生产改动限于 `evaluation/benchmark.py`。现在每次评分都保留 `raw`，并在 `counter_correspondence` 中给出状态、原因、改名数量和映射。普通修复只从保留且有对应位置的节点推导映射。计数名之外的指令、类型和操作数仍逐字比较，同一个名字在所有对齐节点中必须双向唯一并有定义。任一条件失败，整项使用原分。修复中删除的原字节若失去对应，则据实计入 lost，新位置节点另计 added。含文件改名的既有 CP4.1 迁移仍保留全图核验及其验收结论。[评分依据](artifacts/cp4_2_v1/README.md) · [用户决定](artifacts/cp4_2_v1/authorization.json)
+
+| 验收项 | 实测 |
+|---|---|
+| 审查夹具原位复原 | 原分与核验后的 kept、CFG、调用比例均为 1，状态 identical。 |
+| 审查夹具插至开头 | 原 kept 为 1/2，核对 5 个生成名称后为 2/2，CFG 与调用均为 1。移动的 3 个节点分别计入 lost 和 added。 |
+| 历史精确还原 | 14,196/14,196 与 CP4.1 的原评分字段逐项一致，全部 identical。 |
+| 历史文件迁移 | 114/114 原分与全图分相同。仅用 kept 推导时 58 项 identical、56 项 verified。第一批 7 项含旧版本证明尚未计入的未改名元组，两套计数均可追查。 |
+| 错误修复 | CP4 的 22 个错误修复和 1 个缺节点负例全部检出。CP4.1 既有 253 个测试纳入生产回归，新增的两种计数名错误用法均被拒绝。 |
+| 范围和测试 | 生产文件维持 17 个。benchmark.py 增 63 行、删 20 行。production 1,073 通过、6 跳过，mando 608 通过、471 跳过，DFG v2 有 2,653 通过、9 条告警。 |
+
+逐项原分、校验结果、输入图 SHA、运行命令和逐函数行数在本批次中。[精确还原](artifacts/cp4_2_v1/exact_summary.json) · [迁移](artifacts/cp4_2_v1/migration_summary.json) · [代码范围](artifacts/cp4_2_v1/final_scope.json)
+
+在前 79 份有效移动测量中有 77 份的保留节点、CFG 边与调用全部相等。第 76 项 `cp3_00291` 的两个创建字节码常量各长 15,409 字节，内嵌 CBOR 摘要的 32 个字节不同。合约会计算这段字节的 Keccak-256，结果由 `f72818c5…` 变为 `f667a008…`。正式得分为 kept 261/264、CFG 247/247、调用 132/133。用户批准继续保留在原分母中。第 79 项 `cp3_21529` 的另外三个 Yul switch 源码各后移两字节。Slither 生成的变量名带有源码起点，涉及六个保留节点。按 §4.6c 保留正式得分 kept 616/622、CFG 592/592、调用 244/244。诊断副本逐段核对三处相同源码，仅对齐名称中的起点后其余事实全部吻合。生产规则只认可既有 AST 见证下的文件编号变化。余下 121 项待确认续跑。[创建字节哈希](artifacts/cp4_2_v1/observed_creation_hashes.json) · [Yul 证据](artifacts/cp4_2_v1/observed_yul_positions.json) · [79 项核验](artifacts/cp4_2_v1/checkpoint_79.json)

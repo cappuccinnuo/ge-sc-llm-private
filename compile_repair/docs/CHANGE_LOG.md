@@ -2208,3 +2208,32 @@ WSL 的新通道数次因 512 KiB 连续页分配失败而超时。保留的原�
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_1_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP5 不能开始。顺序为 Codex 执行 CP4.2 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。
+
+
+## 47. 2026-11-22 CompileRepair CP4.2 保留节点的 SlithIR 评分（修改 AI 为 Codex）
+
+### 47.1 任务、依据与范围
+
+基线为 compile-repair 的 `30df6664`。依据 PROMPTS r2.18 §1.21、§4.1 和 §4.6c，以及 Claude 的 cp4_1_review_v1 夹具。生产只改 evaluation/benchmark.py。测试增加 tests/test_cp42.py，并将 tests/test_cp41.py 中普通修复的旧预期更新为同时检查原分及核验分。全部新结果位于 artifacts/cp4_2_v1。依赖的历史源码、图、修复编辑和封存记录按 SHA256 读取。
+
+### 47.2 实施方式和重要选择
+
+score_graphs 在普通修复上先算原分，再从共同存在、按偏移映射对齐的保留节点推导 TMP、REF、TUPLE 的定义与使用。若任一节点的事实、指令、类型、操作数或双射发生冲突，该项整体采用原分并给出原因。检查所有输入文件中的标识符和解码字面量。删除的真值起点与重新插入的新节点分别进入 lost 与 added，名称核验只改变保留节点及其关系的计分。文件改名时继续保留全图证明。部分修复无法通过全图证明时，仍可为它的保留节点给出实际得分。Yul 使用既有 solc 见证约束。调用方可通过 raw 和 counter_correspondence 复查结果。
+
+全量迁移汇总初稿要求每个证明字段与历史记录的数值完全相同。第 5 行停止，初批的证明曾只清点 TMP 和 REF，后来才加入 TUPLE。复核初批全部 21 行，7 行另有未改名元组。按初批实际覆盖范围重新推导原字段，保留已有的 5 行，再评分余下 109 行，同时记录前后两个计数。逐字原分与全图验收分逐项一致。[汇总证据](../artifacts/cp4_2_v1/migration_summary.json)
+
+### 47.3 实测与数据结论
+
+14,196 个精确还原和 114 个迁移均与 CP4.1 的分数相同。普通修复的审查夹具原位恢复时状态 identical，将函数插到主体开头时原 kept 为 0.5，核对五个名称后 kept、CFG、调用比例均为 1。22 个错误修复与缺节点负例均检出，两个只改变计数名用法的错误也被检出。[精确还原](../artifacts/cp4_2_v1/exact_summary.json) · [夹具](../artifacts/cp4_2_v1/review_fixture.json) · [负例](../artifacts/cp4_2_v1/negative.json)
+
+首轮第 60 个单元的参数注释遗留在旧位置，solc 拒绝新的声明关联。核对 200 个原始声明，有 45 个带相邻 NatSpec。按授权保留 46 项首轮有效收据，重新测量带完整注释的函数和当时未测的单元。第 76 项 CP3 单元 00291 的创建码实际有 32 个摘要字节不同，两个 EVM Keccak 值也不同。正式 kept 261/264、调用 132/133。第 79 项 CP3 单元 21529 的三个 Yul switch 名称中的起点各移动两字节，正式 kept 616/622，592 条边和 244 个调用相同。前 79 份中 77 份三个比例均为 1。两份低分都保留全部原始事实与分母。[79 项检查点](../artifacts/cp4_2_v1/checkpoint_79.json)
+
+### 47.4 用户批准、原文差异与待确认设计
+
+用户于 2026-11-22 先后确认“保留迁移全图结果，另列 kept 核验”“同意连同注释移动并限定续跑”和“同意单列实质差异，继续 124 项”。第三项允许保留可以证明来自嵌入创建字节码摘要的原分。三个决定及各自的审查凭据都在本批次中。Yul 新停点来自起点字段，CP4.1 只核验文件序号。根据 §4.6c 保留 Yul 原分，并单独征求将该类别计入移动实验最终验收的意见。[已定事项](DECISIONS.md) · [Yul 源码段证据](../artifacts/cp4_2_v1/observed_yul_positions.json)
+
+### 47.5 验收、资源、未执行事项与停止
+
+两套环境从仓库根执行模块回归，production 1,073 项通过、6 跳过，mando 608 项通过、471 跳过。mando 的 DFG v2 回归有 2,653 项通过、9 条告警。代码范围核对为 17 个生产文件、354 个 DFG 引用。CPU 本地运行，费用 0 美元，训练与 LLM 调用均为 0。第 79 项编译、D3 与图哈希核验通过。余下 121 项在本检查点尚未执行，CP5 待独立审查。[最终套件](../artifacts/cp4_2_v1/final_tests/) · [范围](../artifacts/cp4_2_v1/final_scope.json)
+
+本检查点六份中文文档经 doc_check 通过。CHANGE_LOG、PROGRESS 与 CP4_REPORT 在检查前核对基线的完整字节前缀，检查本次追加区间；交接、决定和新批 README 检查全文。79 个已测单元的原始 kept 有 38 个低于 1。收据和本地代码、文档哈希在本批检查点封存文件中。[文档检查](../artifacts/cp4_2_v1/checkpoint_doc_check.json)
