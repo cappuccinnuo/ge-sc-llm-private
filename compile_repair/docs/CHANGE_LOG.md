@@ -2241,3 +2241,44 @@ score_graphs 在普通修复上先算原分，再从共同存在、按偏移映�
 **第 79 项检查点后的最终验收。** 用户于 2026-11-22 回复“同意保留 Yul 原分并继续剩余 121 项”。正式评分规则沿用 §4.6c，保留前 79 项编译、D3 和图收据，余下单元在 position_continuation 单独目录运行。200 项固定 dev 函数移动全部编译并通过 D3，其中 198 项保留节点、CFG 边和调用全部相等。逐字 kept 低于 1 的有 81 项。核验后仍低于 1 的包括 1 项嵌入创建字节码变化、1 项 Yul 源码起点变化。所有低分均按实际数值计入 200 项分母。项目单元共 87 个。按语料计数为 DAppSCAN 44、MANDO 44、SOChecker 21、Trace_CVEs 5、Trace_on_chain 43、Trace_repo 43。生成名称核验状态为 identical 119 项、verified 79 项、rejected 2 项。三个回归套件均在最终生产代码上运行。临时副本只作诊断。独立审查待执行。详见本批验收、四份授权和 CHANGE_LOG §47.1–47.4。[验收](../artifacts/cp4_2_v1/acceptance.json) · [低分明细](../artifacts/cp4_2_v1/measured_differences.json) · [最后一次续跑授权](../artifacts/cp4_2_v1/yul_authorization.json)
 
 最终六份文档经 doc_check 通过，检查范围与前一检查点相同。四批移动实验共保存 214 份 solc 收据和 213 份 Slither 收据，按运行顺序分别为 60/59、30/30、3/3、121/121。首轮一项 NatSpec 关联错误在运行 Slither 前被编译器拒绝。214 包含首轮和重新带上注释的测量，最终分母为 200 个不同单元。14,196 个精确还原及 114 个迁移只从封存图重算。CPU 本地验收结束，独立审查待进行。[文档检查](../artifacts/cp4_2_v1/doc_check.json) · [最终封存](../artifacts/cp4_2_v1/seal.json)
+
+
+## 48. 2026-11-22 CompileRepair CP4.2 审查与方案 r2.19（修改 AI：Claude）
+
+### 48.1 任务、依据与范围
+
+用户要求（2026-11-22）：Codex 已完成 CP4.2；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP5。起点 `compile-repair@1bb69b7ff`。审查对象：`evaluation/benchmark.py` 的差异，`tests/test_cp42.py`、`tests/test_cp41.py` 的改动，`cp4_2_v1` 的 moves_final.jsonl、observed_yul_positions.json、migration_summary.json、migration_review.json、authorization.json，CP4_REPORT 的 CP4.2 节、HANDOVER、DECISIONS、CHANGE_LOG §47、PROGRESS。
+
+修改：`PROMPTS.md`（r2.18 → r2.19）；新增 `artifacts/cp4_2_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 2 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 48.2 实施方式和重要选择
+
+- 读差异时注意到 `_score_facts` 新增的分支：未破坏且字节被修复删除的节点计入 lost，不进入 kept。它满足 r2.18 移动自检的字面要求，但适用于所有评分。为判断后果，写端到端探针：修复原位恢复被删的 `h()`，同时删除未破坏的 `u()`；在 `30df6664b`（CP4.2 之前）的只读工作树与当前代码上分别打分。
+- 处理方案：不把移动自检的需要放进主指标，而是恢复 CP4 的 kept 定义，另加 removed_by_repair 与只用于诊断的 surviving 块。这样“删除原代码”在主指标中下降，移动自检仍能用 surviving 判断编号核验是否正确。
+- Yul switch：读 observed_yul_positions.json，名称中的起点是源码字节偏移；评分已有把真值起点映射到修复坐标的组合映射，用同一映射对齐是可核验的，不需要新的假设。
+- 创建码哈希常量：哈希无法从修复后的数据还原，规范化没有可靠依据，接受用户已作的决定。
+
+### 48.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 修复删除未破坏函数（5 个节点） | CP4.2 之前 kept 2/7、边 1/6、调用 1/2、missing_kept 5、lost 2；之后 kept 2/2、边 1/1、调用 1/1、missing_kept 0、lost 7；exact 都为 false | probe_repair_deletes_kept.json |
+| CP4.1 审查夹具 | 插到开头的修复 kept 2/2 | ../cp4_1_review_v1/probe_counter_shift.py 重跑 |
+| 移动自检 | moves_final.jsonl 中 lost 等于 expected_moved_nodes，即被移动函数的节点经新分支计入 lost | moves_final.jsonl |
+| Yul 起点 | 三个名称起点各 +2（15484 → 15486 等），长度与其余部分不变 | observed_yul_positions.json |
+| 测试 | test_cp42.py、test_cp41.py、test_benchmark.py 共 275 项通过、2 项跳过 | 审查环境 pytest |
+
+未证明：真实语料中含 Yul switch 的基础单元数；CP5 修复中删除原代码的发生比例。
+
+### 48.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：两项低分停下、给出证据并按用户决定保留实测；迁移按用户决定保留全图结论并另列 kept 核验。
+- 方案自身的错误：r2.18 §4.6c 的“计为 lost”应只用于移动自检的判断，没有限定范围，导致通用规则改变。以 §4.6d 为准。
+- 需用户确认：Yul switch 起点对齐改变了 CP4.2 中“单列原分”的处理；用户把 CP4.3 交给 Codex 即视为同意，否则 CP4.3 只做第 1 节。
+- 已知限制：declaration_error 0 个样本；创建码哈希常量。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 48.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp4_2_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP5 不能开始。顺序为 Codex 执行 CP4.3 → Claude 审查 → CP5。本轮提交并 push 到 `compile-repair`。

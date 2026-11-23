@@ -4,7 +4,7 @@
 
 状态：已定（用户）＝用户明确决定；已定（证据）＝由证据确定，用户未反对；建议＝待用户确认；待定＝尚未讨论到；撤销。
 
-## 1. 当前决策（PROMPTS r2.18）
+## 1. 当前决策（PROMPTS r2.19）
 
 | 编号 | 内容（摘要） | 状态 | 最近变化 |
 |---|---|---|---|
@@ -470,3 +470,11 @@ D20a 已按用户授权执行：第 227 份另起进程，第 1 次观察到 Mul
 | 同意连同注释移动并限定续跑 | 选定的 200 个单元和函数固定。45 项随函数移动前置 NatSpec，46 项沿用已通过的收据，154 项在新目录测量。 | natspec_request.json、natspec_authorization.json |
 | 同意单列实质差异，继续 124 项 | 能逐字节证实嵌入创建字节码差异且其余图事实一致的样本按实测分单列，保留在原 200 项分母。 | creation_literal_request.json、literal_authorization.json、observed_creation_hashes.json |
 | 同意保留 Yul 原分并继续剩余 121 项 | 复用前 79 项收据。Yul 名称内的起点如能按源码字节与编辑映射验证且其余事实完全吻合，可列明原因，正式分仍用原值。 | observed_yul_positions.json、yul_authorization.json |
+
+
+### CP4.2 审查与 r2.19（修改 AI：Claude）
+
+| 日期 | 决策 | 变化 | 依据 | 记录者 |
+|---|---|---|---|---|
+| 2026-11-22 | kept 分母 | 恢复 CP4 定义：修复删除的未破坏节点留在 kept 分母；新增 removed_by_repair 与诊断块 surviving；lost 只表示破坏区（取代 r2.18 §4.6c“计为 lost”的措辞） | CHANGE_LOG §48.2；cp4_2_review_v1/probe_repair_deletes_kept.json | Claude |
+| 2026-11-22 | Yul switch 起点 | 按组合偏移映射对齐（Claude 建议；改变 CP4.2 中“单列原分”的处理，由用户转交 CP4.3 时确认） | CHANGE_LOG §48.4 | Claude |

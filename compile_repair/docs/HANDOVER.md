@@ -1,23 +1,22 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.18 §1.21 与 §4.6c（CP4.2）、artifacts/cp4_1_review_v1/README.md、CP4_REPORT.md 的 CP4.1、CHANGE_LOG §45、§46。
+> 本轮交接先读第 0–5 节、PROMPTS r2.19 §1.22 与 §4.6d（CP4.3）、artifacts/cp4_2_review_v1/README.md、CP4_REPORT.md 的 CP4.2、CHANGE_LOG §47、§48。
 
 ## 0. 一句话
 
-CP4.2 已按四项用户决定完成本地验收。200 项固定 dev 函数移动全部编译并通过 D3，其中 198 项保留节点、CFG 边和调用全部相等。逐字 kept 低于 1 的有 81 项。核验后仍低于 1 的包括 1 项嵌入创建字节码变化、1 项 Yul 源码起点变化。所有低分均按实际数值计入 200 项分母。下一步为独立审查。
+CP4.2 已由 Claude 审查：生成名称对应、重算与 200 项移动自检成立，但发现评分的一个回退：修复删除未破坏的原代码时，kept、边与调用比例仍为 1。原因是 r2.18 §4.6c 的措辞。另有 Yul switch 起点可按偏移映射对齐。下一步：Codex 执行 4.6d 节 CP4.3 → Claude 审查 → CP5。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.18；D5/D16/D18/D20/D20a/D21、CP3.2 三态判定、CP4 与 CP4.1 的用户决定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP4 | 已审查通过 |
-| CP4.1 | 候选 19,354、纳入 14,196；精确还原 14,196/14,196；迁移 114/114；审查成立，留一个评分问题由 CP4.2 解决 |
-| 已知限制 | declaration_error 0 纳入（同名函数实为 SyntaxError；CP3 主因 2 个单元） |
+| 方案与决定 | PROMPTS r2.19；D5/D16/D18/D20/D20a/D21、CP3.2 三态判定、CP4–CP4.2 的用户决定已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP4.1 | 已审查通过 |
+| CP4.2 | 生成名称对应、重算、移动自检成立；留两个评分问题由 CP4.3 解决 |
+| 已知限制 | declaration_error 0 纳入；对嵌入创建码求哈希的常量无法规范化（cp3_00291，用户决定按实测计入） |
 | 测试可移植性 | 多个测试模块在用户本机之外收集失败（既有）；CI 或迁移时处理 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| CP4.2 移动自检 | 200/200 项完成，198 项三个比例均为 1，2 项保留实测低分。 |
-| 下一步 | 独立审查 CP4.2，审查通过后进入 CP5。 |
+| 下一步 | CP4.3 → 审查 → CP5 |
 
 ## 2. 分支与工作树
 
@@ -47,6 +46,7 @@ CP4.2 在两个既有 Python 环境执行。三个最终套件的命令与结果
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP4.2 审查证据（Claude） | artifacts/cp4_2_review_v1/README.md、probe_repair_deletes_kept.json |
 | CP4.2 最终验收与停点证据 | artifacts/cp4_2_v1/README.md、acceptance.json、seal.json、measured_differences.json、exact_summary.json、migration_summary.json、checkpoint_79.json、final_tests/ |
 | CP4.1 审查证据（Claude） | artifacts/cp4_1_review_v1/README.md、probe_counter_shift.json、struct_copy_bin.json |
 | CP4.1 最终验收与封存 | artifacts/cp4_1_v1/migration_continuation/ 下的 README.md、acceptance.json、packages.tsv、final_scope.json、doc_check.json、seal.json |
@@ -665,3 +665,12 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 从检查点 387bb004 承接全部已有测量。用户确认 Yul 源码起点变化保留原分后，按原函数、版本和种子测量剩余 121 项。200 项固定 dev 函数移动全部编译并通过 D3，其中 198 项保留节点、CFG 边和调用全部相等。逐字 kept 低于 1 的有 81 项。核验后仍低于 1 的包括 1 项嵌入创建字节码变化、1 项 Yul 源码起点变化。所有低分均按实际数值计入 200 项分母。
 
 本次更新第 0–5 节的状态、复核顺序与路径。17 个生产文件及三个回归套件见本批 final_scope.json 和 final_tests/。审核者可用 README 的只读命令核对封存哈希，按 CP4_REPORT 最终表验证低分。所有工作本地执行，0 美元，阶段结束待独立审查。[最终验收](../artifacts/cp4_2_v1/acceptance.json)
+
+
+### 2026-11-22 CompileRepair CP4.2 审查与方案 r2.19（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP4.2（提交 387bb0040、1bb69b7ff）。新增证据目录 `artifacts/cp4_2_review_v1/`，修改 `PROMPTS.md`（r2.18 → r2.19）。本文开头、第 0、1 节换成审查结论，第 5 节加入证据路径。
+
+结论：生成名称对应已推广且严格；精确还原与迁移重算与 CP4.1 相同；移动自检 198/200 为 1，两项低分原因属实；275 项相关测试在审查环境通过。发现：`_score_facts` 把修复删除的未破坏节点移出 kept 分母，删除原代码时主指标不下降（实测 kept 2/7 → 2/2）；这是 r2.18 §4.6c 措辞所致。Yul switch 起点可按组合偏移映射对齐。新增 4.6d 节 CP4.3。
+
+下一步：Codex 执行 CP4.3，Claude 审查后进入 CP5。本轮没有模块代码改动或安装。详见 CHANGE_LOG §48。
