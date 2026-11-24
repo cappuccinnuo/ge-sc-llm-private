@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.27 的修改说明与 §4.6k（CP6.0.1，含本地运行步骤）、artifacts/cp6_0_v1/README.md 的 CP6.0.1 节、CP6_REPORT.md、CHANGE_LOG §62、§63。
+> 本轮交接先读第 0–5 节、CP6_REPORT 的 CP6.0.1 本地复核、CHANGE_LOG §64 与 local/partial_ir_units_r2.json。
 
 ## 0. 一句话
 
-CP6.0 本地复核（Codex）三套测试与 MANDO 回归通过，但 cp3_19463 的最终主因不符而停下。Claude 审查后实现 CP6.0.1：编译已通过、只剩 Slither 侧失败（含 D3(c)）的单元以该试验为最终结果，主因为 slither_incomplete；云端 1,163 passed、MANDO 不变。下一步：用户拉取，Codex 按 PROMPTS §4.6k 本地复核 → Claude 审查 → CP6。
+CP6.0.1 三套本机测试与 MANDO 回归通过。4 个单元最终主因为 slither_incomplete，0 个单元换版本成功。本地复核通过，等待 Claude 审查。
 
 ## 1. 当前状态
 
@@ -13,11 +13,11 @@ CP6.0 本地复核（Codex）三套测试与 MANDO 回归通过，但 cp3_19463 
 | 方案与决定 | PROMPTS r2.27；D22–D25 用户已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP5 | 已审查通过 |
 | CP6.0 | 本地：production 1,160 / 6、mando 672 / 494、DFG v2 2,653、MANDO 843 一致；cp3_19463 归因不符（已由 CP6.0.1 修正） |
-| CP6.0.1 | Claude 实现与云端核验完成；等待本地复核 |
+| CP6.0.1 | 本地复核通过，等待 Claude 审查。实测结果见 CP6_REPORT |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；旧移动算子的链式修复 exact 为 false |
 | 分支 | 继续在 compile-repair |
-| 下一步 | CP6.0.1 本地复核 → 审查 → CP6 |
+| 下一步 | Claude 审查 CP6.0.1 本地结果 |
 
 ## 2. 分支与工作树
 
@@ -56,6 +56,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+本轮先查 local/partial_ir_units_r2.json 的 accepted_outcomes 与逐版 D3，再查 tests_r2.json 和 mando_check_r2.json。完整工作副本位于仓库外 compile-repair-local/cp6_0_1_v1。
 
 CP6.0 先查本批 local/partial_ir_units.json 的逐版 D3、两次被拒的依赖轮次及最终主因。完整现场位于 compile-repair-local/cp6_0_v1。
 
@@ -855,3 +857,11 @@ production、mando、DFG v2 分别通过 1,160、672、2,653 项。843 份成功
 ### 2026-11-24 CompileRepair CP6.0 本地复核审查与 CP6.0.1（修改 AI：Claude）
 
 审查 Codex 的 CP6.0 本地复核（提交 6d0d0c67d）：测试与 MANDO 回归符合预期；cp3_19463 停下的原因是 try_project 不接受 Slither 侧失败的试验。修改 `pipeline.py::repair_unit`，`tests/test_cp60.py` 新增 3 项，新增 `artifacts/cp6_0_v1/local/partial_ir_check_r2.py` 与 r2 核验文件，`PROMPTS.md` r2.26 → r2.27。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §63。
+
+### 2026-11-24 CompileRepair CP6.0.1 本地复核（修改 AI：Codex）
+
+以 9a498786 为基线，按 §4.6k 执行。更新交接第 0、1、4 节并追加本条。新证据为 local 下三份 r2 JSON，完整运行目录为 compile-repair-local/cp6_0_1_v1。
+
+production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 skipped in 21.73s；DFG v2 2653 passed, 9 warnings in 165.41s (0:02:45)。MANDO 成功图 843 份全部逐字节相同且通过 D3(c)，另外 3 个历史失败保留。实测 4 个真实单元，共 385 次候选观测，其中 385 次归为 slither_partial_ir。4 个单元最终主因为 slither_incomplete，0 个单元换版本成功。
+
+第 3 步的包装脚本会重复创建批次目录，用户批准设置同一 OUT 后直接调用原 main。未修改生产、测试或运行器源码。本地复核通过，等待 Claude 审查。

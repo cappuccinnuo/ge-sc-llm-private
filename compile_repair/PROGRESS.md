@@ -656,3 +656,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - 本地复核：三套测试与 MANDO 回归符合预期；cp3_19463 因 Slither 侧失败的试验不被接受而退回包导入主因。
 - CP6.0.1：搜索不变，未成功单元以第一个编译通过、Slither 侧失败的试验为最终结果，主因 slither_incomplete。云端 1,163 passed、MANDO 不变。
 - 下一步：Codex 按 PROMPTS §4.6k 本地复核；记录 `docs/CHANGE_LOG.md` §63。
+
+## CP6.0.1 本地复核（2026-11-24，修改 AI：Codex）
+
+复核 9a498786 的 §4.6k，更新 CP6_REPORT、HANDOVER、CHANGE_LOG §64 与 DECISIONS，新增 local 下三份 r2 JSON。各环境运行 `python -B -m pytest -q -p no:cacheprovider`，目标和 basetemp 见 tests_r2.json。production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 skipped in 21.73s；DFG v2 2653 passed, 9 warnings in 165.41s (0:02:45)。843 个 MANDO 成功图等于 v5，其余 3 个与历史失败相符。
+
+实测 4 个真实单元，共 385 次候选观测，其中 385 次归为 slither_partial_ir。4 个单元最终主因为 slither_incomplete，0 个单元换版本成功。实际运行入口经用户批准，记录在 partial_ir_units_r2.json。本地复核通过，等待 Claude 审查。全量语料中的归因变化仍由后续全量验收测量。

@@ -2802,3 +2802,25 @@ production 回归通过 1,155 项、跳过 6 项；mando 通过 671 项、跳过
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp6_0_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：等待用户拉取并由 Codex 执行 4.6k 的本地运行步骤，Claude 审查后进入 CP6。
+
+## 64. 2026-11-24 CompileRepair CP6.0.1 本地归因复核（修改 AI：Codex）
+
+### 64.1 任务、依据与范围
+
+按 PROMPTS r2.27 §4.6k 复核 compile-repair@9a498786。新增 artifacts/cp6_0_v1/local/ 下的 tests_r2.json、mando_check_r2.json 和 partial_ir_units_r2.json。在 CP6_REPORT.md 追加本机结果，并更新 HANDOVER、PROGRESS 和 DECISIONS。
+
+### 64.2 实施方式和重要选择
+
+按规定在新目录运行三套测试与 846 个 MANDO 输入。四单元复用 Claude 指定的 partial_ir_check.main、CP5.1 离线依赖索引、生产 profile、oldest 和 K=21。把最终单元结果与每次 Slither 观测分别记录，逐单元从 repair_steps.json 读取 accepted_outcome 的步骤、轮次和发布版，并核对被选择收据的 SHA256。
+
+### 64.3 实测与数据结论
+
+production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 skipped in 21.73s；DFG v2 2653 passed, 9 warnings in 165.41s (0:02:45)。843 份 MANDO 成功图与 v5 逐字节一致且 D3(c) 为真，3 个历史失败一致，真值上触发 0 次。实测 4 个真实单元，共 385 次候选观测，其中 385 次归为 slither_partial_ir。4 个单元最终主因为 slither_incomplete，0 个单元换版本成功。四单元及逐版详情见 CP6_REPORT 的 CP6.0.1 一节和本批三份 JSON。
+
+### 64.4 用户批准、原文差异与待确认设计
+
+第 0 步核对了原批准清单。第 3 步随附脚本要求批次目录尚不存在，与前两步共用该目录的规定冲突。用户批准按原脚本设置 OUT、直接调用同一 main，实际命令随收据保存。D25 和原验收标准沿用。没有调整生产逻辑。
+
+### 64.5 验收、资源、未执行事项与停止
+
+本地复核通过，等待 Claude 审查。本节规定的四个真实单元均已实测。已核对 18 个生产文件与 354 个冻结 DFG 代码引用。CP6_REPORT、PROGRESS、CHANGE_LOG、HANDOVER、DECISIONS 的五份 doc_check 回执和 SHA256 写入 tests_r2.json 的 doc_check 字段。CPU 运行，未安装、下载语料、调用 LLM 或训练，费用 0 美元。

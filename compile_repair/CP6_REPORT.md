@@ -35,3 +35,37 @@
 ### 准备、归档与停止
 
 最初 Git 列出 20 个历史批次的 32,005 个未跟踪路径。用户批准“允许保留已登记的历史产物并继续”。启动时逐字比较原路径清单，核对 18 个生产文件与 212 个测试文件及夹具，已跟踪文件与提交一致。完整测试与工具收据在仓库外 `/home/zhao/SmartContract/compile-repair-local/cp6_0_v1/`。仓库内的 `local/partial_ir_check.py` 保存本次限定运行方法。CPU 本地运行，费用 0 美元。未安装软件、下载工具或语料、调用 LLM、启动训练或开展 CP6 后续开发。
+
+## CP6.0.1 本地复核
+
+2026-11-24，修改 AI 为 Codex。按 PROMPTS r2.27 §4.6k 复核 Claude 的 `9a49878690a1c5f6adf36868187d7e158f1c64fe`。本地复核通过，等待 Claude 审查。
+
+### 测试与 MANDO 回归
+
+| 本机检查 | 预期 | 实测 |
+|---|---|---|
+| production 模块 | 1,163 通过、6 跳过 | 1163 passed, 6 skipped in 97.46s (0:01:37) |
+| mando 模块 | 672 通过、497 跳过 | 672 passed, 497 skipped in 21.73s |
+| DFG v2 | 2,653 通过 | 2653 passed, 9 warnings in 165.41s (0:02:45) |
+| MANDO 846 个输入 | 843 份成功图与 v5 字节相同且 D3(c) 为真，3 个历史失败，真值上触发第 2–4 步 0 次 | 四个计数逐项相符，差异 0，耗时 222.43 秒 |
+
+两套解释器的测试命令、临时目录、日志哈希与冻结检查见 `artifacts/cp6_0_v1/local/tests_r2.json`。MANDO 的解包命令、回归命令、参考及新 seal 见同目录的 `mando_check_r2.json`。检查脚本退出 0，内部批处理因含 3 个历史失败返回预期的 2。
+
+### 四个部分 IR 单元
+
+沿用 CP5.1 离线索引 `a02cc091f958aa78fd61f33f2f166912b870b98c77ae6e0cd810bdd704689511`、oldest 及 K=21，在生产环境逐个调用 repair_unit。实测 4 个真实单元，共 385 次候选观测，其中 385 次归为 slither_partial_ir。4 个单元最终主因为 slither_incomplete，0 个单元换版本成功。本节规定的四个真实单元均已实测。
+
+| 单元 | 状态 | 最终主因 | 含 accepted_outcome 的步骤与发布版 | 被 Slither 标记的合约 | 部分 IR 候选次数 | 留存图数 |
+|---|---|---|---|---|---:|---:|
+| cp3_19463 | unrepaired | slither_incomplete | 第 3 步第 1 轮，@openzeppelin/contracts@4.2.0（T3，inferred=true） | BalancerLBPSwapper、OracleRef | 70 | 0 |
+| cp3_19496 | unrepaired | slither_incomplete | 第 3 步第 1 轮，@openzeppelin/contracts@4.2.0（T3，inferred=true） | OracleRef | 70 | 0 |
+| cp3_19497 | unrepaired | slither_incomplete | 第 3 步第 1 轮，@openzeppelin/contracts@4.2.0（T3，inferred=true）、@uniswap/v2-core@1.0.0（T3，inferred=true） | OracleRef、UniRef | 140 | 0 |
+| cp3_19507 | unrepaired | slither_incomplete | 第 3 步第 1 轮，@openzeppelin/contracts@4.0.0（T3，inferred=true） | TribalChief | 105 | 0 |
+
+步骤收据中 compiled_slither_side_failure 出现 4 次。候选数按环境与试验轮次收据统计。最终选中的收据在单元结果中另有引用，只计一次。每次的 solc 版本、D3(a/b/c)、被标记的合约，以及每个最终采用步骤的轮次、accepted_outcome、发布版和 inferred 标记，见 `partial_ir_units_r2.json`。本次四单元运行器用时 588.048 秒。
+
+### 第 0 步与实际入口
+
+快进拉取后，18 个生产文件、212 个已跟踪测试文件及夹具与 Git 对象一致。已批准的 32,005 个历史未跟踪路径与上轮清单逐字节匹配。新输出目录首次创建于 `/home/zhao/SmartContract/compile-repair-local/cp6_0_1_v1/`。旧批次继续保留。
+
+随附的 partial_ir_check_r2.py 会用 exist_ok=False 创建批次目录，而前两步已向该目录写入回归结果。用户批准“允许直接调用同一入口并记录”。核验前两步收据、确认四单元的子目录与汇总文件均不存在后，设置同一 OUT，直接调用已提交的 partial_ir_check.main()。实际执行命令保存在 `partial_ir_units_r2.json` 的 command 字段，原运行器自行报告的命令单列。未编辑入口、生产代码或测试。全部操作使用现有 CPU 环境，运行费用 0 美元。全量外部语料与 CP6 后续开发未运行。
