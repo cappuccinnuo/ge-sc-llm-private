@@ -25,3 +25,16 @@
 ## 云端环境的复现
 
 `setup_cloud_env.sh` 在容器内重建记录中的绝对路径（/home/zhao/... 的符号链接），模块仍逐个核对 SHA256。用户本机已有这些路径，不要在本机运行它。
+
+## CP6.0.1：部分 IR 单元的最终归因（Claude，2026-11-24）
+
+本地复核（CHANGE_LOG §62，Codex）在 cp3_19463 上停下：第 3 步加入 OpenZeppelin 后 35 个版本 solc 全部成功，但 D3(c) 全部为假；`try_project` 只接受 D3 成功或编译错误减少，`slither_side_failure` 不计入，于是这一轮被丢弃，单元退回环境阶段的结果，主因成为 `unresolved_package_import`。导入已经解决，这个归因会把单元错误地交给后续的包修复。审查判断：Codex 停下正确；4.6j 的预期没有考虑这条接受规则，是方案的疏漏。
+
+修正（`pipeline.py::repair_unit`）：搜索过程不变；记录第一个“编译通过但 Slither 侧失败”的试验。全部步骤结束后，若单元没有成功、最终原因又不是 Slither 侧失败或超时，就把该试验作为最终结果（步骤记录 `accepted_outcome = compiled_slither_side_failure`），主因因此为 `slither_incomplete`。成功单元、成功图与搜索顺序都不变。另外，T3 发布版的 inferred 标记改为对所有被接受的步骤记录，不再只在成功时记录。
+
+| 项 | 结果 | 文件 |
+|---|---|---|
+| 新增测试 | 3 项：第 4 步路径修正后只剩部分 IR 时主因为 slither_incomplete / slither_partial_ir（在修正前的流水线上失败）；未标记时仍为成功；没有任何试验编译通过时归因不变 | `tests/test_cp60.py` |
+| 生产测试 | 1,163 passed、6 skipped | `production_tests_cloud_r2.json` |
+| MANDO 回归 | 843 个图逐字节相同、D3(c) 为真；3 个历史失败不变 | `mando_check_cloud_r2.json` |
+| 本地运行器 | `local/partial_ir_check_r2.py`：沿用 Codex 的 `partial_ir_check.py`，只把输出改到新目录 | — |

@@ -2767,3 +2767,38 @@ production 回归通过 1,155 项、跳过 6 项；mando 通过 671 项、跳过
 ### 62.5 验收、资源、未执行事项与停止
 
 逐项通过三套测试与 MANDO 检查，第 4 步在第一个单元停止。另三个指定单元未运行。完整命令与耗时在 tests.json、mando_check.json、partial_ir_units.json。核对 18 个生产文件和 354 个 DFG 代码引用。CPU 运行，0 美元，无安装、语料下载、训练或外部 LLM 调用。五份文档的 doc_check 结果见 local/doc_check.json。
+
+
+## 63. 2026-11-24 CompileRepair CP6.0 本地复核审查与 CP6.0.1（修改 AI：Claude）
+
+### 63.1 任务、依据与范围
+
+用户告知本地结果已上传（2026-11-24）。审查 Codex 的 CP6.0 本地复核（提交 6d0d0c67d：CP6_REPORT.md、artifacts/cp6_0_v1/local/、CHANGE_LOG §62），按结果修正后再交本地复核。修改：`pipeline.py::repair_unit`；`tests/test_cp60.py`（新增 3 项）；`artifacts/cp6_0_v1/`（README 的 CP6.0.1 节、production_tests_cloud_r2.json、mando_check_cloud_r2.json、local/partial_ir_check_r2.py）；`PROMPTS.md` r2.26 → r2.27（修改说明、4.6k 节）；记录：本节、HANDOVER、DECISIONS、PROGRESS。生产文件仍为 18 个。
+
+### 63.2 实施方式和重要选择
+
+- 审查：本地三套测试的数量与 4.6j 的预期一致（mando 672 / 494 也一致）；MANDO 843 个图一致。cp3_19463：两轮依赖候选、各 35 个版本 solc 全部成功，D3(a)、D3(b) 为真、D3(c) 为假，被标记的合约与 CP5.2 记录相同；读 `try_project`，接受条件排除 slither_side_failure，`_failure_measure` 在 solc 全部成功时返回 None，于是这两轮都未被接受，单元保留环境阶段的结果。Codex 停下并保留现场正确；预期错的是 4.6j。
+- 修正方式：考虑过直接接受这类试验，但接受会改变后续步骤的起点（例如第 2 步被接受后，第 3 步只能从新状态出发），可能错过原来能成功的路径。因此只改最终归因：搜索与接受完全不变，全部步骤结束后才用第一个编译通过的 Slither 侧失败试验替换未成功的最终结果。这样成功单元与图不受影响，未成功单元的主因指向真实的阻碍。
+- 影响范围：所有“修复后编译通过、但 Slither 侧失败”的未成功单元（含 D21 重名、项目绑定失败与 D3(c)），主因由原编译阻碍改为 slither_incomplete；D3 成功数不变。
+
+### 63.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 本地复核 | production 1,160 / 6；mando 672 / 494；DFG v2 2,653；MANDO 843 一致；cp3_19463 主因 unresolved_package_import | CP6_REPORT.md、local/*.json |
+| 新测试 | 3 项；“路径修正后只剩部分 IR”在修正前的流水线上失败，修正后通过 | tests/test_cp60.py |
+| 云端生产测试 | 1,163 passed、6 skipped | production_tests_cloud_r2.json |
+| 云端 MANDO | 843 个图逐字节相同、D3(c) 为真 | mando_check_cloud_r2.json |
+
+未证明：4 个真实单元在修正后的结果（本地运行）；全量语料中受归因修正影响的单元数（CP6 全量重跑给出）。
+
+### 63.4 用户批准、原文差异与待确认设计
+
+- 原文差异：4.6j 第 4 步的预期遗漏了接受规则；以 4.6k 为准。修正属于 D25 的实现，不需要新的用户决定。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 63.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp6_0_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：等待用户拉取并由 Codex 执行 4.6k 的本地运行步骤，Claude 审查后进入 CP6。

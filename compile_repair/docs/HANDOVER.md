@@ -1,23 +1,23 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、CP6_REPORT.md 的本地复核、CHANGE_LOG §62 及 artifacts/cp6_0_v1/local/partial_ir_units.json。
+> 本轮交接先读第 0–5 节、PROMPTS r2.27 的修改说明与 §4.6k（CP6.0.1，含本地运行步骤）、artifacts/cp6_0_v1/README.md 的 CP6.0.1 节、CP6_REPORT.md、CHANGE_LOG §62、§63。
 
 ## 0. 一句话
 
-CP6.0 本机三套测试与 MANDO 回归通过。首个真实单元被 D3(c) 拒图，最终主因与 §4.6j 预期不同，已停止。Claude 审查前保留其余三项未运行状态。
+CP6.0 本地复核（Codex）三套测试与 MANDO 回归通过，但 cp3_19463 的最终主因不符而停下。Claude 审查后实现 CP6.0.1：编译已通过、只剩 Slither 侧失败（含 D3(c)）的单元以该试验为最终结果，主因为 slither_incomplete；云端 1,163 passed、MANDO 不变。下一步：用户拉取，Codex 按 PROMPTS §4.6k 本地复核 → Claude 审查 → CP6。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.26；D22–D25 用户已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| 方案与决定 | PROMPTS r2.27；D22–D25 用户已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP5 | 已审查通过 |
-| CP6.0 | 本地测试与 MANDO 通过，首个真实单元最终主因不符，详见 CP6_REPORT.md |
-| 工作方式 | Claude 在 GitHub 编码并云端核验 → 写本地运行步骤 → 用户与 Codex 本机运行语料级核验 → Claude 审查（2026-11-24 起） |
-| 执行环境 | 云端：2 CPU、7 GB 内存、约 13 GB 磁盘；96 个编译器与 SmartBugs 元数据已按 SHA256 核对；复现方式见 artifacts/cp6_0_v1/setup_cloud_env.sh |
+| CP6.0 | 本地：production 1,160 / 6、mando 672 / 494、DFG v2 2,653、MANDO 843 一致；cp3_19463 归因不符（已由 CP6.0.1 修正） |
+| CP6.0.1 | Claude 实现与云端核验完成；等待本地复核 |
+| 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；旧移动算子的链式修复 exact 为 false |
-| 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | Claude 审查依赖试验轮次与单元最终主因的差异 |
+| 分支 | 继续在 compile-repair |
+| 下一步 | CP6.0.1 本地复核 → 审查 → CP6 |
 
 ## 2. 分支与工作树
 
@@ -850,3 +850,8 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 production、mando、DFG v2 分别通过 1,160、672、2,653 项。843 份成功图与 MANDO v5 一致并满足 D3(c)，3 个历史失败一致。cp3_19463 的每次 Slither 候选均按 D25 拒图，原始导入记录却保留为单元最终主因。两轮、70 次候选与最终结果分别归档。
 
 用户批准保留原清单中的 32,005 个历史未跟踪路径。其余三项未运行，未调整生产实现，等待 Claude 审查本次实测与原文预期。详见 CP6_REPORT.md、CHANGE_LOG §62 与 local/doc_check.json。
+
+
+### 2026-11-24 CompileRepair CP6.0 本地复核审查与 CP6.0.1（修改 AI：Claude）
+
+审查 Codex 的 CP6.0 本地复核（提交 6d0d0c67d）：测试与 MANDO 回归符合预期；cp3_19463 停下的原因是 try_project 不接受 Slither 侧失败的试验。修改 `pipeline.py::repair_unit`，`tests/test_cp60.py` 新增 3 项，新增 `artifacts/cp6_0_v1/local/partial_ir_check_r2.py` 与 r2 核验文件，`PROMPTS.md` r2.26 → r2.27。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §63。

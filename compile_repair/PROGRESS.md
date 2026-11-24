@@ -649,3 +649,10 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 按 PROMPTS r2.26 §4.6j 从 6faffcab 运行。测试命令为两套环境的 `python -B -m pytest -q -p no:cacheprovider`，测试目标及各自 basetemp 见 artifacts/cp6_0_v1/local/tests.json。三套测试通过 1,160、672、2,653 项。MANDO 843 份成功图与 v5 逐字节一致且通过 D3(c)，另 3 个历史失败一致。
 
 新增 local/partial_ir_check.py 和三份 JSON 汇总，另建 CP6_REPORT.md 并更新交接、变更、决策记录。第 0 步按用户批准保留历史未跟踪清单。第 4 步的 cp3_19463 经 70 次候选测量均标记部分 IR，最终主因是 unresolved_package_import。按要求止于首项，另外三项未运行。生产实现沿用 Claude 版本，验收差异等待审查。
+
+
+## CP6.0 本地复核审查与 CP6.0.1（Claude，2026-11-24）
+
+- 本地复核：三套测试与 MANDO 回归符合预期；cp3_19463 因 Slither 侧失败的试验不被接受而退回包导入主因。
+- CP6.0.1：搜索不变，未成功单元以第一个编译通过、Slither 侧失败的试验为最终结果，主因 slither_incomplete。云端 1,163 passed、MANDO 不变。
+- 下一步：Codex 按 PROMPTS §4.6k 本地复核；记录 `docs/CHANGE_LOG.md` §63。

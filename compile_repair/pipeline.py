@@ -269,6 +269,9 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
     first_success = None
     truncated = False
     accepted_prefix = None
+    # First trial whose compile blockers are gone but whose graph fails on the Slither side.
+    # It never changes the search; it only fixes the final attribution (CP6.0.1).
+    compile_clean = None
 
     def select(result, step_record):
         nonlocal record, before, accepted_prefix
@@ -277,7 +280,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         accepted_prefix = step_record["receipt"][:-len("result.json")]
 
     def try_project(step, candidate, maps, details, defer=False):
-        nonlocal attempts
+        nonlocal attempts, compile_clean
         attempts += 1
         branch = prefix + "round_{:03d}/".format(attempts)
         for f in candidate.files:
@@ -307,6 +310,8 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         steps.append(dict(step=step, round=attempts, errors_before=before, errors_after=after, accepted=False,
                           status=result.status, reason=result.reason, receipt=branch + "result.json", **details))
         store.write_json(branch + "result.json", result)
+        if result.reason == "slither_side_failure" and compile_clean is None:
+            compile_clean = (result, steps[-1])
         if accepted and not defer:
             select(result, steps[-1])
         return accepted, result
@@ -426,17 +431,26 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             break
         if not changed:
             break
+    if (compile_clean is not None and record.status != "success"
+            and record.reason not in ("slither_side_failure", "solc_timeout")):
+        # Every repair was explored from the same states as before; report the
+        # Slither-side blocker instead of the compile blocker it already removed.
+        result, measurement = compile_clean
+        measurement["accepted_outcome"] = "compiled_slither_side_failure"
+        if measurement.get("chain_outcome") == "rolled_back":
+            measurement["chain_outcome"] = "compiled_slither_side_failure"
+        select(result, measurement)
     if truncated:
         record.flags.append("dependency_search_truncated")
     if original_project:
         verify_project(original_project)
     if any(sha256(name) != digest for name, digest in originals.items()):
         raise ValueError("Original project changed during repair")
+    for step in steps:
+        if step.get("accepted"):
+            for release in step.get("releases", {}).values():
+                release["inferred"] = release["tier"] == "T3"
     if record.status == "success":
-        for step in steps:
-            if step.get("accepted"):
-                for release in step.get("releases", {}).values():
-                    release["inferred"] = release["tier"] == "T3"
         for name in ("graph.json", "nodes.json"):
             store.write_bytes(prefix + name, (store.path / (accepted_prefix + name)).read_bytes())
     store.write_json(prefix + "repair_steps.json", steps)

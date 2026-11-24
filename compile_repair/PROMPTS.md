@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.26（2026-11-24；r2.25 同日；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.27（2026-11-24；r2.26、r2.25 同日；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,10 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.27 相对 r2.26 的修改**（CP6.0 本地复核的审查与 CP6.0.1；修改 AI：Claude）：
+1. 本地复核（Codex）三套测试与 MANDO 回归全部符合预期；cp3_19463 的最终主因不符而停下。审查：原因是 try_project 不接受 Slither 侧失败的试验，单元退回到包导入未解决；4.6j 第 4 步的预期遗漏了这条规则。
+2. 新增 4.6k 节 CP6.0.1：搜索不变，单元未成功时以第一个编译通过但 Slither 侧失败的试验作为最终结果，主因为 slither_incomplete；附本地运行步骤。
 
 **r2.26 相对 r2.25 的修改**（CP6.0；修改 AI：Claude）：
 1. 用户确认 D25（加入 D3）与记录方式（模块记录写在 compile_repair/docs，注明修改 AI 为 Claude；根目录 HANDOVER 与 training_changes 不改）。
@@ -1650,6 +1654,34 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 
 5. 提交
 - 把四项结果写入 artifacts/cp6_0_v1/local/（tests.json、mando_check.json、partial_ir_units.json，各含命令、提交、耗时与预期对照），在 CP5_REPORT 之外新建 CP6_REPORT.md 的“CP6.0 本地复核”一节，并在 HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录。用 doc_check 检查后提交并 push 到 compile-repair。然后停下，等待 Claude 审查。
+```
+
+### 4.6k CP6.0.1：编译已通过、只剩 Slither 侧失败的单元的归因（r2.27；Claude 实现，Codex 本地复核）
+
+#### 规格（已由 Claude 实现，见 CHANGE_LOG §63）
+- 问题：第 2–4 步的试验只在 D3 成功或编译错误数减少时被接受；编译全部通过但 Slither 侧失败（包括 D3(c)）的试验被丢弃，单元退回到已被它解决的编译阻碍。本地复核中 cp3_19463 因此被归为 unresolved_package_import。
+- 修正（pipeline.py::repair_unit）：搜索与接受规则不变；记录第一个 reason 为 slither_side_failure 的试验。全部步骤结束后，单元未成功且最终原因不是 slither_side_failure 或 solc_timeout 时，选用该试验为最终结果，步骤记录 accepted_outcome = compiled_slither_side_failure（第 4 步链中的该轮 chain_outcome 同名）。T3 发布版的 inferred 标记对所有被接受的步骤记录。
+- 不变：成功单元、成功图、候选顺序、K = 21、MANDO 结果。
+- 云端核验：生产测试 1,163 passed / 6 skipped（新增 3 项，其中 1 项在修正前失败）；MANDO 843 个图逐字节相同。
+
+#### 本地运行步骤（Codex 在用户本机执行；只运行与报告，不改生产代码）
+
+```text
+# CP6.0.1 本地复核：拉取 Claude 的 CP6.0.1 提交，复跑测试与 MANDO 回归，并对 4 个部分 IR 单元全部运行
+
+0. 准备：同 4.6j 第 0 步，提交为 CHANGE_LOG §63 记录的提交或其后只含文档的提交；输出目录 /home/zhao/SmartContract/compile-repair-local/cp6_0_1_v1/（已存在即停下）。不安装、不下载、不调用 LLM；与预期不符即停下报告，不改生产代码。
+
+1. 三套测试（命令同 4.6j 第 1、2 步，basetemp 改到新输出目录）
+- production 预期 1163 passed, 6 skipped；mando 预期 672 passed, 497 skipped（新增 3 项需要 production）；DFG v2 预期 2653 passed。
+
+2. MANDO 回归：命令同 4.6j 第 3 步，输出改到新目录。预期 passed=true，counts 同 4.6j。
+
+3. 四个部分 IR 单元
+- /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_0_v1/local/partial_ir_check_r2.py
+  （沿用 Codex 的 partial_ir_check.py，只把输出改到 cp6_0_1_v1；四个单元全部运行，第一个不符即停的规则不变。）
+- 预期：每个单元或者 status 不为 success、没有 graph.json、primary_causes 为 ["slither_incomplete"]、最终记录中有 slither_partial_ir 的候选；或者在另一个版本上成功且该次 d3_c 为 true、partial_ir 为空。summary 的 passed 为 true。同时报告每个单元 repair_steps.json 中 accepted_outcome 的步骤号与所加的发布版。
+
+4. 提交：结果写入 artifacts/cp6_0_v1/local/（tests_r2.json、mando_check_r2.json、partial_ir_units_r2.json），CP6_REPORT.md 增加“CP6.0.1 本地复核”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录；doc_check 后提交并 push 到 compile-repair，然后停下等待 Claude 审查。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）
