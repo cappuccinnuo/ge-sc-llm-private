@@ -2670,3 +2670,40 @@ D24 和 23 版续传按转交提示确认。TLS 中断后按用户原话“批�
 ### 59.5 验收、资源、未执行事项与停止
 
 production 回归通过 1,155 项、跳过 6 项；mando 通过 671 项、跳过 490 项；DFG v2 通过 2,653 项。843 份 MANDO 成功图等于 v5，354 个 DFG 引用与冻结值相同，生产文件保持 18 个。四个生产文件改动 278 行新增、38 行删除；见 code_audit.json。CPU 运行、无下载、无 HGT 训练、无外部 LLM 调用，费用 0 美元。文档按各自追加边界执行 doc_check，初验 6/6 通过。最终复核的命令、逐文件结果及 SHA256 见本批 final_doc_check.json。
+
+
+## 60. 2026-11-24 CompileRepair CP5.2 审查、CP5 完成与工作方式变更（修改 AI：Claude）
+
+### 60.1 任务、依据与范围
+
+用户要求（2026-11-24）：审查 Codex 完成的 CP5.2，不正确则及时更正并先完成 CP5；从此改为 Claude 直接在 GitHub 上修改代码与测试，一次完成一个阶段，前一阶段完成并确认正确后才进行下一阶段；先评估在 GitHub 上完成编码的条件是否充分，需要下载可以直接授权；考虑是否有时间限制并合理划分阶段；代码遵守工程规范；每一小步照样写 PROMPTS、交接与变更记录。起点 `compile-repair@35310dca2`。审查对象：CP5_REPORT 的 CP5.2 节，`pipeline.py`、`rules/dependencies.py` 的差异，`cp5_2_v1` 的 v2_summary、old_move_recoveries、诊断与包装记录，HANDOVER、DECISIONS、CHANGE_LOG §59、PROGRESS。
+
+修改：`PROMPTS.md`（r2.24 → r2.25）；新增 `artifacts/cp5_2_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 3 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 60.2 实施方式和重要选择
+
+- 审查：读链式改写的实现，确认验证、限长与整条回滚；核对报告各表的加减关系与产物中的计数。
+- 不为旧移动算子扩大 exact 邻域：它的缺陷在算子本身，v2 已按真实移动的写法构造，基准以 v2 为准。
+- 执行环境评估（实测）：`nproc` 为 2，内存 7 GB，可写磁盘约 13 GB；`binaries.soliditylang.org` 被出口代理拒绝，GitHub 发布与公开仓库的 git 读取可用，npm 注册表可用；审查环境已有的 38 个 solc 中 37 个与仓库保存的官方索引（cp0_compiler_install_v1/official_release_index.json）SHA256 相同，0.4.26 的 GitHub 静态构建与官方 linux-amd64 构建不同，因此官方二进制改从 ethereum/solc-bin 仓库读取；没有 LLM 密钥；生产代码中 `evaluation/survey.py` 与多数测试写死用户本机路径。
+
+### 60.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| v2 移动 | 363 = 83 + 280；exact 359 = 83 + 276 | continuation/v2_summary.json |
+| 旧移动重跑 | 189 → 279，新增 90 项与恢复清单一致 | old_move_recoveries.json |
+| 外部语料 | 5,880 → 5,882；其余 8,714 个单元不变 | CP5_REPORT |
+| 编译器 | 37 / 38 与官方索引相同；0.4.26 不同 | official_release_index.json 与审查环境的二进制 |
+
+未证明：用户本机语料与 GitHub 当前版本是否逐字节相同（CP6.0 按 CP3 记录的输入 SHA 核对）。
+
+### 60.4 用户批准、原文差异与待确认设计
+
+- 用户新决定：工作方式与下载授权（见 DECISIONS）。
+- 待用户决定：D25。根目录的 HANDOVER.md 与 docs/training_changes_2026-10-07.md 仍按此前的约束不改，模块记录继续写在 compile_repair/docs；如用户要求同步根目录文档，另行确认。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 60.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp5_2_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP5 完成。CP6 之前需要用户决定 D25，并完成 CP6.0（执行环境与测试可移植性）。本轮提交并 push 到 `compile-repair`。

@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.24（2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.25（2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.25 相对 r2.24 的修改**（CP5.2 审查与工作方式变更；证据 `artifacts/cp5_2_review_v1/README.md`）：
+1. CP5.2 经审查成立，CP5 阶段完成（新增 1.28 节）；D25 待用户决定，审查建议加入 D3。
+2. 工作方式（用户，2026-11-24）：从 CP6 起由 Claude 直接在 GitHub 的 `compile-repair` 分支上编写代码与测试，不再经由 Codex 提示；一次只做一个阶段，阶段内再分成可验证的小步，每一小步完成后核实再进入下一步；每一小步照常写 PROMPTS（该步的规格与验收）、HANDOVER、DECISIONS、CHANGE_LOG 与 PROGRESS。下载由用户授权 Claude 自行进行（仍只用于本地研究，外部语料与编译器不提交仓库）。代码仍遵守 3.10 节与用户的工程规范。
+3. 执行环境评估见 HANDOVER 第 1 节与 CHANGE_LOG §60：云端容器（2 个 CPU、7 GB 内存、约 13 GB 可写磁盘、单个后台任务至多 2 小时、闲置后回收）；公开 GitHub 仓库可以 git 读取，npm 注册表可用，`binaries.soliditylang.org` 被拒绝（官方 linux-amd64 二进制改从公开仓库 ethereum/solc-bin 读取并按已保存的官方索引核对 SHA256）；没有 LLM 密钥。
 
 **r2.24 相对 r2.23 的修改**（CP5.1 审查；证据 `artifacts/cp5_1_review_v1/README.md`）：
 1. CP5.1 的索引、D24、候选上限、规则选择（oldest）、外部语料重跑与对照经审查成立（新增 1.27 节）；D24 改为用户已定。
@@ -415,6 +420,18 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | version_dependent | 221 个，183 个有可解析版本上的共同阻碍（other 157、undeclared_identifier 124） |
 | 审查 | 11 个边界输入与 1,694 个真实 Solidity 输入、22 个 Vyper 结果正确；132 项测试通过 |
 
+### 1.28 CP5.2 结果与 CP5 完成（2026-11-24 审查；证据 `artifacts/cp5_2_v1/`、`cp5_2_review_v1/`）
+
+| 项 | 结果 |
+|---|---|
+| 诊断 | 313 个漏修单元逐项归因；旧移动 211 个中 180 个为新进入文件的失效相对导入；真实 102 个中 12 个同类 |
+| 链式改写 | 至多 4 轮，链结束成功或错误数减少才提交，否则整体回滚 |
+| 移动 v2 | 400 个触发；363 个通过 D3；359 个 exact；通过 D3 的 kept 0.988678、CFG 边 0.999972、调用 0.952242 |
+| 重跑 | 旧移动 189 → 279；外部语料 5,880 → 5,882，其余 8,714 个单元 D3 与图 SHA256 不变；包装 950 个全部 exact |
+| 部分 IR | 真实开发集 4 / 1,131 有标记；基准、MANDO、1,000 个 CP3 基础单元为 0 |
+| 已知限制 | 旧移动算子的 90 个链式修复 exact 为 false（以 v2 为准）；59 个真实单元因候选筛选未改写 |
+| CP5 外部语料总结果 | 9,138 个第 2–4 步目标单元中 5,882 个通过 D3 |
+
 ### 1.27 CP5.1 结果（2026-11-23 审查；证据 `artifacts/cp5_1_v1/`、`cp5_1_review_v1/`）
 
 | 项 | 结果 |
@@ -536,7 +553,7 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | D22 | 依赖版本身份（CP5）：确定性方法可以读取项目内的清单文件（package.json、package-lock.json、yarn.lock、pnpm-lock.yaml、remappings.txt、foundry.toml、hardhat/truffle 配置中的 remapping 与依赖版本），作为 D10 所说“源码文本”的一部分；版本身份分三级：T1 锁文件给出精确版本，T2 清单给出版本范围，T3 没有清单。T1、T2 由第 3 步确定性补全；T3 在 DAI 式兼容检查（路径、pragma、导入符号、编译与 D3）通过时也由第 3 步补全，改动记为 additive 并在清单中标记 inferred，多个候选时按 dev 划分上选定的规则取一个；检查不通过或没有候选时交给代理 | 已定（用户，2026-11-23） |
 | D23 | 库发布版下载清单（CP5）：按 CP5 第 1 节的测量结果列出包名、版本范围、发布版数、压缩与解压大小，只下载 npm 注册表的发布包，用注册表给出的 integrity 与本地 SHA256 双重核对；原始包放在仓库外，仓库内只放清单与校验和 | 已定（用户，限 172 个发布版的清单，2026-11-23） |
 | D24 | 包装的 optimizer 设置（CP5.1）：standard JSON 包装自带 optimizer 时，映射为 `--optimize` 与 `--optimize-runs N`（N 为 32 位无符号十进制），Slither 用相同设置；details 等其他字段记录不用。只用于包装自带的设置，不作为编译失败后的通用重试；改动只在 `toolchain/solc.py::validate_settings` | 已定（用户转交 CP5.1，2026-11-23） |
-| D25 | 部分 IR 缺失（CP5.2 后）：D3 是否增加“Slither 没有把任何合约标记为 is_incorrectly_constructed、顶层函数没有 IR 生成失败”的条件 | 待定（CP5.2 测量后由用户决定） |
+| D25 | 部分 IR 缺失（CP5.2 后）：D3 是否增加“Slither 没有把任何合约标记为 is_incorrectly_constructed、顶层函数没有 IR 生成失败”的条件；不满足的单元记为 slither_partial_ir | 待用户决定；CP5.2 测得真实开发集 4 / 1,131、其余范围 0；审查建议加入 |
 | D19 | Slither 下限：维持 0.4.12。CP1 第 6 节在生产工具链上测得 0.4.11 两种工作目录 5/5 通过、0.4.0–0.4.10 全部缺文件名；把 0.4.11 加入候选会改变大量 `^0.4.x` 文件的选定版本，而受益的只有精确 `0.4.11` pragma（可经 pragma 覆盖处理），所以暂不扩展 | 建议（可由用户改）；CP3 按真实语料频率复议 |
 
 ---
