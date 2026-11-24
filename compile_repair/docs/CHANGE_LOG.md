@@ -2603,3 +2603,45 @@ D24 和 23 版续传按转交提示确认。TLS 中断后按用户原话“批�
 真实外部语料按冻结的项目组划分后，开发集通过 D3 的单元为 1,131/2,316，测试集为 4,749/6,822。14 个达到组合上限的单元都在测试集。逐项匹配入口 SHA256 后，开发集 2,316 项的 D3 成败均与最旧优先的无上限测量一致。两张原始表的哈希与分组计数见 external_split_summary.json。
 
 最终验收采用冻结后的默认设置。正式默认规则为 `oldest`，K=21。 真实语料 5880/9,138 通过 D3，其中 14 个触发编译组合上限。基准开发集 236/550、测试集 1004/2114 通过编译和 D3。 外部全量与基准合计核验 24766 个候选轮，包含被拒绝的轮次。其中新增文件编辑 267614 次，导入字符串改写 1029 次。未改变的输入按原始文件 SHA 复核。各阶段和逐项调用收据索引见 `*_provenance.json`、`invocation_seals.json`。 两个分片按冻结输入顺序合并，逐行核验 9,138 个不同身份。最终测试与生产文件变化见 `final_audit.json`，详细表格见 `CP5_REPORT.md`。本轮本地提交，下一步为独立复核。
+
+
+## 58. 2026-11-23 CompileRepair CP5.1 审查与方案 r2.24（修改 AI：Claude）
+
+### 58.1 任务、依据与范围
+
+用户要求（2026-11-23）：Codex 已完成 CP5.1；核实数据，判断已处理的问题是否正确，对错误或未解决的问题制定计划交给 Codex；问题解决并对照项目目标核实后才进入 CP6。起点 `compile-repair@41c685fca`。审查对象：CP5_REPORT 的 CP5.1 节；`rules/dependencies.py::relative_repairs` 与 pipeline 的第 4 步接入；`evaluation/benchmark.py::relative_move_site`；`cp5_1_v1` 的 packed/benchmark.jsonl.gz、packed/real_full.jsonl.gz、path_census.jsonl、moved_path_outcomes.json、partial_ir_*.json；HANDOVER、DECISIONS、CHANGE_LOG §57、PROGRESS；Slither 0.11.6 的 IR 生成异常处理。
+
+修改：`PROMPTS.md`（r2.23 → r2.24：修改说明、1.27 节、D24 状态、D25、4.6i 节 CP5.2）；新增 `artifacts/cp5_1_review_v1/`；记录：本节、`docs/HANDOVER.md`（开头、第 0、1 节重写，第 5 节加路径，第 6 节新记录）、`docs/DECISIONS.md`（历史 3 行）、`PROGRESS.md`。没有修改模块代码与已有产物。
+
+### 58.2 实施方式和重要选择
+
+- 移动样本：按状态、原因与接受步骤统计 400 个样本；读 `relative_move_site`，确认算子把文件原样移到 `.cp5_moved/`，没有改写被移动文件自己的相对导入。结合 3.1 节的接受条件，推测改写导入方后错误数不减少而被拒绝；7 个两轮第 4 步成功的样本与此相符。没有逐项读取仓库外的修复记录（审查环境没有），因此作为待诊断项，并规定诊断与推测不符时以诊断为准。
+- 真实语料：把 path_census 的候选与 real_full 的结果按单元对齐，发现 102 个至少一个缺失相对导入有唯一符号候选却未通过 D3，说明漏修不只是基准问题。链式改写是对 3.1 节接受条件的有限扩展：链结束时仍须错误数严格减少，否则整条回滚。
+- 包装：统计 950 个样本的 exact 分解，550 个 raw 迁移评分为 exact，被迁移名称核验以 graph_metadata_differ 拒绝；审查环境没有图文件，所以要求先列出差异字段，涉及语义时停下。
+- 部分 IR：读 Slither 源码，合约函数 IR 生成的 AttributeError 会把合约标记为 is_incorrectly_constructed，顶层函数只记日志；两个信号都可以逐图记录。为保持 MANDO 图字节不变，只写入结果记录。是否改 D3 由用户决定（D25）。
+- 规则选择：oldest 与另两条只差 1 个单元，但 73 个 T1 参照中 oldest 选中锁版本 70 个、另两条 8 个，方向一致，接受。
+
+### 58.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 移动样本 | 成功 189（第 4 步一轮 182、两轮 7）；未修复 211（第 4 步未接受 194、接受一轮后仍未解析 17）；no_compatible_candidate 32 | outcome_tallies.json |
+| 真实缺相对文件 | 412 个中：全部缺失相对导入都有唯一符号候选且通过 D3 27；同类未通过 35；部分有唯一候选通过 2、未通过 67；没有唯一候选 281（其中通过 D3 13）；合计 412 | 同上 |
+| 包装 exact | 400 exact；550 raw 迁移 exact 但 graph_metadata_differ | 同上 |
+| 规则 | 开发集 1,130 / 1,130 / 1,131；T1 参照选中锁版本 8 / 8 / 70 | CP5_REPORT、policy.json |
+| 外部语料 | 5,880 / 9,138；缺包主因 8,454 → 2,804 | real_full_summary.json、external_summary.json |
+| Slither | `log_incorrect_parsing` 设置 is_incorrectly_constructed；顶层函数失败只记日志 | slither/solc_parsing/slither_compilation_unit_solc.py 第 818–846 行 |
+
+未证明：移动样本与真实单元漏修的逐项原因；包装元数据差异的字段；部分 IR 的比例。
+
+### 58.4 用户批准、原文差异与待确认设计
+
+- Codex 处理正确：传输、环境与测试环境问题逐次停下并请求批准；保留中断现场；规则在测试集之前冻结。
+- 方案自身的不足：4.6h 的移动算子没有同时更新被移动文件的导入；以 4.6i 的 v2 为准。
+- 新设计点：链式改写与文件级 exact 邻域（Claude 建议，用户转交 CP5.2 即确认）；D25 待定。待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 58.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp5_1_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP6 不能开始。顺序为 Codex 执行 CP5.2 → Claude 审查 → CP6。本轮提交并 push 到 `compile-repair`。

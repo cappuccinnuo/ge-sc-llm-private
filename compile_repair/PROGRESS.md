@@ -616,3 +616,10 @@ CP3.1 以 `compile-repair@61c94e00` 和 PROMPTS r2.14 §4.5b 为基线。结果�
 D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D24 优化器设置、组合计数和截断、移动相对依赖文件、包装恢复节点指标已接入。开发及测试身份覆盖 9,138 个真实主因单元。移动算子 400 项全部触发，逐项真实精确还原均满分。生产、mando 与 DFG 套件以及 846 个 MANDO 回归的结果见 `artifacts/cp5_1_v1/checkpoint_audit.json`。传输故障、修正与用户指定的执行边界见 `docs/CHANGE_LOG.md` §57 和 `docs/DECISIONS.md`。
 
 正式默认规则为 `oldest`，K=21。 真实语料 5880/9,138 通过 D3，其中 14 个触发编译组合上限。基准开发集 236/550、测试集 1004/2114 通过编译和 D3。 400 项移动逆操作和最终 846 项 MANDO 回归通过。结果见 `CP5_REPORT.md`、`final_audit.json` 和 `external_summary.json`。
+
+
+## CP5.1 审查与方案 r2.24（Claude，2026-11-23）
+
+- CP5.1 成立：172 个发布版索引、D24、K = 21、oldest 规则、外部语料 5,880 / 9,138 通过 D3、对照算子 0、MANDO 不变。
+- 未解决：移动样本 211/400 与真实缺相对文件 102 个单元的漏修未诊断；包装 550 个因元数据差异记为非 exact；文件级破坏的 exact 邻域；部分 IR 比例未测。
+- PROMPTS r2.24：新增 1.27 节、D25、4.6i 节 CP5.2。证据 `artifacts/cp5_1_review_v1/`；记录 `docs/CHANGE_LOG.md` §58。下一步 CP5.2。

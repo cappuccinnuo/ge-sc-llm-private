@@ -1,22 +1,21 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.23 §1.26、§2 的 D22–D24、§4.6g 与 §4.6h（CP5.1）、artifacts/cp5_review_v1/README.md、CP5_REPORT.md、CHANGE_LOG §55、§56。
+> 本轮交接先读第 0–5 节、PROMPTS r2.24 §1.27、§2 的 D25、§4.6i（CP5.2）、artifacts/cp5_1_review_v1/README.md、CP5_REPORT.md 的 CP5.1、CHANGE_LOG §57、§58。
 
 ## 0. 一句话
 
-CP5.1 从已审查的 CP5 检查点继续。172 个官方发布版的离线索引已封存，新移动算子的 400 项精确还原全部通过。正式默认规则为 `oldest`，K=21。 真实语料 5880/9,138 通过 D3，其中 14 个触发编译组合上限。基准开发集 236/550、测试集 1004/2114 通过编译和 D3。
+CP5.1 已由 Claude 审查：索引、D24、候选上限、oldest 规则与外部语料重跑（5,880 / 9,138 通过 D3）成立；未解决五个问题：移动样本与真实缺相对文件的漏修未诊断、包装 exact 被元数据拒绝、文件级破坏的 exact 邻域、部分 IR 比例未测。下一步：Codex 执行 4.6i 节 CP5.2 → Claude 审查 → CP6。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.23；D22、D23、D24 用户已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP4.5 | 已审查通过 |
-| CP5 | 检查点：自比 16,136 全部 exact；测量 9,144 个单元；149/172 个发布版；18 个生产文件；MANDO 回归不变 |
-| CP5.1 | 20 个包的 172 版，13,073 个 .sol 文件。9,138 个主因目标已冻结分组。94 个开发移动样本和 306 个测试移动样本均经逆操作核验。见 cp5_1_v1/README.md。 |
-| 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；test_cp5.py 依赖用户本机编译器目录 |
+| 方案与决定 | PROMPTS r2.24；D22–D24 用户已定；D25 待定（CP5.2 测量后）；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP5 检查点 | 已审查通过 |
+| CP5.1 | 审查成立部分见 1.27 节；留五个问题由 CP5.2 解决 |
+| 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；test_cp5*.py 依赖用户本机编译器目录 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | 独立复核 CP5.1 的策略、基准和外部主因表，之后按方案进入 CP6。 |
+| 下一步 | CP5.2 → 审查 → CP6 |
 
 ## 2. 分支与工作树
 
@@ -70,6 +69,7 @@ CP5.1 复核先读 `CP5_REPORT.md` 的 CP5.1 一节与新批次 README。按 `in
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP5.1 审查证据（Claude） | artifacts/cp5_1_review_v1/README.md、outcome_tallies.json |
 | CP5.1 代码、实验与传输停点 | CP5_REPORT.md 的 CP5.1 节、artifacts/cp5_1_v1/README.md、docs/DECISIONS.md |
 | CP5 检查点审查证据（Claude） | artifacts/cp5_review_v1/README.md、combination_bound.json |
 | CP5 检查点 | CP5_REPORT.md、artifacts/cp5_v1/README.md、checkpoint_audit.json、d23/transport_stop.json、optimizer_request.json |
@@ -795,3 +795,12 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 真实外部语料按冻结的项目组划分后，开发集通过 D3 的单元为 1,131/2,316，测试集为 4,749/6,822。14 个达到组合上限的单元都在测试集。逐项匹配入口 SHA256 后，开发集 2,316 项的 D3 成败均与最旧优先的无上限测量一致。两张原始表的哈希与分组计数见 external_split_summary.json。
 
 完成全量后，第 0–1 节同步为最终状态。正式默认规则为 `oldest`，K=21。 真实语料 5880/9,138 通过 D3，其中 14 个触发编译组合上限。基准开发集 236/550、测试集 1004/2114 通过编译和 D3。复核从 `policy.json`、`benchmark_summary.json`、`external_summary.json` 和 `frozen_mando/summary.json` 开始。
+
+
+### 2026-11-23 CompileRepair CP5.1 审查与方案 r2.24（修改 AI：Claude）
+
+用户要求审查 Codex 完成的 CP5.1（提交 41c685fca）。新增证据目录 `artifacts/cp5_1_review_v1/`，修改 `PROMPTS.md`（r2.23 → r2.24）。本文开头、第 0、1 节换成审查结论，第 5 节加入证据路径。
+
+结论：已完成部分成立；未解决五个问题，新增 4.6i 节 CP5.2 与待定决定 D25。移动算子的缺陷来自 4.6h 的写法（没有同时更新被移动文件的导入）。
+
+下一步：Codex 执行 CP5.2，Claude 审查后进入 CP6。本轮没有模块代码改动、下载或安装。详见 CHANGE_LOG §58。
