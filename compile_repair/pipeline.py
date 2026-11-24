@@ -15,7 +15,7 @@ from compile_repair.core.model import CompilationUnit, ManifestRecord, Patch, So
 from compile_repair.core.provenance import apply_patches, mark_span, verify_provenance
 from compile_repair.core.store import ArtifactStore, emit, sha256
 from compile_repair.rules.dependencies import (OfflineIndex, build_index, dependency_choices,
-    relative_repairs)
+    chain_relative_issues, relative_repairs)
 from compile_repair.rules.environment import (make_plan, mando_known_version,
     ordered_candidates, pragma_patches, settings_retry)
 from compile_repair.toolchain.solc import compile_file, load_trusted_compilers, version_tuple, parse_diagnostics
@@ -29,6 +29,7 @@ from scripts.DFG.models import Unsupported
 # Selected on the CP5.1 development split. Explicit None leaves calibration uncapped.
 DEFAULT_DEPENDENCY_POLICY = "oldest"
 DEFAULT_DEPENDENCY_LIMIT = 21
+RELATIVE_CHAIN_LIMIT = 4
 
 
 def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn, project,
@@ -387,22 +388,42 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         else:
             reason = "index_unavailable" if offline_index is None else "no_unresolved_imports"
             steps.append(dict(step=3, accepted=False, reason="dependency_combination_limit" if truncated else reason))
-        edits, patches, choices = relative_repairs(project, index, compilers, overlays, attempts+1)
-        if edits:
-            maps = dict(origins)
-            for name, extra in patches.items():
-                original, previous = maps[name] if name in maps else ((Path(project.root) / name).read_bytes(), ())
-                maps[name] = original, previous + extra
-            working = dict(overlays)
-            working.update(edits)
-            candidate = resolve_project(project.root, project.entry, project.remappings, index, project.additional_entries, working)
-            accepted, result = try_project(4, candidate, maps, dict(path_search=choices))
-            if accepted:
-                project, overlays, origins, changed = candidate, working, maps, True
-            if result.status == "success" or result.reason == "solc_timeout":
+        # Keep overlays and provenance private until the chain improves on its initial state.
+        staged, working, maps = project, dict(overlays), dict(origins)
+        issues, chain, prior_count = None, [], before
+        stop = False
+        for depth in range(1, RELATIVE_CHAIN_LIMIT + 1):
+            edits, patches, choices = relative_repairs(staged, index, compilers, working, attempts+1, issues)
+            if not edits:
+                steps.append(dict(step=4, accepted=False, path_search=choices, reason="no_unique_compatible_path"))
                 break
-        else:
-            steps.append(dict(step=4, accepted=False, path_search=choices, reason="no_unique_compatible_path"))
+            for name, extra in patches.items():
+                original, previous = maps[name] if name in maps else ((Path(staged.root) / name).read_bytes(), ())
+                maps[name] = original, previous + extra
+            working.update(edits)
+            candidate = resolve_project(staged.root, staged.entry, staged.remappings, index, staged.additional_entries, working)
+            improves, result = try_project(4, candidate, maps, dict(path_search=choices), defer=True)
+            trial = steps[-1]
+            chain.append(trial)
+            trial.update(errors_before=prior_count, chain_start_errors=before, chain_depth=depth,
+                         chain_limit=RELATIVE_CHAIN_LIMIT, chain_outcome="rolled_back")
+            stop = result.status == "success" or result.reason == "solc_timeout"
+            if improves:
+                for member in chain:
+                    member.update(accepted=True, chain_outcome="committed")
+                select(result, trial)
+                project, overlays, origins, changed = candidate, working, maps, True
+                break
+            if stop or result.reason != "unresolved_imports":
+                break
+            issues = chain_relative_issues(staged, candidate, choices)
+            if not issues:
+                break
+            trial["new_relative_errors"] = [dict(importer=r["importer"], path=r["path"], line=r["line"])
+                                            for r in issues]
+            staged, prior_count = candidate, trial["errors_after"]
+        if stop:
+            break
         if not changed:
             break
     if truncated:

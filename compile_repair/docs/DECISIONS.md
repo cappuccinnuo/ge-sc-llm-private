@@ -592,3 +592,20 @@ D20a 已按用户授权执行：第 227 份另起进程，第 1 次观察到 Mul
 | 2026-11-23 | 第 4 步链式改写 | 诊断确认后，允许新进入闭包文件的缺失相对导入在同一第 4 步内继续改写，至多 L 轮，链结束错误数不减少则整条回滚（Claude 建议） | CHANGE_LOG §58.2；PROMPTS §4.6i 第 3 节 | Claude |
 | 2026-11-23 | 文件级破坏的 exact 邻域 | 引用被破坏文件的导入指令视为破坏邻域（Claude 建议） | PROMPTS §4.6i 第 4 节 | Claude |
 | 2026-11-23 | D25 部分 IR | 新增待定：D3 是否排除 Slither 标记为不完整的图；先测量 | PROMPTS §2、§4.6i 第 6 节 | Claude |
+
+
+### CP5.2 单文件身份核验与运行授权（2026-11-23 至 24 日美东时间，修改 AI 为 Codex）
+
+| 日期 | 用户原话 | 执行范围与证据 |
+|---|---|---|
+| 11-23 | “允许仅重启 Ubuntu 并恢复” | 复核四个空闲终端后重启 Ubuntu-22.04，随后实测两侧代理、直连阻断和 WSL 防火墙。见本批 `wsl_restart_authorization.json` 和 `network_recovery.json`。 |
+| 11-23 | “允许按原收据继续诊断” | 313 项中有 17 项指向最后接受的轮次。验证已登记位置、选中轮次和顶层结果的 SHA256 后完成逐项诊断。见 `diagnosis_path_request.json` 和 `diagnosis_path_authorization.json`。 |
+| 11-23 | “批准限定转换并保留原分” | 包装评分先验证单一物理源文件、原字节哈希和唯一对应的文件名，再转换独立图与项目图的文件标识和 schema。节点、声明、CFG 边和调用均须对齐，逐项保存原分。见 `wrapper_representation_authorization.json` 和 `benchmark_scores.json`。 |
+| 11-23 | “批准冻结源码后限定续跑” | 模块封存测试复制源码期间，评分函数被抽取，18 个副本全部符合各自封存值，工作树有一份更新。保留 36 项通过、1 项失败的首轮记录；冻结 18 个最终模块后在新目录运行。见 `production_suite_stop.json` 和 `frozen_suites/`。 |
+| 11-24 | “批准 711 次限定编译并续跑” | 711 个 CP3 项目原命令的允许路径为点号。保留原命令与原工作目录，用当前生产参数逐项取得真实 solc 退出码后测量 IR；其余 2,660 项沿用已核验的编译收据。逐项授权绑定 `ir_argument_differences.jsonl` 的 SHA256。见 `ir_replay_request.json` 和 `continuation/authorization.json`。 |
+
+D25 仍待用户根据分语料测量结果决定。部分 IR 标记写入生产运行收据。图文件的结构和 D3 的接受条件沿用既有定义。本节所列路径相对于 `compile_repair/artifacts/cp5_2_v1/`。
+
+### CP5.2 的 D25 测量结果（2026-11-24，记录者 Codex）
+
+各范围检出的单元为真实开发集 4/1131、基准成功样本 0/1240、MANDO 0/843、CP3 基础抽样 0/1000。cp3_19463 的两个合约被标记；完整结果及合约计数见 CP5_REPORT 的 CP5.2 部分。D25 继续保留待定状态。

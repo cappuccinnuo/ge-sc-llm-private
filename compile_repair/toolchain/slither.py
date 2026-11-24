@@ -5,7 +5,9 @@ diagnostics. The CP0 projection exists solely to verify frozen cp0_v2 evidence.
 """
 import hashlib
 import json
+import logging
 import re
+import threading
 import time
 from collections import Counter
 from pathlib import Path
@@ -463,6 +465,19 @@ def graph_facts(slither, project_root=None):
     return result
 
 
+class _TopLevelIRLog(logging.Handler):
+    """Count the production parser's top-level IR errors during this construction only."""
+    def __init__(self):
+        super().__init__()
+        self.thread_id = threading.get_ident()
+        self.count = 0
+
+    def emit(self, record):
+        if (record.thread == self.thread_id and record.name == "SlitherSolcParsing"
+                and record.getMessage().startswith("Impossible to generate IR for top level function ")):
+            self.count += 1
+
+
 def run_slither(compilation, profile="regression_6c", cp0_projection=False, project=None):
     """Construct Slither after observed solc rc=0; report D3(a) and D3(b).
 
@@ -532,11 +547,22 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False, proj
                 kwargs = {"solc": compiler.path, "solc_disable_warnings": True}
                 if settings:
                     kwargs["solc_args"] = result["command"]["solc_args"]
+            result["partial_ir"] = {"incorrectly_constructed_contracts": [], "top_level_errors": 0}
             crytic = CryticCompile(target, **kwargs)
             result["crytic_compile_platform"] = crytic.platform.NAME
             result["crytic_compile_platform_class"] = type(crytic.platform).__module__ + "." + type(crytic.platform).__name__
             result["command"]["construction"] = "CryticCompile(target, **kwargs); Slither(crytic, **kwargs)"
-            slither = Slither(crytic, **kwargs)
+            logger = logging.getLogger("SlitherSolcParsing")
+            handler = _TopLevelIRLog()
+            logger.addHandler(handler)
+            try:
+                slither = Slither(crytic, **kwargs)
+            finally:
+                logger.removeHandler(handler)
+                result["partial_ir"]["top_level_errors"] = handler.count
+                handler.close()
+            result["partial_ir"]["incorrectly_constructed_contracts"] = sorted(
+                c.name for c in slither.contracts if c.is_incorrectly_constructed)
         else:
             slither = _compile(path, compiler.path)
             result["crytic_compile_platform"] = slither.crytic_compile.platform.NAME

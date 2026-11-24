@@ -623,3 +623,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - CP5.1 成立：172 个发布版索引、D24、K = 21、oldest 规则、外部语料 5,880 / 9,138 通过 D3、对照算子 0、MANDO 不变。
 - 未解决：移动样本 211/400 与真实缺相对文件 102 个单元的漏修未诊断；包装 550 个因元数据差异记为非 exact；文件级破坏的 exact 邻域；部分 IR 比例未测。
 - PROMPTS r2.24：新增 1.27 节、D25、4.6i 节 CP5.2。证据 `artifacts/cp5_1_review_v1/`；记录 `docs/CHANGE_LOG.md` §58。下一步 CP5.2。
+
+## CP5.2 相对导入链、文件级 exact 与部分 IR（2026-11-24，修改 AI 为 Codex）
+
+修改 pipeline.py、rules/dependencies.py、evaluation/benchmark.py、toolchain/slither.py，新增 tests/test_cp52.py。313 份漏修逐项归因。v2 的 400 项均触发并精确逆向还原，363 项通过 D3，359 项达到 exact。重算 950 个历史包装样本得到 950 个 exact。旧移动样本的 D3 通过数为 CP5.1 的 189/400 与 CP5.2 的 279/400；真实缺相对文件的 D3 通过数为 CP5.1 的 42/412 与 CP5.2 的 44/412。其余 8714 个外部单元的 D3 和图 SHA256 逐项相同。
+
+两套环境分别通过 1,155 和 671 项模块测试，DFG v2 通过 2,653 项。测试命令为各环境的 `python -B -m pytest -x -q -p no:cacheprovider`，测试目录、临时目录与源码哈希见 `artifacts/cp5_2_v1/frozen_suites/`。生产文件 18 个，冻结 DFG 引用 354 个。843 个 MANDO 图均等于 v5。研究方案差异、用户授权及首轮停点见 `docs/CHANGE_LOG.md` §59；完整指标见 `CP5_REPORT.md`。D25 待用户决定。

@@ -1,0 +1,70 @@
+{
+  "cause": "materialize_project keeps import origin paths when copying physical source inputs. Re-resolving the working tree changes these path strings. Each logical source and target, literal span, source hash, remapping and input file was verified. 711 historical CP3 receipts predate the approved absolute project-root allow-paths fix; only that argument differs for both solc and Slither.",
+  "cost_usd": 0,
+  "downloads": 0,
+  "files": {
+    "development_partial_ir.log": "09333e081e4e324817e88f96e9d9cd46757aae3de65e5797e69a7b33b0d3363f",
+    "frozen_suites/source_freeze.json": "059c0ffb84a06a34e34af802f5d99a4be70f56b73b6500f9e269ac82525ff6c6",
+    "ir_argument_differences.json": "3e453305e6fc3f6c6c815668553f236cbdf2b38558c18ed2846cc7ee218df78a",
+    "ir_argument_differences.jsonl": "f263d2714388bb6175d50f36d1ce1bffd6e10a883f914871252e7aafe021734c",
+    "ir_manifest_preflight.json": "a74e4693509238c31d1f1a8bc5beb50fe9211e9f2cf0b7472dd4e83e6fc0b5dd",
+    "ir_manifest_preflight.jsonl": "b8aff13cbca908739660befb42d00f17d6853da5a74837ec2fbe12ca859f5a94",
+    "measurement_stop.json": "c378335d5a35560598e64d05a8dde0c93df12eb991b81242182c2a26099e62f5"
+  },
+  "llm_calls": 0,
+  "observed": {
+    "manifest_verification": {
+      "benchmark": {
+        "projects": 1240,
+        "units": 1240,
+        "verified": 1240,
+        "with_origin_paths": 555
+      },
+      "cp3": {
+        "ValueError: Recorded solc arguments differ": 711,
+        "projects": 714,
+        "units": 1000,
+        "verified": 289,
+        "with_origin_paths": 468
+      },
+      "real_dev": {
+        "projects": 1131,
+        "units": 1131,
+        "verified": 1131,
+        "with_origin_paths": 1128
+      }
+    },
+    "new_external_units_before_stop": 0,
+    "new_ir_invocations_before_stop": 0,
+    "saved_first_run_files": true,
+    "within_cp3_old_arguments": [
+      [
+        true,
+        true,
+        711
+      ]
+    ]
+  },
+  "original_stop": {
+    "command": [
+      "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+      "-B",
+      "-u",
+      "/home/zhao/SmartContract/ge-sc-llm-compile/compile_repair/artifacts/cp5_2_v1/measure.py",
+      "ir",
+      "real_dev"
+    ],
+    "elapsed_seconds": 0.785797998000362,
+    "name": "development_partial_ir",
+    "returncode": 1,
+    "script_sha256": "946c4b5f5f3f0a0323c3ae8dd5757f35c09e251949ec1c2826e8e42e94d1f250",
+    "utc": "2026-11-24T04:58:13.727105+00:00"
+  },
+  "proposed": [
+    "Use the exact sealed historical manifest after independently checking all working source hashes and all local import endpoints and byte spans.",
+    "For the named 711 CP3 units only, run one fresh real solc invocation in the original working directory with the current production absolute root and the original binary/version/settings. Save command, full result and timing. Call current production Slither only following an observed rc=0. Retain both commands and historic graphs. Stop and report a changed D3 or failed compilation.",
+    "Use original observed solc calls for the other 2660 partial IR observations; verify original and current Slither arguments. Resume the original unstarted external and benchmark measurements with the frozen production files once, in a new batch. Reuse finished diagnostic, historical scores, suites and MANDO."
+  ],
+  "recorded_utc": "2026-11-24T05:03:15.927270+00:00",
+  "stage": "Partial IR preflight and scientific comparison of historical compiler arguments"
+}

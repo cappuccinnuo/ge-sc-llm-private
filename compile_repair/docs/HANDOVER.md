@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.24 §1.27、§2 的 D25、§4.6i（CP5.2）、artifacts/cp5_1_review_v1/README.md、CP5_REPORT.md 的 CP5.1、CHANGE_LOG §57、§58。
+> 本轮先读第 0–5 节、CP5_REPORT.md 的 CP5.2 节、CHANGE_LOG §59 及 artifacts/cp5_2_v1/README.md。
 
 ## 0. 一句话
 
-CP5.1 已由 Claude 审查：索引、D24、候选上限、oldest 规则与外部语料重跑（5,880 / 9,138 通过 D3）成立；未解决五个问题：移动样本与真实缺相对文件的漏修未诊断、包装 exact 被元数据拒绝、文件级破坏的 exact 邻域、部分 IR 比例未测。下一步：Codex 执行 4.6i 节 CP5.2 → Claude 审查 → CP6。
+CP5.2 完成验收，v2 移动样本 363/400 通过 D3、359/400 达到 exact，950 个包装样本全部达到 exact。全量外部语料 5882/9,138 通过 D3。下一步为 CP5.2 审查，部分 IR 是否纳入 D3 由用户决定。
 
 ## 1. 当前状态
 
@@ -15,7 +15,8 @@ CP5.1 已由 Claude 审查：索引、D24、候选上限、oldest 规则与外�
 | CP5.1 | 审查成立部分见 1.27 节；留五个问题由 CP5.2 解决 |
 | 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；test_cp5*.py 依赖用户本机编译器目录 |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | CP5.2 → 审查 → CP6 |
+| CP5.2 | 313 项漏修归因、有限链、文件评分及部分 IR 测量完成，843 个 MANDO 图等于 v5 |
+| 下一步 | 审查 CP5.2，用户评估 D25，然后按计划开展 CP6 |
 
 ## 2. 分支与工作树
 
@@ -33,6 +34,8 @@ CP4.5 从 c8ca807a 开始。首轮及逐项差异证据在 artifacts/cp4_5_v1；
 
 CP5.1 从 `5fe7671f` 开始。新证据在 `artifacts/cp5_1_v1/`，语料、离线索引和编译工作副本见该批 README。
 
+CP5.2 基线为 fba94f1d，使用独立 compile-repair 工作树，证据及续作均位于 artifacts/cp5_2_v1。
+
 ## 3. 环境
 
 生产采用 Python 3.10、Slither 0.11.6、crytic-compile 0.4.2 和 92 版本 solc 快照。mando 的 Python 3.7、Slither 0.8.0 承担兼容与 DFG 测试。工具身份以 execution_settings.json 及前序授权信任清单为准。CPU 本地执行，费用 0 美元。
@@ -49,6 +52,8 @@ CP4.5 历史核验只读已封存的图；手写夹具回归运行于既有生�
 
 CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用已有 WSL 代理，补传的停点及离线配置验证见 `guard_stop.json`。模块与 DFG 套件的命令和版本见 `checkpoint_audit.json`。
 
+CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
+
 ## 4. 必读与下一步
 
 复核先核对 CP4_REPORT.md、seal.json、archives.json 和三个授权文件。用 sample_plan.jsonl.gz 与 sample_receipts.jsonl.gz 按算子和单元匹配。对照检查原版本、设置和图，评分用首轮通过的 4,315 行及 identity_continuation 的 7,543 行。抽查 cp3_23979 的原始 IR 差异和同路径探针，确认评分保留了完整 metadata。后续开发使用 dev，test 只用于报告。此前的 D21、AST 不足和语言未定等限制仍记在 CP3_REPORT.md。（2026-11-22 Claude 更新：CP4 审查发现四个问题，CP5 之前执行 CP4.1，见 PROMPTS §4.6b。）
@@ -64,6 +69,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP4.5 复核先查两份授权、comparison_stop_seal 与最终 acceptance，再检查三个旧名节点的身份、删除与数组写入的绑定证据及三组完整重算。
 
 CP5.1 复核先读 `CP5_REPORT.md` 的 CP5.1 一节与新批次 README。按 `index_verification.json` 核对索引，再查 `population.json`、`path_census.json`、`moved_summary.json` 和开发集的选版证据。
+
+复核 CP5.2 时先看 acceptance.json、diagnosis_details.json、v2_scoring_details.json 和 IR 的四个分母，再核对 D25 的决策范围。v2_scoring_details.json 位于本批 continuation 下。
 
 ## 5. 关键路径
 
@@ -106,6 +113,8 @@ CP5.1 复核先读 `CP5_REPORT.md` 的 CP5.1 一节与新批次 README。按 `in
 | 旧基线与审查 | artifacts/cp3_paths_v1、artifacts/cp3_review_v1、artifacts/cr_store_mando_v5 |
 
 ---
+
+CP5.2 的索引为 artifacts/cp5_2_v1/README.md。完整运行工作副本位于同级 compile-repair-local/cp5_2_v1/，每项压缩记录的哈希见 record_archives.json。
 
 ## 6. 交接记录
 
@@ -804,3 +813,13 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 结论：已完成部分成立；未解决五个问题，新增 4.6i 节 CP5.2 与待定决定 D25。移动算子的缺陷来自 4.6h 的写法（没有同时更新被移动文件的导入）。
 
 下一步：Codex 执行 CP5.2，Claude 审查后进入 CP6。本轮没有模块代码改动、下载或安装。详见 CHANGE_LOG §58。
+
+### 2026-11-24 CompileRepair CP5.2 完成（修改 AI 为 Codex）
+
+专用工作树以 fba94f1d 为起点，执行 PROMPTS r2.24 §4.6i。生产改动集中于四个既有模块，细节及函数清单见 code_audit.json。本次更新交接第 0–5 节的状态、环境、阅读顺序及证据路径。
+
+400 个 v2 移动样本均通过触发和逆向对照。363 项通过实际修复，359 项达到 exact。旧移动样本的 D3 通过数为 CP5.1 的 189/400 与 CP5.2 的 279/400；真实缺相对文件的 D3 通过数为 CP5.1 的 42/412 与 CP5.2 的 44/412。其余 8714 个外部单元的 D3 和图 SHA256 逐项相同。 原 950 份包装结果均经验证达到 exact。
+
+部分 IR 检出的单元为真实开发集 4/1131、基准成功样本 0/1240、MANDO 0/843、CP3 基础抽样 0/1000。17 份移动收据使用已接受轮次的位置，按原指针核对双份哈希后完成诊断。用户批准保留包装原分，并在验证唯一源身份后转换图表示。首份 IR 清单保留导入来源绝对路径，逐项核对逻辑目标后恢复原清单；711 个旧参数项目按原目录另行编译。D25 仍待用户决定。
+
+全部 843 份 MANDO 成功图与 v5 相同，另 3 项保留原失败。首轮回归因测试复制源码时评分函数仍在编辑而停止；冻结 18 个生产文件后在新目录通过全部三套回归，354 个 DFG 引用核验完成。WSL 单独重启后验证了代理和直连阻断；后续启动器间歇超时时保留运行中的作业，通过原生启动方式和共享目录核验收据。CPU 评估费用 0 美元，未执行下载或训练。

@@ -1,4 +1,5 @@
 """CP5 offline, content-verified package releases and deterministic import repairs."""
+from collections import Counter
 import base64
 import hashlib
 import io
@@ -374,7 +375,46 @@ def _suffix_rank(request, candidate):
     return 2, -exact
 
 
-def relative_repairs(project, index, versions, previous=None, round_number=1):
+def chain_relative_issues(previous, candidate, choices):
+    """Return only newly introduced relative errors after verifying every selected import."""
+    selected = [row for row in choices if "selected" in row]
+    if not selected:
+        return ()
+    # Rewrites change literal widths, including several on one line. The import
+    # order within a source unit is preserved by a path-only patch.
+    for item in selected:
+        old = [r for r in previous.imports if r["importer"] == item["importer"]]
+        new = [r for r in candidate.imports if r["importer"] == item["importer"]]
+        if len(old) != len(new):
+            return ()
+        start, end = item["literal_span"]
+        matches = [i for i, r in enumerate(old) if not r["resolved"] and
+                   (r["literal_start"] + 1, r["literal_end"] - 1) == (start, end)]
+        if len(matches) != 1:
+            return ()
+        row = new[matches[0]]
+        if not row["resolved"] or Path(row["target_path"]) != Path(candidate.root) / item["selected"]:
+            return ()
+
+    def identity(row):
+        return tuple(row.get(key) for key in ("source_path", "importer", "category", "reason", "path", "line"))
+
+    remaining = Counter(identity(r) for r in previous.issues)
+    entered = {f.path for f in candidate.files} - {f.path for f in previous.files}
+    new_issues = []
+    for row in candidate.issues:
+        key = identity(row)
+        if remaining[key]:
+            remaining[key] -= 1
+        elif (row.get("category") == "missing_relative_file" and row.get("source_path") in entered
+              and row.get("supported_literal") and row["path"].startswith(("./", "../"))):
+            new_issues.append(row)
+        else:
+            return ()
+    return tuple(new_issues)
+
+
+def relative_repairs(project, index, versions, previous=None, round_number=1, issues=None):
     """Propose only source- and pragma-supported changes to quoted import paths."""
     from compile_repair.core.model import Patch
     from compile_repair.core.provenance import apply_patches, verify_provenance
@@ -387,7 +427,7 @@ def relative_repairs(project, index, versions, previous=None, round_number=1):
     for path in index.entries:
         by_basename.setdefault(path.name.casefold(), []).append(path)
     edits, evidence = {}, []
-    for row in project.issues:
+    for row in project.issues if issues is None else issues:
         spelling = row.get("path", "")
         if (row.get("category") not in ("missing_relative_file", "io_error") or
                 not spelling.startswith(("./", "../")) or package_spec(spelling) or

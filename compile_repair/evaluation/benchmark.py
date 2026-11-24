@@ -4,15 +4,16 @@ from dataclasses import asdict
 from functools import lru_cache
 import hashlib
 import json
+import posixpath
 import re
 from pathlib import Path
 
 from compile_repair.core.model import CompilationUnit, Patch, SourceFile
-from compile_repair.core.provenance import apply_patches
+from compile_repair.core.provenance import apply_patches, verify_provenance
 from compile_repair.core.store import ArtifactStore, emit, read_checked_json, sha256
 from compile_repair.pipeline import repair_unit
 from compile_repair.rules.environment import mando_known_version
-from compile_repair.toolchain.project import resolve_project
+from compile_repair.toolchain.project import ProjectIndex, resolve_project, source_unit_name
 from compile_repair.toolchain.solc import lexical_tokens
 
 
@@ -88,6 +89,7 @@ OPERATORS = {
     "unresolved_package_import": "remove an identified package and use its published import paths",
     "missing_relative_file": "remove a resolved relative dependency",
     "missing_relative_file_moved": "move a resolved relative dependency with its bytes unchanged",
+    "missing_relative_file_moved_v2": "move a relative dependency and preserve the targets of its outgoing imports",
     "missing_base_contract": "delete the unique locally defined inherited base",
     "undeclared_identifier": "delete a referenced event declaration",
     "duplicate_definition": "copy a complete definition into its original scope",
@@ -383,6 +385,8 @@ def _sample_edits(base, sources, site, operator):
     file, _, _, plan, action, _ = site
     if action != "package_dependency":
         mutated, patch, _ = build_mutation(base, sources, site, operator)
+        if action == "move_file_v2":
+            return mutated, [(file, "edit", item) for item in patch]
         return mutated, [] if action == "move_file" else [(file,action,patch)]
     work = dict(sources)
     records = []
@@ -418,6 +422,43 @@ def relative_move_site(base, sources, imports):
             return None
         return name, 0, 0, destination, "move_file", "project_assembly"
     return None
+
+
+def relative_move_v2_site(base, sources, imports, moved=None):
+    """Keep the original move selection and rebase each outgoing relative import."""
+    moved = moved or relative_move_site(base, sources, imports)
+    if moved is None:
+        return None
+    name, _, _, destination, _, stage = moved
+    root = Path(base["project_root"])
+    raw = sources[name]
+    patches = {}
+    for row in imports:
+        if Path(row["source_path"]) != root / name:
+            continue
+        if not row["resolved"] or not row["supported_literal"]:
+            return None
+        target = Path(row["target_path"]).relative_to(root).as_posix()
+        target = destination if target == name else target
+        if not row["path"].startswith(("./", "../")):
+            if source_unit_name(destination, row["path"], base["remappings"]) != row["target_source_unit"]:
+                return None
+            continue
+        path = posixpath.relpath(target, posixpath.dirname(destination))
+        if not path.startswith(("./", "../")):
+            path = "./" + path
+        if source_unit_name(destination, path, base["remappings"]) != target:
+            return None
+        lo, hi = row["literal_start"] + 1, row["literal_end"] - 1
+        quote = raw[lo-1:lo]
+        if raw[lo:hi] != bytes.fromhex(row["literal_hex"]) or quote not in (b"'", b'"') or raw[hi:hi+1] != quote:
+            raise ValueError("Moved source literal does not match the resolved import")
+        replacement = path.encode("utf8").replace(b"\\", b"\\\\").replace(quote, b"\\" + quote)
+        if (lo, hi) in patches and patches[lo, hi] != replacement:
+            return None
+        if replacement != raw[lo:hi]:
+            patches[lo, hi] = replacement
+    return (name, 0, 0, {"destination": destination, "paths": patches}, "move_file_v2", stage)
 
 
 def mutation_sites(base, sources, layouts, imports, versions=None):
@@ -518,6 +559,9 @@ def mutation_sites(base, sources, layouts, imports, versions=None):
         moved = relative_move_site(base, sources, imports)
         if moved is not None:
             result["missing_relative_file_moved"] = moved
+            v2 = relative_move_v2_site(base, sources, imports, moved)
+            if v2 is not None:
+                result["missing_relative_file_moved_v2"] = v2
         package = _package_site(base, sources, imports)
         if package:
             result["unresolved_package_import"] = (entry, 0, 0, package, "package_dependency", "project_assembly")
@@ -535,12 +579,16 @@ def build_mutation(base, sources, site, operator):
     """Apply the selected edit and return the resulting closure, exact patch and damage provenance."""
     file,lo,hi,replacement,action,stage=site
     raw=sources[file]
-    if action == "move_file":
+    if action in ("move_file", "move_file_v2"):
+        paths = replacement["paths"] if action == "move_file_v2" else {}
+        replacement = replacement["destination"] if action == "move_file_v2" else replacement
         if file == next(iter(sources)) or replacement != ".cp5_moved/" + Path(file).name or replacement in sources:
             raise ValueError("Invalid relative dependency move")
         mutated = dict(sources)
-        mutated[replacement] = mutated.pop(file)
-        return mutated, None, apply_patches(raw, ())[1]
+        patches = tuple(Patch(a, b, raw[a:b], paths[a, b], operator, reason=OPERATORS[operator])
+                        for a, b in sorted(paths, reverse=True))
+        mutated[replacement], damage = apply_patches(mutated.pop(file), patches)
+        return mutated, patches if action == "move_file_v2" else None, damage
     if isinstance(replacement,tuple):
         if replacement[0]=="copy":
             a,b=replacement[1]
@@ -563,7 +611,7 @@ def classify_trigger(stage, target, result, primary, selected_labels):
     """Classify using the primary cause after all environment candidates and the independent selected probe."""
     if result.status == "success":
         return "resolved_by_environment"
-    if target == "missing_relative_file_moved":
+    if target in ("missing_relative_file_moved", "missing_relative_file_moved_v2"):
         target = "missing_relative_file"
     if target in primary and (stage != "solc" or target in selected_labels):
         return "included"
@@ -603,8 +651,11 @@ def assess_mutation(base, operator, seed, sources, site, compilers, frozen_versi
                     truth_graph_sha256=base["graph_sha256"], version=base["version"], settings=base["settings"],
                     stage=stage, original_sha256={k:_digest(v) for k,v in sources.items()},
                     damaged_sha256={k:_digest(v) for k,v in mutated.items()})
-    if action == "move_file":
+    if action in ("move_file", "move_file_v2"):
         old = site[0]
+        if action == "move_file_v2":
+            manifest["edits"] = edits
+            plan = plan["destination"]
         manifest.update(target="missing_relative_file", file_renames={old: plan},
                         move=dict(source=old, destination=plan, sha256=_digest(sources[old])))
     elif action == "package_dependency":
@@ -689,7 +740,37 @@ def _near(interval, edits, regions):
     return False
 
 
-def _correspondence(original, damaged, repaired, damage_maps, repair_maps):
+def file_damage_import_spans(base, original, mutation):
+    """Find incoming literal interiors in the verified truth closure of a file-level mutation."""
+    if not base.get("project_root"):
+        return {}
+    operator = mutation["operator"]
+    if operator in ("missing_relative_file_moved", "missing_relative_file_moved_v2"):
+        targets = set(mutation["file_renames"])
+    elif operator == "standard_json_input":
+        targets = {next(iter(original))}
+    elif operator in ("missing_relative_file", "unresolved_package_import"):
+        edits = mutation.get("edits", [mutation.get("edit")])
+        targets = {r["file"] for r in edits if r and r.get("action") == "delete_file"}
+    else:
+        return {}
+    if not targets:
+        return {}
+    root = Path(base["project_root"])
+    index = ProjectIndex(root, tuple(root / name for name in original))
+    project = resolve_project(root, base["entry"], base.get("remappings", ()), index)
+    if project.issues or {Path(f.path).relative_to(root).as_posix(): f.content for f in project.files} != original:
+        raise ValueError("Import neighbourhood requires the intact truth closure")
+    spans = defaultdict(set)
+    for row in project.imports:
+        target = Path(row["target_path"]).relative_to(root).as_posix()
+        if target in targets and row["supported_literal"]:
+            owner = Path(row["source_path"]).relative_to(root).as_posix()
+            spans[owner].add((row["literal_start"] + 1, row["literal_end"] - 1))
+    return dict(spans)
+
+
+def _correspondence(original, damaged, repaired, damage_maps, repair_maps, file_import_spans=None):
     from compile_repair.core.provenance import compose_offsets
     result={};near=True;levels=[]
     for name in set(original)|set(damaged)|set(repaired)|set(damage_maps)|set(repair_maps):
@@ -716,7 +797,8 @@ def _correspondence(original, damaged, repaired, damage_maps, repair_maps):
             for span in additions:
                 left=max((s.original_end for s in segments if s.original_end is not None and s.new_end<=span.new_start),default=0)
                 right=min((s.original_start for s in segments if s.original_start is not None and s.new_start>=span.new_end),default=len(before))
-                near=near and _near((left,right),edits,regions)
+                in_import = any(lo <= left <= right <= hi for lo, hi in (file_import_spans or {}).get(name, ()))
+                near = near and (_near((left, right), edits, regions) or in_import)
     level="rewrite" if "rewrite" in levels else "additive" if "additive" in levels else "none"
     return result,near,level
 
@@ -1330,8 +1412,36 @@ def _verified_migration(truth, actual, positions, original, repaired):
                     "cfg_edges": len(truth.get("cfg_edges", ())), "calls": len(truth.get("calls", ()))}
 
 
+def _single_file_wrapper_graph(graph, filename):
+    """Translate the project graph's one proven filename into the standalone representation."""
+    def local(row):
+        if not isinstance(row, dict) or row.get("filename") != filename:
+            raise ValueError("wrapper_source_identity_differ")
+        return {k: v for k, v in row.items() if k != "filename"}
+
+    def endpoint(row):
+        ref = local(row)
+        if set(ref) != {"key5"}:
+            raise ValueError("wrapper_endpoint_shape_differ")
+        return ref["key5"]
+
+    def callee(row):
+        if "function" in row or "filename" in row:
+            return local(row)
+        return row
+
+    return dict(graph, schema="compile-repair-graph-v1",
+                nodes=[local(row) for row in graph["nodes"]],
+                declarations=[local(row) for row in graph["declarations"]],
+                cfg_edges=[dict(row, source=endpoint(row["source"]), target=endpoint(row["target"]))
+                           for row in graph["cfg_edges"]],
+                calls=[dict(row, node=endpoint(row["node"]), callee=callee(row["callee"]))
+                       for row in graph["calls"]])
+
+
 def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair_maps, solc_returncode, d3,
-                 file_renames=None, normalize_creation_code=True, migration_compilations=None):
+                 file_renames=None, normalize_creation_code=True, migration_compilations=None,
+                 file_import_spans=None, single_file_wrapper=False):
     """Score actual graph facts under verified damage and repair provenance, without running tools.
 
     Source maps use project-relative names (the empty key for a single-file graph).
@@ -1352,12 +1462,13 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
             return _digest((json.dumps(graph, sort_keys=True, ensure_ascii=False, indent=2) + "\n").encode("utf8"))
         witness_input = [(migration_compilations.get(side), graph_digest(g), files)
                          for side,g,files in (("truth",truth,original),("repaired",actual,repaired))]
+    physical_actual = actual
     repaired = aligned
     truth, changed_truth = _comparison_graph(truth, {}, normalize_creation_code)
     changed_actual = 0
     if actual is not None:
         actual, changed_actual = _comparison_graph(actual, reverse, normalize_creation_code)
-    maps,near,level=_correspondence(original,damaged,repaired,damage_maps,repair_maps)
+    maps,near,level=_correspondence(original,damaged,repaired,damage_maps,repair_maps,file_import_spans)
     normalization = {"metadata_normalized": bool(changed_truth or changed_actual),
                      "normalized_nodes": {"truth": changed_truth, "repaired": changed_actual}}
     compiled = solc_returncode == 0 and d3 is True
@@ -1417,7 +1528,21 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
             raise ValueError(kept_score["counter_correspondence"]["reason"])
         actual, switches = _align_switches(truth, actual, positions, sites, original, repaired,
                                            renames, maps, kept_positions)
+        previous_wrapper_score = None
+        if single_file_wrapper:
+            if not (set(original) == set(repaired) == {""} and set(renames) == {""}
+                    and renames[""] and original[""] == repaired[""]
+                    and truth.get("schema") == "compile-repair-graph-v1"
+                    and actual.get("schema") == "compile-repair-project-graph-v1"):
+                raise ValueError("wrapper_source_identity_differ")
+            # Validate the physical names before the normal rename map can collapse them.
+            converted = _single_file_wrapper_graph(physical_actual, renames[""])
+            actual, _ = _comparison_graph(converted, {}, normalize_creation_code)
+            previous_wrapper_score = dict(kept_score, exact=False, raw_migration_score=raw,
+                migration_counters={"status": "rejected", "reason": "graph_metadata_differ"})
         verified, proof = _verified_migration(truth, actual, positions, original, repaired)
+        if previous_wrapper_score is not None:
+            proof["single_file_wrapper"] = {"filename": renames[""], "sha256": _digest(original[""])}
         if switches:
             proof.update(status="verified", yul_switches=switches)
     except (ValueError, KeyError, TypeError, IndexError) as error:
@@ -1426,8 +1551,11 @@ def score_graphs(truth, actual, original, damaged, repaired, damage_maps, repair
     corrected = raw
     if proof["renamed"] or switches:
         corrected = _score_facts(truth, verified, original, repaired, maps, near, level, compiled, normalization)
-    return dict(corrected, raw=raw, raw_migration_score=raw, migration_counters=proof,
-                counter_correspondence=kept_score["counter_correspondence"])
+    score = dict(corrected, raw=raw, raw_migration_score=raw, migration_counters=proof,
+                 counter_correspondence=kept_score["counter_correspondence"])
+    if previous_wrapper_score is not None:
+        score["previous_wrapper_score"] = previous_wrapper_score
+    return score
 
 
 def _score_facts(truth, actual, original, repaired, maps, near, level, compiled, normalization,
@@ -1589,8 +1717,12 @@ def score_request(request_path, output):
     if witnesses is not None:
         witnesses = {side: {"combined_json":content(ref["combined_json"]), "result":json.loads(content(ref["result"]))}
                      for side,ref in witnesses.items()}
+    file_damage = spec.get("file_damage")
+    spans = file_damage_import_spans(file_damage["base"], original, file_damage["mutation"]) if file_damage else None
     score=score_graphs(truth,actual,original,damaged,repaired,first,second,spec["solc_returncode"],spec["d3"],
-                       migration_compilations=witnesses,
+                       migration_compilations=witnesses, file_import_spans=spans,
+                       single_file_wrapper=bool(file_damage and file_damage["mutation"]["operator"] == "standard_json_input"
+                                                and not file_damage["base"].get("project_root") and "" in spec.get("file_renames", {})),
                        file_renames=spec.get("file_renames"),normalize_creation_code=spec.get("normalize_creation_code",True))
     ArtifactStore(output).write_json("score.json",score)
     return {"status":"complete","summary":score}
@@ -1605,13 +1737,17 @@ def dependency_repair_observation(base, mutation, original, damaged, damage_maps
     for name, data in damaged.items():
         if (damaged_root / (name or "input.sol")).read_bytes() != data:
             raise ValueError("Damaged input differs from benchmark receipt")
-    moved = mutation.get("file_renames", {}) if mutation["operator"] == "missing_relative_file_moved" else {}
-    logical_damage = dict(damaged)
+    move_operator = mutation["operator"] in ("missing_relative_file_moved", "missing_relative_file_moved_v2")
+    moved = mutation.get("file_renames", {}) if move_operator else {}
     for old, new in moved.items():
-        if (old in damaged or new in original or new not in damaged or damaged[new] != original[old]
+        mapped = damage_maps.get(old)
+        v2 = mutation["operator"] == "missing_relative_file_moved_v2"
+        expected = mapped.result_sha256 if v2 and mapped is not None else _digest(original[old])
+        if (old in damaged or new in original or new not in damaged or _digest(damaged[new]) != expected
                 or (damaged_root / old).exists() or (damaged_root / old).is_symlink()):
             raise ValueError("Moved dependency differs from the recorded physical move")
-        logical_damage[old] = logical_damage.pop(new)
+        if v2 and mapped is not None:
+            verify_provenance(original[old], damaged[new], mapped)
     entry = damaged_root / (entry_name or "input.sol")
     regression = "mando" if base["corpus"] == "MANDO" else None
     raw = damaged[entry_name]
@@ -1622,11 +1758,27 @@ def dependency_repair_observation(base, mutation, original, damaged, damage_maps
     with store.journal("invocations.jsonl") as journal:
         result = repair_unit(unit, compilers, store, journal, project=project, offline_index=offline_index,
                              dependency_policy=policy, dependency_limit=dependency_limit)
-    unit_dir = store.path / "units" / unit.unit_id
+    report = score_dependency_repair(base, mutation, original, damaged, damage_maps, store.path, result,
+                                     policy, dependency_limit)
+    store.write_json("evaluation.json", report)
+    return report
+
+
+def score_dependency_repair(base, mutation, original, damaged, damage_maps, directory, result, policy,
+                            dependency_limit, file_level=True):
+    """Score a completed repair from its actual receipts, including sealed earlier observations."""
+    directory = Path(directory)
+    entry_name = next(iter(original))
+    move_operator = mutation["operator"] in ("missing_relative_file_moved", "missing_relative_file_moved_v2")
+    moved = mutation.get("file_renames", {}) if move_operator else {}
+    logical_damage = dict(damaged)
+    for old, new in moved.items():
+        logical_damage[old] = logical_damage.pop(new)
+    unit_dir = directory / "units" / result.unit_id
     step_path = unit_dir / "repair_steps.json"
     steps = json.loads(step_path.read_bytes()) if step_path.is_file() else []
     accepted = [s for s in steps if s.get("accepted")]
-    receipt = store.path / accepted[-1]["receipt"] if accepted else unit_dir / "result.json"
+    receipt = directory / accepted[-1]["receipt"] if accepted else unit_dir / "result.json"
     project_file = receipt.parent / "project.json"
     layout = json.loads(project_file.read_bytes()) if project_file.is_file() else None
     released = {}
@@ -1675,16 +1827,17 @@ def dependency_repair_observation(base, mutation, original, damaged, damage_maps
             repair_maps[old] = repair_maps.pop(new)
     score = score_graphs(truth, actual, original, logical_damage, final, damage_maps, repair_maps,
                          last.get("solc", {}).get("returncode"), slither.get("d3") and result.status == "success",
-                         file_renames=renames)
+                         file_renames=renames, file_import_spans=file_damage_import_spans(base, original, mutation) if file_level else None,
+                         single_file_wrapper=(file_level and mutation["operator"] == "standard_json_input" and
+                                              not base.get("project_root") and "" in renames))
     levels = {p.level for p in result.provenance.values()}
     physical = {old: bool(old in renames and final[renames[old]] == original[old])
                 for old in mutation.get("logical_package_paths", {})}
-    report = dict(unit_id=unit.unit_id, operator=mutation["operator"], corpus=base["corpus"], split=base["split"],
+    report = dict(unit_id=result.unit_id, operator=mutation["operator"], corpus=base["corpus"], split=base["split"],
                   status=result.status, reason=result.reason, policy=policy, selected_version=result.selected_version,
                   score=score, releases=released, original_package_bytes_equal=physical,
                   truncated="dependency_search_truncated" in result.flags, dependency_limit=dependency_limit,
                   change_level="rewrite" if "rewrite" in levels else "additive" if "additive" in levels else "none",
                   accepted_steps=[s["step"] for s in accepted], result_path=str(receipt), result_sha256=sha256(receipt),
                   graph_sha256=sha256(graph_path) if actual is not None else None)
-    store.write_json("evaluation.json", report)
     return report
