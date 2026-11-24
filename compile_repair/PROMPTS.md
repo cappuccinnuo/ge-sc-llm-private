@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.28（2026-11-24；r2.27、r2.26、r2.25 同日；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.29（2026-11-24；r2.28、r2.27、r2.26、r2.25 同日；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,10 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.29 相对 r2.28 的修改**（CP6.1：第 5 步规范化；修改 AI：Claude）：
+1. 用户决定（2026-11-24）：先做 CP6，按与语料无关的失败类别实现确定性规则；语料只用于测量类别与频率并评估修复，频率按不同项目与写法计，不按单元数计。前缀中带精确版本的导入（`name-X.Y.Z/…` 对应该 npm 包的该版本，拟为 D26）作为 CP6 中的一个小步骤，需用户批准 D26 后实施；索引扩充以后按包的普及程度另行决定。
+2. 新增 4.6l 节 CP6.1：第 5 步的五条规范化规则、流水线接入、云端核验与本地运行步骤。
 
 **r2.28 相对 r2.27 的修改**（CP6.0.1 本地复核的审查与下一阶段的顺序；修改 AI：Claude）：
 1. CP6.0.1 本地复核（Codex，提交 278707dcc）通过：production 1,163 / 6、mando 672 / 497、DFG v2 2,653、MANDO 843 一致；4 个部分 IR 单元全部 unrepaired、主因 slither_incomplete，385 次候选全部为 slither_partial_ir，没有留存图。CP6.0 阶段完成。审查发现的小问题：partial_ir_check_r2.py 以 exist_ok=False 创建的输出目录与前两步共用，Codex 经用户批准直接调用原入口，处理正确；以后的本地步骤为每一步使用独立子目录。
@@ -1686,6 +1690,47 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - 预期：每个单元或者 status 不为 success、没有 graph.json、primary_causes 为 ["slither_incomplete"]、最终记录中有 slither_partial_ir 的候选；或者在另一个版本上成功且该次 d3_c 为 true、partial_ir 为空。summary 的 passed 为 true。同时报告每个单元 repair_steps.json 中 accepted_outcome 的步骤号与所加的发布版。
 
 4. 提交：结果写入 artifacts/cp6_0_v1/local/（tests_r2.json、mando_check_r2.json、partial_ir_units_r2.json），CP6_REPORT.md 增加“CP6.0.1 本地复核”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录；doc_check 后提交并 push 到 compile-repair，然后停下等待 Claude 审查。
+```
+
+### 4.6l CP6.1：第 5 步规范化（r2.29；Claude 实现，Codex 本地复核）
+
+#### 规格（已由 Claude 实现，见 CHANGE_LOG §66）
+- 新文件 rules/normalize.py（非测试文件 19 个）。每条规则只对一个文件提出字节补丁，不猜测行为：
+  - 逐字节相同的重复声明：被报 duplicate_definition 的 contract、interface、library、struct、enum、event、error、function、modifier，只有同一作用域内有逐字节相同的同类同名声明时，后面的副本换成空格（保留换行，其余代码的偏移与行号不变），等级 rewrite。内容不同、或与另一类声明重名时不处理。
+  - 重复 SPDX：文件中所有 SPDX 标识相同时删去后面的副本；标识不同不处理。
+  - 重复 pragma：非 solidity 的 pragma 逐字节重复时删去后面的副本；abicoder 取值冲突时不选择。
+  - pragma 终止符：`pragma solidity <版本>` 后直接遇到指令或声明关键字，或到达文件末尾时补一个分号，等级 additive。
+  - ABI 编码器：报 abi_coder_required 且文件没有选择编码器时，在 solidity pragma 后加 `pragma experimental ABIEncoderV2;`，等级 additive。
+- pipeline.py：修复资格增加 duplicate_definition、multiple_license_or_pragma、abi_coder_required、unterminated_pragma、pragma_missing_semicolon_candidate；第 5 步在第 2–4 步之后运行，诊断来自当前最佳记录（多个候选版本报告的同一诊断只保留一次）；第 3 步加入的依赖发布版不规范化；接受规则同 3.1 节；改动经 core.provenance 记录。
+- 测试：新增 tests/test_cp61.py 20 项。随新行为更新三项旧测试：test_pragma_comments 的环境阶段检查改为 environment_only（第 5 步现在会补上缺失的分号）、CLI 测试中缺分号的输入改为预期成功（调用 6 次）；test_cp1_1 的生产文件数 18 → 19。
+- 云端核验（artifacts/cp6_1_v1/README.md）：生产测试 1,183 passed / 6 skipped；MANDO 843 个图逐字节相同；小基准 45/45 修复成功、屏蔽元数据哈希后 exact 45/45（严格 39/45，差异只在内嵌子合约元数据哈希）；42 个真实单元中 11 个成功（2 个 DAppSCAN 项目、2 个 SOChecker 片段）。
+
+#### 本地运行步骤（Codex 在用户本机执行；只运行与报告，不改生产代码）
+
+```text
+# CP6.1 本地复核：拉取 Claude 的 CP6.1 提交，运行三套测试、MANDO 回归、第 5 步的破坏-修复基准与真实单元检查
+
+0. 准备：同 4.6j 第 0 步，提交为 CHANGE_LOG §66 记录的提交或其后只含文档的提交。输出根目录 /home/zhao/SmartContract/compile-repair-local/cp6_1_v1/（已存在即停下）；每一步使用自己的子目录 tests/、mando/、mini/、real/，子目录由脚本或 pytest 新建。不安装、不下载、不调用 LLM；与预期不符即停下报告，不改生产代码。
+
+1. 三套测试（命令同 4.6j 第 1、2 步，basetemp 分别为 <输出根目录>/tests/production、tests/mando、tests/dfg）
+- production 预期 1183 passed, 6 skipped（CP6.0.1 为 1163 / 6；新增 test_cp61.py 20 项）。
+- mando 预期 686 passed, 503 skipped（CP6.0.1 为 672 / 497；test_cp61.py 中 14 项规则测试在 mando 环境运行，6 项流水线测试需要 production 而跳过）。数量不同但没有失败时，逐项列出差异后继续。
+- DFG v2 预期 2653 passed。
+
+2. MANDO 回归：解包 v5 到 <输出根目录>/mando/v5，然后
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_0_v1/mando_check.py <输出根目录>/mando/v5 <输出根目录>/mando/run <输出根目录>/mando/mando_check.json
+  预期 passed=true；graphs_equal 843、historical_failures 3、steps_on_truths 0、d3_c_true 843。
+
+3. 破坏-修复基准（第 5 步的三个 CP4 算子）
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_1_v1/mini_benchmark.py compile_repair/artifacts/cp4_v1/bases.jsonl.gz /home/zhao/SmartContract/corpora/DAppSCAN@66a56619c44770e05c2db600fa6468115ff0dcd5/DAppSCAN-source 100 <输出根目录>/mini/run <输出根目录>/mini/summary.json
+  预期：每个算子 success = samples；unterminated_pragma 与 pragma_missing_semicolon_candidate 的 restored_bytes = samples；三个算子 exact_masking_metadata_hash = samples。严格 exact 小于 samples 时，逐个列出该基的 entry_sha256，并说明不一致的节点是否只在内嵌元数据哈希上不同（云端 15 个/算子时有两个这样的基）。某个算子可用的单文件基少于 100 个时，报告实际数量，不算失败。
+
+4. 真实单元
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_1_v1/select_targets.py <输出根目录>/real_targets.json cp3_16451 cp3_16472 cp3_16473 cp3_16474
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_1_v1/real_check.py <输出根目录>/real_targets.json <输出根目录>/real/run <输出根目录>/real/summary.json
+  （本机路径与清单一致，不需要前缀参数。）预期：42 个单元（DAppSCAN 24、SOChecker 18）；success 11、step5_accepted 11、corpus_unchanged true；成功的单元号与 artifacts/cp6_1_v1/real_check_cloud.json 相同。逐单元与云端结果对照，报告任何 status、reason 或 primary_now 的差异。
+
+5. 提交：把四项结果的汇总写入 artifacts/cp6_1_v1/local/（tests.json、mando_check.json、mini_benchmark.json、real_check.json，各含命令、提交、耗时与预期对照；mini 与 real 的完整 summary 可压缩为 .json.gz），在 CP6_REPORT.md 增加“CP6.1 本地复核”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录；doc_check 后提交并 push 到 compile-repair，然后停下等待 Claude 审查。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）

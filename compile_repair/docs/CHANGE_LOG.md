@@ -2860,3 +2860,44 @@ production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 sk
 - doc_check：PROMPTS、HANDOVER、DECISIONS 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP6.0 完成；等待用户对阶段顺序的决定。
+
+## 66. 2026-11-24 CompileRepair CP6.1 第 5 步规范化（修改 AI：Claude）
+
+### 66.1 任务、依据与范围
+
+用户决定（2026-11-24）：模块的目标是任何编译失败的合约都能被处理并让 Slither 构图；语料只用于测量失败类别与频率、评估修复，频率按不同项目与写法计。据此先做 CP6，带版本的导入前缀（拟 D26）作为 CP6 中的小步骤，待用户批准。本节实现 CP6 的第一个子阶段：第 5 步规范化。修改：新增 `rules/normalize.py`、`tests/test_cp61.py`、`artifacts/cp6_1_v1/`（README、三个脚本、五份云端摘要）；修改 `pipeline.py`、`tests/test_pragma_comments.py`、`tests/test_cp1_1.py`、`PROMPTS.md`（r2.28 → r2.29，新增 4.6l）；记录：本节、HANDOVER、DECISIONS、PROGRESS。
+
+### 66.2 实施方式和重要选择
+
+- 五条规则（见 4.6l）都要求可机械检查：重复声明必须逐字节相同且在同一作用域；SPDX 与 pragma 只删逐字相同的重复；冲突的 abicoder 不选择；分号只补在版本串直接接指令、声明或文件末尾处；ABI 编码器只在报错且文件未选择时加入。删除用空格替换并保留换行，未改动代码的偏移与行号不变。
+- 流水线：第 5 步在第 2–4 步之后，使用当前最佳记录的诊断。多个候选版本报告的同一诊断只保留一次（第一次真实检查中同一诊断按每个候选版本各记录一次，已修正并加测试）。solc 0.8 对重复 SPDX 不给行号，这类诊断以“无位置”传给文件级规则。
+- 旧测试的更新是行为变化，不是放宽：CP2.4 的环境阶段检查仍断言不调用工具（改为 environment_only）；CLI 测试中 `pragma solidity ^0.5.0` 缺分号的输入现在成功，环境阶段的原错误仍记录在 environment_result.json；生产文件数检查 18 → 19 并检查 normalize.py 在列。
+- 小基准的评分（只改评测脚本，不改 CP4 评分器）：修复后的单文件以单文件项目编译（文件名 input.sol），图的身份是项目图；先用 benchmark 的 `_single_file_wrapper_graph` 转回单文件身份再评分。第一次运行全部 kept 0 的原因有两个，都在脚本里：修复映射误传了 provenance 对象而不是偏移映射；没有做身份转换。
+- 文件末尾缺分号：真实检查中 SOChecker 片段 cp3_29802 只有一行 pragma，原规则要求后面有指令或声明而没有处理；文件末尾同样无歧义，规则扩展到文件末尾并加测试。
+- 未处理的情形按 D6 保留：内容不同的同名声明、常量变量与继承来的同名函数（Compound 系 certora 模型）、文件级的非常量变量。它们不能由规范化决定。
+
+### 66.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 生产测试 | 1,183 passed / 6 skipped（CP6.0.1 为 1,163 / 6） | cp6_1_v1/production_tests_cloud.json |
+| MANDO 回归 | 843 个图逐字节相同，d3_c 843，历史失败 3，steps_on_truths 0 | cp6_1_v1/mando_check_cloud.json |
+| 小基准（每个算子 15 个 DAppSCAN 单文件基） | 45/45 成功；字节还原：两个分号算子 15/15，重复定义 0/15（按设计换成空格）；严格 exact 39/45，屏蔽内嵌元数据哈希后 45/45 | cp6_1_v1/mini_benchmark_cloud.json |
+| 真实单元 42 个（DAppSCAN 24、SOChecker 18） | 成功 11：重复 SPDX 8（1 个项目）、逐字节相同的重复声明 2（zNS 与 1 个片段）、文件末尾缺分号 1（片段）；语料不变 | cp6_1_v1/real_check_cloud.json |
+| 未修复 31 | 同名但内容不同 18（4 个项目 + 14 个片段）；重名但不同类 9（6 个项目 + 2 个片段）；Frax 4：ABI 编码器已补上，下一个阻碍是 Stack too deep，错误数 1 → 1 未接受 | 同上 |
+
+严格 exact 的 6 个例外是两个工厂合约在 `type(X).creationCode` 中内嵌子合约元数据的 bzzr1 哈希：哈希随源单元名变化（真值为绝对路径，修复为 input.sol），已有的 normalized_node_ir 只处理末尾元数据。这是评测设置造成的差异。
+
+未证明：本机全量（每个算子 100 个基）的结果；第 5 步对 CP5 失败单元的影响（第 5 步只在第 2–4 步没有成功时运行，CP5 已成功的单元不变）。
+
+### 66.4 用户批准、原文差异与待确认设计
+
+- 用户已定：先做 CP6；带版本前缀作为 CP6 中的小步骤。
+- 待用户批准：D26（`name-X.Y.Z/…` 前缀作为该 npm 包该版本的身份证据），在 CP6.3 实施。
+- 待确认：Frax 类单元在第 9 步中是否把“错误进入更后的编译阶段（如从类型检查进入代码生成）”算作进展；D19；D9/D10；D12/D13 待定。
+
+### 66.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；使用已克隆的 DAppSCAN 与 SOChecker 只读副本；没有下载编译器、没有 LLM 调用，费用 0。
+- 停止：等待 Codex 按 4.6l 本地复核，然后 Claude 审查。

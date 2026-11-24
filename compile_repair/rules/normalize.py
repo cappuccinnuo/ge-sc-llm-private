@@ -7,7 +7,7 @@ Every rule proposes byte patches for one file and never guesses behaviour:
   license or directive are blanked; different licenses or conflicting ABI coder
   selections are never merged or chosen between;
 - pragma terminator: a Solidity pragma that runs into the next directive or
-  declaration gets the single missing semicolon;
+  declaration, or into the end of the file, gets the single missing semicolon;
 - ABI coder: a file rejected for needing ABI coder v2 gets the documented
   `pragma experimental ABIEncoderV2;` when it selects no coder itself.
 Blanking replaces bytes with spaces and keeps line breaks, so offsets and line
@@ -176,10 +176,12 @@ def pragma_terminators(raw):
         k = i + 2
         while k < len(layout.words) and (set(layout.words[k]) <= _VERSION_CHARS or layout.words[k] in (b"x", b"X")):
             k += 1
-        if k == i + 2 or k >= len(layout.words) or layout.words[k] == b";" or layout.words[k] not in _FOLLOWERS:
+        # The version run must end at a directive or declaration keyword, or at the end of the file.
+        if k == i + 2 or (k < len(layout.words) and (layout.words[k] == b";" or layout.words[k] not in _FOLLOWERS)):
             continue
         end = layout.tokens[k - 1][1]
-        patches.append(Patch(end, end, b"", b";", STEP, reason="pragma terminator before " + layout.words[k].decode()))
+        follower = layout.words[k].decode() if k < len(layout.words) else "end of file"
+        patches.append(Patch(end, end, b"", b";", STEP, reason="pragma terminator before " + follower))
     return patches
 
 

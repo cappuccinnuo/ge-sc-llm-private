@@ -668,3 +668,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 
 - CP6.0.1 本地复核通过，CP6.0 阶段完成。
 - 剩余失败以未收录的依赖为主（2,979 个单元；`openzeppelin-solidity-2.3.0` 前缀 1,539 个）。建议先做 CP5.3（依赖覆盖扩展），再做 CP6；待用户决定。证据 `artifacts/cp6_0_v1/remaining_failures.json`；记录 `docs/CHANGE_LOG.md` §65。
+
+## CP6.1 第 5 步规范化（Claude，2026-11-24）
+
+- 用户决定先做 CP6。第 5 步五条规则已实现：逐字节相同的重复声明、重复 SPDX、重复 pragma、pragma 分号（含文件末尾）、ABI 编码器。
+- 云端：生产测试 1,183 passed、MANDO 843 个图不变、小基准 45/45 修复（屏蔽内嵌元数据哈希后 exact 45/45）、42 个真实单元中 11 个成功（2 个 DAppSCAN 项目、2 个 SOChecker 片段）。
+- 下一步：Codex 按 PROMPTS §4.6l 本地复核；记录 `docs/CHANGE_LOG.md` §66。

@@ -74,6 +74,8 @@ def test_spdx_and_pragma_repeats_only_when_identical():
 @pytest.mark.parametrize("raw,expected", [
     (b"pragma solidity ^0.4.24\ncontract A {}\n", b"pragma solidity ^0.4.24;\ncontract A {}\n"),
     (b"pragma solidity >=0.5.0 <0.7.0\nimport \"./B.sol\";\n", b"pragma solidity >=0.5.0 <0.7.0;\nimport \"./B.sol\";\n"),
+    (b"pragma solidity >=0.5.0 < 0.9.0\n\n", b"pragma solidity >=0.5.0 < 0.9.0;\n\n"),
+    (b"pragma solidity ^0.4.24 foo\n", None),
     (b"pragma solidity ^0.4.24;\ncontract A {}\n", None),
     (b"// pragma solidity ^0.4.24\ncontract A {}\n", None),
 ])
@@ -117,6 +119,7 @@ def _run(tmp_path, raw, versions):
      ("0.4.24",), "additive"),
     ("abi_coder", b"pragma solidity ^0.5.0;\ncontract A { function f(uint[][] memory x) public pure returns (uint) { return x.length; } }\n",
      ("0.5.17",), "additive"),
+    ("terminator_at_eof", b"pragma solidity >=0.5.0 < 0.9.0\n\n", ("0.8.38",), "additive"),
     ("spdx", b"// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n// SPDX-License-Identifier: MIT\ncontract A {}\n",
      ("0.8.38",), "rewrite"),
 ])

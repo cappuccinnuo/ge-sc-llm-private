@@ -1,21 +1,21 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.28 的修改说明、artifacts/cp6_0_v1/remaining_failures.json、CP6_REPORT.md、CHANGE_LOG §64、§65。
+> 本轮交接先读第 0–5 节、PROMPTS r2.29 的修改说明与 4.6l、artifacts/cp6_1_v1/README.md、CHANGE_LOG §66。
 
 ## 0. 一句话
 
-CP6.0 阶段完成：CP6.0.1 本地复核通过（三套测试、MANDO 843 个图、4 个部分 IR 单元均为 slither_incomplete）。剩余失败以未收录的依赖为主（2,979 个单元，其中 1,539 个是前缀带精确版本的 `openzeppelin-solidity-2.3.0`），建议先做 CP5.3（依赖覆盖扩展）再做 CP6，待用户决定。
+CP6.1（第 5 步规范化）已由 Claude 实现并在云端核验：生产测试 1,183 / 6、MANDO 843 个图不变、小基准 45/45 修复、42 个真实单元中 11 个成功。等待 Codex 按 PROMPTS §4.6l 本地复核。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.28；D22–D25 用户已定；下一阶段顺序待用户决定；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP6.0 | 已审查通过；CP6.0 包含 D25（D3(c)）与 CP6.0.1 归因修正 |
-| 剩余失败（CP5 目标 9,138 个） | 3,256 个未通过 D3；主因含缺包 2,979 个（不在索引 2,463、都在索引 516）；缺相对文件 213 + 139 混合；包装 40 |
+| 方案与决定 | PROMPTS r2.29；用户已定先做 CP6（语料只用于测量与评估，频率按项目与写法计）；D26 待批准；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP6.0 | 已审查通过 |
+| CP6.1 | 第 5 步五条规则（逐字节相同的重复声明、重复 SPDX、重复 pragma、pragma 分号、ABI 编码器）；云端核验见 artifacts/cp6_1_v1/README.md |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
-| 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；旧移动算子的链式修复 exact 为 false |
-| 下一步 | 用户决定：CP5.3（依赖覆盖扩展，建议）或 CP6 |
+| 已知限制 | 内容不同或不同类的重名不处理；Frax 类单元补上 ABI 编码器后停在 Stack too deep（第 9 步）；小基准严格 exact 受内嵌元数据哈希影响 |
+| 下一步 | Codex 本地复核 CP6.1；之后 CP6.2（第 7–8 步：规则桩与结构补全） |
 
 ## 2. 分支与工作树
 
@@ -869,3 +869,7 @@ production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 sk
 ### 2026-11-24 CompileRepair CP6.0.1 本地复核审查与阶段顺序建议（修改 AI：Claude）
 
 审查 Codex 的 CP6.0.1 本地复核（提交 278707dcc）：全部符合预期，CP6.0 阶段完成。新增 `artifacts/cp6_0_v1/remaining_failures.json`（由 CP5.2 重跑记录与 CP5 测量计算的剩余失败分解），`PROMPTS.md` r2.27 → r2.28。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §65。
+
+### 2026-11-24 CompileRepair CP6.1 第 5 步规范化（修改 AI：Claude）
+
+按用户决定先做 CP6。新增 `rules/normalize.py`（生产文件 19 个）与 `tests/test_cp61.py`（20 项），修改 `pipeline.py`（第 5 步、修复资格、诊断去重）、`tests/test_pragma_comments.py` 与 `tests/test_cp1_1.py`（随新行为更新），新增 `artifacts/cp6_1_v1/`，`PROMPTS.md` r2.28 → r2.29（4.6l）。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §66。
