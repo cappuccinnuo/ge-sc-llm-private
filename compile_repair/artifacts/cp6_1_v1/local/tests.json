@@ -1,0 +1,165 @@
+{
+  "commit": "593feb057a8fa373c2d60880caaa63a799522cab",
+  "dfg_code_refs_equal": 354,
+  "doc_check": {
+    "command": [
+      "/home/zhao/miniconda3/envs/mando/bin/python",
+      "-B",
+      "-m",
+      "scripts.node_sem.doc_check",
+      "--expect-cjk",
+      "compile_repair/CP6_REPORT.md:7153",
+      "compile_repair/PROGRESS.md:95942",
+      "compile_repair/docs/HANDOVER.md",
+      "compile_repair/docs/CHANGE_LOG.md:392585"
+    ],
+    "results": [
+      {
+        "checked_bytes": 3524,
+        "cjk_characters": 610,
+        "expect_cjk": true,
+        "passed": true,
+        "path": "compile_repair/CP6_REPORT.md",
+        "since_bytes": 7153,
+        "total_bytes": 10677,
+        "utf8": true
+      },
+      {
+        "checked_bytes": 1508,
+        "cjk_characters": 277,
+        "expect_cjk": true,
+        "passed": true,
+        "path": "compile_repair/PROGRESS.md",
+        "since_bytes": 95942,
+        "total_bytes": 97450,
+        "utf8": true
+      },
+      {
+        "checked_bytes": 120950,
+        "cjk_characters": 24136,
+        "expect_cjk": true,
+        "passed": true,
+        "path": "compile_repair/docs/HANDOVER.md",
+        "since_bytes": 0,
+        "total_bytes": 120950,
+        "utf8": true
+      },
+      {
+        "checked_bytes": 2687,
+        "cjk_characters": 554,
+        "expect_cjk": true,
+        "passed": true,
+        "path": "compile_repair/docs/CHANGE_LOG.md",
+        "since_bytes": 392585,
+        "total_bytes": 395272,
+        "utf8": true
+      }
+    ],
+    "returncode": 0,
+    "sha256": {
+      "compile_repair/CP6_REPORT.md": "6e4a0c0500ca69df59304b3bfd6a065888f7ab2094da2576253055da54b4c1ff",
+      "compile_repair/PROGRESS.md": "88db6ef25534489aecb2235de4ecf102d9ee071c861cd0c16af5d5bfa4a159c4",
+      "compile_repair/docs/CHANGE_LOG.md": "516ec5e48756b18d6c3a4ccd344699d6a67e49493f4262aabb187b54129c6716",
+      "compile_repair/docs/HANDOVER.md": "b95db0b4c7d547de9ea0311df30960aecc35879ca3c0be120c6da2fe76c45104"
+    }
+  },
+  "passed": true,
+  "preparation": {
+    "approval": "允许保留已登记的历史产物并继续",
+    "clean_tracked": true,
+    "commit": "593feb057a8fa373c2d60880caaa63a799522cab",
+    "production_files": 19,
+    "tests_and_fixtures": 213,
+    "untracked_count": 32005,
+    "untracked_list_sha256": "80058813527583455970df7d14f9a488e53d38f799ec9a4a763228f894d993ec"
+  },
+  "suites": {
+    "dfg": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "scripts/DFG/dfg_v2/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp6_1_v1/tests/dfg"
+      ],
+      "commit": "593feb057a8fa373c2d60880caaa63a799522cab",
+      "counts": {
+        "passed": 2653
+      },
+      "elapsed_seconds": 176.834,
+      "expected": {
+        "passed": 2653,
+        "skipped": 0
+      },
+      "log": "/home/zhao/SmartContract/compile-repair-local/cp6_1_v1/dfg.log",
+      "log_sha256": "b7c508a4d9022203856d0080f1efea993fc6812b05ce44e26d4d8e0d7fb00ac6",
+      "matches_expected": true,
+      "returncode": 0,
+      "started_utc": "2026-11-24T14:12:44.329134+00:00",
+      "summary": "2653 passed, 9 warnings in 176.00s (0:02:55)"
+    },
+    "mando": {
+      "command": [
+        "/home/zhao/miniconda3/envs/mando/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "compile_repair/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp6_1_v1/tests/mando"
+      ],
+      "commit": "593feb057a8fa373c2d60880caaa63a799522cab",
+      "counts": {
+        "passed": 686,
+        "skipped": 503
+      },
+      "elapsed_seconds": 22.77,
+      "expected": {
+        "passed": 686,
+        "skipped": 503
+      },
+      "log": "/home/zhao/SmartContract/compile-repair-local/cp6_1_v1/mando.log",
+      "log_sha256": "289ef63dab00e37b3d59343482521d56066e91b8c70d7039b6bafaafa4053c73",
+      "matches_expected": true,
+      "returncode": 0,
+      "started_utc": "2026-11-24T14:12:21.558333+00:00",
+      "summary": "686 passed, 503 skipped in 22.43s"
+    },
+    "production": {
+      "command": [
+        "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "compile_repair/tests",
+        "--basetemp=/home/zhao/SmartContract/compile-repair-local/cp6_1_v1/tests/production"
+      ],
+      "commit": "593feb057a8fa373c2d60880caaa63a799522cab",
+      "counts": {
+        "passed": 1183,
+        "skipped": 6
+      },
+      "elapsed_seconds": 100.338,
+      "expected": {
+        "passed": 1183,
+        "skipped": 6
+      },
+      "log": "/home/zhao/SmartContract/compile-repair-local/cp6_1_v1/production.log",
+      "log_sha256": "832c3709cccda8fe6f631459169fafd5b6af3e6f298dbcc0af38e33345600f2b",
+      "matches_expected": true,
+      "returncode": 0,
+      "started_utc": "2026-11-24T14:10:41.219524+00:00",
+      "summary": "1183 passed, 6 skipped in 99.62s (0:01:39)"
+    }
+  },
+  "tree_sitter_lib_dir": "/home/zhao/SmartContract/ge-sc-llm/build/linux-x86_64"
+}

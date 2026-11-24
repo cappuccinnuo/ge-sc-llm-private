@@ -69,3 +69,43 @@
 快进拉取后，18 个生产文件、212 个已跟踪测试文件及夹具与 Git 对象一致。已批准的 32,005 个历史未跟踪路径与上轮清单逐字节匹配。新输出目录首次创建于 `/home/zhao/SmartContract/compile-repair-local/cp6_0_1_v1/`。旧批次继续保留。
 
 随附的 partial_ir_check_r2.py 会用 exist_ok=False 创建批次目录，而前两步已向该目录写入回归结果。用户批准“允许直接调用同一入口并记录”。核验前两步收据、确认四单元的子目录与汇总文件均不存在后，设置同一 OUT，直接调用已提交的 partial_ir_check.main()。实际执行命令保存在 `partial_ir_units_r2.json` 的 command 字段，原运行器自行报告的命令单列。未编辑入口、生产代码或测试。全部操作使用现有 CPU 环境，运行费用 0 美元。全量外部语料与 CP6 后续开发未运行。
+
+## CP6.1 本地复核
+
+2026-11-24，修改 AI 为 Codex。在 `compile-repair@593feb057a8fa373c2d60880caaa63a799522cab` 依照 PROMPTS r2.29 §4.6l 运行。第 3 步运行器中止，CP6.1 本地验收未通过，等待 Claude 审查。
+
+### 本机测试与 MANDO
+
+| 核验 | 文档预期 | 实测 |
+|---|---|---|
+| production | 1,183 passed、6 skipped | 1183 passed, 6 skipped in 99.62s (0:01:39) |
+| mando | 686 passed、503 skipped | 686 passed, 503 skipped in 22.43s |
+| DFG v2 | 2,653 passed | 2653 passed, 9 warnings in 176.00s (0:02:55) |
+| MANDO 846 个输入 | 843 份成功图等于 v5 且 D3(c) 为真、历史失败 3、真值上触发第 2–4 步 0 次 | 逐项相符，差异 0 个，耗时 221.45 秒 |
+
+### 第 5 步破坏与修复
+
+本机按要求执行每个算子 100 个基。DAppSCAN 单文件目录表第 10 项 `cp3_00111` 与第 27 项 `cp3_00290` 的输入 SHA256 都是 `f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154`。运行器使用同一哈希前 16 位拼接 `f9abece5eeaac19c/truth`，第二次独占创建该路径时触发 FileExistsError，退出码 1，未生成正式 summary.json。原目录和日志均保留。这两个条目对应不同的 CP4 单元，完整内容哈希也相同。后续审查可考虑在运行目录名中加入单元标识，同时保留原抽样顺序与 SHA256。此建议未实施。
+
+本表的统计范围为中止前已完成的样本；从保存的图与编辑收据只读复算，并与原始日志逐算子核对严格评分，不含未运行样本。已完成 78 个算子样本，修复成功 78 个，严格 exact 72 个，按运行器屏蔽元数据哈希后 exact 78 个。
+
+| CP4 算子 | 完成 | 修复成功 | 字节完全还原 | 严格 exact | 屏蔽元数据哈希后 exact |
+|---|---:|---:|---:|---:|---:|
+| `duplicate_definition` | 26 | 26 | 0 | 24 | 26 |
+| `unterminated_pragma` | 26 | 26 | 26 | 24 | 26 |
+| `pragma_missing_semicolon_candidate` | 26 | 26 | 26 | 24 | 26 |
+
+重复定义规则将后面的副本替换为空格以保留偏移。每个严格 exact 为假的基及涉及算子列在下表。JSON 逐节点记录两侧图哈希、IR 中的变化和对内嵌 Solidity CBOR 元数据的独立只读核查。
+
+| 入口 SHA256 | 严格评分存在差异的算子 | 节点 IR 差异仅为经核验的内嵌元数据哈希 |
+|---|---|---|
+| `cccebb9ed96bcf62af37d07180c816e8003727ca4428a5f860b7972efe451c7a` | duplicate_definition、unterminated_pragma、pragma_missing_semicolon_candidate | 是 |
+| `f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154` | duplicate_definition、unterminated_pragma、pragma_missing_semicolon_candidate | 是 |
+
+### 真实单元
+
+第 4 步未启动，未选择或运行 42 个真实单元。云端记录的 11 个成功单元尚未获得本机复核；本轮不能据此判断本机修复率。
+
+### 归档与范围
+
+仓库内汇总位于 `artifacts/cp6_1_v1/local/`。tests.json、mando_check.json、mini_benchmark.json、real_check.json 保存各步状态、实际命令与耗时，已运行的原始日志保存在仓库外 `compile-repair-local/cp6_1_v1/`。压缩逐样本表同时登记压缩前后 SHA256。基准使用 DAppSCAN 固定提交 66a56619 和封存的 CP4 单文件基。启动前核对 19 个生产模块、全部已跟踪测试及夹具、原先获准保留的 32,005 个未跟踪路径。DFG 的 354 个代码引用与冻结基线一致。没有改动生产或运行脚本，CPU 本地执行，下载、LLM 调用、训练和费用均为 0。

@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.29 的修改说明与 4.6l、artifacts/cp6_1_v1/README.md、CHANGE_LOG §66。
+> 本轮先读第 0–5 节、CP6_REPORT 的 CP6.1 本地复核、CHANGE_LOG §67 及 artifacts/cp6_1_v1/local 下四份正式汇总。
 
 ## 0. 一句话
 
-CP6.1（第 5 步规范化）已由 Claude 实现并在云端核验：生产测试 1,183 / 6、MANDO 843 个图不变、小基准 45/45 修复、42 个真实单元中 11 个成功。等待 Codex 按 PROMPTS §4.6l 本地复核。
+CP6.1 三套本机测试与 MANDO 回归达到预期。已完成 78 个算子样本，修复成功 78 个，严格 exact 72 个，按运行器屏蔽元数据哈希后 exact 78 个。第 3 步运行器中止，CP6.1 本地验收未通过，等待 Claude 审查。
 
 ## 1. 当前状态
 
@@ -12,10 +12,10 @@ CP6.1（第 5 步规范化）已由 Claude 实现并在云端核验：生产测�
 |---|---|
 | 方案与决定 | PROMPTS r2.29；用户已定先做 CP6（语料只用于测量与评估，频率按项目与写法计）；D26 待批准；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP6.0 | 已审查通过 |
-| CP6.1 | 第 5 步五条规则（逐字节相同的重复声明、重复 SPDX、重复 pragma、pragma 分号、ABI 编码器）；云端核验见 artifacts/cp6_1_v1/README.md |
+| CP6.1 | 第 3 步运行器中止，CP6.1 本地验收未通过，等待 Claude 审查。详见 CP6_REPORT |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；Frax 类单元补上 ABI 编码器后停在 Stack too deep（第 9 步）；小基准严格 exact 受内嵌元数据哈希影响 |
-| 下一步 | Codex 本地复核 CP6.1；之后 CP6.2（第 7–8 步：规则桩与结构补全） |
+| 下一步 | Claude 审查 CP6.1 本地复核现场 |
 
 ## 2. 分支与工作树
 
@@ -54,6 +54,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+CP6.1 审查先看 local/mini_benchmark.json 的分母、严格评分差异与命令，再核对 real_check.json 的运行状态。工作副本及原始日志位于仓库外 compile-repair-local/cp6_1_v1。
 
 本轮先查 local/partial_ir_units_r2.json 的 accepted_outcomes 与逐版 D3，再查 tests_r2.json 和 mando_check_r2.json。完整工作副本位于仓库外 compile-repair-local/cp6_0_1_v1。
 
@@ -873,3 +875,11 @@ production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 sk
 ### 2026-11-24 CompileRepair CP6.1 第 5 步规范化（修改 AI：Claude）
 
 按用户决定先做 CP6。新增 `rules/normalize.py`（生产文件 19 个）与 `tests/test_cp61.py`（20 项），修改 `pipeline.py`（第 5 步、修复资格、诊断去重）、`tests/test_pragma_comments.py` 与 `tests/test_cp1_1.py`（随新行为更新），新增 `artifacts/cp6_1_v1/`，`PROMPTS.md` r2.28 → r2.29（4.6l）。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §66。
+
+### 2026-11-24 CompileRepair CP6.1 本地复核（修改 AI：Codex）
+
+基线 593feb05，工作树 compile-repair。交接第 0、1、4 节更新本机状态、下一步及复核入口。完整命令、归档哈希、各阶段用时见本批 local 的四份汇总。
+
+production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 skipped in 22.43s；dfg 2653 passed, 9 warnings in 176.00s (0:02:55)。843 份 MANDO 成功图与 v5 一致并通过 D3(c)，3 个历史失败相同。已完成 78 个算子样本，修复成功 78 个，严格 exact 72 个，按运行器屏蔽元数据哈希后 exact 78 个。本机按要求执行每个算子 100 个基。DAppSCAN 单文件目录表第 10 项 `cp3_00111` 与第 27 项 `cp3_00290` 的输入 SHA256 都是 `f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154`。运行器使用同一哈希前 16 位拼接 `f9abece5eeaac19c/truth`，第二次独占创建该路径时触发 FileExistsError，退出码 1，未生成正式 summary.json。原目录和日志均保留。这两个条目对应不同的 CP4 单元，完整内容哈希也相同。后续审查可考虑在运行目录名中加入单元标识，同时保留原抽样顺序与 SHA256。此建议未实施。
+
+第 4 步未启动，未选择或运行 42 个真实单元。云端记录的 11 个成功单元尚未获得本机复核；本轮不能据此判断本机修复率。 第 3 步运行器中止，CP6.1 本地验收未通过，等待 Claude 审查。全程使用现有本机环境，未修改生产实现或实验参数。

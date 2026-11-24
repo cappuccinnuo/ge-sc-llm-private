@@ -674,3 +674,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - 用户决定先做 CP6。第 5 步五条规则已实现：逐字节相同的重复声明、重复 SPDX、重复 pragma、pragma 分号（含文件末尾）、ABI 编码器。
 - 云端：生产测试 1,183 passed、MANDO 843 个图不变、小基准 45/45 修复（屏蔽内嵌元数据哈希后 exact 45/45）、42 个真实单元中 11 个成功（2 个 DAppSCAN 项目、2 个 SOChecker 片段）。
 - 下一步：Codex 按 PROMPTS §4.6l 本地复核；记录 `docs/CHANGE_LOG.md` §66。
+
+## CP6.1 本地复核（2026-11-24，修改 AI：Codex）
+
+从 593feb05 执行 §4.6l。新增本批 local 下四份汇总及逐项压缩表，更新 CP6_REPORT、CHANGE_LOG §67、HANDOVER。各测试采用原环境的 python -B -m pytest -q -p no:cacheprovider，各自的 basetemp 和命令见 tests.json。production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 skipped in 22.43s；dfg 2653 passed, 9 warnings in 176.00s (0:02:55)。MANDO 843 个图一致，另 3 个历史失败一致。
+
+已完成 78 个算子样本，修复成功 78 个，严格 exact 72 个，按运行器屏蔽元数据哈希后 exact 78 个。本机按要求执行每个算子 100 个基。DAppSCAN 单文件目录表第 10 项 `cp3_00111` 与第 27 项 `cp3_00290` 的输入 SHA256 都是 `f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154`。运行器使用同一哈希前 16 位拼接 `f9abece5eeaac19c/truth`，第二次独占创建该路径时触发 FileExistsError，退出码 1，未生成正式 summary.json。原目录和日志均保留。这两个条目对应不同的 CP4 单元，完整内容哈希也相同。后续审查可考虑在运行目录名中加入单元标识，同时保留原抽样顺序与 SHA256。此建议未实施。第 4 步未启动，未选择或运行 42 个真实单元。云端记录的 11 个成功单元尚未获得本机复核；本轮不能据此判断本机修复率。 第 3 步运行器中止，CP6.1 本地验收未通过，等待 Claude 审查。

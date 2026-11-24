@@ -2901,3 +2901,25 @@ production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 sk
 - doc_check：PROMPTS、HANDOVER、DECISIONS 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；使用已克隆的 DAppSCAN 与 SOChecker 只读副本；没有下载编译器、没有 LLM 调用，费用 0。
 - 停止：等待 Codex 按 4.6l 本地复核，然后 Claude 审查。
+
+## 67. 2026-11-24 CompileRepair CP6.1 本地复核（修改 AI：Codex）
+
+### 67.1 任务、依据与范围
+
+以 593feb05 为基线，执行 PROMPTS r2.29 §4.6l。新增 artifacts/cp6_1_v1/local 中的 tests.json、mando_check.json、mini_benchmark.json、real_check.json 和实测逐项表的 gzip 副本。追加 CP6_REPORT、PROGRESS、本节及交接记录。测试、生产实现和已提交的运行器全部沿用拉取版本。
+
+### 67.2 实施方式和重要选择
+
+核对 Git 对象和历史未跟踪清单后，创建全新仓库外目录。按顺序运行两套模块测试、DFG v2、v5 图对照及 DAppSCAN 单文件基准。每个算子按原清单顺序取样，上限 100。对严格评分有差异的基按 SHA256 列表，使用保存的图复查 IR 与内嵌哈希。本机按要求执行每个算子 100 个基。DAppSCAN 单文件目录表第 10 项 `cp3_00111` 与第 27 项 `cp3_00290` 的输入 SHA256 都是 `f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154`。运行器使用同一哈希前 16 位拼接 `f9abece5eeaac19c/truth`，第二次独占创建该路径时触发 FileExistsError，退出码 1，未生成正式 summary.json。原目录和日志均保留。这两个条目对应不同的 CP4 单元，完整内容哈希也相同。后续审查可考虑在运行目录名中加入单元标识，同时保留原抽样顺序与 SHA256。此建议未实施。
+
+### 67.3 实测与数据结论
+
+production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 skipped in 22.43s；dfg 2653 passed, 9 warnings in 176.00s (0:02:55)。MANDO 图 843 份逐字节一致且 D3(c) 为真，3 个历史失败一致。已完成 78 个算子样本，修复成功 78 个，严格 exact 72 个，按运行器屏蔽元数据哈希后 exact 78 个。第 4 步未启动，未选择或运行 42 个真实单元。云端记录的 11 个成功单元尚未获得本机复核；本轮不能据此判断本机修复率。全部分母与入口 SHA256 见 CP6_REPORT 的 CP6.1 节及四份汇总。
+
+### 67.4 用户批准、原文差异与待确认设计
+
+沿用此前批准的历史未跟踪路径清单，SHA256 与原件相同。没有改变验收标准、抽样方式或生产实现。D26 等既有待决定事项状态保持。第 3 步运行器中止，CP6.1 本地验收未通过，等待 Claude 审查。
+
+### 67.5 验收、资源、未执行事项与停止
+
+19 个生产文件与 Git 一致，354 个 DFG 代码引用与冻结基线一致。四份文档的 doc_check 结果、范围和 SHA256 保存在 tests.json。使用现有本地 CPU 环境，未安装、获取额外语料、调用 LLM 或训练，费用 0 美元。CP6.2 未运行。
