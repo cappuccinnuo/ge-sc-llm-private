@@ -636,3 +636,10 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - CP5.2 成立：链式改写、v2 移动 359 / 400 exact、包装 950 全部 exact、外部语料 5,882 / 9,138 通过 D3、部分 IR 4 / 1,131。CP5 阶段完成。
 - 从 CP6 起由 Claude 直接编码；先决定 D25，再做 CP6.0（执行环境与测试可移植性）。
 - PROMPTS r2.25；证据 `artifacts/cp5_2_review_v1/`；记录 `docs/CHANGE_LOG.md` §60。
+
+
+## CP6.0：D25 与执行环境（Claude，2026-11-24）
+
+- D25 实现为 D3(c)：Slither 部分 IR 的图不算成功，分类 slither_incomplete / slither_partial_ir。
+- 云端核验：96 个编译器 SHA256 一致；生产测试 1,160 passed、6 skipped；MANDO 843 个图与 v5 逐字节相同。
+- 下一步：用户拉取，Codex 按 PROMPTS §4.6j 本地运行步骤复核；证据 `artifacts/cp6_0_v1/`；记录 `docs/CHANGE_LOG.md` §61。

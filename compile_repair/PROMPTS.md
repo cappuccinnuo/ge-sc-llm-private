@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.25（2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.26（2026-11-24；r2.25 同日；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.26 相对 r2.25 的修改**（CP6.0；修改 AI：Claude）：
+1. 用户确认 D25（加入 D3）与记录方式（模块记录写在 compile_repair/docs，注明修改 AI 为 Claude；根目录 HANDOVER 与 training_changes 不改）。
+2. 工作方式细化（用户，2026-11-24）：Claude 在 GitHub 上写代码并在云端核验后，把本地运行步骤写入该阶段的提示；用户拉取代码，由 Codex 在本机按步骤运行语料级核验并提交结果；Claude 审查结果后再进入下一阶段。
+3. 新增 4.6j 节 CP6.0：D25 的实现（D3(c)）、云端执行环境与核验结果、本地运行步骤。
 
 **r2.25 相对 r2.24 的修改**（CP5.2 审查与工作方式变更；证据 `artifacts/cp5_2_review_v1/README.md`）：
 1. CP5.2 经审查成立，CP5 阶段完成（新增 1.28 节）；D25 待用户决定，审查建议加入 D3。
@@ -553,7 +558,7 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 | D22 | 依赖版本身份（CP5）：确定性方法可以读取项目内的清单文件（package.json、package-lock.json、yarn.lock、pnpm-lock.yaml、remappings.txt、foundry.toml、hardhat/truffle 配置中的 remapping 与依赖版本），作为 D10 所说“源码文本”的一部分；版本身份分三级：T1 锁文件给出精确版本，T2 清单给出版本范围，T3 没有清单。T1、T2 由第 3 步确定性补全；T3 在 DAI 式兼容检查（路径、pragma、导入符号、编译与 D3）通过时也由第 3 步补全，改动记为 additive 并在清单中标记 inferred，多个候选时按 dev 划分上选定的规则取一个；检查不通过或没有候选时交给代理 | 已定（用户，2026-11-23） |
 | D23 | 库发布版下载清单（CP5）：按 CP5 第 1 节的测量结果列出包名、版本范围、发布版数、压缩与解压大小，只下载 npm 注册表的发布包，用注册表给出的 integrity 与本地 SHA256 双重核对；原始包放在仓库外，仓库内只放清单与校验和 | 已定（用户，限 172 个发布版的清单，2026-11-23） |
 | D24 | 包装的 optimizer 设置（CP5.1）：standard JSON 包装自带 optimizer 时，映射为 `--optimize` 与 `--optimize-runs N`（N 为 32 位无符号十进制），Slither 用相同设置；details 等其他字段记录不用。只用于包装自带的设置，不作为编译失败后的通用重试；改动只在 `toolchain/solc.py::validate_settings` | 已定（用户转交 CP5.1，2026-11-23） |
-| D25 | 部分 IR 缺失（CP5.2 后）：D3 是否增加“Slither 没有把任何合约标记为 is_incorrectly_constructed、顶层函数没有 IR 生成失败”的条件；不满足的单元记为 slither_partial_ir | 待用户决定；CP5.2 测得真实开发集 4 / 1,131、其余范围 0；审查建议加入 |
+| D25 | 部分 IR 缺失（CP5.2 后）：D3 是否增加“Slither 没有把任何合约标记为 is_incorrectly_constructed、顶层函数没有 IR 生成失败”的条件；不满足的单元记为 slither_partial_ir | 已定（用户，2026-11-24）；CP6.0 实现为 D3(c)，分类为 slither_incomplete / slither_partial_ir |
 | D19 | Slither 下限：维持 0.4.12。CP1 第 6 节在生产工具链上测得 0.4.11 两种工作目录 5/5 通过、0.4.0–0.4.10 全部缺文件名；把 0.4.11 加入候选会改变大量 `^0.4.x` 文件的选定版本，而受益的只有精确 `0.4.11` pragma（可经 pragma 覆盖处理），所以暂不扩展 | 建议（可由用户改）；CP3 按真实语料频率复议 |
 
 ---
@@ -1604,6 +1609,47 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 ## 7. 验收
 - 第 1 节诊断表；v2 样本的触发、修复、全图指标与 exact（新旧邻域）；若实施第 3 节，CP5.1 的移动样本与真实缺相对文件单元重跑后的修复数变化，且其余算子与外部语料结果不变（逐项比较 9,138 个单元中不含缺相对文件与 io_error 的单元，D3 与图哈希必须相同）。
 - 包装 exact 重算；部分 IR 测量表。MANDO 843 个图与 v5 相同。两个环境的模块测试与 DFG v2 测试都运行；修改的函数与行数、生产文件数。
+```
+
+### 4.6j CP6.0：D25（D3(c)）与执行环境（r2.26；Claude 实现，Codex 本地复核）
+
+#### 规格（已由 Claude 实现，提交见 CHANGE_LOG §61）
+- D3(c)：production 构图后，Slither 没有把任何合约标记为 is_incorrectly_constructed、构图期间没有“Impossible to generate IR for top level function”日志。不满足时 d3 为 false、不写 graph.json，错误首行为 `D3(c): Slither partial IR: …`；流水线照常尝试其余候选版本。regression_6c 不变。
+- 分类：d3_a、d3_b 为真而 d3_c 为假时，classify_slither 返回 slither_incomplete / slither_partial_ir / tool_limitation，并带 partial_ir 记录。其他 Slither 失败的分类不变。
+- 改动：toolchain/slither.py::run_slither、toolchain/solc.py::classify_slither；新增 tests/test_cp60.py（5 项）。生产文件 18 个。
+- 云端核验（artifacts/cp6_0_v1/README.md）：96 个编译器 SHA256 与官方索引一致；生产测试改动前 1,155 passed / 6 skipped，改动后 1,160 passed / 6 skipped；MANDO 846 个输入中 843 个图与 v5 逐字节相同且 D3(c) 为真，3 个历史失败不变。
+
+#### 本地运行步骤（Codex 在用户本机执行；只运行与报告，不改生产代码）
+
+```text
+# CP6.0 本地复核：拉取 Claude 的 CP6.0 提交，在本机运行三套测试、MANDO 回归与 4 个带部分 IR 标记的真实单元
+
+0. 准备
+- cd /home/zhao/SmartContract/ge-sc-llm-compile；git fetch origin compile-repair；git checkout compile-repair；git pull --ff-only。记录 git rev-parse HEAD（应为 CHANGE_LOG §61 记录的提交或其后只含文档的提交）。工作树必须干净。
+- 输出目录：/home/zhao/SmartContract/compile-repair-local/cp6_0_v1/（已存在即停下报告，不覆盖）。仓库内只提交 artifacts/cp6_0_v1/local/ 下的汇总 JSON 与报告。
+- 不安装、不下载、不调用 LLM。任何一步与预期不符：停下，保存现场，报告实测与预期，不修改生产代码。
+
+1. 生产环境测试
+- /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B -m pytest -q -p no:cacheprovider compile_repair/tests --basetemp=<输出目录>/tests_production
+- 预期：1160 passed, 6 skipped（CP5.2 为 1155 passed, 6 skipped，新增 test_cp60.py 5 项）。
+
+2. mando 环境测试与 DFG v2 测试
+- /home/zhao/miniconda3/envs/mando/bin/python -B -m pytest -q -p no:cacheprovider compile_repair/tests --basetemp=<输出目录>/tests_mando
+  预期：672 passed, 494 skipped（CP5.2 为 671 / 490；test_cp60.py 中 4 项需要 production，跳过；分类测试 1 项在两个环境都运行）。如数量不同但没有失败，逐项列出差异后继续。
+- /home/zhao/miniconda3/envs/mando/bin/python -B -m pytest -q -p no:cacheprovider scripts/DFG/dfg_v2/tests --basetemp=<输出目录>/tests_dfg
+  预期：2653 passed。
+
+3. MANDO 回归
+- 解包 v5：mkdir <输出目录>/mando_v5 && tar xzf compile_repair/artifacts/cr_store_mando_v5/store.tar.gz -C <输出目录>/mando_v5
+- /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_0_v1/mando_check.py <输出目录>/mando_v5 <输出目录>/mando_run <输出目录>/mando_check.json
+- 预期：passed=true；counts 为 graphs_equal 843、historical_failures 3、steps_on_truths 0、d3_c_true 843；mismatches 为空。
+
+4. 四个带部分 IR 标记的真实单元（CP5.2 的 ir_real_dev：cp3_19463、cp3_19496、cp3_19497、cp3_19507，DAppSCAN，选定 0.8.4）
+- 用 CP5.1 真实开发集的同一调用（artifacts/cp5_1_v1/evaluate_units.py 的 real_dev 模式、oldest、K = 21、同一离线索引与编译器）只对这 4 个单元重跑。脚本不能只选这 4 个单元时，在 artifacts/cp6_0_v1/local/ 新写一个小运行器，按 cp5_1 收据中记录的参数调用 pipeline.repair_unit，不改原脚本。
+- 预期：每个单元要么 status 不为 success、没有 graph.json、主因为 slither_incomplete 且 Slither 阶段的分类子类为 slither_partial_ir；要么在另一个候选版本上 success，且该次 d3_c 为 true、partial_ir 为空。逐个报告属于哪一种、各候选版本的 d3_a、d3_b、d3_c 与被标记的合约。
+
+5. 提交
+- 把四项结果写入 artifacts/cp6_0_v1/local/（tests.json、mando_check.json、partial_ir_units.json，各含命令、提交、耗时与预期对照），在 CP5_REPORT 之外新建 CP6_REPORT.md 的“CP6.0 本地复核”一节，并在 HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录。用 doc_check 检查后提交并 push 到 compile-repair。然后停下，等待 Claude 审查。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）

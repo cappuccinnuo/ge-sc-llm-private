@@ -574,6 +574,13 @@ def classify_constraints(message, sources):
 def classify_slither(analysis, sources=()):
     """Separate tool failures from source errors without rewriting legal code."""
     exception = analysis.get("exception_type")
+    if analysis.get("d3_a") and analysis.get("d3_b") and analysis.get("d3_c") is False:
+        # D25: the graph exists but Slither dropped IR; a source rewrite cannot be justified.
+        return {"category": "slither_incomplete", "subtype": "slither_partial_ir",
+                "error_template": diagnostic_template(analysis.get("error_first_line") or ""),
+                "repair_route": "tool_limitation", "candidate_source_indexes": [],
+                "equivalence_must_be_verified_before_rewrite": False,
+                "partial_ir": analysis.get("partial_ir")}
     candidates = []
     if exception == "AssertionError" and analysis.get("version") in ("0.4.24", "0.4.25", "0.4.26"):
         for i, raw in enumerate(sources):

@@ -1,0 +1,11 @@
+{
+  "environment": "Claude cloud container (2 CPU); Python 3.12.13; slither-analyzer 0.11.6; crytic-compile 0.4.2; tree-sitter 0.20.4 grammar built from process_graphs/tree_sitter_codeviews/vendor/tree-sitter-solidity",
+  "command": "HOME=/home/zhao TREE_SITTER_LIB_DIR=/home/claude/env/tree-sitter PYTHONPATH=<pytest 8 package dir> /home/claude/env/compile-repair-production/bin/python -B -m pytest -q -p no:cacheprovider -rs compile_repair/tests",
+  "summary": "1160 passed, 6 skipped in 137.97s (0:02:17)",
+  "skipped": [
+    "compile_repair/tests/test_production.py:75: backport path runs in Python 3.7 mando",
+    "compile_repair/tests/test_slither_v2.py:119: CP0 projection/0.8.0 node-count test requires regression_6c",
+    "compile_repair/tests/test_toolchain.py:65: The solc 0.4.11 negative control requires regression_6c"
+  ],
+  "baseline_before_change": "1155 passed, 6 skipped in 141.44s at 5f8a7ef81 with the same command (Codex CP5.2 recorded 1155 passed, 6 skipped)"
+}

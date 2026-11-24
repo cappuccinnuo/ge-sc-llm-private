@@ -2707,3 +2707,41 @@ production 回归通过 1,155 项、跳过 6 项；mando 通过 671 项、跳过
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp5_2_review_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
 - 停止：CP5 完成。CP6 之前需要用户决定 D25，并完成 CP6.0（执行环境与测试可移植性）。本轮提交并 push 到 `compile-repair`。
+
+
+## 61. 2026-11-24 CompileRepair CP6.0：D25（D3(c)）与执行环境（修改 AI：Claude）
+
+### 61.1 任务、依据与范围
+
+用户要求（2026-11-24）：按审查建议实施 D25；Claude 在 GitHub 写代码并核验无误后写出运行步骤，用户拉取后由 Codex 在本机运行；完成后更新相关文档，注明由 Claude 修改。起点 `compile-repair@5f8a7ef81`。
+
+修改：`toolchain/slither.py::run_slither`（D3(c)）、`toolchain/solc.py::classify_slither`（slither_partial_ir）；新增 `tests/test_cp60.py`；新增 `artifacts/cp6_0_v1/`（README、mando_check.py、fetch_solc.py、setup_cloud_env.sh、compilers_sha256.txt、production_tests_cloud.json、mando_check_cloud.json）；`PROMPTS.md` r2.25 → r2.26（修改说明、D25 状态、4.6j 节）；记录：本节、HANDOVER、DECISIONS、PROGRESS。生产文件仍为 18 个。
+
+### 61.2 实施方式和重要选择
+
+- D3(c) 只加在 production 分支，regression_6c 的结果结构不变，冻结的 6c 证据不受影响。判定使用 CP5.2 已经记录的两个信号（is_incorrectly_constructed 与顶层函数日志），不新增探测。不满足时不写图，流水线按原逻辑继续尝试其他候选版本，因为部分 IR 可能只在某个版本上出现。
+- 分类：沿用 slither_incomplete 类别与 tool_limitation 路线，以子类 slither_partial_ir 单列，不新增顶层类别，CP3 以来的主因规则与汇总不需要改动。
+- 测试：用 monkeypatch 让 Slither 把指定合约标记为不完整、或在构图期间写一条顶层函数日志，覆盖两种信号；流水线测试给两个候选版本，确认都被尝试且不产出图。
+- 执行环境：soliditylang 二进制站点被出口代理拒绝，改从 ethereum/solc-bin（0.4.10 以后）与 crytic/solc（0.4.0、0.4.2、0.4.9，solc-select 的来源）读取，按仓库保存的官方索引与 cp0_v2 清单逐个核对 SHA256；记录中的绝对路径用符号链接在容器内重建（setup_cloud_env.sh），模块的 SHA256 检查不变。MANDO 的 43 个元数据输入取自 smartbugs/smartbugs-curated，versions.csv 与源文件 SHA256 与 cp0_v2 记录一致。tree-sitter 语言库由仓库内 vendor 的 tree-sitter-solidity 构建。
+
+### 61.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 编译器 | 96 / 96 SHA256 一致 | compilers_sha256.txt |
+| 生产测试（改动前，5f8a7ef81） | 1,155 passed、6 skipped，与 Codex CP5.2 相同 | production_tests_cloud.json |
+| 生产测试（改动后） | 1,160 passed、6 skipped | 同上 |
+| MANDO 回归 | 843 个图逐字节相同、D3(c) 为真；3 个历史失败不变；第 2–4 步 0 次；267.8 秒 | mando_check_cloud.json |
+
+未证明：mando 环境测试与 DFG v2 测试（云端没有 Python 3.7 的 mando 环境）；4 个带标记的真实单元在新规则下的结果（云端没有 DAppSCAN 的该项目）；全量真实语料中带标记的单元数（CP6 的全量重跑给出）。
+
+### 61.4 用户批准、原文差异与待确认设计
+
+- 用户批准：D25；工作方式与记录方式。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 61.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS、cp6_0_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；下载 96 个编译器（约 942 MB）与 smartbugs-curated（git 浅克隆），均在仓库外；没有 LLM 调用，费用 0。
+- 停止：等待用户拉取并由 Codex 执行 PROMPTS §4.6j 的本地运行步骤，Claude 审查后进入 CP6。本轮提交并 push 到 `compile-repair`。

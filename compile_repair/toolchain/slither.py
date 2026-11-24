@@ -479,7 +479,10 @@ class _TopLevelIRLog(logging.Handler):
 
 
 def run_slither(compilation, profile="regression_6c", cp0_projection=False, project=None):
-    """Construct Slither after observed solc rc=0; report D3(a) and D3(b).
+    """Construct Slither after observed solc rc=0; report D3(a), D3(b) and D3(c).
+
+    D3(c) (D25, production only): Slither marked no contract as incorrectly
+    constructed and logged no top-level IR failure, so no function lost its IR.
 
     Regression reuses frozen _compile unchanged. Production retains its
     CryticCompile object to observe the platform even if Slither parsing fails.
@@ -548,6 +551,7 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False, proj
                 if settings:
                     kwargs["solc_args"] = result["command"]["solc_args"]
             result["partial_ir"] = {"incorrectly_constructed_contracts": [], "top_level_errors": 0}
+            result["d3_c"] = None
             crytic = CryticCompile(target, **kwargs)
             result["crytic_compile_platform"] = crytic.platform.NAME
             result["crytic_compile_platform_class"] = type(crytic.platform).__module__ + "." + type(crytic.platform).__name__
@@ -590,6 +594,14 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False, proj
         if cp0_projection and result["d3_a"]:
             result["cp0_projection_sha256"] = cp0_projection_sha256(slither)
         result["d3"] = result["d3_a"] and result["d3_b"]
+        if profile == "production":
+            partial = result["partial_ir"]
+            result["d3_c"] = not partial["incorrectly_constructed_contracts"] and not partial["top_level_errors"]
+            if not result["d3_c"]:
+                errors.append("D3(c): Slither partial IR: {} contract(s) incorrectly constructed, "
+                              "{} top-level IR error(s)".format(len(partial["incorrectly_constructed_contracts"]),
+                                                                partial["top_level_errors"]))
+            result["d3"] = result["d3"] and result["d3_c"]
         result["error_first_line"] = errors[0].splitlines()[0] if errors else None
         result["validation_errors"] = errors
     except Exception as exc:

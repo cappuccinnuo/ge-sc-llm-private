@@ -1,22 +1,23 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.25 的修改说明与 §1.28、§2 的 D25、artifacts/cp5_2_review_v1/README.md、CP5_REPORT.md、CHANGE_LOG §59、§60。
+> 本轮交接先读第 0–5 节、PROMPTS r2.26 的修改说明与 §4.6j（CP6.0，含本地运行步骤）、artifacts/cp6_0_v1/README.md、CHANGE_LOG §61。
 
 ## 0. 一句话
 
-CP5 阶段完成：Claude 审查 CP5.2 成立（链式改写、v2 移动 359 / 400 exact、包装 950 全部 exact、外部语料 5,882 / 9,138 通过 D3）。从 CP6 起改由 Claude 直接在 GitHub 上编写代码与测试，一次一个阶段、阶段内分小步核实。下一步：用户决定 D25，Claude 准备执行环境（CP6.0）后开始 CP6。
+CP6.0 由 Claude 直接实现并在云端核验：D25 加入 D3（D3(c)：Slither 部分 IR 不算成功，记为 slither_incomplete / slither_partial_ir）；生产测试 1,160 passed、6 skipped；MANDO 843 个图与 v5 逐字节相同。下一步：用户拉取代码，由 Codex 按 PROMPTS §4.6j 的本地运行步骤复核并提交结果 → Claude 审查 → CP6。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.25；D22–D24 用户已定；D25 待用户决定（建议加入 D3）；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP5 | 已审查通过；CP5 阶段完成 |
-| 工作方式 | 2026-11-24 起由 Claude 直接编码（用户决定）；文档照旧逐小步更新 |
-| 执行环境 | 云端容器：2 CPU、7 GB 内存、约 13 GB 可写磁盘；后台任务单次至多 2 小时，闲置回收；公开 GitHub 仓库可 git 读取、npm 可用；soliditylang 二进制站点被拒绝，改用 ethereum/solc-bin 仓库；无 LLM 密钥 |
-| 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；旧移动算子的链式修复 exact 为 false；测试依赖用户本机路径 |
+| 方案与决定 | PROMPTS r2.26；D22–D25 用户已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP5 | 已审查通过 |
+| CP6.0 | Claude 实现与云端核验完成；等待本地复核 |
+| 工作方式 | Claude 在 GitHub 编码并云端核验 → 写本地运行步骤 → 用户与 Codex 本机运行语料级核验 → Claude 审查（2026-11-24 起） |
+| 执行环境 | 云端：2 CPU、7 GB 内存、约 13 GB 磁盘；96 个编译器与 SmartBugs 元数据已按 SHA256 核对；复现方式见 artifacts/cp6_0_v1/setup_cloud_env.sh |
+| 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；旧移动算子的链式修复 exact 为 false |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | D25 → CP6.0（环境与测试可移植性）→ CP6 |
+| 下一步 | CP6.0 本地复核 → 审查 → CP6 |
 
 ## 2. 分支与工作树
 
@@ -76,6 +77,7 @@ CP5.1 复核先读 `CP5_REPORT.md` 的 CP5.1 一节与新批次 README。按 `in
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| CP6.0 实现与云端核验（Claude） | artifacts/cp6_0_v1/README.md、mando_check_cloud.json、production_tests_cloud.json；本地运行步骤 PROMPTS §4.6j |
 | CP5.2 审查记录（Claude） | artifacts/cp5_2_review_v1/README.md |
 | CP5.1 审查证据（Claude） | artifacts/cp5_1_review_v1/README.md、outcome_tallies.json |
 | CP5.1 代码、实验与传输停点 | CP5_REPORT.md 的 CP5.1 节、artifacts/cp5_1_v1/README.md、docs/DECISIONS.md |
@@ -831,3 +833,10 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 用户要求审查 Codex 完成的 CP5.2（提交 35310dca2），并改为由 Claude 直接在 GitHub 上完成后续编码，一次一个阶段。新增 `artifacts/cp5_2_review_v1/`，修改 `PROMPTS.md`（r2.24 → r2.25）。本文开头、第 0、1 节换成审查结论与执行环境，第 5 节加入证据路径。
 
 结论：CP5.2 成立，CP5 阶段完成。两项已知限制写入 1.28 节；D25 待用户决定。执行环境评估：代码、单元测试与小规模核验可以在云端完成；语料级运行受 2 个 CPU 与 13 GB 磁盘限制，需要分块、可续跑，并且只保留汇总与校验和。本轮没有模块代码改动、下载或安装。详见 CHANGE_LOG §60。
+
+
+### 2026-11-24 CompileRepair CP6.0：D25 与执行环境（修改 AI：Claude）
+
+用户批准 D25，并确定工作方式：Claude 在 GitHub 写代码并核验，写出本地运行步骤，用户拉取后由 Codex 在本机运行。修改 `toolchain/slither.py::run_slither`、`toolchain/solc.py::classify_slither`，新增 `tests/test_cp60.py` 与 `artifacts/cp6_0_v1/`，`PROMPTS.md` r2.25 → r2.26。本文开头、第 0、1 节换成本轮状态，第 5 节加入证据路径。
+
+结果：云端生产测试改动前 1,155 passed / 6 skipped，改动后 1,160 passed / 6 skipped；MANDO 846 个输入中 843 个图逐字节相同且 D3(c) 为真。mando 环境测试、DFG v2 测试与 4 个带标记的真实单元由本地运行步骤完成。详见 CHANGE_LOG §61。
