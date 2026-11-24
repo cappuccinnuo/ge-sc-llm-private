@@ -16,9 +16,11 @@ from compile_repair.core.provenance import apply_patches, mark_span, verify_prov
 from compile_repair.core.store import ArtifactStore, emit, sha256
 from compile_repair.rules.dependencies import (OfflineIndex, build_index, dependency_choices,
     chain_relative_issues, relative_repairs)
+from compile_repair.rules.normalize import normalization_repairs
 from compile_repair.rules.environment import (make_plan, mando_known_version,
     ordered_candidates, pragma_patches, settings_retry)
-from compile_repair.toolchain.solc import compile_file, load_trusted_compilers, version_tuple, parse_diagnostics
+from compile_repair.toolchain.solc import (classify_diagnostic, compile_file, load_trusted_compilers, version_tuple,
+    parse_diagnostics)
 from compile_repair.toolchain.slither import check_profile, run_slither
 from compile_repair.toolchain.project import (compile_project, materialize_project,
     verify_project, resolve_project, ProjectIndex, parse_remapping, input_format_evidence,
@@ -191,6 +193,44 @@ def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn,
 
 _DEPENDENCY_FAILURES = {"unresolved_package_import", "missing_relative_file", "standard_json_input",
                         "io_error", "closure_version_conflict"}
+# Categories with a step-5 rule (CP6.1); they also open the deterministic repair loop.
+_NORMALIZATION_FAILURES = {"duplicate_definition", "multiple_license_or_pragma", "abi_coder_required",
+                           "unterminated_pragma", "pragma_missing_semicolon_candidate"}
+
+
+def _diagnostics_by_file(record, names):
+    """Classified solc errors of a record's failed attempts, keyed by project-relative file name (None: unlocated).
+
+    The same diagnostic reported by several candidate versions is kept once, with
+    the versions that reported it.
+    """
+    grouped, seen = {}, {}
+    for attempt in record.attempts:
+        compiled = attempt.get("solc")
+        if not compiled or compiled["returncode"] in (0, None) or compiled["timed_out"]:
+            continue
+        for row in parse_diagnostics(compiled["stderr"]):
+            if row["kind"] == "Warning":
+                continue
+            name = None
+            if row["filename"]:
+                # Newer solc reports some file-level errors (e.g. repeated SPDX) without a line.
+                path = Path(row["filename"])
+                name = (path.relative_to(compiled["cwd"]) if path.is_absolute() and Path(compiled["cwd"]) in path.parents
+                        else path).as_posix()
+                if name not in names and len(names) == 1:
+                    name = next(iter(names))
+                if name not in names:
+                    continue
+            classified = classify_diagnostic(row)
+            identity = (name, classified.get("category"), classified.get("line"), classified.get("column"),
+                        classified.get("message"))
+            if identity in seen:
+                seen[identity]["versions"].append(attempt["version"])
+                continue
+            seen[identity] = dict(classified, versions=[attempt["version"]])
+            grouped.setdefault(name, []).append(seen[identity])
+    return grouped
 
 
 def _failure_measure(record):
@@ -238,7 +278,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         store.write_json(prefix + "result.json", record)
         return record
     before, categories = _failure_measure(record)
-    if not categories.intersection(_DEPENDENCY_FAILURES):
+    if not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES):
         store.write_json(prefix + "result.json", record)
         return record
     store.write_json(prefix + "environment_result.json", record)
@@ -427,6 +467,29 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             trial["new_relative_errors"] = [dict(importer=r["importer"], path=r["path"], line=r["line"])
                                             for r in issues]
             staged, prior_count = candidate, trial["errors_after"]
+        if not stop:
+            # Step 5 (CP6.1): normalizations proposed from the current best record's diagnostics.
+            # Verified dependency releases (step 3) are never normalized.
+            contents = {n: f.content for n, f in ((Path(f.path).relative_to(project.root).as_posix(), f)
+                                                for f in project.files) if not n.startswith(".compile_repair/")}
+            contents.update({n: raw for n, raw in overlays.items() if n in contents})
+            edits, patches, evidence = normalization_repairs(contents, _diagnostics_by_file(record, set(contents)),
+                                                             attempts + 1)
+            if edits:
+                maps = dict(origins)
+                for name, extra in patches.items():
+                    original, previous = maps[name] if name in maps else ((Path(project.root) / name).read_bytes(), ())
+                    maps[name] = original, previous + extra
+                working = dict(overlays)
+                working.update(edits)
+                candidate = resolve_project(project.root, project.entry, project.remappings, index,
+                                            project.additional_entries, working)
+                accepted, result = try_project(5, candidate, maps, dict(normalization=evidence))
+                if accepted:
+                    project, overlays, origins, changed = candidate, working, maps, True
+                stop = result.status == "success" or result.reason == "solc_timeout"
+            else:
+                steps.append(dict(step=5, accepted=False, normalization=evidence, reason="no_applicable_normalization"))
         if stop:
             break
         if not changed:

@@ -180,8 +180,9 @@ def test_relocated_module_seals_without_git(tmp_path, missing_git):
     files = list(module.glob("*.py")) + [p for folder in module.iterdir()
         if folder.is_dir() and folder.name not in ("tests", "docs", "artifacts")
         for p in folder.rglob("*.py")]
-    assert len(files) == 18
+    assert len(files) == 19  # CP6.1 adds rules/normalize.py
     assert module / "rules" / "dependencies.py" in files
+    assert module / "rules" / "normalize.py" in files
     assert module / "evaluation" / "benchmark.py" in files
     for source in files + [module / "artifacts/cp0_v2/recon.json",
                            module / "artifacts/cp0_1_compilers_v1/trusted_compilers_addition.json"]:

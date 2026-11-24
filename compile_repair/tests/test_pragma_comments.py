@@ -162,6 +162,11 @@ def test_other_expression_diagnostics_unchanged(raw, error):
     ("union_pragma.sol", "F: unsupported pragma expression"),
 ])
 def test_pipeline_records_error_without_calling_tools(tmp_path, name, error):
+    """The environment stage records the constraint error and calls no tool.
+
+    Since CP6.1 the repair steps then insert a missing pragma terminator (test_cp61);
+    environment_only keeps this check to the stage that CP2.4 specified.
+    """
     path = (NEW if name == "missing_semicolon.sol" else FIXTURES / "pragma_inputs") / name
     raw = path.read_bytes()
     source = SourceFile(str(path), hashlib.sha256(raw).hexdigest(), raw)
@@ -173,7 +178,7 @@ def test_pipeline_records_error_without_calling_tools(tmp_path, name, error):
     store = ArtifactStore(tmp_path / "store")
     journal = io.StringIO()
     record = repair_unit(unit, {"0.5.0": Compiler("0.5.0", "/unused", "unused")},
-                         store, journal, compile_fn=forbidden, slither_fn=forbidden)
+                         store, journal, compile_fn=forbidden, slither_fn=forbidden, environment_only=True)
     assert record.status == "unrepaired" and record.flags == ["unsupported_version_constraints"]
     assert record.attempts == [{"stage": "environment_plan", "exception_type": "Unsupported",
                                 "error_first_line": error}]
@@ -199,16 +204,24 @@ def test_real_cp24_cli_comments_and_errors(tmp_path):
             assert record.attempts[-1]["slither"]["profile"] == "production"
             assert record.provenance[str(paths[index])].level == "none"
             assert (directory / "units" / record.unit_id / "input.sol").read_bytes() == paths[index].read_bytes()
+        elif index == 2:
+            # CP6.1: step 5 inserts the missing terminator; the environment error stays recorded.
+            environment = json.loads((directory / "units" / record.unit_id / "environment_result.json").read_bytes())
+            assert environment["attempts"][0]["error_first_line"] == "F: unterminated pragma directive"
+            assert record.status == "success" and record.selected_version.startswith("0.5.")
+            assert record.attempts[-1]["slither"]["d3"]
+            proof = next(iter(record.provenance.values()))
+            assert proof.level == "additive" and [c.new for c in proof.changes] == [b";"]
         else:
             assert record.status == "unrepaired"
             assert record.flags == ["unsupported_version_constraints"]
             assert len(record.attempts) == 1
-            assert record.attempts[0]["error_first_line"] == (
-                "F: unterminated pragma directive" if index == 2 else "F: unsupported pragma expression")
+            assert record.attempts[0]["error_first_line"] == "F: unsupported pragma expression"
     assert main(["repair"] + list(map(str, paths)) + ["--output", str(output)],
                 result_check=accept) == 2
     summary = json.loads((output / "summary.json").read_text())
     assert summary["status"] == "unrepaired" and len(summary["units"]) == 4
     invocations = [json.loads(line) for line in (output / "invocations.jsonl").read_text().splitlines()]
-    assert len(invocations) == 4
-    assert {r["unit_id"] for r in invocations} == {"input_0001", "input_0002"}
+    # Two tool calls per success; the unterminated pragma is compiled once repaired (CP6.1).
+    assert len(invocations) == 6
+    assert {r["unit_id"] for r in invocations} == {"input_0001", "input_0002", "input_0003"}
