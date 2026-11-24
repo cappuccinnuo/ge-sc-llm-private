@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、PROMPTS r2.26 的修改说明与 §4.6j（CP6.0，含本地运行步骤）、artifacts/cp6_0_v1/README.md、CHANGE_LOG §61。
+> 本轮交接先读第 0–5 节、CP6_REPORT.md 的本地复核、CHANGE_LOG §62 及 artifacts/cp6_0_v1/local/partial_ir_units.json。
 
 ## 0. 一句话
 
-CP6.0 由 Claude 直接实现并在云端核验：D25 加入 D3（D3(c)：Slither 部分 IR 不算成功，记为 slither_incomplete / slither_partial_ir）；生产测试 1,160 passed、6 skipped；MANDO 843 个图与 v5 逐字节相同。下一步：用户拉取代码，由 Codex 按 PROMPTS §4.6j 的本地运行步骤复核并提交结果 → Claude 审查 → CP6。
+CP6.0 本机三套测试与 MANDO 回归通过。首个真实单元被 D3(c) 拒图，最终主因与 §4.6j 预期不同，已停止。Claude 审查前保留其余三项未运行状态。
 
 ## 1. 当前状态
 
@@ -12,12 +12,12 @@ CP6.0 由 Claude 直接实现并在云端核验：D25 加入 D3（D3(c)：Slithe
 |---|---|
 | 方案与决定 | PROMPTS r2.26；D22–D25 用户已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP5 | 已审查通过 |
-| CP6.0 | Claude 实现与云端核验完成；等待本地复核 |
+| CP6.0 | 本地测试与 MANDO 通过，首个真实单元最终主因不符，详见 CP6_REPORT.md |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 写本地运行步骤 → 用户与 Codex 本机运行语料级核验 → Claude 审查（2026-11-24 起） |
 | 执行环境 | 云端：2 CPU、7 GB 内存、约 13 GB 磁盘；96 个编译器与 SmartBugs 元数据已按 SHA256 核对；复现方式见 artifacts/cp6_0_v1/setup_cloud_env.sh |
 | 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；旧移动算子的链式修复 exact 为 false |
 | 分支 | 继续在 compile-repair；5080 主线上的导入改动迁移时再合并 |
-| 下一步 | CP6.0 本地复核 → 审查 → CP6 |
+| 下一步 | Claude 审查依赖试验轮次与单元最终主因的差异 |
 
 ## 2. 分支与工作树
 
@@ -56,6 +56,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+CP6.0 先查本批 local/partial_ir_units.json 的逐版 D3、两次被拒的依赖轮次及最终主因。完整现场位于 compile-repair-local/cp6_0_v1。
 
 复核先核对 CP4_REPORT.md、seal.json、archives.json 和三个授权文件。用 sample_plan.jsonl.gz 与 sample_receipts.jsonl.gz 按算子和单元匹配。对照检查原版本、设置和图，评分用首轮通过的 4,315 行及 identity_continuation 的 7,543 行。抽查 cp3_23979 的原始 IR 差异和同路径探针，确认评分保留了完整 metadata。后续开发使用 dev，test 只用于报告。此前的 D21、AST 不足和语言未定等限制仍记在 CP3_REPORT.md。（2026-11-22 Claude 更新：CP4 审查发现四个问题，CP5 之前执行 CP4.1，见 PROMPTS §4.6b。）
 
@@ -840,3 +842,11 @@ CP3本地实施与验收完成，后续交独立审查。仅本地提交compile-
 用户批准 D25，并确定工作方式：Claude 在 GitHub 写代码并核验，写出本地运行步骤，用户拉取后由 Codex 在本机运行。修改 `toolchain/slither.py::run_slither`、`toolchain/solc.py::classify_slither`，新增 `tests/test_cp60.py` 与 `artifacts/cp6_0_v1/`，`PROMPTS.md` r2.25 → r2.26。本文开头、第 0、1 节换成本轮状态，第 5 节加入证据路径。
 
 结果：云端生产测试改动前 1,155 passed / 6 skipped，改动后 1,160 passed / 6 skipped；MANDO 846 个输入中 843 个图逐字节相同且 D3(c) 为真。mando 环境测试、DFG v2 测试与 4 个带标记的真实单元由本地运行步骤完成。详见 CHANGE_LOG §61。
+
+### 2026-11-24 CompileRepair CP6.0 本地复核停点（修改 AI：Codex）
+
+本次以 6faffcab 为基线，完成 §4.6j 的本机测试、MANDO 回归及首项真实单元验证。第 0、1、4 节已更新状态和复核入口。限定运行器及汇总位于 artifacts/cp6_0_v1/local，完整输出位于仓库外 compile-repair-local/cp6_0_v1。
+
+production、mando、DFG v2 分别通过 1,160、672、2,653 项。843 份成功图与 MANDO v5 一致并满足 D3(c)，3 个历史失败一致。cp3_19463 的每次 Slither 候选均按 D25 拒图，原始导入记录却保留为单元最终主因。两轮、70 次候选与最终结果分别归档。
+
+用户批准保留原清单中的 32,005 个历史未跟踪路径。其余三项未运行，未调整生产实现，等待 Claude 审查本次实测与原文预期。详见 CP6_REPORT.md、CHANGE_LOG §62 与 local/doc_check.json。

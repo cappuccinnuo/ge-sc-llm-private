@@ -2745,3 +2745,25 @@ production 回归通过 1,155 项、跳过 6 项；mando 通过 671 项、跳过
 - doc_check：PROMPTS、HANDOVER、DECISIONS、cp6_0_v1/README 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
 - 资源：云端 CPU；下载 96 个编译器（约 942 MB）与 smartbugs-curated（git 浅克隆），均在仓库外；没有 LLM 调用，费用 0。
 - 停止：等待用户拉取并由 Codex 执行 PROMPTS §4.6j 的本地运行步骤，Claude 审查后进入 CP6。本轮提交并 push 到 `compile-repair`。
+
+## 62. 2026-11-24 CompileRepair CP6.0 本地复核停在真实单元归因（修改 AI：Codex）
+
+### 62.1 任务、依据与范围
+
+按 PROMPTS r2.26 §4.6j 复核 Claude 的 `6faffcab`。本轮新增 CP6_REPORT.md 及 artifacts/cp6_0_v1/local/ 下的 partial_ir_check.py、tests.json、mando_check.json、partial_ir_units.json、doc_check.json。更新本节、HANDOVER、PROGRESS 和 DECISIONS。生产代码与测试沿用拉取版本。
+
+### 62.2 实施方式和重要选择
+
+依次运行 production、mando、DFG v2，再用官方步骤给出的 mando_check.py 比对 v5。CP5.1 原 real_dev 入口会遍历 2,316 个单元和三种策略。限定运行器只选指定四个标识，复用原始数据入口、离线索引校验和生产 repair_unit。按 §4.6j 实传 oldest、K=21，将每个候选的 D3、合约名、设置及编译器哈希与最终主因分别记录。
+
+### 62.3 实测与数据结论
+
+三套测试依次通过 1,160、672、2,653 项，前两套跳过 6、494 项，DFG 有 9 条警告。MANDO 的 843 个成功图逐字节相同且 D3(c) 为真，3 个历史失败一致。cp3_19463 的两个离线依赖版本各尝试 35 个 solc 版本。70 次均被识别为 slither_partial_ir，均未产图。两轮依赖变更被拒后，最终记录沿用 unresolved_package_import，与 §4.6j 期望的 slither_incomplete 不符。实测和逐版证据见 CP6_REPORT.md 与本批 local 下三份结果 JSON。
+
+### 62.4 用户批准、原文差异与待确认设计
+
+第 0 步因 32,005 个已登记历史未跟踪路径停止。用户批准原地保留后，按清单 SHA256 与 Git 对象复核。D25 仍为已定。真实单元的最终归因差异留给 Claude 审查，本轮没有改变 D3、依赖接受条件或报告标准。
+
+### 62.5 验收、资源、未执行事项与停止
+
+逐项通过三套测试与 MANDO 检查，第 4 步在第一个单元停止。另三个指定单元未运行。完整命令与耗时在 tests.json、mando_check.json、partial_ir_units.json。核对 18 个生产文件和 354 个 DFG 代码引用。CPU 运行，0 美元，无安装、语料下载、训练或外部 LLM 调用。五份文档的 doc_check 结果见 local/doc_check.json。

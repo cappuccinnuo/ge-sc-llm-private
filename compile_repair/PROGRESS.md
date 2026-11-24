@@ -643,3 +643,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - D25 实现为 D3(c)：Slither 部分 IR 的图不算成功，分类 slither_incomplete / slither_partial_ir。
 - 云端核验：96 个编译器 SHA256 一致；生产测试 1,160 passed、6 skipped；MANDO 843 个图与 v5 逐字节相同。
 - 下一步：用户拉取，Codex 按 PROMPTS §4.6j 本地运行步骤复核；证据 `artifacts/cp6_0_v1/`；记录 `docs/CHANGE_LOG.md` §61。
+
+## CP6.0 本地复核（2026-11-24，修改 AI：Codex）
+
+按 PROMPTS r2.26 §4.6j 从 6faffcab 运行。测试命令为两套环境的 `python -B -m pytest -q -p no:cacheprovider`，测试目标及各自 basetemp 见 artifacts/cp6_0_v1/local/tests.json。三套测试通过 1,160、672、2,653 项。MANDO 843 份成功图与 v5 逐字节一致且通过 D3(c)，另 3 个历史失败一致。
+
+新增 local/partial_ir_check.py 和三份 JSON 汇总，另建 CP6_REPORT.md 并更新交接、变更、决策记录。第 0 步按用户批准保留历史未跟踪清单。第 4 步的 cp3_19463 经 70 次候选测量均标记部分 IR，最终主因是 unresolved_package_import。按要求止于首项，另外三项未运行。生产实现沿用 Claude 版本，验收差异等待审查。
