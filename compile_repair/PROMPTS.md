@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.27（2026-11-24；r2.26、r2.25 同日；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.28（2026-11-24；r2.27、r2.26、r2.25 同日；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,10 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.28 相对 r2.27 的修改**（CP6.0.1 本地复核的审查与下一阶段的顺序；修改 AI：Claude）：
+1. CP6.0.1 本地复核（Codex，提交 278707dcc）通过：production 1,163 / 6、mando 672 / 497、DFG v2 2,653、MANDO 843 一致；4 个部分 IR 单元全部 unrepaired、主因 slither_incomplete，385 次候选全部为 slither_partial_ir，没有留存图。CP6.0 阶段完成。审查发现的小问题：partial_ir_check_r2.py 以 exist_ok=False 创建的输出目录与前两步共用，Codex 经用户批准直接调用原入口，处理正确；以后的本地步骤为每一步使用独立子目录。
+2. 下一阶段的顺序（待用户决定，见 artifacts/cp6_0_v1/remaining_failures.json）：CP5 目标的 9,138 个单元中仍有 3,256 个未通过 D3，其中 2,979 个主因含 unresolved_package_import；2,463 个至少有一个待补包不在离线索引中。最大的一项是导入前缀中带精确版本的写法 `openzeppelin-solidity-2.3.0/…`（1,539 个单元，9 个项目，其中 1,449 个只缺这一个前缀），其次 `@chainlink/contracts-0.0.10`（63）与未收录的 npm 包（@uniswap/v2-periphery 113、@uniswap/v3-periphery 60 等）。CP6 的规则类别（第 5、7–10 步）在 CP3 中合计约 700 个单元。按 D6“频率决定实现顺序”，建议先做 CP5.3（依赖覆盖扩展：前缀中的精确版本作为身份证据、补充未收录的包），再做 CP6。
 
 **r2.27 相对 r2.26 的修改**（CP6.0 本地复核的审查与 CP6.0.1；修改 AI：Claude）：
 1. 本地复核（Codex）三套测试与 MANDO 回归全部符合预期；cp3_19463 的最终主因不符而停下。审查：原因是 try_project 不接受 Slither 侧失败的试验，单元退回到包导入未解决；4.6j 第 4 步的预期遗漏了这条规则。

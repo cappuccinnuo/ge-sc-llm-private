@@ -2824,3 +2824,39 @@ production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 sk
 ### 64.5 验收、资源、未执行事项与停止
 
 本地复核通过，等待 Claude 审查。本节规定的四个真实单元均已实测。已核对 18 个生产文件与 354 个冻结 DFG 代码引用。CP6_REPORT、PROGRESS、CHANGE_LOG、HANDOVER、DECISIONS 的五份 doc_check 回执和 SHA256 写入 tests_r2.json 的 doc_check 字段。CPU 运行，未安装、下载语料、调用 LLM 或训练，费用 0 美元。
+
+
+## 65. 2026-11-24 CompileRepair CP6.0.1 本地复核审查与阶段顺序建议（修改 AI：Claude）
+
+### 65.1 任务、依据与范围
+
+用户告知 CP6.0.1 本地结果已上传（2026-11-24）。审查 Codex 的提交 278707dcc（CP6_REPORT 的 CP6.0.1 节、artifacts/cp6_0_v1/local/ 的 tests_r2、mando_check_r2、partial_ir_units_r2、CHANGE_LOG §64），并在进入下一阶段前核对剩余失败的构成。修改：`PROMPTS.md`（r2.27 → r2.28 修改说明）；新增 `artifacts/cp6_0_v1/remaining_failures.json`；记录：本节、HANDOVER、DECISIONS 标题、PROGRESS。没有修改模块代码。
+
+### 65.2 实施方式和重要选择
+
+- 审查：读 partial_ir_units_r2.json，4 个单元 matches_expected 均为 true，候选 70 + 70 + 140 + 105 = 385 次全部为 slither_partial_ir，最终步骤为第 3 步第 1 轮、accepted_outcome 为 compiled_slither_side_failure，T3 发布版 inferred 为 true。三套测试与 MANDO 回归的计数与 4.6k 的预期相同。
+- 本地步骤的小缺陷：partial_ir_check_r2.py 用 exist_ok=False 新建的目录与第 1、2 步的输出目录相同，Codex 停下、经用户批准后直接调用同一入口，没有改代码，处理正确。以后的本地步骤每一步使用独立子目录。
+- 阶段顺序：按 D6，频率决定实现顺序。用 CP5.2 的重跑记录与 CP5 测量计算剩余失败：缺包仍是最大一类；其中前缀带精确版本的写法（`openzeppelin-solidity-2.3.0/…`，Synthetix 等 9 个项目）占 1,539 个单元。前缀中的版本是源码中的证据，按 D22 现有的三级身份它被当作 T3 且包名不在索引中；把它作为身份证据需要用户决定（D26）。
+
+### 65.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 本地复核 | production 1,163 / 6；mando 672 / 497；DFG v2 2,653；MANDO 843 一致；4 / 4 单元符合预期 | CP6_REPORT 的 CP6.0.1 节、local/*_r2.json |
+| 剩余失败 | 9,138 个中 3,256 个未通过 D3；主因含缺包 2,979；其中至少一个待补包不在索引 2,463，全部在索引 516 | remaining_failures.json |
+| 前缀带版本 | openzeppelin-solidity-2.3.0 1,539 个单元（9 个项目，1,449 个只缺这一个前缀）；@chainlink/contracts-0.0.10 63；其他 2 | 同上 |
+| 未收录的 npm 包（前几名） | @uniswap/v2-periphery 113、@uniswap/v3-periphery 60、@pooltogether/fixed-point 49、@yearn/contract-utils 48 等 | 同上 |
+| CP6 规则类别 | CP3 主因中 parser_error_other 267、version_dependent 219、unbalanced_structure 64、codegen_only 39 等，合计约 700 个单元 | cp4_1_v1/cp3_before_after.json |
+
+未证明：前缀版本写法与 npm 发布版的文件是否逐字节对应、未收录包的发布版能否通过兼容检查（CP5.3 测量）。
+
+### 65.4 用户批准、原文差异与待确认设计
+
+- 待用户决定：下一阶段先做 CP5.3（依赖覆盖扩展）还是 CP6；若做 CP5.3，前缀中的精确版本是否作为身份证据（拟为 D26），以及补充下载的包与版本范围（按 D23 的方式列清单）。
+- 待确认：D19。D9/D10 待确认，D12/D13 待定。
+
+### 65.5 验收、资源、未执行事项与停止
+
+- doc_check：PROMPTS、HANDOVER、DECISIONS 全文，CHANGE_LOG 与 PROGRESS 按追加前字节数检查追加区间，全部 passed=True 后提交。
+- 资源：云端 CPU；没有下载、安装或 LLM 调用，费用 0。
+- 停止：CP6.0 完成；等待用户对阶段顺序的决定。

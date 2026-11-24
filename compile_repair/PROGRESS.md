@@ -662,3 +662,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 复核 9a498786 的 §4.6k，更新 CP6_REPORT、HANDOVER、CHANGE_LOG §64 与 DECISIONS，新增 local 下三份 r2 JSON。各环境运行 `python -B -m pytest -q -p no:cacheprovider`，目标和 basetemp 见 tests_r2.json。production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 skipped in 21.73s；DFG v2 2653 passed, 9 warnings in 165.41s (0:02:45)。843 个 MANDO 成功图等于 v5，其余 3 个与历史失败相符。
 
 实测 4 个真实单元，共 385 次候选观测，其中 385 次归为 slither_partial_ir。4 个单元最终主因为 slither_incomplete，0 个单元换版本成功。实际运行入口经用户批准，记录在 partial_ir_units_r2.json。本地复核通过，等待 Claude 审查。全量语料中的归因变化仍由后续全量验收测量。
+
+
+## CP6.0.1 本地复核审查与阶段顺序建议（Claude，2026-11-24）
+
+- CP6.0.1 本地复核通过，CP6.0 阶段完成。
+- 剩余失败以未收录的依赖为主（2,979 个单元；`openzeppelin-solidity-2.3.0` 前缀 1,539 个）。建议先做 CP5.3（依赖覆盖扩展），再做 CP6；待用户决定。证据 `artifacts/cp6_0_v1/remaining_failures.json`；记录 `docs/CHANGE_LOG.md` §65。

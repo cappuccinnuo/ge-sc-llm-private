@@ -1,23 +1,21 @@
 # CompileRepair 交接文档
 
-> 本轮交接先读第 0–5 节、CP6_REPORT 的 CP6.0.1 本地复核、CHANGE_LOG §64 与 local/partial_ir_units_r2.json。
+> 本轮交接先读第 0–5 节、PROMPTS r2.28 的修改说明、artifacts/cp6_0_v1/remaining_failures.json、CP6_REPORT.md、CHANGE_LOG §64、§65。
 
 ## 0. 一句话
 
-CP6.0.1 三套本机测试与 MANDO 回归通过。4 个单元最终主因为 slither_incomplete，0 个单元换版本成功。本地复核通过，等待 Claude 审查。
+CP6.0 阶段完成：CP6.0.1 本地复核通过（三套测试、MANDO 843 个图、4 个部分 IR 单元均为 slither_incomplete）。剩余失败以未收录的依赖为主（2,979 个单元，其中 1,539 个是前缀带精确版本的 `openzeppelin-solidity-2.3.0`），建议先做 CP5.3（依赖覆盖扩展）再做 CP6，待用户决定。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.27；D22–D25 用户已定；D19 建议；D9/D10 待确认、D12/D13 待定 |
-| CP0–CP5 | 已审查通过 |
-| CP6.0 | 本地：production 1,160 / 6、mando 672 / 494、DFG v2 2,653、MANDO 843 一致；cp3_19463 归因不符（已由 CP6.0.1 修正） |
-| CP6.0.1 | 本地复核通过，等待 Claude 审查。实测结果见 CP6_REPORT |
+| 方案与决定 | PROMPTS r2.28；D22–D25 用户已定；下一阶段顺序待用户决定；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| CP0–CP6.0 | 已审查通过；CP6.0 包含 D25（D3(c)）与 CP6.0.1 归因修正 |
+| 剩余失败（CP5 目标 9,138 个） | 3,256 个未通过 D3；主因含缺包 2,979 个（不在索引 2,463、都在索引 516）；缺相对文件 213 + 139 混合；包装 40 |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | declaration_error 0 纳入；创建码哈希常量；每包至多 12 个代表发布版；旧移动算子的链式修复 exact 为 false |
-| 分支 | 继续在 compile-repair |
-| 下一步 | Claude 审查 CP6.0.1 本地结果 |
+| 下一步 | 用户决定：CP5.3（依赖覆盖扩展，建议）或 CP6 |
 
 ## 2. 分支与工作树
 
@@ -81,6 +79,7 @@ CP5.1 复核先读 `CP5_REPORT.md` 的 CP5.1 一节与新批次 README。按 `in
 
 | 内容 | compile_repair 下的位置 |
 |---|---|
+| 剩余失败分解（Claude） | artifacts/cp6_0_v1/remaining_failures.json |
 | CP6.0 实现与云端核验（Claude） | artifacts/cp6_0_v1/README.md、mando_check_cloud.json、production_tests_cloud.json；本地运行步骤 PROMPTS §4.6j |
 | CP5.2 审查记录（Claude） | artifacts/cp5_2_review_v1/README.md |
 | CP5.1 审查证据（Claude） | artifacts/cp5_1_review_v1/README.md、outcome_tallies.json |
@@ -865,3 +864,8 @@ production、mando、DFG v2 分别通过 1,160、672、2,653 项。843 份成功
 production 1163 passed, 6 skipped in 97.46s (0:01:37)；mando 672 passed, 497 skipped in 21.73s；DFG v2 2653 passed, 9 warnings in 165.41s (0:02:45)。MANDO 成功图 843 份全部逐字节相同且通过 D3(c)，另外 3 个历史失败保留。实测 4 个真实单元，共 385 次候选观测，其中 385 次归为 slither_partial_ir。4 个单元最终主因为 slither_incomplete，0 个单元换版本成功。
 
 第 3 步的包装脚本会重复创建批次目录，用户批准设置同一 OUT 后直接调用原 main。未修改生产、测试或运行器源码。本地复核通过，等待 Claude 审查。
+
+
+### 2026-11-24 CompileRepair CP6.0.1 本地复核审查与阶段顺序建议（修改 AI：Claude）
+
+审查 Codex 的 CP6.0.1 本地复核（提交 278707dcc）：全部符合预期，CP6.0 阶段完成。新增 `artifacts/cp6_0_v1/remaining_failures.json`（由 CP5.2 重跑记录与 CP5 测量计算的剩余失败分解），`PROMPTS.md` r2.27 → r2.28。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §65。
