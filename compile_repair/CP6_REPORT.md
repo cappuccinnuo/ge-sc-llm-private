@@ -232,3 +232,34 @@ mando 测试通过。D26 全量在第 73 个单元 cp3_06775 的第 3 步发布�
 ### 证据与资源
 
 已核验 CP5.1 封存索引的 index.json 与 seal.json 哈希（20 个包、172 个发布版）。停止后再次核对全部 1,539 个入口的 CP3 SHA256，全部一致。原运行器只在全量结束时写 corpus_unchanged 和 summary.json，本批将全量语料判定登记为未测。20 个生产文件与启动时相同，354 个 DFG 代码引用与封存一致。本机 CPU 执行，费用 0 美元。命令、用时、索引及日志哈希见 `artifacts/cp6_4_v1/local/tests.json` 和 `d26.json`。逐单元 tier、证据及原生收据 SHA256 见 `d26_observed_units.jsonl.gz`，完整名单见 `d26_targets.json.gz`。工作副本与中断现场位于仓库外 `compile-repair-local/cp6_4_v1/`。
+
+
+### r2.34 续跑（修改 AI：Codex，2026-11-25）
+
+本机抽样验收通过，等待 Claude 审查。基线 `116c6ca2466ad0a0058eefb14836f6994b6414b2`。选择器按原顺序从 1,539 项取样，每个物理项目目录最多再取 20 项。跳过已完成 73 项、跨语料重复 199 项和超过每目录上限的 1110 项。9 个项目名对应 10 个目录。Aloith 在 DAppSCAN、Trace 两个目录各提供 20 个新单元，按项目名、项目内路径和入口 SHA256 核对，合并结果中没有重复。
+
+新增 157 项，成功 155 项，第 3 步接受 157 项。合并首轮 73 项后，共运行 230 项，成功 228 项，第 3 步接受 230 项。未修复单元的当前主因为missing_relative_file 1 项、unresolved_package_import 1 项。对应单元为 cp3_08145（missing_relative_file）、cp3_09602（unresolved_package_import）。第 3 步在全部已运行单元中获接受。
+
+| 项目（同名跨语料合并） | 首轮 | 新增 | 合计运行 | 成功 | 第 3 步接受 | 其他包 T1 / T2 / T3 |
+|---|---:|---:|---:|---:|---:|---:|
+| Chainsulting-SPICE | 26 | 20 | 46 | 46 | 46 | 0 / 0 / 0 |
+| Iosiro-Synthetix Alkaid Release Smart Contract Audit | 18 | 20 | 38 | 38 | 38 | 0 / 0 / 0 |
+| Iosiro-Synthetix Alnitak Release Smart Contract Audit | 29 | 20 | 49 | 49 | 49 | 0 / 0 / 1 |
+| Iosiro-Synthetix Aloith Release Smart Contract Audit | 0 | 40 | 40 | 40 | 40 | 0 / 0 / 0 |
+| Iosiro-Synthetix Didpha Release Smart Contract Audit | 0 | 1 | 1 | 0 | 1 | 0 / 0 / 0 |
+| Iosiro-Synthetix Fomalhaut Release Smart Contract Audit | 0 | 20 | 20 | 20 | 20 | 0 / 0 / 0 |
+| Iosiro-Synthetix Shaula Release Smart Contract Audit | 0 | 20 | 20 | 20 | 20 | 0 / 0 / 0 |
+| Iosiro-Thales Airdrop and Staking Smart Contract Audit | 0 | 1 | 1 | 0 | 1 | 0 / 0 / 0 |
+| PeckShield-Kalmar | 0 | 15 | 15 | 15 | 15 | 0 / 0 / 9 |
+| 合计 | 73 | 157 | 230 | 228 | 230 | 0 / 0 / 10 |
+
+| 范围 | 发布版 | 层级 | 证据 | inferred | 单元数 |
+|---|---|---|---|---|---:|
+| 前缀 | @chainlink/contracts@0.0.10 | T1 | D26_versioned_prefix | false | 13 |
+| 前缀 | openzeppelin-solidity@2.3.0 | T1 | D26_versioned_prefix | false | 230 |
+| 伴随 | @eth-optimism/contracts@0.2.11 | T3 | D22（逐项见证据表） | true | 1 |
+| 伴随 | @uniswap/v2-core@1.0.0 | T3 | D22（逐项见证据表） | true | 9 |
+
+其他依赖按每单元内不同的包和版本计，T1 为 0，T2 为 0，T3 为 10。同一单元可涉及多个包。每个已接受的前缀发布版均对照封存索引、原生身份及版本证据；普通包按 D22 记录层级与 inferred。首轮 cp3_06775 的 OpenZeppelin 2.3.0 具有版本前缀证据，T1、inferred=false；普通伴随依赖 @eth-optimism/contracts 0.2.11 为 T3、inferred=true。按更正后的 D26 和 D22 两项均通过。
+
+新增样本的原生 corpus_unchanged=True。每个新增单元还对照了本轮开始时的项目 Solidity 文件清单和哈希。首轮沿用封存结果，并复核了 73 个结果、步骤日志和接受轮次的 SHA256。首轮没有生成全量语料标记。本轮范围是按项目抽样，合并结果覆盖原名单的 230/1,539 项。汇总与逐单元原生收据哈希见 `artifacts/cp6_4_v1/local/d26_r2.json`、`d26_r2_units.jsonl.gz`。

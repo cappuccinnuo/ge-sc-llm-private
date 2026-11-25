@@ -753,3 +753,10 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - mando 环境测试 721 passed；D26 本机已完成 73 个单元全部成功，版本前缀包全部 T1、不是推断。
 - Codex 的停点来自 Claude 写得过严的判据（同单元其他包按 D22 可为 T3），已更正；续跑改为每个项目最多 20 个单元。
 - 下一步：Codex 按 PROMPTS §4.6o “r2.34 续跑”运行；记录 `docs/CHANGE_LOG.md` §79。
+
+
+## CP6.4 D26 r2.34 按项目续跑（修改 AI：Codex，2026-11-25）
+
+依据 PROMPTS §4.6o 的 r2.34 续跑说明。基线 `116c6ca24`。新增 157 项，成功 155 项，第 3 步接受 157 项。合并首轮 73 项后，共运行 230 项，成功 228 项，第 3 步接受 230 项。未修复单元的当前主因为missing_relative_file 1 项、unresolved_package_import 1 项。对应单元为 cp3_08145（missing_relative_file）、cp3_09602（unresolved_package_import）。第 3 步在全部已运行单元中获接受。其他依赖按每单元内不同的包和版本计，T1 为 0，T2 为 0，T3 为 10。本机抽样验收通过，等待 Claude 审查。
+
+归档为 local/d26_r2.json 与 local/d26_r2_units.jsonl.gz，包含命令、提交、用时和分项目结果；工作副本在 compile-repair-local/cp6_4_v1/d26_r2/。CP6_REPORT 在 CP6.4 节追加本轮结果，同步 docs/HANDOVER 和 CHANGE_LOG §80。mando 沿用首轮 721 passed、521 skipped。

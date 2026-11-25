@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮先读 CP6_REPORT 的“CP6.4 本地”、CHANGE_LOG §78 和 artifacts/cp6_4_v1/local/d26.json 的 first_mismatch_evidence。
+> 本轮先读 CP6_REPORT 中 CP6.4 的“r2.34 续跑”、CHANGE_LOG §80 和本批 local/d26_r2.json。
 
 ## 0. 一句话
 
-CP6.4：mando 环境测试通过；D26 本机已完成的 73 个单元全部成功。Codex 停在 cp3_06775 是因为 Claude 写的判据过严（同单元的其他包按 D22 可为 T3），已在 PROMPTS r2.34 更正；等待 Codex 按 4.6o “r2.34 续跑”做按项目抽样。
+CP6.4 D26 本机抽样验收通过，等待 Claude 审查。新增 157 项，成功 155 项，第 3 步接受 157 项。合并首轮 73 项后，共运行 230 项，成功 228 项，第 3 步接受 230 项。
 
 ## 1. 当前状态
 
@@ -15,10 +15,10 @@ CP6.4：mando 环境测试通过；D26 本机已完成的 73 个单元全部成�
 | CP6.1 | 已审查通过（CHANGE_LOG §70） |
 | CP6.2 | 已审查通过（CHANGE_LOG §73） |
 | CP6.3 | 已审查通过（CHANGE_LOG §76） |
-| CP6.4 | 本机 mando 721 / 521。D26 已测 73 / 1,539，首个伴随包 T3 的证据见 CHANGE_LOG §78 |
+| CP6.4 | 本机抽样验收通过，等待 Claude 审查。D26 合并 228/230 成功，详见 §80 |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；普通变量与普通调用的未声明不加桩；三元表达式的 SlithIR 限制（1 个项目）；小基准严格 exact 受内嵌元数据哈希影响 |
-| 下一步 | Codex 按 PROMPTS §4.6o “r2.34 续跑”做 D26 按项目抽样（判据已更正）；之后 CP6 验收 |
+| 下一步 | Claude 审查 CP6.4 r2.34 本机收据与 CP6 验收 |
 
 ## 2. 分支与工作树
 
@@ -57,6 +57,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+CP6.4 r2.34 先查 d26_r2.json 分项目合并表、普通包层级与失败主因，再按 d26_r2_units.jsonl.gz 中的哈希复查原始记录。
 
 CP6.4 先核对 local/d26.json 的两包原生证据，再查逐单元压缩表与未启动范围。本批原始现场在仓库外 compile-repair-local/cp6_4_v1。
 
@@ -945,3 +947,8 @@ CP6.3 复算 Codex 本机结果通过（CHANGE_LOG §76）。CP6.4 一次完成�
 ### 2026-11-25 CompileRepair CP6.4 D26 判据更正（修改 AI：Claude）
 
 审查 Codex 本机结果（§78）：mando 测试通过；D26 已完成 73/73 成功。停点来自 Claude 写得过严的判据，已在 PROMPTS r2.34 更正，并改为按项目抽样续跑（新增 `artifacts/cp6_4_v1/sample_d26_targets.py`）。详见 CHANGE_LOG §79。
+
+
+### CP6.4 D26 r2.34 按项目续跑（修改 AI：Codex，2026-11-25）
+
+开头及第 0、1、4 节已更新。新增 157 项，成功 155 项，第 3 步接受 157 项。合并首轮 73 项后，共运行 230 项，成功 228 项，第 3 步接受 230 项。未修复单元的当前主因为missing_relative_file 1 项、unresolved_package_import 1 项。对应单元为 cp3_08145（missing_relative_file）、cp3_09602（unresolved_package_import）。第 3 步在全部已运行单元中获接受。其他依赖按每单元内不同的包和版本计，T1 为 0，T2 为 0，T3 为 10。首轮停点的更正口径见 §79，抽样验收和数据位置见 §80。
