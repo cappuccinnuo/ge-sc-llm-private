@@ -109,3 +109,34 @@
 ### 归档与范围
 
 仓库内汇总位于 `artifacts/cp6_1_v1/local/`。tests.json、mando_check.json、mini_benchmark.json、real_check.json 保存各步状态、实际命令与耗时，已运行的原始日志保存在仓库外 `compile-repair-local/cp6_1_v1/`。压缩逐样本表同时登记压缩前后 SHA256。基准使用 DAppSCAN 固定提交 66a56619 和封存的 CP4 单文件基。启动前核对 19 个生产模块、全部已跟踪测试及夹具、原先获准保留的 32,005 个未跟踪路径。DFG 的 354 个代码引用与冻结基线一致。没有改动生产或运行脚本，CPU 本地执行，下载、LLM 调用、训练和费用均为 0。
+
+### r2.30 补跑
+
+2026-11-24，修改 AI 为 Codex。拉取 `fdcf75444c249eccc0dbf955e3495b1bc43658a4` 后，按 §4.6l 只运行第 3、4 步。CP6.1 本地验收通过，等待 Claude 审查。
+
+#### 按不同内容抽样的破坏与修复基准
+
+三个算子合计实测 300 项，300 项修复成功，严格 exact 为 294/300，仅屏蔽内嵌 Solidity 元数据哈希后为 300/300。扫描过程中跳过 17 个重复内容条目，涉及 17 个不同的 SHA256。本批共有 100 个不同的受测内容。算子样本按“内容 × 算子”计数。上次中止前的 78 项保留在旧记录，本表只使用新批次。
+
+| CP4 算子 | 样本 | 修复成功 | 源码字节还原 | 严格 exact | 屏蔽元数据哈希后 exact |
+|---|---:|---:|---:|---:|---:|
+| `duplicate_definition` | 100 | 100 | 0 | 98 | 100 |
+| `unterminated_pragma` | 100 | 100 | 100 | 98 | 100 |
+| `pragma_missing_semicolon_candidate` | 100 | 100 | 100 | 98 | 100 |
+
+下表逐个列出严格 exact 未通过的入口。用已保存的图对照节点 IR，解析 Solidity CBOR 段并核对长度与哈希字段。逐节点见证与两侧图 SHA256 见 `artifacts/cp6_1_v1/local/mini_benchmark.json` 的 strict_exceptions。
+
+| 入口 SHA256 | 涉及算子 | IR 差异仅为内嵌元数据哈希 |
+|---|---|---|
+| `cccebb9ed96bcf62af37d07180c816e8003727ca4428a5f860b7972efe451c7a` | duplicate_definition、unterminated_pragma、pragma_missing_semicolon_candidate | 是 |
+| `f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154` | duplicate_definition、unterminated_pragma、pragma_missing_semicolon_candidate | 是 |
+
+#### 真实单元
+
+在 42 个单元中实测成功 11 个，11 个接受了第 5 步改写，corpus_unchanged=True。其中 DAppSCAN 有 24 个单元，SOChecker 有 18 个。成功项来自 2 个 DAppSCAN 项目和 2 个不同内容的 SOChecker 片段。逐单元核对 status、reason 和 primary_now，差异共 0 项。成功单元清单与云端一致。
+
+成功单元为 `cp3_03213`、`cp3_03214`、`cp3_03215`、`cp3_03216`、`cp3_03217`、`cp3_03218`、`cp3_03220`、`cp3_03221`、`cp3_20464`、`cp3_29802`、`cp3_30104`。按成功单元计，8 项消除重复 SPDX，2 项处理逐字节相同的重复声明，1 项在文件末尾补 pragma 分号（cp3_29802 的 accepted 步骤记载补丁原因为 pragma terminator before end of file）。逐项收据及完整对照见 real_check.json。
+
+#### 归档及边界
+
+保留原先的 mini/；本次工作副本位于仓库外 compile-repair-local/cp6_1_v1/mini_r2/ 与 real/（仅在第 4 步启动时创建）。第 3 步用时 174.949 秒。新汇总的顶层字段给出此次结果，previous_run 保留原停点记录及 SHA256。各步命令、耗时与逐项压缩表见本批 local/mini_benchmark.json、local/real_check.json。第 1、2 步沿用 §67 的三套测试与 843 份成功图回归；已核对其收据。19 个生产文件所属实现沿用拉取版本，DFG 354 个代码引用与基线一致。CPU 本地运行，安装、额外下载、LLM 调用、训练及费用均为 0。

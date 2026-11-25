@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮先读第 0–5 节、CP6_REPORT 的 CP6.1 本地复核、CHANGE_LOG §67 及 artifacts/cp6_1_v1/local 下四份正式汇总。
+> 本轮先读第 0–5 节、CP6_REPORT 的“r2.30 补跑”、CHANGE_LOG §69 及 cp6_1_v1/local 中的 mini_benchmark.json 和 real_check.json。
 
 ## 0. 一句话
 
-CP6.1：Codex 本机测试三套与 MANDO 回归全部符合；小基准因两个单元共用同一文件而中止，Claude 已修正运行器（每个不同内容取一次，云端复验 90/90，PROMPTS r2.30）。等待 Codex 补跑 4.6l 第 3、4 步。
+三个算子合计实测 300 项，300 项修复成功，严格 exact 为 294/300，仅屏蔽内嵌 Solidity 元数据哈希后为 300/300。在 42 个单元中实测成功 11 个，11 个接受了第 5 步改写，corpus_unchanged=True。其中 DAppSCAN 有 24 个单元，SOChecker 有 18 个。成功项来自 2 个 DAppSCAN 项目和 2 个不同内容的 SOChecker 片段。CP6.1 本地验收通过，等待 Claude 审查。
 
 ## 1. 当前状态
 
@@ -12,10 +12,10 @@ CP6.1：Codex 本机测试三套与 MANDO 回归全部符合；小基准因两�
 |---|---|
 | 方案与决定 | PROMPTS r2.30；用户已定先做 CP6（语料只用于测量与评估，频率按项目与写法计）；D26 待批准；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP6.0 | 已审查通过 |
-| CP6.1 | 本机测试与 MANDO 已通过（§67）；小基准运行器已修正（§68），云端复验 90/90；待本机补跑第 3、4 步 |
+| CP6.1 | CP6.1 本地验收通过，等待 Claude 审查。详见 CP6_REPORT 的 r2.30 补跑 |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；Frax 类单元补上 ABI 编码器后停在 Stack too deep（第 9 步）；小基准严格 exact 受内嵌元数据哈希影响 |
-| 下一步 | Codex 按 4.6l “r2.30 补跑”运行；之后 CP6.2（第 7–8 步） |
+| 下一步 | Claude 审查 CP6.1 本地 r2.30 结果 |
 
 ## 2. 分支与工作树
 
@@ -54,6 +54,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+本轮先查 local 下两份补跑摘要的顶层结果与逐项表，previous_run 指向原停点。旧 mini/ 与本轮 mini_r2/ 分目录保存。
 
 CP6.1 审查先看 local/mini_benchmark.json 的分母、严格评分差异与命令，再核对 real_check.json 的运行状态。工作副本及原始日志位于仓库外 compile-repair-local/cp6_1_v1。
 
@@ -887,3 +889,11 @@ production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 sk
 ### 2026-11-24 CompileRepair CP6.1 小基准运行器修正（修改 AI：Claude）
 
 审查 Codex 本地复核（§67）：测试与 MANDO 全部符合；小基准因两个单元共用同一文件而中止。运行器改为每个不同内容取一次，云端复验 90/90。PROMPTS r2.29 → r2.30，等待 Codex 补跑第 3、4 步。详见 CHANGE_LOG §68。
+
+### 2026-11-24 CompileRepair CP6.1 r2.30 本地补跑（修改 AI：Codex）
+
+以 fdcf7544 为起点，执行 PROMPTS §4.6l 的第 3、4 步。更新交接第 0、1、4 节及本条。结果与命令见本批 local 的两份新摘要，原停点和上轮图、源文件均原样保留。
+
+三个算子合计实测 300 项，300 项修复成功，严格 exact 为 294/300，仅屏蔽内嵌 Solidity 元数据哈希后为 300/300。扫描过程中跳过 17 个重复内容条目，涉及 17 个不同的 SHA256。在 42 个单元中实测成功 11 个，11 个接受了第 5 步改写，corpus_unchanged=True。其中 DAppSCAN 有 24 个单元，SOChecker 有 18 个。成功项来自 2 个 DAppSCAN 项目和 2 个不同内容的 SOChecker 片段。逐单元核对 status、reason 和 primary_now，差异共 0 项。成功单元清单与云端一致。
+
+本轮只读核对前两步既有收据。CP6_REPORT 逐项列出严格评分差异的基，并区分云端、本地和旧停点的分母。CP6.1 本地验收通过，等待 Claude 审查。
