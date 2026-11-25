@@ -3153,3 +3153,44 @@ production 1,215 项通过、6 项跳过，mando 709 项通过、512 项跳过�
 ### 75.5 验收、资源、未执行事项与停止
 
 20 个生产文件与启动时的 SHA256 相同，354 个 DFG 引用与 CP0.1 封存相同。完整工作副本和工具日志位于仓库外 compile-repair-local/cp6_3_v1/。UTF-8 文档经 doc_check --expect-cjk 检查四项通过，结果记入 tests.json。本机 CPU 执行，安装、额外下载、LLM 调用、训练及费用均为 0。
+
+## 76. 2026-11-25 CompileRepair CP6.3 审查通过（修改 AI：Claude）
+
+审查 §75（Codex 按 PROMPTS r2.32 §4.6n 本地复核）。从 `local/mini_summary.json.gz`、`local/mini_checks.json.gz`、`local/real_summary.json.gz` 复算：事件声明缺失 100 个中成功 52、graph_equal 50，未达 graph_equal 的 2 个是已知工厂合约（cccebb9e…、f9abece5…）；基类缺失 100 个中成功 17，逐合约节点数检查 violations 为空；550 个真实单元的 status、reason、primary_now 与云端逐单元相同，成功 49。测试 production 1,215 / 6、mando 709 / 512、DFG 2,653，MANDO 843 个图不变。CP6.3 通过。只修改记录（本节）。
+
+## 77. 2026-11-25 CompileRepair CP6.4 第 9 步、第 10 步、D26 与 CP6 总结（修改 AI：Claude）
+
+### 77.1 任务、依据与范围
+
+用户 2026-11-25：CP6.3 核实正确后进入下一子阶段；不要切得过细，一次把模块做完做对；已在云端核实的内容不必在本机重复，只有需要本机大数据的部分交给 Codex。本节一次完成 CP6 剩下的第 9 步、第 10 步与 D26，并给出 CP6 总结。修改：`core/model.py`（Compilation.output）、`toolchain/solc.py`（compile_ast_only）、`toolchain/slither.py`（AST-only 平台、深递归重做）、`rules/environment.py`（codegen_only_retry）、`rules/normalize.py`（导入别名改写）、`rules/dependencies.py`（D26）、`pipeline.py`（第 9 步重试、第 10 步、试验沿用 pragma 覆盖）；新增 `tests/test_cp64.py`、`artifacts/cp6_4_v1/`；`PROMPTS.md` r2.32 → r2.33（4.6o）；记录：本节、§76、DECISIONS、HANDOVER、PROGRESS。
+
+### 77.2 实施方式和重要选择
+
+- 先测量（cp6_4_v1/README）：只在代码生成阶段失败约 9 个项目，几乎都是 0.6/0.7 中 ABI 编码器生成的汇编 Stack too deep，这些版本没有 via-IR，改编译设置不能解决；Slither 侧失败 4 个项目。
+- 第 9 步选 AST-only 而不是改优化设置：Slither 的图只来自 AST；实测命令行 combined JSON 在 0.7.0 仍做代码生成，standard JSON 只请求 AST 与 ABI 时从 0.5.2 起不做；四个版本系列上正常编译与 AST-only 的图逐项相同。crytic-compile 0.4.2 的 standard JSON 平台要求字节码字段，由本模块的平台子类补空字段。
+- 第 10 步按类论证：导入别名只绑定第二个名字，在严格条件下改名等价，编译器再检查一次；深递归只是 Python 的限制，重做一次不改变输入与图的提取；三元表达式没有可论证等价的改写，记为工具限制。
+- 第 10 步的门槛：起初对所有 Slither 侧失败打开修复步骤，测试显示会让无关单元进入；改为只在失败属于有规则的类别时打开。
+- 修复试验原先不允许 pragma 覆盖（找不到记录的理由）；0x v1 的单元只能在覆盖下编译，试验因此无编译器可用。改为：环境阶段已需要覆盖时，试验用同一条第 6 行规则；覆盖记在已有改动之后（第一次实现丢掉了已有改动，provenance 校验报错，已改正并加测试）。
+- D26 放在 dependency_choices 中、识别身份之后：只对索引中没有的包名、没有清单证据时生效。
+
+### 77.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 生产测试 | 1,236 passed / 6 skipped（CP6.3 为 1,215 / 6） | cp6_4_v1/production_tests_cloud.json |
+| MANDO 回归（最终代码） | 843 个图逐字节相同，历史失败 3，steps_on_truths 0 | cp6_4_v1/mando_check_cloud.json |
+| codegen / Slither 侧 64 个单元 | CP6.3 下 0 → CP6.4 下 63：AST-only 43（9 个来源）、深递归 4（1）、别名 16（2）；剩 1 个三元表达式 | cp6_4_v1/codegen_slither_check_cloud.json |
+| D26（小索引，23 个单元，9 个项目） | 第 3 步全部接受，20 个成功，发布版 T1 且不是推断 | cp6_4_v1/d26_check_cloud.json |
+| CP6 全部规则下 550 个真实单元 | {ALL} | cp6_4_v1/real_check_cloud.json |
+
+未证明：D26 在全量离线索引与 1,539 个 CP5 单元上的结果（本机运行，PROMPTS §4.6o）；mando 环境的测试数（云端没有该环境，预期由测试结构推出）。
+
+### 77.4 用户批准、原文差异与待确认设计
+
+- 原文 3.2 节第 9 行“未验证：Slither 能否只用 AST，或编译设置能否避免”：实测为可以只用 AST（≥ 0.5.2）。第 10 行只举了 call.value 的例子；本阶段实现的是测量到的两类，call.value 一类在当前语料中没有出现。
+- CP6 验收“规则桩只加声明，不加函数体”：CP6.3 的修饰器 `{ _; }` 与基类构造函数 `{}` 是 Solidity 要求的最小函数体，不增加行为；Claude 建议作为例外记录（DECISIONS），用户继续推进时未提出异议，仍可要求改回。
+- 待确认：D19；D9/D10；D12/D13。
+
+### 77.5 验收、资源、未执行事项与停止
+
+doc_check 后提交。云端 CPU；从 npm 注册表下载 openzeppelin-solidity@2.3.0 一个包（完整性与注册表一致，只在云端临时目录，不提交）；没有 LLM 调用，费用 0。停止：等待 Codex 按 4.6o 运行 mando 环境测试与 D26 全量。

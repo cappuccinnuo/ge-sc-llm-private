@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.32（2026-11-25；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.33（2026-11-25；r2.32 同日；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,13 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.33 相对 r2.32 的修改**（CP6.4：CP6 收尾；修改 AI：Claude）：
+1. 用户（2026-11-25）：不要把阶段切得过细，一次把模块做完做对；已在云端核实正确的内容不必在本机重复核验，只有需要本机大数据的部分才交给 Codex。据此 CP6.4 一次完成第 9 步、第 10 步与 D26，并给出 CP6 的总结；本机只运行 mando 环境测试（云端没有该环境）与 D26 的全量单元（全量离线索引与 CP5 单元记录只在本机）。
+2. 3.2 节第 9、10 行的“未验证”由 4.6o 的实测结论取代。
+3. 修复试验沿用单元在环境阶段已经需要的 pragma 覆盖（第 6 行的同一规则），覆盖记在已有改动之后。
+4. CP6.3 的桩中修饰器 `{ _; }` 与基类构造函数 `{}` 两种最小函数体作为 CP6 验收“规则桩只加声明，不加函数体”的例外记录在 DECISIONS（Claude 建议，见 4.6o）。
+5. 新增 4.6o 节 CP6.4 与 CP6 总结。
 
 **r2.32 相对 r2.31 的修改**（CP6.3：第 7 步声明桩；修改 AI：Claude）：
 1. 新增 4.6n 节 CP6.3：第 7 步的规格、云端核验与本地运行步骤。
@@ -1838,6 +1845,41 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
   预期：550 个单元（DAppSCAN 95、SOChecker 455）；success 49、step7_accepted 14、step8_accepted 191、phase_advanced 146、step5_accepted 0；corpus_unchanged true。逐单元与 artifacts/cp6_3_v1/real_check_cloud.json 对照 status、reason、primary_now，报告全部差异。
 
 5. 提交：四项结果的汇总写入 artifacts/cp6_3_v1/local/（tests.json、mando_check.json、mini_benchmark.json、real_check.json；完整 summary 可压缩为 .json.gz），CP6_REPORT.md 增加“CP6.3 本地复核”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录；doc_check 后提交并 push，然后停下等待 Claude 审查。
+```
+
+### 4.6o CP6.4：第 9 步、第 10 步、D26 与 CP6 总结（r2.33；Claude 实现并在云端核验）
+
+#### 规格（已由 Claude 实现，见 CHANGE_LOG §77）
+- 第 9 步（只在代码生成阶段失败，例如 Stack too deep）：某个版本的编译错误全部属于 codegen_only 且版本 ≥ 0.5.2 时，同一版本再编译一次：standard JSON 只请求 AST 与 ABI，solc 不做代码生成；Slither 从同一份输入构图（crytic-compile 的 standard JSON 平台，补空的字节码字段）。记 `ast_only_compilation`。实测：0.5.2 起 standard JSON 在不请求字节码时跳过代码生成，0.4.x 到 0.5.1 仍生成；命令行的 combined JSON 在 0.7.0 上即使只请求 ast 也生成代码。在 0.5.17、0.6.12、0.7.6、0.8.38 上，正常编译与 AST-only 编译得到的图与节点逐项相同（测试）。实现：toolchain/solc.py 的 compile_ast_only、toolchain/slither.py 的 AST-only 平台、rules/environment.py 的 codegen_only_retry；Compilation 增加 output 字段。
+- 第 10 步（solc 通过而 Slither 失败的已知写法）：
+  - Slither 0.11.6 不能解析 solc < 0.6 AST 中的局部导入别名：`import {A as B}` 改为 `import {A}`，本文件中 B 的使用改为 A；只在 A 在本文件中没有别的出现、B 都是普通使用（不在 `.` 之后、不在可能声明它的词之后）时进行，等级 rewrite；结果仍须编译通过并满足 D3。依据：别名只为导入的符号绑定第二个名字。
+  - Slither 递归遍历在深度嵌套的源码上超出 Python 默认递归深度：同一分析在更大栈的线程中重做一次（512 MB 栈、递归上限 200000），输入、编译器与图的提取不变；记 deep_recursion_retry。
+  - 三元表达式不能转为 SlithIR（1 个项目）：没有可论证等价的改写，记为工具限制。
+- D26：未知包名形如 `name-X.Y.Z`、没有清单证据、且索引中有 name@X.Y.Z 时，身份为 name@X.Y.Z（T1，不是推断），导入前缀重映射到该发布版。
+- 修复试验沿用单元在环境阶段已需要的 pragma 覆盖，覆盖记在已有改动之后（0x v1 的两个单元因此在第 10 步成功）。
+- 测试：新增 tests/test_cp64.py 21 项。
+
+#### 云端核验（artifacts/cp6_4_v1/README.md）
+- 生产测试 1,236 passed / 6 skipped；MANDO 843 个图不变（最终代码）。
+- CP3 中主因或候选类别含 codegen_only、slither_incomplete 的 64 个单元（另加 4 个 Frax 单元）：CP6.3 代码下 0 个成功；CP6.4 下 63 个成功：AST-only 43 个（9 个来源）、深递归重做 4 个（1 个来源）、别名改写 16 个（2 个来源）；剩 1 个三元表达式（工具限制）。
+- D26：只含 openzeppelin-solidity@2.3.0 的小索引（从 npm 下载，完整性与注册表一致），9 个项目中直接导入该前缀的 23 个单元：第 3 步全部接受，20 个成功；其余 3 个还缺别的包或相对文件。
+- CP6 全部规则下 550 个真实单元（CP6.3 的目标集）：{ALL}。
+
+#### 本地运行步骤（Codex；只做云端无法完成的两项）
+
+```text
+# CP6.4 本地：mando 环境测试与 D26 全量
+
+0. 准备：同 4.6j 第 0 步，提交为 CHANGE_LOG §77 记录的提交或其后只含文档的提交。输出根目录 /home/zhao/SmartContract/compile-repair-local/cp6_4_v1/（已存在即停下）；子目录 tests/、d26/。不安装、不下载、不调用 LLM；与预期不符即停下报告，不改生产代码。生产测试、DFG 与 MANDO 回归已在云端核验，不重复。
+
+1. mando 环境测试（命令同 4.6j 第 2 步，basetemp 为 <输出根目录>/tests/mando）。预期 721 passed, 521 skipped（CP6.3 为 709 / 512；test_cp64.py 中 12 项在 mando 环境运行，9 项需要 production 而跳过）。数量不同但没有失败时，逐项列出差异后继续。
+
+2. D26 全量
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_4_v1/select_d26_targets.py <CP5 封存的离线依赖索引目录> <输出根目录>/d26/targets.json
+  COMPILE_REPAIR_DEPENDENCY_INDEX=<同一索引目录> /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_4_v1/real_check.py <输出根目录>/d26/targets.json <输出根目录>/d26/run <输出根目录>/d26/summary.json
+  预期：选出的单元都来自导入前缀形如 name-X.Y.Z 的项目（remaining_failures.json 中 openzeppelin-solidity-2.3.0 为 1,539 个单元、9 个项目；@chainlink/contracts-0.0.10 只有在索引含 0.0.10 时才会选出）；step3_accepted 应接近全部；报告 success 数、按项目的成功数、未成功单元的当前主因分布，以及每个已接受第 3 步的单元中发布版的 tier 与 evidence（应为 T1、D26_versioned_prefix 或清单锁定的 T1，inferred 为 false）；corpus_unchanged true。
+
+3. 提交：汇总写入 artifacts/cp6_4_v1/local/（tests.json、d26.json；完整 summary 可压缩为 .json.gz），CP6_REPORT.md 增加“CP6.4 本地”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS；doc_check 后提交并 push，然后停下等待 Claude 审查。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）
