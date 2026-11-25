@@ -3181,7 +3181,7 @@ production 1,215 项通过、6 项跳过，mando 709 项通过、512 项跳过�
 | MANDO 回归（最终代码） | 843 个图逐字节相同，历史失败 3，steps_on_truths 0 | cp6_4_v1/mando_check_cloud.json |
 | codegen / Slither 侧 64 个单元 | CP6.3 下 0 → CP6.4 下 63：AST-only 43（9 个来源）、深递归 4（1）、别名 16（2）；剩 1 个三元表达式 | cp6_4_v1/codegen_slither_check_cloud.json |
 | D26（小索引，23 个单元，9 个项目） | 第 3 步全部接受，20 个成功，发布版 T1 且不是推断 | cp6_4_v1/d26_check_cloud.json |
-| CP6 全部规则下 550 个真实单元 | {ALL} | cp6_4_v1/real_check_cloud.json |
+| CP6 全部规则下 550 个真实单元 | 49 个成功（49 个不同来源），与 CP6.3 逐单元相同，没有退步（CP6.4 的规则面向代码生成、Slither 侧与依赖类别，不在这个目标集中）；语料不变 | cp6_4_v1/real_check_cloud.json |
 
 未证明：D26 在全量离线索引与 1,539 个 CP5 单元上的结果（本机运行，PROMPTS §4.6o）；mando 环境的测试数（云端没有该环境，预期由测试结构推出）。
 

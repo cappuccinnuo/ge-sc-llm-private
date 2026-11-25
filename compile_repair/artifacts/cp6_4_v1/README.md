@@ -28,7 +28,7 @@ CP3 中仍失败、主因或候选类别含 codegen_only 或 slither_incomplete 
 | MANDO 回归 | passed=true：843 个图与 v5 逐字节相同，历史失败 3，steps_on_truths 0（mando_check_cloud.json，最终代码） |
 | codegen / Slither 侧 64 个单元 | 63 个成功（CP6.3 下 0 个）：AST-only 43 个（9 个来源）、深递归重做 4 个（1 个来源）、别名改写 16 个（2 个来源）；剩 1 个三元表达式（工具限制）（codegen_slither_check_cloud.json） |
 | D26（只含 openzeppelin-solidity@2.3.0 的小索引，9 个项目中直接导入该前缀的 23 个单元） | 第 3 步全部接受；20 个成功；发布版 T1、inferred=false，20 个带 D26_versioned_prefix 证据，3 个由锁文件钉住；其余 3 个还缺别的包或相对文件（d26_check_cloud.json） |
-| CP6 全部规则下 550 个真实单元（CP6.3 目标集） | {ALL} |
+| CP6 全部规则下 550 个真实单元（CP6.3 目标集） | 49 个成功（49 个不同来源），与 CP6.3 逐单元相同，没有退步（CP6.4 的规则面向代码生成、Slither 侧与依赖类别，不在这个目标集中）；语料不变 |
 
 ## CP6 总结
 
