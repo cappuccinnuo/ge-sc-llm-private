@@ -760,3 +760,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 依据 PROMPTS §4.6o 的 r2.34 续跑说明。基线 `116c6ca24`。新增 157 项，成功 155 项，第 3 步接受 157 项。合并首轮 73 项后，共运行 230 项，成功 228 项，第 3 步接受 230 项。未修复单元的当前主因为missing_relative_file 1 项、unresolved_package_import 1 项。对应单元为 cp3_08145（missing_relative_file）、cp3_09602（unresolved_package_import）。第 3 步在全部已运行单元中获接受。其他依赖按每单元内不同的包和版本计，T1 为 0，T2 为 0，T3 为 10。本机抽样验收通过，等待 Claude 审查。
 
 归档为 local/d26_r2.json 与 local/d26_r2_units.jsonl.gz，包含命令、提交、用时和分项目结果；工作副本在 compile-repair-local/cp6_4_v1/d26_r2/。CP6_REPORT 在 CP6.4 节追加本轮结果，同步 docs/HANDOVER 和 CHANGE_LOG §80。mando 沿用首轮 721 passed、521 skipped。
+
+## CP6 审查通过（Claude，2026-11-25）
+
+- D26 本机抽样：230 个单元（9 个项目）第 3 步全部接受、228 个成功；版本前缀包全部 T1、不是推断。
+- CP6 的确定性规则全部实现并验收；总结见 `artifacts/cp6_4_v1/README.md`。
+- 下一步：CP7（RAG 知识库）；记录 `docs/CHANGE_LOG.md` §81。

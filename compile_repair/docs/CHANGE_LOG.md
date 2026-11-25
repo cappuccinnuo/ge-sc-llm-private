@@ -3268,3 +3268,33 @@ doc_check 后提交。费用 0。停止：等待 Codex 按 4.6o “r2.34 续跑�
 ### 80.5 验收、资源、未执行事项与停止
 
 mando 测试沿用 §78 的 721 passed、521 skipped。20 个生产文件和 354 个 DFG 引用经哈希核对。CPU 本机运行，安装、额外下载、LLM 调用、训练和费用均为 0。四份文档均通过 doc_check --expect-cjk，收据见 d26_r2.json。全量其余单元未运行。
+
+## 81. 2026-11-25 CompileRepair CP6.4 与 CP6 审查通过（修改 AI：Claude）
+
+### 81.1 任务、依据与范围
+
+审查 §80（Codex 按 PROMPTS r2.34 §4.6o “r2.34 续跑”运行）。只修改记录：本节、HANDOVER、PROGRESS。
+
+### 81.2 实施方式和重要选择
+
+从 `local/d26_r2_units.jsonl.gz` 逐单元复算，不只读报告。
+
+### 81.3 实测与数据结论
+
+| 核对项 | 复算结果 |
+|---|---|
+| D26 抽样（首轮 73 + 续跑 157，9 个项目、10 个目录） | 230 个单元，第 3 步全部接受，成功 228 |
+| 版本前缀包 | openzeppelin-solidity@2.3.0 230 个、@chainlink/contracts@0.0.10 13 个，全部 T1、D26_versioned_prefix、inferred=false |
+| 同单元的其他包（D22） | @uniswap/v2-core@1.0.0 9 个、@eth-optimism/contracts@0.2.11 1 个，均 T3、inferred=true |
+| 未成功 | cp3_08145（missing_relative_file）、cp3_09602（unresolved_package_import，另一个未入索引的包），都不在 D26 的范围内 |
+| mando 环境测试（§78） | 721 passed / 521 skipped |
+
+CP6.4 通过。连同 CP6.0–CP6.3（§§59–76 的审查），CP6 的确定性规则（第 5、7、8、9、10 步与 D25、D26、D27）全部实现并验收；总结见 artifacts/cp6_4_v1/README.md。CP6 通过。
+
+### 81.4 用户批准、原文差异与待确认设计
+
+待用户决定：规则桩的最小函数体例外（DECISIONS CP6.4 表，Claude 建议）。待确认：D19；D9/D10；D12/D13。
+
+### 81.5 验收、资源、未执行事项与停止
+
+doc_check 后提交。费用 0。下一步 CP7（RAG 知识库：K1 需下载对应版本的文档，K2 复用 CP5 索引，K3 留一项目）。
