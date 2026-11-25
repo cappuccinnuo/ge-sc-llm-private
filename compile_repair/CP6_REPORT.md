@@ -192,3 +192,43 @@ production 1,215 项通过、6 项跳过，mando 709 项通过、512 项跳过�
 550 个真实单元（DAppSCAN 95、SOChecker 455）中成功 49 个。第 7 步获接受 14 个，其中 9 个最终成功。第 8 步获接受 191 个，按阶段进展接受 146 个，第 5 步获接受 0 个。语料哈希复核 corpus_unchanged=True。与云端逐单元对照 status、reason、primary_now，共 0 处差异。CP6.2 的 40 个历史成功项中有 0 项退出成功集合，本批新增成功 9 项。按入口 SHA256 去重，成功项来自 DAppSCAN 的 1 个内容和 SOChecker 的 48 个片段。
 
 20 个生产文件与启动时的 SHA256 相同，354 个 DFG 引用与 CP0.1 封存相同。完整工作副本和工具日志位于仓库外 compile-repair-local/cp6_3_v1/。本批使用 CPU，费用 0 美元。
+
+
+## CP6.4 本地（修改 AI：Codex，2026-11-25）
+
+mando 测试通过。D26 全量在第 73 个单元 cp3_06775 的第 3 步发布版证据处按 §4.6o 停止，等待审查。基于 `09dc052753da3dede00c9cd990f9ee6d01ea12d7` 执行 PROMPTS r2.33 §4.6o。本机 mando 测试为 721 passed、521 skipped，计数完全符合预期。生产测试、DFG 测试与 MANDO 图回归按本节范围沿用前序记录。
+
+### D26 全量选择与部分实测
+
+原选择器得到 1,539 个不同单元。所有单元均命中 openzeppelin-solidity-2.3.0，其中 63 个同时命中 @chainlink/contracts-0.0.10。OpenZeppelin 涉及 9 个项目名、10 个物理根，Chainlink 涉及 6 个项目名、7 个物理根。Aloith 项目在 DAppSCAN 与 Trace 中各有 199 个入口，相对路径、入口哈希及命中前缀逐项一致。沿用原清单分别测量。
+
+已完成 73 项，73 项修复成功并接受第 3 步。72 项满足本步的全部发布版证据要求，1 项触发停点。另 1,466 项未启动。已完成样本中没有编译未修复项，当前主因分布为空。
+
+| 项目 | 语料 | 选中 | 完成 | 成功 | 第 3 步接受 |
+|---|---|---:|---:|---:|---:|
+| Chainsulting-SPICE | DAppSCAN | 105 | 26 | 26 | 26 |
+| Iosiro-Synthetix Alkaid Release Smart Contract Audit | DAppSCAN | 69 | 18 | 18 | 18 |
+| Iosiro-Synthetix Alnitak Release Smart Contract Audit | DAppSCAN | 478 | 29 | 29 | 29 |
+| Iosiro-Synthetix Aloith Release Smart Contract Audit | DAppSCAN | 199 | 0 | 0 | 0 |
+| Iosiro-Synthetix Didpha Release Smart Contract Audit | DAppSCAN | 1 | 0 | 0 | 0 |
+| Iosiro-Synthetix Fomalhaut Release Smart Contract Audit | DAppSCAN | 151 | 0 | 0 | 0 |
+| Iosiro-Synthetix Shaula Release Smart Contract Audit | DAppSCAN | 321 | 0 | 0 | 0 |
+| Iosiro-Thales Airdrop and Staking Smart Contract Audit | DAppSCAN | 1 | 0 | 0 | 0 |
+| PeckShield-Kalmar | DAppSCAN | 15 | 0 | 0 | 0 |
+| Iosiro-Synthetix Aloith Release Smart Contract Audit | Trace_repo | 199 | 0 | 0 | 0 |
+
+### 第 3 步发布版与停点
+
+| 已接受的发布版 | 层级 | 证据 | inferred | 涉及单元 |
+|---|---|---|---|---:|
+| @chainlink/contracts@0.0.10 | T1 | D26_versioned_prefix | false | 5 |
+| @eth-optimism/contracts@0.2.11 | T3 | no_lock_evidence | true | 1 |
+| openzeppelin-solidity@2.3.0 | T1 | D26_versioned_prefix | false | 73 |
+
+同一单元可出现多个包，各行计数有重叠。同一次已接受的第 3 步既选用了 openzeppelin-solidity@2.3.0（T1，D26_versioned_prefix，inferred=false），也选用了 @eth-optimism/contracts@0.2.11（T3，inferred=true）。后者有 3 处普通包导入，入口 SynthetixBridgeToOptimism.sol 中有 2 处，BaseSynthetixBridge.sol 中有 1 处。3 条身份记录的 manifests 均为空。solc 0.5.16 编译成功，D3(a)、D3(b)、D3(c) 均为 true。
+
+建议审查 §4.6o 的 T1 要求应覆盖同次接受的全部包，还是仅覆盖 D26 版本前缀包，并对其他依赖按 D22 单列。此次沿用原文判据。两包的 tier、版本证据及 inferred 均保留，后续运行范围和口径待确认。
+
+### 证据与资源
+
+已核验 CP5.1 封存索引的 index.json 与 seal.json 哈希（20 个包、172 个发布版）。停止后再次核对全部 1,539 个入口的 CP3 SHA256，全部一致。原运行器只在全量结束时写 corpus_unchanged 和 summary.json，本批将全量语料判定登记为未测。20 个生产文件与启动时相同，354 个 DFG 代码引用与封存一致。本机 CPU 执行，费用 0 美元。命令、用时、索引及日志哈希见 `artifacts/cp6_4_v1/local/tests.json` 和 `d26.json`。逐单元 tier、证据及原生收据 SHA256 见 `d26_observed_units.jsonl.gz`，完整名单见 `d26_targets.json.gz`。工作副本与中断现场位于仓库外 `compile-repair-local/cp6_4_v1/`。

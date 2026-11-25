@@ -738,3 +738,12 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - CP6.4：第 9 步只在代码生成阶段失败时改用不做代码生成的 AST-only 编译；第 10 步改写导入别名、深递归时重做一次；D26 由版本前缀确定发布版；修复试验沿用环境阶段的 pragma 覆盖。
 - 云端：生产测试 1,236 passed、MANDO 843 个图不变、codegen/Slither 侧 64 个单元 0 → 63 个成功、D26 小索引 23 个单元 20 个成功；550 个真实单元 49 个成功（49 个不同来源），与 CP6.3 逐单元相同，没有退步（CP6.4 的规则面向代码生成、Slither 侧与依赖类别，不在这个目标集中）；语料不变。
 - 下一步：Codex 按 PROMPTS §4.6o 运行 mando 环境测试与 D26 全量；记录 `docs/CHANGE_LOG.md` §76–§77。
+
+
+## CP6.4 本地（修改 AI：Codex，2026-11-25）
+
+依据 §4.6o 拉取 `09dc05275`，在 mando 环境运行模块测试（721 passed、521 skipped），用封存的 172 版索引执行 D26 全量。已完成 73 项，73 项修复成功并接受第 3 步。72 项满足本步的全部发布版证据要求，1 项触发停点。另 1,466 项未启动。已完成样本中没有编译未修复项，当前主因分布为空。
+
+同一次已接受的第 3 步既选用了 openzeppelin-solidity@2.3.0（T1，D26_versioned_prefix，inferred=false），也选用了 @eth-optimism/contracts@0.2.11（T3，inferred=true）。后者有 3 处普通包导入，入口 SynthetixBridgeToOptimism.sol 中有 2 处，BaseSynthetixBridge.sol 中有 1 处。3 条身份记录的 manifests 均为空。solc 0.5.16 编译成功，D3(a)、D3(b)、D3(c) 均为 true。第 73 项按原验收条件停止。建议审查 §4.6o 的 T1 要求应覆盖同次接受的全部包，还是仅覆盖 D26 版本前缀包，并对其他依赖按 D22 单列。此次沿用原文判据。两包的 tier、版本证据及 inferred 均保留，后续运行范围和口径待确认。
+
+本批新增 local/tests.json、d26.json、d26_observed_units.jsonl.gz 和 d26_targets.json.gz。四份文档为 CP6_REPORT、PROGRESS、docs/HANDOVER、docs/CHANGE_LOG §78；测试与生产命令、用时见两份 JSON。1,466 项仍待处理。

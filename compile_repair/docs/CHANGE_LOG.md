@@ -3194,3 +3194,26 @@ production 1,215 项通过、6 项跳过，mando 709 项通过、512 项跳过�
 ### 77.5 验收、资源、未执行事项与停止
 
 doc_check 后提交。云端 CPU；从 npm 注册表下载 openzeppelin-solidity@2.3.0 一个包（完整性与注册表一致，只在云端临时目录，不提交）；没有 LLM 调用，费用 0。停止：等待 Codex 按 4.6o 运行 mando 环境测试与 D26 全量。
+
+
+## 78. CP6.4 本地（修改 AI：Codex，2026-11-25）
+
+### 78.1 任务、依据与范围
+
+以 `09dc052753da3dede00c9cd990f9ee6d01ea12d7` 执行 PROMPTS r2.33 §4.6o 的 mando 环境测试与 D26 全量离线检查。本批记录位于 artifacts/cp6_4_v1/local 和规定的四份文档。
+
+### 78.2 实施方式和重要选择
+
+快进拉取后核对干净的已跟踪文件、历史路径清单和封存索引哈希，在全新仓库外目录运行原命令。每个单元输出状态后即读取原生结果与第 3 步收据，核对索引包完整性、每条身份的 tier、版本、证据与 inferred。发现首个不符即结束运行并保留该单元。
+
+### 78.3 实测与数据结论
+
+mando 测试 721 passed、521 skipped。原选择器得到 1,539 个不同单元。所有单元均命中 openzeppelin-solidity-2.3.0，其中 63 个同时命中 @chainlink/contracts-0.0.10。OpenZeppelin 涉及 9 个项目名、10 个物理根，Chainlink 涉及 6 个项目名、7 个物理根。Aloith 项目在 DAppSCAN 与 Trace 中各有 199 个入口，相对路径、入口哈希及命中前缀逐项一致。沿用原清单分别测量。已完成 73 项，73 项修复成功并接受第 3 步。72 项满足本步的全部发布版证据要求，1 项触发停点。另 1,466 项未启动。已完成样本中没有编译未修复项，当前主因分布为空。同一次已接受的第 3 步既选用了 openzeppelin-solidity@2.3.0（T1，D26_versioned_prefix，inferred=false），也选用了 @eth-optimism/contracts@0.2.11（T3，inferred=true）。后者有 3 处普通包导入，入口 SynthetixBridgeToOptimism.sol 中有 2 处，BaseSynthetixBridge.sol 中有 1 处。3 条身份记录的 manifests 均为空。solc 0.5.16 编译成功，D3(a)、D3(b)、D3(c) 均为 true。按项目统计与发布版计数见 CP6_REPORT 本节和 local/d26.json。
+
+### 78.4 用户批准、原文差异与待确认设计
+
+历史未跟踪路径沿用“允许保留已登记的历史产物并继续”的批准。32,005 个路径与原清单逐字节相同。建议审查 §4.6o 的 T1 要求应覆盖同次接受的全部包，还是仅覆盖 D26 版本前缀包，并对其他依赖按 D22 单列。此次沿用原文判据。两包的 tier、版本证据及 inferred 均保留，后续运行范围和口径待确认。
+
+### 78.5 验收、资源、未执行事项与停止
+
+已核验 CP5.1 封存索引的 index.json 与 seal.json 哈希（20 个包、172 个发布版）。停止后再次核对全部 1,539 个入口的 CP3 SHA256，全部一致。原运行器只在全量结束时写 corpus_unchanged 和 summary.json，本批将全量语料判定登记为未测。20 个生产文件与启动时相同，354 个 DFG 代码引用与封存一致。原运行器于停点被终止，退出码 -15。生产测试、DFG、MANDO 图回归按本地范围未再运行。CPU 执行，额外安装、下载、LLM 调用、训练及费用均为 0。四份文档经 doc_check --expect-cjk 检查通过，命令及结果见 local/tests.json。

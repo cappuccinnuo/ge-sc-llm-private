@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮先读 CP6_REPORT 的“CP6.3 本地复核”、CHANGE_LOG §75 及 artifacts/cp6_3_v1/local 下的验收收据。
+> 本轮先读 CP6_REPORT 的“CP6.4 本地”、CHANGE_LOG §78 和 artifacts/cp6_4_v1/local/d26.json 的 first_mismatch_evidence。
 
 ## 0. 一句话
 
-CP6 的规则部分已全部实现：CP6.4 完成第 9 步（AST-only 编译）、第 10 步（导入别名、深递归）与 D26，云端核验通过（生产测试 1,236 / 6、MANDO 843 个图不变、codegen/Slither 侧 64 个单元 0 → 63 个成功、D26 小索引 23 个单元 20 个成功）。等待 Codex 按 PROMPTS §4.6o 运行 mando 环境测试与 D26 全量。
+CP6.4 mando 测试通过。D26 全量在第 73 个单元 cp3_06775 的第 3 步发布版证据处按 §4.6o 停止，等待审查。
 
 ## 1. 当前状态
 
@@ -15,10 +15,10 @@ CP6 的规则部分已全部实现：CP6.4 完成第 9 步（AST-only 编译）�
 | CP6.1 | 已审查通过（CHANGE_LOG §70） |
 | CP6.2 | 已审查通过（CHANGE_LOG §73） |
 | CP6.3 | 已审查通过（CHANGE_LOG §76） |
-| CP6.4 | 第 9 步 AST-only、第 10 步导入别名与深递归、D26；云端核验见 artifacts/cp6_4_v1/README.md（含 CP6 总结） |
+| CP6.4 | 本机 mando 721 / 521。D26 已测 73 / 1,539，首个伴随包 T3 的证据见 CHANGE_LOG §78 |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；普通变量与普通调用的未声明不加桩；三元表达式的 SlithIR 限制（1 个项目）；小基准严格 exact 受内嵌元数据哈希影响 |
-| 下一步 | Codex 按 PROMPTS §4.6o 运行 mando 环境测试与 D26 全量；之后 CP6 验收，进入代理阶段 |
+| 下一步 | 审查 cp3_06775 中 D26 前缀包与普通伴随依赖的验收范围，保留余下 1,466 个单元 |
 
 ## 2. 分支与工作树
 
@@ -57,6 +57,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+CP6.4 先核对 local/d26.json 的两包原生证据，再查逐单元压缩表与未启动范围。本批原始现场在仓库外 compile-repair-local/cp6_4_v1。
 
 CP6.3 先看 mini_benchmark.json 的逐算子验收和 mini_checks.json.gz 中的节点区间，再核对 real_check.json 的执行状态。
 
@@ -934,3 +936,8 @@ production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 sk
 ### 2026-11-25 CompileRepair CP6.3 审查通过与 CP6.4（修改 AI：Claude）
 
 CP6.3 复算 Codex 本机结果通过（CHANGE_LOG §76）。CP6.4 一次完成第 9 步、第 10 步与 D26：修改 `core/model.py`、`toolchain/solc.py`、`toolchain/slither.py`、`rules/environment.py`、`rules/normalize.py`、`rules/dependencies.py`、`pipeline.py`，新增 `tests/test_cp64.py`（21 项）与 `artifacts/cp6_4_v1/`，`PROMPTS.md` r2.32 → r2.33（4.6o），DECISIONS 增加 CP6.4 表。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §77。
+
+
+### CP6.4 本地（修改 AI：Codex，2026-11-25）
+
+已更新开头及第 0、1、4 节。mando 测试通过。D26 全量在第 73 个单元 cp3_06775 的第 3 步发布版证据处按 §4.6o 停止，等待审查。已完成 73 项，73 项修复成功并接受第 3 步。72 项满足本步的全部发布版证据要求，1 项触发停点。另 1,466 项未启动。已完成样本中没有编译未修复项，当前主因分布为空。详情见 §78、CP6_REPORT 及 local/d26.json。
