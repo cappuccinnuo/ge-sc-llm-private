@@ -25,9 +25,9 @@
 | 核对 | 结果 |
 |---|---|
 | 生产测试 | 1,202 passed / 6 skipped（production_tests_cloud.json） |
-| MANDO 回归 | passed=true：843 个图与 v5 逐字节相同，d3_c 843，历史失败 3，steps_on_truths 0（mando_check_cloud.json） |
+| MANDO 回归 | passed=true：843 个图与 v5 逐字节相同，d3_c 843，历史失败 3，steps_on_truths 0（mando_check_cloud.json；在右花括号改为补在最后一个记号之后之前运行，MANDO 单元不会进入第 8 步） |
 | unbalanced_structure 基准（每个算子 30 个不同内容的 DAppSCAN 单文件基） | 22 个修复成功，严格 exact 22/22；8 个未修复（mini_benchmark_cloud.json） |
-| 真实单元（522 个：DAppSCAN 83、SOChecker 439） | {REAL}（real_check_cloud.json、targets_cloud.json） |
+| 真实单元（522 个：DAppSCAN 83、SOChecker 439） | 40 个成功（40 个不同的 SOChecker 片段）；第 8 步被接受 185 个，其中 145 个按 D27 的阶段进展接受，当前主因多为 version_dependent 与 undeclared_identifier（第 7 步及以后）；语料不变（real_check_cloud.json、targets_cloud.json） |
 
 基准逐个核对被删位置：22 个成功全部是文件最后一个定义的右花括号（其后只有空白与注释）；8 个未修复全部是较早定义的右花括号，补在末尾会把后面的定义嵌进去，编译器拒绝，没有接受错误的图。
 

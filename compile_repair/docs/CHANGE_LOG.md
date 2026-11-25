@@ -3001,3 +3001,37 @@ CP6.1 本地验收通过，等待 Claude 审查。四份文档的 doc_check 命�
 ### 70.5 验收、资源、未执行事项与停止
 
 doc_check 后提交。费用 0。下一步 CP6.2：第 7–8 步。
+
+## 71. 2026-11-24 CompileRepair CP6.2 第 8 步结构补全与 D27（修改 AI：Claude）
+
+### 71.1 任务、依据与范围
+
+用户 2026-11-24 21:00 “According to reasonable and correct recommendations”：两项待决定事项按建议处理，并继续 CP6。D26 改为已定；新增 D27（编译阶段进展）。修改：新增 `rules/stubs.py`、`tests/test_cp62.py`、`artifacts/cp6_2_v1/`；修改 `pipeline.py`、`rules/normalize.py`（三个辅助改为公开）、`tests/test_cp1_1.py`、`PROMPTS.md`（r2.30 → r2.31：3.1 节接受条件、4.6m）、`docs/DECISIONS.md`；记录：本节、HANDOVER、PROGRESS。
+
+### 71.2 实施方式和重要选择
+
+- 先测量：用第 1–5 步重跑 CP3 中含 undeclared_identifier、missing_base_contract、unbalanced_structure、parser_error_other、type_error_other 的 562 个未修复单元，按消息模板与不同来源计数（临时脚本在云端，结论见 cp6_2_v1/README）。最多的是文件级的合约成员（片段，约 230 个片段）；未声明标识符约 23 个来源。据此 CP6.2 先做第 8 步，第 7 步（需从使用处推出签名）移到 CP6.3。
+- 第 8 步：补右花括号只在未配对的全是左花括号时进行；片段包装只包有诊断的成员段，0.7 起合法的自由函数不动；两者都只插入文本。
+- D27：solc 在第一个失败的阶段停止，后面阶段的错误此前没有出现过，错误数不能反映进展（Frax：ABI 编码器补上后变成 Stack too deep；片段：包装后解析错误消失、出现名称错误）。阶段从分类得到（新版 solc 的人读输出只写 Error，不写错误类型）；按错误数接受时阶段不得倒退；每个单元按阶段接受最多 5 次。
+- 右花括号的位置：第一版补在文件末尾（最后的换行之后），基准中 22 个成功样本的图全部相同，但只有 3 个严格 exact——评分要求修复字节靠近破坏处。改为补在最后一个记号之后，22/22 严格 exact；没有改评分器。
+- 未做：文件内容只是相对路径的符号链接文本（1 个项目，63 个单元），记入后续。
+
+### 71.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| 生产测试 | 1,202 passed / 6 skipped（CP6.1 为 1,183 / 6） | cp6_2_v1/production_tests_cloud.json |
+| MANDO 回归 | 843 个图逐字节相同，历史失败 3，steps_on_truths 0 | cp6_2_v1/mando_check_cloud.json |
+| unbalanced_structure 基准（30 个不同内容） | 22 个成功，严格 exact 22/22，全部是末尾定义；8 个未修复，全部是较早定义（补在末尾会形成嵌套，被编译器拒绝） | cp6_2_v1/mini_benchmark_cloud.json |
+| 真实单元 522 个 | 成功 40（40 个不同的 SOChecker 片段）；第 8 步接受 185，其中按阶段进展 145；未成功单元的当前主因：parser_error_other 234、version_dependent 145、undeclared_identifier 50、unbalanced_structure 49；语料不变；两次运行逐单元相同 | cp6_2_v1/real_check_cloud.json |
+
+未证明：本机全量（每个算子 100 个基）；对 CP5 失败单元的影响（第 8 步只在第 2–5 步没有成功时运行）。
+
+### 71.4 用户批准、原文差异与待确认设计
+
+- 用户已定：D26、D27（按建议）。原文 3.2 节第 8 步只写“括号不平衡时在文件末尾补齐”；片段包装属于同一类“结构补全”，补齐位置改为最后一个记号之后，均在 r2.31 的 4.6m 写明。
+- 待确认：D19；D9/D10；D12/D13 待定。
+
+### 71.5 验收、资源、未执行事项与停止
+
+doc_check 后提交。云端 CPU；只读已克隆的语料副本；没有下载、没有 LLM 调用，费用 0。停止：等待 Codex 按 4.6m 本地复核。

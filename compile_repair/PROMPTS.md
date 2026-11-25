@@ -1764,7 +1764,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - rules/normalize.py：TokenLayout、compose_patches、diagnostic_offset 改为公开，供第 5、8 步共用。
 - pipeline.py：修复资格增加 unbalanced_structure、parser_error_other、file_level_member；第 5、8 步共用同一段代码（诊断来自当前最佳记录）；D27 的阶段度量 `_failure_phase` 与接受规则；每次试验记录 phase_before、phase_after、accepted_by（success、fewer_errors、phase_advanced）。
 - 测试：新增 tests/test_cp62.py 19 项；test_cp1_1 的生产文件数 19 → 20。
-- 云端核验（artifacts/cp6_2_v1/README.md）：生产测试 {TESTS}；MANDO 843 个图不变；522 个真实单元中 {REAL}；unbalanced_structure 基准 {MINI}。
+- 云端核验（artifacts/cp6_2_v1/README.md）：生产测试 1,202 passed / 6 skipped；MANDO 843 个图不变；522 个真实单元中 40 个成功（40 个不同的 SOChecker 片段）；第 8 步被接受 185 个，其中 145 个按 D27 的阶段进展接受，当前主因多为 version_dependent 与 undeclared_identifier（第 7 步及以后）；语料不变；unbalanced_structure 基准 30 个中 22 个修复成功且严格 exact 22/22，8 个未修复（被删的是较早定义的右花括号）。
 
 #### 本地运行步骤（Codex 在用户本机执行；只运行与报告，不改生产代码）
 
@@ -1787,7 +1787,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 4. 真实单元
   /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_2_v1/select_targets.py <输出根目录>/real_targets.json unbalanced_structure,parser_error_other,file_level_member
   /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_2_v1/real_check.py <输出根目录>/real_targets.json <输出根目录>/real/run <输出根目录>/real/summary.json
-  预期：522 个单元（DAppSCAN 83、SOChecker 439）；{REAL_EXPECT}；corpus_unchanged true。逐单元与 artifacts/cp6_2_v1/real_check_cloud.json 对照 status、reason、primary_now，报告全部差异。
+  预期：522 个单元（DAppSCAN 83、SOChecker 439）；success 40、step8_accepted 185、phase_advanced 145、step5_accepted 0；corpus_unchanged true。逐单元与 artifacts/cp6_2_v1/real_check_cloud.json 对照 status、reason、primary_now，报告全部差异。
 
 5. 提交：四项结果的汇总写入 artifacts/cp6_2_v1/local/（tests.json、mando_check.json、mini_benchmark.json、real_check.json；完整 summary 可压缩为 .json.gz），CP6_REPORT.md 增加“CP6.2 本地复核”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录；doc_check 后提交并 push，然后停下等待 Claude 审查。
 ```
