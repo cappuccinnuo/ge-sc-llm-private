@@ -27,7 +27,7 @@ _VERSION_CHARS = set(b"0123456789.^~<>=*|-")
 _ABI_CODER = b"pragma experimental ABIEncoderV2;"
 
 
-class _Layout:
+class TokenLayout:
     """Lexical tokens with matched brackets; comments are excluded by lexical_tokens."""
 
     def __init__(self, raw):
@@ -73,7 +73,7 @@ def _blank(raw):
     return bytes(b if b in (10, 13) else 32 for b in raw)
 
 
-def _diagnostic_offset(raw, row):
+def diagnostic_offset(raw, row):
     line, column = row.get("line"), row.get("column")
     lines = raw.splitlines(keepends=True)
     if line is None or column is None or not 1 <= line <= len(lines):
@@ -83,7 +83,7 @@ def _diagnostic_offset(raw, row):
 
 def identical_duplicates(raw, diagnostics):
     """Blank later definitions that duplicate an earlier one byte for byte in the same scope."""
-    layout, patches, evidence = _Layout(raw), {}, []
+    layout, patches, evidence = TokenLayout(raw), {}, []
     starts = {}
     for i in range(len(layout.words)):
         found = layout.declaration(i)
@@ -92,7 +92,7 @@ def identical_duplicates(raw, diagnostics):
     for row in diagnostics:
         if row.get("category") != "duplicate_definition":
             continue
-        offset = _diagnostic_offset(raw, row)
+        offset = diagnostic_offset(raw, row)
         i = None if offset is None else layout.index_at(offset)
         if i is None or i not in starts:
             evidence.append(dict(line=row.get("line"), reason="no_declaration_at_location"))
@@ -147,7 +147,7 @@ def duplicate_pragmas(raw, diagnostics):
     if not any(r.get("category") == "multiple_license_or_pragma" and "spdx" not in (r.get("message") or "").lower()
                for r in diagnostics):
         return [], []
-    layout, seen, patches, kinds = _Layout(raw), {}, [], {}
+    layout, seen, patches, kinds = TokenLayout(raw), {}, [], {}
     for i, word in enumerate(layout.words[:-1]):
         if word != b"pragma" or layout.words[i + 1] == b"solidity":
             continue
@@ -169,7 +169,7 @@ def duplicate_pragmas(raw, diagnostics):
 
 def pragma_terminators(raw):
     """Insert the one missing semicolon of a Solidity pragma followed by another directive."""
-    layout, patches = _Layout(raw), []
+    layout, patches = TokenLayout(raw), []
     for i, word in enumerate(layout.words[:-2]):
         if word != b"pragma" or layout.words[i + 1] != b"solidity":
             continue
@@ -189,7 +189,7 @@ def abi_coder_pragma(raw, diagnostics):
     """Add the documented ABI coder v2 directive to a file that needs it and selects none."""
     if not any(r.get("category") == "abi_coder_required" for r in diagnostics):
         return []
-    layout = _Layout(raw)
+    layout = TokenLayout(raw)
     for i, word in enumerate(layout.words[:-2]):
         if word == b"pragma" and (layout.words[i + 1] == b"abicoder" or
                                   layout.words[i + 1:i + 3] == [b"experimental", b"ABIEncoderV2"]):
@@ -203,6 +203,25 @@ def abi_coder_pragma(raw, diagnostics):
                 end = layout.tokens[k][1]
                 return [Patch(end, end, b"", b"\n" + _ABI_CODER, STEP, reason="ABI coder v2 required")]
     return [Patch(0, 0, b"", _ABI_CODER + b"\n", STEP, reason="ABI coder v2 required")]
+
+
+def compose_patches(name, raw, proposed, round_number, evidence):
+    """Apply one file's non-overlapping proposals; return (new bytes, ordered patches) or None.
+
+    Overlapping proposals are dropped together and reported in evidence.
+    """
+    if not proposed:
+        return None
+    proposed = sorted(proposed, key=lambda p: (p.start, p.end))
+    if any(a.end > b.start or (a.start == a.end == b.start == b.end) for a, b in zip(proposed, proposed[1:])):
+        evidence.append(dict(file=name, rule="all", reason="overlapping_proposals"))
+        return None
+    ordered = tuple(Patch(p.start, p.end, p.expected, p.replacement, p.step, round_number, p.reason)
+                    for p in reversed(proposed))
+    after, trace = apply_patches(raw, ordered)
+    verify_provenance(raw, after, trace)
+    evidence.append(dict(file=name, rule="applied", patches=[p.reason for p in proposed]))
+    return after, ordered
 
 
 def normalization_repairs(contents, diagnostics, round_number=1):
@@ -227,16 +246,7 @@ def normalization_repairs(contents, diagnostics, round_number=1):
         found, info = duplicate_pragmas(raw, rows + unlocated)
         proposed += found
         evidence += [dict(info_row, file=name, rule="duplicate_pragmas") for info_row in info]
-        if not proposed:
-            continue
-        proposed.sort(key=lambda p: (p.start, p.end))
-        if any(a.end > b.start or (a.start == a.end == b.start == b.end) for a, b in zip(proposed, proposed[1:])):
-            evidence.append(dict(file=name, rule="all", reason="overlapping_proposals"))
-            continue
-        ordered = tuple(Patch(p.start, p.end, p.expected, p.replacement, p.step, round_number, p.reason)
-                        for p in reversed(proposed))
-        after, trace = apply_patches(raw, ordered)
-        verify_provenance(raw, after, trace)
-        edits[name], patches[name] = after, ordered
-        evidence.append(dict(file=name, rule="applied", patches=[p.reason for p in proposed]))
+        composed = compose_patches(name, raw, proposed, round_number, evidence)
+        if composed:
+            edits[name], patches[name] = composed
     return edits, patches, evidence

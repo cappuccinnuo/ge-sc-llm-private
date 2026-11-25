@@ -17,6 +17,7 @@ from compile_repair.core.store import ArtifactStore, emit, sha256
 from compile_repair.rules.dependencies import (OfflineIndex, build_index, dependency_choices,
     chain_relative_issues, relative_repairs)
 from compile_repair.rules.normalize import normalization_repairs
+from compile_repair.rules.stubs import structure_repairs
 from compile_repair.rules.environment import (make_plan, mando_known_version,
     ordered_candidates, pragma_patches, settings_retry)
 from compile_repair.toolchain.solc import (classify_diagnostic, compile_file, load_trusted_compilers, version_tuple,
@@ -196,6 +197,22 @@ _DEPENDENCY_FAILURES = {"unresolved_package_import", "missing_relative_file", "s
 # Categories with a step-5 rule (CP6.1); they also open the deterministic repair loop.
 _NORMALIZATION_FAILURES = {"duplicate_definition", "multiple_license_or_pragma", "abi_coder_required",
                            "unterminated_pragma", "pragma_missing_semicolon_candidate"}
+# Categories with a step-8 rule (CP6.2).
+_STRUCTURE_FAILURES = {"unbalanced_structure", "parser_error_other", "file_level_member"}
+# D27: the compiler phase that reports a category. solc stops at the first failing phase,
+# so an error in a later phase means the earlier phases now pass. Categories without a
+# fixed phase (other, internal errors) never count as phase progress.
+_PHASES = dict.fromkeys(("input_format", "environment_plan", "unresolved_package_import", "missing_relative_file",
+                         "standard_json_input", "io_error", "closure_version_conflict", "version_mismatch",
+                         "json_error", "unsupported_disjunction", "unsupported_expression",
+                         "unterminated_pragma", "pragma_missing_semicolon_candidate", "version_dependent"), 0)
+_PHASES.update(dict.fromkeys(("parser_error_other", "unbalanced_structure", "encoding", "multiple_license_or_pragma",
+                              "file_level_member"), 1))
+_PHASES.update(dict.fromkeys(("syntax_error", "visibility", "docstring_error"), 2))
+_PHASES.update(dict.fromkeys(("declaration_error", "undeclared_identifier", "duplicate_definition",
+                              "missing_base_contract"), 3))
+_PHASES.update(dict.fromkeys(("type_error_other", "abi_coder_required"), 4))
+_PHASES.update(dict.fromkeys(("codegen_only", "unimplemented_feature", "compiler_exception"), 5))
 
 
 def _diagnostics_by_file(record, names):
@@ -231,6 +248,30 @@ def _diagnostics_by_file(record, names):
             seen[identity] = dict(classified, versions=[attempt["version"]])
             grouped.setdefault(name, []).append(seen[identity])
     return grouped
+
+
+def _failure_phase(record):
+    """D27: the latest compiler phase any attempt reached, from its earliest blocking error (None if unknown)."""
+    from compile_repair.toolchain.solc import classify_constraints, classify_diagnostic
+    if record.status == "success":
+        return None
+    reached = []
+    for attempt in record.attempts:
+        stage = attempt["stage"]
+        if stage in ("input_format", "project_assembly"):
+            reached.append(0)
+        elif stage == "environment_plan":
+            sources = [Path(f["path"]).read_bytes() for f in record.inputs if Path(f["path"]).is_file()]
+            reached.append(_PHASES.get(classify_constraints(attempt["error_first_line"], sources)["category"], 0))
+        elif attempt.get("solc"):
+            result = attempt["solc"]
+            if not result["returncode"] or result["timed_out"]:
+                continue
+            phases = [_PHASES.get(classify_diagnostic(d)["category"])
+                      for d in parse_diagnostics(result["stderr"]) if d["kind"] != "Warning"]
+            if phases and None not in phases:
+                reached.append(min(phases))
+    return max(reached) if reached else None
 
 
 def _failure_measure(record):
@@ -278,7 +319,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         store.write_json(prefix + "result.json", record)
         return record
     before, categories = _failure_measure(record)
-    if not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES):
+    if not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES | _STRUCTURE_FAILURES):
         store.write_json(prefix + "result.json", record)
         return record
     store.write_json(prefix + "environment_result.json", record)
@@ -312,11 +353,17 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
     # First trial whose compile blockers are gone but whose graph fails on the Slither side.
     # It never changes the search; it only fixes the final attribution (CP6.0.1).
     compile_clean = None
+    # D27: the phase of the current state and the latest phase ever accepted by phase progress.
+    phase = _failure_phase(record)
+    phase_reached = phase
 
     def select(result, step_record):
-        nonlocal record, before, accepted_prefix
+        nonlocal record, before, accepted_prefix, phase, phase_reached
         step_record["accepted"] = True
         record, before = result, step_record["errors_after"]
+        phase = step_record["phase_after"]
+        if phase is not None and (phase_reached is None or phase > phase_reached):
+            phase_reached = phase
         accepted_prefix = step_record["receipt"][:-len("result.json")]
 
     def try_project(step, candidate, maps, details, defer=False):
@@ -345,9 +392,19 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
                               already_copied=True, permit_compile=(step != 3 or dependency_limit is None
                                   or compiled_combinations < dependency_limit), **tools)
         after, _ = _failure_measure(result)
-        accepted = result.status == "success" or (before is not None and after is not None and 0 < after < before
-                   and result.reason not in ("slither_side_failure", "solc_timeout"))
+        after_phase = _failure_phase(result)
+        known = phase is not None and after_phase is not None
+        eligible = result.reason not in ("slither_side_failure", "solc_timeout")
+        # PROMPTS 3.1: fewer blocking errors, without falling back to an earlier compiler phase.
+        fewer = (eligible and before is not None and after is not None and 0 < after < before
+                 and not (known and after_phase < phase))
+        # D27: a later compiler phase than any state accepted so far, whatever the error count.
+        advanced = eligible and known and after is not None and after > 0 and after_phase > max(phase, phase_reached)
+        accepted = result.status == "success" or fewer or advanced
         steps.append(dict(step=step, round=attempts, errors_before=before, errors_after=after, accepted=False,
+                          phase_before=phase, phase_after=after_phase,
+                          accepted_by="success" if result.status == "success" else "fewer_errors" if fewer
+                          else "phase_advanced" if advanced else None,
                           status=result.status, reason=result.reason, receipt=branch + "result.json", **details))
         store.write_json(branch + "result.json", result)
         if result.reason == "slither_side_failure" and compile_clean is None:
@@ -467,29 +524,31 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             trial["new_relative_errors"] = [dict(importer=r["importer"], path=r["path"], line=r["line"])
                                             for r in issues]
             staged, prior_count = candidate, trial["errors_after"]
-        if not stop:
-            # Step 5 (CP6.1): normalizations proposed from the current best record's diagnostics.
-            # Verified dependency releases (step 3) are never normalized.
+        # Steps 5 (CP6.1) and 8 (CP6.2): source rules proposed from the current best record's
+        # diagnostics. Verified dependency releases (step 3) are never edited.
+        for step, propose, key, idle in ((5, normalization_repairs, "normalization", "no_applicable_normalization"),
+                                         (8, structure_repairs, "structure", "no_applicable_structure")):
+            if stop:
+                break
             contents = {n: f.content for n, f in ((Path(f.path).relative_to(project.root).as_posix(), f)
                                                 for f in project.files) if not n.startswith(".compile_repair/")}
             contents.update({n: raw for n, raw in overlays.items() if n in contents})
-            edits, patches, evidence = normalization_repairs(contents, _diagnostics_by_file(record, set(contents)),
-                                                             attempts + 1)
-            if edits:
-                maps = dict(origins)
-                for name, extra in patches.items():
-                    original, previous = maps[name] if name in maps else ((Path(project.root) / name).read_bytes(), ())
-                    maps[name] = original, previous + extra
-                working = dict(overlays)
-                working.update(edits)
-                candidate = resolve_project(project.root, project.entry, project.remappings, index,
-                                            project.additional_entries, working)
-                accepted, result = try_project(5, candidate, maps, dict(normalization=evidence))
-                if accepted:
-                    project, overlays, origins, changed = candidate, working, maps, True
-                stop = result.status == "success" or result.reason == "solc_timeout"
-            else:
-                steps.append(dict(step=5, accepted=False, normalization=evidence, reason="no_applicable_normalization"))
+            edits, patches, evidence = propose(contents, _diagnostics_by_file(record, set(contents)), attempts + 1)
+            if not edits:
+                steps.append({"step": step, "accepted": False, key: evidence, "reason": idle})
+                continue
+            maps = dict(origins)
+            for name, extra in patches.items():
+                original, previous = maps[name] if name in maps else ((Path(project.root) / name).read_bytes(), ())
+                maps[name] = original, previous + extra
+            working = dict(overlays)
+            working.update(edits)
+            candidate = resolve_project(project.root, project.entry, project.remappings, index,
+                                        project.additional_entries, working)
+            accepted, result = try_project(step, candidate, maps, {key: evidence})
+            if accepted:
+                project, overlays, origins, changed = candidate, working, maps, True
+            stop = result.status == "success" or result.reason == "solc_timeout"
         if stop:
             break
         if not changed:
