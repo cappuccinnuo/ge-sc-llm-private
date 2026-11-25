@@ -3067,3 +3067,31 @@ production 1,202 项通过、6 项跳过，mando 700 项通过、508 项跳过�
 ### 72.5 验收、资源、未执行事项与停止
 
 20 个生产文件和 354 个冻结 DFG 引用经哈希核对。UTF-8 文档经 doc_check --expect-cjk 检查四项通过，命令与结果保存在本批 tests.json。运行使用 CPU，安装、额外下载、LLM 调用、训练和费用均为 0。证据在 `artifacts/cp6_2_v1/local/`，完整工作副本在仓库外 `compile-repair-local/cp6_2_v1/`。
+
+## 73. 2026-11-24 CompileRepair CP6.2 审查通过（修改 AI：Claude）
+
+### 73.1 任务、依据与范围
+
+审查 §72（Codex 按 PROMPTS r2.31 §4.6m 本地复核）。只修改记录：本节、HANDOVER、PROGRESS。
+
+### 73.2 实施方式和重要选择
+
+直接从 `local/mini_summary.json.gz`、`local/mini_positions.json.gz`、`local/real_summary.json.gz` 复算，不只读报告。
+
+### 73.3 实测与数据结论
+
+| 核对项 | 复算结果 |
+|---|---|
+| 右花括号基准 | 100 个样本，来自 100 个不同内容（跳过相同内容 17 个）；末尾定义 × success 68，较早定义 × unrepaired 32，没有其他组合；68 个成功全部严格 exact 且 graph_equal |
+| 真实单元 | 522 个，status、reason、primary_now 与云端逐单元相同；成功 40，第 8 步接受 185，按阶段进展 145，语料不变 |
+| 测试与 MANDO | production 1,202 / 6、mando 700 / 508（与 r2.31 的推算一致）、DFG 2,653、MANDO 843 个图不变 |
+
+结论：CP6.2 通过。
+
+### 73.4 用户批准、原文差异与待确认设计
+
+无新增。D19；D9/D10；D12/D13 仍待定。
+
+### 73.5 验收、资源、未执行事项与停止
+
+doc_check 后提交。费用 0。下一步 CP6.3：第 7 步规则桩。

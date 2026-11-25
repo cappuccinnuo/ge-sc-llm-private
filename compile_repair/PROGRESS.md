@@ -711,3 +711,8 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - DAppSCAN 的 100 个不同内容中，68 个修复成功，68 个通过 graph_equal，68 个通过严格 exact。抽样时跳过 17 个重复内容条目。68 个成功样本都只补入一个右花括号。新旧位置在 66 项中仅隔空白，另 2 项还隔着注释。68 项的图都通过严格 exact，逐字节还原源码为 0 项。32 个较早定义的试验都在 solc 解析阶段被拒，最终均无图。
 - 真实单元共 522 个（DAppSCAN 83、SOChecker 439），修复成功 40 个，涉及 40 份不同的 SOChecker 片段。第 8 步获接受 185 个，其中按 D27 阶段进展接受 145 个，第 5 步获接受 0 个。逐单元核对 status、reason、primary_now，差异 0 处。源码哈希复核 corpus_unchanged=True。其中 145 项虽推进了编译阶段，最终仍为未修复。
 - 四份本地汇总为 tests.json、mando_check.json、mini_benchmark.json、real_check.json，基准原表和位置核验表另存 gzip。各项命令和日志哈希见对应 JSON。同步 CP6_REPORT、docs/HANDOVER 和 docs/CHANGE_LOG §72。本机验收通过，等待 Claude 审查。
+
+## CP6.2 审查通过（Claude，2026-11-24）
+
+- 复算 Codex 本机结果：右花括号基准末尾定义 68/68 修复且严格 exact，较早定义 32/32 正确拒绝；真实单元 40/522，与云端逐单元一致。
+- 下一步：CP6.3（第 7 步规则桩）；记录 `docs/CHANGE_LOG.md` §73。
