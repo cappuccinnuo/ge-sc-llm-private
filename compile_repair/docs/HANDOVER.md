@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮先读第 0–5 节、CP6_REPORT 的“r2.30 补跑”、CHANGE_LOG §69 及 cp6_1_v1/local 中的 mini_benchmark.json 和 real_check.json。
+> 本轮先读 CP6_REPORT 的“CP6.2 本地复核”、CHANGE_LOG §72 和 artifacts/cp6_2_v1/local 的四份本地收据。
 
 ## 0. 一句话
 
-CP6.2（第 8 步结构补全与 D27）已由 Claude 实现并在云端核验：生产测试 1,202 / 6、MANDO 843 个图不变、unbalanced_structure 基准 22/22 严格 exact、522 个真实单元中 40 个成功（40 个片段）。等待 Codex 按 PROMPTS §4.6m 本地复核。
+CP6.2 本机验收通过，等待 Claude 审查。DAppSCAN 的 100 个不同内容中，68 个修复成功，68 个通过 graph_equal，68 个通过严格 exact。抽样时跳过 17 个重复内容条目。真实单元共 522 个（DAppSCAN 83、SOChecker 439），修复成功 40 个，涉及 40 份不同的 SOChecker 片段。第 8 步获接受 185 个，其中按 D27 阶段进展接受 145 个，第 5 步获接受 0 个。逐单元核对 status、reason、primary_now，差异 0 处。源码哈希复核 corpus_unchanged=True。其中 145 项虽推进了编译阶段，最终仍为未修复。
 
 ## 1. 当前状态
 
@@ -13,10 +13,10 @@ CP6.2（第 8 步结构补全与 D27）已由 Claude 实现并在云端核验：
 | 方案与决定 | PROMPTS r2.31；用户已定先做 CP6；D26、D27 已定（按建议）；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP6.1 | 已审查通过 |
 | CP6.1 | 已审查通过（CHANGE_LOG §70） |
-| CP6.2 | 第 8 步（补右花括号、片段包装）与 D27 阶段进展；云端核验见 artifacts/cp6_2_v1/README.md |
+| CP6.2 | 本机验收通过，等待 Claude 审查。本机证据见 artifacts/cp6_2_v1/local/ |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；Frax 类单元补上 ABI 编码器后停在 Stack too deep（第 9 步）；小基准严格 exact 受内嵌元数据哈希影响 |
-| 下一步 | Codex 本地复核 CP6.2；之后 CP6.3（第 7 步规则桩） |
+| 下一步 | Claude 审查本机结果与逐项证据 |
 
 ## 2. 分支与工作树
 
@@ -55,6 +55,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+CP6.2 先核对本批 mini_positions.json.gz 的删除位置，再核对 real_check.json 的执行状态与逐项对照。
 
 本轮先查 local 下两份补跑摘要的顶层结果与逐项表，previous_run 指向原停点。旧 mini/ 与本轮 mini_r2/ 分目录保存。
 
@@ -906,3 +908,8 @@ production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 sk
 ### 2026-11-24 CompileRepair CP6.2 第 8 步结构补全与 D27（修改 AI：Claude）
 
 用户按建议批准 D26、D27。新增 `rules/stubs.py`（生产文件 20 个）与 `tests/test_cp62.py`（19 项），修改 `pipeline.py`（第 8 步、D27）、`rules/normalize.py`、`tests/test_cp1_1.py`，新增 `artifacts/cp6_2_v1/`，`PROMPTS.md` r2.30 → r2.31，DECISIONS 增加 D27。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §71。
+
+
+### CP6.2 本地复核（修改 AI：Codex，2026-11-24）
+
+第 0、1、4 节和开头的阅读顺序已更新。MANDO 的 846 个输入中，843 份成功图与 v5 逐字节相同，843 项通过 D3(c)，成功样本触发修复步骤 0 次，3 项重现历史失败。DAppSCAN 的 100 个不同内容中，68 个修复成功，68 个通过 graph_equal，68 个通过严格 exact。抽样时跳过 17 个重复内容条目。68 个成功样本都只补入一个右花括号。新旧位置在 66 项中仅隔空白，另 2 项还隔着注释。68 项的图都通过严格 exact，逐字节还原源码为 0 项。32 个较早定义的试验都在 solc 解析阶段被拒，最终均无图。真实单元共 522 个（DAppSCAN 83、SOChecker 439），修复成功 40 个，涉及 40 份不同的 SOChecker 片段。第 8 步获接受 185 个，其中按 D27 阶段进展接受 145 个，第 5 步获接受 0 个。逐单元核对 status、reason、primary_now，差异 0 处。源码哈希复核 corpus_unchanged=True。其中 145 项虽推进了编译阶段，最终仍为未修复。运行详情和复核入口见 CHANGE_LOG §72。

@@ -1,0 +1,94 @@
+{
+  "summary": {
+    "unbalanced_structure": {
+      "samples": 100,
+      "success": 68,
+      "exact": 68,
+      "graph_equal": 68,
+      "exact_masking_metadata_hash": 68,
+      "restored_bytes": 0
+    }
+  },
+  "repeated_contents_skipped": 17,
+  "position_counts": [
+    {
+      "position": "earlier",
+      "status": "unrepaired",
+      "graph_equal": null,
+      "units": 32
+    },
+    {
+      "position": "last",
+      "status": "success",
+      "graph_equal": true,
+      "units": 68
+    }
+  ],
+  "exceptions": [],
+  "passed": true,
+  "commit": "2dbab6dcf21d158235e796995e01de9def9735cf",
+  "run": {
+    "command": [
+      "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+      "-B",
+      "compile_repair/artifacts/cp6_2_v1/mini_benchmark.py",
+      "compile_repair/artifacts/cp4_v1/bases.jsonl.gz",
+      "/home/zhao/SmartContract/corpora/DAppSCAN@66a56619c44770e05c2db600fa6468115ff0dcd5/DAppSCAN-source",
+      "100",
+      "/home/zhao/SmartContract/compile-repair-local/cp6_2_v1/mini/run",
+      "/home/zhao/SmartContract/compile-repair-local/cp6_2_v1/mini/summary.json",
+      "unbalanced_structure"
+    ],
+    "commit": "2dbab6dcf21d158235e796995e01de9def9735cf",
+    "started_utc": "2026-11-25T03:25:48.797091+00:00",
+    "elapsed_seconds": 94.208,
+    "returncode": 0,
+    "log": "/home/zhao/SmartContract/compile-repair-local/cp6_2_v1/mini_benchmark.log",
+    "log_sha256": "f0709adf9d396939e2639b2da29b0324819e105171e0e96e633bc954221897a9"
+  },
+  "position_check": {
+    "command": [
+      "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+      "-B",
+      "/home/zhao/SmartContract/compile-repair-local/cp6_2_v1/mini/verify_positions.py",
+      "/home/zhao/SmartContract/compile-repair-local/cp6_2_v1"
+    ],
+    "commit": "2dbab6dcf21d158235e796995e01de9def9735cf",
+    "started_utc": "2026-11-25T03:27:48.618394+00:00",
+    "elapsed_seconds": 0.236,
+    "returncode": 0,
+    "log": "/home/zhao/SmartContract/compile-repair-local/cp6_2_v1/verify_positions.log",
+    "log_sha256": "ad9807a9a8feb403d7013b86a36aa28fb125a28df7da7e60cfa518e89ce9f1f3"
+  },
+  "summary_archive": {
+    "path": "mini_summary.json.gz",
+    "uncompressed_sha256": "43110b54791b77d51b4ca8637bb6b5b5efd11661dc55483cf0965c82acfc3855",
+    "archive_sha256": "380c259de0a797c307cc7f9ab1fe24a2c8eca00efc14e488ab5f898d1dfd0774"
+  },
+  "position_evidence": {
+    "path": "mini_positions.json.gz",
+    "uncompressed_sha256": "b1b49cf16e53c2efb923b0129726c225f4436dff6836ba27ad864103d3b5604f",
+    "archive_sha256": "2ec9b219ac0cc03d234d4a4da41678410399e3d7ee4ccb70b28276cf25581daa"
+  },
+  "expected": "Every success is the last definition with graph_equal true; every unrepaired sample belongs to an earlier definition.",
+  "repair_evidence": {
+    "counts": {
+      "last_single_brace_insertion": 68,
+      "last_offset_change_only_whitespace": 66,
+      "last_byte_identical": 0,
+      "earlier_parser_rejected_and_no_graph": 32
+    },
+    "non_whitespace_gaps": [
+      {
+        "entry_sha256": "768713cccaef24eb3af5861143fa9373ee5f80c127649d9041776694929008e2",
+        "gap_bytes": 17,
+        "comments_and_space_only": true
+      },
+      {
+        "entry_sha256": "325d55272679eb9004fd075d14b5bf18a8162d6e428a53cd0c8bbbdd69c7d250",
+        "gap_bytes": 9,
+        "comments_and_space_only": true
+      }
+    ]
+  }
+}

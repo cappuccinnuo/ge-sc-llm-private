@@ -703,3 +703,11 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - D26、D27 按建议已定。第 8 步：补右花括号、把文件级的合约成员包进新合约；D27：编译阶段前进也算进展。
 - 云端：生产测试 1,202 passed、MANDO 843 个图不变、unbalanced_structure 基准 22/22 严格 exact、522 个真实单元中 40 个成功（40 个片段），185 个接受第 8 步。
 - 下一步：Codex 按 PROMPTS §4.6m 本地复核；之后 CP6.3（第 7 步）。记录 `docs/CHANGE_LOG.md` §71。
+
+
+## CP6.2 本地复核（修改 AI：Codex，2026-11-24）
+
+- 输入为 `2dbab6dcf`，执行 §4.6m。production 1,202 项通过、6 项跳过，mando 700 项通过、508 项跳过，DFG v2 2,653 项通过、9 条警告。MANDO 的 846 个输入中，843 份成功图与 v5 逐字节相同，843 项通过 D3(c)，成功样本触发修复步骤 0 次，3 项重现历史失败。
+- DAppSCAN 的 100 个不同内容中，68 个修复成功，68 个通过 graph_equal，68 个通过严格 exact。抽样时跳过 17 个重复内容条目。68 个成功样本都只补入一个右花括号。新旧位置在 66 项中仅隔空白，另 2 项还隔着注释。68 项的图都通过严格 exact，逐字节还原源码为 0 项。32 个较早定义的试验都在 solc 解析阶段被拒，最终均无图。
+- 真实单元共 522 个（DAppSCAN 83、SOChecker 439），修复成功 40 个，涉及 40 份不同的 SOChecker 片段。第 8 步获接受 185 个，其中按 D27 阶段进展接受 145 个，第 5 步获接受 0 个。逐单元核对 status、reason、primary_now，差异 0 处。源码哈希复核 corpus_unchanged=True。其中 145 项虽推进了编译阶段，最终仍为未修复。
+- 四份本地汇总为 tests.json、mando_check.json、mini_benchmark.json、real_check.json，基准原表和位置核验表另存 gzip。各项命令和日志哈希见对应 JSON。同步 CP6_REPORT、docs/HANDOVER 和 docs/CHANGE_LOG §72。本机验收通过，等待 Claude 审查。
