@@ -1,7 +1,7 @@
 """Steps 7–8 (CP6.2: step 8): additive structure completion, never guessing behaviour.
 
 - closing braces: a file whose only unmatched brackets are opening braces gets the
-  missing `}` appended at the end; any unmatched closer, or an unclosed `(` or `[`,
+  missing `}` right after its last token; any unmatched closer, or an unclosed `(` or `[`,
   leaves the file alone (the intended structure is ambiguous);
 - fragment wrapper: contract members written at file level (functions, modifiers,
   state variables, events, ...) are enclosed in a new contract, but only for runs
@@ -91,6 +91,9 @@ def structure_completion(raw, diagnostics):
     if stray or any(o != b"{" for o in stack):
         return [], [dict(reason="ambiguous_brackets", unclosed=[o.decode() for o in stack], stray_closer=stray)]
     closers = b"}" * len(stack)
+    # Insert at the end of the last token, so trailing whitespace and comments stay after the
+    # completion and the added bytes sit next to the unclosed definition.
+    tail = layout.tokens[-1][1]
     items = _items(layout)
     offsets = [diagnostic_offset(raw, r) for r in diagnostics if r.get("category") in _PARSER]
     diagnosed = set()
@@ -121,14 +124,14 @@ def structure_completion(raw, diagnostics):
         start = layout.tokens[items[run[0]][1]][0]
         patches.append(Patch(start, start, b"", b"contract " + name + b" { ", STEP, reason="fragment wrapper start"))
         if run[-1] == len(items) - 1:
-            end, suffix, end_used = len(raw), closers + b"\n}\n", True
+            end, suffix, end_used = tail, closers + b"\n}", True
         else:
             end, suffix = layout.tokens[items[run[-1]][2]][1], b"\n}"
         patches.append(Patch(end, end, b"", suffix, STEP, reason="fragment wrapper end"))
         evidence.append(dict(rule="fragment_wrapper", contract=name.decode(), members=len(run),
                              kinds=sorted({layout.words[items[i][1]].decode(errors="replace") for i in run})))
     if closers and not end_used:
-        patches.append(Patch(len(raw), len(raw), b"", b"\n" + closers + b"\n", STEP, reason="closing braces"))
+        patches.append(Patch(tail, tail, b"", closers, STEP, reason="closing braces"))
     if closers:
         evidence.append(dict(rule="closing_braces", added=len(stack)))
     if not patches:

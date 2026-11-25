@@ -22,11 +22,11 @@ def _apply(raw, patches):
     return apply_patches(raw, tuple(sorted(patches, key=lambda p: -p.start)))[0]
 
 
-def test_missing_closing_braces_are_appended_at_the_end():
-    raw = b"pragma solidity ^0.5.0;\ncontract A {\n  function f() public {\n"
+def test_missing_closing_braces_follow_the_last_token():
+    raw = b"pragma solidity ^0.5.0;\ncontract A {\n  function f() public {}\n// end\n"
     patches, evidence = structure_completion(raw, [PARSER])
-    assert _apply(raw, patches) == raw + b"\n}}\n"
-    assert {"rule": "closing_braces", "added": 2} in evidence
+    assert _apply(raw, patches) == raw.replace(b"{}\n", b"{}}\n")
+    assert {"rule": "closing_braces", "added": 1} in evidence
 
 
 @pytest.mark.parametrize("raw,unclosed,stray", [
@@ -42,21 +42,21 @@ def test_diagnosed_members_are_wrapped_and_name_avoids_collisions():
     raw = b"uint public Fragment;\nfunction f() public {}\n\nevent E(uint a);\n"
     patches, evidence = structure_completion(raw, [PARSER])
     out = _apply(raw, patches)
-    assert out == b"contract Fragment1 { uint public Fragment;\nfunction f() public {}\n\nevent E(uint a);\n\n}\n"
+    assert out == b"contract Fragment1 { uint public Fragment;\nfunction f() public {}\n\nevent E(uint a);\n}\n"
     assert evidence[0]["members"] == 3 and evidence[0]["kinds"] == ["event", "function", "uint"]
 
 
 def test_wrapper_and_closing_braces_share_the_end_of_file():
     raw = b"function f() public {\n  if (true) {\n"
     out = _apply(raw, structure_completion(raw, [PARSER])[0])
-    assert out == b"contract Fragment { function f() public {\n  if (true) {\n}}\n}\n"
+    assert out == b"contract Fragment { function f() public {\n  if (true) {}}\n}\n"
 
 
 def test_only_runs_with_a_diagnostic_are_wrapped():
     raw = b"pragma solidity ^0.8.0;\nfunction g() pure returns (uint) { return 1; }\ncontract C {}\nuint public x;\n"
     row = {"category": "file_level_member", "line": 4, "column": 1}
     out = _apply(raw, structure_completion(raw, [row])[0])
-    assert out == raw.replace(b"uint public x;\n", b"contract Fragment { uint public x;\n\n}\n")
+    assert out == raw.replace(b"uint public x;\n", b"contract Fragment { uint public x;\n}\n")
 
 
 def test_statements_and_non_parser_errors_are_not_wrapped():
@@ -68,7 +68,7 @@ def test_statements_and_non_parser_errors_are_not_wrapped():
 
 def test_structure_repairs_reports_per_file():
     edits, patches, evidence = structure_repairs({"A.sol": b"contract A {\n"}, {"A.sol": [PARSER]}, 4)
-    assert edits == {"A.sol": b"contract A {\n\n}\n"} and patches["A.sol"][0].round == 4
+    assert edits == {"A.sol": b"contract A {}\n"} and patches["A.sol"][0].round == 4
     assert evidence[-1]["rule"] == "applied"
 
 

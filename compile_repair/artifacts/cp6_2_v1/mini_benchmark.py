@@ -97,13 +97,19 @@ for base in bases:
                                   {"": damage}, {"": trace}, 0, True)
             row.update(level=proof.level, exact=score["exact"], exact_masking_metadata_hash=hashed["exact"], kept=score["kept"], cfg_edges=score["cfg_edges"],
                        calls=score["calls"], lost=score["lost"], removed_by_repair=score["removed_by_repair"],
-                       repair_equals_original=repaired == raw, repaired_schema=schema)
+                       repair_equals_original=repaired == raw, repaired_schema=schema,
+                       added=score["added"], near_damage=score["added_bytes_near_damage"],
+                       # Every exactness condition except byte proximity of the repair to the damage.
+                       graph_equal=bool(score["kept"]["equal"] == score["kept"]["units"] and not score["lost"]
+                                        and not score["removed_by_repair"] and not score["added"]
+                                        and score["cfg_edges"]["ratio"] == 1 and score["calls"]["ratio"] == 1))
         rows.append(row)
         counts[op] += 1
         print(op, row["status"], row.get("exact"), flush=True)
 summary = {op: dict(samples=sum(r["operator"] == op for r in rows),
                     success=sum(r["operator"] == op and r["status"] == "success" for r in rows),
                     exact=sum(r["operator"] == op and r.get("exact") is True for r in rows),
+                    graph_equal=sum(r["operator"] == op and r.get("graph_equal") is True for r in rows),
                     exact_masking_metadata_hash=sum(r["operator"] == op and r.get("exact_masking_metadata_hash") is True
                                                     for r in rows),
                     restored_bytes=sum(r["operator"] == op and r.get("repair_equals_original") is True for r in rows))
