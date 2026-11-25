@@ -320,15 +320,57 @@ def _use_kind(layout, i, name):
         return "new"
     if body is not None and _in_header(layout, i):
         return "base" if name in _bases(layout, body) else "modifier"
+    if after == b"(" and i + 2 < len(words) and words[i + 2] == b"{":
+        return "struct"  # construction with named fields: S({a: x, b: y})
+    if after in (b"memory", b"storage", b"calldata"):
+        return "struct_variable"
     if after == b"(":
         close = layout.matches.get(i + 1)
         # A conversion X(a) counts only when a member of the result is used: X(a).f(...).
         return "type" if close is not None and close + 1 < len(words) and words[close + 1] == b"." else "other"
-    if after in (b"memory", b"storage", b"calldata"):
-        return "other"  # a struct or array type, which no interface can stand for
     if after in _DECLARATION_WORDS or (i + 1 < len(words) and layout.tokens[i + 1][2] == "word"):
         return "type"
     return "other"
+
+
+def _struct_fields(layout, name, uses, types):
+    """Fields {name: type} proven by named constructions S({k: v}) and member reads; else None."""
+    fields, variables = None, set()
+    for i in uses:
+        kind = _use_kind(layout, i, name)
+        if kind == "struct_variable":
+            k = i + 2
+            if k < len(layout.words) and layout.tokens[k][2] == "word":
+                variables.add(layout.words[k])
+            continue
+        if kind != "struct":
+            return None
+        brace, close = i + 2, layout.matches.get(i + 2)
+        if close is None:
+            return None
+        found, k = {}, brace + 1
+        while k < close:
+            if layout.tokens[k][2] != "word" or layout.words[k + 1] != b":":
+                return None
+            a = k + 2
+            b = a
+            while b < close and layout.words[b] != b",":
+                b = layout.matches.get(b, b) + 1 if layout.words[b] in _OPENERS else b + 1
+            value = _expression_type(layout, a, b, types)
+            if value is None:
+                return None
+            found[layout.words[k]] = value
+            k = b + 1
+        if fields is None:
+            fields = found
+        elif fields != found:
+            return None
+    if not fields:
+        return None
+    for i, word in enumerate(layout.words[:-2]):
+        if word in variables and layout.words[i + 1] == b"." and layout.words[i + 2] not in fields:
+            return None  # a field no construction names
+    return fields
 
 
 def _parameters(types, prefix=b"_s"):
@@ -417,10 +459,22 @@ def declaration_stubs(raw, diagnostics, declared_elsewhere=frozenset()):
         kinds = {_use_kind(layout, i, name) for i in uses}
         info = dict(name=name.decode(errors="replace"), uses=sorted(kinds))
         evidence.append(info)
+        if kinds <= {"struct", "struct_variable"} and "struct" in kinds:
+            kinds = {"struct"}
         if len(kinds) != 1 or kinds == {"other"}:
             info["reason"] = "mixed_or_unknown_use"
             continue
         kind = kinds.pop()
+        if kind in ("struct", "struct_variable"):
+            fields = _struct_fields(layout, name, uses, types)
+            bodies = {_unit_body(layout, i) for i in uses}
+            if fields is None or len(bodies) != 1 or None in bodies:
+                info["reason"] = "unknown_struct_fields"
+                continue
+            text = b" struct " + name + b" {" + b"".join(b" " + t + b" " + f + b";" for f, t in fields.items()) + b" }"
+            inner.setdefault(bodies.pop(), []).append(text)
+            info["stub"] = text.strip().decode(errors="replace")
+            continue
         if kind in ("event", "modifier"):
             signatures = set()
             bodies = set()

@@ -1,23 +1,24 @@
 # CompileRepair 交接文档
 
-> 本轮先读 CP6_REPORT 中 CP6.4 的“r2.34 续跑”、CHANGE_LOG §80 和本批 local/d26_r2.json。
+> 本轮先读 artifacts/cp6_5_v1/README.md 与 CHANGE_LOG §82。
 
 ## 0. 一句话
 
-CP6 已审查通过（CHANGE_LOG §81）：确定性规则第 5、7、8、9、10 步与 D25、D26、D27 全部实现并验收；D26 本机抽样 230 个单元 228 个成功，版本前缀包全部 T1。下一步 CP7（RAG 知识库）。
+CP6 完成（CHANGE_LOG §82）：逐类别对照 D6 后补上 CP6.5（`||` 并集选版、文档迁移与 NatSpec、结构体桩、元组调用，以及 other、io_error、closure_version_conflict 的诊断）；MANDO 843 个图不变，3 个历史失败经第 10 步成功。下一步 CP7（RAG 知识库）。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.34；用户已定先做 CP6；D26、D27 已定（按建议）；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| 方案与决定 | PROMPTS r2.35；用户已定先做 CP6；D26、D27 已定（按建议）；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP6.3 | 已审查通过（CP6.3：CHANGE_LOG §76） |
 | CP6.1 | 已审查通过（CHANGE_LOG §70） |
 | CP6.2 | 已审查通过（CHANGE_LOG §73） |
 | CP6.3 | 已审查通过（CHANGE_LOG §76） |
 | CP6.4 | 已审查通过（CHANGE_LOG §81）；CP6 总结见 artifacts/cp6_4_v1/README.md |
+| CP6.5 | CP6 补全，云端核验（CHANGE_LOG §82）；CP6 总结见 artifacts/cp6_5_v1/README.md |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
-| 已知限制 | 内容不同或不同类的重名不处理；普通变量与普通调用的未声明不加桩；三元表达式的 SlithIR 限制（1 个项目）；小基准严格 exact 受内嵌元数据哈希影响 |
+| 已知限制 | 内容不同或不同类的重名不处理；普通变量与普通调用的未声明不加桩；片段中未导入的库合约、不在语料中的导入目标、不相容的 pragma 留给代理；三元表达式的 SlithIR 限制（1 个项目）；小基准严格 exact 受内嵌元数据哈希影响 |
 | 下一步 | CP7：RAG 知识库（K1 下载对应版本文档，K2 复用 CP5 索引，K3 留一项目），Claude 在 GitHub 实现并云端核验 |
 
 ## 2. 分支与工作树
@@ -57,6 +58,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+CP6.5 先读 artifacts/cp6_5_v1/README.md 的 D6 对照表与诊断表，再看 mando_check_cloud.json 与 real_final_cloud.json。
 
 CP6.4 r2.34 先查 d26_r2.json 分项目合并表、普通包层级与失败主因，再按 d26_r2_units.jsonl.gz 中的哈希复查原始记录。
 
@@ -956,3 +959,7 @@ CP6.3 复算 Codex 本机结果通过（CHANGE_LOG §76）。CP6.4 一次完成�
 ### 2026-11-25 CompileRepair CP6 审查通过（修改 AI：Claude）
 
 复算 Codex 的 r2.34 续跑：230 个单元第 3 步全部接受、228 个成功，版本前缀包全部 T1、不是推断，同单元其他包按 D22 为 T3、inferred=true。CP6.4 与 CP6 通过。详见 CHANGE_LOG §81。
+
+### 2026-11-25 CompileRepair CP6.5：CP6 补全（修改 AI：Claude）
+
+按用户要求逐类别对照 D6，CP6.4 的总结漏了几类，§81 的“CP6 通过”撤回。CP6.5 修改 `rules/normalize.py`、`rules/environment.py`、`rules/stubs.py`、`pipeline.py`，新增 `tests/test_cp65.py`（63 项）与 `artifacts/cp6_5_v1/`，PROMPTS r2.34 → r2.35（4.6p），DECISIONS 增加 CP6.5 表。全部在云端核验：生产 1,298 / 6，MANDO 843 个图不变、3 个历史失败经第 10 步成功，真实单元无退步。本文开头、第 0、1、4 节换成本轮状态。详见 CHANGE_LOG §82。

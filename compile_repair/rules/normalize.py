@@ -9,14 +9,18 @@ Every rule proposes byte patches for one file and never guesses behaviour:
 - pragma terminator: a Solidity pragma that runs into the next directive or
   declaration, or into the end of the file, gets the single missing semicolon;
 - ABI coder: a file rejected for needing ABI coder v2 gets the documented
-  `pragma experimental ABIEncoderV2;` when it selects no coder itself.
+  `pragma experimental ABIEncoderV2;` when it selects no coder itself;
+- documented version migrations and NatSpec tags (CP6.5; see the section below).
+Step 10 (CP6.4, CP6.5) Slither-compatible rewrites also live here.
 Blanking replaces bytes with spaces and keeps line breaks, so offsets and line
 numbers of all other code are unchanged. The pipeline accepts a proposal only
 under the PROMPTS 3.1 rule and records it through core.provenance.
 """
+import re
+
 from compile_repair.core.model import Patch
 from compile_repair.core.provenance import apply_patches, verify_provenance
-from compile_repair.toolchain.solc import lexical_tokens
+from compile_repair.toolchain.solc import lexical_tokens, version_tuple
 
 STEP = "normalize"
 _DECLARATIONS = (b"contract", b"interface", b"library", b"struct", b"enum", b"event", b"error",
@@ -233,9 +237,20 @@ def normalization_repairs(contents, diagnostics, round_number=1):
     """
     edits, patches, evidence = {}, {}, []
     unlocated = list(diagnostics.get(None, ()))
+    events = set()
+    for raw in contents.values():
+        words = [t[3] for t in lexical_tokens(raw)]
+        events.update(words[i + 1] for i, w in enumerate(words[:-1]) if w == b"event")
     for name in sorted(contents):
         raw, rows = contents[name], list(diagnostics.get(name, ()))
         proposed = pragma_terminators(raw) + abi_coder_pragma(raw, rows)
+        # CP6.5: documented version migrations and NatSpec tags (doc errors carry no location).
+        found, info = documented_migrations(raw, rows + unlocated, frozenset(events))
+        proposed += found
+        evidence += [dict(info_row, file=name, rule="documented_migrations") for info_row in info]
+        found, info = natspec_parameters(raw, rows + unlocated)
+        proposed += found
+        evidence += [dict(info_row, file=name, rule="natspec_parameters") for info_row in info]
         found, info = identical_duplicates(raw, rows)
         proposed += found
         evidence += [dict(info_row, file=name, rule="identical_duplicates") for info_row in info]
@@ -252,6 +267,271 @@ def normalization_repairs(contents, diagnostics, round_number=1):
     return edits, patches, evidence
 
 
+# ---- Step 5 (CP6.5): documented version migrations and NatSpec tags ----------------------
+#
+# A newer compiler rejects some older spellings that have an exactly equivalent newer
+# form, documented in the Solidity breaking-change notes (0.5.0, 0.6.0, 0.7.0). When a
+# file's diagnostics show one of them, every documented migration that is valid for
+# the compiling versions is applied in the same proposal, because solc reports only
+# the first errors of a phase. Each rewrite touches only the old spelling:
+#
+#   0.5.0  function without visibility   -> `public` (`external` in interfaces and for
+#                                           the fallback; the 0.4 defaults)
+#          `constant` on a function      -> `view` (the 0.4 alias)
+#          `function C(` in contract C   -> `constructor(` (the 0.4 constructor form)
+#          event call `E(...)`           -> `emit E(...)`
+#          `sha3(a, ...)`                -> `keccak256(abi.encodePacked(a, ...))`
+#                                           (the 0.5.0 notes' pre-0.5 behaviour)
+#          `suicide`, `block.blockhash`, `msg.gas` -> `selfdestruct`, `blockhash`, `gasleft()`
+#          `N years`                     -> `(N * 365 days)` (the 0.4 definition)
+#          base of `.transfer`/`.send`, argument of `selfdestruct`
+#                                        -> `address(uint160(x))` (0.5) or `payable(x)` (0.6+), when
+#                                           x is msg.sender, tx.origin or a plain `address` name
+#                                           (msg.sender and tx.origin are not payable from 0.8.0)
+#   0.6.0  `function() external`         -> `fallback() external`
+#   0.7.0  `now`                         -> `block.timestamp`
+#          non-ASCII string literal      -> `unicode"..."`
+#   any    NatSpec `@param y` naming no parameter -> the tag line is blanked (comment only)
+#
+# Not migrated, because the newer form is not equivalent: `throw` (consumes all gas,
+# unlike revert), `var` (the type cannot be proven), `callcode`.
+
+MIGRATION_STEP = "migrate"
+_TEMPLATES = (  # (pattern on the diagnostic message, earliest version it marks)
+    (r"No visibility specified", (0, 5, 0)),
+    (r'state mutability modifier "constant" was removed', (0, 5, 0)),
+    (r"Expected '\{' but got 'constant'", (0, 7, 0)),
+    (r"Functions are not allowed to have the same name as the contract", (0, 5, 0)),
+    (r'Event invocations have to be prefixed by "emit"', (0, 5, 0)),
+    (r'"sha3" has been deprecated', (0, 5, 0)),
+    (r"This function requires a single bytes argument", (0, 5, 0)),
+    (r'"suicide" has been deprecated', (0, 5, 0)),
+    (r'"block\.blockhash\(\)" has been deprecated', (0, 5, 0)),
+    (r'"msg\.gas" has been deprecated', (0, 5, 0)),
+    (r'Using "years" as a unit denomination is deprecated', (0, 5, 0)),
+    (r'"send" and "transfer" are only available for objects of type "address payable"', (0, 5, 0)),
+    (r'Member "(transfer|send)" not found or not visible after argument-dependent lookup in address', (0, 5, 0)),
+    (r"Invalid implicit conversion from address to address payable", (0, 5, 0)),
+    (r"use the \"fallback\" keyword or the \"receive\" keyword", (0, 6, 0)),
+    (r'"now" has been deprecated', (0, 7, 0)),
+    (r"Invalid character in string", (0, 7, 0)),
+    (r"Documented parameter .* not found in the parameter list", (0, 4, 0)),
+)
+_VISIBILITY = {b"public", b"private", b"internal", b"external"}
+_HEADER_END = (b"{", b";")
+_STATEMENT_WORDS = {b"address", b"return", b"emit", b"delete", b"new", b"else", b"is", b"using", b"for", b"if",
+                    b"while", b"require", b"assert", b"revert", b"throw", b"public", b"private", b"internal",
+                    b"external", b"view", b"pure", b"payable", b"constant", b"returns", b"memory", b"storage",
+                    b"calldata", b"indexed", b"function", b"modifier", b"event", b"contract", b"interface",
+                    b"library", b"struct", b"enum", b"import", b"pragma", b"constructor", b"override", b"virtual"}
+
+
+def _words(raw):
+    return [t for t in lexical_tokens(raw)]
+
+
+def migration_versions(rows):
+    """Lowest compiler version among rows that show a documented migration, else None."""
+    found = []
+    for row in rows:
+        message = row.get("message") or ""
+        for pattern, earliest in _TEMPLATES:
+            if re.search(pattern, message):
+                versions = [version_tuple(v) for v in row.get("versions", ()) if v]
+                found.append(min(versions) if versions else earliest)
+    return min(found) if found else None
+
+
+class _Tokens:
+    def __init__(self, raw):
+        self.raw = raw
+        self.tokens = _words(raw)
+        self.words = [t[3] for t in self.tokens]
+        self.matches, stack = {}, []
+        for i, word in enumerate(self.words):
+            if word in (b"(", b"[", b"{"):
+                stack.append(i)
+            elif word in (b")", b"]", b"}") and stack:
+                self.matches[stack.pop()] = i
+        self.closing = {c: o for o, c in self.matches.items()}
+
+    def unit_of(self, i):
+        """(kind, name) of the contract/interface/library whose body contains token i."""
+        best = None
+        for o, c in self.matches.items():
+            if self.words[o] == b"{" and o < i < c:
+                k = o - 1
+                while k >= 0 and self.words[k] not in (b"contract", b"interface", b"library", b"{", b"}", b";"):
+                    k -= 1
+                if k >= 0 and self.words[k] in (b"contract", b"interface", b"library") and (best is None or o > best[0]):
+                    best = (o, self.words[k], self.words[k + 1])
+        return (best[1], best[2]) if best else (None, None)
+
+    def span(self, a, b):
+        return self.tokens[a][0], self.tokens[b][1]
+
+
+def _patch(raw, lo, hi, new, reason):
+    return Patch(lo, hi, raw[lo:hi], new, MIGRATION_STEP, reason=reason)
+
+
+def _function_headers(t):
+    """Yield (keyword index, name index or None, params open, params close, header end index)."""
+    for i, word in enumerate(t.words):
+        if word not in (b"function", b"constructor"):
+            continue
+        k = i + 1
+        name = None
+        if word == b"function" and k < len(t.words) and t.tokens[k][2] == "word":
+            name, k = k, k + 1
+        if k >= len(t.words) or t.words[k] != b"(" or k not in t.matches:
+            continue
+        close = t.matches[k]
+        end = close + 1
+        while end < len(t.words) and t.words[end] not in _HEADER_END:
+            end = t.matches.get(end, end) + 1 if t.words[end] == b"(" else end + 1
+        if end < len(t.words):
+            yield i, name, k, close, end
+
+
+def _plain_addresses(t):
+    """Names declared with type plain `address` (never `address payable`) in this file."""
+    found, other = set(), set()
+    modifiers = {b"public", b"private", b"internal", b"constant", b"immutable", b"memory", b"storage", b"calldata"}
+    for i, word in enumerate(t.words[:-1]):
+        if t.tokens[i][2] != "word":
+            continue
+        k = i + 1
+        if word == b"address" and t.words[k] != b"(":
+            payable = t.words[k] == b"payable"
+            k += payable
+            while k < len(t.words) and t.words[k] in modifiers:
+                k += 1
+            if k < len(t.words) and t.tokens[k][2] == "word":
+                (other if payable else found).add(t.words[k])
+        elif t.tokens[k][2] == "word" and word not in _STATEMENT_WORDS and t.words[k] not in modifiers:
+            other.add(t.words[k])  # declared with some other type somewhere
+    return found - other
+
+
+def documented_migrations(raw, rows, declared_events=frozenset()):
+    """Propose migration patches for one file; return (patches, evidence)."""
+    version = migration_versions(rows)
+    if version is None:
+        return [], []
+    t, patches, evidence = _Tokens(raw), [], []
+    applied = {}
+
+    def add(lo, hi, new, reason):
+        patches.append(_patch(raw, lo, hi, new, reason))
+        applied[reason] = applied.get(reason, 0) + 1
+
+    post_05, post_06, post_07 = version >= (0, 5, 0), version >= (0, 6, 0), version >= (0, 7, 0)
+    events = set(declared_events) | {t.words[i + 1] for i, w in enumerate(t.words[:-1]) if w == b"event"}
+    for i, name, open_paren, close, end in _function_headers(t):
+        kind, unit = t.unit_of(i)
+        if kind is None:
+            continue  # free functions (0.7+) take no visibility
+        header = t.words[close + 1:end]
+        fallback = t.words[i] == b"function" and name is None and t.words[open_paren + 1] == b")"
+        if post_05 and name is not None and t.words[name] == unit and kind == b"contract":
+            lo, hi = t.span(i, name)
+            add(lo, hi, b"constructor", "old-style constructor")
+            name = None
+        if post_05 and b"constant" in header:
+            k = close + 1 + header.index(b"constant")
+            add(*t.span(k, k), b"view", "constant function -> view")
+        if post_06 and fallback:
+            add(*t.span(i, i), b"fallback", "unnamed fallback -> fallback")
+        if post_05 and not _VISIBILITY.intersection(header) and (t.words[i] == b"function" or not post_07):
+            visibility = b"external" if kind == b"interface" or fallback else b"public"
+            at = t.tokens[close][1]
+            add(at, at, b" " + visibility, "default visibility " + visibility.decode())
+    for i, word in enumerate(t.words):
+        before = t.words[i - 1] if i else b""
+        after = t.words[i + 1] if i + 1 < len(t.words) else b""
+        if before == b".":
+            continue
+        if post_05 and word == b"sha3" and after == b"(" and (i + 1) in t.matches:
+            close = t.matches[i + 1]
+            add(*t.span(i, i + 1), b"keccak256(abi.encodePacked(", "sha3 -> keccak256(abi.encodePacked)")
+            at = t.tokens[close][0]
+            add(at, at, b")", "sha3 argument packing")
+        elif post_05 and word == b"suicide" and after == b"(":
+            add(*t.span(i, i), b"selfdestruct", "suicide -> selfdestruct")
+        elif post_05 and word == b"block" and after == b"." and t.words[i + 2:i + 3] == [b"blockhash"]:
+            add(*t.span(i, i + 2), b"blockhash", "block.blockhash -> blockhash")
+        elif post_05 and word == b"msg" and after == b"." and t.words[i + 2:i + 3] == [b"gas"]:
+            add(*t.span(i, i + 2), b"gasleft()", "msg.gas -> gasleft()")
+        elif post_07 and word == b"now" and t.tokens[i][2] == "word":
+            add(*t.span(i, i), b"block.timestamp", "now -> block.timestamp")
+        elif post_05 and word == b"years":
+            # The literal before the unit: digits only, not part of a longer name or number.
+            found = re.search(rb"(?<![\w.$])([0-9][0-9_]*)\s*$", raw[:t.tokens[i][0]])
+            if found:
+                literal = found.group(1)
+                add(found.start(1), t.tokens[i][1], b"(" + literal + b" * 365 days)", "years -> 365 days")
+        elif post_05 and word in events and after == b"(" and before in (b";", b"{", b"}", b"") and \
+                word not in (b"emit",):
+            at = t.tokens[i][0]
+            add(at, at, b"emit ", "emit event")
+        elif post_07 and t.tokens[i][2] == "string" and any(b > 127 for b in word) and before != b"unicode" \
+                and before != b"hex":
+            at = t.tokens[i][0]
+            add(at, at, b"unicode", "unicode string literal")
+    payable_needed = any(re.search(r'"send" and "transfer" are only available|Member "(transfer|send)" not found|'
+                                   r"Invalid implicit conversion from address to address payable", r.get("message") or "")
+                         for r in rows)
+    if post_05 and payable_needed:
+        plain = _plain_addresses(t)
+        for i, word in enumerate(t.words):
+            # `x.transfer(v)` / `x.send(v)` with one argument, or `selfdestruct(x)`, where x is
+            # msg.sender, tx.origin or a name declared only as plain `address`.
+            base = None
+            if word in (b"transfer", b"send") and i >= 2 and t.words[i - 1] == b"." and \
+                    t.words[i + 1:i + 2] == [b"("] and (i + 1) in t.matches and \
+                    b"," not in t.words[i + 2:t.matches[i + 1]]:
+                if t.words[i - 4:i - 1] in ([b"msg", b".", b"sender"], [b"tx", b".", b"origin"]):
+                    base = (i - 4, i - 2)
+                elif t.tokens[i - 2][2] == "word" and t.words[i - 2] in plain and t.words[i - 3:i - 2] != [b"."]:
+                    base = (i - 2, i - 2)
+            elif word == b"selfdestruct" and t.words[i + 1:i + 2] == [b"("] and (i + 1) in t.matches:
+                inner = (i + 2, t.matches[i + 1] - 1)
+                text = t.words[inner[0]:inner[1] + 1]
+                if text in ([b"msg", b".", b"sender"], [b"tx", b".", b"origin"]) or \
+                        (len(text) == 1 and text[0] in plain):
+                    base = inner
+            if base is None:
+                continue
+            lo, hi = t.span(*base)
+            expression = raw[lo:hi]
+            add(lo, hi, b"payable(" + expression + b")" if post_06 else b"address(uint160(" + expression + b"))",
+                "address payable conversion")
+    evidence.append(dict(version=".".join(map(str, version)), applied=applied))
+    return patches, evidence
+
+
+def natspec_parameters(raw, rows):
+    """Blank NatSpec `@param` lines that name no parameter of the documented declaration."""
+    if not any(re.search(r"Documented parameter .* not found", r.get("message") or "") for r in rows):
+        return [], []
+    t, patches, evidence = _Tokens(raw), [], []
+    previous_end = 0
+    for i, name, open_paren, close, end in _function_headers(t):
+        params = {t.words[k] for k in range(open_paren + 1, close)
+                  if t.tokens[k][2] == "word" and t.words[k + 1] in (b",", b")")}
+        start = t.tokens[i][0]
+        comment = raw[previous_end:start]
+        for match in re.finditer(rb"(?m)^[ \t]*(?:///|\*)[ \t]*@param[ \t]+([A-Za-z_$][\w$]*)[^\n]*", comment):
+            if match.group(1) not in params:
+                lo, hi = previous_end + match.start(), previous_end + match.end()
+                patches.append(Patch(lo, hi, raw[lo:hi], bytes(32 if b not in (10, 13) else b for b in raw[lo:hi]),
+                                     MIGRATION_STEP, reason="NatSpec @param without parameter"))
+                evidence.append(dict(parameter=match.group(1).decode(errors="replace")))
+        previous_end = t.tokens[end][1]
+    return patches, evidence
+
+
 # ---- Step 10 (CP6.4): Slither-compatible rewrites -------------------------------------------
 
 SLITHER_STEP = "slither_compat"
@@ -260,9 +540,39 @@ _ALIAS_FAILURE = "Cannot resolve local alias for import directive"
 _USE_AFTER = {b"is", b"new", b"emit", b"return", b"using", b"for", b"delete"}
 
 
+_TUPLE_FAILURE = re.compile(r"^AssertionError: .*\[solc 0\.4\.(2[4-6])\]$")
+
+
 def slither_rewrite_applicable(messages):
     """Whether a Slither failure message belongs to a class that step 10 rewrites."""
-    return any(_ALIAS_FAILURE in m for m in messages)
+    return any(_ALIAS_FAILURE in m or _TUPLE_FAILURE.match(m) for m in messages)
+
+
+def tuple_call_rewrites(raw, messages):
+    """Replace `(bool s, ) = x.call...(...)` by `bool s = x.call...(...)` (solc 0.4.24-0.4.26).
+
+    In 0.4 the low-level `call`, `delegatecall` and `callcode` return one bool; the
+    tuple with an empty second component binds that bool to s, so the declaration is
+    the same binding. Slither 0.11.6 raises AssertionError on the tuple form
+    (PROMPTS 1.7). Only the declaration tokens change; the call is untouched.
+    """
+    if not any(_TUPLE_FAILURE.match(m) for m in messages):
+        return [], []
+    layout = TokenLayout(raw)
+    words, patches, evidence = layout.words, [], []
+    for i in range(len(words) - 6):
+        if words[i:i + 2] != [b"(", b"bool"] or layout.tokens[i + 2][2] != "word" or \
+                words[i + 3:i + 6] != [b",", b")", b"="]:
+            continue
+        end = next((k for k in range(i + 6, len(words)) if words[k] == b";"), None)
+        if end is None or not any(words[k] == b"." and words[k + 1] in (b"call", b"delegatecall", b"callcode")
+                                  for k in range(i + 6, end)):
+            continue
+        lo, hi = layout.tokens[i][0], layout.tokens[i + 4][1]
+        name = words[i + 2]
+        patches.append(Patch(lo, hi, raw[lo:hi], b"bool " + name, SLITHER_STEP, reason="tuple call declaration"))
+        evidence.append(dict(variable=name.decode(errors="replace")))
+    return patches, evidence
 
 
 def import_alias_rewrites(raw, messages):
@@ -315,6 +625,9 @@ def slither_compat_repairs(contents, diagnostics, round_number=1):
     for name in sorted(contents):
         proposed, info = import_alias_rewrites(contents[name], messages)
         evidence += [dict(row, file=name, rule="import_alias") for row in info]
+        found, info = tuple_call_rewrites(contents[name], messages)
+        proposed += found
+        evidence += [dict(row, file=name, rule="tuple_call") for row in info]
         composed = compose_patches(name, contents[name], proposed, round_number, evidence)
         if composed:
             edits[name], patches[name] = composed

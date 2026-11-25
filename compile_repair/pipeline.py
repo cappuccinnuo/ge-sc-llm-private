@@ -16,9 +16,9 @@ from compile_repair.core.provenance import apply_patches, mark_span, verify_prov
 from compile_repair.core.store import ArtifactStore, emit, sha256
 from compile_repair.rules.dependencies import (OfflineIndex, build_index, dependency_choices,
     chain_relative_issues, relative_repairs)
-from compile_repair.rules.normalize import normalization_repairs, slither_compat_repairs, slither_rewrite_applicable
+from compile_repair.rules.normalize import migration_versions, normalization_repairs, slither_compat_repairs, slither_rewrite_applicable
 from compile_repair.rules.stubs import structure_repairs, stub_repairs
-from compile_repair.rules.environment import (make_plan, mando_known_version,
+from compile_repair.rules.environment import (disjunction_plan, make_plan, mando_known_version,
     codegen_only_retry, ordered_candidates, pragma_patches, settings_retry)
 from compile_repair.toolchain.solc import (classify_diagnostic, compile_ast_only, compile_file, load_trusted_compilers,
     version_tuple,
@@ -87,10 +87,19 @@ def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn,
         plan = make_plan([f.content for f in unit.sources], compilers,
                          unit.known_version, unit.regression, order)
     except Unsupported as exc:
-        record.flags.append("unsupported_version_constraints")
-        record.attempts.append({"stage": "environment_plan", "exception_type": type(exc).__name__,
-                                "error_first_line": str(exc).splitlines()[0]})
-        return record
+        plan, error = None, exc
+        if any(b"||" in f.content for f in unit.sources):
+            # D6 unsupported_disjunction (CP6.5): union of the alternatives; a malformed
+            # alternative keeps the frozen reader's rejection.
+            try:
+                plan = disjunction_plan([f.content for f in unit.sources], compilers, unit.known_version, order)
+            except Unsupported:
+                plan = None
+        if plan is None:
+            record.flags.append("unsupported_version_constraints")
+            record.attempts.append({"stage": "environment_plan", "exception_type": type(error).__name__,
+                                    "error_first_line": str(error).splitlines()[0]})
+            return record
     record.plan = plan
     record.flags.extend(plan.flags)
     if plan.override and not allow_override:
@@ -212,7 +221,8 @@ _DEPENDENCY_FAILURES = {"unresolved_package_import", "missing_relative_file", "s
                         "io_error", "closure_version_conflict"}
 # Categories with a step-5 rule (CP6.1); they also open the deterministic repair loop.
 _NORMALIZATION_FAILURES = {"duplicate_definition", "multiple_license_or_pragma", "abi_coder_required",
-                           "unterminated_pragma", "pragma_missing_semicolon_candidate"}
+                           "unterminated_pragma", "pragma_missing_semicolon_candidate",
+                           "docstring_error"}
 # Categories with a step-7 rule (CP6.3).
 _STUB_FAILURES = {"undeclared_identifier", "missing_base_contract"}
 # Categories with a step-8 rule (CP6.2).
@@ -292,15 +302,38 @@ def _failure_phase(record):
     return max(reached) if reached else None
 
 
+def _failed_diagnostics(record):
+    """Non-warning solc diagnostics of failed attempts, each with the version that reported it."""
+    rows = []
+    for attempt in record.attempts:
+        compiled = attempt.get("solc")
+        if compiled and compiled["returncode"] not in (0, None) and not compiled["timed_out"]:
+            rows += [dict(d, versions=[attempt["version"]]) for d in parse_diagnostics(compiled["stderr"])
+                     if d["kind"] != "Warning"]
+    return rows
+
+
 def _slither_failures(record):
     """Distinct Slither failure messages of attempts whose solc run succeeded."""
     messages = []
     for attempt in record.attempts:
         analysis = attempt.get("slither")
-        if analysis and not analysis.get("d3") and analysis.get("error_first_line"):
-            if analysis["error_first_line"] not in messages:
-                messages.append(analysis["error_first_line"])
+        if analysis and not analysis.get("d3") and (analysis.get("error_first_line") or analysis.get("exception_type")):
+            # The exception type is kept: Slither's AssertionError carries no message (CP6.5).
+            message = "{}: {} [solc {}]".format(analysis.get("exception_type") or "D3", analysis.get("error_first_line") or "",
+                                                attempt.get("version"))
+            if message not in messages:
+                messages.append(message)
     return messages
+
+
+def _slither_failed_version(record):
+    """First version whose solc run passed but whose Slither analysis failed D3 (CP6.5)."""
+    for attempt in record.attempts:
+        analysis = attempt.get("slither")
+        if analysis and not analysis.get("d3") and attempt.get("version"):
+            return attempt["version"]
+    return None
 
 
 def _failure_measure(record):
@@ -349,7 +382,8 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         return record
     before, categories = _failure_measure(record)
     if not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES | _STUB_FAILURES
-                                   | _STRUCTURE_FAILURES) and not slither_rewrite_applicable(_slither_failures(record)):
+                                   | _STRUCTURE_FAILURES) and not slither_rewrite_applicable(_slither_failures(record)) \
+            and migration_versions(_failed_diagnostics(record)) is None:
         store.write_json(prefix + "result.json", record)
         return record
     store.write_json(prefix + "environment_result.json", record)
@@ -419,7 +453,10 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             if originals.setdefault(f.path, digest) != digest or sha256(f.path) != digest:
                 raise ValueError("Project source changed during repair: " + name)
         copy = materialize_project(candidate, store, branch + "input_project")
-        next_unit = CompilationUnit(unit.unit_id, copy.files, unit.known_version, unit.regression)
+        # A step-10 rewrite answers a Slither failure on a version that solc already accepted:
+        # that version is tried first, so the rewrite does not also move the compiler (CP6.5).
+        known = (_slither_failed_version(record) or unit.known_version) if step == 10 else unit.known_version
+        next_unit = CompilationUnit(unit.unit_id, copy.files, known, unit.regression)
         result = _environment(next_unit, compilers, store, journal, project=copy, prefix=branch,
                               initial_settings=settings, origins=maps, allow_override=trial_override,
                               already_copied=True, permit_compile=(step != 3 or dependency_limit is None

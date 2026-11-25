@@ -766,3 +766,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - D26 本机抽样：230 个单元（9 个项目）第 3 步全部接受、228 个成功；版本前缀包全部 T1、不是推断。
 - CP6 的确定性规则全部实现并验收；总结见 `artifacts/cp6_4_v1/README.md`。
 - 下一步：CP7（RAG 知识库）；记录 `docs/CHANGE_LOG.md` §81。
+
+## CP6.5 CP6 补全（Claude，2026-11-25）
+
+- 逐类别对照 D6：补上 `||` 并集选版、第 5 步文档迁移与 NatSpec、结构体桩、第 10 步元组调用；other、io_error、closure_version_conflict 逐项诊断（交代理）。
+- 云端核验：生产 1,298 passed / 6 skipped；MANDO 843 个图不变，3 个历史失败经第 10 步成功（0.4.24）；真实 319 个单元成功 65 → 67，无退步。
+- 不需要 Codex 本机运行。CP6 完成；下一步 CP7；记录 `docs/CHANGE_LOG.md` §82。

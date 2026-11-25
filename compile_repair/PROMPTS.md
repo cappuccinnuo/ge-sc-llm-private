@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.34（2026-11-25；r2.33、r2.32 同日；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.35（2026-11-25；r2.34、r2.33、r2.32 同日；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.35 相对 r2.34 的修改**（CP6.5：CP6 补全；修改 AI：Claude）：
+1. 用户（2026-11-25 04:49）要求逐项核对 CP6 是否完成。逐类别对照 D6 表（artifacts/cp3_2_v1/d6_cp4_final.json）发现 CP6.4 的总结漏了 D6 指定给确定性规则的几类：version_dependent / syntax_error 的文档迁移、docstring_error、unsupported_disjunction、元组调用（3.2 节第 10 行的原始例子）、结构体桩，以及 other、io_error、closure_version_conflict 的逐项诊断。CP6.4 中“CP6 通过”的结论撤回，新增 4.6p 节 CP6.5 补全。
+2. 3.2 节第 1、5、9、10 行按 4.6o、4.6p 更新。
+3. 冻结的 pragma 读取（pragma_interval）不改，仍拒绝 `||`；并集选版是读取失败后的单独规则，所以冻结等价测试保持不变。
 
 **r2.34 相对 r2.33 的修改**（CP6.4 D26 全量判据更正；修改 AI：Claude）：
 1. 4.6o 第 2 步的判据写得过严：T1、不是推断只要求 D26 版本前缀对应的包；同一次第 3 步接受的其他包仍按 D22（任一层级，T3 必须标 inferred=true）。Codex 在 cp3_06775（@eth-optimism/contracts@0.2.11，T3、inferred=true）处按原文停下是正确的；判据是 Claude 写错了（CHANGE_LOG §79）。
@@ -626,16 +631,16 @@ Slither 版本对照（743 个不同源文件，同一批编译器；节点类�
 
 | 步骤 | 处理的问题 | 改动等级 | 证据状态 | 代码位置 |
 |---|---|---|---|---|
-| 1 | 编译器版本与编译设置：按 3.3 节在声明区间内选择版本；只在有文档依据的错误出现时，在同一版本上改用对应编译设置（`--evm-version`、`--via-ir`，3.3 节第 3a 条）；Slither 需要 ≥ 0.4.12 | none | 版本已验证（证据 2、3、5）；设置已在 0.8.24、0.8.26 上验证（1.8 节） | rules/environment.py |
+| 1 | 编译器版本与编译设置：按 3.3 节在声明区间内选择版本；只在有文档依据的错误出现时，在同一版本上改用对应编译设置（`--evm-version`、`--via-ir`，3.3 节第 3a 条）；Slither 需要 ≥ 0.4.12；pragma 含 `||` 时按各分支的并集选版（r2.35，4.6p） | none | 版本已验证（证据 2、3、5）；设置已在 0.8.24、0.8.26 上验证（1.8 节） | rules/environment.py |
 | 2 | 项目组装：为编译单元构造导入闭包、remapping 与命令行编译参数（r2.13：不用 standard JSON，见 4.5 节第 2 节） | none | 需要（1.4：几乎没有构建配置）；算法待 CP3 数据 | toolchain/project.py |
 | 3 | 依赖补全：包导入映射到兼容的库发布版（DAI 两步检查，扩展到 0.4 与更多包），离线库索引 | additive | 需要（1.4：405 个项目有无法解析的 import） | rules/dependencies.py |
 | 4 | 缺失文件搜索：相对导入目标在项目内其他位置（移动、改名、大小写） | rewrite（只改导入路径） | 未测量；1,094 条相对导入缺失 | rules/dependencies.py |
-| 5 | 源码规范化：扁平化产生的逐字节相同的重复定义、重复许可证或 pragma 行、编码问题 | rewrite（只删逐字节相同的重复） | 哪些情况被 solc 拒绝须按版本核实 | rules/normalize.py |
+| 5 | 源码规范化：扁平化产生的逐字节相同的重复定义、重复许可证或 pragma 行、编码问题；有版本文档依据的语法迁移与 NatSpec 标签（r2.35，4.6p） | rewrite（只删逐字节相同的重复；迁移只改诊断指出的旧写法） | 哪些情况被 solc 拒绝须按版本核实 | rules/normalize.py |
 | 6 | pragma 覆盖：区间内没有可用编译器时（3.3 节第 6 条），在下界所在的小版本系列内用等长空格替换 pragma 行。这是唯一允许离开声明区间的情形，不得跨小版本系列 | rewrite（只改 pragma 行） | 已验证保持偏移（证据 8）；r2.3 修正与 3.3 节第 6 条的矛盾 | rules/environment.py |
 | 7 | 规则桩：未声明的接口、合约、事件、结构体、修饰器，签名能从使用处推出；缺失基类 | additive | 已验证无函数体声明可编译、基类须先定义（证据 8） | rules/stubs.py |
 | 8 | 结构补全：括号不平衡时在文件末尾补齐 | additive | SOChecker 使用 | rules/stubs.py |
-| 9 | 只在代码生成阶段出现的失败（例如 Stack too deep） | none | 未验证：Slither 能否只用 AST，或编译设置能否避免 | rules/environment.py |
-| 10 | Slither 兼容改写：solc rc0、源码合法，但生产 Slither 在已知写法上崩溃（例如 0.4.x 的 `(bool s, ) = a.call.value(v)("")` 在 Slither 0.10 起触发 AssertionError）；改写为逐类论证过语义等价的写法。只在 D16 选 0.11.6 时适用 | rewrite（只改触发行） | 1 个文件验证 solc 0.4.24 rc0 与 0.11.6 D3 通过（1.7 节）；等价性须逐类论证并测试 | rules/normalize.py |
+| 9 | 只在代码生成阶段出现的失败（例如 Stack too deep） | none | 已实现：同一版本 AST-only 编译（4.6o） | rules/environment.py |
+| 10 | Slither 兼容改写：solc rc0、源码合法，但生产 Slither 在已知写法上崩溃（例如 0.4.x 的 `(bool s, ) = a.call.value(v)("")` 在 Slither 0.10 起触发 AssertionError）；改写为逐类论证过语义等价的写法。只在 D16 选 0.11.6 时适用 | rewrite（只改触发行） | 已实现：导入别名、深递归重做（4.6o），元组调用声明（4.6p）；试验先用 solc 已通过的版本 | rules/normalize.py |
 
 第 1、6 步在 CP1 实现。第 2–9 步以及表中没有列出的其他失败类别，按 CP3 建立的分类表（D6）逐类判定：有可确定性实施并能机械验证的修复就实现，否则交给代理；表中“证据状态”只表示已有的验证，不表示只处理已观察到的问题。
 
@@ -1905,6 +1910,25 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 
 4. 报告：与已完成的 73 个合并，按项目给出 已运行 / 成功 / 第 3 步接受，以及其他包的层级分布；汇总写入 artifacts/cp6_4_v1/local/d26_r2.json（逐单元证据可压缩为 .jsonl.gz），CP6_REPORT 的 CP6.4 节增加“r2.34 续跑”，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS；doc_check 后提交并 push，停下等待 Claude 审查。
 ```
+
+### 4.6p CP6.5：CP6 补全（r2.35；Claude 实现并在云端核验）
+
+#### 规格（已由 Claude 实现，见 CHANGE_LOG §82）
+- 第 5 步，有版本文档依据的语法迁移（rules/normalize.py `documented_migrations`）：只在失败版本的诊断与某个迁移的消息模板相符时运行，只改诊断涉及的旧写法，在诊断给出的最早版本上成立：
+  - 缺省可见性 → public（接口与 fallback 为 external；0.7 起构造函数不加）；`constant` 函数 → `view`；与合约同名的构造函数 → `constructor`；无名 fallback → `fallback`（0.6 起）；
+  - `sha3(...)` → `keccak256(abi.encodePacked(...))`；`suicide` → `selfdestruct`；`block.blockhash` → `blockhash`；`msg.gas` → `gasleft()`；`now` → `block.timestamp`（0.7 起）；`N years` → `(N * 365 days)`；
+  - 对项目中声明过的事件补 `emit`；非 ASCII 字符串补 `unicode` 前缀（0.7 起）；
+  - 单参数 transfer/send 与 selfdestruct 的接收方：基为 msg.sender、tx.origin 或以普通 `address` 声明的名字时，0.6 起包为 `payable(x)`，0.5 为 `address(uint160(x))`；ERC-20 的两参数 transfer 与合约类型的基不改。
+  - `throw`、`var`、`callcode` 的改写不唯一或改变语义，不做（交代理）。
+- 第 5 步，NatSpec：`@param` 指向不存在的参数时，该行换为等长空白（docstring_error；不影响图）。
+- 第 1 步，`||`：冻结的 pragma 读取不变；它拒绝后，`disjunction_plan` 用各分支的冻结语义求并集，同一单元内各表达式、各源文件取交集，在已安装版本中按系列升序、去重尝试；记 `pragma_disjunction`。分支为空或不受支持时保持原拒绝；不做覆盖。
+- 第 7 步，结构体桩：`S({f: …})` 的具名构造给出字段名，字段类型由实参推出且各处一致，成员读取只用已知字段；桩 `struct S { T f; … }` 放在唯一使用它的合约体内。字段不能全部证明时不加（unknown_struct_fields）。
+- 第 10 步，元组调用：0.4.24–0.4.26 上 Slither 0.11.6 对 `(bool ok, ) = x.call…(…);` 抛 AssertionError，改为 `bool ok = x.call…(…);`。依据：这些版本中 call/delegatecall/callcode 只返回 bool，两种写法绑定同一个值。第 10 步的试验先用 solc 已通过而 Slither 失败的版本，改写不连带换编译器。
+- 诊断（不加规则）：other 的 36 个单元按当前分类器全部归入已有类别；io_error 的导入都越出项目根（文件不在语料中）或是 https URL；closure_version_conflict 是同一文件两个不相容 pragma 的片段与 Aave 的过期测试夹具 pragma。D6 对这几类的回退都是代理。
+- 测试：新增 tests/test_cp65.py；修改 test_cp63 的一个预期（结构体变量现在属于结构体用法）与三个 `||` 的流水线测试（冻结读取的拒绝仍被断言）。非测试文件仍为 20 个。
+
+#### 云端核验（artifacts/cp6_5_v1/README.md）
+见该 README；本机不需要重复。mando 环境测试的数量变化由下一次需要本机运行的阶段一并报告，不单独安排。
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）
 

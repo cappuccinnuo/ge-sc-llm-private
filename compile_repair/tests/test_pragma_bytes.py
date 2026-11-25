@@ -177,13 +177,14 @@ def test_real_byte_inputs_cli(tmp_path):
         assert (output / "units" / record["unit_id"] / "input.sol").read_bytes() == path.read_bytes()
 
 
-def test_real_union_stays_unsupported_cli(tmp_path):
+def test_real_union_uses_the_disjunction_cli(tmp_path):
+    """CP6.5 (D6 unsupported_disjunction): the frozen reader still rejects `||`
+    (test_constraint_semantics_and_exception_type); the pipeline then plans from
+    the union of the alternatives without changing the source."""
     production_required()
-    output = tmp_path / "unsupported"
-    assert main(["repair", str(NEW / "union_pragma.sol"), "--output", str(output)]) == 2
+    output = tmp_path / "union"
+    assert main(["repair", str(NEW / "union_pragma.sol"), "--output", str(output)]) == 0
     record = json.loads((output / "units/input_0001/result.json").read_text())
-    assert record["status"] == "unrepaired"
-    assert record["flags"] == ["unsupported_version_constraints"]
-    assert record["attempts"][0]["exception_type"] == "Unsupported"
+    assert record["status"] == "success" and record["flags"] == ["pragma_disjunction"]
     assert len(record["attempts"]) == 1
-    assert (output / "invocations.jsonl").read_bytes() == b""
+    assert len((output / "invocations.jsonl").read_bytes().splitlines()) == 2

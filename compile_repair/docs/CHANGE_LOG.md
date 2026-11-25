@@ -3298,3 +3298,37 @@ CP6.4 通过。连同 CP6.0–CP6.3（§§59–76 的审查），CP6 的确定�
 ### 81.5 验收、资源、未执行事项与停止
 
 doc_check 后提交。费用 0。下一步 CP7（RAG 知识库：K1 需下载对应版本的文档，K2 复用 CP5 索引，K3 留一项目）。
+
+## 82. 2026-11-25 CompileRepair CP6.5：CP6 补全（修改 AI：Claude）
+
+### 82.1 任务、依据与范围
+
+用户 2026-11-25 04:49：仔细检查 CP6 是否完成，不要遗漏；未完成先完成。按 D6 表逐类别核对，发现 §81 的“CP6 通过”不成立：version_dependent / syntax_error 的文档迁移、docstring_error、unsupported_disjunction、元组调用（PROMPTS 3.2 节第 10 行的原例）、结构体桩没有实现，other、io_error、closure_version_conflict 没有逐项诊断。规格写入 PROMPTS r2.35 §4.6p。修改 `rules/normalize.py`、`rules/environment.py`、`rules/stubs.py`、`pipeline.py`；新增 `tests/test_cp65.py`（63 项）与 `artifacts/cp6_5_v1/`；修改 test_cp63（1 个预期）、test_pragma_bytes 与 test_pragma_comments（3 个 `||` 测试）。
+
+### 82.2 实施方式和重要选择
+
+- 第 5 步文档迁移（`documented_migrations`）：只在诊断与消息模板相符时运行，在诊断给出的最早版本上成立；同一提议包含全部可证明的位置（solc 一个阶段只报第一个错误）。throw、var、callcode 不做。
+- NatSpec：`@param` 指向不存在的参数时该行置空（等长空白）。
+- `||`：冻结 pragma 读取不变；读取失败后 `disjunction_plan` 按各分支冻结语义求并集、单元内求交集、按系列升序去重尝试，记 `pragma_disjunction`。第一次实现改了冻结读取，9 个测试失败（冻结等价与 CP2.4 的预期），改为单独规则。
+- 结构体桩：具名构造给出字段，类型从实参推出且一致，成员读取只用已知字段；桩放在唯一使用它的合约体内。
+- 第 10 步元组调用：0.4.24–0.4.26 上 `(bool ok, ) = x.call…;` → `bool ok = x.call…;`。
+- 迁移规则并入 rules/normalize.py，非测试文件仍为 20 个。
+
+### 82.3 实测与数据结论
+
+| 核对 | 结果 |
+|---|---|
+| 生产测试 | 1,298 passed / 6 skipped |
+| MANDO 回归 | 843 个图与 v5 逐字节相同，steps_on_truths 0；3 个历史失败只经第 10 步成功，版本 0.4.24，D3(c) true |
+| 真实单元（319 个、280 个来源） | 成功 65（46 个来源）→ 67（48 个来源）；无退步，版本不变；语料不变 |
+| 诊断 | other 36 个已全部归入已有类别；io_error 是越出项目根且不在语料中的导入或 https URL；closure_version_conflict 是过期测试夹具 pragma 与双 pragma 片段 |
+
+第一次实现时，MANDO 的 3 个单元在改写后改用 0.4.12 编译（改写后的行在更早版本也合法）；改为第 10 步的试验先用 solc 已通过的版本。迁移在每个受影响的版本上由测试验证；在真实单元上只多出 1 个成功，原因是这些单元大多是问答片段，迁移之后仍缺未导入的库合约（详见 artifacts/cp6_5_v1/README.md）。
+
+### 82.4 用户批准、原文差异与待确认设计
+
+DECISIONS 增加 CP6.5 表：CP6 完成的判据、`||` 的处理位置、迁移范围、第 10 步试验的版本、文件数。三个 `||` 流水线测试的预期由失败改为成功，是 D6 路由的实施（冻结读取的拒绝仍被测试）。待用户决定：规则桩的最小函数体例外（CP6.4 表）。
+
+### 82.5 验收、资源、未执行事项与停止
+
+全部在云端完成；没有需要本机大数据的步骤，Codex 不需要运行。费用 0，没有 LLM 调用。CP6 完成；下一步 CP7。

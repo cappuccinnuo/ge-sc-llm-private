@@ -240,6 +240,50 @@ def make_plan(sources, versions, known=None, regression=None, order="ascending")
     return EnvironmentPlan(declared, inferred, origin, groups, priority, tuple(flags), evidence, override)
 
 
+def disjunction_plan(sources, versions, known=None, order="ascending"):
+    """D6 unsupported_disjunction (CP6.5): candidates of a pragma using `a || b`.
+
+    pragma_interval keeps the frozen conjunction reader and still rejects `||`; the
+    pipeline calls this only after that rejection. Each alternative keeps the frozen
+    semantics; a source accepts the union of its alternatives, expressions in one source
+    and sources in one unit are intersected, and the installed versions in that set are
+    tried in the usual series order without duplicates. A malformed alternative (empty or
+    unsupported by the frozen reader) keeps the original rejection. No override exists:
+    a disjunction never asks for a version outside its own alternatives.
+    """
+    allowed, evidence = None, []
+    usable = [v for v in sorted(set(versions), key=version_tuple) if FLOOR <= version_tuple(v) < CEILING]
+    for raw in sources:
+        code = code_only(raw)
+        for start, end in _pragma_spans(raw):
+            expression = re.sub(r"^pragma\s+solidity\s*|;\s*$", "", code[start:end].decode("latin1")).strip()
+            parts = []
+            for alternative in (a.strip() for a in expression.split("||")):
+                if not alternative:
+                    raise Unsupported("F: unsupported pragma expression")
+                try:
+                    parts.append(_expression_interval([alternative]))
+                except Unsupported as exc:
+                    if "empty pragma intersection" not in str(exc):
+                        raise
+            evidence.append(dict(expression=expression, alternatives=[[list(lo), list(hi)] for lo, hi in parts]))
+            accepted = {v for v in usable if any(lo <= version_tuple(v) < hi for lo, hi in parts)}
+            allowed = accepted if allowed is None else allowed & accepted
+    if allowed is None or not evidence or not any(len(e["alternatives"]) > 1 for e in evidence):
+        raise Unsupported("F: unsupported pragma expression")
+    if not allowed:
+        raise Unsupported("F: empty pragma intersection across compilation unit")
+    series = defaultdict(list)
+    for version in allowed:
+        series[version_tuple(version)[:2]].append(version)
+    groups = tuple(tuple(sorted(series[k], key=version_tuple, reverse=order == "descending")) for k in sorted(series))
+    ordered = sorted(allowed, key=version_tuple)
+    hull = (version_tuple(ordered[0]), version_tuple(ordered[-1])[:2] + (version_tuple(ordered[-1])[2] + 1,))
+    priority = known if known in allowed else None
+    return EnvironmentPlan(hull, hull, "pragma_disjunction", groups, priority, ("pragma_disjunction",),
+                           tuple(evidence), False)
+
+
 def ordered_candidates(plan):
     """Yield each version once; only consumers continuing after failure advance."""
     seen = set()

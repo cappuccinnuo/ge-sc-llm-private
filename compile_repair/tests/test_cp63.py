@@ -54,7 +54,8 @@ def test_interface_lists_exactly_the_called_functions():
 @pytest.mark.parametrize("raw,needle,reason", [
     # A plain call or a struct-like use says nothing about a declaration.
     (b"contract C { function h() public { f(1); } }\n", b"f(1)", "mixed_or_unknown_use"),
-    (b"contract C { function h() public { s memory x; } }\n", b"s memory", "mixed_or_unknown_use"),
+    # CP6.5: a struct-typed variable is a struct use, but no construction proves its fields.
+    (b"contract C { function h() public { s memory x; } }\n", b"s memory", "unknown_struct_fields"),
     # Call sites that disagree on the argument types.
     (b"contract C { function h(bool k) public { emit E(1); emit E(k); } }\n", b"E(1)", "unknown_or_disagreeing_types"),
     # An argument whose type cannot be read from the file.

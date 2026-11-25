@@ -159,7 +159,8 @@ def test_other_expression_diagnostics_unchanged(raw, error):
 
 @pytest.mark.parametrize("name,error", [
     ("missing_semicolon.sol", "F: unterminated pragma directive"),
-    ("union_pragma.sol", "F: unsupported pragma expression"),
+    # CP6.5 (D6 unsupported_disjunction): union_pragma.sol now plans from its alternatives
+    # (tests/test_cp65.py); the frozen reader's rejection is still asserted above.
 ])
 def test_pipeline_records_error_without_calling_tools(tmp_path, name, error):
     """The environment stage records the constraint error and calls no tool.
@@ -213,15 +214,15 @@ def test_real_cp24_cli_comments_and_errors(tmp_path):
             proof = next(iter(record.provenance.values()))
             assert proof.level == "additive" and [c.new for c in proof.changes] == [b";"]
         else:
-            assert record.status == "unrepaired"
-            assert record.flags == ["unsupported_version_constraints"]
-            assert len(record.attempts) == 1
-            assert record.attempts[0]["error_first_line"] == "F: unsupported pragma expression"
+            # CP6.5: the disjunction plans from the union of its alternatives (first: 0.4.24).
+            assert record.status == "success" and record.flags == ["pragma_disjunction"]
+            assert record.selected_version.startswith("0.4.")
+            assert record.provenance[str(paths[index])].level == "none"
     assert main(["repair"] + list(map(str, paths)) + ["--output", str(output)],
-                result_check=accept) == 2
+                result_check=accept) == 0
     summary = json.loads((output / "summary.json").read_text())
-    assert summary["status"] == "unrepaired" and len(summary["units"]) == 4
+    assert summary["status"] == "complete" and len(summary["units"]) == 4
     invocations = [json.loads(line) for line in (output / "invocations.jsonl").read_text().splitlines()]
     # Two tool calls per success; the unterminated pragma is compiled once repaired (CP6.1).
-    assert len(invocations) == 6
-    assert {r["unit_id"] for r in invocations} == {"input_0001", "input_0002", "input_0003"}
+    assert len(invocations) == 8
+    assert {r["unit_id"] for r in invocations} == {"input_0001", "input_0002", "input_0003", "input_0004"}
