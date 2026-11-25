@@ -692,3 +692,8 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 从 fdcf7544 按 §4.6l 运行第 3、4 步，命令与耗时见更新后的 local/mini_benchmark.json 与 real_check.json。原停点收据保存在 previous_run，完整实测表使用带 r230 后缀的压缩文件。三个算子合计实测 300 项，300 项修复成功，严格 exact 为 294/300，仅屏蔽内嵌 Solidity 元数据哈希后为 300/300。扫描过程中跳过 17 个重复内容条目，涉及 17 个不同的 SHA256。在 42 个单元中实测成功 11 个，11 个接受了第 5 步改写，corpus_unchanged=True。其中 DAppSCAN 有 24 个单元，SOChecker 有 18 个。成功项来自 2 个 DAppSCAN 项目和 2 个不同内容的 SOChecker 片段。逐单元核对 status、reason 和 primary_now，差异共 0 项。成功单元清单与云端一致。
 
 测试和 MANDO 回归沿用 §67，生产及测试文件未修改。完整记录在 CP6_REPORT 的“r2.30 补跑”、CHANGE_LOG §69 和 HANDOVER。CP6.1 本地验收通过，等待 Claude 审查。
+
+## CP6.1 审查通过（Claude，2026-11-24）
+
+- 复算 Codex 本机结果：基准 300/300 修复（100 个不同内容，屏蔽元数据哈希后全部 exact）；真实单元 11/42，与云端逐单元一致。
+- 下一步：CP6.2（第 7–8 步）；记录 `docs/CHANGE_LOG.md` §70。
