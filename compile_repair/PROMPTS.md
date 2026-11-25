@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.33（2026-11-25；r2.32 同日；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.34（2026-11-25；r2.33、r2.32 同日；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,11 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.34 相对 r2.33 的修改**（CP6.4 D26 全量判据更正；修改 AI：Claude）：
+1. 4.6o 第 2 步的判据写得过严：T1、不是推断只要求 D26 版本前缀对应的包；同一次第 3 步接受的其他包仍按 D22（任一层级，T3 必须标 inferred=true）。Codex 在 cp3_06775（@eth-optimism/contracts@0.2.11，T3、inferred=true）处按原文停下是正确的；判据是 Claude 写错了（CHANGE_LOG §79）。
+2. 不再跑完全部 1,466 个剩余单元：频率按不同项目计，每个项目最多再取 20 个未运行的单元；Trace 中与 DAppSCAN 相同的单元不重复运行。
+3. 4.6o 增加“r2.34 续跑”。
 
 **r2.33 相对 r2.32 的修改**（CP6.4：CP6 收尾；修改 AI：Claude）：
 1. 用户（2026-11-25）：不要把阶段切得过细，一次把模块做完做对；已在云端核实正确的内容不必在本机重复核验，只有需要本机大数据的部分才交给 Codex。据此 CP6.4 一次完成第 9 步、第 10 步与 D26，并给出 CP6 的总结；本机只运行 mando 环境测试（云端没有该环境）与 D26 的全量单元（全量离线索引与 CP5 单元记录只在本机）。
@@ -1877,9 +1882,28 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 2. D26 全量
   /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_4_v1/select_d26_targets.py <CP5 封存的离线依赖索引目录> <输出根目录>/d26/targets.json
   COMPILE_REPAIR_DEPENDENCY_INDEX=<同一索引目录> /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_4_v1/real_check.py <输出根目录>/d26/targets.json <输出根目录>/d26/run <输出根目录>/d26/summary.json
-  预期：选出的单元都来自导入前缀形如 name-X.Y.Z 的项目（remaining_failures.json 中 openzeppelin-solidity-2.3.0 为 1,539 个单元、9 个项目；@chainlink/contracts-0.0.10 只有在索引含 0.0.10 时才会选出）；step3_accepted 应接近全部；报告 success 数、按项目的成功数、未成功单元的当前主因分布，以及每个已接受第 3 步的单元中发布版的 tier 与 evidence（应为 T1、D26_versioned_prefix 或清单锁定的 T1，inferred 为 false）；corpus_unchanged true。
+  预期：选出的单元都来自导入前缀形如 name-X.Y.Z 的项目（remaining_failures.json 中 openzeppelin-solidity-2.3.0 为 1,539 个单元、9 个项目；@chainlink/contracts-0.0.10 只有在索引含 0.0.10 时才会选出）；step3_accepted 应接近全部；报告 success 数、按项目的成功数、未成功单元的当前主因分布，以及每个已接受第 3 步的单元中发布版的 tier 与 evidence（r2.34 更正：D26 版本前缀对应的包应为 T1、D26_versioned_prefix 或清单锁定的 T1，inferred 为 false；同一单元的其他包按 D22，任一层级，T3 必须 inferred 为 true）；corpus_unchanged true。
 
 3. 提交：汇总写入 artifacts/cp6_4_v1/local/（tests.json、d26.json；完整 summary 可压缩为 .json.gz），CP6_REPORT.md 增加“CP6.4 本地”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS；doc_check 后提交并 push，然后停下等待 Claude 审查。
+```
+
+#### r2.34 续跑（Codex；只运行 D26 的按项目抽样）
+
+```text
+# CP6.4 D26 续跑：判据更正后按项目抽样，不重复已完成的 73 个单元
+
+0. 提交为 CHANGE_LOG §79 记录的提交或其后只含文档的提交。输出根目录沿用 /home/zhao/SmartContract/compile-repair-local/cp6_4_v1/；已停的 d26/run 原样保留；本次使用新子目录 d26_r2/（已存在即停下）。mando 测试已通过（§78），不重跑。
+
+1. 抽样
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_4_v1/sample_d26_targets.py <输出根目录>/d26/targets.json compile_repair/artifacts/cp6_4_v1/local/d26_observed_units.jsonl.gz 20 <输出根目录>/d26_r2/targets.json
+  （每个项目根最多 20 个尚未运行的单元；与已保留单元相同的另一语料副本跳过。）
+
+2. 运行
+  COMPILE_REPAIR_DEPENDENCY_INDEX=<同一索引目录> /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_4_v1/real_check.py <输出根目录>/d26_r2/targets.json <输出根目录>/d26_r2/run <输出根目录>/d26_r2/summary.json
+
+3. 判据（逐单元）：选中的版本前缀包（openzeppelin-solidity-2.3.0 → openzeppelin-solidity@2.3.0；@chainlink/contracts-0.0.10 → @chainlink/contracts@0.0.10）若被第 3 步接受，必须是 T1、证据为 D26_versioned_prefix 或清单锁定、inferred=false；同一单元的其他包按 D22，记录层级与 inferred（T3 必须 inferred=true）；corpus_unchanged 为 true。违反任何一条即停下报告。不是停止条件：第 3 步未被接受或单元未成功（报告其当前主因，按项目汇总）。
+
+4. 报告：与已完成的 73 个合并，按项目给出 已运行 / 成功 / 第 3 步接受，以及其他包的层级分布；汇总写入 artifacts/cp6_4_v1/local/d26_r2.json（逐单元证据可压缩为 .jsonl.gz），CP6_REPORT 的 CP6.4 节增加“r2.34 续跑”，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS；doc_check 后提交并 push，停下等待 Claude 审查。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）

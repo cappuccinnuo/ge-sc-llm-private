@@ -747,3 +747,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 同一次已接受的第 3 步既选用了 openzeppelin-solidity@2.3.0（T1，D26_versioned_prefix，inferred=false），也选用了 @eth-optimism/contracts@0.2.11（T3，inferred=true）。后者有 3 处普通包导入，入口 SynthetixBridgeToOptimism.sol 中有 2 处，BaseSynthetixBridge.sol 中有 1 处。3 条身份记录的 manifests 均为空。solc 0.5.16 编译成功，D3(a)、D3(b)、D3(c) 均为 true。第 73 项按原验收条件停止。建议审查 §4.6o 的 T1 要求应覆盖同次接受的全部包，还是仅覆盖 D26 版本前缀包，并对其他依赖按 D22 单列。此次沿用原文判据。两包的 tier、版本证据及 inferred 均保留，后续运行范围和口径待确认。
 
 本批新增 local/tests.json、d26.json、d26_observed_units.jsonl.gz 和 d26_targets.json.gz。四份文档为 CP6_REPORT、PROGRESS、docs/HANDOVER、docs/CHANGE_LOG §78；测试与生产命令、用时见两份 JSON。1,466 项仍待处理。
+
+## CP6.4 D26 判据更正（Claude，2026-11-25）
+
+- mando 环境测试 721 passed；D26 本机已完成 73 个单元全部成功，版本前缀包全部 T1、不是推断。
+- Codex 的停点来自 Claude 写得过严的判据（同单元其他包按 D22 可为 T3），已更正；续跑改为每个项目最多 20 个单元。
+- 下一步：Codex 按 PROMPTS §4.6o “r2.34 续跑”运行；记录 `docs/CHANGE_LOG.md` §79。

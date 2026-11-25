@@ -3217,3 +3217,31 @@ mando 测试 721 passed、521 skipped。原选择器得到 1,539 个不同单元
 ### 78.5 验收、资源、未执行事项与停止
 
 已核验 CP5.1 封存索引的 index.json 与 seal.json 哈希（20 个包、172 个发布版）。停止后再次核对全部 1,539 个入口的 CP3 SHA256，全部一致。原运行器只在全量结束时写 corpus_unchanged 和 summary.json，本批将全量语料判定登记为未测。20 个生产文件与启动时相同，354 个 DFG 代码引用与封存一致。原运行器于停点被终止，退出码 -15。生产测试、DFG、MANDO 图回归按本地范围未再运行。CPU 执行，额外安装、下载、LLM 调用、训练及费用均为 0。四份文档经 doc_check --expect-cjk 检查通过，命令及结果见 local/tests.json。
+
+## 79. 2026-11-25 CompileRepair CP6.4 D26 全量判据更正与抽样续跑（修改 AI：Claude）
+
+### 79.1 任务、依据与范围
+
+审查 §78（Codex 按 PROMPTS r2.33 §4.6o 本机运行）。修改：`PROMPTS.md` r2.33 → r2.34（判据更正、4.6o 增加“r2.34 续跑”）；新增 `artifacts/cp6_4_v1/sample_d26_targets.py`；记录：本节、HANDOVER、PROGRESS。生产代码不变。
+
+### 79.2 实施方式和重要选择
+
+- mando 环境测试 721 passed / 521 skipped，与预期完全一致。
+- D26：Codex 在第 73 个单元 cp3_06775 停下。该单元同时接受了 openzeppelin-solidity@2.3.0（T1，D26_versioned_prefix，inferred=false）与 @eth-optimism/contracts@0.2.11（T3，inferred=true，三处普通包导入，清单为空），并编译成功、D3 三项为真。停下是按原文执行；原文要求“每个已接受第 3 步的单元中发布版”都是 T1、不是推断，写得过严——D26 只给版本前缀包提供身份证据，其他包的选择本来就按 D22（已定）。采纳 Codex 建议：T1 判据只用于版本前缀包，其他包按 D22 记录层级与 inferred。
+- 已完成的 73 个单元全部成功（此前在 CP5 中全部因未解决的包导入失败），版本前缀包全部 T1、D26_versioned_prefix、inferred=false。
+- 续跑不再跑完 1,466 个：频率按不同项目计，每个项目根最多再取 20 个；Trace 中的 Aloith 199 个单元与 DAppSCAN 中的逐项相同，不重复运行。
+
+### 79.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| mando 环境测试 | 721 passed / 521 skipped | cp6_4_v1/local/tests.json |
+| D26 已完成单元 | 73/73 成功，第 3 步 73/73 接受；版本前缀包全部 T1、不是推断 | cp6_4_v1/local/d26.json、d26_observed_units.jsonl.gz |
+
+### 79.4 用户批准、原文差异与待确认设计
+
+判据更正是 Claude 写错后的纠正，不改变 D22、D26。待确认：D19；D9/D10；D12/D13。
+
+### 79.5 验收、资源、未执行事项与停止
+
+doc_check 后提交。费用 0。停止：等待 Codex 按 4.6o “r2.34 续跑”运行。
