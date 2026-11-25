@@ -2923,3 +2923,30 @@ production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 sk
 ### 67.5 验收、资源、未执行事项与停止
 
 19 个生产文件与 Git 一致，354 个 DFG 代码引用与冻结基线一致。四份文档的 doc_check 结果、范围和 SHA256 保存在 tests.json。使用现有本地 CPU 环境，未安装、获取额外语料、调用 LLM 或训练，费用 0 美元。CP6.2 未运行。
+
+## 68. 2026-11-24 CompileRepair CP6.1 小基准运行器修正（修改 AI：Claude）
+
+### 68.1 任务、依据与范围
+
+审查 §67（Codex 本地复核）。测试三套与 MANDO 回归和预期完全一致；小基准在第 27 个基中止，真实单元未运行。修改 `artifacts/cp6_1_v1/mini_benchmark.py`，新增 `mini_benchmark_cloud_r2.json`；PROMPTS r2.29 → r2.30（4.6l 增加补跑步骤）；记录：本节、cp6_1_v1/README、HANDOVER、PROGRESS。生产代码不变。
+
+### 68.2 实施方式和重要选择
+
+- 原因：CP4 单文件基中不同单元可以是同一个文件（cp3_00111 与 cp3_00290 的 SHA-256 相同）。运行器按内容哈希前 16 位命名目录，独占创建时 FileExistsError。云端每个算子 15 个时没有走到第 27 个基，所以未暴露。
+- 修正：每个不同内容只取一次，后来的相同内容记入 repeated_contents_skipped（单元号与 SHA-256）。没有采用 Codex 提出的“目录名加单元号”：那样同一内容会被计两次，不符合按不同来源计数的原则。
+- Codex 已完成的 78 个样本：78 成功、严格 exact 72、屏蔽哈希后 78；严格例外只在两个已知工厂合约，Codex 独立核查了内嵌元数据，与云端结论一致。
+
+### 68.3 实测与数据结论
+
+| 核对项 | 结果 | 来源 |
+|---|---|---|
+| Codex 本地测试与 MANDO | production 1,183 / 6、mando 686 / 503、DFG 2,653、MANDO 843 个图不变：全部符合预期 | cp6_1_v1/local/tests.json、mando_check.json |
+| 云端复验（每个算子 30 个） | 90/90 成功；两个分号算子字节还原 30/30；严格 exact 84/90，屏蔽元数据哈希后 90/90；跳过相同内容 15 个 | cp6_1_v1/mini_benchmark_cloud_r2.json |
+
+### 68.4 用户批准、原文差异与待确认设计
+
+验收标准不变。D26、Frax 类单元的进展判定仍待用户决定。
+
+### 68.5 验收、资源、未执行事项与停止
+
+doc_check 后提交。云端 CPU，费用 0。停止：等待 Codex 按 4.6l “r2.30 补跑”运行第 3、4 步。

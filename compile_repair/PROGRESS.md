@@ -680,3 +680,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 从 593feb05 执行 §4.6l。新增本批 local 下四份汇总及逐项压缩表，更新 CP6_REPORT、CHANGE_LOG §67、HANDOVER。各测试采用原环境的 python -B -m pytest -q -p no:cacheprovider，各自的 basetemp 和命令见 tests.json。production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 skipped in 22.43s；dfg 2653 passed, 9 warnings in 176.00s (0:02:55)。MANDO 843 个图一致，另 3 个历史失败一致。
 
 已完成 78 个算子样本，修复成功 78 个，严格 exact 72 个，按运行器屏蔽元数据哈希后 exact 78 个。本机按要求执行每个算子 100 个基。DAppSCAN 单文件目录表第 10 项 `cp3_00111` 与第 27 项 `cp3_00290` 的输入 SHA256 都是 `f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154`。运行器使用同一哈希前 16 位拼接 `f9abece5eeaac19c/truth`，第二次独占创建该路径时触发 FileExistsError，退出码 1，未生成正式 summary.json。原目录和日志均保留。这两个条目对应不同的 CP4 单元，完整内容哈希也相同。后续审查可考虑在运行目录名中加入单元标识，同时保留原抽样顺序与 SHA256。此建议未实施。第 4 步未启动，未选择或运行 42 个真实单元。云端记录的 11 个成功单元尚未获得本机复核；本轮不能据此判断本机修复率。 第 3 步运行器中止，CP6.1 本地验收未通过，等待 Claude 审查。
+
+## CP6.1 小基准运行器修正（Claude，2026-11-24）
+
+- Codex 本地：测试三套与 MANDO 全部符合；小基准因 cp3_00111 与 cp3_00290 是同一文件而中止。
+- 运行器改为每个不同内容取一次；云端每个算子 30 个复验 90/90，屏蔽元数据哈希后 exact 90/90。
+- 下一步：Codex 按 PROMPTS §4.6l “r2.30 补跑”运行第 3、4 步；记录 `docs/CHANGE_LOG.md` §68。

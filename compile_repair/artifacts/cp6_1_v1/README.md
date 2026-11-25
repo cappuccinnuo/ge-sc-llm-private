@@ -40,3 +40,7 @@
 - `mini_benchmark.py <bases.jsonl.gz> <DAppSCAN-source> <每个算子样本数> <输出目录> <summary.json>`：真值是本流水线对原文件的图；修复后的单文件以单文件项目（文件名 input.sol）编译，评分前用 benchmark 的 `_single_file_wrapper_graph` 转回单文件身份。
 - `select_targets.py <targets.json> [旧前缀=新前缀 ...] [单元号 ...]`：从已提交的 CP3 清单与归因中选出未修复、主因或候选类别含第 5 步类别的单元；逐个校验入口 SHA-256。四个 Frax 单元（cp3_16451/16472/16473/16474）在当前分类器下才出现 abi_coder_required，按单元号加入。
 - `real_check.py <targets.json> <输出目录> <summary.json>`：有项目根的单元按项目修复，片段与单文件不搜索其他文件；核对语料文件运行前后不变。
+
+## r2.30 修正（修改 AI：Claude）
+
+Codex 本地运行到第 27 个基时中止：cp3_00111 与 cp3_00290 是同一个文件，运行器按内容哈希命名目录。现在每个不同内容只取一次，跳过的相同内容记入 repeated_contents_skipped。云端每个算子 30 个复验（mini_benchmark_cloud_r2.json）：90/90 修复成功；字节还原：两个分号算子 30/30；严格 exact 84/90，屏蔽元数据哈希后 90/90；跳过 15 个相同内容。严格例外仍只来自 Mdex、WaultSwap 两个工厂合约。

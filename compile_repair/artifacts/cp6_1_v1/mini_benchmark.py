@@ -2,7 +2,8 @@
 
 Usage: python -B mini_benchmark.py <bases.jsonl.gz> <DAppSCAN-source dir> <per operator> <output dir> <summary.json>
 For each operator, take the first single-file bases (CP4 base order) where the CP4
-operator has a site; truth = this pipeline's graph of the unchanged base; damage = CP4's
+operator has a site, each distinct file content once (later bases with the same SHA-256
+are listed as repeated_contents_skipped); truth = this pipeline's graph of the unchanged base; damage = CP4's
 build_mutation; repair = the production pipeline; score = evaluation.benchmark.score_graphs. A repaired standalone unit is compiled as a
 one-file project (filename input.sol); its graph is translated back with the benchmark's
 _single_file_wrapper_graph, which rejects any other filename.
@@ -50,7 +51,7 @@ def run(name, raw):
     return record, json.loads(graph.read_bytes()) if graph.exists() else None, path
 
 
-rows, counts = [], {op: 0 for op in OPERATORS}
+rows, counts, seen, repeated = [], {op: 0 for op in OPERATORS}, set(), []
 with gzip.open(bases_path, "rt") as fp:
     bases = [json.loads(line) for line in fp]
 for base in bases:
@@ -62,6 +63,12 @@ for base in bases:
     if not entry.is_file():
         continue
     raw = entry.read_bytes()
+    # Distinct contents only: a file shared by several CP4 units is one sample, not several.
+    digest = hashlib.sha256(raw).hexdigest()
+    if digest in seen:
+        repeated.append(dict(unit_id=base.get("unit_id"), entry_sha256=digest))
+        continue
+    seen.add(digest)
     sites = mutation_sites(dict(base, project_root=None), {"": raw}, {"": SourceLayout(raw)}, [])
     wanted = [op for op in OPERATORS if op in sites and counts[op] < per_op]
     if not wanted:
@@ -100,5 +107,5 @@ summary = {op: dict(samples=sum(r["operator"] == op for r in rows),
                                                     for r in rows),
                     restored_bytes=sum(r["operator"] == op and r.get("repair_equals_original") is True for r in rows))
            for op in OPERATORS}
-summary_path.write_text(json.dumps(dict(summary=summary, rows=rows), indent=1) + "\n", encoding="utf8")
+summary_path.write_text(json.dumps(dict(summary=summary, repeated_contents_skipped=repeated, rows=rows), indent=1) + "\n", encoding="utf8")
 print(json.dumps(summary))
