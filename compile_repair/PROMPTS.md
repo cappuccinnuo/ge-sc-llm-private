@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.31（2026-11-24；r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 同日；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.32（2026-11-25；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,10 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.32 相对 r2.31 的修改**（CP6.3：第 7 步声明桩；修改 AI：Claude）：
+1. 新增 4.6n 节 CP6.3：第 7 步的规格、云端核验与本地运行步骤。
+2. 第 5、7、8 步在同一轮中按此顺序运行；第 8 步包好的片段由下一轮的第 7 步加桩。
 
 **r2.31 相对 r2.30 的修改**（CP6.2：第 8 步结构补全与 D27；修改 AI：Claude）：
 1. D26 由建议改为已定；新增 D27（编译阶段进展可作为接受依据）。依据：用户 2026-11-24 21:00 “According to reasonable and correct recommendations”。
@@ -1790,6 +1794,50 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
   预期：522 个单元（DAppSCAN 83、SOChecker 439）；success 40、step8_accepted 185、phase_advanced 145、step5_accepted 0；corpus_unchanged true。逐单元与 artifacts/cp6_2_v1/real_check_cloud.json 对照 status、reason、primary_now，报告全部差异。
 
 5. 提交：四项结果的汇总写入 artifacts/cp6_2_v1/local/（tests.json、mando_check.json、mini_benchmark.json、real_check.json；完整 summary 可压缩为 .json.gz），CP6_REPORT.md 增加“CP6.2 本地复核”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录；doc_check 后提交并 push，然后停下等待 Claude 审查。
+```
+
+### 4.6n CP6.3：第 7 步声明桩（r2.32；Claude 实现，Codex 本地复核）
+
+#### 规格（已由 Claude 实现，见 CHANGE_LOG §74）
+- rules/stubs.py 增加第 7 步（非测试文件仍为 20 个）。只为编译器报告为未声明（undeclared_identifier、missing_base_contract）的名字加声明，声明的内容只来自这些名字的用法：
+  - 基类（`is X`，或构造函数头中调用的基类）：`contract X {}`；以参数调用时加 `constructor(…) public {}`。
+  - 修饰器（函数头中、括号外的位置）：在使用它的合约 `{` 之后加 `modifier m(…) { _; }`。
+  - 事件（`emit E(…)`）：在使用它的合约中加 `event E(…);`。
+  - 合约类型（声明中的类型、函数参数类型、`X(a).f(…)`）：接口，只列出实际调用过的函数；`new X()` 用 `contract X {}`。
+  - 类型只从字面量、`msg.sender` 一类的值、在文件中只以一种值类型声明的名字，以及调用的上下文（`T x = …`、`require(…)`、独立语句）得到；任何一个类型未知、调用处不一致、只读成员而不调用、同一个名字有不同用法，就不加这个桩。普通变量不加声明；新版本的关键字（virtual、override 等）不加声明。
+  - solc 每个作用域一次只报一个未声明的名字，所以同一次提案也为处在明确位置（基类列表、emit、函数头修饰器位置）、项目中没有任何文件声明过的其他名字加桩。
+  - 合约与接口桩插在第一个顶层定义之前（基类必须先于派生合约定义）；修饰器与事件插在使用它的合约 `{` 之后。只插入文本，等级 additive，步骤名 stub。
+- pipeline.py：修复资格增加 undeclared_identifier、missing_base_contract；第 5、7、8 步按此顺序运行。
+- 测试：新增 tests/test_cp63.py 13 项。
+- 云端核验（artifacts/cp6_3_v1/README.md）：生产测试 {TESTS}；MANDO {MANDO}；两个 CP4 算子的基准 {MINI}；550 个真实单元 {REAL}。
+
+#### 本地运行步骤（Codex 在用户本机执行；只运行与报告，不改生产代码）
+
+```text
+# CP6.3 本地复核：拉取 Claude 的 CP6.3 提交，运行三套测试、MANDO 回归、两个算子的基准与真实单元检查
+
+0. 准备：同 4.6j 第 0 步，提交为 CHANGE_LOG §74 记录的提交或其后只含文档的提交。输出根目录 /home/zhao/SmartContract/compile-repair-local/cp6_3_v1/（已存在即停下）；子目录 tests/、mando/、mini/、real/。不安装、不下载、不调用 LLM；与预期不符即停下报告，不改生产代码。
+
+1. 三套测试（命令同 4.6j 第 1、2 步，basetemp 为 <输出根目录>/tests/production、tests/mando、tests/dfg）
+- production 预期 1215 passed, 6 skipped（CP6.2 为 1202 / 6；新增 test_cp63.py 13 项）。
+- mando 预期 709 passed, 512 skipped（CP6.2 为 700 / 508；test_cp63.py 中 9 项单元测试在 mando 环境运行，4 项流水线测试需要 production 而跳过）。数量不同但没有失败时，逐项列出差异后继续。
+- DFG v2 预期 2653 passed。
+
+2. MANDO 回归：同 4.6l 第 2 步，输出在 <输出根目录>/mando/。预期 passed=true；graphs_equal 843、historical_failures 3、steps_on_truths 0、d3_c_true 843。
+
+3. 基准（missing_base_contract 与 undeclared_identifier 两个 CP4 算子）
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_3_v1/mini_benchmark.py compile_repair/artifacts/cp4_v1/bases.jsonl.gz /home/zhao/SmartContract/corpora/DAppSCAN@66a56619c44770e05c2db600fa6468115ff0dcd5/DAppSCAN-source 100 <输出根目录>/mini/run <输出根目录>/mini/summary.json missing_base_contract,undeclared_identifier
+  预期与判读（云端每个算子 30 个见 mini_benchmark_cloud.json）：
+  - undeclared_identifier（删去一个事件声明）：成功样本中，除已知的两个工厂合约（只差内嵌元数据哈希）外，graph_equal 都为 true；graph_equal 为 true 而 exact 为 false 的样本只能是 near_damage 为 false（桩插在合约开头，不在原位置）。
+  - missing_base_contract（删去一个本地基类）：成功样本的 removed_by_repair 为 0。逐个比较真值图与修复图中每个合约的节点数：节点变少的合约只能是被删的基类（它自己的节点无法恢复）；节点变多的合约只能是收到桩修饰器或桩构造函数的合约，且多出的节点都在插入的字节里。出现其他情况即停下报告。云端 8 个成功样本：被删基类 Ownable、owned 各自少 10–24 个节点，收到 onlyOwner 桩的合约各多 2 个节点，其余合约节点数不变。
+  - 两个算子：未修复的样本报告其 reason 与第 7 步的证据（reason 字段）分布。
+
+4. 真实单元
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_3_v1/select_targets.py <输出根目录>/real_targets.json undeclared_identifier,missing_base_contract,unbalanced_structure,parser_error_other,file_level_member
+  /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_3_v1/real_check.py <输出根目录>/real_targets.json <输出根目录>/real/run <输出根目录>/real/summary.json
+  预期：550 个单元（DAppSCAN 95、SOChecker 455）；{REAL_EXPECT}；corpus_unchanged true。逐单元与 artifacts/cp6_3_v1/real_check_cloud.json 对照 status、reason、primary_now，报告全部差异。
+
+5. 提交：四项结果的汇总写入 artifacts/cp6_3_v1/local/（tests.json、mando_check.json、mini_benchmark.json、real_check.json；完整 summary 可压缩为 .json.gz），CP6_REPORT.md 增加“CP6.3 本地复核”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录；doc_check 后提交并 push，然后停下等待 Claude 审查。
 ```
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）
