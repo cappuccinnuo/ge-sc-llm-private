@@ -17,7 +17,7 @@ from compile_repair.core.store import ArtifactStore, emit, sha256
 from compile_repair.rules.dependencies import (OfflineIndex, build_index, dependency_choices,
     chain_relative_issues, relative_repairs)
 from compile_repair.rules.normalize import normalization_repairs
-from compile_repair.rules.stubs import structure_repairs
+from compile_repair.rules.stubs import structure_repairs, stub_repairs
 from compile_repair.rules.environment import (make_plan, mando_known_version,
     ordered_candidates, pragma_patches, settings_retry)
 from compile_repair.toolchain.solc import (classify_diagnostic, compile_file, load_trusted_compilers, version_tuple,
@@ -197,6 +197,8 @@ _DEPENDENCY_FAILURES = {"unresolved_package_import", "missing_relative_file", "s
 # Categories with a step-5 rule (CP6.1); they also open the deterministic repair loop.
 _NORMALIZATION_FAILURES = {"duplicate_definition", "multiple_license_or_pragma", "abi_coder_required",
                            "unterminated_pragma", "pragma_missing_semicolon_candidate"}
+# Categories with a step-7 rule (CP6.3).
+_STUB_FAILURES = {"undeclared_identifier", "missing_base_contract"}
 # Categories with a step-8 rule (CP6.2).
 _STRUCTURE_FAILURES = {"unbalanced_structure", "parser_error_other", "file_level_member"}
 # D27: the compiler phase that reports a category. solc stops at the first failing phase,
@@ -319,7 +321,8 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         store.write_json(prefix + "result.json", record)
         return record
     before, categories = _failure_measure(record)
-    if not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES | _STRUCTURE_FAILURES):
+    if not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES | _STUB_FAILURES
+                                   | _STRUCTURE_FAILURES):
         store.write_json(prefix + "result.json", record)
         return record
     store.write_json(prefix + "environment_result.json", record)
@@ -524,9 +527,11 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             trial["new_relative_errors"] = [dict(importer=r["importer"], path=r["path"], line=r["line"])
                                             for r in issues]
             staged, prior_count = candidate, trial["errors_after"]
-        # Steps 5 (CP6.1) and 8 (CP6.2): source rules proposed from the current best record's
-        # diagnostics. Verified dependency releases (step 3) are never edited.
+        # Steps 5 (CP6.1), 7 (CP6.3) and 8 (CP6.2): source rules proposed from the current best
+        # record's diagnostics. Verified dependency releases (step 3) are never edited. A fragment
+        # wrapped by step 8 gets its stubs from step 7 in the next pass of the loop.
         for step, propose, key, idle in ((5, normalization_repairs, "normalization", "no_applicable_normalization"),
+                                         (7, stub_repairs, "stubs", "no_applicable_stub"),
                                          (8, structure_repairs, "structure", "no_applicable_structure")):
             if stop:
                 break
