@@ -101,8 +101,12 @@ def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn,
         for f in unit.sources:
             patches = pragma_patches(f.content)
             count += len(patches)
-            working[f.path], maps[f.path] = apply_patches(f.content, patches)
-            verify_provenance(f.content, working[f.path], maps[f.path])
+            # In a repair trial the file already carries earlier changes: record the override
+            # after them, against the original bytes (CP6.4).
+            name = Path(f.path).relative_to(project.root).as_posix() if project else f.path
+            original, previous = (origins or {}).get(name, (f.content, ()))
+            working[f.path], maps[f.path] = apply_patches(original, tuple(previous) + tuple(patches))
+            verify_provenance(original, working[f.path], maps[f.path])
         if not count:
             raise ValueError("Override plan has no Solidity pragma to replace")
         if project is not None:
@@ -349,6 +353,9 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         store.write_json(prefix + "result.json", record)
         return record
     store.write_json(prefix + "environment_result.json", record)
+    # A unit whose declared versions have no installed compiler compiles only under the step-6
+    # pragma override; repair trials of that unit may use the same override (CP6.4).
+    trial_override = "pragma_overridden" in record.flags
     steps = []
     settings, wrapper = (), None
     original_project = project
@@ -414,7 +421,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         copy = materialize_project(candidate, store, branch + "input_project")
         next_unit = CompilationUnit(unit.unit_id, copy.files, unit.known_version, unit.regression)
         result = _environment(next_unit, compilers, store, journal, project=copy, prefix=branch,
-                              initial_settings=settings, origins=maps, allow_override=False,
+                              initial_settings=settings, origins=maps, allow_override=trial_override,
                               already_copied=True, permit_compile=(step != 3 or dependency_limit is None
                                   or compiled_combinations < dependency_limit), **tools)
         after, _ = _failure_measure(result)

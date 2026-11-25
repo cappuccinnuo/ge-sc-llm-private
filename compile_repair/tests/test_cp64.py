@@ -196,3 +196,20 @@ def test_recursion_error_is_repeated_once_with_a_deep_stack(monkeypatch):
     monkeypatch.setattr(slither_module, "_run_slither", lambda *a: {"exception_type": "RecursionError"})
     assert "deep_recursion_retry" in slither_module.run_slither(None, profile="production")
     assert slither_module.run_slither(None, profile="regression_6c") == {"exception_type": "RecursionError"}
+
+
+def test_repair_trial_keeps_the_pragma_override_of_its_unit(tmp_path):
+    """0.4.11 has no installed compiler, so the unit compiles only under the step-6 override;
+    the step-5 trial uses the same override, recorded after the step-5 change."""
+    production_required()
+    body = b"contract A { function f() public constant returns (uint) { return 1; } }\n"
+    raw = b"pragma solidity 0.4.11;\n" + body + body
+    path = put(tmp_path, "A.sol", raw)
+    unit = CompilationUnit("old", (SourceFile(str(path), hashlib.sha256(raw).hexdigest(), raw),))
+    store = ArtifactStore(tmp_path / "run")
+    record = repair_unit(unit, {"0.4.12": trusted_compilers()["0.4.12"]}, store, io.StringIO())
+    environment = json.loads((store.path / "units/old/environment_result.json").read_bytes())
+    assert "pragma_overridden" in environment["flags"] and environment["status"] != "success"
+    assert record.status == "success" and "pragma_overridden" in record.flags
+    changes = {c.step for p in record.provenance.values() for c in p.changes}
+    assert "normalize" in changes and len(changes) == 2
