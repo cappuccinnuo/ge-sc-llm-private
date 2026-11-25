@@ -4,19 +4,20 @@
 
 ## 0. 一句话
 
-CP6.2（第 8 步结构补全与 D27）已审查通过：本机三套测试与 MANDO 回归符合；右花括号基准 100 个不同内容中末尾定义 68 个全部修复且严格 exact、较早定义 32 个全部拒绝；522 个真实单元与云端逐单元一致（40 个成功）。下一步 CP6.3（第 7 步规则桩）。
+CP6.3（第 7 步声明桩）已由 Claude 实现并在云端核验：生产测试 1,215 / 6、MANDO 843 个图不变、删去事件声明基准 18/30 成功、550 个真实单元中 49 个成功（CP6.2 为 40）。等待 Codex 按 PROMPTS §4.6n 本地复核。
 
 ## 1. 当前状态
 
 | 项目 | 结果 |
 |---|---|
-| 方案与决定 | PROMPTS r2.31；用户已定先做 CP6；D26、D27 已定（按建议）；D19 建议；D9/D10 待确认、D12/D13 待定 |
+| 方案与决定 | PROMPTS r2.32；用户已定先做 CP6；D26、D27 已定（按建议）；D19 建议；D9/D10 待确认、D12/D13 待定 |
 | CP0–CP6.2 | 已审查通过 |
 | CP6.1 | 已审查通过（CHANGE_LOG §70） |
-| CP6.2 | 已审查通过（CHANGE_LOG §73）：第 8 步与 D27；本机基准 68/68 严格 exact、32/32 正确拒绝，真实单元 40/522 与云端一致 |
+| CP6.2 | 已审查通过（CHANGE_LOG §73） |
+| CP6.3 | 第 7 步声明桩（基类、修饰器、事件、接口；只从用法推出）；云端核验见 artifacts/cp6_3_v1/README.md |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；Frax 类单元补上 ABI 编码器后停在 Stack too deep（第 9 步）；小基准严格 exact 受内嵌元数据哈希影响 |
-| 下一步 | CP6.3：第 7 步（未声明标识符与缺失基类的规则桩），Claude 在 GitHub 实现并云端核验 |
+| 下一步 | Codex 本地复核 CP6.3；之后 CP6.4（第 9 步仅代码生成、第 10 步 Slither 兼容、D26 带版本前缀） |
 
 ## 2. 分支与工作树
 
@@ -917,3 +918,7 @@ production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 sk
 ### 2026-11-24 CompileRepair CP6.2 审查通过（修改 AI：Claude）
 
 从 Codex 的压缩汇总复算：右花括号基准 100 个不同内容，末尾定义 68 个全部 success 且严格 exact、graph_equal，较早定义 32 个全部 unrepaired，没有交叉；522 个真实单元的 status、reason、primary_now 与云端逐单元相同。CP6.2 通过。详见 CHANGE_LOG §73。
+
+### 2026-11-25 CompileRepair CP6.3 第 7 步声明桩（修改 AI：Claude）
+
+修改 `rules/stubs.py`（第 7 步）、`pipeline.py`，新增 `tests/test_cp63.py`（13 项）与 `artifacts/cp6_3_v1/`，`PROMPTS.md` r2.31 → r2.32（4.6n）。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §74。

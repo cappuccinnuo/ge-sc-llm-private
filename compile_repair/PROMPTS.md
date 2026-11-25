@@ -1809,7 +1809,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
   - 合约与接口桩插在第一个顶层定义之前（基类必须先于派生合约定义）；修饰器与事件插在使用它的合约 `{` 之后。只插入文本，等级 additive，步骤名 stub。
 - pipeline.py：修复资格增加 undeclared_identifier、missing_base_contract；第 5、7、8 步按此顺序运行。
 - 测试：新增 tests/test_cp63.py 13 项。
-- 云端核验（artifacts/cp6_3_v1/README.md）：生产测试 {TESTS}；MANDO {MANDO}；两个 CP4 算子的基准 {MINI}；550 个真实单元 {REAL}。
+- 云端核验（artifacts/cp6_3_v1/README.md）：生产测试 1,215 passed / 6 skipped；MANDO 843 个图不变；两个 CP4 算子的基准 undeclared_identifier 30 个中 18 个成功（graph_equal 16，严格 exact 12；其余 2 个为已知工厂合约的内嵌元数据哈希）；missing_base_contract 30 个中 8 个成功（节点变少的只有被删的基类，多出的节点都在插入的桩中），22 个未修复（派生合约用到被删基类的成员，用法不能证明其声明）；550 个真实单元 49 个成功（49 个不同来源：48 个 SOChecker 片段、1 个 DAppSCAN 单元；CP6.2 为 40），第 7 步被接受 14 个（其中 9 个最终成功），与 CP6.2 相比没有退步；仍以未声明标识符为主因的单元中，52 个只有普通变量或普通函数调用（按设计不加桩）；语料不变。
 
 #### 本地运行步骤（Codex 在用户本机执行；只运行与报告，不改生产代码）
 
@@ -1835,7 +1835,7 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 4. 真实单元
   /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_3_v1/select_targets.py <输出根目录>/real_targets.json undeclared_identifier,missing_base_contract,unbalanced_structure,parser_error_other,file_level_member
   /home/zhao/miniconda3/envs/compile-repair-production/bin/python -B compile_repair/artifacts/cp6_3_v1/real_check.py <输出根目录>/real_targets.json <输出根目录>/real/run <输出根目录>/real/summary.json
-  预期：550 个单元（DAppSCAN 95、SOChecker 455）；{REAL_EXPECT}；corpus_unchanged true。逐单元与 artifacts/cp6_3_v1/real_check_cloud.json 对照 status、reason、primary_now，报告全部差异。
+  预期：550 个单元（DAppSCAN 95、SOChecker 455）；success 49、step7_accepted 14、step8_accepted 191、phase_advanced 146、step5_accepted 0；corpus_unchanged true。逐单元与 artifacts/cp6_3_v1/real_check_cloud.json 对照 status、reason、primary_now，报告全部差异。
 
 5. 提交：四项结果的汇总写入 artifacts/cp6_3_v1/local/（tests.json、mando_check.json、mini_benchmark.json、real_check.json；完整 summary 可压缩为 .json.gz），CP6_REPORT.md 增加“CP6.3 本地复核”一节，HANDOVER、CHANGE_LOG（新节，修改 AI：Codex）、PROGRESS 记录；doc_check 后提交并 push，然后停下等待 Claude 审查。
 ```
