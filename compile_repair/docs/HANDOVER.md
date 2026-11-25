@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮先读 CP6_REPORT 的“CP6.2 本地复核”、CHANGE_LOG §72 和 artifacts/cp6_2_v1/local 的四份本地收据。
+> 本轮先读 CP6_REPORT 的“CP6.3 本地复核”、CHANGE_LOG §75 及 artifacts/cp6_3_v1/local 下的验收收据。
 
 ## 0. 一句话
 
-CP6.3（第 7 步声明桩）已由 Claude 实现并在云端核验：生产测试 1,215 / 6、MANDO 843 个图不变、删去事件声明基准 18/30 成功、550 个真实单元中 49 个成功（CP6.2 为 40）。等待 Codex 按 PROMPTS §4.6n 本地复核。
+CP6.3 本地验收通过，等待 Claude 审查。事件声明缺失和本地基类缺失各测 100 个不同内容。事件组成功 52 项，其中 50 项图相等、41 项严格 exact。基类组成功 17 项。
 
 ## 1. 当前状态
 
@@ -14,10 +14,10 @@ CP6.3（第 7 步声明桩）已由 Claude 实现并在云端核验：生产测�
 | CP0–CP6.2 | 已审查通过 |
 | CP6.1 | 已审查通过（CHANGE_LOG §70） |
 | CP6.2 | 已审查通过（CHANGE_LOG §73） |
-| CP6.3 | 第 7 步声明桩（基类、修饰器、事件、接口；只从用法推出）；云端核验见 artifacts/cp6_3_v1/README.md |
+| CP6.3 | 本地验收通过，等待 Claude 审查。参见本批 local 和 CP6_REPORT |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；Frax 类单元补上 ABI 编码器后停在 Stack too deep（第 9 步）；小基准严格 exact 受内嵌元数据哈希影响 |
-| 下一步 | Codex 本地复核 CP6.3；之后 CP6.4（第 9 步仅代码生成、第 10 步 Slither 兼容、D26 带版本前缀） |
+| 下一步 | Claude 依据 §75 审查 CP6.3 本地结果 |
 
 ## 2. 分支与工作树
 
@@ -56,6 +56,8 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
+
+CP6.3 先看 mini_benchmark.json 的逐算子验收和 mini_checks.json.gz 中的节点区间，再核对 real_check.json 的执行状态。
 
 CP6.2 先核对本批 mini_positions.json.gz 的删除位置，再核对 real_check.json 的执行状态与逐项对照。
 
@@ -922,3 +924,8 @@ production 1183 passed, 6 skipped in 99.62s (0:01:39)；mando 686 passed, 503 sk
 ### 2026-11-25 CompileRepair CP6.3 第 7 步声明桩（修改 AI：Claude）
 
 修改 `rules/stubs.py`（第 7 步）、`pipeline.py`，新增 `tests/test_cp63.py`（13 项）与 `artifacts/cp6_3_v1/`，`PROMPTS.md` r2.31 → r2.32（4.6n）。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §74。
+
+
+### CP6.3 本地复核（修改 AI：Codex，2026-11-25）
+
+第 0、1、4 节和开头的阅读顺序已更新。事件声明缺失和本地基类缺失各测 100 个不同内容。事件组成功 52 项，其中 50 项图相等、41 项严格 exact。基类组成功 17 项。节点数下降的 11 项都仅涉及所删基类，其余合约的节点数持平或只因桩而增加。桩用来补足编译所需的声明，被删基类的原始逻辑仍缺失。逐项验收差异为 0。550 个真实单元（DAppSCAN 95、SOChecker 455）中成功 49 个。第 7 步获接受 14 个，其中 9 个最终成功。第 8 步获接受 191 个，按阶段进展接受 146 个，第 5 步获接受 0 个。语料哈希复核 corpus_unchanged=True。与云端逐单元对照 status、reason、primary_now，共 0 处差异。CP6.2 的 40 个历史成功项中有 0 项退出成功集合，本批新增成功 9 项。按入口 SHA256 去重，成功项来自 DAppSCAN 的 1 个内容和 SOChecker 的 48 个片段。详情见 CHANGE_LOG §75。

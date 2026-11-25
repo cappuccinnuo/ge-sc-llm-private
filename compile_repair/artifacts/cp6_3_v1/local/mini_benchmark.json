@@ -1,0 +1,145 @@
+{
+  "passed": true,
+  "violations": [],
+  "summary": {
+    "missing_base_contract": {
+      "samples": 100,
+      "success": 17,
+      "exact": 0,
+      "graph_equal": 4,
+      "exact_masking_metadata_hash": 0,
+      "restored_bytes": 0
+    },
+    "undeclared_identifier": {
+      "samples": 100,
+      "success": 52,
+      "exact": 41,
+      "graph_equal": 50,
+      "exact_masking_metadata_hash": 43,
+      "restored_bytes": 0
+    }
+  },
+  "repeated_contents_skipped": 169,
+  "unrepaired_distributions": {
+    "missing_base_contract": {
+      "unrepaired_unit_reason": {
+        "all_solc_candidates_failed": 83
+      },
+      "step7_reason_occurrences": {
+        "all_solc_candidates_failed": 76,
+        "no_applicable_stub": 21
+      },
+      "evidence_reason_occurrences": {
+        "mixed_or_unknown_use": 20,
+        "unknown_or_disagreeing_types": 3
+      },
+      "missing_records_units": {
+        "no_evidence_reason": 63
+      }
+    },
+    "undeclared_identifier": {
+      "unrepaired_unit_reason": {
+        "all_solc_candidates_failed": 48
+      },
+      "step7_reason_occurrences": {
+        "no_applicable_stub": 46,
+        "all_solc_candidates_failed": 2
+      },
+      "evidence_reason_occurrences": {
+        "unknown_or_disagreeing_types": 16,
+        "mixed_or_unknown_use": 26
+      },
+      "missing_records_units": {
+        "no_evidence_reason": 6
+      }
+    }
+  },
+  "commit": "f33b7d47acbf659bdf7916f7dfd26de72a716c34",
+  "run": {
+    "command": [
+      "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+      "-B",
+      "compile_repair/artifacts/cp6_3_v1/mini_benchmark.py",
+      "compile_repair/artifacts/cp4_v1/bases.jsonl.gz",
+      "/home/zhao/SmartContract/corpora/DAppSCAN@66a56619c44770e05c2db600fa6468115ff0dcd5/DAppSCAN-source",
+      "100",
+      "/home/zhao/SmartContract/compile-repair-local/cp6_3_v1/mini/run",
+      "/home/zhao/SmartContract/compile-repair-local/cp6_3_v1/mini/summary.json",
+      "missing_base_contract,undeclared_identifier"
+    ],
+    "commit": "f33b7d47acbf659bdf7916f7dfd26de72a716c34",
+    "started_utc": "2026-11-25T06:15:07.080882+00:00",
+    "elapsed_seconds": 172.163,
+    "returncode": 0,
+    "log": "/home/zhao/SmartContract/compile-repair-local/cp6_3_v1/mini_benchmark.log",
+    "log_sha256": "2a162852d3c32d14c65603dae1a8588e90c304962a7735acb0ecbd708d59eb8e"
+  },
+  "verification": {
+    "command": [
+      "/home/zhao/miniconda3/envs/compile-repair-production/bin/python",
+      "-B",
+      "/home/zhao/SmartContract/compile-repair-local/cp6_3_v1/mini/verify_mini.py",
+      "/home/zhao/SmartContract/compile-repair-local/cp6_3_v1"
+    ],
+    "commit": "f33b7d47acbf659bdf7916f7dfd26de72a716c34",
+    "started_utc": "2026-11-25T06:18:21.685305+00:00",
+    "elapsed_seconds": 0.784,
+    "returncode": 0,
+    "log": "/home/zhao/SmartContract/compile-repair-local/cp6_3_v1/verify_mini.log",
+    "log_sha256": "98f2855c4ce6ae02ef3333c25fbb604dfb05e56d565c371e901349976a567b38"
+  },
+  "summary_archive": {
+    "path": "mini_summary.json.gz",
+    "uncompressed_sha256": "8d05f7f57167b173c72d8f2c2af5cfde52e24f92c78d7547cacfdbfd29347501",
+    "archive_sha256": "3776c9ed7d034f81d21d8a660557a4127edddae839b7fd7e7aabcb9e0fcb04f9"
+  },
+  "audit_archive": {
+    "path": "mini_checks.json.gz",
+    "uncompressed_sha256": "813655eac55b62afa83567e026f4d5277cb693e3db07ceb80b7141a81cd6a0e1",
+    "archive_sha256": "20ac60d8a9f05a68feb4029eedd8b7e7cb8ca7168dc57dd993730f050f84731d"
+  },
+  "verification_script_sha256": "f57ae12b43af079c44ed37155a6be558889183bb3db61c7c8a9ff41fab44311d",
+  "base_graph_review": {
+    "successes": 17,
+    "contracts_losing_nodes": [
+      "Moderated",
+      "OTCRoles",
+      "Ownable",
+      "ReentrancyGuard",
+      "owned"
+    ],
+    "units_with_lost_base_nodes": 11,
+    "units_with_extra_nodes": 11,
+    "extra_nodes": 40,
+    "extra_nodes_proven_in_stubs": 40,
+    "units_with_nodes_removed_by_repair": 0
+  },
+  "event_graph_review": {
+    "successes": 52,
+    "strict_exact": 41,
+    "graph_equal": 50,
+    "graph_equal_nonexact_far": 9,
+    "factory_metadata_cases": [
+      "f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154",
+      "cccebb9ed96bcf62af37d07180c816e8003727ca4428a5f860b7972efe451c7a"
+    ]
+  },
+  "success_attribution": {
+    "missing_base_contract": {
+      "accepted_step7": 17,
+      "unchanged_input": 0,
+      "unchanged_input_sha256": []
+    },
+    "undeclared_identifier": {
+      "accepted_step7": 47,
+      "unchanged_input": 5,
+      "unchanged_input_sha256": [
+        "f9abece5eeaac19c34242ecb7ef2255e3134b03ef91cdc3c45d38da64f445154",
+        "cccebb9ed96bcf62af37d07180c816e8003727ca4428a5f860b7972efe451c7a",
+        "cbaa6da1e5efcf0568d1a01ddd423c64e78f50bfa85570e1fc7c238729883f8f",
+        "751cf7471530aee32413c7fcbe3964e749b5df06927588a8d4ea3e3d95002c2c",
+        "ec26fa5a48e3fe35affafd289d5f293b445f29d710bd8045971fde290fda609b"
+      ]
+    }
+  }
+}

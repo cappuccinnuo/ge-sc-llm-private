@@ -164,3 +164,31 @@ DAppSCAN 的 100 个不同内容中，68 个修复成功，68 个通过 graph_eq
 ### 真实单元与交付
 
 真实单元共 522 个（DAppSCAN 83、SOChecker 439），修复成功 40 个，涉及 40 份不同的 SOChecker 片段。第 8 步获接受 185 个，其中按 D27 阶段进展接受 145 个，第 5 步获接受 0 个。逐单元核对 status、reason、primary_now，差异 0 处。源码哈希复核 corpus_unchanged=True。其中 145 项虽推进了编译阶段，最终仍为未修复。证据在 `artifacts/cp6_2_v1/local/`，完整工作副本在仓库外 `compile-repair-local/cp6_2_v1/`。本地核验复用了发布的生产实现、评分器和运行器。20 个生产文件与启动时一致，354 个 DFG 引用与 CP0.1 基线一致。CPU 执行，费用 0 美元。
+
+
+## CP6.3 本地复核（修改 AI：Codex，2026-11-25）
+
+本地验收通过，等待 Claude 审查。基线 `f33b7d47acbf659bdf7916f7dfd26de72a716c34`，按 PROMPTS r2.32 §4.6n 在独立目录执行。各步骤的命令、耗时和日志哈希见 `artifacts/cp6_3_v1/local/`。
+
+### 回归
+
+production 1,215 项通过、6 项跳过，mando 709 项通过、512 项跳过，DFG v2 2,653 项通过、9 条警告。MANDO 的 843 份成功图与 v5 逐字节相同，843 项通过 D3(c)，成功输入触发修复 0 次，另 3 项重现历史失败。
+
+### 声明缺失基准
+
+事件声明缺失和本地基类缺失各测 100 个不同内容。事件组成功 52 项，其中 50 项图相等、41 项严格 exact。基类组成功 17 项。事件组有 9 项的节点、边和调用均通过比较，但新增声明离原删除位置较远。已知工厂合约的元数据哈希差异经 CBOR 字段、长度和其余 IR 核验，共 2 项。
+
+基类组逐个比较原图与修复图中各合约的节点数。11 个样本存在合约节点数下降，11 个样本出现新增节点。在 40 个新增节点中，40 个节点的源码区间全部位于新增修饰器或构造函数桩。成功样本中 removed_by_repair 大于零的有 0 项。节点数下降的 11 项都仅涉及所删基类，其余合约的节点数持平或只因桩而增加。桩用来补足编译所需的声明，被删基类的原始逻辑仍缺失。逐项验收差异为 0。
+
+| 算子 | 未修复单元的 reason | 第 7 步的 reason（按次） | stubs 证据中的 reason（按条） | 无第 7 步记录 / 无证据 reason 的单元 |
+|---|---|---|---|---|
+| missing_base_contract | all_solc_candidates_failed × 83 | all_solc_candidates_failed × 76、no_applicable_stub × 21 | mixed_or_unknown_use × 20、unknown_or_disagreeing_types × 3 | 0 / 63 |
+| undeclared_identifier | all_solc_candidates_failed × 48 | no_applicable_stub × 46、all_solc_candidates_failed × 2 | mixed_or_unknown_use × 26、unknown_or_disagreeing_types × 16 | 0 / 6 |
+
+事件组的 52 项成功中，47 项实际接受第 7 步，5 项受损输入无需改写便已成功；基类组的 17 项成功均接受了第 7 步。两组各自按源码 SHA256 去重。同一源码可以在两个算子中各出现一次。逐合约节点数、插入区间、图哈希及原因明细见 mini_checks.json.gz，原始评分见 mini_summary.json.gz。
+
+### 真实单元与交付
+
+550 个真实单元（DAppSCAN 95、SOChecker 455）中成功 49 个。第 7 步获接受 14 个，其中 9 个最终成功。第 8 步获接受 191 个，按阶段进展接受 146 个，第 5 步获接受 0 个。语料哈希复核 corpus_unchanged=True。与云端逐单元对照 status、reason、primary_now，共 0 处差异。CP6.2 的 40 个历史成功项中有 0 项退出成功集合，本批新增成功 9 项。按入口 SHA256 去重，成功项来自 DAppSCAN 的 1 个内容和 SOChecker 的 48 个片段。
+
+20 个生产文件与启动时的 SHA256 相同，354 个 DFG 引用与 CP0.1 封存相同。完整工作副本和工具日志位于仓库外 compile-repair-local/cp6_3_v1/。本批使用 CPU，费用 0 美元。
