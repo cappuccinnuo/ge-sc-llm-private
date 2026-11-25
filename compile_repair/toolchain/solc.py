@@ -201,6 +201,64 @@ def error_first_line(stderr):
     return first + " " + what if what and first != what else first
 
 
+AST_ONLY_SELECTION = {"*": {"": ["ast"], "*": ["abi"]}}
+# Observed boundary (CP6.4): from 0.5.2, solc's standard JSON skips code generation when no
+# bytecode output is requested; 0.4.x to 0.5.1 still generate code and keep the error.
+AST_ONLY_MINIMUM = (0, 5, 2)
+
+
+def ast_only_input(sources, remappings=()):
+    """Standard JSON input for {source unit name: bytes} requesting only AST and ABI."""
+    return {"language": "Solidity",
+            "sources": {name: {"content": raw.decode("utf8")} for name, raw in sorted(sources.items())},
+            "settings": {"remappings": list(remappings), "outputSelection": AST_ONLY_SELECTION}}
+
+
+def compile_ast_only(source, compiler, timeout=120, settings=(), project=None):
+    """Step 9: compile without code generation; return a Compilation with output "ast_only".
+
+    Sources are passed as content under their project-relative names (the file name for a
+    single file), so solc reads no other file. solc exits 0 for standard JSON even when it
+    reports errors; returncode is 1 when the output holds an error-severity entry, and the
+    formatted messages are kept as stderr. No optimizer or other setting is accepted.
+    """
+    if validate_settings(settings):
+        raise ValueError("AST-only compilation takes no compiler settings")
+    if version_tuple(compiler.version) < AST_ONLY_MINIMUM:
+        raise ValueError("AST-only compilation needs solc >= 0.5.2")
+    verify_binary(compiler)
+    if project is not None:
+        root = Path(project.root)
+        files = {Path(f.path).relative_to(root).as_posix(): Path(f.path) for f in project.files}
+        entry, remappings = Path(project.root) / project.entry, project.remappings
+    else:
+        entry = Path(source).resolve()
+        root, files, remappings = entry.parent, {entry.name: entry}, ()
+    before = {name: path.read_bytes() for name, path in files.items()}
+    payload = json.dumps(ast_only_input(before, remappings), sort_keys=True).encode()
+    argv, start = [compiler.path, "--standard-json"], time.monotonic()
+    try:
+        run = subprocess.run(argv, input=payload, cwd=str(root), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, timeout=timeout)
+        stdout, timed_out = run.stdout, False
+    except subprocess.TimeoutExpired as exc:
+        stdout, timed_out = exc.stdout or b"", True
+    if any(path.read_bytes() != raw for raw, path in ((before[n], p) for n, p in files.items())):
+        raise ValueError("Source changed during compilation")
+    rc, text = None, ""
+    if not timed_out:
+        output = json.loads(stdout or b"{}")
+        errors = [e for e in output.get("errors", []) if e.get("severity") == "error"]
+        text = "".join(e.get("formattedMessage") or e.get("message", "") for e in output.get("errors", []))
+        rc = 1 if errors or "sources" not in output else 0
+    raw = before[Path(entry).relative_to(root).as_posix()]
+    return Compilation(str(entry), hashlib.sha256(raw).hexdigest(), compiler,
+                       argv + ["<stdin sha256:" + hashlib.sha256(payload).hexdigest() + ">"], str(root), rc,
+                       "timeout" if timed_out else error_first_line(text) if rc else None,
+                       text, hashlib.sha256(stdout).hexdigest(), time.monotonic() - start, timed_out,
+                       settings=(), output="ast_only")
+
+
 def compile_file(source, compiler, timeout=120, settings=()):
     """Compile one unchanged file and capture its actual process exit code.
 

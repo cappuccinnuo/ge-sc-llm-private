@@ -478,7 +478,85 @@ class _TopLevelIRLog(logging.Handler):
             self.count += 1
 
 
+class _AstOnlyStandardJson:
+    """crytic-compile standard-JSON platform for an AST-only compilation (step 9).
+
+    solc is asked for the AST and ABI only, so it writes no bytecode; crytic-compile 0.4.2
+    still reads evm.bytecode, so empty bytecode fields are added before its own parser runs.
+    Slither builds its IR from the AST alone.
+    """
+
+    def __new__(cls, standard_input):
+        from crytic_compile.platform import solc_standard_json as platform
+
+        class AstOnly(platform.SolcStandardJson):
+            def compile(self, crytic_compile, **kwargs):
+                from crytic_compile.compilation_unit import CompilationUnit
+                from crytic_compile.compiler.compiler import CompilerVersion
+                unit = CompilationUnit(crytic_compile, "standard_json")
+                unit.compiler_version = CompilerVersion(
+                    compiler="solc", version=platform.get_version(kwargs["solc"], None), optimized=False)
+                output = platform.run_solc_standard_json(
+                    self.to_dict(), unit.compiler_version, solc_disable_warnings=True,
+                    working_dir=kwargs["solc_working_dir"], solc=kwargs["solc"])
+                empty = {"object": "", "sourceMap": "", "linkReferences": {}}
+                for contracts in output.get("contracts", {}).values():
+                    for contract in contracts.values():
+                        contract.setdefault("evm", {"bytecode": dict(empty), "deployedBytecode": dict(empty)})
+                platform.parse_standard_json_output(output, unit, solc_working_dir=kwargs["solc_working_dir"])
+
+        return AstOnly(standard_input)
+
+
+def _ast_only_target(compilation, project):
+    """Rebuild the observed AST-only input; refuse if its bytes differ from the compiled ones."""
+    from compile_repair.toolchain.solc import ast_only_input
+    if project is not None:
+        root = Path(project.root)
+        sources = {Path(f.path).relative_to(root).as_posix(): Path(f.path).read_bytes() for f in project.files}
+        standard = ast_only_input(sources, project.remappings)
+    else:
+        path = Path(compilation.source_path)
+        root, standard = path.parent, ast_only_input({path.name: path.read_bytes()})
+    digest = hashlib.sha256(json.dumps(standard, sort_keys=True).encode()).hexdigest()
+    if compilation.command[-1] != "<stdin sha256:" + digest + ">" or Path(compilation.cwd) != root:
+        raise ValueError("AST-only Slither input differs from observed solc")
+    kwargs = {"solc": compilation.compiler.path, "solc_disable_warnings": True, "solc_working_dir": str(root)}
+    return _AstOnlyStandardJson(standard), kwargs
+
+
+# Step 10 (CP6.4): Slither's recursive AST visitors exceed Python's default limit on deeply
+# nested sources. The same analysis is repeated once in a thread with a larger stack; the
+# inputs, the compiler and the graph extraction are unchanged.
+_DEEP_STACK_BYTES = 512 * 1024 * 1024
+_DEEP_RECURSION_LIMIT = 200000
+
+
 def run_slither(compilation, profile="regression_6c", cp0_projection=False, project=None):
+    """Run _run_slither; repeat a production RecursionError once with a deep stack."""
+    result = _run_slither(compilation, profile, cp0_projection, project)
+    if profile != "production" or result.get("exception_type") != "RecursionError":
+        return result
+    import sys
+    box, previous_limit, previous_stack = {}, sys.getrecursionlimit(), threading.stack_size()
+    def work():
+        box["result"] = _run_slither(compilation, profile, cp0_projection, project)
+    try:
+        threading.stack_size(_DEEP_STACK_BYTES)
+        sys.setrecursionlimit(_DEEP_RECURSION_LIMIT)
+        worker = threading.Thread(target=work, name="slither-deep-recursion")
+        worker.start()
+        worker.join()
+    finally:
+        sys.setrecursionlimit(previous_limit)
+        threading.stack_size(previous_stack)
+    retried = box["result"]
+    retried["deep_recursion_retry"] = dict(first_exception="RecursionError", stack_bytes=_DEEP_STACK_BYTES,
+                                           recursion_limit=_DEEP_RECURSION_LIMIT)
+    return retried
+
+
+def _run_slither(compilation, profile="regression_6c", cp0_projection=False, project=None):
     """Construct Slither after observed solc rc=0; report D3(a), D3(b) and D3(c).
 
     D3(c) (D25, production only): Slither marked no contract as incorrectly
@@ -492,11 +570,14 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False, proj
     before execution; analysis failures return diagnostics.
     """
     settings = validate_settings(compilation.settings)
+    ast_only = compilation.output == "ast_only"
+    if ast_only and profile != "production":
+        raise ValueError("AST-only compilation requires production profile")
     if project is not None:
         if profile != "production":
             raise ValueError("Project compilation requires production profile")
         verify_project(project)
-        if list(compilation.command) != project_command(project, compilation.compiler, settings):
+        if not ast_only and list(compilation.command) != project_command(project, compilation.compiler, settings):
             raise ValueError("Project Slither parameters differ from observed solc")
     if profile == "regression_6c" and settings:
         raise ValueError("regression_6c does not accept compiler settings")
@@ -532,10 +613,15 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False, proj
         result["command"]["solc_args"] = " ".join(settings)
     inputs = [Path(f.path) for f in project.files] if project is not None else [path]
     project_root = project.root if project is not None else None
-    if project is not None:
+    if project is not None and not ast_only:
         target, kwargs = slither_arguments(project, compiler, settings)
         result["command"].update(target=target, **kwargs)
+    if project is not None:
         result["project"] = project.manifest()
+    if ast_only:
+        target, kwargs = _ast_only_target(compilation, project)
+        result["command"].update(api="Slither (AST-only standard JSON)", target="standard JSON input",
+                                 input=compilation.command[-1], **kwargs)
     start = time.monotonic()
     crytic = None
     try:
@@ -545,7 +631,7 @@ def run_slither(compilation, profile="regression_6c", cp0_projection=False, proj
             # not erase evidence of the platform actually used.
             from crytic_compile import CryticCompile
             from slither import Slither
-            if project is None:
+            if project is None and not ast_only:
                 target = str(path)
                 kwargs = {"solc": compiler.path, "solc_disable_warnings": True}
                 if settings:

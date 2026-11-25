@@ -15,6 +15,9 @@ from compile_repair.toolchain.solc import lexical_tokens
 from scripts.DFG.models import Unsupported
 
 
+_VERSIONED_PREFIX = re.compile(r"((?:@[\w.~-]+/)?[\w.~-]+?)-(\d+\.\d+\.\d+)", re.ASCII)
+
+
 def _sha(data):
     return hashlib.sha256(data).hexdigest()
 
@@ -552,6 +555,14 @@ def dependency_choices(project, inventory, offline, versions, overlays, policy, 
             evidence.append(dict(requested=requested, reason="conflicting_package_identities"))
             return
         name = names.pop()
+        # D26: an unknown package name of the form `name-X.Y.Z` with no manifest evidence is
+        # package `name` at exactly X.Y.Z when that release is indexed (T1, not inferred).
+        versioned = _VERSIONED_PREFIX.fullmatch(name)
+        if (name not in offline.packages and versioned and all(i["tier"] == "T3" for i in identities)
+                and versioned.group(2) in offline.packages.get(versioned.group(1), {})):
+            identities = [dict(i, package=versioned.group(1), tier="T1", spec=versioned.group(2),
+                               evidence="D26_versioned_prefix", requested=name) for i in identities]
+            name = versioned.group(1)
         releases = offline.packages.get(name, {})
         prior = chosen.get(name)
         possible = [v for v in releases if (not prior or v == prior["version"]) and all(

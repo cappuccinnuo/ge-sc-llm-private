@@ -250,3 +250,72 @@ def normalization_repairs(contents, diagnostics, round_number=1):
         if composed:
             edits[name], patches[name] = composed
     return edits, patches, evidence
+
+
+# ---- Step 10 (CP6.4): Slither-compatible rewrites -------------------------------------------
+
+SLITHER_STEP = "slither_compat"
+_ALIAS_FAILURE = "Cannot resolve local alias for import directive"
+# Words after which a name is used, not declared (`is B`, `new B`, `emit B(...)`, ...).
+_USE_AFTER = {b"is", b"new", b"emit", b"return", b"using", b"for", b"delete"}
+
+
+def slither_rewrite_applicable(messages):
+    """Whether a Slither failure message belongs to a class that step 10 rewrites."""
+    return any(_ALIAS_FAILURE in m for m in messages)
+
+
+def import_alias_rewrites(raw, messages):
+    """Replace `import {A as B}` by `import {A}` and every use of B by A in this file.
+
+    Slither 0.11.6 cannot resolve local import aliases in ASTs of solc < 0.6. An alias only
+    binds a second name to the imported symbol, so the rewrite is equivalent when A is not
+    otherwise named in the file and every B is a plain use (never a member name after `.`,
+    never after a word that could declare it). The compiler then checks the result again.
+    """
+    if not slither_rewrite_applicable(messages):
+        return [], []
+    layout = TokenLayout(raw)
+    words, patches, evidence = layout.words, [], []
+    for i, word in enumerate(words):
+        if word != b"import" or i + 1 >= len(words) or words[i + 1] != b"{":
+            continue
+        close = layout.matches.get(i + 1)
+        if close is None:
+            continue
+        k = i + 2
+        while k + 2 < close + 1:
+            if words[k + 1] == b"as" and layout.tokens[k][2] == "word" and layout.tokens[k + 2][2] == "word":
+                original, alias = words[k], words[k + 2]
+                inside = set(range(i, close + 1))
+                uses = [j for j, w in enumerate(words) if w == alias and j not in inside]
+                info = dict(original=original.decode(), alias=alias.decode(), uses=len(uses))
+                evidence.append(info)
+                if any(w == original for j, w in enumerate(words) if j not in inside):
+                    info["reason"] = "original_name_used_elsewhere"
+                elif any(j and (words[j - 1] == b"." or (layout.tokens[j - 1][2] == "word" and words[j - 1] not in _USE_AFTER))
+                         for j in uses):
+                    info["reason"] = "alias_not_a_plain_use"
+                else:
+                    lo, hi = layout.tokens[k][1], layout.tokens[k + 2][1]
+                    patches.append(Patch(lo, hi, raw[lo:hi], b"", SLITHER_STEP, reason="drop import alias " + info["alias"]))
+                    for j in uses:
+                        a, b = layout.tokens[j][0], layout.tokens[j][1]
+                        patches.append(Patch(a, b, raw[a:b], original, SLITHER_STEP, reason="alias use " + info["alias"]))
+                k += 3
+            else:
+                k += 1
+    return patches, evidence
+
+
+def slither_compat_repairs(contents, diagnostics, round_number=1):
+    """Propose step-10 patches from Slither failure messages (unlocated rows under key None)."""
+    messages = [r.get("message") or "" for r in diagnostics.get(None, ())]
+    edits, patches, evidence = {}, {}, []
+    for name in sorted(contents):
+        proposed, info = import_alias_rewrites(contents[name], messages)
+        evidence += [dict(row, file=name, rule="import_alias") for row in info]
+        composed = compose_patches(name, contents[name], proposed, round_number, evidence)
+        if composed:
+            edits[name], patches[name] = composed
+    return edits, patches, evidence

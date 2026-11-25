@@ -9,7 +9,8 @@ import re
 from collections import defaultdict
 
 from compile_repair.core.model import EnvironmentPlan, Patch
-from compile_repair.toolchain.solc import version_tuple
+from compile_repair.toolchain.solc import (AST_ONLY_MINIMUM, classify_diagnostic, parse_diagnostics,
+                                           version_tuple)
 from scripts.DFG.models import Unsupported
 from scripts.DFG.state.stage_f.versioning import recorded_version
 
@@ -305,6 +306,21 @@ def settings_retry(compilation, source):
             r'^std::exception::what: Require with a custom error is only available using the via-ir pipeline\.$', stderr, re.M):
         return dict(SETTINGS_TABLE[1], trigger_error=compilation.error_first_line)
     return None
+
+
+def codegen_only_retry(compilation):
+    """Step 9: a failure that only code generation reports is retried once without code generation.
+
+    Every non-warning diagnostic must be a code-generation error (e.g. Stack too deep), so
+    parsing, name resolution and type checking all passed; Slither needs only the AST.
+    """
+    if (compilation.returncode in (0, None) or compilation.timed_out or compilation.output != "combined_json"
+            or version_tuple(compilation.compiler.version) < AST_ONLY_MINIMUM):
+        return None
+    rows = [d for d in parse_diagnostics(compilation.stderr) if d["kind"] != "Warning"]
+    if not rows or any(classify_diagnostic(d)["category"] != "codegen_only" for d in rows):
+        return None
+    return dict(step=9, output="ast_only", trigger_error=compilation.error_first_line)
 
 
 def mando_known_version(source, frozen_rows):

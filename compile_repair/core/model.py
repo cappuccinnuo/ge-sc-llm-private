@@ -25,6 +25,9 @@ class Compilation:
     timed_out: bool
     cost_usd: float = 0.0
     settings: Tuple[str, ...] = ()
+    # "combined_json" (CLI, crytic-compile's solc platform) or "ast_only" (step 9: standard
+    # JSON requesting only the AST and ABI, so solc runs no code generation).
+    output: str = "combined_json"
 
 
 @dataclass(frozen=True)

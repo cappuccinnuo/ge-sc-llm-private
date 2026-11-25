@@ -16,11 +16,12 @@ from compile_repair.core.provenance import apply_patches, mark_span, verify_prov
 from compile_repair.core.store import ArtifactStore, emit, sha256
 from compile_repair.rules.dependencies import (OfflineIndex, build_index, dependency_choices,
     chain_relative_issues, relative_repairs)
-from compile_repair.rules.normalize import normalization_repairs
+from compile_repair.rules.normalize import normalization_repairs, slither_compat_repairs, slither_rewrite_applicable
 from compile_repair.rules.stubs import structure_repairs, stub_repairs
 from compile_repair.rules.environment import (make_plan, mando_known_version,
-    ordered_candidates, pragma_patches, settings_retry)
-from compile_repair.toolchain.solc import (classify_diagnostic, compile_file, load_trusted_compilers, version_tuple,
+    codegen_only_retry, ordered_candidates, pragma_patches, settings_retry)
+from compile_repair.toolchain.solc import (classify_diagnostic, compile_ast_only, compile_file, load_trusted_compilers,
+    version_tuple,
     parse_diagnostics)
 from compile_repair.toolchain.slither import check_profile, run_slither
 from compile_repair.toolchain.project import (compile_project, materialize_project,
@@ -122,11 +123,16 @@ def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn,
         crossed = not plan.override and version != plan.priority and version_tuple(version)[:2] != base_series
         if crossed and "crossed_minor" not in record.flags:
             record.flags.append("crossed_minor")
-        settings, retry = initial_settings, None
-        for retry_number in range(2):
-            compiled = (project_compile_fn(work_project, compilers[version], settings=settings)
-                        if project is not None else compile_fn(path, compilers[version], settings=settings))
-            attempt = {"version": version, "settings": settings, "stage": "environment",
+        settings, retry, output = initial_settings, None, "combined_json"
+        for retry_number in range(3):
+            if output == "ast_only":
+                # Step 9 (CP6.4): the same sources without code generation.
+                compiled = compile_ast_only(path, compilers[version],
+                                            project=work_project if project is not None else None)
+            else:
+                compiled = (project_compile_fn(work_project, compilers[version], settings=settings)
+                            if project is not None else compile_fn(path, compilers[version], settings=settings))
+            attempt = {"version": version, "settings": settings, "output": output, "stage": "environment",
                        "round": len(record.attempts) + 1, "settings_retry": retry,
                        "crossed_minor": crossed, "solc": asdict(compiled), "slither": None}
             record.attempts.append(attempt)
@@ -159,7 +165,9 @@ def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn,
                     store.write_json(prefix + "nodes.json", nodes)
                     record.status, record.reason = "success", None
                     record.selected_version, record.settings = version, settings
-                    if retry is not None:
+                    if output == "ast_only":
+                        record.flags.append("ast_only_compilation")
+                    elif retry is not None:
                         record.flags.append("compiler_settings_retry")
                     break
                 break
@@ -176,7 +184,11 @@ def _environment(unit, compilers, store, journal, order, compile_fn, slither_fn,
                                          if Path(f.path).resolve() == target), b"")
             retry = settings_retry(compiled, retry_source) if retry_number == 0 else None
             if retry is None or retry["settings"][0] in initial_settings:
-                break
+                retry = codegen_only_retry(compiled) if output == "combined_json" else None
+                if retry is None:
+                    break
+                output, settings = "ast_only", ()
+                continue
             settings = initial_settings + tuple(retry["settings"])
         if record.status == "success" or record.reason == "solc_timeout":
             break
@@ -276,6 +288,17 @@ def _failure_phase(record):
     return max(reached) if reached else None
 
 
+def _slither_failures(record):
+    """Distinct Slither failure messages of attempts whose solc run succeeded."""
+    messages = []
+    for attempt in record.attempts:
+        analysis = attempt.get("slither")
+        if analysis and not analysis.get("d3") and analysis.get("error_first_line"):
+            if analysis["error_first_line"] not in messages:
+                messages.append(analysis["error_first_line"])
+    return messages
+
+
 def _failure_measure(record):
     """Count blocking observations within one attempt; also retain eligibility for CP5."""
     from compile_repair.toolchain.solc import classify_constraints, classify_diagnostic
@@ -322,7 +345,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         return record
     before, categories = _failure_measure(record)
     if not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES | _STUB_FAILURES
-                                   | _STRUCTURE_FAILURES):
+                                   | _STRUCTURE_FAILURES) and not slither_rewrite_applicable(_slither_failures(record)):
         store.write_json(prefix + "result.json", record)
         return record
     store.write_json(prefix + "environment_result.json", record)
@@ -532,13 +555,19 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         # wrapped by step 8 gets its stubs from step 7 in the next pass of the loop.
         for step, propose, key, idle in ((5, normalization_repairs, "normalization", "no_applicable_normalization"),
                                          (7, stub_repairs, "stubs", "no_applicable_stub"),
-                                         (8, structure_repairs, "structure", "no_applicable_structure")):
+                                         (8, structure_repairs, "structure", "no_applicable_structure"),
+                                         (10, slither_compat_repairs, "slither_compat", "no_applicable_rewrite")):
             if stop:
                 break
             contents = {n: f.content for n, f in ((Path(f.path).relative_to(project.root).as_posix(), f)
                                                 for f in project.files) if not n.startswith(".compile_repair/")}
             contents.update({n: raw for n, raw in overlays.items() if n in contents})
-            edits, patches, evidence = propose(contents, _diagnostics_by_file(record, set(contents)), attempts + 1)
+            # Step 10 reads the Slither failures of compile-clean attempts, not solc diagnostics.
+            diagnostics = ({None: [dict(category="slither_incomplete", message=m) for m in _slither_failures(record)]}
+                           if step == 10 else _diagnostics_by_file(record, set(contents)))
+            if step == 10 and not slither_rewrite_applicable([r["message"] for r in diagnostics[None]]):
+                continue
+            edits, patches, evidence = propose(contents, diagnostics, attempts + 1)
             if not edits:
                 steps.append({"step": step, "accepted": False, key: evidence, "reason": idle})
                 continue
