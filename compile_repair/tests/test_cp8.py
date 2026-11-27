@@ -9,7 +9,8 @@ import pytest
 from compile_repair.agents.llm import Budget, BudgetExhausted, HttpClient, Pricing, ScriptedClient
 from compile_repair.agents.patch import PatchRejected, candidate_patches, parse_blocks
 from compile_repair.agents.prompt import anonymize_message, blank_comments, build_view, repair_prompt
-from compile_repair.agents.stage1 import Stage1, agent_from_config
+from compile_repair.agents.stage1 import Stage1
+from compile_repair.agents.stage2 import agents_from_config
 from compile_repair.cli import main
 from compile_repair.core.model import CompilationUnit, SourceFile
 from compile_repair.core.provenance import apply_patches
@@ -161,9 +162,9 @@ def test_stage1_repairs_what_the_rules_cannot(tmp_path):
     steps = {c.step for p in record.provenance.values() for c in p.changes}
     assert steps == {"stage1"} and next(iter(record.provenance.values())).level == "rewrite"
     rounds = json.loads((store.path / "units/u/repair_steps.json").read_text())
-    stage1 = [s for s in rounds if s["step"] == 11 and s.get("operation") == "stage1_round"]
+    stage1 = [s for s in rounds if s["step"] == 11 and s.get("operation") == "agent_round"]
     assert stage1[0]["valid"] == 2 and stage1[0]["rejected"][0]["reason"].startswith("original line")
-    trials = [s for s in rounds if s["step"] == 11 and "stage1" in s]
+    trials = [s for s in rounds if s["step"] == 11 and "agent" in s]
     assert len(trials) == 2 and sum(s["accepted"] for s in trials) == 1
     calls = json.loads((store.path / "units/u/llm_calls.json").read_text())
     assert calls["calls"][0]["purpose"] == "stage1_repair" and calls["calls"][0]["n"] == 3
@@ -214,19 +215,25 @@ def test_without_an_agent_nothing_changes(tmp_path):
     assert record.status == "unrepaired" and not (tmp_path / "run/units/u/llm_calls.json").exists()
 
 
-CONFIG = dict(model="model-x", api="anthropic", key_env="CR_TEST_KEY", pricing=dict(input_per_million=3.0,
-              output_per_million=15.0), budget=dict(max_calls=5, max_tokens=100000, max_cost_usd=0.5), candidates=2)
+CONFIG = dict(
+    budget=dict(max_calls=5, max_tokens=100000, max_cost_usd=0.5),
+    models=dict(main=dict(model="model-x", api="anthropic", key_env="CR_TEST_KEY",
+                          pricing=dict(input_per_million=3.0, output_per_million=15.0))),
+    stage1=dict(model="main", candidates=2))
 
 
 def test_agent_config_names_the_key_variable_only(tmp_path):
     path = tmp_path / "agent.json"
     path.write_text(json.dumps(CONFIG))
-    agent = agent_from_config(path)
-    assert agent.candidates == 2 and agent.client.model == "model-x" and agent.client.budget.max_cost_usd == 0.5
-    for bad in (dict(CONFIG, key="sk-ant-0123456789abcdefghij"), dict(CONFIG, api_key_value="sk-0123456789abcdefghijkl")):
+    chain = agents_from_config(path)
+    assert chain.stage1.candidates == 2 and chain.stage1.client.model == "model-x" and chain.stage2 is None
+    assert chain.budget.max_cost_usd == 0.5
+    bad_model = dict(CONFIG["models"]["main"], key="sk-ant-0123456789abcdefghij")
+    for bad in (dict(CONFIG, models=dict(main=bad_model)), dict(CONFIG, extra=1),
+                dict(CONFIG, stage1=dict(model="main", typo=1))):
         path.write_text(json.dumps(bad))
         with pytest.raises(ValueError):
-            agent_from_config(path)
+            agents_from_config(path)
 
 
 def test_cli_records_the_agent_and_spends_nothing_on_clean_input(tmp_path):
@@ -238,4 +245,4 @@ def test_cli_records_the_agent_and_spends_nothing_on_clean_input(tmp_path):
     summary = json.loads((tmp_path / "out/summary.json").read_text())
     seal = json.loads((tmp_path / "out/seal.json").read_text())
     assert summary["llm_calls"] == 0 and summary["cost_usd"] == 0.0
-    assert "CR_TEST_KEY" in json.dumps(seal) and seal["tools"]["agent"]["model"] == "model-x"
+    assert "CR_TEST_KEY" in json.dumps(seal) and seal["tools"]["agent"]["models"]["main"]["model"] == "model-x"

@@ -3412,3 +3412,37 @@ CP7 完成：K1 test hit@5 0.826，K2 0.977，K3 0.93 且留一检查通过，k=
 ### 85.6 用户决定（2026-11-27）
 
 D10 确认（文件匿名化与注释遮蔽保留）。D12：模型与 API 暂不指定，保留 `--agent-config` 接口，到时接入；第一次授权运行的总费用上限 US$10。PROMPTS r2.39 更新 D10、D12 与 4.8 节；代码不变。CP8 的真实小样本运行在接入模型后进行；在此之前可以先做 CP9（第二阶段多代理），同样先用模拟 LLM。
+
+## 86. 2026-11-27 CompileRepair CP9：第二阶段多代理与文档核对（修改 AI：Claude）
+
+### 86.1 任务、依据与范围
+
+用户 2026-11-27 07:23：需要调用 AI 代理的部分要提供接口与清晰文档（例如模型 API 的要求），选定模型后可直接接入；开始 CP9；先核对已完成阶段（我编写的部分）的文档，缺则补，然后编码 CP9，完成后更新文档。分支 compile-repair，起始 HEAD 141848cc7。规格写入 PROMPTS r2.40 §4.9。
+
+文档核对结果：按 docs/README.md 的规则（每个 Prompt 写 CPn_REPORT.md），CP7、CP8 缺报告，CP6_REPORT.md 缺 CP6.5 节；没有说明模型 API 要求的文档；CP8 的配置模板将在本轮格式变化后失效。CHANGE_LOG §82–§85 的第 5 段没有写出 doc_check 结果：这些文档在提交前都运行过 doc_check 且全部通过（会话记录），此处补记；HANDOVER 中 §82–§85 对应的交接段落少于模板的四段，本轮的交接段落按模板写全。
+
+新增：`agents/stage2.py`、`tests/test_cp9.py`、`docs/AGENT_INTERFACE.md`、`CP7_REPORT.md`、`CP8_REPORT.md`、`CP9_REPORT.md`、`artifacts/cp9_v1/`。修改：`agents/prompt.py`、`agents/patch.py`、`agents/llm.py`、`agents/stage1.py`、`pipeline.py`、`tests/test_cp8.py`、`tests/test_cp1_1.py`、`artifacts/cp8_v1/dry_run.py`（扩展到两个阶段）、`artifacts/cp8_v1/README.md`（追加更正）、`CP6_REPORT.md`（追加 CP6.5 节）、`docs/README.md`（文件表加一行）。删除：`artifacts/cp8_v1/agent_config.example.json`（旧格式）。
+
+### 86.2 实施方式和重要选择
+
+- 第二阶段按 3.6 节六条实现；上下文代理为确定性步骤（DECISIONS CP9 表）。
+- 票数：相同结果文件的提议合并为一个候选，票数进入排序。
+- AgentChain 让第一阶段与第二阶段共用流水线的同一个代理接口（propose / observe），流水线只多了票数排序。
+- 接口文档写明两种已实现协议的请求与响应字段、上下文长度需求（最长提示约 34,300 字符）、如何接入第三种协议、配置字段、运行步骤、对照实验的做法与记录位置。
+
+### 86.3 实测与数据结论
+
+| 核对 | 结果 |
+|---|---|
+| 生产测试 | 1,346 passed / 6 skipped（artifacts/cp9_v1/production_tests_cloud.json） |
+| MANDO（不传代理） | 843 个图不变（artifacts/cp9_v1/mando_check_cloud.json） |
+| 两阶段模拟运行 40 个真实单元 | 全部进入第二阶段并停止；280 个提示，中位 18,198、最大 34,300 字符；0 泄露（artifacts/cp9_v1/dry_run_cloud.json） |
+| 示例配置 | 去掉知识目录占位后可加载，异构标记为 true，预算为 0 |
+
+### 86.4 用户批准、原文差异与待确认设计
+
+用户要求见 86.1。与 PROMPTS 的差异：上下文代理不另调用模型（DECISIONS）。待用户：D12 接入模型；D9（审查代理仅作 CP10 消融，仍为建议）；规则桩最小函数体例外。
+
+### 86.5 验收、资源、未执行事项与停止
+
+费用 0，没有真实 LLM 调用。未执行：真实修复率、费用与同等预算对照（等 D12）。doc_check：本节、DECISIONS、HANDOVER、PROGRESS、PROMPTS、docs/README.md、docs/AGENT_INTERFACE.md、三份报告与 cp9_v1/README.md 全部通过（命令见提交前运行）。Codex 不需要运行。下一步 CP10。

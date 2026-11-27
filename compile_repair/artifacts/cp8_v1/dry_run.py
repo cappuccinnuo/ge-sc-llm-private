@@ -1,10 +1,11 @@
-"""CP8 dry run: the first-stage agent over real failing units with a scripted client.
+"""Dry run of both agent stages over real failing units with scripted models (CP8, CP9).
 
-Usage: python -B dry_run.py <targets.json> <knowledge dir> <out dir> <summary.json> [<max units>]
-The scripted client answers with no patch, so no unit changes and nothing is spent; the
-run checks, on real projects, that every prompt is built (sizes, retrieved knowledge),
-that no real file name, directory or comment text reaches a prompt, and that the agent
-stops after its stall rounds. Group = project root (or the snippet file), as in K3.
+Usage: python -B dry_run.py <targets.json> <knowledge dir> <out dir> <summary.json> [<max units>] [--stage1-only]
+Every scripted model answers with no patch (the analyst asks for files, library and docs,
+so stage 2's widest context is built), so no unit changes and nothing is spent. The run
+checks, on real projects, that every prompt is built (sizes, retrieved knowledge), that
+no real file name, directory path or comment text reaches any prompt, and that both
+stages stop. Group = project root (or the snippet file), as in K3.
 """
 import hashlib
 import io
@@ -15,7 +16,9 @@ from pathlib import Path
 
 from compile_repair.agents.llm import ScriptedClient
 from compile_repair.agents.prompt import blank_comments
+from compile_repair.agents.llm import Budget
 from compile_repair.agents.stage1 import Stage1
+from compile_repair.agents.stage2 import AgentChain, Stage2
 from compile_repair.core.model import CompilationUnit, SourceFile
 from compile_repair.core.store import ArtifactStore
 from compile_repair.pipeline import repair_unit
@@ -24,13 +27,19 @@ from compile_repair.toolchain.project import ProjectIndex, resolve_project
 from compile_repair.toolchain.solc import load_trusted_compilers
 
 targets, kb, out, summary_path = json.load(open(sys.argv[1])), KnowledgeBase.load(sys.argv[2]), Path(sys.argv[3]), Path(sys.argv[4])
-limit = int(sys.argv[5]) if len(sys.argv) > 5 else len(targets)
+stage1_only = "--stage1-only" in sys.argv
+numbers = [a for a in sys.argv[5:] if a.isdigit()]
+limit = int(numbers[0]) if numbers else len(targets)
 out.mkdir(parents=True, exist_ok=False)
 compilers, _, _ = load_trusted_compilers()
 rows = []
 for t in targets[:limit]:
-    client = ScriptedClient(lambda s, p, i: "no change")
-    agent = Stage1(client, kb)
+    budget, records = Budget(10 ** 6, 10 ** 12, 0.0), []
+    clients = [ScriptedClient(lambda s, p, i: "CAUSE: unknown\nNEED: files, library, docs\nSYMBOLS: none"
+                              if s.startswith("You analyse") else "no change", budget=budget, records=records, model=m)
+               for m in ("s1", "analyst", "p1", "p2")]
+    stage1 = Stage1(clients[0], kb)
+    agent = stage1 if stage1_only else AgentChain(stage1, Stage2(clients[1], clients[2:], kb))
     entry = Path(t["path"])
     root = Path(t["project_root"]) if t.get("project_root") else None
     store = ArtifactStore(out / t["unit_id"])
@@ -54,12 +63,13 @@ for t in targets[:limit]:
         comments = [m.group() for m in re.finditer(rb"//[^\r\n]{12,}|/\*[\s\S]{12,}?\*/", raw)]
         visible = [c for c in comments if blank_comments(c).strip()]  # inside strings: not comments
         secrets |= {c.decode("utf8", "replace").strip()[:60] for c in comments if c not in visible}
-    leaks = sorted({s for s in secrets for prompt in client.prompts if s and s in prompt})
-    rows.append(dict(unit_id=t["unit_id"], status=record.status, reason=record.reason, prompts=len(client.prompts),
-                     prompt_chars=[len(p) for p in client.prompts], stopped=agent.stopped, leaks=leaks,
+    prompts = [p for c in clients for p in c.prompts]
+    leaks = sorted({s for s in secrets for prompt in prompts if s and s in prompt})
+    rows.append(dict(unit_id=t["unit_id"], status=record.status, reason=record.reason, prompts=len(prompts),
+                     prompt_chars=[len(p) for p in prompts], stopped=agent.stopped, leaks=leaks,
                      knowledge=sum(s.get("knowledge", []) != [] for s in json.loads(
                          (store.path / "units" / t["unit_id"] / "repair_steps.json").read_text())
-                         if s.get("operation") == "stage1_round") if (store.path / "units" / t["unit_id"] /
+                         if s.get("operation") == "agent_round") if (store.path / "units" / t["unit_id"] /
                                                                        "repair_steps.json").exists() else 0))
     print(json.dumps(rows[-1])[:300], flush=True)
 summary = dict(units=len(rows), with_prompts=sum(r["prompts"] > 0 for r in rows),

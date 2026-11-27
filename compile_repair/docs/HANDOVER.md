@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮先读 artifacts/cp8_v1/README.md 与 CHANGE_LOG §85。
+> 本轮先读 docs/AGENT_INTERFACE.md、artifacts/cp9_v1/README.md 与 CHANGE_LOG §86。
 
 ## 0. 一句话
 
-CP8 模拟 LLM 部分完成（CHANGE_LOG §85）：agents/ 的客户端、D10 视图、带原文校验的补丁、第一阶段代理与流水线接入；生产 1,335 / 6，MANDO 不变，40 个真实单元模拟运行 0 泄露。D10 已确认；D12 的模型与 API 暂不指定（接口已留），首次授权运行上限 US$10。CP7 已完成（§83、§84）。
+CP9 模拟模型部分完成（CHANGE_LOG §86）：第二阶段（失败分析、上下文扩展、1–3 个模型独立提议、编译裁决与计票、一轮交流）与两阶段串联；接入模型的说明在 docs/AGENT_INTERFACE.md。CP8 同样只完成模拟部分（§85）。真实运行等 D12 接入模型，首次上限 US$10。下一步 CP10。
 
 ## 1. 当前状态
 
@@ -19,6 +19,7 @@ CP8 模拟 LLM 部分完成（CHANGE_LOG §85）：agents/ 的客户端、D10 �
 | CP6.5 | CP6 补全，云端核验（CHANGE_LOG §82）；CP6 总结见 artifacts/cp6_5_v1/README.md |
 | CP7 | 完成（CHANGE_LOG §83、§84；artifacts/cp7_v1/README.md） |
 | CP8 | 模拟 LLM 部分完成；真实运行待 D12（CHANGE_LOG §85；artifacts/cp8_v1/README.md） |
+| CP9 | 模拟模型部分完成；真实运行待 D12（CHANGE_LOG §86；artifacts/cp9_v1/README.md；接口 docs/AGENT_INTERFACE.md） |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；普通变量与普通调用的未声明不加桩；片段中未导入的库合约、不在语料中的导入目标、不相容的 pragma 留给代理；三元表达式的 SlithIR 限制（1 个项目）；小基准严格 exact 受内嵌元数据哈希影响 |
 | 下一步 | CP7：RAG 知识库（K1 下载对应版本文档，K2 复用 CP5 索引，K3 留一项目），Claude 在 GitHub 实现并云端核验 |
@@ -979,3 +980,13 @@ Codex 的 K2 本机全量（951b4db7）经核对：脚本与输出哈希一致�
 新增 agents/ 的 llm.py、prompt.py、patch.py、stage1.py，pipeline 接入代理轮，cli 增加 `--agent-config`，测试 `tests/test_cp8.py`（22 项），证据 `artifacts/cp8_v1/`；PROMPTS r2.37 → r2.38（4.8），DECISIONS 增加 CP8 表。云端：生产 1,335 / 6，MANDO 不变，模拟运行 0 泄露。待用户：D12、D10。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §85。
 
 用户 2026-11-27 决定：D10 确认；D12 模型与 API 暂不指定、接口保留，首次授权运行上限 US$10（PROMPTS r2.39，CHANGE_LOG §85.6）。
+
+### 2026-11-27 CompileRepair CP9：第二阶段多代理与文档核对（修改 AI：Claude）
+
+分支 compile-repair，起始 HEAD 141848cc7，读 PROMPTS r2.39 的 3.5、3.6、4.8 节与 docs/README.md 的记录规则；方案修订到 r2.40（新增 4.9 节）。新增 agents/stage2.py、tests/test_cp9.py、docs/AGENT_INTERFACE.md、CP7_REPORT.md、CP8_REPORT.md、CP9_REPORT.md 与 artifacts/cp9_v1/；修改 agents/ 的 prompt.py、patch.py、llm.py、stage1.py 以及 pipeline.py；冻结代码、scripts/** 与已有封存产物未改。
+
+文档核对发现 CP7、CP8 缺报告、CP6_REPORT.md 缺 CP6.5 节、没有模型 API 要求的说明，已全部补上；CP8 的旧配置模板在本轮格式变化后删除，并在 cp8_v1/README.md 追加更正。CP9 的云端结果：生产测试 1,346 passed / 6 skipped，MANDO 843 个图不变，两阶段模拟运行 40 个真实单元全部进入第二阶段、0 泄露、最大提示 34,300 字符。
+
+与 PROMPTS 的差异只有一处：上下文代理实现为由失败分析驱动的确定性步骤，不另调用模型（DECISIONS CP9 表）。待用户的事项是 D12 接入模型（首次授权运行上限 US$10）、D9 与规则桩最小函数体例外；真实修复率、费用与同等预算对照在接入模型后运行。
+
+本文开头、第 0、1 节换成本轮状态。所有新建与追加的文档运行 doc_check 通过；已提交并 push；没有真实 LLM 调用，没有下载与安装，Codex 不需要运行。详见 CHANGE_LOG §86。

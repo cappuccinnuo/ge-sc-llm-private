@@ -1,4 +1,4 @@
-"""The single repair template and its context (PROMPTS 3.5 items 1-3, D10).
+"""The single repair template, its context, and the stage-2 prompts (PROMPTS 3.5, 3.6, D10).
 
 The LLM never sees a real file name or a comment (D10):
 - every project file is shown as F1, F2, ... (sorted project-relative names; the entry
@@ -15,7 +15,7 @@ message names. Knowledge: the top k hits of K1-K3 (rag/retrieve.py), shortened.
 """
 import posixpath
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from compile_repair.rag.retrieve import Query, retrieve
 from compile_repair.toolchain.solc import lexical_tokens
@@ -201,8 +201,8 @@ def knowledge_block(kb, query, k):
     return "\n\n".join(parts), ids
 
 
-def repair_prompt(view, diagnostics, version, window, knowledge="", history=()):
-    """The one repair template (PROMPTS 3.5 item 3)."""
+def repair_prompt(view, diagnostics, version, window, knowledge="", history=(), extra=()):
+    """The one repair template (PROMPTS 3.5 item 3); stage 2 adds `extra` (title, text) sections."""
     code, declarations = context_block(view, diagnostics, window)
     errors = []
     for name, rows in sorted(diagnostics.items(), key=lambda item: (item[0] is None, item[0] or "")):
@@ -221,8 +221,92 @@ def repair_prompt(view, diagnostics, version, window, knowledge="", history=()):
     for item in history:
         sections.append("A previous candidate was rejected (%s):\n%s\nResulting errors:\n%s" % (
             item["reason"], item["patch"].strip()[:1500], "\n".join(item["errors"][:5]) or "(none)"))
+    for title, text in extra:
+        sections.append("%s:\n%s" % (title, text))
     sections.append(FORMAT)
     return "\n\n".join(sections)
+
+
+# ---- stage 2 (PROMPTS 3.6) -----------------------------------------------------------------
+
+ANALYSIS_SYSTEM = ("You analyse why attempted repairs of Solidity code failed. You do not write patches. "
+                   "Answer in the required three-line format.")
+ANALYSIS_FORMAT = """Answer with exactly these three lines:
+CAUSE: <why the attempts failed and what the code really needs, in one to three sentences>
+NEED: <any of: files, library, docs; or none>
+SYMBOLS: <identifiers whose declarations or library files are needed, comma separated; or none>"""
+NEEDS = ("files", "library", "docs")
+
+
+def analysis_prompt(view, diagnostics, version, window, attempts):
+    """Failure analysis (PROMPTS 3.6 item 1): the errors, the code, and every rejected attempt."""
+    code, _ = context_block(view, diagnostics, window)
+    errors = ["%s:%s: %s: %s" % (view.ids.get(n, "?") if n else "?", r.get("line") or "?", r.get("kind"),
+                                 anonymize_message(r.get("message") or "", view))
+              for n, rows in diagnostics.items() for r in rows]
+    tried = ["Attempt %d (%s):\n%s\nResulting errors:\n%s" % (
+        i + 1, a["reason"], a["patch"].strip()[:1200], "\n".join(a["errors"][:5]) or "(none)")
+        for i, a in enumerate(attempts)]
+    return "\n\n".join(["Compiler: solc %s." % version, "Errors:\n" + "\n".join(errors), "Code:\n" + code,
+                        "Rejected repair attempts:\n" + ("\n\n".join(tried) or "(none)"), ANALYSIS_FORMAT])
+
+
+def parse_analysis(text):
+    """{"cause", "need", "symbols"} from an analysis answer; missing lines give empty values."""
+    found = dict(cause="", need=[], symbols=[])
+    for line in text.splitlines():
+        key, _, value = line.partition(":")
+        key, value = key.strip().upper(), value.strip()
+        if key == "CAUSE":
+            found["cause"] = value[:600]
+        elif key == "NEED":
+            found["need"] = [n for n in NEEDS if re.search(r"\b%s\b" % n, value.lower())]
+        elif key == "SYMBOLS":
+            found["symbols"] = [s for s in re.findall(r"[A-Za-z_$][\w$]*", value) if s.lower() != "none"][:10]
+    return found
+
+
+def expanded_context(view, diagnostics, analysis, kb, query, k, limit):
+    """Context agent (PROMPTS 3.6 item 2): widen what the proposers see, as the analysis asks.
+
+    files: whole other project files, first those declaring the named symbols, then the
+    rest by F number, until `limit` characters; library: K2 hits for the named symbols;
+    docs: K1 hits for the cause and the errors, twice the first stage's k.
+    """
+    sections, shown = [], set(error_lines(diagnostics, view))
+    if "files" in analysis["need"]:
+        declaring = [f for f, _, name in _declarations(set(analysis["symbols"]), view)]
+        order = list(dict.fromkeys(declaring + sorted(view.lines, key=lambda f: int(f[1:]))))
+        used = 0
+        for file_id in order:
+            if file_id in shown and file_id not in declaring:
+                continue
+            text = _numbered(view.lines[file_id], 1, len(view.lines[file_id]))
+            if used + len(text) > limit:
+                continue
+            sections.append(("Whole file " + file_id, text))
+            used += len(text)
+    if kb is not None and ("library" in analysis["need"] or "docs" in analysis["need"]):
+        sources = tuple(s for s, need in (("K2", "library"), ("K1", "docs")) if need in analysis["need"])
+        wider = replace(query, symbols=tuple(sorted(set(query.symbols) | set(analysis["symbols"]))),
+                        errors=query.errors + ((None, analysis["cause"]),))
+        found = retrieve(kb, wider, 2 * k, sources)
+        by_id = {e.entry_id: e for e in kb.entries}
+        for source in sources:
+            for hit in found[source]:
+                entry = by_id[hit.entry_id]
+                sections.append(("[%s] %s" % (source, entry.title), entry.text[:TRUNCATE[source]].strip()))
+    return sections
+
+
+def exchange_section(own, others):
+    """Exchange round (PROMPTS 3.6 item 5): one's own failed patch and the others', with errors."""
+    def block(label, item):
+        return "%s:\n%s\nResulting errors:\n%s" % (label, item["patch"].strip()[:1500],
+                                                     "\n".join(item["errors"][:5]) or "(none)")
+    parts = [block("Your patch", own)] if own else []
+    parts += [block("Another proposer's patch", other) for other in others]
+    return "All proposals failed. Revise your patch once, using what the other proposals show.\n\n" + "\n\n".join(parts)
 
 
 def language_prompt(view):

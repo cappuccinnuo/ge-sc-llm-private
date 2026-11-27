@@ -790,3 +790,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - 云端：生产 1,335 passed / 6 skipped；MANDO 不变；40 个真实单元模拟运行 0 泄露。
 - 待用户：D12（模型、API、费用上限）、确认 D10；之后小样本运行。记录 `docs/CHANGE_LOG.md` §85。
 - 用户决定：D10 确认；D12 模型与 API 暂不指定、接口保留，首次授权运行上限 US$10（§85.6）。
+
+## CP9 第二阶段多代理（模拟模型部分）与文档核对（Claude，2026-11-27）
+
+- agents/stage2.py：失败分析、上下文扩展、1–3 个模型独立提议、编译裁决与计票、一轮交流；AgentChain 串联两个阶段，共用预算。
+- 文档：新增 docs/AGENT_INTERFACE.md（模型 API 要求与接入方法）；补写 CP7、CP8 报告与 CP6.5 报告节；新增 CP9_REPORT.md。
+- 云端：生产 1,346 passed / 6 skipped；MANDO 不变；两阶段模拟运行 0 泄露。待 D12 接入模型。记录 `docs/CHANGE_LOG.md` §86。

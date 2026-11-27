@@ -79,11 +79,12 @@ class Client:
     """Shared metering, cache and records; subclasses implement `_send`."""
     model = None
 
-    def __init__(self, budget, pricing, cache_dir=None, max_output_tokens=2048, temperature=0.8):
+    def __init__(self, budget, pricing, cache_dir=None, max_output_tokens=2048, temperature=0.8, records=None):
+        """`budget` and `records` may be shared by several clients (stage 2's models)."""
         self.budget, self.pricing = budget, pricing
         self.cache = Path(cache_dir) if cache_dir else None
         self.max_output_tokens, self.temperature = max_output_tokens, temperature
-        self.records = []
+        self.records = records if records is not None else []
 
     def complete(self, system, prompt, n, purpose):
         request = dict(model=self.model, system=system, prompt=prompt, n=n, temperature=self.temperature,
@@ -132,11 +133,10 @@ class Client:
 
 class ScriptedClient(Client):
     """Replays answers: `answer(system, prompt, index)` gives the index-th completion."""
-    model = "scripted"
 
-    def __init__(self, answer, budget=None, pricing=Pricing(0.0, 0.0), **kwargs):
+    def __init__(self, answer, budget=None, pricing=Pricing(0.0, 0.0), model="scripted", **kwargs):
         super().__init__(budget or Budget(10 ** 6, 10 ** 12, 0.0), pricing, **kwargs)
-        self.answer = answer
+        self.answer, self.model = answer, model
         self.prompts = []
 
     def _send(self, system, prompt, n):

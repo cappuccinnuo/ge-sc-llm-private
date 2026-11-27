@@ -14,7 +14,7 @@ from pathlib import Path
 from compile_repair.core.model import CompilationUnit, ManifestRecord, Patch, SourceFile
 from compile_repair.core.provenance import apply_patches, mark_span, verify_provenance
 from compile_repair.core.store import ArtifactStore, emit, sha256
-from compile_repair.agents.stage1 import agent_from_config
+from compile_repair.agents.stage2 import agents_from_config
 from compile_repair.rules.dependencies import (OfflineIndex, build_index, dependency_choices,
     chain_relative_issues, relative_repairs)
 from compile_repair.rules.normalize import migration_versions, normalization_repairs, slither_compat_repairs, slither_rewrite_applicable
@@ -419,7 +419,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
     index = project_index or ProjectIndex(project.root)
     if group is None:
         group = str(original_project.root) if original_project is not None else unit.sources[0].path
-    llm_records_start = len(agent.client.records) if agent is not None else 0
+    llm_records_start = len(agent.records) if agent is not None else 0
     if agent is not None:
         agent.reset()
     originals = {}
@@ -496,7 +496,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         return accepted, result
 
     def agent_round():
-        """One first-stage round (PROMPTS 3.5): candidates, trial compiles, best by errors then bytes."""
+        """One agent round (PROMPTS 3.5, 3.6): candidates, trial compiles, best by errors, votes, bytes."""
         nonlocal project, overlays, origins
         contents = {n: f.content for n, f in ((Path(f.path).relative_to(project.root).as_posix(), f)
                                             for f in project.files) if not n.startswith(".compile_repair/")}
@@ -528,7 +528,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         parser_only = bool(rows) and all(_PHASES.get(r.get("category")) == 1 for r in rows)
         candidates, evidence = agent.propose(contents, entry, diagnostics, version, editable, project.issues, group,
                                              attempts + 1, status, parser_only)
-        steps.append(dict(step=11, operation="stage1_round", **evidence))
+        steps.append(dict(step=11, operation="agent_round", **evidence))
         trials = []
         for edits, patches, summary in candidates:
             maps = dict(origins)
@@ -539,25 +539,26 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             working.update(edits)
             candidate = resolve_project(project.root, project.entry, project.remappings, index,
                                         project.additional_entries, working)
-            improves, result = try_project(11, candidate, maps, dict(stage1={k: v for k, v in summary.items()
-                                                                              if k != "text"}), defer=True)
+            improves, result = try_project(11, candidate, maps, dict(agent={k: v for k, v in summary.items()
+                                                                             if k != "text"}), defer=True)
             errors = steps[-1]["errors_after"]
+            # Fewest errors, then most votes (stage 2: identical patches), then fewest bytes.
             rank = (result.status != "success", errors if errors is not None else float("inf"),
-                    summary["changed_bytes"], summary["candidate"])
+                    -summary.get("votes", 1), summary["changed_bytes"], summary["candidate"])
             trials.append((rank, improves, result, steps[-1], candidate, working, maps, summary))
         chosen = min((t for t in trials if t[1]), key=lambda t: t[0], default=None)
         outcomes = []
         for trial in trials:
             if trial is not chosen:
                 rows = _failed_diagnostics(trial[2])
-                outcomes.append((trial[7]["text"], "not accepted: %s" % (trial[2].reason or trial[2].status),
+                outcomes.append((trial[7], "not accepted: %s" % (trial[2].reason or trial[2].status),
                                  ["%s: %s" % (r["kind"], r["message"]) for r in rows][:5]))
         if chosen is not None:
             _, _, result, measurement, project, overlays, origins, _ = chosen
             select(result, measurement)
         agent.observe(chosen is not None, outcomes)
         if not agent.active():
-            steps.append(dict(step=11, operation="stage1_end", reason=agent.stopped))
+            steps.append(dict(step=11, operation="agent_end", reason=agent.stopped))
         return chosen is not None, record.status == "success" or record.reason == "solc_timeout"
 
     needs_assembly = wrapper is not None or original_project is None
@@ -737,8 +738,8 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
     store.write_json(prefix + "repair_steps.json", steps)
     if agent is not None:
         # Every LLM call of this unit (PROMPTS invariants); keys never enter the records.
-        store.write_json(prefix + "llm_calls.json", dict(calls=agent.client.records[llm_records_start:],
-                                                         budget=agent.client.budget.snapshot(),
+        store.write_json(prefix + "llm_calls.json", dict(calls=agent.records[llm_records_start:],
+                                                         budget=agent.budget.snapshot(),
                                                          stopped=agent.stopped))
     store.write_json(prefix + "result.json", record)
     return record
@@ -771,7 +772,7 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
     if order not in ("ascending", "descending") or regression not in (None, "mando"):
         raise ValueError("Unsupported repair configuration")
     if isinstance(agent, (str, Path)):
-        agent = agent_from_config(agent)
+        agent = agents_from_config(agent)
     if known_version is not None:
         version_tuple(known_version)
     supplied = [(Path(p).resolve(), "file") for p in paths] + [(Path(p).resolve(), "snippet") for p in snippets]
@@ -824,7 +825,7 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
                 summary["dependency_policy"] = dependency_policy
                 summary["dependency_limit"] = dependency_limit
             if agent is not None:
-                tools["agent"] = getattr(agent, "description", dict(model=agent.client.model))
+                tools["agent"] = getattr(agent, "description", None) or dict(model=agent.client.model)
             tools.update(check_profile("production"))
             compilers, frozen_rows, evidence = load_trusted_compilers()
             tools["compilers"] = {v: asdict(c) for v, c in compilers.items()}
@@ -852,8 +853,8 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
                                      dependency_limit=dependency_limit, agent=agent)
                 emit(manifest, record)
                 if agent is not None:
-                    summary["llm_calls"] = agent.client.budget.calls
-                    summary["cost_usd"] = round(agent.client.budget.cost_usd, 6)
+                    summary["llm_calls"] = agent.budget.calls
+                    summary["cost_usd"] = round(agent.budget.cost_usd, 6)
                 summary["units"].append({"unit_id": unit.unit_id, "input_sha256": digest,
                     "status": record.status, "reason": record.reason, "selected_version": record.selected_version})
                 print("CP1 {}/{}: {} {}".format(number, len(expanded), record.status,

@@ -12,6 +12,7 @@
 | `../PROGRESS.md` | 简要进度：每个 Prompt 一节，列出做了什么、文件、测试、验收数字 | 只追加 | 每个 Prompt 结束 |
 | `../CPn_REPORT.md` | 单个 Prompt 的完整报告，格式见 `../REPORT_TEMPLATE.md` | 新文件 | 每个 Prompt 结束 |
 | `../PROMPTS.md` | 方案与 Prompt 原文，按修订号（r1、r2…）整体修订 | 由 Claude 修订 | 方案变化时 |
+| `AGENT_INTERFACE.md` | LLM 代理的接口说明：对模型 API 的要求、配置文件字段、运行与费用控制、运行后留下的记录 | 接口变化时更新 | 修改 agents/ 时 |
 
 ## 强制规则：每完成一个编码任务都必须记录
 

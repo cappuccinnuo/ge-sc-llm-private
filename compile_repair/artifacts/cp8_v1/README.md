@@ -27,3 +27,7 @@
 - `build_knowledge.py <docs> <out> [--index <索引>] [--memory <targets> <run>]...`：构建封存的知识目录（云端示例：K1 3,791、K2 75、K3 72 条）。
 - `dry_run.py`：上面的模拟运行。
 - 待定参数：上下文行数 `window`（PROMPTS 3.5 第 1 条要求在基准上确定）、候选数 N 与轮数，在授权的小样本运行的 dev 划分上确定；当前默认 window 10、N 3、轮数 4、停滞 2 轮。
+
+## 更正（CP9，2026-11-27）
+
+CP9 把配置改为多模型格式（`models`、`stage1`、`stage2`，构造函数 `agents.stage2.agents_from_config`），原来的单模型 `agent_config.example.json` 已不能加载，故删除；新模板为 `artifacts/cp9_v1/agent_config.example.json`，说明见 `docs/AGENT_INTERFACE.md`。上文“用于真实运行”中对旧模板的描述以此为准。

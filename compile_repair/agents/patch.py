@@ -82,8 +82,11 @@ def _restore_imports(line, view, file_id, importer):
     return _IMPORT_LABEL.sub(real, line)
 
 
-def candidate_patches(text, view, contents, allowed_lines, editable, round_no):
-    """Validate one answer; return ({real name: new bytes}, {real name: (Patch, ...)}, summary)."""
+def candidate_patches(text, view, contents, allowed_lines, editable, round_no, step=STEP):
+    """Validate one answer; return ({real name: new bytes}, {real name: (Patch, ...)}, summary).
+
+    `step` labels the patches in provenance: "stage1" or "stage2".
+    """
     blocks = parse_blocks(text)
     per_file, claimed = {}, {}
     for kind, file_id, first, last, original, new in blocks:
@@ -124,7 +127,7 @@ def candidate_patches(text, view, contents, allowed_lines, editable, round_no):
             if start < b and a < end or (start == end and a < start < b) or (start == end == a == b):
                 raise PatchRejected("blocks overlap in " + file_id)
         claimed.setdefault(name, []).append((start, end))
-        per_file.setdefault(name, []).append(Patch(start, end, contents[name][start:end], data, STEP, round_no,
+        per_file.setdefault(name, []).append(Patch(start, end, contents[name][start:end], data, step, round_no,
                                                     "%s %s:%d" % (kind.lower(), file_id, first)))
     edits, patches = {}, {}
     for name, items in per_file.items():

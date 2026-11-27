@@ -263,3 +263,30 @@ mando 测试通过。D26 全量在第 73 个单元 cp3_06775 的第 3 步发布�
 其他依赖按每单元内不同的包和版本计，T1 为 0，T2 为 0，T3 为 10。同一单元可涉及多个包。每个已接受的前缀发布版均对照封存索引、原生身份及版本证据；普通包按 D22 记录层级与 inferred。首轮 cp3_06775 的 OpenZeppelin 2.3.0 具有版本前缀证据，T1、inferred=false；普通伴随依赖 @eth-optimism/contracts 0.2.11 为 T3、inferred=true。按更正后的 D26 和 D22 两项均通过。
 
 新增样本的原生 corpus_unchanged=True。每个新增单元还对照了本轮开始时的项目 Solidity 文件清单和哈希。首轮沿用封存结果，并复核了 73 个结果、步骤日志和接受轮次的 SHA256。首轮没有生成全量语料标记。本轮范围是按项目抽样，合并结果覆盖原名单的 230/1,539 项。汇总与逐单元原生收据哈希见 `artifacts/cp6_4_v1/local/d26_r2.json`、`d26_r2_units.jsonl.gz`。
+
+## CP6.5 CP6 补全（修改 AI：Claude，2026-11-25；全部云端）
+
+### 实现
+- `rules/normalize.py`：第 5 步文档迁移（`documented_migrations`）与 NatSpec `@param` 置空（`natspec_parameters`）；第 10 步元组调用改写（`tuple_call_rewrites`）。
+- `rules/environment.py`：`disjunction_plan`（`||` 并集选版；冻结的 `pragma_interval` 不变）。
+- `rules/stubs.py`：具名构造推出字段的结构体桩。
+- `pipeline.py`：读取失败后调用并集选版；迁移门槛；第 10 步试验先用 solc 已通过的版本。
+- 测试 `tests/test_cp65.py` 63 项；test_cp63 的 1 个预期与 3 个 `||` 流水线测试按 D6 路由修改（DECISIONS CP6.5 表）。非测试文件仍为 20 个。
+
+### 真实验收
+
+| 项 | 预期 | 实际 | 来源 |
+|---|---|---|---|
+| 生产测试 | 全部通过 | 1,298 passed / 6 skipped | artifacts/cp6_5_v1/production_tests_cloud.json |
+| MANDO 回归 | 843 个图不变，3 个历史失败经第 10 步成功 | passed=true（graphs_equal 843，new_successes 3） | artifacts/cp6_5_v1/mando_check_cloud.json |
+| 真实 319 个单元 | 不退步 | 成功 65 → 67（46 → 48 个来源），无退步，版本不变 | artifacts/cp6_5_v1/real_final_cloud.json |
+| other、io_error、closure_version_conflict | 逐项诊断 | 见 cp6_5_v1/README.md 诊断表（交代理） | 同上 |
+
+### 测试与开发记录
+冻结 pragma 读取一度被改为接受 `||`（9 个测试失败），改为单独规则；第 10 步改写后 MANDO 的 3 个单元曾改用 0.4.12 编译，改为先用 solc 已通过的版本。
+
+### 归档与复现
+`artifacts/cp6_5_v1/`（README、mando_check.py、真实单元目标与逐单元结果）；命令见该 README。
+
+### 停止位置与后续边界
+CP6 完成；不需要本机运行。下一步 CP7。本节为 CP7–CP9 文档核对时补写（CHANGE_LOG §86）。

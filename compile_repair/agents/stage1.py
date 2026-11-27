@@ -10,21 +10,18 @@ and how its answers become candidate patches. Per round:
 5. rejected candidates and their errors go into the next round's prompt.
 The stage ends when the rounds or the budget run out, or after `stall_rounds`
 consecutive rounds that the pipeline did not accept (PROMPTS 3.5 item 6); the second
-stage (agents/stage2.py, CP9) then takes over.
+stage (agents/stage2.py) then takes over from the best state reached.
 
 Language check (r2.16): for an input whose language is unknown and whose errors all
 belong to the parser phase (the pipeline's D27 phase table), one short call first asks whether the text is Solidity; any answer
 but SOLIDITY ends the stage without a repair call.
 """
-import json
 from dataclasses import dataclass, field
-from pathlib import Path
 
-from compile_repair.agents.llm import Budget, BudgetExhausted, HttpClient, Pricing
+from compile_repair.agents.llm import BudgetExhausted
 from compile_repair.agents.patch import PatchRejected, candidate_patches
 from compile_repair.agents.prompt import (LANGUAGE_SYSTEM, SYSTEM, build_view, error_lines, knowledge_block,
     knowledge_query, language_prompt, repair_prompt)
-from compile_repair.rag.knowledge import KnowledgeBase
 
 # Defaults until CP8's small authorized sample decides them (PROMPTS 3.5 item 1: the window
 # is chosen on the benchmark); k = 5 is CP7's choice.
@@ -51,6 +48,14 @@ class Stage1:
 
     def active(self):
         return self.stopped is None
+
+    @property
+    def records(self):
+        return self.client.records
+
+    @property
+    def budget(self):
+        return self.client.budget
 
     def language_ok(self, view, language_status, parser_only):
         """True unless the r2.16 check applies and the model says the text is not Solidity."""
@@ -102,47 +107,20 @@ class Stage1:
                 rejected.append(dict(candidate=index, reason=str(exc)))
                 self.history.append(dict(reason=str(exc), patch=text, errors=[]))
                 continue
-            candidates.append((edits, patches, dict(summary, candidate=index, text=text)))
+            candidates.append((edits, patches, dict(summary, candidate=index, votes=1, stage=1, text=text)))
         evidence.update(request_sha256=answer.request_sha256, cached=answer.cached, cost_usd=round(answer.cost_usd, 6),
                         input_tokens=answer.input_tokens, output_tokens=answer.output_tokens,
                         knowledge=hit_ids, rejected=rejected, valid=len(candidates))
         return candidates, evidence
 
     def observe(self, accepted, outcomes):
-        """Feed the pipeline's verdicts back: non-chosen candidates enter the history."""
-        for text, reason, errors in outcomes:
-            self.history.append(dict(reason=reason, patch=text, errors=errors))
+        """Feed the pipeline's verdicts back: non-chosen candidates enter the history.
+
+        `outcomes` holds (candidate summary, reason, error lines) per candidate not chosen.
+        """
+        for summary, reason, errors in outcomes:
+            self.history.append(dict(reason=reason, patch=summary["text"], errors=errors))
         self.stalled = 0 if accepted else self.stalled + 1
         if self.stalled >= self.stall_rounds:
             self.stopped = "stalled"
 
-
-CONFIG_KEYS = {"model", "api", "key_env", "base_url", "pricing", "budget", "cache_dir", "knowledge", "window",
-               "candidates", "rounds", "stall_rounds", "k", "temperature", "max_output_tokens"}
-
-
-def agent_from_config(path):
-    """Stage1 with an HTTP client from a JSON file (D12: model, API, prices, budget).
-
-    Required: model, api ("anthropic" or "openai"), key_env (the name of the environment
-    variable holding the key, never the key), pricing {input_per_million,
-    output_per_million}, budget {max_calls, max_tokens, max_cost_usd}. Optional:
-    base_url, cache_dir, knowledge (a sealed rag knowledge directory), window,
-    candidates, rounds, stall_rounds, k, temperature, max_output_tokens.
-    """
-    config = json.loads(Path(path).read_text(encoding="utf8"))
-    unknown = set(config) - CONFIG_KEYS
-    if unknown:
-        raise ValueError("Unknown agent configuration keys: %s" % sorted(unknown))
-    if any(len(str(v)) > 20 and str(v).startswith(("sk-", "sk_")) for v in config.values()):
-        raise ValueError("The configuration must name the key's environment variable, not contain a key")
-    client = HttpClient(config["model"], config["api"], Budget(**config["budget"]), Pricing(**config["pricing"]),
-                        config["key_env"], base_url=config.get("base_url"), cache_dir=config.get("cache_dir"),
-                        max_output_tokens=config.get("max_output_tokens", 2048),
-                        temperature=config.get("temperature", 0.8))
-    knowledge = KnowledgeBase.load(config["knowledge"]) if config.get("knowledge") else None
-    options = {k: config[k] for k in ("window", "candidates", "rounds", "stall_rounds", "k") if k in config}
-    agent = Stage1(client, knowledge, **options)
-    agent.description = dict({k: config[k] for k in sorted(config) if k != "cache_dir"},
-                             knowledge_counts=None if knowledge is None else {s: len(e) for s, e in knowledge.by_source.items()})
-    return agent
