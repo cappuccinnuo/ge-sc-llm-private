@@ -1,6 +1,6 @@
 # CP8 证据：第一阶段代理（模拟 LLM 部分；修改 AI：Claude，2026-11-27）
 
-规格见 PROMPTS r2.38 §4.8，记录见 docs/CHANGE_LOG.md §85。本目录只有模拟 LLM 的结果；真实模型的小样本运行等用户决定 D12（模型、API、费用上限）并确认 D10 后进行。没有发生任何真实 LLM 调用，费用 0。
+规格见 PROMPTS r2.38 §4.8，记录见 docs/CHANGE_LOG.md §85。本目录只有模拟 LLM 的结果；用户 2026-11-27：D10 确认；D12 的模型与 API 暂不指定（接口已留），第一次授权运行的总费用上限 US$10。没有发生任何真实 LLM 调用，费用 0。
 
 ## 实现
 
@@ -23,7 +23,7 @@
 
 ## 用于真实运行
 
-- `agent_config.example.json`：配置模板，预算全为 0（任何调用都会在发送前被拒），由用户按 D12 填写。
+- `agent_config.example.json`：配置模板，预算全为 0（任何调用都会在发送前被拒）；接入模型时填写模型、API、单价，第一次运行 `max_cost_usd` 不超过 10。
 - `build_knowledge.py <docs> <out> [--index <索引>] [--memory <targets> <run>]...`：构建封存的知识目录（云端示例：K1 3,791、K2 75、K3 72 条）。
 - `dry_run.py`：上面的模拟运行。
 - 待定参数：上下文行数 `window`（PROMPTS 3.5 第 1 条要求在基准上确定）、候选数 N 与轮数，在授权的小样本运行的 dev 划分上确定；当前默认 window 10、N 3、轮数 4、停滞 2 轮。

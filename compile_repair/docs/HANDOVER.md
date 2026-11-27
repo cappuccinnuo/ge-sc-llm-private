@@ -4,7 +4,7 @@
 
 ## 0. 一句话
 
-CP8 模拟 LLM 部分完成（CHANGE_LOG §85）：agents/ 的客户端、D10 视图、带原文校验的补丁、第一阶段代理与流水线接入；生产 1,335 / 6，MANDO 不变，40 个真实单元模拟运行 0 泄露。真实运行等用户决定 D12 并确认 D10。CP7 已完成（§83、§84）。
+CP8 模拟 LLM 部分完成（CHANGE_LOG §85）：agents/ 的客户端、D10 视图、带原文校验的补丁、第一阶段代理与流水线接入；生产 1,335 / 6，MANDO 不变，40 个真实单元模拟运行 0 泄露。D10 已确认；D12 的模型与 API 暂不指定（接口已留），首次授权运行上限 US$10。CP7 已完成（§83、§84）。
 
 ## 1. 当前状态
 
@@ -977,3 +977,5 @@ Codex 的 K2 本机全量（951b4db7）经核对：脚本与输出哈希一致�
 ### 2026-11-27 CompileRepair CP8：第一阶段代理（模拟 LLM 部分；修改 AI：Claude）
 
 新增 agents/ 的 llm.py、prompt.py、patch.py、stage1.py，pipeline 接入代理轮，cli 增加 `--agent-config`，测试 `tests/test_cp8.py`（22 项），证据 `artifacts/cp8_v1/`；PROMPTS r2.37 → r2.38（4.8），DECISIONS 增加 CP8 表。云端：生产 1,335 / 6，MANDO 不变，模拟运行 0 泄露。待用户：D12、D10。本文开头、第 0、1 节换成本轮状态。详见 CHANGE_LOG §85。
+
+用户 2026-11-27 决定：D10 确认；D12 模型与 API 暂不指定、接口保留，首次授权运行上限 US$10（PROMPTS r2.39，CHANGE_LOG §85.6）。
