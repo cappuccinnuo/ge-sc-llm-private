@@ -180,7 +180,8 @@ def test_relocated_module_seals_without_git(tmp_path, missing_git):
     files = list(module.glob("*.py")) + [p for folder in module.iterdir()
         if folder.is_dir() and folder.name not in ("tests", "docs", "artifacts")
         for p in folder.rglob("*.py")]
-    assert len(files) == 23  # CP6.1 adds rules/normalize.py, CP6.2 rules/stubs.py, CP7 the rag/ package
+    assert len(files) == 28  # CP6.1 rules/normalize.py, CP6.2 rules/stubs.py, CP7 rag/, CP8 agents/ (5 files)
+    assert all(module / "agents" / n in files for n in ("llm.py", "prompt.py", "patch.py", "stage1.py"))
     assert module / "rag" / "knowledge.py" in files and module / "rag" / "retrieve.py" in files
     assert module / "rules" / "dependencies.py" in files
     assert module / "rules" / "normalize.py" in files and module / "rules" / "stubs.py" in files

@@ -30,6 +30,8 @@ def main(argv=None, result_check=None):
     cp1.add_argument("--output", type=Path, required=True)
     cp1.add_argument("--order", choices=("ascending", "descending"), default="ascending")
     cp1.add_argument("--regression", choices=("mando",))
+    cp1.add_argument("--agent-config", type=Path,
+                     help="JSON file enabling the first-stage LLM agent (model, API, key variable, prices, budget)")
     benchmark = sub.add_parser("benchmark", help="Evaluate one CP4 source mutation or unmodified control")
     benchmark.add_argument("--catalog", type=Path, required=True)
     benchmark.add_argument("--unit-id", required=True)
@@ -43,7 +45,7 @@ def main(argv=None, result_check=None):
     if args.command == "repair":
         try:
             result = repair(args.paths, args.output, args.snippet, args.known_version, args.order, args.regression,
-                            result_check=result_check, remappings=args.remapping)
+                            result_check=result_check, remappings=args.remapping, agent=args.agent_config)
         except (ValueError, OSError) as exc:
             parser.error(str(exc))
     elif args.command == "benchmark":

@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.37（2026-11-26；r2.36 同日；r2.35、r2.34、r2.33、r2.32 为 2026-11-25；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.38（2026-11-27；r2.37、r2.36 为 2026-11-26；r2.35、r2.34、r2.33、r2.32 为 2026-11-25；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,10 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.38 相对 r2.37 的修改**（CP8：第一阶段代理，模拟 LLM 部分；修改 AI：Claude）：
+1. 用户（2026-11-27）：按建议开始 CP8。新增 4.8 节：规格、模拟 LLM 的云端结果、真实运行前需要用户决定的事项（D12、D10）。
+2. 3.5 节的细化：补丁格式写定为 REPLACE / INSERT 块；候选按（是否成功、错误数、改动字节）择优后仍走 3.1 节的接受规则；语言核对按 D27 阶段表判断“只有解析类错误”。
 
 **r2.37 相对 r2.36 的修改**（CP7 审查；修改 AI：Claude）：
 1. Codex 的 K2 本机全量（提交 951b4db7）经核对成立：同包同路径 test hit@5 0.977，字节相同的发布版 hit@3 1.0；CP7 完成（CHANGE_LOG §84）。4.7 节补“本机结果”。下一步 CP8。
@@ -1962,6 +1966,24 @@ Codex 提交 951b4db7：114 个样本、421 个查询；同包同路径 test hit
    缺包样本是 CP5（4.6h、4.6i）评测用的 unresolved_package_import 样本（cp5_2_v1 的 benchmark_scores 中 114 个），mutation.json 在它们的本机样本目录中；索引是 CP5 评测使用的同一个封存索引。
 2. 把实际命令、索引 seal.json 的 index_sha256、mutation.json 的个数与 SHA-256 清单写入 `compile_repair/artifacts/cp7_v1/local/k2_run.json`。
 3. 不改代码、不改其他产物；脚本报错或 mutation.json 缺少 package / logical_package_paths / original_sha256 字段时停止并记录原样输出。只提交 local/ 下的两个文件（`git add -f`）。
+
+### 4.8 CP8：第一阶段代理（r2.38；Claude 实现，模拟 LLM 已在云端核验，真实运行待 D12）
+
+#### 规格（已由 Claude 实现，见 CHANGE_LOG §85）
+- agents/llm.py：预算（调用数、令牌、美元）在发送前检查；按请求 SHA-256 缓存；每次调用记录模型、请求哈希、是否缓存、令牌、费用、耗时、错误；Anthropic Messages 与 OpenAI 兼容两种 API；密钥只在调用时从环境变量读取。
+- agents/prompt.py：D10 视图（F 编号、导入字符串编号、注释等长遮蔽、消息中的路径换编号）；错误前后 window 行与点名声明；K1–K3（k=5）；唯一模板。
+- agents/patch.py：REPLACE 块给出原文行（含行号），与视图不一致即整候选拒绝；改写只限错误所在行；INSERT 任意位置；不得加注释、不得改第 3 步库文件、块不得重叠。
+- agents/stage1.py：N 个候选；语言核对（r2.16）；被拒候选与错误进入下一轮；轮数、预算或连续 2 轮未接受时停止。
+- pipeline.py：传入代理时，规则不再改动后进行代理轮，候选在副本上编译并按 3.1 节规则接受，接受后回到规则；写 llm_calls.json；不传代理时不变。cli：`repair --agent-config <json>`。
+- 测试：tests/test_cp8.py（22 项）。非测试文件 28 个。
+
+#### 云端结果（artifacts/cp8_v1/README.md）
+生产 1,335 passed / 6 skipped；MANDO 843 个图不变；模拟代理流过 40 个真实失败单元，提示中位 8,620 字符，0 个单元泄露文件名、路径或注释。
+
+#### 真实运行之前（需要用户）
+1. D12：模型与 API、单价、费用上限（小样本运行的总上限）。
+2. D10：确认 LLM 视图的匿名化与注释遮蔽（已按建议实现）。
+3. 之后的小样本运行：CP4 基准 dev 划分上确定 window、N、轮数，再在 test 与外部语料小样本上报告修复率与费用；这一步只需要云端（基准样本的首行与源码在云端可得的部分）或本机（完整基准样本），届时写定。
 
 ### 4.6 CP4–CP10（范围与验收；CP3 之后逐个细化）
 

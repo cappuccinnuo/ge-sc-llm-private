@@ -14,6 +14,7 @@ from pathlib import Path
 from compile_repair.core.model import CompilationUnit, ManifestRecord, Patch, SourceFile
 from compile_repair.core.provenance import apply_patches, mark_span, verify_provenance
 from compile_repair.core.store import ArtifactStore, emit, sha256
+from compile_repair.agents.stage1 import agent_from_config
 from compile_repair.rules.dependencies import (OfflineIndex, build_index, dependency_choices,
     chain_relative_issues, relative_repairs)
 from compile_repair.rules.normalize import migration_versions, normalization_repairs, slither_compat_repairs, slither_rewrite_applicable
@@ -370,8 +371,14 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
                 compile_fn=compile_file, slither_fn=run_slither, project=None,
                 project_compile_fn=compile_project, *, project_index=None, offline_index=None,
                 dependency_policy=DEFAULT_DEPENDENCY_POLICY, environment_only=False,
-                dependency_limit=DEFAULT_DEPENDENCY_LIMIT, mask_versions=False):
-    """Run environment selection, then deterministic project repairs on exclusive working copies."""
+                dependency_limit=DEFAULT_DEPENDENCY_LIMIT, mask_versions=False, agent=None, group=None):
+    """Run environment selection, then deterministic project repairs on exclusive working copies.
+
+    With an agent (agents/stage1.py), rounds of LLM candidates follow whenever the rules
+    change nothing; an accepted candidate sends the unit back through the rules (PROMPTS
+    3.1). `group` is the unit's project group for K3 leave-one-project (default: the
+    project root, or the source path of a single file). Without an agent nothing changes.
+    """
     if dependency_limit is not None and (type(dependency_limit) is not int or dependency_limit < 1):
         raise ValueError("dependency_limit must be a positive integer or None")
     prefix = "units/" + unit.unit_id + "/"
@@ -381,7 +388,7 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         store.write_json(prefix + "result.json", record)
         return record
     before, categories = _failure_measure(record)
-    if not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES | _STUB_FAILURES
+    if agent is None and not categories.intersection(_DEPENDENCY_FAILURES | _NORMALIZATION_FAILURES | _STUB_FAILURES
                                    | _STRUCTURE_FAILURES) and not slither_rewrite_applicable(_slither_failures(record)) \
             and migration_versions(_failed_diagnostics(record)) is None:
         store.write_json(prefix + "result.json", record)
@@ -410,6 +417,11 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         project_index = ProjectIndex(source_path.parent, (source_path,))
         project = resolve_project(project_index.root, source_path, index=project_index)
     index = project_index or ProjectIndex(project.root)
+    if group is None:
+        group = str(original_project.root) if original_project is not None else unit.sources[0].path
+    llm_records_start = len(agent.client.records) if agent is not None else 0
+    if agent is not None:
+        agent.reset()
     originals = {}
     overlays, origins, existing_releases = {}, {}, {}
     attempts = 0
@@ -482,6 +494,71 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         if accepted and not defer:
             select(result, steps[-1])
         return accepted, result
+
+    def agent_round():
+        """One first-stage round (PROMPTS 3.5): candidates, trial compiles, best by errors then bytes."""
+        nonlocal project, overlays, origins
+        contents = {n: f.content for n, f in ((Path(f.path).relative_to(project.root).as_posix(), f)
+                                            for f in project.files) if not n.startswith(".compile_repair/")}
+        contents.update({n: raw for n, raw in overlays.items() if n in contents})
+        diagnostics = _diagnostics_by_file(record, set(contents))
+        versions = [a["version"] for a in record.attempts
+                    if a.get("solc") and a["solc"]["returncode"] not in (0, None) and not a["solc"]["timed_out"]]
+        version = versions[0] if versions else record.selected_version
+        # The prompt shows the errors of one compiler version: the first one tried.
+        diagnostics = {n: [r for r in rows if version in r["versions"]] for n, rows in diagnostics.items()}
+        diagnostics = {n: rows for n, rows in diagnostics.items() if rows}
+        # Errors that are not solc diagnostics: unresolved imports and version-constraint failures.
+        for issue in project.issues or ():
+            if issue.get("importer") in contents:
+                diagnostics.setdefault(issue["importer"], []).append(dict(
+                    kind="ImportError", message='Source "%s" not found' % issue.get("path"), line=issue.get("line"),
+                    category=issue.get("category") or "unresolved_import", versions=[version]))
+        for attempt in record.attempts:
+            if attempt.get("stage") == "environment_plan" and attempt.get("error_first_line"):
+                diagnostics.setdefault(None, []).append(dict(kind="VersionError", message=attempt["error_first_line"],
+                                                             line=None, category="version_constraints"))
+        # Verified dependency release files (step 3) are never edited.
+        fixed = {n for n, (_, ps) in origins.items() if any(p.step == "dependency" for p in ps)}
+        editable = set(contents) - fixed
+        entry = Path(project.entry)
+        entry = (entry.relative_to(project.root) if entry.is_absolute() else entry).as_posix()
+        status = (record.inputs[0].get("language_evidence") or {}).get("status", "solidity")
+        rows = [r for rows in diagnostics.values() for r in rows]
+        parser_only = bool(rows) and all(_PHASES.get(r.get("category")) == 1 for r in rows)
+        candidates, evidence = agent.propose(contents, entry, diagnostics, version, editable, project.issues, group,
+                                             attempts + 1, status, parser_only)
+        steps.append(dict(step=11, operation="stage1_round", **evidence))
+        trials = []
+        for edits, patches, summary in candidates:
+            maps = dict(origins)
+            for name, extra in patches.items():
+                original, previous = maps[name] if name in maps else ((Path(project.root) / name).read_bytes(), ())
+                maps[name] = original, previous + extra
+            working = dict(overlays)
+            working.update(edits)
+            candidate = resolve_project(project.root, project.entry, project.remappings, index,
+                                        project.additional_entries, working)
+            improves, result = try_project(11, candidate, maps, dict(stage1={k: v for k, v in summary.items()
+                                                                              if k != "text"}), defer=True)
+            errors = steps[-1]["errors_after"]
+            rank = (result.status != "success", errors if errors is not None else float("inf"),
+                    summary["changed_bytes"], summary["candidate"])
+            trials.append((rank, improves, result, steps[-1], candidate, working, maps, summary))
+        chosen = min((t for t in trials if t[1]), key=lambda t: t[0], default=None)
+        outcomes = []
+        for trial in trials:
+            if trial is not chosen:
+                rows = _failed_diagnostics(trial[2])
+                outcomes.append((trial[7]["text"], "not accepted: %s" % (trial[2].reason or trial[2].status),
+                                 ["%s: %s" % (r["kind"], r["message"]) for r in rows][:5]))
+        if chosen is not None:
+            _, _, result, measurement, project, overlays, origins, _ = chosen
+            select(result, measurement)
+        agent.observe(chosen is not None, outcomes)
+        if not agent.active():
+            steps.append(dict(step=11, operation="stage1_end", reason=agent.stopped))
+        return chosen is not None, record.status == "success" or record.reason == "solc_timeout"
 
     needs_assembly = wrapper is not None or original_project is None
     while True:
@@ -629,7 +706,11 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
             stop = result.status == "success" or result.reason == "solc_timeout"
         if stop:
             break
-        if not changed:
+        while not changed and agent is not None and agent.active():
+            changed, stop = agent_round()
+            if stop:
+                break
+        if stop or not changed:
             break
     if (compile_clean is not None and record.status != "success"
             and record.reason not in ("slither_side_failure", "solc_timeout")):
@@ -654,6 +735,11 @@ def repair_unit(unit, compilers, store, journal, order="ascending",
         for name in ("graph.json", "nodes.json"):
             store.write_bytes(prefix + name, (store.path / (accepted_prefix + name)).read_bytes())
     store.write_json(prefix + "repair_steps.json", steps)
+    if agent is not None:
+        # Every LLM call of this unit (PROMPTS invariants); keys never enter the records.
+        store.write_json(prefix + "llm_calls.json", dict(calls=agent.client.records[llm_records_start:],
+                                                         budget=agent.client.budget.snapshot(),
+                                                         stopped=agent.stopped))
     store.write_json(prefix + "result.json", record)
     return record
 
@@ -670,7 +756,7 @@ def _code_commit(root):
 
 def repair(paths, output, snippets=(), known_version=None, order="ascending", regression=None,
            *, compile_fn=compile_file, result_check=None, remappings=(), offline_index=None,
-           dependency_policy=DEFAULT_DEPENDENCY_POLICY, dependency_limit=DEFAULT_DEPENDENCY_LIMIT):
+           dependency_policy=DEFAULT_DEPENDENCY_POLICY, dependency_limit=DEFAULT_DEPENDENCY_LIMIT, agent=None):
     """Run the common production entry for files/snippets/project directories; return batch summary.
 
     Directories expand to one unit per .sol entry and its transitive closure.
@@ -679,10 +765,13 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
     tests. Missing git/HEAD is flagged and sealed as null, with file hashes kept.
     An optional result_check(record, output_path) may raise to stop and seal
     after a flushed per-input record; it never participates in version choice.
-    No compiler download, global selection or LLM occurs.
+    No compiler download or global selection occurs; LLM calls happen only with an
+    explicit agent (a Stage1, or the path of its JSON configuration), within its budget.
     """
     if order not in ("ascending", "descending") or regression not in (None, "mando"):
         raise ValueError("Unsupported repair configuration")
+    if isinstance(agent, (str, Path)):
+        agent = agent_from_config(agent)
     if known_version is not None:
         version_tuple(known_version)
     supplied = [(Path(p).resolve(), "file") for p in paths] + [(Path(p).resolve(), "snippet") for p in snippets]
@@ -734,6 +823,8 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
                 tools["dependency_index"] = offline_index.seal
                 summary["dependency_policy"] = dependency_policy
                 summary["dependency_limit"] = dependency_limit
+            if agent is not None:
+                tools["agent"] = getattr(agent, "description", dict(model=agent.client.model))
             tools.update(check_profile("production"))
             compilers, frozen_rows, evidence = load_trusted_compilers()
             tools["compilers"] = {v: asdict(c) for v, c in compilers.items()}
@@ -758,8 +849,11 @@ def repair(paths, output, snippets=(), known_version=None, order="ascending", re
                 record = repair_unit(unit, compilers, store, journal, order,
                                      compile_fn=compile_fn, project=project, project_index=project_index,
                                      offline_index=offline_index, dependency_policy=dependency_policy,
-                                     dependency_limit=dependency_limit)
+                                     dependency_limit=dependency_limit, agent=agent)
                 emit(manifest, record)
+                if agent is not None:
+                    summary["llm_calls"] = agent.client.budget.calls
+                    summary["cost_usd"] = round(agent.client.budget.cost_usd, 6)
                 summary["units"].append({"unit_id": unit.unit_id, "input_sha256": digest,
                     "status": record.status, "reason": record.reason, "selected_version": record.selected_version})
                 print("CP1 {}/{}: {} {}".format(number, len(expanded), record.status,
