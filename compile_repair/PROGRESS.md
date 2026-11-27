@@ -778,3 +778,8 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - K1：92 个版本的官方文档，3,791 节；K2：CP5 离线索引；K3：带项目分组的修复记忆；先精确键再 BM25。
 - 云端：K1 test hit@5 0.826（k=5 由 dev 选出）；K3 hit@5 0.93，留一检查通过；生产 1,313 passed / 6 skipped。
 - 待 Codex：PROMPTS §4.7 本机步骤（K2 全量评测）；记录 `docs/CHANGE_LOG.md` §83。
+
+## CP7 审查（Claude，2026-11-26）
+
+- Codex K2 本机全量核对通过：同包同路径 test hit@5 0.977，字节相同发布版 hit@3 1.0。
+- CP7 完成；下一步 CP8；记录 `docs/CHANGE_LOG.md` §84。

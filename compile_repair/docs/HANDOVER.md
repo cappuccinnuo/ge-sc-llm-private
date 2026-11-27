@@ -1,10 +1,10 @@
 # CompileRepair 交接文档
 
-> 本轮先读 artifacts/cp7_v1/README.md 与 CHANGE_LOG §83。
+> 本轮先读 artifacts/cp7_v1/README.md 与 CHANGE_LOG §83、§84。
 
 ## 0. 一句话
 
-CP7 云端部分完成（CHANGE_LOG §83）：K1 文档（92 个版本）、K2 库索引、K3 修复记忆与精确键 + BM25 检索；K1 test hit@5 0.826，k=5；K3 留一检查通过。剩 K2 全量评测在本机（PROMPTS §4.7）。CP6 已完成（§82）。
+CP7 完成（CHANGE_LOG §83、§84）：K1 文档、K2 库索引、K3 修复记忆，精确键 + BM25；k=5；K1 test hit@5 0.826，K2 0.977（本机全量），K3 0.93 且留一检查通过。下一步 CP8（第一阶段代理，先用模拟 LLM；真实调用需用户授权模型与费用上限）。
 
 ## 1. 当前状态
 
@@ -17,7 +17,7 @@ CP7 云端部分完成（CHANGE_LOG §83）：K1 文档（92 个版本）、K2 �
 | CP6.3 | 已审查通过（CHANGE_LOG §76） |
 | CP6.4 | 已审查通过（CHANGE_LOG §81）；CP6 总结见 artifacts/cp6_4_v1/README.md |
 | CP6.5 | CP6 补全，云端核验（CHANGE_LOG §82）；CP6 总结见 artifacts/cp6_5_v1/README.md |
-| CP7 | 云端完成，K2 全量待本机（CHANGE_LOG §83；artifacts/cp7_v1/README.md） |
+| CP7 | 完成（CHANGE_LOG §83、§84；artifacts/cp7_v1/README.md） |
 | 工作方式 | Claude 在 GitHub 编码并云端核验 → 本地运行步骤 → Codex 本机运行 → Claude 审查 |
 | 已知限制 | 内容不同或不同类的重名不处理；普通变量与普通调用的未声明不加桩；片段中未导入的库合约、不在语料中的导入目标、不相容的 pragma 留给代理；三元表达式的 SlithIR 限制（1 个项目）；小基准严格 exact 受内嵌元数据哈希影响 |
 | 下一步 | CP7：RAG 知识库（K1 下载对应版本文档，K2 复用 CP5 索引，K3 留一项目），Claude 在 GitHub 实现并云端核验 |
@@ -59,8 +59,6 @@ CP5.1 在生产环境运行 solc、Slither 及基准。归档传输固定使用�
 CP5.2 的 18 个生产文件在三套回归前后逐项核验。WSL 恢复和实测代理保护的依据在本批 network_recovery.json 与 launcher_continuity.json。
 
 ## 4. 必读与下一步
-
-CP7 先读 artifacts/cp7_v1/README.md；Codex 只运行 PROMPTS §4.7 的本机步骤。
 
 CP6.5 先读 artifacts/cp6_5_v1/README.md 的 D6 对照表与诊断表，再看 mando_check_cloud.json 与 real_final_cloud.json。
 
@@ -970,3 +968,7 @@ CP6.3 复算 Codex 本机结果通过（CHANGE_LOG §76）。CP6.4 一次完成�
 ### 2026-11-26 CompileRepair CP7：RAG 知识库（修改 AI：Claude）
 
 新增 `rag/knowledge.py`、`rag/retrieve.py`，`evaluation/report.py` 增加检索基准，测试 `tests/test_cp7.py`（15 项），证据 `artifacts/cp7_v1/`；PROMPTS r2.35 → r2.36（4.7），DECISIONS 增加 CP7 表。云端：K1 test hit@5 0.826、k=5；K3 留一检查通过；生产 1,313 / 6。本机只剩 K2 全量评测。本文开头、第 0、1、4 节换成本轮状态。详见 CHANGE_LOG §83。
+
+### 2026-11-26 CompileRepair CP7 审查（修改 AI：Claude）
+
+Codex 的 K2 本机全量（951b4db7）经核对：脚本与输出哈希一致，114 个样本、421 个查询，同包同路径 test hit@5 0.977；9 个未命中由 pragma 过滤造成（有意）。CP7 完成，下一步 CP8。详见 CHANGE_LOG §84。

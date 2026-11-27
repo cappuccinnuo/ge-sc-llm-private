@@ -3362,3 +3362,19 @@ DECISIONS 增加 CP7 表。待用户决定：规则桩的最小函数体例外�
 ### 83.5 验收、资源、未执行事项与停止
 
 费用 0，没有 LLM 调用。未执行：K2 全量评测（需要本机完整索引与 CP5 样本，PROMPTS §4.7 本机步骤）。Codex 完成后审查，CP7 才结束。
+
+## 84. 2026-11-26 CompileRepair CP7 审查：K2 本机全量与 CP7 完成（修改 AI：Claude）
+
+### 84.1 任务、依据与范围
+
+Codex 按 PROMPTS §4.7 本机步骤在 f3cbf712 上运行 K2 全量评测，提交 951b4db7（只含 `artifacts/cp7_v1/local/k2_benchmark_local.json` 与 `k2_run.json`）。本轮审查并更新 cp7_v1/README.md 与记录，不改代码。
+
+### 84.2 审查
+
+- 运行记录：提交号、脚本 SHA-256（03fc2eee…）与仓库中的脚本一致，输出 SHA-256 与提交的文件一致；索引 20 个包、172 个发布版、13,073 个文件；114 个 mutation.json（test 106、dev 8），421 个被移除文件；没有缺字段；returncode 0。
+- 结果：同包同路径 test hit@5 0.977（398）、dev 1.0（23）；字节相同的发布版 test hit@3 = hit@5 = 1.0（202），hit@1 0.668。
+- 9 个未命中都来自 @openzeppelin/contracts-ethereum-package：精确键只匹配该包该路径的文件，k=10 内仍无正确命中，只能是 pragma 过滤排除了所有发布版；这是有意的行为（不给出与选定编译器不相容的库文件），记入 README。
+
+### 84.3 结论
+
+CP7 完成：K1 test hit@5 0.826，K2 0.977，K3 0.93 且留一检查通过，k=5。下一步 CP8（第一阶段代理），先用模拟 LLM 完成全部测试；真实模型调用需要用户授权模型与费用上限。费用 0，没有 LLM 调用。

@@ -1,6 +1,6 @@
 # CompileRepair：智能合约编译修复模块方案与 Codex Prompts
 
-版本：r2.36（2026-11-26；r2.35、r2.34、r2.33、r2.32 为 2026-11-25；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
+版本：r2.37（2026-11-26；r2.36 同日；r2.35、r2.34、r2.33、r2.32 为 2026-11-25；r2.31、r2.30、r2.29、r2.28、r2.27、r2.26、r2.25 为 2026-11-24；r2.24 为 2026-11-23；r2.23、r2.22、r2.21、r2.20 同日；r2.19、r2.18、r2.17、r2.16、r2.15 为 2026-11-22；r2.14 为 2026-11-21；r2.13、r2.12、r2.11 为 2026-11-17；r2.10、r2.9、r2.8、r2.7、r2.6 为 2026-11-14；r2.5、r2.4 为 2026-11-13；r2.3、r2.2、r2.1 为 2026-11-12，r2 为 2026-11-11）。分支：`compile-repair`，从 `node-sem@306c135b` 切出（与 `edge-sem` 的起点相同；不含进行中的 EdgeSem 代码）。
 模块目录：仓库根目录下的 `compile_repair/`（与 `scripts/` 同级）。
 证据：`compile_repair/artifacts/cr_pre_v1/`（MANDO 语料的编译与 Slither 证据）、`compile_repair/artifacts/cr_pre_v2/`（外部语料结构统计）。每个目录的 README 列出环境、脚本、结果与复现命令。本文与证据不一致时以证据为准，并在 PROGRESS.md 记录。
 
@@ -86,6 +86,9 @@
 2. 审查发现两个自 CP1 起存在、CP1–CP2.1 审查漏掉的缺陷：（a）版本区间读取先用 MANDO 时代的 tree-sitter 语法解析整个文件，0.8 新语法（`using … global`、用户定义运算符、`transient`、文件级 `event`、`layout at`）使解析失败，可编译的合约被记为 `unsupported_version_constraints`；（b）读取前要求 UTF-8，注释中含非 UTF-8 字节的合约同样被拒，而 solc 与生产 Slither 都接受。两者与“检测时任意输入”的目标冲突，并会污染 CP3 的失败分类。新增 4.4d 节 CP2.3 修复，CP3 之前完成。第 3 节第 1 条改为“语义相同、定位不依赖整文件解析”。
 3. CP3 的诊断前提按审查实测修改（4.5 节第 0 节）：命令行不输出错误类型；位置格式随版本变化；standard JSON 在 0.4.12 会内部错误、在 0.4.12/0.4.17 不给位置；同一错误的措辞随版本变化。分类以命令行消息模板与位置为主，类型列取自文档与能给出类型的版本。3.2 节第 10 行的改写已在三个 Slither 侧失败文件上验证可行，CP3 只分类，实现留 CP6。
 4. 分支：CP2.3 与 CP3 继续在 `compile-repair` 上进行。`rtx5080-rebuild` 已包含 CP2.2，但 5080 重构（`cd0255ac0`）随后改了本模块 5 个生产文件（`pipeline.py`、`rules/environment.py`、`toolchain/solc.py`、`toolchain/slither.py`、`evaluation/survey.py`）与 3 个测试文件：`scripts.DFG` 的导入改为 `dfg` 包，`survey.py` 的登记表读取改为常量，并新增 `toolchain/inventory.py`（从已删除的 `validate_slither.py` 移来）。本模块迁入 5080 主线时需要合并这些改动；按用户决定，现在不迁移。
+
+**r2.37 相对 r2.36 的修改**（CP7 审查；修改 AI：Claude）：
+1. Codex 的 K2 本机全量（提交 951b4db7）经核对成立：同包同路径 test hit@5 0.977，字节相同的发布版 hit@3 1.0；CP7 完成（CHANGE_LOG §84）。4.7 节补“本机结果”。下一步 CP8。
 
 **r2.36 相对 r2.35 的修改**（CP7：RAG 知识库；修改 AI：Claude）：
 1. 用户（2026-11-26）：CP6 没有问题则开始 CP7。新增 4.7 节 CP7 的规格、云端结果与一个本机步骤（K2 全量评测）。
@@ -1950,7 +1953,10 @@ r2.4：A 部分已完成并通过审查（提交 18940a8a；artifacts/cp0_1_revi
 - K3：72 条记忆、59 个项目，hit@5 = 0.93；自己项目的记忆从不返回，只含单个项目时检索为空（59/59）。
 - 生产测试 1,313 passed / 6 skipped。
 
-#### 本机步骤（Codex；只此一项，需要完整 npm 离线索引与 CP5 本机样本）
+#### 本机结果（r2.37）
+Codex 提交 951b4db7：114 个样本、421 个查询；同包同路径 test hit@5 0.977、dev 1.0；字节相同的发布版 test hit@3 1.0；9 个未命中由 pragma 过滤造成（有意）。CP7 完成。
+
+#### 本机步骤（Codex；只此一项，需要完整 npm 离线索引与 CP5 本机样本）（已完成）
 1. 在 `compile-repair` 最新提交上，用 production 环境运行：
    `python -B compile_repair/artifacts/cp7_v1/k2_benchmark.py <CP5 完整离线索引目录> compile_repair/artifacts/cp7_v1/local/k2_benchmark_local.json <CP5 缺包样本的全部 mutation.json>`
    缺包样本是 CP5（4.6h、4.6i）评测用的 unresolved_package_import 样本（cp5_2_v1 的 benchmark_scores 中 114 个），mutation.json 在它们的本机样本目录中；索引是 CP5 评测使用的同一个封存索引。
