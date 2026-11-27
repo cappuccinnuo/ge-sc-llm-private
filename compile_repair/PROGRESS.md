@@ -772,3 +772,9 @@ D23 的 172 份归档已封存，离线索引有 13,073 个 Solidity 文件。D2
 - 逐类别对照 D6：补上 `||` 并集选版、第 5 步文档迁移与 NatSpec、结构体桩、第 10 步元组调用；other、io_error、closure_version_conflict 逐项诊断（交代理）。
 - 云端核验：生产 1,298 passed / 6 skipped；MANDO 843 个图不变，3 个历史失败经第 10 步成功（0.4.24）；真实 319 个单元成功 65 → 67，无退步。
 - 不需要 Codex 本机运行。CP6 完成；下一步 CP7；记录 `docs/CHANGE_LOG.md` §82。
+
+## CP7 RAG 知识库（Claude，2026-11-26）
+
+- K1：92 个版本的官方文档，3,791 节；K2：CP5 离线索引；K3：带项目分组的修复记忆；先精确键再 BM25。
+- 云端：K1 test hit@5 0.826（k=5 由 dev 选出）；K3 hit@5 0.93，留一检查通过；生产 1,313 passed / 6 skipped。
+- 待 Codex：PROMPTS §4.7 本机步骤（K2 全量评测）；记录 `docs/CHANGE_LOG.md` §83。

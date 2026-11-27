@@ -1,9 +1,11 @@
-"""CP3 observed-failure aggregation; policy stays in the common pipeline."""
+"""CP3 observed-failure aggregation and the CP7 retrieval benchmark; policy stays in the pipeline."""
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from compile_repair.rag.retrieve import Query, retrieve
 from compile_repair.toolchain.solc import (
-    classify_constraints, classify_diagnostic, classify_slither, parse_diagnostics)
+    classify_constraints, classify_diagnostic, classify_slither, parse_diagnostics, version_tuple)
 
 
 def classify_record(record):
@@ -247,3 +249,93 @@ def dependency_benchmark_summary(rows):
                     and all(r["original_package_bytes_equal"].values()) for r in samples)
         output.setdefault(split, {})[operator] = item
     return output
+
+
+# ---- CP7: retrieval benchmark (PROMPTS 3.4, 4.7) -----------------------------------------
+
+# Correct K1 knowledge per CP4 operator, fixed from the documentation before any retrieval
+# was run: (file path pattern, heading pattern); a section is correct when its file matches
+# and one heading of its title chain matches. Operators whose repair needs project or
+# library context (K2/K3), or that no documentation section explains (codegen_only,
+# parser_error_other), have no K1 truth and are not scored for K1.
+_PRAGMA = ((r"layout-of-source-files\.rst$", r"^Version Pragma$"),)
+_IMPORTS = ((r"layout-of-source-files\.rst$", r"^(Importing other Source Files|Paths|Import Paths)$"),
+            (r"path-resolution\.rst$", r"."))
+K1_TRUTH = {
+    "closure_version_conflict": _PRAGMA, "unsupported_disjunction": _PRAGMA, "unsupported_expression": _PRAGMA,
+    "unterminated_pragma": _PRAGMA, "pragma_missing_semicolon_candidate": _PRAGMA,
+    "multiple_license_or_pragma": ((r"layout-of-source-files\.rst$", r"^(ABI Coder Pragma|ABIEncoderV2)$"),),
+    "docstring_error": ((r"natspec-format\.rst$", r"^Tags$"),),
+    "syntax_error": ((r"050-breaking-changes\.rst$", r"^Explicitness Requirements$"),
+                     (r"(contracts|visibility-and-getters)\.rst$", r"^Visibility and Getters$")),
+    "encoding": ((r"(types|value-types)\.rst$", r"^(String Literals( and Types)?|Unicode Literals)$"),),
+    "type_error_other": ((r"control-structures\.rst$", r"^Control Structures$"),),
+    "declaration_error": ((r"050-breaking-changes\.rst$", r"^Constructors$"),
+                          (r"(contracts|inheritance|constructor)\.rst$", r"^Constructors?$")),
+    "duplicate_definition": ((r"control-structures\.rst$", r"^Scoping and Declarations$"),),
+    "unimplemented_feature": ((r"(types|reference-types)\.rst$", r"^Data [Ll]ocation( and [Aa]ssignment [Bb]ehaviou?r)?$"),),
+    "io_error": _IMPORTS, "missing_relative_file": _IMPORTS,
+    "standard_json_input": ((r"using-the-compiler\.rst$", r"^(Compiler Input and Output JSON Description|Input Description)$"),),
+}
+
+
+def k1_correct(entry, operator):
+    """Whether a K1 entry is a correct section for the operator (K1_TRUTH)."""
+    return any(re.search(path, entry.payload["path"]) and any(re.search(head, t) for t in entry.payload["titles"])
+               for path, head in K1_TRUTH.get(operator, ()))
+
+
+def receipt_queries(receipts, docs_versions):
+    """One retrieval query per included CP4 sample, from its recorded first error line.
+
+    The version is the sample's selected or environment version, otherwise the newest
+    documented version of its series; the group is the CP4 project group.
+    """
+    newest = {}
+    for v in docs_versions:
+        series = ".".join(v.split(".")[:2])
+        if series not in newest or version_tuple(v) > version_tuple(newest[series]):
+            newest[series] = v
+    samples = []
+    for r in receipts:
+        if r.get("outcome") != "included":
+            continue
+        line = r.get("selected_first_line") or r.get("environment_first_line") or ""
+        version = r.get("environment_version") or newest.get(r.get("series"))
+        categories = tuple(r.get("selected_categories") or r.get("environment_categories") or ())
+        samples.append(dict(sample=r["mutation_sha256"], unit_id=r["unit_id"], operator=r["operator"],
+                            split=r["split"], group=r["group"],
+                            query=Query(errors=(line,), version=version, categories=categories, group=r["group"])))
+    return samples
+
+
+def retrieval_hits(kb, samples, correct, source, k_max):
+    """Per sample, the 1-based rank of the first correct hit within k_max (None if absent)."""
+    entries = {e.entry_id: e for e in kb.by_source[source]}
+    ranks = []
+    for sample in samples:
+        hits = retrieve(kb, sample["query"], k_max, (source,))[source]
+        rank = next((i + 1 for i, h in enumerate(hits) if correct(entries[h.entry_id], sample)), None)
+        ranks.append(dict(sample=sample["sample"], operator=sample["operator"], split=sample["split"],
+                          group=sample["group"], rank=rank, returned=len(hits)))
+    return ranks
+
+
+def hit_rates(ranks, ks):
+    """Share of samples with a correct hit within each k, overall and per operator and split."""
+    table = defaultdict(lambda: defaultdict(lambda: [0] * (len(ks) + 1)))
+    for row in ranks:
+        for key in (("all", row["split"]), (row["operator"], row["split"])):
+            cell = table[key[0]][key[1]]
+            cell[0] += 1
+            for i, k in enumerate(ks):
+                cell[i + 1] += int(row["rank"] is not None and row["rank"] <= k)
+    return {name: {split: dict(samples=c[0], **{"hit@%d" % k: round(c[i + 1] / c[0], 4) for i, k in enumerate(ks)})
+                   for split, c in splits.items()} for name, splits in table.items()}
+
+
+def choose_k(rates, ks, split="dev", tolerance=0.95):
+    """Smallest k whose dev hit rate reaches `tolerance` of the rate at the largest k (PROMPTS 4.7)."""
+    cell = rates["all"][split]
+    best = cell["hit@%d" % ks[-1]]
+    return next(k for k in ks if cell["hit@%d" % k] >= tolerance * best)
